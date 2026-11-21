@@ -75,7 +75,6 @@ export const playGamesCopy = messages({
   assign: 'Assign',
   mechAssignedTo: 'Assigned {mech} to {pilot}.',
   mechNotAssigned: '{mech} could not be assigned. Try again.',
-  undo: 'Undo',
   broughtIn: '{name} moved into this Game.',
   broughtInMany: '{count} units moved into this Game.',
   couldNotBringIn: '{name} could not be moved. Try again.',
@@ -161,6 +160,7 @@ export const playGamesCopy = messages({
   moveUp: 'Move up',
   moveDown: 'Move down',
   takeOutOfThisGame: 'Take out of this Game',
+  tookOutOfThisGame: 'Took {name} out of this Game.',
   newEncounterForThisGame: '+ New encounter',
   noEncountersForThisGame:
     'No encounters for this Game yet. Make one here, or add one from your Mediator’s Kit.',

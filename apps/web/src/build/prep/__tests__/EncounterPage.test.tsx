@@ -194,6 +194,19 @@ describe('an encounter page', () => {
     expect(screen.getByText(/No opposition yet/)).toBeTruthy()
   })
 
+  // MD2-20: it went at once, with no word and no way back.
+  test('a removed opponent comes back where it stood on Undo', async () => {
+    await renderPage()
+    const before = current()?.opposition
+    await click(screen.getByRole('button', { name: 'More for Raider' }))
+    await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Remove' }))
+    await settle(() => current()?.opposition.length === 0)
+    expect(await screen.findByText('Removed Raider.')).toBeTruthy()
+    await click(screen.getByRole('button', { name: 'Undo' }))
+    await settle(() => current()?.opposition.length === 1)
+    expect(current()?.opposition).toEqual(before)
+  })
+
   test('an opponent is renamed from its ⋯ menu', async () => {
     await renderPage()
     await click(screen.getByRole('button', { name: 'More for Raider' }))

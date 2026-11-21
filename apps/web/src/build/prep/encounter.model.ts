@@ -65,6 +65,25 @@ export function opponentFrom(npc: TrayNpcBody, id: string): EncounterOpponent {
 }
 
 /**
+ * The opposition with a removed opponent back where it stood (Undo, MD2-20):
+ * unchanged when it is there already or there is no room, and alone when the
+ * group it fought in has gone since.
+ */
+export function restoredOpponent(
+  encounter: Pick<Encounter, 'opposition' | 'groups'>,
+  opponent: EncounterOpponent,
+  at: number
+): EncounterOpponent[] {
+  const { opposition } = encounter
+  if (opposition.some((o) => o.id === opponent.id) || !hasRoomFor(encounter)) return [...opposition]
+  const { groupId, ...alone } = opponent
+  const grouped = (encounter.groups ?? []).some((g) => g.id === groupId)
+  const back = grouped ? opponent : alone
+  const index = Math.max(0, Math.min(at, opposition.length))
+  return [...opposition.slice(0, index), back, ...opposition.slice(index)]
+}
+
+/**
  * The opposition with a copy of one opponent right after it, named apart
  * ("Raider", then "Raider 2"), in the same group; unchanged with no room.
  */

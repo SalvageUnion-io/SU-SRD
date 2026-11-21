@@ -63,6 +63,7 @@ import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
 import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
 import { useSheetModeStore } from '../sheet/sheetMode.model'
+import { undoToast } from '../sheet/undoToast.model'
 import { EncounterGameField } from './EncounterGame'
 import { GroupedOpposition, GroupNameDialog } from './EncounterGroups'
 import { EncounterTables } from './EncounterTables'
@@ -82,6 +83,7 @@ import {
   pinTable,
   removeGroup,
   renameGroup,
+  restoredOpponent,
   setGroupWave,
   unpinTable,
 } from './encounter.model'
@@ -167,10 +169,17 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   }))
   const fielded = encounter.opposition.map(opponentAsTray)
 
-  const remove = (opponent: EncounterOpponent) =>
+  // At once, as every edit here is, with the way back (MD2-20): Undo puts it
+  // where it stood, unless it is back already.
+  const remove = (opponent: EncounterOpponent) => {
+    const at = encounter.opposition.findIndex((o) => o.id === opponent.id)
     fire((current) => ({
       opposition: current.opposition.filter((o) => o.id !== opponent.id),
     }))
+    undoToast(buildPrepCopy('removedOpponent', { name: opponent.name }), () =>
+      fire((current) => ({ opposition: restoredOpponent(current, opponent, at) }))
+    )
+  }
 
   const move = (opponent: EncounterOpponent, groupId: string | null) =>
     fire((current) => ({

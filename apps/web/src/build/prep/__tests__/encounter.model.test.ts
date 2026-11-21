@@ -18,6 +18,7 @@ import {
   oppositionWith,
   pinTable,
   redesignedOpposition,
+  restoredOpponent,
   unpinTable,
 } from '../encounter.model'
 
@@ -245,5 +246,30 @@ describe('redesignedOpposition', () => {
     expect(
       redesignedOpposition([{ ...vex, ...design, name: 'Warlord Vex' }], 'n1', design)
     ).toBeNull()
+  })
+})
+
+// MD2-20: Remove's Undo.
+describe('restoredOpponent', () => {
+  const o = (id: string, groupId?: string) =>
+    ({ id, name: id, ...(groupId ? { groupId } : {}) }) as unknown as EncounterOpponent
+
+  test('puts it back where it stood, once, and alone when its group has gone', () => {
+    const rest = [o('a'), o('c')]
+    expect(restoredOpponent({ opposition: rest }, o('b'), 1).map((x) => x.id)).toEqual([
+      'a',
+      'b',
+      'c',
+    ])
+    expect(restoredOpponent({ opposition: [o('a'), o('b')] }, o('b'), 0)).toHaveLength(2)
+    const kept = restoredOpponent(
+      { opposition: rest, groups: [{ id: 'g', name: 'G', wave: 1 }] },
+      o('b', 'g'),
+      9
+    )
+    expect(kept[2]).toMatchObject({ id: 'b', groupId: 'g' })
+    expect(restoredOpponent({ opposition: rest }, o('b', 'gone'), 0)[0]).not.toHaveProperty(
+      'groupId'
+    )
   })
 })

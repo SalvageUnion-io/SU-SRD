@@ -29,6 +29,7 @@ import { assignLink } from '../../lib/links/assignLink'
 import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { newInGameHref } from '../../lib/wizard/fromGame'
+import { componentsCopy } from '../../messages/components'
 import { playGamesCopy } from '../../messages/play-games'
 import { CONTAINER_MOVE } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
@@ -120,7 +121,7 @@ export function AddFromTrainingBay({
         `${moved} ${playGamesCopy('mechAssignedTo', { mech: pair.mech.name, pilot: pair.pilot.name })}`,
         {
           action: {
-            label: playGamesCopy('undo'),
+            label: componentsCopy('undo'),
             onClick: () => void useUnits.getState().delete('softLink', drawn.id),
           },
         }

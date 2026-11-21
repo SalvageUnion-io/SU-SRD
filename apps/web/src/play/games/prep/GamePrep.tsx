@@ -17,6 +17,7 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { blankEncounter, encounterHref } from '../../../build/prep/encounter.model'
 import { useSheetModeStore } from '../../../build/sheet/sheetMode.model'
+import { undoToast } from '../../../build/sheet/undoToast.model'
 import { ShelfLedger } from '../../../build/shelves/ShelfLedger'
 import { PageShell } from '../../../components/app'
 import type { HeaderMenuItem } from '../../../components/index'
@@ -149,7 +150,14 @@ function PrepSections({ gameId }: { gameId: string }) {
           id: 'out',
           label: playGamesCopy('takeOutOfThisGame'),
           onSelect: writable(() =>
-            runWrite(() => update(encounter.id, { gameId: undefined, order: undefined }))
+            runWrite(async () => {
+              const { gameId: was, order } = encounter
+              await update(encounter.id, { gameId: undefined, order: undefined })
+              // At once, as every prep edit is, with the way back (MD2-20).
+              undoToast(playGamesCopy('tookOutOfThisGame', { name: encounter.name }), () =>
+                runWrite(() => update(encounter.id, { gameId: was, order }))
+              )
+            })
           ),
         },
       ],

@@ -29,6 +29,7 @@ const serverMocks = await installServerMocks({
 })
 afterAll(() => serverMocks.restore())
 
+const { ToasterMount } = await import('../../../../components/index')
 const { SyncContext } = await import('../../../../replica/syncContext')
 const { resetStores } = await import('../../../../replica/__tests__/resetStores')
 const { useEncounters } = await import('../../../../replica/collections')
@@ -102,6 +103,7 @@ async function renderPrep(canWrite = true) {
       <SyncContext.Provider
         value={{ status: canWrite ? 'live' : 'offline', canWrite, outdated: false }}
       >
+        <ToasterMount />
         <GamePrep gameId="g1" />
       </SyncContext.Provider>
     )
@@ -199,6 +201,20 @@ describe('a Game’s encounters', () => {
     expect(first.getByRole('menuitem', { name: 'Move up' }).getAttribute('aria-disabled')).toBe(
       'true'
     )
+  })
+
+  // MD2-20: it went at once, with no word and no way back.
+  test('Take out of this Game says so, and Undo puts it back in its place', async () => {
+    await renderPrep()
+    const before = encounterRows()
+    await choose('Ambush', 'Take out of this Game')
+    await settle(() => stored('e-two')?.gameId === undefined)
+    expect(await screen.findByText('Took Ambush out of this Game.')).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    })
+    await settle(() => stored('e-two')?.gameId === 'g1')
+    expect(encounterRows()).toEqual(before)
   })
 
   test('Take out of this Game returns one to the Kit, where it can be added back last', async () => {

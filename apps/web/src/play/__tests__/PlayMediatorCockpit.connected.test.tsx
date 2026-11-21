@@ -16,7 +16,17 @@
  * included), so a Mediator roll can be shown to stay off it.
  */
 
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
@@ -311,9 +321,18 @@ describe('the bar', () => {
 
   test('Tell the table sends one word to every player', async () => {
     await renderCockpit()
+    // The dialog focuses on the next frame; the frame is run here, so the
+    // test waits on no timer.
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
     await click(named('Tell the table'))
+    frame.mockRestore()
     const dialog = within(screen.getByRole('dialog', { name: 'Tell the table' }))
     expect(dialog.getByText('Contact front')).toBeTruthy()
+    // Typing starts in the alert, not on Close (MD2-04).
+    expect(document.activeElement === dialog.getByLabelText('Alert')).toBe(true)
     await act(async () => {
       fireEvent.change(dialog.getByLabelText('Alert'), { target: { value: 'Two squads east' } })
     })

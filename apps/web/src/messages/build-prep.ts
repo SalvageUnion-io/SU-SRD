@@ -8,6 +8,7 @@ export const buildPrepCopy = messages({
   backToTheTrainingBay: 'Back to the Mediator’s Kit',
   mediatorsKit: 'Mediator’s Kit',
   gamePrep: 'Game Prep',
+  removedOpponent: 'Removed {name}.',
   forGame: 'For',
   anyGame: 'Any Game',
   delete: 'Delete',
