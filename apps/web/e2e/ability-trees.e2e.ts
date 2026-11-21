@@ -1,4 +1,4 @@
-import { findAbilityTrees, findDashTrees } from './_abilityTrees'
+import { DASH_TREE_SELECTORS, findAbilityTrees, findDashTrees } from './_abilityTrees'
 import { expectCorpusClean } from './_designRoutes'
 import { corpusRoutes } from './_designTable'
 import { test } from './fixtures'
@@ -27,14 +27,14 @@ test('every ability tree is its own column, three across at most', { tag: '@pr' 
   })
 })
 
-test("every Starter pilot dashboard lists its class's trees whole, one ledger each", {
+test("every Starter pilot dashboard lists its class's trees whole, one track each", {
   tag: '@pr',
 }, async ({ page }) => {
   test.setTimeout(5 * 60_000)
   await expectCorpusClean(page, 'dash-trees', () => findDashTrees(page), {
     routes: corpusRoutes('dash-trees'),
     widths: ['page', 1024, 'phone'],
-    draws: 'table.su-open--sub',
+    draws: DASH_TREE_SELECTORS.tree,
     message: 'dashboard ability trees not whole',
   })
 })
