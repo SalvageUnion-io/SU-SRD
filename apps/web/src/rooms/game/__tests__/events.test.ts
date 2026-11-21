@@ -147,6 +147,18 @@ describe('the table’s events', () => {
     ])
   })
 
+  test('an assignment taken away says whose it was, so their screen says it once (MD-23)', () => {
+    const { act } = seated()
+    const [unassigned] = act(MEDIATOR, 'unassign', { unitId: 'p1' }, AT + 1)
+    expect(unassigned).toMatchObject({ kind: 'assign', text: 'p1 · Pilot p1 is unassigned' })
+    expect(unassigned?.about).toBe(PLAYER)
+    // Nobody held it: nobody to tell.
+    const [given] = act(MEDIATOR, 'assign', { unitId: 'p1', userId: PLAYER }, AT + 2)
+    expect(given?.about).toBeUndefined()
+    const [moved] = act(MEDIATOR, 'assign', { unitId: 'p1', userId: MEDIATOR }, AT + 3)
+    expect(moved?.about).toBe(PLAYER)
+  })
+
   test('the Stop Sign names nobody, and only its lifting is mirrored as a line', () => {
     const { act } = seated()
     const [up] = act(PLAYER, 'safety.showStop', undefined as never)

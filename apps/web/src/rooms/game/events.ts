@@ -57,6 +57,8 @@ export type TableEvent = {
   private?: true
   /** The group session began or ended here: what "Last session" is cut by. */
   session?: 'start' | 'end'
+  /** An assignment taken from this member: their screen says so itself (`assignmentNotices`). */
+  about?: string
 }
 
 /** How long a line stays open to a repeat. */
@@ -104,6 +106,7 @@ type Stored = {
   base?: string
   private?: true
   session?: 'start' | 'end'
+  about?: string
 }
 
 /** What an act needs remembered from before it ran, to say what changed. */
@@ -114,6 +117,8 @@ export type EventsBefore = {
   stop?: boolean
   /** Whether the effect was switched on. */
   effectOn?: boolean
+  /** Who held the unit an assignment moves. */
+  holder?: string | null
 }
 
 /** Whether an event goes to the bound channel as a line: never a private one, nor one with its own post. */
@@ -165,6 +170,9 @@ export class GameEvents {
           effectOn: row !== undefined && seatOf(row).activeEffects.includes(String(a.ref)),
         }
       }
+      case 'assign':
+      case 'unassign':
+        return { holder: this.store.unit(String(a.unitId))?.ownerId ?? null }
       case 'ops.accept':
       case 'ops.decline':
         return { proposal: this.store.op(String(a.opId)) }
@@ -221,11 +229,14 @@ export class GameEvents {
         return say('action', `${unit(a.pilotId)} switches ${effectName(String(a.ref))} ${turn}`)
       }
       case 'assign': {
-        const to = typeof a.userId === 'string' ? this.memberName(a.userId) : who
-        return say('assign', `${unit(a.unitId)} is assigned to ${to}`)
+        const toId = typeof a.userId === 'string' ? a.userId : actor
+        const text = `${unit(a.unitId)} is assigned to ${this.memberName(toId)}`
+        return [this.note(actor, at, { kind: 'assign', text, key: text, ...lost(before, toId) })]
       }
-      case 'unassign':
-        return say('assign', `${unit(a.unitId)} is unassigned`)
+      case 'unassign': {
+        const text = `${unit(a.unitId)} is unassigned`
+        return [this.note(actor, at, { kind: 'assign', text, key: text, ...lost(before, null) })]
+      }
       case 'drawLink':
       case 'removeLink': {
         const link = a.link as LinkShape
@@ -447,6 +458,12 @@ function effectName(ref: string): string {
   }
 }
 
+/** Whose the unit was before an assignment moved it to `to`: nobody, when it stays theirs or was free. */
+function lost(before: EventsBefore, to: string | null): { about?: string } {
+  const holder = before.holder ?? null
+  return holder === null || holder === to ? {} : { about: holder }
+}
+
 function vitalLine(v: NonNullable<Stored['vital']>): string {
   return v.from === null
     ? `${v.who} · ${v.label} → ${v.to}`
@@ -473,5 +490,6 @@ function eventOf(id: string, ts: number, actorId: string | null, stored: Stored)
     actorId,
     ...(stored.private === true ? { private: true as const } : {}),
     ...(stored.session === undefined ? {} : { session: stored.session }),
+    ...(stored.about === undefined ? {} : { about: stored.about }),
   }
 }

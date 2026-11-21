@@ -35,6 +35,21 @@ describe('eventsToToast', () => {
     ]
     expect(eventsToToast(events, heard, 'me').toast.map((e) => e._id)).toEqual(['theirs'])
   })
+
+  // MD-23: the unit's old holder is told in their own words
+  // (`assignmentNotices`), so the table's line is not a second toast for them.
+  test('an assignment taken from me is not toasted twice; everyone else hears the line', () => {
+    const { heard } = eventsToToast([], null, 'me')
+    const taken = event({
+      _id: 'un',
+      kind: 'assign',
+      text: 'Razor is unassigned',
+      actorId: 'gm',
+      about: 'me',
+    })
+    expect(eventsToToast([taken], heard, 'me').toast).toEqual([])
+    expect(eventsToToast([taken], heard, 'nell').toast).toEqual([taken])
+  })
 })
 
 describe('pinnedAlert', () => {

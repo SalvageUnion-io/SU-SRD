@@ -82,7 +82,9 @@ offline queue would each be one more mechanism.
    never state: the Feed, the toasts and the bound Discord channel all read
    this one stream, repeats within ten seconds merge into one line, the
    newest 600 are kept, and a line marked `private` (a roll row's
-   `after.private`) is read by the Mediator alone and never mirrored. No
+   `after.private`) is read by the Mediator alone and never mirrored. An
+   assignment's line may carry `about`, the member it was taken from, whose
+   screen says so itself and skips the line's toast (optional, additive). No
    schema change: a room that has none reads as an empty feed.
 8. **ADR-007 maps directly.** A destructive change is only ever an op its
    player authors; automation authors none.
