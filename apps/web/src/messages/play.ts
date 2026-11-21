@@ -15,6 +15,9 @@ export const playCopy = messages({
   use2: 'Use {name}',
   actions: 'Actions',
   clear: 'Clear',
+  startOver: 'Start over',
+  resolveStepsHint:
+    'Apply writes the result to your units. Start over rolls again from Activate. Cancel closes the action.',
   filterActionsByType: 'Filter actions by type',
   findAnAction: 'Find an action',
   find: 'Find…',
