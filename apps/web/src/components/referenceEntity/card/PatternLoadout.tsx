@@ -215,7 +215,9 @@ const LOADOUT_PAGE = {
 /**
  * A pattern PAGE's loadout, under its chassis ability. * each group (Systems, Modules) is the mech sheet's own list (`Ledger`
  * over `itemRows`): a zebra line a part, its figures in the sheet's columns,
- * its rules opening in place under it. Multiples repeat, as on the sheet.
+ * its rules opening in place under it. A part fitted more than once is one
+ * line with its count ("FM-3 Flamethrower ×2"), as the loadout table over it
+ * counts it: the same rules printed twice told a reader nothing (RR-15).
  */
 export function PatternLoadoutRows({
   groups,
@@ -233,7 +235,16 @@ export function PatternLoadoutRows({
       {groups.map((group) => {
         const slugs = group.entities.map((item) => toEntityModel(item as RefMetaEntity).ref.slug)
         const modules = slugs.every((slug) => resolveModule(slug) !== null)
-        const fitted = { systems: modules ? [] : slugs, modules: modules ? slugs : [] }
+        const counts = new Map<string, number>()
+        for (const slug of slugs) counts.set(slug, (counts.get(slug) ?? 0) + 1)
+        const once = [...counts.keys()]
+        const fitted = { systems: modules ? [] : once, modules: modules ? once : [] }
+        const rows = itemRows(fitted, modules ? 'module' : 'system').map((row, index) => {
+          const count = counts.get(once[index] ?? '') ?? 1
+          return count > 1 && typeof row.name === 'string'
+            ? { ...row, name: `${row.name} ×${count}` }
+            : row
+        })
         return (
           <Ledger
             open
@@ -244,7 +255,7 @@ export function PatternLoadoutRows({
             title={group.label}
             as={sectionAs ?? 'h2'}
             columns={ITEM_COLUMNS}
-            groups={[{ key: group.label, rows: itemRows(fitted, modules ? 'module' : 'system') }]}
+            groups={[{ key: group.label, rows }]}
           />
         )
       })}

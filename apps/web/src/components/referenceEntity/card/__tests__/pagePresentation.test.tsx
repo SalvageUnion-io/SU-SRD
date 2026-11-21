@@ -242,6 +242,23 @@ describe('the card as a page', () => {
     expect(loadout?.querySelector('.su-ec-frame')).toBeNull()
   })
 
+  test('a part fitted twice is one loadout line with its count (RR-15)', () => {
+    const atlas = need(SalvageUnionReference.Chassis.getByName('Atlas'), 'atlas')
+    const pattern = need(
+      atlas.patterns?.find((p) => p.name === 'Throne'),
+      'throne'
+    )
+    const { container } = render(
+      <ReferenceEntityCard data={atlas} pattern={pattern} presentation="page" />
+    )
+    const names = [
+      ...container.querySelectorAll('.su-entity-page__loadout tr.su-open__row .su-open__name'),
+    ].map((node) => node.textContent ?? '')
+    const flamethrowers = names.filter((name) => name.includes('FM-3 Flamethrower'))
+    expect(flamethrowers).toHaveLength(1)
+    expect(flamethrowers[0]).toContain('×2')
+  })
+
   test('patterns are one Ledger, a line each: its name the link, its loadout said whole', () => {
     const chassis = gopher()
     const count = chassis.patterns?.length ?? 0
