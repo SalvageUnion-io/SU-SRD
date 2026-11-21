@@ -13,11 +13,16 @@ import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { RefChassis, RefEntity, RefObjectPattern } from 'salvageunion-reference'
 import {
   computeMechCapacity,
+  isLegalCreationChassis,
+  MECH_CREATION_SCRAP_CAP,
   resolveChassisRef,
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../replica/types'
+import { freeName } from '../copyEntity'
+import { mechScrap } from '../rules/mechScrap'
+import { mechRuleBreaks } from '../rules/ruleBreaks'
 
 /** What `patternStore.create` takes: the id and timestamp are minted on create. */
 type PatternInput = Omit<MechPattern, 'id' | 'createdAt'>
@@ -62,12 +67,16 @@ export function patternCopy(pattern: MechPattern): PatternInput {
 /**
  * A fresh mech built from a pattern: the chassis and loadout, SP, EP and Heat
  * unset (full and empty by the pool rules), an empty hold — and the pattern it came from
- * (`sourcePattern`). Its name is the pattern's: a mech's name IS its pattern's.
+ * (`sourcePattern`). Its name is the pattern's: a mech's name IS its pattern's,
+ * numbered past the names `taken` in the bay so two builds read apart.
  */
-export function mechFromPattern(pattern: MechPattern): CreateInput<'mech'> {
+export function mechFromPattern(
+  pattern: MechPattern,
+  taken: readonly string[] = []
+): CreateInput<'mech'> {
   return {
     schemaVersion: 1,
-    name: pattern.name,
+    name: freeName(pattern.name, taken),
     chassisRef: pattern.chassisRef,
     systems: [...pattern.systems],
     modules: [...pattern.modules],
@@ -75,6 +84,22 @@ export function mechFromPattern(pattern: MechPattern): CreateInput<'mech'> {
     conditions: [],
     sourcePattern: pattern.id,
   }
+}
+
+/**
+ * Whether a build is past what a new mech starts with (Mech Workshop
+ * pp.94–95): a part above Tech 1, more Scrap than the starting 20, or more
+ * slots than its chassis has. A confirm warns only then.
+ */
+export function pastStartingRules(
+  unit: Pick<MechPattern, 'chassisRef' | 'systems' | 'modules'>
+): boolean {
+  const scrap = mechScrap(unit)
+  return (
+    scrap.total > MECH_CREATION_SCRAP_CAP ||
+    scrap.byTechLevel.some((level) => !isLegalCreationChassis(level.techLevel)) ||
+    mechRuleBreaks(unit).length > 0
+  )
 }
 
 /** The pattern's loadout as reference entities, in its stored order. */

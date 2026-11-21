@@ -4,7 +4,10 @@
  * of every chassis is here, whatever its Tech Level; one past the starting
  * budget says so and asks before it builds (a Blank-family shortcut, as a
  * saved pattern's Build With This). A Reference pattern page's Build With
- * This lands here with its pattern picked (`?chassis=&pattern=`).
+ * This lands here with its pattern picked (`?chassis=&pattern=`) and its one
+ * confirm already open: the press on the page was the choice, so there is one
+ * more to make, not two (r2 D4). The new mech's name is numbered past the
+ * names in the bay, and the build says what it made.
  */
 
 import { moveTo } from 'game-domain/container'
@@ -15,6 +18,7 @@ import { ConfirmDialog } from '../../../components/app'
 import { Button, Field, Select, Stat, Text, tokens } from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import {
+  bookPattern,
   bookPatternsOf,
   chassisWithPatterns,
   isStartingBookPattern,
@@ -26,6 +30,7 @@ import { mechCopy } from '../../../messages/build-mech'
 import { useSync } from '../../../replica/syncContext'
 import { useUnits } from '../../../replica/units'
 import { SaveSignInDialog } from '../../wizard/SaveSignInDialog'
+import { buildConfirmBody, builtToast, mechNamesTaken } from './buildConfirm.model'
 
 const STACK = {
   display: 'flex',
@@ -61,7 +66,8 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
   const pool = chassisWithPatterns()
   const [chassisSlug, setChassisSlug] = useState(chassis ?? '')
   const [patternSlug, setPatternSlug] = useState(pattern ?? '')
-  const [confirming, setConfirming] = useState(false)
+  // A deep link that names a pattern opens on its confirm.
+  const [confirming, setConfirming] = useState(bookPattern(chassis, pattern) !== undefined)
   const [askSignIn, setAskSignIn] = useState(false)
   const picked = pool.find((c) => nameToSlug(c.name) === chassisSlug)
   const patterns = picked ? bookPatternsOf(picked) : []
@@ -70,12 +76,14 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
   const starting =
     picked !== undefined && chosen !== undefined && isStartingBookPattern(picked, chosen)
   const slots = input ? loadoutSlots(input) : undefined
+  const signedOut = status === 'signedOut' && !canWrite
 
   const build = useServerAction(
     async () => {
       if (!input) throw new Error(mechCopy('pickAChassisFirst'))
+      if (!picked || !chosen) throw new Error(mechCopy('pickAChassisFirst'))
       return useUnits.getState().create('mech', {
-        ...input,
+        ...mechFromBookPattern(picked, chosen, mechNamesTaken()),
         ...(gameId === undefined ? {} : moveTo({ kind: 'game', gameId })),
       })
     },
@@ -84,12 +92,14 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
 
   async function run() {
     const result = await build.run()
-    if (result.ok) onBuilt(result.value.id)
+    if (!result.ok) return
+    builtToast(result.value.name)
+    onBuilt(result.value.id)
   }
 
   function ask() {
     // Signed out, the pick is kept in the address and asked for again after sign-in.
-    if (status === 'signedOut' && !canWrite) return setAskSignIn(true)
+    if (signedOut) return setAskSignIn(true)
     if (starting) return void run()
     setConfirming(true)
   }
@@ -160,10 +170,11 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
         </div>
       )}
       <ConfirmDialog
-        open={confirming}
+        // Signed out there is nothing to confirm yet: the press asks for the account.
+        open={confirming && input !== undefined && !signedOut}
         onOpenChange={setConfirming}
         title={mechCopy('buildAMechFrom', { name: chosen?.name ?? '' })}
-        body={mechCopy('thisMayExceedTheStarting')}
+        body={buildConfirmBody({ book: true, past: !starting })}
         confirmLabel={mechCopy('build')}
         onConfirm={() => void run()}
       />

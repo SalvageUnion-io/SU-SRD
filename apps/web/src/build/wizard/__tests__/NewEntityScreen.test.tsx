@@ -398,12 +398,15 @@ describe('BlankCreateDialog — blank pilot create', () => {
         book={{ chassis: 'magpie', pattern: 'stefanus' }}
       />
     )
-    const books = screen.getByRole('region', { name: 'Book Patterns' })
+    // Behind the open confirm, so read through it.
+    const books = screen.getByLabelText('Book Patterns')
     expect(within(books).getByText('Not a starting build')).toBeTruthy()
-    fireEvent.click(
-      within(books).getByRole('button', { name: 'Build With This: a Mech from Stefanus' })
-    )
-    fireEvent.click(await screen.findByRole('button', { name: 'Build' }))
+    // The pattern page's press was the choice: its one confirm is already up (r2 D4),
+    // worded for the book and warning, since Stefanus is past the starting rules.
+    const dialog = await screen.findByRole('alertdialog')
+    expect(within(dialog).getByText(/past the starting rules/)).toBeTruthy()
+    expect(within(dialog).getByText(/as the book prints it/)).toBeTruthy()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Build' }))
     await waitFor(() => expect(created.length).toBe(1))
     const mech = useUnits.getState().get('mech', created[0] as string)
     expect(mech?.chassisRef).toBe('magpie')

@@ -58,8 +58,9 @@ export const mechCopy = messages({
   building: 'Building…',
   buildWithThis: 'Build With This',
   buildAMechFrom: 'Build a Mech from {name}?',
-  thisMayExceedTheStarting:
-    'This may exceed the starting rules — a freeform build, like Blank. It stamps the Mech exactly as saved; edit freely on its live sheet.',
+  buildsAsSaved: 'Builds the Mech exactly as saved. Edit it freely on its sheet.',
+  buildsAsPrinted: 'Builds the Mech as the book prints it. Edit it freely on its sheet.',
+  pastTheStartingRules: 'This is past the starting rules: a freeform build, like Blank.',
   build: 'Build',
   noPatternsYet: 'No Patterns yet',
   useSaveAsPatternFrom:

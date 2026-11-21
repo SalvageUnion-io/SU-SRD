@@ -27,8 +27,9 @@ function MechPatternsPage() {
     >
       <Text variant="note">{mechsCopy('aPatternKeepsAChassis')}</Text>
       <PatternList
-        onInstantiated={() => {
-          void navigate({ to: '/' })
+        // You land on what you built (r2 D4).
+        onInstantiated={(id) => {
+          void navigate({ to: '/mechs/$id', params: { id } })
         }}
       />
       <CrewPatterns />
