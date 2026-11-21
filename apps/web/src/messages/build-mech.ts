@@ -102,6 +102,9 @@ export const mechCopy = messages({
   dimmedPatternsAreBuilt:
     'A dimmed Pattern is not a starting build. Build it as the book prints it:',
   newMechFromAPattern: 'New Mech, From a pattern',
+  patternNotStarting:
+    '{name}: Not a starting Pattern. It costs more than 20 Tech 1 Scrap, so it is built as the book prints it:',
+  buildNameAsPrinted: 'Build {name}',
   bookPatterns: 'Book Patterns',
   rename: 'Rename',
   editSystems: 'Edit Systems',
