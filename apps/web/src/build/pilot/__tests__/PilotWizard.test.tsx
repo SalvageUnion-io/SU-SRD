@@ -47,7 +47,7 @@ function firstTech1Equipment(): { id: string; name: string } {
 /** Fill the Callsign step (Name + Callsign) and advance. */
 async function fillCallsign(name: string, callsign: string): Promise<void> {
   const nameInput = screen.getByLabelText<HTMLInputElement>(/^Name/)
-  const callsignInput = screen.getByLabelText<HTMLInputElement>(/Callsign/)
+  const callsignInput = screen.getByLabelText<HTMLInputElement>(/^Callsign/)
   await act(async () => {
     fireEvent.change(nameInput, { target: { value: name } })
     fireEvent.change(callsignInput, { target: { value: callsign } })
