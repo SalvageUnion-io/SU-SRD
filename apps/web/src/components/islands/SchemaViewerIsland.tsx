@@ -21,6 +21,7 @@ import {
 import { entityTraitNames } from '../../lib/listingTraits'
 import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
+import { classDrawingTree } from '../../lib/rules/classPath'
 import { artUrlFor } from '../../lib/sourceCovers'
 import type { SchemaList } from '../../lib/useGameData'
 import { preloadGameData } from '../../lib/useGameData'
@@ -62,6 +63,9 @@ const TILE_OMIT = ['ref-stat-cargoCapacity', 'ref-stat-heatCapacity']
  * loads at once and first rather than lazily after layout.
  */
 const OPENING_ROW = 4
+
+/** Whose tree it is, beside its heading: the class whose page draws it. */
+const treeOwner = (tree: string) => classDrawingTree(tree)?.name
 
 type SchemaViewerIslandProps = {
   schemaId: string
@@ -386,7 +390,14 @@ function SchemaViewer({
             <div className="su-listing__groups">
               {groups.map((group, groupIndex) => (
                 <section key={group.key} className="su-listing__group" aria-label={group.label}>
-                  {group.label && view !== 'list' && <Slab label={group.label} />}
+                  {group.label && view !== 'list' && (
+                    // A heading to jump between (WCAG 2.4.6); a tree says whose it is.
+                    <Slab
+                      as="h2"
+                      label={group.label}
+                      count={treeTracks.has(group.key) ? treeOwner(group.key) : undefined}
+                    />
+                  )}
                   {view === 'catalog' ? (
                     <ul className="su-listing__tiles">
                       {group.items.map((item: RefEntity, index) => (

@@ -10,6 +10,7 @@ import { render, screen } from '@testing-library/react'
 import type { RefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ClassAbilityTree, ClassAdvancement } from '../ClassAbilityTree'
+import { EntityCardStatic } from '../EntityCardStatic'
 
 const classNamed = (name: string): RefClass => {
   const found = SalvageUnionReference.Classes.getByName(name)
@@ -288,5 +289,52 @@ describe('ClassAdvancement under the art', () => {
     const side = render(<ClassAdvancement classEntity={hacker} />).container
     expect(side.querySelector('.su-class-path__trees--pair')).toBeNull()
     expect(side.querySelector('.su-class-paths')).not.toBeNull()
+  })
+})
+
+describe('ClassAbilityTree contents (On this page)', () => {
+  test('a Core class lists Training, every Core tree and every path, each a link to a heading on the page', () => {
+    const { container } = render(<ClassPage classEntity={classNamed('Hacker')} />)
+    const nav = screen.getByRole('navigation', { name: 'On this page' })
+    const links = [...nav.querySelectorAll('a')]
+    const names = links.map((link) => link.textContent)
+    expect(names.slice(0, 4)).toEqual(['Training', 'Hacking', 'Electronics', 'Augmentation'])
+    expect(names).toContain('Advanced Hacking')
+    expect(names).toContain('Fabricator')
+    expect(names).toContain('Cyborg')
+    for (const link of links) {
+      const id = link.getAttribute('href')?.replace(/^#/, '') ?? ''
+      expect(id.length).toBeGreaterThan(0)
+      expect(container.querySelectorAll(`[id="${id}"]`).length).toBe(1)
+    }
+    // It leads the trees, so a phone reader meets it before the long scroll.
+    expect(container.querySelector('.su-ability-tree')?.firstElementChild).toBe(nav)
+  })
+
+  test('a Hybrid Class lists its own sections too', () => {
+    render(<ClassPage classEntity={classNamed('Fabricator')} />)
+    const nav = screen.getByRole('navigation', { name: 'On this page' })
+    const names = [...nav.querySelectorAll('a')].map((link) => link.textContent)
+    expect(names[0]).toBe('Training')
+    expect(names).toContain('Abilities')
+  })
+})
+
+describe("a class Page's markup reads in the order a phone draws it", () => {
+  test('the art, then the description, Training and Core trees, then Advancement', () => {
+    const { container } = render(<EntityCardStatic item={classNamed('Hacker')} />)
+    const page = container.querySelector('.su-manual')
+    const tracks = [...(page?.children ?? [])].map((track) => track.className)
+    // Two side tracks: the art before the main track, what stands under it after.
+    expect(tracks).toEqual([
+      'su-manual__side',
+      'su-manual__main',
+      'su-manual__side su-manual__side--after',
+    ])
+    expect(page?.children[0]?.querySelector('.su-manual__art')).not.toBeNull()
+    const headings = [...container.querySelectorAll('h2')].map((h) => h.textContent)
+    expect(headings.indexOf('Hacking')).toBeGreaterThan(-1)
+    expect(headings.indexOf('Advanced Hacking')).toBeGreaterThan(-1)
+    expect(headings.indexOf('Augmentation')).toBeLessThan(headings.indexOf('Advanced Hacking'))
   })
 })

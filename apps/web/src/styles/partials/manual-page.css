@@ -222,3 +222,23 @@
     gap: var(--space-12);
   }
 }
+
+/* What stands under the art (`.su-manual__aside`) is a side track of its own, after the main track in the markup (the
+   order a phone draws): from `lg` it stands under the art, in the side
+   column's second row, and the main track runs beside both. The second row
+   takes what height the main track has to spare, so the art keeps its own. */
+@media (width >= 64rem) {
+  .su-manual:has(> .su-manual__side--after) {
+    grid-template-rows: auto 1fr;
+  }
+
+  .su-manual:has(> .su-manual__side--after) > .su-manual__main {
+    grid-row: 1 / span 2;
+  }
+
+  /* The grid's own row gap parts it from the art. */
+  .su-manual > .su-manual__side.su-manual__side--after {
+    grid-row: 2;
+    margin-top: 0;
+  }
+}
