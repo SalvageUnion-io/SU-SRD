@@ -20,6 +20,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RangeBand } from 'game-domain/schemas/seat'
+import { RANGE_BANDS } from 'game-domain/schemas/seat'
 import type { RefMetaAction } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type {
@@ -228,13 +229,15 @@ export function describeHeatCheck(
 // ---------------------------------------------------------------------------
 
 /**
- * Whether an action's declared range covers the given band. Actions with NO
- * declared range (utility / passive) are treated as always in range.
+ * Whether an action's declared range covers the given band. A range is a band:
+ * the action reaches any distance inside it, so Medium reaches Close (Core Book
+ * p.237). Actions with NO declared range (utility / passive) are always in range.
  */
 export function actionInRange(action: RefMetaAction, band: RangeBand): boolean {
   const ranges = action.range
   if (!ranges || ranges.length === 0) return true
-  return ranges.includes(band)
+  const reach = Math.max(...ranges.map((r) => RANGE_BANDS.indexOf(r as RangeBand)))
+  return RANGE_BANDS.indexOf(band) <= reach
 }
 
 /**
