@@ -77,7 +77,24 @@ function valueText(value: unknown): string {
   if (Array.isArray(value) && value.every((v) => typeof v === 'string' || typeof v === 'number')) {
     return value.length === 0 ? buildSheetCopy('logNone') : value.join(', ')
   }
+  // A list of named things (cargo lots, inventory lines) reads by their names,
+  // each with its count where it has one: never the stored record.
+  if (Array.isArray(value) && value.every(named)) {
+    return value.length === 0 ? buildSheetCopy('logNone') : value.map(nameAndCount).join(', ')
+  }
   return JSON.stringify(value)
+}
+
+type Named = { name: string; units?: unknown; quantity?: unknown }
+
+const named = (value: unknown): value is Named =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as { name?: unknown }).name === 'string'
+
+function nameAndCount(item: Named): string {
+  const count = [item.units, item.quantity].find((n) => typeof n === 'number' && n > 1)
+  return count === undefined ? item.name : `${item.name} ×${count}`
 }
 
 const slugs = (value: unknown): string[] | null =>

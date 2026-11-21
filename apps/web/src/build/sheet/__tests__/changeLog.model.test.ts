@@ -79,3 +79,21 @@ describe('fieldLabel', () => {
     expect(fieldLabel('callsign')).toBe('Callsign')
   })
 })
+
+describe('a list of named things', () => {
+  test('reads by name and count, never as the stored record', () => {
+    const [line] = texts([
+      row({
+        _id: 'o:cargoLots',
+        field: 'cargoLots',
+        before: null,
+        after: [
+          { id: 'x', kind: 'unit', name: 'Salvaged Plating', units: 1 },
+          { id: 'y', kind: 'unit', name: 'Scrap', units: 3 },
+        ],
+      }),
+    ])
+    expect(line?.[0]).toContain('Salvaged Plating, Scrap ×3')
+    expect(line?.[0]).not.toContain('{')
+  })
+})
