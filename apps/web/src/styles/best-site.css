@@ -1606,11 +1606,6 @@
   color: var(--color-ink-75);
 }
 
-/* A dark Tech Level swatch carries paper. */
-.su-tl[data-dark] {
-  color: var(--color-paper);
-}
-
 /* Crawler pink carries paper (6.4:1), never ink (3.3:1): the band's kicker
    and its tagline. */
 .su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline),

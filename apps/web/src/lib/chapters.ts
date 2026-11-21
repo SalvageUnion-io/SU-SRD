@@ -184,16 +184,11 @@ function abilityBandFill(entity: RefEntity): string | undefined {
 
 /**
  * The listings that wear TL1's blue: systems and modules, the one place the
- * book sets TL blue as a ground (ruleset §3.8, book pp. 162, 188), and drones, whose cards' heads are tech-level blue
- * (R44), and pilot equipment, whose cards' heads are too, never pilot
- * orange.
+ * book sets TL blue as a ground (ruleset §3.8, book pp. 162, 188), and drones,
+ * whose cards' heads are tech-level blue (R44). Pilot equipment wears its
+ * chapter's orange, as its cards do.
  */
-const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set([
-  'systems',
-  'modules',
-  'drones',
-  'equipment',
-])
+const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules', 'drones'])
 
 /**
  * A listing's band when not its chapter's: TL1's blue on the tech-level
@@ -208,7 +203,7 @@ export function listingBandFillFor(schemaId: string): string | undefined {
  * The bands a show page wears when not its chapter's: the entity's own tone
  * (`entityTone`), the colour its card's header and Compact wear, head and foot
  * (R44: a Page's band wears its entity). Gear
- * (systems, modules, drones, equipment, vehicles) wears its tech level's
+ * (systems, modules, drones, vehicles) wears its tech level's
  * colour; a Hybrid Class the tier rust; an ability its tier's colour (E12);
  * a creation guide its entity's colour, Heat its red (`guideTone`).
  * Every other page wears its chapter's band from the colour map

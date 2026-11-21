@@ -87,7 +87,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§3.5.2': ['tokens/gradient', 'designTokens.ts#su-pilot-panel'],
   '§3.6': ['check:rules-fidelity', 'nameRefIndex.test.ts'],
   '§3.7': ['chrome/stat-text', 'chrome/raw-dl'],
-  '§3.8': ['tone-ground/tl-ground', 'contrast.test.ts'],
+  '§3.8': ['tone-ground/tl-ground', 'tone-ground/tl-text', 'contrast.test.ts'],
   '§3.9': ['chrome-tokens/dashed', 'R1', 'PatternList.test.tsx'],
   '§3.10': ['chrome-tokens/left-rail'],
   '§3.11': ['AppBar.test.tsx', 'UnionBarSlots.test.tsx'],

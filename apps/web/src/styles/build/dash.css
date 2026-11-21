@@ -470,10 +470,12 @@
   color: var(--color-paper);
 }
 
-/* A Tech Level as its swatch on the colour map, the numeral in ink. */
+/* A Tech Level as a chip on paper, framed in its colour on the map: the
+   numeral in ink, never on the TL blue (ruleset §3.8). */
 .su-tl {
   align-items: center;
-  background-color: var(--tl, var(--color-ink-10));
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--tl, var(--color-ink-40));
   border-radius: var(--radius-badge);
   color: var(--color-ink);
   display: inline-flex;
