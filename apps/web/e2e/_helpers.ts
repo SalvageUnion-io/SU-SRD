@@ -280,45 +280,32 @@ export async function clickNext(page: Page): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
- * Fill a wizard identity field by its visible `Field` label.
- *
- * These are not plain inputs. `Field` with `value` + `onSave` is in its edit
- * state: a `role="button"` readout that swaps to an input only once
- * activated, and it labels both halves `Edit <label lowercased>`. So filling one
- * is click-then-type, and `getByLabel(/^Name$/)` matches nothing at all.
- *
- * Falls back to a direct fill for the steps that do render a real input.
+ * Fill a wizard text field by its visible label: every wizard field is a live
+ * input (`WizTextField`, or a `Field` with `htmlFor`) that saves as it is
+ * typed, so a fill is all it takes. Reports whether the field is on this step.
  */
 export async function fillIdentity(page: Page, label: string, value: string): Promise<boolean> {
-  // Click-to-edit (`Field` with `value` + `onSave`): a role="button" readout
-  // that swaps to an input once activated, both named `Edit <label>`.
-  const editLabel = new RegExp(`^Edit ${label}$`, 'i')
-  const editor = page.getByLabel(editLabel).first()
-  if (await editor.isVisible().catch(() => false)) {
-    await editor.click().catch(() => {})
-    await page.getByLabel(editLabel).first().fill(value)
-    // Field's edit state commits on blur.
-    await page.keyboard.press('Tab')
-    return true
-  }
-  // Plain labelled input (`Field` with `htmlFor`) — the callsign step's shape.
-  const plain = page.getByLabel(new RegExp(`^${label}`, 'i')).first()
-  if (await plain.isVisible().catch(() => false)) {
-    await plain.fill(value)
-    return true
-  }
-  return false
+  const field = page.getByLabel(new RegExp(`^${label}`, 'i')).first()
+  if (!(await field.isVisible().catch(() => false))) return false
+  await field.fill(value)
+  return true
 }
 
-/** The Training Bay at `/`, or a Game's own page: where a finished build returns to. */
-function isContainerPage(pathname: string): boolean {
-  return pathname === at('/') || /^\/games\/[^/]+\/?$/.test(pathname)
+/** A Game's own page: where a build started from it returns to. */
+function isGamePage(pathname: string): boolean {
+  return /^\/games\/[^/]+\/?$/.test(pathname)
+}
+
+/** Where a finished build lands: the new unit's sheet, or the Game's page it started from. */
+function isLandingPage(pathname: string): boolean {
+  return isGamePage(pathname) || /\/(pilots|mechs|crawlers)\/(?!new)[^/]+\/?$/.test(pathname)
 }
 
 /**
- * Drive a `/new` wizard to completion and return once the redirect lands: `/`
- * for the Training Bay, or `/games/<id>` for a wizard started from a Game's page
- * (`?game=`), so a pilot built in a Game finishes too.
+ * Drive a `/new` wizard to completion and return once the redirect lands: the
+ * new unit's sheet (then back to the Training Bay, where callers go on), or
+ * `/games/<id>` for a wizard started from a Game's page (`?game=`), so a pilot
+ * built in a Game finishes too.
  *
  * Deliberately step-AGNOSTIC. These wizards have been restructured repeatedly —
  * the pilot went from 6 steps to 9, the mech to 9, the crawler to 6, and a
@@ -360,7 +347,9 @@ export async function runWizard(page: Page, kind: WizardKind, walk: WizardWalk):
           }
         }
         await create.click()
-        await page.waitForURL((url) => isContainerPage(url.pathname), { timeout: 30_000 })
+        await page.waitForURL((url) => isLandingPage(url.pathname), { timeout: 30_000 })
+        // Callers go on from the Training Bay, not the new sheet.
+        if (!isGamePage(new URL(page.url()).pathname)) await openApp(page, '/')
         return
       }
       await expect(next, `wizard ${kind} should offer Next or Create at step ${step}`).toBeVisible({
@@ -372,8 +361,7 @@ export async function runWizard(page: Page, kind: WizardKind, walk: WizardWalk):
 
     if (await next.isDisabled()) {
       // Identity first — a name step is gated on text, not on a pick.
-      // `fillIdentity` reports whether the field was on this step at all, and
-      // handles both shapes the wizards use (click-to-edit and plain input).
+      // `fillIdentity` reports whether the field was on this step at all.
       for (const [label, value] of Object.entries(identity)) {
         await fillIdentity(page, label, value)
       }
@@ -489,13 +477,12 @@ export async function buildPilot(
  * Build a mech. Steps: Gain Scrap → Chassis → Statistics → Systems → Modules →
  * Quirk → Appearance → Pattern Name → Review.
  *
- * The name field is labelled "Name / Pattern" — a mech's name IS its pattern —
- * so both spellings are offered; whichever is absent is a no-op.
+ * The name field is "Mech name" (the book's pattern name for it, p.94).
  */
 export async function buildMech(page: Page, name: string): Promise<void> {
   // Mule chassis — the one downstream specs assert on. See buildPilot.
   await runWizard(page, 'mechs', {
-    identity: { 'name / pattern': name, 'mech name': name },
+    identity: { 'mech name': name },
     create: /Create Mech/i,
     prefer: ['Mule'],
   })
@@ -527,7 +514,7 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
 }
 
 /**
- * A linked unit on the open sheet's Assigned units: its relation chip
+ * A linked unit on the open sheet's Related units: its relation chip
  * (`PILOT | Bonesaw`, C11), a link to its sheet.
  */
 export function assignedUnit(page: Page, name: string) {
@@ -535,7 +522,7 @@ export function assignedUnit(page: Page, name: string) {
 }
 
 /**
- * Wire a pilot onto the mech sheet currently open, via the Assigned units'
+ * Wire a pilot onto the mech sheet currently open, via the Related units'
  * 'Assign Pilot' dialog. Resolves when the pilot's relation chip renders.
  */
 export async function assignPilotOnMechSheet(page: Page, pilotName: string): Promise<void> {
@@ -547,7 +534,7 @@ export async function assignPilotOnMechSheet(page: Page, pilotName: string): Pro
 }
 
 /**
- * Wire a crawler onto the pilot sheet currently open, via the Assigned units'
+ * Wire a crawler onto the pilot sheet currently open, via the Related units'
  * 'Assign Crawler' dialog. Resolves when the crawler's relation chip renders.
  */
 export async function assignCrawlerOnPilotSheet(page: Page, crawlerName: string): Promise<void> {

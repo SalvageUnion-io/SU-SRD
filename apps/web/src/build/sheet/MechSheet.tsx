@@ -17,7 +17,8 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { FieldError, SlabSection, Stack, tokens } from '../../components/index'
+import { FieldError } from '../../components/app'
+import { SlabSection, Stack, tokens } from '../../components/index'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsStore } from '../../replica/units'
@@ -67,7 +68,7 @@ type MechSheetProps = {
    */
   crawlerReadOnly?: boolean
   /**
-   * The Assigned Units rail content (pilot + crawler rail row/RailEmpty), built
+   * The Related units rail content (pilot + crawler rail row/RailEmpty), built
    * by MechLiveSheet from `composition` — MechSheet has no composition access of
    * its own, so this is passed straight through into the R4 section.
    */

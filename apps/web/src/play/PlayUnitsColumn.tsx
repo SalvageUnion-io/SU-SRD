@@ -20,7 +20,7 @@
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
-import { EmptyState, MiniGrid, Slab } from '../components/index'
+import { CloseButton, EmptyState, MiniGrid, Slab } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayCompanions } from './PlayCompanions'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from './PlayUnits'
@@ -28,7 +28,13 @@ import type { PlayColumnProps } from './situation.model'
 import { useOpenSheet } from './useOpenSheet'
 import { usePlayUnits } from './usePlayUnits'
 
-export function PlayUnitsColumn({ play }: PlayColumnProps) {
+export function PlayUnitsColumn({
+  play,
+  onClose,
+}: PlayColumnProps & {
+  /** Below `lg` the pane has no tab of its own: its × goes back to Act. */
+  onClose?: () => void
+}) {
   const units = usePlayUnits(play)
   const setSheet = useOpenSheet()
   const { pilot, seat } = play
@@ -37,7 +43,12 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
 
   return (
     <>
-      <Slab as="h2" label={playCopy('units')} flush />
+      <Slab
+        as="h2"
+        label={playCopy('units')}
+        flush
+        actions={onClose && <CloseButton label={playCopy('closeUnits')} onClick={onClose} />}
+      />
       {pilot ? (
         <PlayPilotUnit
           pilot={pilot}

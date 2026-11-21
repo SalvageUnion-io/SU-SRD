@@ -10,8 +10,7 @@ import type { Finding } from './_findings'
  *   of its own: a dialog's cut-out head is its chrome, so it is level 0 too.
  *   Every headed frame around a frame adds a level, so a Page's Card is 1 and
  *   a Compact inside it 2.
- * - **N3** an entity inside a Mini: a Mini nests nothing (E6), bar a crawler
- *   bay (R46, `n3Except`).
+ * - **N3** an entity inside a Mini: a Mini nests nothing (E6).
  * - **N4** a Mini narrower than its line, by more than a pixel: one Mini a
  *   line, filling it. In a two-up list (a pattern drone's parts) and a
  *   masonry grid of contentful Minis (`MiniGrid`) each column is a line, as
@@ -95,12 +94,6 @@ export type NestingSelectors = {
    * under its Actions Slab, R39) keep their Minis one level deep.
    */
   n8Except: string
-  /**
-   * N3's named exception (R46): a crawler bay (the Mini its `MiniGroup` holds)
-   * is a contentful Mini whose body holds its choices, roll table, what it
-   * holds and its crew lead's Mini.
-   */
-  n3Except: string
 }
 
 export const NESTING_SELECTORS: NestingSelectors = {
@@ -121,7 +114,6 @@ export const NESTING_SELECTORS: NestingSelectors = {
   notNested: '[role="listbox"], [data-peek-popup], [role="dialog"]',
   n8Except:
     '.su-pattern-loadout, .su-entity-page__loadout, .su-ability-tree, .su-entity-page__neighbours, .su-entity-page__section-body > :is(.su-mini-grid, .su-entity-mini-list)',
-  n3Except: '.su-mini-group > .su-entity-mini',
 }
 
 /**
@@ -185,9 +177,8 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       found.push({ rule: 'N6', chain, detail: "a TitledBox around a wizard step's entities" })
   }
 
-  // N3: a Mini nests nothing, bar a crawler bay (R46).
+  // N3: a Mini nests nothing.
   for (const t of tokens) {
-    if (t.matches(a.n3Except)) continue
     const inner = [
       ...frames.filter((f) => t.contains(f.el)).map((f) => f.name),
       ...tokens.filter((o) => o !== t && t.contains(o)).map(tokenName),

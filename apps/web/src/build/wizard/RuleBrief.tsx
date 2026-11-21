@@ -71,7 +71,12 @@ export function RuleBrief({ rule, cite, className, fold = false, children }: Rul
     return (
       <Box
         as="section"
-        label={buildWizardCopy('theRule')}
+        // Named by its cite too: a step with two briefs has two regions.
+        label={
+          cite
+            ? buildWizardCopy('theRuleAt', { cite: formatCite(cite) })
+            : buildWizardCopy('theRule')
+        }
         className={className}
         body="flush"
         frameColor="var(--tone)"

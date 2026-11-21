@@ -1,9 +1,9 @@
 // Step 2 · Systems and Modules (Workshop Manual p.95), as pickers in the
 // Ledger form (`PickList`, its count pick). The Tech 1 Systems and the Tech 1
-// Modules are a framed list each, a line an item: Slots, SV, Action, RNG, DMG
-// and its traits in fixed columns, and its count's stepper at the line's end.
-// A list's head strip carries its slot budget (`SLOTS | 7/16`), and the step
-// opens on the three budgets as meters (`WizMeter`), Scrap among them. Beside
+// Modules are a framed list each, a line an item: Slots, SV, Action, RNG and
+// DMG in fixed columns, and its count's stepper at the line's end.
+// The step opens on the three budgets as meters (`WizMeter`), Scrap among
+// them; a list's head says no budget of its own, so its count keeps its frame. Beside
 // each list stand the line it has in focus, as its contentful card (where an
 // option it asks is chosen), and what is installed from it so far; on a phone
 // the card opens under its line. Only Tech 1 renders, a copy costs its SV from
@@ -17,7 +17,7 @@ import {
   isLegalCreationSystem,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
-import { Badge, ReferenceEntityCard, Stat } from '../../components/index'
+import { Badge, ReferenceEntityCard } from '../../components/index'
 import { maxAddableCopies } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
 import { PickList } from '../wizard/PickList'
@@ -78,8 +78,13 @@ export function MechLoadoutStep({
   const installed = { systems, modules }
   // The line each list's card shows: its first until the player picks one.
   const [focus, setFocus] = useState<Partial<Record<Kind, string>>>({})
+  // No Traits column: the line's card beside it says them, and the line keeps
+  // its count's stepper inside its frame at every width.
   const columns = useMemo(
-    () => loadoutColumns<Item>((item) => choices?.[getEntitySlug(item)]),
+    () =>
+      loadoutColumns<Item>((item) => choices?.[getEntitySlug(item)]).filter(
+        (column) => column.key !== 'traits'
+      ),
     [choices]
   )
 
@@ -143,14 +148,6 @@ export function MechLoadoutStep({
         <div className="su-wiz-compare-main">
           <PickList
             title={TITLES[kind]}
-            note={
-              <Stat
-                label={mechCopy('slots')}
-                value={slots[kind].used}
-                max={slots[kind].max}
-                size="mini"
-              />
-            }
             rows={pools[kind]}
             rowKey={getEntitySlug}
             rowName={(item) => item.name}
@@ -196,9 +193,13 @@ export function MechLoadoutStep({
 
   return (
     <div className="su-wiz-step">
-      {/* The three budgets, each a meter: what is left to spend, what is filled. */}
+      {/* The three budgets, each a meter counting up: Scrap spent, slots filled. */}
       <div className="su-wiz-budget">
-        <WizMeter label={mechCopy('scrap')} value={scrapRemaining} max={MECH_CREATION_SCRAP_CAP} />
+        <WizMeter
+          label={mechCopy('scrapSpent')}
+          value={MECH_CREATION_SCRAP_CAP - scrapRemaining}
+          max={MECH_CREATION_SCRAP_CAP}
+        />
         <WizMeter
           label={mechCopy('systemSlots')}
           value={slots.systems.used}

@@ -19,7 +19,8 @@
 
 import { mediatePath } from 'game-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
-import { Badge, Button, ChapterBand, Cluster } from '../../components/index'
+import { Cluster } from '../../components/app'
+import { Badge, Button, ChapterBand } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'
@@ -66,11 +67,8 @@ export function GameBand({
           // One cluster, so a phone's strip under the band keeps the doors on a line.
           <Cluster gap={12}>
             {mediates && (
-              // The stamp and its link wrap as one piece, centred on each other.
+              // The Mediator's door says who mediates: no stamp beside it.
               <Cluster gap={8}>
-                <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
-                  {playGamesCopy('youMediate')}
-                </Badge>
                 {/* The Mediator's door is the band's one rust button, there
                     before a session starts (ruleset §3.13). */}
                 <Button href={mediatePath(gameId)} variant="primary" size="compact">

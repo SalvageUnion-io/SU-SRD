@@ -230,17 +230,17 @@ describe('CrawlerWizard — create mode', () => {
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/')
     await clickNext()
 
-    // --- Step 3: Name your Crawler and its Crew (crew rows → fields) ---
+    // --- Step 3: Name your Crawler and its crew leads (crew rows → fields) ---
     await expandRow('Battle')
-    await fillIdentity('Edit grizzled veteran name', 'Vex')
-    await fillIdentity('Edit grizzled veteran motto', 'No retreat')
+    await fillIdentity('grizzled veteran name', 'Vex')
+    await fillIdentity('grizzled veteran motto', 'No retreat')
     await expandRow('Command Bay')
-    await fillIdentity('Edit princeps name', 'Maddox')
-    await fillIdentity('Edit princeps keepsake', 'A medal')
+    await fillIdentity('princeps name', 'Maddox')
+    await fillIdentity('princeps keepsake', 'A medal')
 
     // The Crawler's name (+ scrap pool; NO upgrade pool input), in the same step.
     expect(screen.queryByLabelText(/Upgrade Pool/i)).toBeNull()
-    await fillIdentity('Edit crawler name', 'Bay Wagon')
+    await fillIdentity('crawler name', 'Bay Wagon')
     fireEvent.change(screen.getByLabelText(/Scrap T2/i), { target: { value: '3' } })
     await clickNext()
 
@@ -294,7 +294,7 @@ describe('CrawlerWizard — create mode', () => {
     renderWizard()
     await walkToArmament('Battle')
     await addOne(weaponSystemAtTL(1).name) // satisfy the min-1 mount
-    await clickNext() // Name & Crew
+    await clickNext() // Name & Crew Leads
 
     // Name left empty — Next stays disabled, Review/Create is unreachable.
     expect(getNextButton().disabled).toBe(true)

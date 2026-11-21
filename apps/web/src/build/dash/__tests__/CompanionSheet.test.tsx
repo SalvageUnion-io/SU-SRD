@@ -2,7 +2,9 @@
  * CompanionSheet: a companion's own page, read through its host's `partners`.
  * A Little Sestra built the way the wizard builds one fields its Sestra Drone;
  * the page shows the drone's own band, vitals, abilities, loadout and hold,
- * and a missing host or companion says so with a way back.
+ * and a missing companion says so with a way back. `CompanionSheetView`
+ * locates the host as its sheet does, and steps the vitals only while the
+ * session may write.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
@@ -14,7 +16,8 @@ import { mechFixture } from '../../../components/__tests__/fixtures'
 import { must } from '../../../components/__tests__/must'
 import { mechPartnerSeeds, syncPartners } from '../../../lib/rules/partnerGrants'
 
-const { CompanionSheet } = await import('../CompanionSheet')
+const { CompanionSheet, CompanionSheetView } = await import('../CompanionSheet')
+const { SyncContext } = await import('../../../replica/syncContext')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
 const { useUnits } = await import('../../../replica/units')
@@ -61,7 +64,15 @@ describe('CompanionSheet', () => {
     const mech = sestra()
     await seed(mech)
     const drone = must(mech.partners?.[0])
-    await show(<CompanionSheet hostKind="mech" hostId={mech.id} partnerId={drone.id} />)
+    await show(
+      <CompanionSheet
+        hostKind="mech"
+        hostId={mech.id}
+        partnerId={drone.id}
+        store={useUnits}
+        writes
+      />
+    )
 
     const main = must(document.querySelector('main.su-companion-sheet')) as HTMLElement
     expect(main.textContent).toContain('Companion of')
@@ -77,7 +88,15 @@ describe('CompanionSheet', () => {
     const mech = sestra()
     await seed(mech)
     const drone = must(mech.partners?.[0])
-    await show(<CompanionSheet hostKind="mech" hostId={mech.id} partnerId={drone.id} />)
+    await show(
+      <CompanionSheet
+        hostKind="mech"
+        hostId={mech.id}
+        partnerId={drone.id}
+        store={useUnits}
+        writes
+      />
+    )
 
     expect(screen.getByRole('table', { name: /Systems/ })).toBeTruthy()
     expect(screen.getByRole('table', { name: /Modules/ })).toBeTruthy()
@@ -101,7 +120,15 @@ describe('CompanionSheet', () => {
       ],
     } as Partial<Mech>)
     await seed(mech)
-    await show(<CompanionSheet hostKind="mech" hostId={mech.id} partnerId={drone.id} />)
+    await show(
+      <CompanionSheet
+        hostKind="mech"
+        hostId={mech.id}
+        partnerId={drone.id}
+        store={useUnits}
+        writes
+      />
+    )
 
     expect(screen.getByText('Curious and chatty.')).toBeTruthy()
     expect(screen.getByText('Dented orange shell.')).toBeTruthy()
@@ -112,15 +139,33 @@ describe('CompanionSheet', () => {
   test('a companion the host does not have says so, with the way back', async () => {
     const mech = sestra()
     await seed(mech)
-    await show(<CompanionSheet hostKind="mech" hostId={mech.id} partnerId="nobody" />)
+    await show(
+      <CompanionSheet hostKind="mech" hostId={mech.id} partnerId="nobody" store={useUnits} writes />
+    )
 
     expect(screen.getByText(/No such companion/)).toBeTruthy()
     const back = screen.getByRole('link', { name: /Back to its mech/ })
     expect(back.getAttribute('href')).toContain(`/mechs/${mech.id}`)
   })
 
-  test('a pilot host that is not in the replica says so too', async () => {
-    await show(<CompanionSheet hostKind="pilot" hostId="missing" partnerId="nobody" />)
-    expect(screen.getByRole('link', { name: /Back to its pilot/ })).toBeTruthy()
+  test('a pilot host that is not yours or at a table of yours is not found', async () => {
+    await show(<CompanionSheetView hostKind="pilot" hostId="missing" partnerId="nobody" />)
+    expect(screen.getByText(/not found/i)).toBeTruthy()
+  })
+
+  test('your host’s companion steps while the session may write, and is a read-out else', async () => {
+    const mech = sestra()
+    await seed(mech)
+    const drone = must(mech.partners?.[0])
+    const view = (canWrite: boolean) => (
+      <SyncContext.Provider value={{ status: 'live', canWrite, outdated: false }}>
+        <CompanionSheetView hostKind="mech" hostId={mech.id} partnerId={drone.id} />
+      </SyncContext.Provider>
+    )
+    await show(view(false))
+    expect(screen.queryAllByRole('button', { name: /^Increase/ })).toHaveLength(0)
+    cleanup()
+    await show(view(true))
+    expect(screen.getAllByRole('button', { name: /^Increase/ }).length).toBeGreaterThan(0)
   })
 })

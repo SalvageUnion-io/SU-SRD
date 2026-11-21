@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { citeLine, entityCite, formatCite, formatProvenance } from '../parts/cite'
+import sourcesData from '../../../data/sources.json'
+import { bookName, citeLine, entityCite, formatCite, formatProvenance } from '../parts/cite'
 
 describe('formatCite', () => {
   test('prints the core book by its title-page name', () => {
@@ -40,10 +41,20 @@ describe('formatProvenance', () => {
     )
   })
 
-  test('any other book keeps its source and booklet', () => {
-    expect(formatProvenance('Salvage Union Starter Set', 'PC', 26)).toBe(
-      'Salvage Union Starter Set (PC) · p.26'
-    )
+  test('any other book prints its short name and booklet', () => {
+    expect(formatProvenance('Salvage Union Starter Set', 'PC', 26)).toBe('Starter Set (PC) · p.26')
+  })
+})
+
+describe('bookName: one short name per book (ruleset Source 2)', () => {
+  const books = (sourcesData as { name: string }[]).map((book) => book.name)
+
+  test('every book in sources.json prints without the game’s name', () => {
+    for (const book of books) expect(bookName(book)).not.toMatch(/^Salvage Union\b/)
+  })
+
+  test('no two books share a short name', () => {
+    expect(new Set(books.map(bookName)).size).toBe(books.length)
   })
 })
 
@@ -52,9 +63,9 @@ describe('citeLine (every printing on one line)', () => {
     expect(
       citeLine([
         { book: 'Workshop Manual', page: 65 },
-        { book: 'Salvage Union Starter Set (CR)', page: 37 },
+        { book: 'Starter Set (CR)', page: 37 },
       ])
-    ).toBe('Workshop Manual · p.65 // Salvage Union Starter Set (CR) · p.37')
+    ).toBe('Workshop Manual · p.65 // Starter Set (CR) · p.37')
   })
 
   test('one printing is its cite alone; none is nothing', () => {
@@ -70,6 +81,6 @@ describe('citeLine (every printing on one line)', () => {
       page: 48,
       additionalSources: [{ source: 'Salvage Union Starter Set', booklet: 'PC', page: 12 }],
     } as never)
-    expect(cite.citation).toBe('Workshop Manual · p.48 // Salvage Union Starter Set (PC) · p.12')
+    expect(cite.citation).toBe('Workshop Manual · p.48 // Starter Set (PC) · p.12')
   })
 })

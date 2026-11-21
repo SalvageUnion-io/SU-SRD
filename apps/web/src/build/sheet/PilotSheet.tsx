@@ -3,7 +3,8 @@
  *
  * One layout in Read and Edit (R11): the dashboard (`PilotDash`), the
  * masthead's vitals, identity and portrait, then the trees on their tracks,
- * the Generic abilities and Inventory, then the companions. Edit adds its
+ * the Generic abilities and Inventory; its companions are in Related units
+ * (R70), and Edit fits them under the dashboard. Edit adds its
  * controls in place (the identity's fields, the photo, each row's stepper,
  * Uses, Details and ✕, Manage); Read withdraws them, as a sheet the viewer
  * cannot write does. `live` keeps HP, AP and TP live in Read for whoever may
@@ -59,7 +60,7 @@ type PilotSheetProps = {
    */
   crawlerReadOnly?: boolean
   /**
-   * The Assigned Units section (mech + crawler), built by PilotLiveSheet from
+   * The Related units section (mech + crawler), built by PilotLiveSheet from
    * `composition` — PilotSheet has no composition access of its own, so this
    * is passed straight through, into the sidebar under Inventory. Undefined
    * when Read has nothing linked.
@@ -141,9 +142,10 @@ export function PilotSheet({
         onManage={setPicker}
         store={store}
         linkedUnits={linkedUnits}
-        companions={companions(true)}
         phone={phone}
       />
+      {/* Read reaches a companion from Related units (R70); Edit fits it here. */}
+      {!readOnly && companions(true)}
 
       <PilotSheetPickers
         picker={picker}

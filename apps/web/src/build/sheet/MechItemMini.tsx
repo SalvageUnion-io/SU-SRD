@@ -1,6 +1,6 @@
 /**
  * MechItemMini — ONE installed system/module as the entity display language's
- * TOKEN (R35: a sheet's Systems, Modules and Assigned Units are Minis that
+ * TOKEN (R35: a sheet's Systems, Modules and Related units are Minis that
  * Peek, not cards that expand). Hover, focus or a long
  * press Peeks the whole card; a damaged or destroyed item's pill greys.
  *
@@ -20,7 +20,8 @@ import type { ScrapPool } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { Button, DialogActions, Entity, ModalShell, tokens } from '../../components/index'
+import { DialogActions } from '../../components/app'
+import { Button, Entity, ModalShell, tokens } from '../../components/index'
 import { poolShortfall } from '../../lib/rules/crawlerEconomy'
 import type { MechItem } from '../../lib/rules/mechItems'
 import { itemEconomy, itemUsesRemaining, repairScrapCost } from '../../lib/rules/mechItems'

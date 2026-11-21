@@ -61,7 +61,9 @@
   padding: 0 !important;
 }
 
-.su-ledger__table tbody tr[data-band] {
+/* A picked row keeps its ink (ledger.css): the band's tint under paper words
+   reads as a disabled row. */
+.su-ledger__table tbody tr[data-band]:not([data-picked]) {
   background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
 }
 
@@ -263,8 +265,8 @@
 /* L-2: the header. */
 .su-union-bar,
 .su-union-bar[data-mode] {
-  --su-bar-bg: var(--color-chrome) !important;
-  --su-bar-fg: var(--color-on-chrome) !important;
+  --su-bar-bg: var(--color-ink-deep) !important;
+  --su-bar-fg: var(--color-paper) !important;
   --su-bar-on-fg: var(--color-ink) !important;
   --su-bar-fg-85: var(--color-paper-85) !important;
   --su-bar-fg-70: var(--color-paper-70) !important;
@@ -303,8 +305,8 @@
 
 /* L-3: the foot is the header's chrome (K13): one token pair for both. */
 .su-chapter-foot {
-  --su-foot-bg: var(--color-chrome) !important;
-  --su-foot-fg: var(--color-on-chrome) !important;
+  --su-foot-bg: var(--color-ink-deep) !important;
+  --su-foot-fg: var(--color-paper) !important;
   --su-foot-mark: invert(1) !important;
   --su-foot-grain-paper: contents !important;
   --su-foot-grain-ink: none !important;
@@ -1000,42 +1002,6 @@
   gap: var(--space-8);
 }
 
-/* A COMPANION IS ITS OWN CELL. Painted in the
-   companion's own colour (a drone wears its tech level), the whole cell a
-   link to the companion; its numbers in one quiet line. */
-.su-companion-cell {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: var(--space-2) var(--space-12);
-  padding: var(--space-8) var(--space-12);
-  background-color: var(--su-kind, var(--color-tl-1));
-  color: var(--color-ink);
-  text-decoration: none;
-}
-.su-companion-cell__kind {
-  grid-column: 1 / -1;
-  font-family: var(--font-cond);
-  font-size: var(--text-badge);
-  letter-spacing: var(--tracking-caps-snug);
-}
-.su-companion-cell__name {
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-weight: 700;
-}
-.su-companion-cell__block {
-  font-size: var(--text-caption);
-}
-.su-companion-cell__vitals {
-  grid-column: 1 / -1;
-  font-size: var(--text-caption);
-  font-variant-numeric: tabular-nums;
-}
-.su-companion-cell:hover .su-companion-cell__name,
-.su-companion-cell:focus-visible .su-companion-cell__name {
-  text-decoration: underline;
-}
 .su-partner-anchor {
   scroll-margin-top: 6rem;
 }
@@ -1158,7 +1124,7 @@
   }
 }
 
-/* ── A cut-out shares its body (law-changes.md) ────
+/* ── A cut-out shares its body (R45) ──────────────
    A cut-out (a band's title plate, a strip's tab) takes the ground and the
    border of the body it opens into: that body sets `--cutout-ground` and
    `--cutout-border`, the cut-out reads them, and the side that opens into the
@@ -1450,18 +1416,13 @@
   padding: var(--space-12) var(--su-column-pad, var(--space-16));
 }
 
-/* ── The contrast floor (law-changes.md) ──────────
+/* ── The contrast floor (§3.8, §4.6) ──────────────
    Every word passes 4.5:1 on what it stands on (3:1 large or a UI edge). */
 
 /* An empty cell's dash and an empty figure read at ink-75, not a ghost. */
 .su-ledger__table tbody [data-empty],
 .su-scrap__cell[data-empty] > dd {
   color: var(--color-ink-75);
-}
-
-/* A dark Tech Level swatch carries paper. */
-.su-tl[data-dark] {
-  color: var(--color-paper);
 }
 
 /* Crawler pink carries paper (6.4:1), never ink (3.3:1): the band's kicker

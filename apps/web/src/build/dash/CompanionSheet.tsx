@@ -10,34 +10,35 @@
  * abilities, Systems and Modules as tables whose rows open in place, Cargo in
  * the side column, and the cite.
  *
- * It reads only the viewer's own host (a crewmate's companion is not
- * resolved); fitting a loadout stays on the host's Edit card.
+ * `CompanionSheetView` is both routes' page body: the host is located as any
+ * sheet is (`useLocatedSheet`). Your own host's companion steps live where the
+ * session may write (`useSync().canWrite`); a crewmate's is read from the
+ * Game's listing (`makeReadOnlySheetStore`) and is a read-out. Fitting a
+ * loadout stays on the host's Edit card.
  */
 
+import { sheetPath } from 'game-domain/entityKinds'
 import type { PartnerInstance } from 'game-domain/schemas/partner'
 import type { CSSProperties } from 'react'
+import { useMemo } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { getAssetUrl, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { installedSlots, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
 import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
 import {
   ChapterBand,
   Chips,
   capsLabel,
-  Facts,
   Mention,
   OpenLedger,
-  Prose,
   relation,
-  STRIP_ART,
-  Strip,
-  StripFigure,
   Tag,
   TechLevel,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { space } from '../../design/tokens'
-import { appPath } from '../../lib/appBase'
 import { bandFillFor } from '../../lib/chapters'
 import { cn } from '../../lib/cn'
 import { replacePartner } from '../../lib/partnerLookup'
@@ -50,9 +51,14 @@ import {
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import { useSync } from '../../replica/syncContext'
+import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
 import { partnerDisplayName } from '../sheet/partnerDisplay.model'
+import { makeReadOnlySheetStore, sheetDataFromListing } from '../sheet/readOnlySheetStore.model'
+import { SheetFallback } from '../sheet/SheetFallback'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
+import { useLocatedSheet } from '../sheet/useLocatedSheet'
 import { Cost } from './Cost'
 import { Dash, DashColumn } from './Dash'
 import { ITEM_COLUMNS, itemRows } from './itemRows'
@@ -86,24 +92,75 @@ const NO_CHIPS = { durations: [], facts: [], tags: [] }
 
 type Props = { hostKind: 'mech' | 'pilot'; hostId: string; partnerId: string }
 
-export function CompanionSheet({ hostKind, hostId, partnerId }: Props) {
-  const storeState = useUnits()
+/**
+ * A companion's page, `/pilots/:id/companions/:partnerId` and
+ * `/mechs/:id/companions/:partnerId` alike: the host located as its own sheet
+ * is (yours, a crewmate's, or not found), then the companion read through it.
+ */
+export function CompanionSheetView({ hostKind, hostId, partnerId }: Props) {
+  const { canWrite } = useSync()
+  const { status, listing, crew } = useLocatedSheet(hostKind, hostId)
+  const listed = useMemo(
+    () => (listing ? makeReadOnlySheetStore(sheetDataFromListing(listing)) : null),
+    [listing]
+  )
+  if (status === 'yours') {
+    return (
+      <CompanionSheet
+        hostKind={hostKind}
+        hostId={hostId}
+        partnerId={partnerId}
+        store={useUnits}
+        writes={canWrite}
+      />
+    )
+  }
+  if (status !== 'listed' || listed === null) {
+    return (
+      <SheetFallback
+        kind={hostKind}
+        status={status === 'listed' ? 'loading' : status}
+        back={crew}
+      />
+    )
+  }
+  return (
+    <CompanionSheet
+      hostKind={hostKind}
+      hostId={hostId}
+      partnerId={partnerId}
+      store={listed}
+      writes={false}
+    />
+  )
+}
+
+export function CompanionSheet({
+  hostKind,
+  hostId,
+  partnerId,
+  store,
+  writes,
+}: Props & {
+  /** Where the host is read: the replica (yours), or the Game's listing (a crewmate's). */
+  store: UnitsStore
+  /** The viewer may write the host now: SP, EP and Heat step. */
+  writes: boolean
+}) {
+  const storeState = store()
   const host = storeState.get(hostKind, hostId)
   const partner = (host?.partners ?? []).find((each) => each.id === partnerId)
   const block = partner ? resolvePartnerStatBlock(partner) : null
-  const hostHref = `${appPath(`/${hostKind}s/${hostId}`)}`
+  // An app path: the surface's router link adds the app's base.
+  const hostHref = sheetPath(hostKind, hostId)
 
   if (!host || !partner || !block) {
     return (
-      <>
-        <ChapterBand tone={hostKind === 'mech' ? 'mech' : 'pilot'}>
-          {buildSheetCopy('companion')}
-        </ChapterBand>
-        <p className="su-open__empty">
-          {buildSheetCopy('noSuchCompanion')}{' '}
-          <a href={hostHref}>{buildSheetCopy('backToItsHost', { kind: hostKind })}</a>
-        </p>
-      </>
+      <NotFoundPanel
+        title={buildSheetCopy('noSuchCompanion')}
+        message={buildSheetCopy('companionGone', { kind: hostKind })}
+        back={{ href: hostHref, label: buildSheetCopy('backToItsHost', { kind: hostKind }) }}
+      />
     )
   }
 
@@ -112,7 +169,6 @@ export function CompanionSheet({ hostKind, hostId, partnerId }: Props) {
   const name = partnerDisplayName(partner)
   const hostName = 'callsign' in host && host.callsign.trim() !== '' ? host.callsign : host.name
   const max = partnerDerivedStats(partner, partnerTechLevel(partner, undefined))
-  const writes = host?.partners?.some((each) => each.id === partner.id) === true
   const patch = (fields: Partial<PartnerInstance>) =>
     runWrite(() =>
       storeState.update(

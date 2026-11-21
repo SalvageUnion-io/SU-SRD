@@ -60,7 +60,7 @@ test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
   // --- Wire the crawler from the pilot sheet's rail ---
   await assignCrawlerOnPilotSheet(page, 'Iron Wagon')
 
-  // The mech is still on the pilot sheet's Assigned units (full wired
+  // The mech is still on the pilot sheet's Related units (full wired
   // composition): its relation chip, `MECH | Iron Fist`, a link to its sheet,
   // because the point of this line is that the mech is STILL WIRED and
   // reachable after the crawler was assigned (C11).

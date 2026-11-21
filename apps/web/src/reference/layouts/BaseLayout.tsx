@@ -11,8 +11,9 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
+import { Footer, SkipLink } from '../../components/app'
 import type { FooterFoot } from '../../components/index'
-import { BreadcrumbTrail, ChapterBandTrail, Footer, SkipLink } from '../../components/index'
+import { BreadcrumbTrail, ChapterBandTrail } from '../../components/index'
 import { color } from '../../design/tokens'
 import { DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_URL } from '../../lib/constants'
 import { SITE_LINKS } from '../../lib/docPages'

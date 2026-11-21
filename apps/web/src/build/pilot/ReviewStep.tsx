@@ -1,6 +1,7 @@
 import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import { Box, FieldError, ReferenceEntityCard } from '../../components/index'
+import { FieldError } from '../../components/app'
+import { Box, ReferenceEntityCard } from '../../components/index'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { pilotCopy } from '../../messages/build-pilot'
 import { abilityColumns, equipmentColumns } from '../wizard/pickColumns'

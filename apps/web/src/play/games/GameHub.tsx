@@ -38,10 +38,10 @@ import { useRouter } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { PageShell } from '../../components/app'
 import {
   Button,
   Callout,
-  PageShell,
   Pending,
   SlabLookProvider,
   SlabSection,

@@ -2,17 +2,24 @@
 // pattern, its name the link to its Page, Starting its only stamp, what it
 // changes said whole (a mech's loadout, each drone by the name the pattern
 // gives it; the actions a Bio-Titan's pattern adds: rules text is never cut,
-// only a name may end in "…"), and the patterns' sources once, on the foot's
-// cut-out (a citation is text, never a chip: E9). Its title tab names the
-// section and carries the count, so no Slab heads it.
+// only a name may end in "…"), each part a Mention of its entry (L4), whose
+// Page lists the pattern back (EDL E26). It draws no foot (L6): each pattern's Page
+// cites it. Its title tab names the section and carries the count, so no Slab
+// heads it.
+import type { ReactNode } from 'react'
+import { Fragment } from 'react'
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { entityRef, isBioTitanPattern, toEntityModel } from 'salvageunion-reference'
-import { bookHrefs } from '../../../lib/bookHref'
+import {
+  entityRef,
+  isBioTitanPattern,
+  SalvageUnionReference,
+  toEntityModel,
+} from 'salvageunion-reference'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
-import { CiteLine } from '../../atoms/CiteLine'
 import { Stat } from '../../atoms/Stat'
 import { paintFor } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
+import { Mention } from '../../entity/forms/Mention'
 import type { LedgerColumn } from '../../entity/Ledger'
 import { Ledger } from '../../entity/Ledger'
 import { quotePatternName } from '../pattern/quotePatternName'
@@ -26,28 +33,37 @@ const ACTIONS: readonly LedgerColumn[] = [
   { key: 'actions', label: referenceEntityCopy('actions'), kind: 'line' },
 ]
 
-/** Installed parts as running text, a multiple counted: "Escape Hatch, Rigging Arm ×2". */
-function partsOf(list: readonly { name: string; count?: number }[] | undefined): string[] {
-  return (list ?? []).map((part) =>
-    part.count && part.count > 1 ? `${part.name} ×${part.count}` : part.name
-  )
+type Part = { name: string; count?: number; schema: 'systems' | 'modules' | 'drones'; ref?: string }
+
+/** A part as the line names it, a multiple counted ("Rigging Arm ×2"), its entry a Mention. */
+function partOf({ name, count, schema, ref }: Part): ReactNode {
+  const label = count && count > 1 ? `${name} ×${count}` : name
+  const entry = SalvageUnionReference.isLoaded(schema)
+    ? SalvageUnionReference.getByNameIn(schema, ref ?? name)
+    : undefined
+  return entry ? <Mention entityRef={entityRef(entry as RefMetaEntity)}>{label}</Mention> : label
 }
 
-/** What a pattern changes on its host, as one line. */
-function changesOf(pattern: RefObjectAnyPattern): string {
+/** What a pattern changes on its host, as one line: "Escape Hatch, Rigging Arm ×2". */
+function changesOf(pattern: RefObjectAnyPattern): ReactNode {
   if (isBioTitanPattern(pattern)) return (pattern.actions ?? []).join(', ')
-  return [
-    ...partsOf(pattern.systems),
-    ...partsOf(pattern.modules),
-    ...(pattern.drones ?? []).map((drone) => drone.name),
-  ].join(', ')
-}
-
-/** "Workshop Manual · p.101": the book's name less the game's, and the page. */
-function citeOf(pattern: RefObjectAnyPattern): string {
-  const book = 'source' in pattern && pattern.source ? String(pattern.source) : ''
-  const page = 'page' in pattern && pattern.page != null ? ` · p.${pattern.page}` : ''
-  return `${book.replace(/^Salvage Union /, '')}${page}`
+  const parts: Part[] = [
+    ...(pattern.systems ?? []).map((part) => ({ ...part, schema: 'systems' as const })),
+    ...(pattern.modules ?? []).map((part) => ({ ...part, schema: 'modules' as const })),
+    ...(pattern.drones ?? []).map((drone) => ({
+      name: drone.name,
+      schema: 'drones' as const,
+      ...(drone.ref ? { ref: drone.ref } : {}),
+    })),
+  ]
+  if (parts.length === 0) return ''
+  return parts.map((part, index) => (
+    // biome-ignore lint/suspicious/noArrayIndexKey: a fixed line; position is identity
+    <Fragment key={index}>
+      {index > 0 && ', '}
+      {partOf(part)}
+    </Fragment>
+  ))
 }
 
 export function PatternLedger({
@@ -60,18 +76,6 @@ export function PatternLedger({
   const surface = useEntitySurface()
   const model = toEntityModel(chassis as RefMetaEntity)
   const host = entityRef(chassis as RefMetaEntity)
-  // Each distinct cite once, linked to its book's page (Source 2).
-  const cited = new Map<string, string>()
-  for (const pattern of patterns) {
-    const cite = citeOf(pattern)
-    if (cite && !cited.has(cite))
-      cited.set(cite, 'source' in pattern ? String(pattern.source ?? '') : '')
-  }
-  const cites = [...cited.keys()]
-  const hrefs = bookHrefs(
-    [...cited.values()].map((source) => ({ book: source, source })),
-    surface.hrefFor
-  )
   return (
     <Ledger
       label={referenceEntityCopy('patternsOf', { name: model.title })}
@@ -96,7 +100,6 @@ export function PatternLedger({
         ) : undefined,
         cells: [changesOf(pattern)],
       }))}
-      foot={<CiteLine text={cites.join(' // ')} hrefs={hrefs} />}
     />
   )
 }

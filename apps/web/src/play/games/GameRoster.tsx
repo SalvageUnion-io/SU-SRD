@@ -34,13 +34,12 @@ import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import { FieldError, RosterSkeleton } from '../../components/app'
 import type { HeaderMenuItem, OpenColumn, OpenRow } from '../../components/index'
 import {
   Button,
-  FieldError,
   HeaderMenu,
   OpenLedger,
-  RosterSkeleton,
   SlabSection,
   Stat,
   TechLevel,
@@ -54,6 +53,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import {
+  ADD_CREW_ANCHOR,
   bodyIdOf,
   crawlerRows,
   groupColumn,
@@ -68,6 +68,7 @@ import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall, useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
+import { AddFromTrainingBay } from './AddFromTrainingBay'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
@@ -321,7 +322,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       state: (
         <>
           {row.primary && <Stat size="mini" label={playGamesCopy('primary')} />}
-          {row.owner !== null && (row.owner.unassigned || row.owner.mine) && (
+          {/* The seal is the assign control: a row of yours says Mine in its
+              Member column, once (R59). */}
+          {row.owner?.unassigned && (
             <OwnerSeal
               owner={row.owner}
               assignable={row.can.assignSelf}
@@ -372,6 +375,14 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
           {playGamesCopy('newCrawler')}
         </Button>
       )}
+      {caps.canAddCrew && (
+        <AddFromTrainingBay
+          gameId={gameId}
+          gameName={gameName}
+          crawler={caps.canRaiseCrawler && !caps.hasCrawler}
+          confirm={confirm}
+        />
+      )}
     </>
   )
   const note =
@@ -406,7 +417,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
               }
             : {})}
           lead={
-            <div className="su-open__controls">
+            <div className="su-open__controls" id={ADD_CREW_ANCHOR}>
               {newButtons}
               {note}
             </div>

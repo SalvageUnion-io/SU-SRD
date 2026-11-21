@@ -402,15 +402,13 @@ export function OpenLedger({
   )
 }
 
-/** A Tech Level as its swatch on the colour map. */
+/** A Tech Level as a chip on paper, framed in its colour on the map (§3.8). */
 export function TechLevel({ level }: { level: number | string | undefined }) {
   if (level === undefined || level === '') return null
   const key = typeof level === 'number' ? level : String(level).toLowerCase()
   return (
     <span
       className="su-tl"
-      // The dark swatches (TL 4 up) carry paper text.
-      data-dark={typeof level === 'number' && level >= 4 ? '' : undefined}
       style={{ '--tl': `var(--color-tl-${key})` } as CSSVarStyle}
       title={entityCopy('techLevelN', { level: String(level) })}
     >

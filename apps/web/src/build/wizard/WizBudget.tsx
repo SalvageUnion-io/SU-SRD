@@ -1,5 +1,7 @@
 // A wizard's budgets: `WizTracker` in the action bar, `WizMeter` on the step.
-import { Stat, slotPips } from '../../components/index'
+
+import { slotPips } from '../../components/app'
+import { Stat } from '../../components/index'
 
 /**
  * A wizard budget in the action pill (`SCRAP | 20/20`): the `Stat` cell, its
@@ -30,7 +32,7 @@ export function WizTracker({
 /**
  * A budget as a meter, on the step it is spent on: the reading (`WizTracker`'s
  * `Stat`) and one small cell a point beside it, the filled cells the number it
- * reads (the Scrap still held, the slots filled). The cells repeat the reading
+ * reads (the Scrap spent, the slots filled: every budget counts up). The cells repeat the reading
  * for the eye, so a screen reader hears the `Stat` alone.
  */
 export function WizMeter({ label, value, max }: { label: string; value: number; max: number }) {

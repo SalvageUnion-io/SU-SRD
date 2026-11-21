@@ -78,7 +78,9 @@ const KEPT_CLASSES = new Set(['rank', 'cost', 'state', 'uses', 'menu'])
 /**
  * The flow's items besides the name, in source order: the container's
  * children, read through every box that draws none (`display: contents`: a
- * strip, its class lanes, a cost's edge), skipping what is not drawn.
+ * strip, its class lanes, a cost's edge), skipping what is not drawn and what
+ * CSS lays on a line of its own (`flex-basis: 100%`: a show page's action,
+ * above its title on a phone), which is never beside the name.
  */
 function fillItems(container: HTMLElement, name: Element | null): HTMLElement[] {
   const items: HTMLElement[] = []
@@ -88,6 +90,7 @@ function fillItems(container: HTMLElement, name: Element | null): HTMLElement[] 
       if (isNotChip(child)) continue
       const display = getComputedStyle(child).display
       if (display === 'none') continue
+      if (display !== 'contents' && getComputedStyle(child).flexBasis === '100%') continue
       if (display === 'contents') take(child)
       else items.push(child)
     }

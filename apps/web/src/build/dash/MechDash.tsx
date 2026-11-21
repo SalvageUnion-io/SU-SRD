@@ -26,39 +26,34 @@ import {
   STAT_LABELS,
   toEntityModel,
 } from 'salvageunion-reference'
-import { pinFor, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { pinFor } from 'salvageunion-reference/rules'
+import {
+  Conditions,
+  Facts,
+  heatDangerFrom,
+  Prose,
+  STRIP_ART,
+  Strip,
+  StripFigure,
+} from '../../components/app'
 import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
 import {
   Button,
-  Conditions,
   capsLabel,
-  Facts,
   Field,
-  heatDangerFrom,
   Mention,
   OpenLedger,
-  Prose,
-  STRIP_ART,
   Stat,
-  Strip,
-  StripFigure,
   TechLevel,
   tokens,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
-import { appPath } from '../../lib/appBase'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import { changeUndoToast } from '../../lib/changeUndoToast'
-import { bandFillFor } from '../../lib/chapters'
 import { cn } from '../../lib/cn'
 import { chassisArt } from '../../lib/photos/defaultArt'
 import { CHASSIS_MODDER } from '../../lib/rules/chassisModder'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
-import {
-  partnerDerivedStats,
-  partnerTechLevel,
-  resolvePartnerStatBlock,
-} from '../../lib/rules/partnerStats'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
@@ -72,7 +67,6 @@ import { MechItemControls } from '../sheet/MechItemMini'
 import type { MechSheetModel } from '../sheet/mechSheet.model'
 import type { ItemKind, MechSheetActions } from '../sheet/mechSheetActions.model'
 import { slotCount } from '../sheet/mechSlots.model'
-import { partnerDisplayName } from '../sheet/partnerDisplay.model'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
@@ -323,45 +317,6 @@ export function MechDash({
       }
     })
   }
-  // A companion the chassis fields (a drone) is its
-  // own cell, in its own colour (a drone wears its tech level), with its
-  // numbers; the whole cell opens the companion's own sheet (`CompanionSheet`).
-  const companions = (mech.partners ?? []).map((partner) => {
-    const block = resolvePartnerStatBlock(partner)
-    const max = partnerDerivedStats(partner, partnerTechLevel(partner, undefined))
-    const name = partnerDisplayName(partner)
-    const blockName = block && 'name' in block ? block.name : undefined
-    return (
-      <a
-        key={partner.id}
-        className="su-companion-cell"
-        href={`${appPath(`/mechs/${mech.id}/companions/${partner.id}`)}`}
-        style={
-          {
-            '--su-kind': block
-              ? (bandFillFor(partner.hostSchema, block) ?? 'var(--color-tl-1)')
-              : undefined,
-          } as CSSProperties
-        }
-      >
-        <span className={cn('su-companion-cell__kind', CAPS)}>{buildSheetCopy('companion')}</span>
-        <span className="su-companion-cell__name">{name}</span>
-        {blockName && blockName !== name && (
-          <span className="su-companion-cell__block">{blockName}</span>
-        )}
-        <span className="su-companion-cell__vitals">
-          {buildSheetCopy('companionVitals', {
-            sp: resolvePool(partner.currentSP, max.structurePoints),
-            spMax: max.structurePoints,
-            ep: resolvePool(partner.currentEP, max.energyPoints),
-            epMax: max.energyPoints,
-            heat: resolveGauge(partner.currentHeat),
-            heatMax: max.heatCapacity,
-          })}
-        </span>
-      </a>
-    )
-  })
   // The masthead's right column is About (the
   // description, clamped, with More). Quirk and Appearance are short lines on
   // the figures' rail, beside SYS, MODS and CARGO. The side column keeps only
@@ -417,6 +372,7 @@ export function MechDash({
         traits={traitLines}
         edit={edit}
       />
+      {phone && linkedUnits}
       <Dash>
         <DashColumn wide label={buildSheetCopy('whatHas', { name: mech.name })}>
           {(mech.systems.length > 0 || edit) && (
@@ -453,10 +409,11 @@ export function MechDash({
           )}
         </DashColumn>
         <DashColumn label={buildSheetCopy('whatCarries', { name: mech.name })}>
+          {!phone && linkedUnits}
           {/* The chassis leads the side column. Its ability
               is text, never a row: the name and every word, always showing. Then
-              its own facts and its description. A companion it fields is its own
-              cell below, in the companion's colour, opening the companion. */}
+              its own facts and its description. A companion it fields is in
+              Related units, opening the companion. */}
           {/* The side column shows the chassis
               ability only: its strip reads "Chassis ability" with the
               ability's name in it, and its body is the ability's words. */}
@@ -491,7 +448,6 @@ export function MechDash({
               actions={chassisControls}
             />
           )}
-          {companions}
           <div className="su-dash-group" data-storage-side="mech">
             <OpenLedger
               as="h2"
@@ -547,7 +503,6 @@ export function MechDash({
               />
             )}
           </div>
-          {linkedUnits}
         </DashColumn>
       </Dash>
       {partners}

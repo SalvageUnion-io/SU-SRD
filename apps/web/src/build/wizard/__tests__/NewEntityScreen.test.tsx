@@ -32,6 +32,7 @@ const { SyncContext } = await import('../../../replica/syncContext')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
 const { useUnits } = await import('../../../replica/units')
+const { usePatterns } = await import('../../../replica/collections')
 const { NewEntityScreen } = await import('../NewEntityScreen')
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -201,7 +202,19 @@ describe('NewEntityScreen — mode routing', () => {
 })
 
 describe('CreateModeChooser — the mech’s From a pattern door', () => {
-  test('a mech chooser opens on From a pattern, then Guided and Blank, and names the pilot it is for', () => {
+  const order = () => {
+    const [pattern, guided, blank] = ['From a pattern', 'Guided', 'Blank'].map((t) =>
+      screen.getByRole('heading', { name: t })
+    )
+    const before = (a?: Node, b?: Node) =>
+      Boolean(a && b && a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    return {
+      patternFirst: before(pattern, guided),
+      guidedFirst: before(guided, blank),
+      patternLast: before(blank, pattern),
+    }
+  }
+  const chooser = () =>
     render(
       <NewEntityScreen
         kind="mech"
@@ -212,14 +225,31 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
         forPilot="Nia Vale"
       />
     )
-    const [pattern, guided, blank] = ['From a pattern', 'Guided', 'Blank'].map((t) =>
-      screen.getByText(t)
-    )
-    const before = (a?: Node, b?: Node) =>
-      Boolean(a && b && a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
-    expect(before(pattern, guided)).toBe(true)
-    expect(before(guided, blank)).toBe(true)
+
+  test('with a pattern saved, a mech chooser opens on From a pattern, then Guided and Blank, and names the pilot', () => {
+    usePatterns.setState({
+      mechPatterns: [
+        {
+          id: 'pat-1',
+          schemaVersion: 1,
+          name: 'Brawler',
+          chassisRef: 'titan',
+          systems: [],
+          modules: [],
+          createdAt: 0,
+        },
+      ],
+      hydrated: true,
+    })
+    chooser()
+    expect(order()).toMatchObject({ patternFirst: true, guidedFirst: true })
     expect(screen.getByText(/For Nia Vale/)).toBeTruthy()
+  })
+
+  test('with none saved, its empty pattern door waits under Guided and Blank', () => {
+    usePatterns.setState({ mechPatterns: [], hydrated: true })
+    chooser()
+    expect(order()).toMatchObject({ guidedFirst: true, patternLast: true })
   })
 
   test('pilot and crawler choosers do NOT show the pattern door', () => {

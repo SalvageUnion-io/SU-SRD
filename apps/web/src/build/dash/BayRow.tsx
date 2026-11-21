@@ -5,11 +5,11 @@
 
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ComponentProps, ReactNode } from 'react'
+import { EntityChoices } from '../../components/app'
 import {
   Button,
   Content,
   damagedEffectOf,
-  EntityChoices,
   EntityRollMini,
   SlabSection,
 } from '../../components/index'

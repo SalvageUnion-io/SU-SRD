@@ -10,7 +10,8 @@
  */
 
 import { PROPOSAL_STATE_WORD } from 'game-domain/games/proposals'
-import { Eyebrow, FeedLine, FeedTime } from '../../components/index'
+import { FeedLine, FeedTime } from '../../components/app'
+import { Eyebrow } from '../../components/index'
 import type { SentProposal } from './proposalLine.model'
 import { proposalLine } from './proposalLine.model'
 

@@ -82,7 +82,7 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
       source: 'Salvage Union Workshop Manual',
     })
     expect(meta.printings[1]).toEqual({
-      book: 'Salvage Union Starter Set (PC)',
+      book: 'Starter Set (PC)',
       page: 26,
       source: 'Salvage Union Starter Set',
     })

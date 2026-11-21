@@ -89,3 +89,24 @@ export const who = (chips: readonly { label: string }[]): string =>
 /** A unit's own labels (`Shared by link`), under its name. */
 export const under = (chips: readonly { label: string }[]): string | undefined =>
   chips.length > 0 ? chips.map((c) => c.label).join(' · ') : undefined
+
+/**
+ * A row's labels under its name, and a pilot's mech (`flown`) as a link there
+ * on a phone, where the Mech column is hidden: the mech is never out of reach.
+ */
+export const underWith = (
+  chips: readonly { label: string }[],
+  flown: readonly { name: string; href?: string | undefined }[]
+): ReactNode => {
+  const labels = under(chips)
+  const mech = flown[0]
+  if (!mech) return labels
+  return (
+    <>
+      {labels && <span>{labels}</span>}
+      <span className="su-shelf-ledger__flown">
+        {buildShelvesCopy('mech')} <ShelfLink href={mech.href}>{mech.name}</ShelfLink>
+      </span>
+    </>
+  )
+}

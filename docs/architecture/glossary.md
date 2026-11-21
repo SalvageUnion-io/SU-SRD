@@ -9,6 +9,7 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
    The Training Bay lists everything you own, in a Game or not, and nothing else; a unit's Game is a chip there, never a filter or a place, and no Games are listed there (ADR-052, ADR-066).
 3. **Assign** — the one verb for an assignment (ADR-037): assign, unassign, assigned; a pilot to a mech, a pilot, mech or NPC to a crawler.
    Never linked, wired, docked or aboard for it; a crawler's assigned pilots are its crew. Code calls the record a soft link.
+   A sheet's **Related units** section lists what it is assigned to, and its companions (R70).
 4. **Move** — the same record changes container ("Move to a Game…", "Move to your Training Bay"). It is never a copy.
 5. **Make a copy** — a new, separate record (ADR-030 §2); the one label for copying wherever it is offered.
    The Starter Set's "Copy to…" only picks where the copy lands.
@@ -21,3 +22,6 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
    The Training Bay and The Cantina are also SRD crawler bays, with Pilot Bay: the reference pages and search keep them as bays.
    Code still says `cantina` only for the bay (`BAY.cantina`), the old commit scopes, ADR-021's file name and issue ids like CANTINA-CONVEX-9; everything else is `app`, `build` or `play`.
 10. **Group session** — a Game's table sitting down to play: the table runner's **Start group session** and **End group session**; while it runs, "Session live" and **Join session**. Never a lock: Play opens without one.
+11. **Crew** — the players' units at one table: a Game's crew, Play's Crew pane. A crawler bay's NPC is its **crew lead**, never "crew"; a crawler's assigned pilots stay its crew (3).
+12. **Rolls** and **Rules** — Play's two reference panes: **Rolls** the roll tables (tab, pane head, the Mediator's tab), **Rules** the SRD inside Play (tab, pane head, the Mediator's ⋯). Never "Tables" or "Reference" there: the Mediator's **Table** is the seats.
+13. **Units** — in Play, your own pilot, mech and crawler (the pane, the ⋯ row). A sheet's linked units are its **Related units**.

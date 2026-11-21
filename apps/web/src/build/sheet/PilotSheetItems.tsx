@@ -9,15 +9,8 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
 import { extractVisibleActions } from 'salvageunion-reference'
-import {
-  AdderBox,
-  AdderField,
-  Button,
-  Content,
-  Entity,
-  HeaderMenu,
-  Input,
-} from '../../components/index'
+import { AdderBox, AdderField } from '../../components/app'
+import { Button, Content, Entity, HeaderMenu, Input } from '../../components/index'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
 import { PILOT_SCRAP_SLOTS } from '../../lib/rules/downtimeEconomy'
 import { buildSheetCopy } from '../../messages/build-sheet'

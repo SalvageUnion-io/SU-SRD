@@ -16,7 +16,8 @@
 
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { Button, ConfirmDialog, EntitySearcher, ModalShell } from '../../components/index'
+import { ConfirmDialog } from '../../components/app'
+import { Button, EntitySearcher, ModalShell } from '../../components/index'
 import { mechCopy } from '../../messages/build-mech'
 import '../../styles/build/wizard.css'
 

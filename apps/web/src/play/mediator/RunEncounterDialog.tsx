@@ -12,15 +12,8 @@
 import type { Encounter } from 'game-domain/schemas/encounter'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import {
-  ConfirmDialog,
-  capsLabel,
-  InlineRef,
-  Radio,
-  Stack,
-  toast,
-  tokens,
-} from '../../components/index'
+import { ConfirmDialog, Radio } from '../../components/app'
+import { capsLabel, InlineRef, Stack, toast, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { encounterLine, trayChoiceLabel } from './runEncounter.model'
 

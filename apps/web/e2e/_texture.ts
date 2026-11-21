@@ -113,10 +113,10 @@ export async function readOverlays(page: Page): Promise<{ what: string; findings
     const menu = page.getByRole('menu')
     await expect(menu).toBeVisible()
     read.push({ what: 'the More menu', findings: await findGrain(page) })
-    const reference = menu.getByRole('menuitem', { name: 'Reference' })
+    const reference = menu.getByRole('menuitem', { name: 'Rules' })
     if (await reference.isVisible().catch(() => false)) {
       await reference.click()
-      const dialog = page.getByRole('dialog', { name: 'Reference' })
+      const dialog = page.getByRole('dialog', { name: 'Rules' })
       await expect(dialog).toBeVisible()
       await dialog.getByRole('combobox', { name: 'Search the Reference' }).fill('drill')
       await rest(page)

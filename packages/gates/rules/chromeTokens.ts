@@ -39,6 +39,7 @@ import { ignoredRules } from '../lib/tokenIgnore'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 import { ENTITY_FRAME_STYLE_FILES, entityFrameInkCss, entityFrameInkScript } from './entityFrames'
 import { itemGridRule } from './itemGrid'
+import { isSlideshow, slideTurnRule } from './slideshow'
 
 const SCAN_DIRS = [
   'packages/salvageunion-reference/lib',
@@ -267,6 +268,7 @@ const loadingMarkCss = (_decls: CssDecl[], blocks: CssBlock[], rel: string) =>
     ? []
     : blocks
         .filter((b) => KEYFRAMES.test(b.header) || PULSE.test(b.header))
+        .filter((b) => !isSlideshow(b.header, rel))
         .map((b) => ({ line: b.line, detail: b.header }))
 
 /**
@@ -446,11 +448,12 @@ const CHROME_RULES: ChromeRule[] = [
   {
     id: 'loading-mark',
     mode: 'zero',
-    rule: 'chrome K6 — one loading voice: `@keyframes` and the `su-pulse` loop only in the loading atoms',
-    fix: 'Wait with `Pending` (inside a screen), `Skeleton` (a shape known ahead; compose ghosts inside `SkeletonFrame`) or `RoutePending` (a route), never a loop, logo or bar of its own. The pulse is defined only in LOADING_ATOMS (packages/gates/rules/chromeTokens.ts).',
+    rule: 'chrome K6 — one loading voice: `@keyframes` and the `su-pulse` loop only in the loading atoms (and the home slideshow’s, K3)',
+    fix: 'Wait with `Pending` (inside a screen), `Skeleton` (a shape known ahead; compose ghosts inside `SkeletonFrame`) or `RoutePending` (a route), never a loop, logo or bar of its own. The pulse is defined only in LOADING_ATOMS, the slideshow only as SLIDESHOW (packages/gates/rules/slideshow.ts).',
     css: loadingMarkCss,
     script: loadingMarkScript,
   },
+  slideTurnRule,
   {
     id: 'raw-alert',
     mode: 'zero',

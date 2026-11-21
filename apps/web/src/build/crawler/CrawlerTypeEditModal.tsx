@@ -13,14 +13,8 @@
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import {
-  Button,
-  ConfirmDialog,
-  EntitySearcher,
-  ModalShell,
-  Text,
-  toast,
-} from '../../components/index'
+import { ConfirmDialog } from '../../components/app'
+import { Button, EntitySearcher, ModalShell, Text, toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'

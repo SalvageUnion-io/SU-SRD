@@ -27,20 +27,16 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { ComponentProps, ReactNode } from 'react'
 import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
+import { Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
 import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
 import {
   Button,
   Content,
   embeddedPeekAddress,
-  Facts,
   HeaderMenu,
   Mention,
   OpenLedger,
-  Prose,
-  STRIP_ART,
   Stat,
-  Strip,
-  StripFigure,
   TechLevel,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
@@ -331,6 +327,7 @@ export function CrawlerDash({
           ) : undefined
         }
       />
+      {phone && linkedUnits}
       <Dash>
         <DashColumn wide label={buildSheetCopy('bays')}>
           <OpenLedger
@@ -373,9 +370,9 @@ export function CrawlerDash({
               ) : undefined
             }
           />
-          {linkedUnits}
         </DashColumn>
         <DashColumn label={buildSheetCopy('whatCarries', { name: crawler.name })}>
+          {!phone && linkedUnits}
           <StorageBay crawler={crawler} mech={mech} cargo={cargo} store={store} edit={editing} />
           {weaponsLedger}
           {type && (

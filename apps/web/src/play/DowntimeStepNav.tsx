@@ -14,7 +14,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, NextLabel } from '../components/index'
+import { NextLabel } from '../components/app'
+import { Button } from '../components/index'
 import { playCopy } from '../messages/play'
 
 /** Pushes End and Next to the row's end, Back left at its start. */

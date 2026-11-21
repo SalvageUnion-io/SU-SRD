@@ -19,6 +19,7 @@ import {
   FIXTURE_NOW,
   mechFixture,
   pilotFixture,
+  softLinkFixture,
 } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
@@ -298,6 +299,22 @@ describe('What a shelf says of a unit (L9)', () => {
     expect(cells.slice(0, 5)).toEqual(['scavenger', '+ Add a Mech', '—', '10/10', '5/5'])
     const add = within(pilots).getAllByRole('link', { name: '+ Add a Mech' })[0]
     expect(add?.getAttribute('href')).toMatch(/\/mechs\/new\?pilot=/)
+  })
+})
+
+describe('a mech a pilot of yours flies', () => {
+  test('rides its pilot’s line: the Mech column, and under the name for a phone', async () => {
+    await useUnits.getState().adopt('softLink', softLinkFixture('mech-to-pilot', 'm-jaw', 'p-nia'))
+    await renderShelves()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    const row = within(pilots).getByText('Nia Vale').closest('tr') as HTMLElement
+    // The column (hidden on a phone) and the line under the name (shown only there).
+    const links = within(row).getAllByRole('link', { name: 'Iron Jaw' })
+    expect(links).toHaveLength(2)
+    expect(row.querySelector('.su-shelf-ledger__flown')?.textContent).toBe('Mech Iron Jaw')
+    // The Mechs shelf holds the rest.
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    expect(within(mechs).queryByText('Iron Jaw')).toBeNull()
   })
 })
 

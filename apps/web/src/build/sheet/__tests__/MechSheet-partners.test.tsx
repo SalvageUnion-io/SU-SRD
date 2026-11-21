@@ -114,7 +114,7 @@ describe('MechSheet — Partners', () => {
     expect(screen.queryByText(/^Partners$/i)).toBe(null)
   })
 
-  test('read, each drone is its own cell opening its own sheet, beside the mech’s About and lines', () => {
+  test('read, the mech’s About and lines print; its drones are no cells of their own', () => {
     const mech = seededMech('big-brother', 'DronTek', {
       name: 'Panopticon',
       description: 'A patient watcher.',
@@ -124,14 +124,8 @@ describe('MechSheet — Partners', () => {
     })
     render(<MechSheet mech={mech} store={makeSingleUnitStore('mech', mech)} readOnly />)
 
-    const cells = document.querySelectorAll('a.su-companion-cell')
-    expect(cells).toHaveLength(4)
-    for (const [index, cell] of [...cells].entries()) {
-      const partner = must(mech.partners?.[index])
-      expect(cell.getAttribute('href')).toContain(`/mechs/${mech.id}/companions/${partner.id}`)
-      expect(cell.textContent).toMatch(/Companion/)
-      expect(cell.textContent).toMatch(/SP \d+/)
-    }
+    // Its drones are in Related units (`Sheet-related-units.test.tsx`), not cells of their own.
+    expect(document.querySelector('.su-companion-cell')).toBeNull()
     expect(screen.getByText('A patient watcher.')).toBeTruthy()
     expect(screen.getByText('Hums when idle.')).toBeTruthy()
     expect(screen.getByText('Rust-streaked.')).toBeTruthy()

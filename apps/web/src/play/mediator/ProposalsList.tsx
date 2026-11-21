@@ -11,7 +11,8 @@
 
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, FeedList, tokens } from '../../components/index'
+import { FeedList } from '../../components/app'
+import { Button, EmptyState, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { MUTED } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'

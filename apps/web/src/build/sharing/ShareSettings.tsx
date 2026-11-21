@@ -27,18 +27,8 @@ import { publicPath } from 'game-domain/entityKinds'
 import { Copy } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import {
-  Button,
-  CopiedIcon,
-  CopiedStatus,
-  Field,
-  FieldError,
-  Select,
-  Stack,
-  Switch,
-  tokens,
-  useCopied,
-} from '../../components/index'
+import { CopiedIcon, CopiedStatus, FieldError, Switch, useCopied } from '../../components/app'
+import { Button, Field, Select, Stack, tokens } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { usePatternSharing, useSharingAct, useSheetIsPublic } from '../../lib/sharing/reads'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'

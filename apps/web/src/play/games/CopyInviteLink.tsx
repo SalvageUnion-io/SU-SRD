@@ -12,15 +12,8 @@
 
 import { Link2 } from 'lucide-react'
 import { useState } from 'react'
-import {
-  Button,
-  ConfirmDialog,
-  CopiedIcon,
-  CopiedStatus,
-  toast,
-  tokens,
-  useCopied,
-} from '../../components/index'
+import { ConfirmDialog, CopiedIcon, CopiedStatus, useCopied } from '../../components/app'
+import { Button, toast, tokens } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
 import { playGamesCopy } from '../../messages/play-games'

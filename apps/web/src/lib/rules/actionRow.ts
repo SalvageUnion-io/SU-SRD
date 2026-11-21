@@ -12,13 +12,16 @@
  *    table says so in its own line.
  *  - Under its action type's heading (`grouped`) its head drops the type,
  *    which the heading has said (C10).
+ *  - It names its source (`actionSource`): an action has no page, so the row
+ *    Peeks and opens the ability, item or chassis it comes from.
  */
 
 import type { EntityModel, RefObjectContentBlock } from 'salvageunion-reference'
-import { toEntityModel } from 'salvageunion-reference'
+import { entityRef, toEntityModel } from 'salvageunion-reference'
 import type { ActionPick } from './actionEffect'
 import { actionEffect, actionPicks } from './actionEffect'
 import type { PlayAction } from './actionList'
+import { actionSource } from './actionList'
 
 /** A trait chip that says where an action comes from, which its row's band already says. */
 const SOURCE_TRAIT = /^pilot equipment$/i
@@ -75,9 +78,11 @@ export function actionRow(
         ? `${first.label}: ${first.value}`
         : first.value
       : undefined
+  const source = actionSource(pa)
   return {
     model: {
       ...(grouped ? withoutType(base) : base),
+      ...(source ? { ref: entityRef(source) } : {}),
       traits: base.traits.filter((trait) => !SOURCE_TRAIT.test(trait.name)),
       prose: effect,
     },

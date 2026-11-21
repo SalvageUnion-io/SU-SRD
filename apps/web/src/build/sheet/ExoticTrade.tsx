@@ -127,7 +127,7 @@ export function ExoticTrade({ crawler, store }: { crawler: Crawler; store: Units
           disabled={count < 1 || count > bucket}
           onClick={handleTrade}
         >
-          {buildSheetCopy('trade')}
+          {buildSheetCopy('makeTheTrade')}
         </Button>
       </div>
       {note && (

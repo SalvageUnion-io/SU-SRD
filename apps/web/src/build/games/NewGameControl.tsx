@@ -20,10 +20,10 @@
 import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
+import { FieldError } from '../../components/app'
 import {
   Button,
   Field,
-  FieldError,
   Input,
   ModalShell,
   Pending,
@@ -165,17 +165,12 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   )
 }
 
-type NewGameControlProps = {
-  /** Its region already has a door (a Game to play): the make is outlined, not rust (ruleset §3.13). */
-  beside?: boolean
-}
-
-function ConnectedNewGameControl({ beside = false }: NewGameControlProps) {
+function ConnectedNewGameControl() {
   const [open, setOpen] = useState(false)
   return (
     <>
-      {/* A make is rust only where its region has no door (ruleset §1.9, §3.13). */}
-      <Button variant={beside ? 'default' : 'primary'} size="compact" onClick={() => setOpen(true)}>
+      {/* A make (+ New) is outlined wherever it stands (ruleset §3.14). */}
+      <Button variant="default" size="compact" onClick={() => setOpen(true)}>
         {buildGamesCopy('newGame2')}
       </Button>
       <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />
@@ -184,8 +179,8 @@ function ConnectedNewGameControl({ beside = false }: NewGameControlProps) {
 }
 
 /** "+ New Game" and its dialog; nothing at all outside Connected mode. */
-export function NewGameControl(props: NewGameControlProps) {
+export function NewGameControl() {
   const { status } = useSync()
   if (status !== 'live') return null
-  return <ConnectedNewGameControl {...props} />
+  return <ConnectedNewGameControl />
 }

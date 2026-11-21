@@ -90,20 +90,18 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     render(<MechWizard onComplete={onComplete} onCancel={() => {}} />)
 
     // --- Step 1: Chassis (the book's Gain Scrap is its rule; the tracker debuts full) ---
-    expect(screen.getByTestId('scrap-remaining').textContent).toContain(
-      `${MECH_CREATION_SCRAP_CAP}/${MECH_CREATION_SCRAP_CAP}`
-    )
+    expect(screen.getByTestId('scrap-spent').textContent).toContain(`0/${MECH_CREATION_SCRAP_CAP}`)
     // A radio; its SV debits the budget.
     await pickRadio('Mule')
     const afterChassis = MECH_CREATION_SCRAP_CAP - mule().salvageValue
-    expect(screen.getByTestId('scrap-remaining').textContent).toContain(`${afterChassis}/`)
+    expect(screen.getByTestId('scrap-spent').textContent).toContain(`${mule().salvageValue}/`)
     await clickNext()
 
     // --- Step 2: Systems (Qty stepper; shared scrap pool + system slots) ---
     const cargoPod = systemByName('Cargo Pod')
     await addOne('Cargo Pod')
-    expect(screen.getByTestId('scrap-remaining').textContent).toContain(
-      `${afterChassis - cargoPod.salvageValue}/`
+    expect(screen.getByTestId('scrap-spent').textContent).toContain(
+      `${MECH_CREATION_SCRAP_CAP - afterChassis + cargoPod.salvageValue}/`
     )
     expect(screen.getByTestId('system-slot-count').textContent).toContain('1/')
 
@@ -113,13 +111,13 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     await clickNext()
 
     // --- Step 3: Quirk + Appearance (flavor — never gates) ---
-    await fillIdentity('Edit quirk', 'Rattles at speed')
+    await fillIdentity('quirk', 'Rattles at speed')
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
     // --- Step 4: Pattern Name (required; name IS pattern), over the review ---
     expect(getCreateButton().disabled).toBe(true)
-    await fillIdentity('Edit name / pattern', 'Iron Fist')
+    await fillIdentity('mech name', 'Iron Fist')
     expect(getCreateButton().disabled).toBe(false)
 
     // The text-only banking callout, then create.
@@ -195,7 +193,7 @@ describe('MechWizard — hard creation enforcement', () => {
     expect(getCreateButton().disabled).toBe(true)
     expect(screen.getByText('Name your Pattern to continue')).toBeTruthy()
     expect(useUnits.getState().list('mech').length).toBe(0)
-    await fillIdentity('Edit name / pattern', 'Iron Fist')
+    await fillIdentity('mech name', 'Iron Fist')
     expect(getCreateButton().disabled).toBe(false)
   })
 
@@ -209,8 +207,8 @@ describe('MechWizard — hard creation enforcement', () => {
     await clickButton(/Chassis$/)
     await pickRadio('Scrapper')
     const scrapper = SalvageUnionReference.Chassis.getByName('Scrapper')
-    expect(screen.getByTestId('scrap-remaining').textContent).toContain(
-      `${MECH_CREATION_SCRAP_CAP - must(scrapper).salvageValue}/`
+    expect(screen.getByTestId('scrap-spent').textContent).toContain(
+      `${must(scrapper).salvageValue}/`
     )
     await clickNext() // → Systems & Modules
     // Loadout wiped — the Cargo Pod copy is gone (its Qty stepper reads 0).
@@ -277,9 +275,7 @@ describe('MechWizard — preselected chassis', () => {
     const onCancel = mock(() => {})
     render(<MechWizard onComplete={() => {}} onCancel={onCancel} preselectChassis="mule" />)
 
-    expect(screen.getByTestId('scrap-remaining').textContent).toContain(
-      `${MECH_CREATION_SCRAP_CAP - mule().salvageValue}/`
-    )
+    expect(screen.getByTestId('scrap-spent').textContent).toContain(`${mule().salvageValue}/`)
     expect(isPicked('Mule')).toBe(true)
     expect(getNextButton().disabled).toBe(false)
 
@@ -300,9 +296,7 @@ describe('MechWizard — preselected chassis', () => {
       />
     )
     // The pattern's loadout is debited along with the chassis.
-    expect(screen.getByTestId('scrap-remaining').textContent).not.toContain(
-      `${MECH_CREATION_SCRAP_CAP - mule().salvageValue}/`
-    )
+    expect(screen.getByTestId('scrap-spent').textContent).not.toContain(`${mule().salvageValue}/`)
     expect(isPicked(hauler.name)).toBe(true)
     // The preselection is the baseline: cancelling asks nothing.
     await clickButton('Cancel')

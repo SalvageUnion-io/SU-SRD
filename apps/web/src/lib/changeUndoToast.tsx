@@ -14,8 +14,11 @@ import type { CSSProperties } from 'react'
 import { toast, tokens } from '../components/index'
 import { componentsCopy } from '../messages/components'
 
-/** The value each number's open line started from, by its key. */
-const origins = new Map<string, number>()
+/** One number a line moves: its name, the value its run started from, and now. */
+export type UndoChange = { key: string; label: string; from: number; to: number }
+
+/** Each open line's numbers, by its key: each keeps the value its run started from. */
+const origins = new Map<string, Map<string, UndoChange>>()
 
 /** A value's change is a glyph at the line's Size (K11), never a text arrow. */
 const GLYPH = {
@@ -45,23 +48,59 @@ export function changeUndoToast({
   /** What made the change, said first: "Used Squeeze It In". */
   did?: string
 }) {
-  const origin = origins.get(id) ?? from
-  if (origin === to) {
+  changesUndoToast({
+    id,
+    did,
+    changes: [{ key: 'value', label, from, to }],
+    undo: (start) => undo(start.value ?? from),
+  })
+}
+
+/**
+ * One line for a change that moves several numbers at once (an activation's
+ * EP, Heat and Uses): "Used Hover · EP 10 → 8 · Heat 0 → 2 · Undo". Undo is
+ * handed each number's starting value, by its key, to write back together.
+ */
+export function changesUndoToast({
+  id,
+  did,
+  changes,
+  undo,
+}: {
+  id: string
+  did?: string
+  changes: UndoChange[]
+  /** Writes back each number the run started from, by its key. */
+  undo: (start: Record<string, number>) => void
+}) {
+  const run = new Map(origins.get(id) ?? [])
+  for (const change of changes) {
+    const open = run.get(change.key)
+    run.set(change.key, { ...change, from: open?.from ?? change.from })
+  }
+  const moved = [...run.values()].filter((c) => c.from !== c.to)
+  if (moved.length === 0) {
     origins.delete(id)
     toast.dismiss(id)
     return
   }
-  origins.set(id, origin)
+  origins.set(id, run)
+  const start = Object.fromEntries([...run.values()].map((c) => [c.key, c.from]))
   toast(
     <span style={FIGURES}>
       {did ? `${did} · ` : ''}
-      {label} {origin}
-      <ArrowRight
-        size={tokens.iconSize.mini}
-        aria-label={componentsCopy('changedTo')}
-        style={GLYPH}
-      />
-      {to}
+      {moved.map((c, i) => (
+        <span key={c.key}>
+          {i > 0 ? ' · ' : ''}
+          {c.label} {c.from}
+          <ArrowRight
+            size={tokens.iconSize.mini}
+            aria-label={componentsCopy('changedTo')}
+            style={GLYPH}
+          />
+          {c.to}
+        </span>
+      ))}
     </span>,
     {
       id,
@@ -70,7 +109,7 @@ export function changeUndoToast({
         label: componentsCopy('undo'),
         onClick: () => {
           origins.delete(id)
-          undo(origin)
+          undo(start)
         },
       },
       onDismiss: () => origins.delete(id),

@@ -124,3 +124,14 @@ describe('a companion’s actions are rows of their own', () => {
     expect(rows[0]?.companion?.name.trim()).not.toBe('')
   })
 })
+
+describe('a row names the entry its action comes from (actionSource)', () => {
+  test("a system's action Peeks and opens the system, not the action", () => {
+    const rows = buildMechActions(mechFixture({ id: 'm1', systems: [TURRET] }))
+    const row = rows.find((r) => r.kind === 'system')
+    if (!row) throw new Error('no system row')
+    const ref = actionRow(row).model.ref
+    expect(ref?.schemaName).toBe('systems')
+    expect(ref?.slug).toBe(TURRET)
+  })
+})

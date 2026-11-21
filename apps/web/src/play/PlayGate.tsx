@@ -99,7 +99,7 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
             ? playCopy('itMayHaveBeenDeleted')
             : playCopy('playRunsAPilotAssign', { name: mech.name })
         }
-        // A mech with no pilot: back to its page, where Assigned units lives.
+        // A mech with no pilot: back to its page, where Related units lives.
         link={
           mech === null ? TO_TRAINING_BAY : { href: sheetPath('mech', mech.id), label: mech.name }
         }

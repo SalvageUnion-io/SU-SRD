@@ -1,28 +1,26 @@
 /**
- * FrontDoor — Build's home for a visitor who is not signed in.
+ * FrontDoor — an area's home for a visitor who is not signed in: Build's `/`
+ * and Play's `/games/` (ruleset §1.8). Signed out, the app is read-only
+ * (ADR-034 as amended): there is nothing of the visitor's to list, so the
+ * area's home is its front door instead, one tree for both —
  *
- * Signed out, the app is read-only (ADR-034 as amended): there is nothing of the
- * visitor's to list, so `/` is the front door instead —
- *
- *  - **Build's name** on its chapter band (`PRODUCT.build`, the Training Bay)
- *    in Build's pilot-orange tone, with the legacy
- *    tagline quoted beside the name (under it on a phone);
- *  - **the pitch** (`FrontPitch`), as the home's and Play's: what Build is,
- *    the page's one rust action (sign in) and one outline beside it;
- *  - **Start here**, the onboarding path (`StartHere`): Create a Pilot →
- *    Create a Mech → Join or make a Crawler, each opening its builder (signed
- *    out, its sign-in prompt). Playing a Game happens from the Crawler, so it
- *    is not a step of its own;
+ *  - **the area's name** on its chapter band in the area's tone, the legacy
+ *    tagline quoted beside it (under it on a phone);
+ *  - **the pitch** (`FrontPitch`): what the area is, the page's one rust
+ *    action (sign in, back to this area) and one outline beside it, to the
+ *    Starter crew;
+ *  - **the area's own steps** (`StartHere`, passed in): Build's onboarding
+ *    path, Play's "At the table";
  *  - **the Starter Set** (`StarterSetCrew`): the pre-generated crew as one
- *    Ledger, each line opening its read-only sheet, with one Leyline Press
- *    credit for the section.
+ *    Ledger, each line opening its read-only sheet.
  *
- * Style objects and tokens only (ADR-046).
+ * Its words are one set (`rosterCopy`), each area's pitch by its name.
  */
 
 import { PRODUCT } from 'game-domain/product'
-import type { CSSProperties } from 'react'
-import { Button, ChapterBand, FrontPitch, StartHere, tokens } from '../../components/index'
+import type { ReactNode } from 'react'
+import { FrontPitch, PageShell, StartHere } from '../../components/app'
+import { Button, ChapterBand } from '../../components/index'
 import { Tagline } from '../../components/Tagline'
 import { appPath } from '../../lib/appBase'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
@@ -30,60 +28,81 @@ import { rosterCopy } from '../../messages/build-roster'
 import { SignInControl } from '../account/SignInControl'
 import { StarterSetCrew } from '../starterSet/StarterSetCrew'
 
+/** Each area's front door: its band, its pitch's words, where sign-in returns and the Starter section's id. */
+const AREAS = {
+  build: {
+    name: PRODUCT.build,
+    pitch: {
+      value: rosterCopy('buildPitchValue'),
+      lede: rosterCopy('buildPitchLede'),
+      note: rosterCopy('buildPitchNote'),
+    },
+    signInTo: '/',
+    starterId: 'front-door-starter',
+    starterNote: rosterCopy('starterNote'),
+  },
+  play: {
+    name: PRODUCT.play,
+    pitch: {
+      value: rosterCopy('playPitchValue'),
+      lede: rosterCopy('playPitchLede'),
+      note: rosterCopy('playPitchNote'),
+    },
+    signInTo: '/games/',
+    starterId: 'play-starter',
+    starterNote: undefined,
+  },
+} as const
+
+type FrontDoorProps = {
+  /** The area whose front door it is: its band's tone and name, its pitch. */
+  area: keyof typeof AREAS
+  /** The area's own steps, between the pitch and the Starter crew (a `StartHere`). */
+  steps: ReactNode
+}
+
+export function FrontDoor({ area, steps }: FrontDoorProps) {
+  const door = AREAS[area]
+  return (
+    <PageShell
+      measure={PAGE_MEASURE}
+      band={
+        <ChapterBand tone={area} measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
+          {door.name}
+        </ChapterBand>
+      }
+    >
+      <FrontPitch
+        value={door.pitch.value}
+        actions={
+          <>
+            <SignInControl size="full" redirectTo={door.signInTo} />
+            <Button href={`#${door.starterId}`} variant="default" size="full">
+              {rosterCopy('meetTheStarterCrew')}
+            </Button>
+          </>
+        }
+        note={door.pitch.note}
+      >
+        {door.pitch.lede}
+      </FrontPitch>
+      {steps}
+      <StarterSetCrew id={door.starterId} note={door.starterNote} />
+    </PageShell>
+  )
+}
+
 /**
- * Each step opens its builder; signed out, the builder's own sign-in prompt
- * (the steps are the front door's actions).
+ * Each of Build's steps opens its builder; signed out, the builder's own
+ * sign-in prompt. Playing a Game happens from the Crawler, so it is no step.
  */
-const STEP_HREFS = {
+const BUILD_STEPS = {
   pilot: appPath('/pilots/new'),
   mech: appPath('/mechs/new'),
   crawler: appPath('/crawlers/new'),
 }
 
-/** The page: the band runs full-bleed, so this is not a padded `PageShell`. */
-const PAGE = {
-  backgroundColor: tokens.color.wkBg,
-} satisfies CSSProperties
-
-// Its side padding and centring are `.su-page-body`'s: the band's row padding.
-const COLUMN = {
-  display: 'flex',
-  flexDirection: 'column',
-  // Level-1 blocks 24px apart, as the home's.
-  gap: tokens.space[24],
-  maxWidth: PAGE_MEASURE,
-} satisfies CSSProperties
-
-/** The Starter Set section: the pitch's second action jumps to it. */
-const STARTER_ID = 'front-door-starter'
-
-export function FrontDoor() {
-  return (
-    <main style={PAGE}>
-      <ChapterBand tone="build" measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
-        {PRODUCT.build}
-      </ChapterBand>
-
-      <div className="su-page-body" style={{ ...COLUMN, paddingBlock: tokens.space[20] }}>
-        {/* The pitch, as the home's: what Build is, the page's one rust
-            action (sign in) and the outline beside it (ruleset §3.13). */}
-        <FrontPitch
-          value={rosterCopy('pitchValue')}
-          actions={
-            <>
-              <SignInControl size="full" redirectTo="/" />
-              <Button href={`#${STARTER_ID}`} variant="default" size="full">
-                {rosterCopy('meetTheStarterCrew')}
-              </Button>
-            </>
-          }
-          note={rosterCopy('pitchNote')}
-        >
-          {rosterCopy('pitchLede')}
-        </FrontPitch>
-        <StartHere id="front-door-start" hrefs={STEP_HREFS} />
-        <StarterSetCrew id={STARTER_ID} note={rosterCopy('starterNote')} />
-      </div>
-    </main>
-  )
+/** Build's front door: Create a Pilot → Create a Mech → Join or make a Crawler. */
+export function BuildFrontDoor() {
+  return <FrontDoor area="build" steps={<StartHere id="front-door-start" hrefs={BUILD_STEPS} />} />
 }

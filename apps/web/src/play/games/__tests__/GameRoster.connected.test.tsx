@@ -28,7 +28,7 @@ import { RoomDeclined } from '../../../replica/roomSocket'
  * Mutations are recorded by name the same way.
  */
 
-import { crawlerFixture, pilotFixture } from '../../../components/__tests__/fixtures'
+import { crawlerFixture, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { closeRooms, serve } from '../../../replica/__tests__/fakeRooms'
 
@@ -634,6 +634,20 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     expect(screen.queryByText('Create Mech')).toBeNull()
     expect(screen.queryByText('Patterns')).toBeNull()
     expect(screen.queryByText('Move in…')).toBeNull()
+  })
+
+  test('Add from Training Bay brings one of your own in: the same record moves', async () => {
+    setSyncStatus('live')
+    await useUnits.getState().adopt('mech', mechFixture({ id: 'm-bay', name: 'Rust Bucket' }))
+    await renderAs(ME, listing())
+    fireEvent.click(screen.getByRole('button', { name: 'Add from Training Bay' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Bring into this Game' })
+    fireEvent.click(within(dialog).getByRole('radio', { name: 'Rust Bucket' }))
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Move in' }))
+    })
+    await settle(() => useUnits.getState().mechs.find((m) => m.id === 'm-bay')?.gameId === 'g1')
+    expect(useUnits.getState().mechs.find((m) => m.id === 'm-bay')?.gameId).toBe('g1')
   })
 })
 

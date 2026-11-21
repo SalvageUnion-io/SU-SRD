@@ -29,7 +29,9 @@ describe('mechPatternStamp', () => {
       none
     )
     expect(stamp?.name).toBe(pattern.name)
-    expect(stamp?.href).toContain('/chassis/mule/pattern/')
+    // A Reference page, never an app route: the router would put it under /build.
+    expect(stamp?.href).toBeUndefined()
+    expect(stamp?.page).toBe(`/chassis/mule/pattern/${nameToSlug(pattern.name)}/`)
   })
 
   test('a blank build says nothing', () => {

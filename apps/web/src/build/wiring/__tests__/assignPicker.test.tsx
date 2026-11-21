@@ -211,7 +211,13 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign mech to pilot/i)
-    expect(offered()).toEqual(['Iron Fist'])
+    // In a Game, your own Training Bay mech is offered too, to move in first.
+    expect(offered()).toEqual(['Iron Fist', 'Rust Bucket'])
+    expect(screen.getByText('From your Training Bay')).toBeTruthy()
+    fireEvent.click(screen.getByRole('radio', { name: 'Rust Bucket' }))
+    expect(screen.getByText('Move into this Game and assign')).toBeTruthy()
+    fireEvent.click(screen.getByRole('radio', { name: 'Iron Fist' }))
+    expect(screen.queryByText('Move into this Game and assign')).toBeNull()
     unmount()
 
     inMode(

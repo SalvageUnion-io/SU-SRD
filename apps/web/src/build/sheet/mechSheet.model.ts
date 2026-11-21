@@ -23,8 +23,8 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import { linesFromBreakdown } from '../../components/app'
 import type { ProvenanceLine } from '../../components/index'
-import { linesFromBreakdown } from '../../components/index'
 import { useCargo } from '../../lib/cargo/useCargo'
 import {
   hasChassisModder,

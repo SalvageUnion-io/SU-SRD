@@ -9,6 +9,8 @@ import { BreadcrumbTrail } from '../atoms/BreadcrumbTrail'
 import { capsLabel } from '../atoms/capsLabel'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
+import type { Area } from '../unionBar/areaNav.model'
+import { AREA_NAV } from '../unionBar/areaNav.model'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -21,15 +23,15 @@ const TAB_CAPS = capsLabel({ tracking: 'inherit' })
  * "One union, two tools"). Both render modes draw it through
  * one preset, `unionBar/UnionBar.tsx`.
  *
- * One lockup (the SU mark alone, no wordmark), then the **Reference | Training
- * Bay | Games** switcher (ADR-066), the search slot, "Buy the game" and the
- * app's account controls. There is no second nav: each tab is a place, and a
- * page's own modes (a pilot's Read | Edit | Play) live on that page. Crossing
- * is a tab on the same bar, never an off-site link. The tab you are on is an
- * inverse stamp — a paper plate on the ink bar — and never rust (§3.1). The
- * shell's bar is marked for the route it is served on (`markUnionRoute`), and
- * the app moves the current tab as it routes (`UnionBarSlots`, by each tab's
- * `data-tool`).
+ * One lockup (the SU mark alone, no wordmark), then the areas as plain
+ * header links, **Reference | Build | Play** (a phone reads REF for the
+ * first), "Buy the game" after them (off-site: a new tab, its arrow), the
+ * search slot and the app's account controls; under the bar, the open area's
+ * rail. A page's own modes (a pilot's Read | Edit | Play) live on that page.
+ * Crossing is a link on the same bar, never an off-site one. The area you are
+ * in is underlined, never rust (§3.1). The shell's bar is marked for the
+ * route it is served on (`markUnionRoute`), and the app moves the current
+ * link as it routes (`UnionBarSlots`, by each link's `data-tool`).
  *
  * ## One geometry
  *
@@ -80,9 +82,9 @@ type AppBarProps = {
   noCurrent?: boolean
   /** Where "Reference" goes — the SRD's home. */
   referenceHref: string
-  /** Where "Training Bay" goes — the app's home. */
+  /** Where "Build" goes — the app's home. */
   buildHref: string
-  /** Where "Games" goes — Your Games. */
+  /** Where "Play" goes — Your Games. */
   playHref: string
   /**
    * The SU mark's URL. The app's own copy: the app serves its files under
@@ -135,40 +137,6 @@ const SWITCH = {
   flexShrink: 0,
   gap: space[4],
 } satisfies CSSProperties
-
-/** What each area holds, for the rail. */
-const RAIL: Record<AppBarProduct, { name: string; links: { label: string; href: string }[] }> = {
-  reference: {
-    name: compositionsCopy('railReference'),
-    links: [
-      { label: compositionsCopy('railPilots'), href: '/pilots/' },
-      { label: compositionsCopy('railMechs'), href: '/mechs/' },
-      { label: compositionsCopy('railUnionCrawler'), href: '/union-crawler/' },
-      { label: compositionsCopy('railWasteland'), href: '/wasteland/' },
-      { label: compositionsCopy('railRules'), href: '/rules/' },
-      { label: compositionsCopy('railGuides'), href: '/guides/' },
-      { label: compositionsCopy('railRollTables'), href: '/roll-tables/' },
-    ],
-  },
-  build: {
-    name: compositionsCopy('railYours'),
-    links: [
-      { label: compositionsCopy('railPilots'), href: '/build/#pilots' },
-      { label: compositionsCopy('railMechs'), href: '/build/#mechs' },
-      { label: compositionsCopy('railCrawlers'), href: '/build/#crawlers' },
-      { label: compositionsCopy('railPatterns'), href: '/build/#patterns' },
-      { label: compositionsCopy('railStarterSet'), href: '/build/starter' },
-    ],
-  },
-  play: {
-    name: compositionsCopy('railPlay'),
-    links: [
-      { label: compositionsCopy('railYourGames'), href: '/games/' },
-      { label: compositionsCopy('railJoin'), href: '/games/#join' },
-      { label: compositionsCopy('railKit'), href: '/games/#kit' },
-    ],
-  },
-}
 
 export function AppBar({
   product,
@@ -268,6 +236,7 @@ export function AppBar({
               >
                 {compositionsCopy('buyTheGame')}
                 <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
+                <span className="su-sr-only"> {compositionsCopy('opensInNewTab')}</span>
               </a>
             )}
           </nav>
@@ -291,16 +260,16 @@ export function AppBar({
             any page. A phone reads the same map in the drawer. */}
         {/* The front door (`noCurrent`) is in no area, so it carries no rail. */}
         {!noCurrent &&
-          (Object.keys(RAIL) as AppBarProduct[]).map((area) => (
+          (Object.keys(AREA_NAV) as Area[]).map((area) => (
             // All three are served; the bar's `data-mode` shows its own
             // (`best-site.css`), so the rail follows the app's route marking.
             <nav
               key={area}
               className="su-union-bar__rail"
               data-area={area}
-              aria-label={compositionsCopy('railIn', { area: RAIL[area].name })}
+              aria-label={compositionsCopy('railIn', { area: AREA_NAV[area].name })}
             >
-              {RAIL[area].links.map((link) => (
+              {AREA_NAV[area].links.map((link) => (
                 <a
                   key={link.label}
                   href={link.href}

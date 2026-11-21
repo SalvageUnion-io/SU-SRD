@@ -234,8 +234,7 @@ const STRIP = {
 const STRIP_SHOWN = { ...STRIP, opacity: 1, translate: '0 0' } satisfies CSSProperties
 
 // At rest it is out of the flow as well as invisible: an invisible strip
-// still took the bar's first row on a phone and pushed Share and ⋯ onto a
-// row of their own.
+// still took the bar's first row on a phone, pushing Share and ⋯ down.
 const STRIP_HIDDEN = {
   ...STRIP,
   opacity: 0,
@@ -327,14 +326,14 @@ export function LiveSheet({
   userMade,
   quoted = false,
 }: LiveSheetProps) {
-  // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
-  // should seam and fill the moment you scroll past IT, rather than waiting for
-  // a whole region to clear the viewport.
+  // A 1px sentinel beneath the bar, NOT the identity block: the bar seams and
+  // fills the moment you scroll past IT, not once a whole region clears.
   const topRef = useRef<HTMLDivElement | null>(null)
   // The one sticky bar, at every width: the name and the vitals in brief.
   const condensed = useCondensed(topRef)
 
   const title = quoted ? `“${name}”` : name
+  const game = band?.game
 
   return (
     // The page's one `<main>` landmark, on every surface that draws a sheet
@@ -485,10 +484,11 @@ export function LiveSheet({
                         <Stat label={stamp.label} value={stamp.name} wrap />
                       ))}
                     {fromPattern &&
-                      (fromPattern.href ? (
+                      (fromPattern.href || fromPattern.page ? (
                         <Tag
                           tag={relation('pattern', buildSheetCopy('pattern'), fromPattern.name, {
                             href: fromPattern.href,
+                            page: fromPattern.page,
                           })}
                           linkable
                           wrap
@@ -498,6 +498,13 @@ export function LiveSheet({
                       ))}
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />
+                    )}
+                    {game && (
+                      <Tag
+                        tag={relation('game', buildSheetCopy('game'), game.name, game)}
+                        linkable
+                        wrap
+                      />
                     )}
                   </>
                 ),

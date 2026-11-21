@@ -68,6 +68,16 @@ export function PlayMediatorSeat({
     mech: seat.mech,
     boarded: seat.mech?.boarded ?? false,
   })
+  // The toggle's name opens on what it shows (WCAG 2.5.3): "Bonesaw (Pilot)",
+  // aboard "Mazona (Mech)", then the seat's reading.
+  const shown = mediatorCopy('seatShown', {
+    name: pair.name,
+    kind: pair.kind === 'mech' ? 'Mech' : 'Pilot',
+  })
+  const reading =
+    pair.kind === 'pilot' && seat.label.startsWith(`${seat.name}, `)
+      ? seat.label.slice(seat.name.length + 2)
+      : seat.label
   return (
     <li
       className="su-play-seat"
@@ -84,7 +94,7 @@ export function PlayMediatorSeat({
           role: 'toggle',
           selected: picked,
           onSelect: onPick,
-          label: mediatorCopy('aimProposeHere', { label: seat.label }),
+          label: mediatorCopy('aimProposeHere', { label: `${shown}, ${reading}` }),
         }}
         dim={dim}
         {...(pair.relations ? { relations: [...pair.relations] } : {})}

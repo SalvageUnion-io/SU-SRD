@@ -16,7 +16,8 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { Eyebrow, Radio, tokens } from '../../components/index'
+import { Radio } from '../../components/app'
+import { Eyebrow, tokens } from '../../components/index'
 import type { Visibility, VisibilityChoice } from '../../lib/sharing/visibility'
 import { buildSharingCopy } from '../../messages/build-sharing'
 

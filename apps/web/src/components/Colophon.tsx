@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { componentsCopy } from '../messages/components'
-import { MarkdownSection, SlabSection, Stack } from './index'
+import { MarkdownSection } from './app'
+import { SlabSection, Stack } from './index'
 
 type ColophonProps = {
   /** Raw contents of the repo-root `ABOUT_JRVS.md` (left column, top). */

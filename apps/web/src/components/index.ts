@@ -46,9 +46,7 @@ export { CiteLine } from './atoms/CiteLine'
 export { CloseButton } from './atoms/CloseButton'
 // Conditions — the entity-condition chip row. Public because the app's sheet
 // chip-well editor (`ChipListEditor`) composes it.
-export { Conditions } from './atoms/Conditions'
 // Copied — a copy control's own Check swap and polite status (chrome K5).
-export { CopiedIcon, CopiedStatus } from './atoms/Copied'
 // capsLabel — the one caps recipe (§3.12): a label in caps asks it for its class.
 export type { CapsLabelProps } from './atoms/capsLabel'
 export { capsLabel } from './atoms/capsLabel'
@@ -56,13 +54,10 @@ export type { ChapterTone } from './atoms/chapterBandColor'
 export { CHAPTER_BAND_COLOR } from './atoms/chapterBandColor'
 export { Eyebrow } from './atoms/Eyebrow'
 export type { Fact } from './atoms/Facts'
-export { Facts, Prose } from './atoms/Facts'
 export { Field, Select } from './atoms/Field'
 // FieldError — the one single-message validation line (role="alert", danger tone)
-export { FieldError } from './atoms/FieldError'
 // Skeletons
 export { Ghost } from './atoms/Ghost'
-export { heatDangerFrom } from './atoms/heatLevel'
 // The one link look (ruleset §3.1): rust is painted only by Button and by
 // InlineRef, so a prose link in either app is an InlineRef.
 export { InlineRef } from './atoms/InlineRef'
@@ -73,23 +68,15 @@ export { FOCUS_RING } from './atoms/interaction'
 // KofiButton — the Ko-fi support widget, with a plain link until its script loads
 export { KofiButton } from './atoms/KofiButton'
 export { useModKeyHint } from './atoms/modKeyHint'
-export { NextLabel } from './atoms/NextLabel'
 // A phone's vitals block, for the sheets and Play.
 export type { PhoneVital, PhoneVitalCell } from './atoms/PhoneVitals'
-export { PhoneVitals, PhoneVitalsGlance } from './atoms/PhoneVitals'
-export { PictureRadio } from './atoms/PictureRadio'
 // slotPips — a slot count as a line of pips, for a wizard's tracker tab.
-export { slotPips } from './atoms/pipRows'
-export { linesFromBreakdown, summarizeBreakdown } from './atoms/provenanceLines'
-export { Radio } from './atoms/Radio'
 export { SearchField } from './atoms/SearchField'
 export { Segmented, SegmentedOption } from './atoms/Segmented'
 // SkipLink — the one skip-to-content link, first in every document (K9).
-export { SkipLink } from './atoms/SkipLink'
 export type { SlabCount } from './atoms/Slab'
 export { Slab } from './atoms/Slab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
-export { SlotGrid } from './atoms/SlotGrid'
 // Speckle — the light speckle on a colour band or ink ground (ruleset §3.5.1).
 export { Speckle } from './atoms/Speckle'
 export type { StatState } from './atoms/Stat'
@@ -98,31 +85,24 @@ export { StatColumn } from './atoms/StatColumn'
 export type { ProvenanceLine } from './atoms/StatProvenance'
 export { StatusBadge } from './atoms/StatusBadge'
 export type { StripFigureProps } from './atoms/Strip'
-export { STRIP_ART, Strip, StripFigure } from './atoms/Strip'
-export { Switch } from './atoms/Switch'
 // How a surface draws its section heads (stamp | rule).
 export type { SlabLook } from './atoms/slabLook'
 export { SlabLookProvider, useSlabLook } from './atoms/slabLook'
-export { Tab, TabList, TabPanel, Tabs } from './atoms/Tabs'
 // Base typography
 export { Text } from './atoms/Text'
 export { Toggle } from './atoms/Toggle'
 export { ToggleCard } from './atoms/ToggleCard'
 // ToneStrip — the 8px colour band that opens a section from above (§3.10).
 export { ToneStrip } from './atoms/ToneStrip'
-export { TrackStep } from './atoms/TrackStep'
-export { useCopied } from './atoms/useCopied'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
 // (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.
 export { USER_MADE_HATCH } from './atoms/userMadeHatch'
 // Stat trackers (The app design handoff — design-spec §2.7)
-export { VitalGauge } from './atoms/VitalGauge'
 // AbilityTrack — an ability tree on its track (tier numerals, a Legendary
 // tree's "or"): the SRD's class page and abilities Tree, the app's pilot sheet.
 export { AbilityTrack } from './compositions/AbilityTrack'
 // AccountMenu — who is signed in, at the Union bar's end, on both tools.
 export { AccountMenu } from './compositions/AccountMenu'
-export { AppBar } from './compositions/AppBar'
 // Deliberately its own module rather than the card-image component's file,
 // which stays internal.
 // The reference site's item pages need this string for their `rel=preload`: it must match the
@@ -152,9 +132,7 @@ export {
 } from './compositions/digestRollTable'
 export { EntitySearcher } from './compositions/EntitySearcher'
 export type { FooterFoot } from './compositions/Footer'
-export { Footer } from './compositions/Footer'
 // FrontPitch — a front page's pitch under its band: a value line, a sentence, its two actions.
-export { FrontPitch } from './compositions/FrontPitch'
 export type { NavDrawerCategory, NavDrawerItem } from './compositions/NavDrawer'
 export { NavDrawer } from './compositions/NavDrawer'
 export type { Neighbour } from './compositions/NeighbourRow'
@@ -173,7 +151,6 @@ export {
   ogReferenceAddressFits,
 } from './compositions/ogCardText'
 // PickDialog — the one pick dialog (ruleset §6.6): Compacts in select mode, one radio group.
-export { PickDialog } from './compositions/PickDialog'
 // RollTableInstrument — THE roll table (hard rule R8): a card's, a guide step's and
 // the SRD roll-table page's bands and the app's Play tables, banded in the
 // surface tone
@@ -182,32 +159,24 @@ export { RollTableInstrument } from './compositions/RollTableInstrument'
 export { SearchListbox } from './compositions/SearchListbox'
 // StartHere — the one onboarding block, on the SRD's home and the app's front door
 export type { StartHereStep } from './compositions/StartHere'
-export { StartHere } from './compositions/StartHere'
 export type { TreeTrack } from './compositions/treeTrack'
 export { trackForTree } from './compositions/treeTrack'
 export type { SearchComboboxResult } from './compositions/useSearchCombobox'
 export { useSearchCombobox } from './compositions/useSearchCombobox'
 // AdderBox — the dashed "+ add" intake under a list; AdderField labels a field in it.
-export { AdderBox, AdderField } from './containers/AdderBox'
-export { Banner } from './containers/Banner'
 // Box — the house container: the Compact's square frame around a paper body (ruleset §4.3).
 export { Box } from './containers/Box'
 // Callout — the unlabelled note: the bare Box framed in its accent (ruleset §5.2).
 export { Callout } from './containers/Callout'
 // Stack, Cluster and Grid — the layout primitives: a column, a wrapping row,
 // and as many equal columns as fit, each a space step apart (`gap`).
-export { Cluster } from './containers/Cluster'
 // ConfirmDialog — the one "are you sure?": an alert dialog on ModalShell with a
 // pending state, an inline failure line, and focus on Cancel for destructive confirms.
-export { ConfirmDialog } from './containers/ConfirmDialog'
 // DialogActions — a dialog's buttons, right-aligned and wrapping.
-export { DialogActions } from './containers/DialogActions'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './containers/EmptyState'
 // FeedLine — one entry in a feed (a roll, an alert, a proposal, a change) in
 // a FeedList; FeedTime writes its time in the format that feed reads in.
-export { FeedLine, FeedList, FeedTime } from './containers/FeedLine'
-export { Grid } from './containers/Grid'
 // HeaderMenu — a dropdown menu (Base UI's menu button): the Union bar's account
 // and Games menus, and the "⋯" overflow on a row.
 export type { HeaderMenuItem } from './containers/HeaderMenu'
@@ -220,19 +189,16 @@ export { MasonryColumns } from './containers/MasonryColumns'
 export { MiniGrid } from './containers/MiniGrid'
 export { ModalShell } from './containers/ModalShell'
 // PageShell — the full-bleed <main> landmark for a top-level app screen
-export { PageShell } from './containers/PageShell'
 // Pending — the one "Loading X…" line (role="status"), for data that resolves inside a screen
 export { Pending } from './containers/Pending'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
 // (Base UI Popover); the app's sheet "⋯" overflow
-export { PopoverPanel } from './containers/PopoverPanel'
 // RadioCardGroup — the radiogroup around an exactly-one picker's cards (Base UI
 // RadioGroup): one tab stop, arrow keys between the cards
 export { RadioCardGroup } from './containers/RadioCardGroup'
 // RecoveryPanel — the shared error-recovery card (title / message / primary
 // action) behind the reference site's island error boundary and the app's root error component.
 export { RecoveryPanel } from './containers/RecoveryPanel'
-export { RosterSkeleton } from './containers/RosterSkeleton'
 export { Skeleton, SkeletonFrame } from './containers/Skeleton'
 export { SlabSection } from './containers/SlabSection'
 export { Stack } from './containers/Stack'
@@ -286,7 +252,6 @@ export type {
 export { Mention } from './entity/forms/Mention'
 // MiniGroup — an entity's contentful Mini and the Minis that belong to it
 // in one subtle border (a crawler bay and its crew), no nesting
-export { MiniGroup } from './entity/forms/MiniGroup'
 // Ledger — a compared or picked list's one framed table (ledger.md L1 to L9).
 export type { LedgerColumn, LedgerRow, LedgerSelect, LedgerSort } from './entity/Ledger'
 export { Ledger } from './entity/Ledger'
@@ -306,17 +271,13 @@ export { embeddedPeekAddress } from './entity/peekContext'
 export type { EntityFormModel, EntityMode } from './entity/types'
 // MarkdownSection — a repo-root markdown file (one heading, paragraphs and
 // links) as a section; InlineMarkdown — one line of it, links only
-export { InlineMarkdown } from './markdownSection/InlineMarkdown'
-export { MarkdownSection } from './markdownSection/MarkdownSection'
 export { Content } from './referenceEntity/Content'
 export { abilityTreeNeighbours } from './referenceEntity/card/abilityTreeRelations'
 // BayInfo — a crawler bay's own rules under a folding Slab, its first section.
-export { BayInfo } from './referenceEntity/card/BayInfo'
 // EntityCardIdentityFooter — a card's foot band and its cite cut-out (ruleset
 // Source 2); a Ledger, a rule brief and the Buy panel wear it too.
 export { EntityCardIdentityFooter } from './referenceEntity/card/EntityCardIdentityFooter'
 // EntityChoices — an entity's choices under its Mini, for a host that draws it as one.
-export { EntityChoices } from './referenceEntity/card/EntityChoices'
 // The band line a Page carries right of its title (EDL E20): the SRD's entity
 // pages and the app's detail dialog.
 export { EntityPageStamps } from './referenceEntity/card/EntityPageStamps'
@@ -348,6 +309,5 @@ export { EntityDetailDialog } from './referenceEntity/EntityDetailDialog'
 export { quotePatternName } from './referenceEntity/pattern/quotePatternName'
 export { navigateControl } from './referenceEntity/referenceEntityControls'
 export type { ReferenceEntityControl } from './referenceEntity/referenceEntityControlTypes'
-export { useDetailModal } from './referenceEntity/useDetailModal'
 // TraitProse — prose whose trait and entity names resolve as it renders, one per row.
 export { TraitProse } from './TraitProse'

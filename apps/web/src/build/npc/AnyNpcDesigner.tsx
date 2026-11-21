@@ -21,14 +21,12 @@ import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import type { RefNPC } from 'salvageunion-reference'
 import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { ConfirmDialog, FieldError, Grid } from '../../components/app'
 import {
   Button,
-  ConfirmDialog,
   EmptyState,
   Entity,
   Field,
-  FieldError,
-  Grid,
   Input,
   ModalShell,
   RadioCardGroup,

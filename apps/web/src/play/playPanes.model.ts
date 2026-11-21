@@ -53,7 +53,7 @@ const PLAYER_PANES: readonly PaneSpec<PlayerPane>[] = [
   { value: 'units', label: 'Units', column: 'start' },
   { value: 'act', label: 'Act', column: 'centre' },
   { value: 'crew', label: 'Crew', column: 'end' },
-  { value: 'tables', label: 'Tables', column: 'end' },
+  { value: 'tables', label: playCopy('rolls'), column: 'end' },
 ]
 
 /** The player's panes in reading order; Crew only in a Game. */
@@ -62,8 +62,8 @@ export function playerPanes(solo: boolean): readonly PaneSpec<PlayerPane>[] {
 }
 
 /**
- * The panes below `lg`. Tables reads "Rolls" there (one meaning for "Table"),
- * and Rules is the Reference. `waiting` is the pane with something waiting (a
+ * The panes below `lg`: the roll tables are Rolls at every width (one
+ * meaning for "Table"), and Rules is the Reference. `waiting` is the pane with something waiting (a
  * proposal to answer, in the Feed), whose tab wears the dot.
  */
 export function playerPhonePanes(
@@ -71,9 +71,7 @@ export function playerPhonePanes(
   waiting: PlayerPane | null
 ): readonly PaneSpec<PlayerPane>[] {
   const panes: readonly PaneSpec<PlayerPane>[] = [
-    ...playerPanes(solo).map((p) =>
-      p.value === 'tables' ? { ...p, label: playCopy('rolls') } : p
-    ),
+    ...playerPanes(solo),
     { value: 'rules', label: playCopy('rules'), column: 'end' },
   ]
   return panes.map((p) => (p.value === waiting ? { ...p, dot: true } : p))
@@ -89,7 +87,7 @@ export const PLAYER_TABS: readonly PlayerPane[] = ['act', 'crew', 'tables', 'rul
 const MEDIATOR_PANES: readonly PaneSpec<MediatorPane>[] = [
   { value: 'table', label: 'Table', column: 'start' },
   { value: 'opposition', label: 'Opposition', column: 'centre' },
-  { value: 'tables', label: 'Tables', column: 'end' },
+  { value: 'tables', label: playCopy('rolls'), column: 'end' },
   { value: 'propose', label: 'Propose', column: 'end', dock: true },
 ]
 

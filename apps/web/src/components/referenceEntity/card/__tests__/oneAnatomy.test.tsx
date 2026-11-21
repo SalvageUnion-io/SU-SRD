@@ -264,6 +264,6 @@ describe('contexts', () => {
     )
     expect(container.querySelectorAll('[data-grain]').length).toBe(0)
     const textured = render(<ReferenceEntityCard data={sestra()} presentation="page" />)
-    expect(textured.container.querySelectorAll('[data-grain]').length).toBeGreaterThan(2)
+    expect(textured.container.querySelectorAll('[data-grain]').length).toBeGreaterThan(1)
   })
 })

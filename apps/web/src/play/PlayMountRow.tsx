@@ -11,7 +11,8 @@
  */
 
 import { useState } from 'react'
-import { Button, ConfirmDialog, Entity, HeaderMenu } from '../components/index'
+import { ConfirmDialog } from '../components/app'
+import { Button, Entity, HeaderMenu } from '../components/index'
 import { playCopy } from '../messages/play'
 import { AssignAndBoardConfirm } from './AssignAndBoardConfirm'
 import type { BoardOption } from './boardMenu.model'
@@ -58,9 +59,8 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         // Said, never a disabled Board with a hover title a phone can't read.
         <NeedChip need={playCopy('noMechToBoard')} />
       ) : (
-        // The outlined Button reads on the Mini's pill (K1),
-        // beside the Use and Eject a filled one draws.
-        <Button size="mini" onClick={() => choose(main)} disabled={off}>
+        // Boarding is what the line is for: rust, as every Use (§3.13).
+        <Button size="mini" variant="primary" onClick={() => choose(main)} disabled={off}>
           {main.state === 'spare'
             ? playCopy('assignAndBoard2', { name: main.name })
             : playCopy('board2', { name: main.name })}

@@ -18,15 +18,8 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { byTechLevelThenName, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import {
-  Button,
-  DialogActions,
-  Field,
-  FieldError,
-  Input,
-  ModalShell,
-  Select,
-} from '../../components/index'
+import { DialogActions, FieldError } from '../../components/app'
+import { Button, Field, Input, ModalShell, Select } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { readReference } from '../../lib/readReference'
 import { createBlank } from '../../lib/wizard/blankCreate'

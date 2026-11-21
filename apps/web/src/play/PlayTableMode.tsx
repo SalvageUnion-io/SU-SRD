@@ -17,16 +17,9 @@
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
+import { heatDangerFrom, VitalGauge } from '../components/app'
 import type { CSSVarStyle } from '../components/index'
-import {
-  Box,
-  Button,
-  capsLabel,
-  EmptyState,
-  heatDangerFrom,
-  tokens,
-  VitalGauge,
-} from '../components/index'
+import { Box, Button, capsLabel, EmptyState, tokens } from '../components/index'
 import { dieForTable } from '../lib/dice'
 import { playCopy } from '../messages/play'
 import { recordPlayRoll } from './playRolls.model'

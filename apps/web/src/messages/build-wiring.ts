@@ -3,6 +3,10 @@
 import { messages } from './define'
 
 export const wiringCopy = messages({
+  inThisGame: 'In this Game',
+  fromYourTrainingBay: 'From your Training Bay',
+  movesIntoThisGame: '{name} moves into this Game, then is assigned.',
+  moveInAndAssign: 'Move into this Game and assign',
   assignMechToPilot: 'Assign Mech to Pilot',
   aPilotFliesOneMech:
     'A pilot flies one mech and a mech carries one pilot — picking a mech already flown moves it to this pilot.',

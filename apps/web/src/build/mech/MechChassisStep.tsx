@@ -8,13 +8,8 @@ import {
   visiblePatterns,
 } from 'salvageunion-reference'
 import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-reference/rules'
-import {
-  assetSrcSetFor,
-  capsLabel,
-  EmptyState,
-  PictureRadio,
-  ReferenceEntityCard,
-} from '../../components/index'
+import { PictureRadio } from '../../components/app'
+import { assetSrcSetFor, capsLabel, EmptyState, ReferenceEntityCard } from '../../components/index'
 import { cn } from '../../lib/cn'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'

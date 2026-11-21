@@ -1,14 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
+import { Cluster, ConfirmDialog, FieldError, PageShell } from '../../components/app'
 import {
   Button,
   ChapterBand,
-  Cluster,
-  ConfirmDialog,
   EmptyState,
-  FieldError,
   Input,
-  PageShell,
   Pending,
   SlabSection,
   Stack,

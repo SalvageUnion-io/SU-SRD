@@ -18,8 +18,9 @@ import {
   pinFor,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import { linesFromBreakdown } from '../../components/app'
 import type { PhoneVital } from '../../components/index'
-import { linesFromBreakdown, Stat } from '../../components/index'
+import { Stat } from '../../components/index'
 import { changeUndoToast } from '../../lib/changeUndoToast'
 import { bayGate } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
@@ -54,6 +55,7 @@ export function CrawlerLiveSheet({
   editable,
   readOnly,
   liveCondition = editable,
+  liveInRead = false,
   ownerOf,
   store,
   storeState,
@@ -93,7 +95,7 @@ export function CrawlerLiveSheet({
   // The Trading Bay sources TL+1 wares (p.223): its dialog is Trade.
   const trading = bayGate(crawler, 'trading-bay')
 
-  // Assigned units: a crawler is a home for a CREW, with no single lead
+  // Related units: a crawler is a home for a CREW, with no single lead
   // pilot or docked mech. Both places are lists — every mech docked by its OWN
   // `mech-to-crawler` link (ADR-037), then every pilot wired to it — and each
   // keeps its Assign after the first. A mech is assigned independently of its
@@ -101,7 +103,7 @@ export function CrawlerLiveSheet({
   // docked mech with no pilot still is.
   const rail = assignedRail(
     { kind: 'crawler', entity: crawler },
-    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable }
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead }
   )
 
   // SP and the Upgrade pool are live wherever the viewer may write the sheet

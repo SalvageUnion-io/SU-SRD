@@ -7,7 +7,8 @@
  *
  *  - **Closed** it says its effect in at most two short lines
  *    (`.su-play-act__effect`); an action whose chips say it all is its head
- *    alone. Its name Peeks the whole card.
+ *    alone. Its name Peeks and opens the entry it comes from (the ability,
+ *    item or chassis: `actionRow`'s source), as a link-mode Mini.
  *  - **On hand** it carries a rust Use (ruleset §1.4), which opens the resolve
  *    in place in the Mini's body (N3): the whole effect, its picks as CHOSEN
  *    chips (R60), then `PlayResolveSteps`, with Cancel in Use's place. A
@@ -30,9 +31,10 @@
  */
 
 import type { ReactNode } from 'react'
-import { useMemo } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Button, Entity, Stat, TraitProse } from '../components/index'
 import { actionRow } from '../lib/rules/actionRow'
+import { atomsCopy } from '../messages/components-atoms'
 import { playCopy } from '../messages/play'
 import { PlayResolveSteps } from './PlayResolveSteps'
 import type { ListEntry } from './playActions.model'
@@ -41,6 +43,9 @@ import type { ResolveModel } from './useActionsDeck'
 import { usePlayWide } from './usePlayWide'
 
 type ActionEntry = Extract<ListEntry, { kind: 'action' }>
+
+/** The head opens its source's Page (E5), the surface's opener. */
+const OPENS_SOURCE = { kind: 'link' } as const
 
 type PlayActionRowProps = {
   entry: ActionEntry
@@ -54,6 +59,39 @@ type PlayActionRowProps = {
   techLevel?: number | undefined
   /** The row sits under its action type's heading, so its head leaves the type out (C10). */
   grouped?: boolean
+}
+
+/**
+ * A closed row's effect, two lines at most; one cut short says so with a
+ * More that opens it in place, and a Less that closes it.
+ */
+function RowEffect({ text, name }: { text: string; name: string }) {
+  const box = useRef<HTMLDivElement>(null)
+  const [full, setFull] = useState(false)
+  const [cut, setCut] = useState(false)
+  // Measured after every render: the text, and the width it wraps in, decide.
+  useLayoutEffect(() => {
+    const p = box.current?.firstElementChild
+    setCut(p instanceof HTMLElement && p.scrollHeight > p.clientHeight + 1)
+  })
+  return (
+    <div ref={box} className="su-play-act__effect-box" data-full={full || undefined}>
+      <TraitProse as="p" className="su-play-act__effect" text={text} />
+      {(cut || full) && (
+        <Button
+          variant="ghost"
+          // The Tabs' height, as every Button in the Actions band (R12).
+          size="compact"
+          aria-expanded={full}
+          // Its own name, beside the bar's More: "More of Jury Rig".
+          aria-label={playCopy(full ? 'lessOf' : 'moreOf', { name })}
+          onClick={() => setFull(!full)}
+        >
+          {atomsCopy(full ? 'less' : 'more')}
+        </Button>
+      )}
+    </div>
+  )
 }
 
 /** Why a line is not on hand ("needs Boarded"), as its state chip (C8). */
@@ -111,8 +149,7 @@ export function PlayActionRow({
         {playCopy('use')}
       </Button>
     )
-  const effect =
-    !open && summary ? <TraitProse as="p" className="su-play-act__effect" text={summary} /> : null
+  const effect = !open && summary ? <RowEffect text={summary} name={entry.name} /> : null
   // Below `lg` the control ends the body's line, beside the closed row's effect.
   const line: ReactNode =
     !wide && control ? (
@@ -151,6 +188,7 @@ export function PlayActionRow({
         size="mini"
         context="play"
         model={model}
+        mode={OPENS_SOURCE}
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
         tint={companion?.tone ?? entry.source}
         {...(companion

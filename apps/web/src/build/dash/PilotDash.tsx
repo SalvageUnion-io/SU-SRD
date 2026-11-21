@@ -21,20 +21,15 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import { CONDITION_LABELS, toEntityModel } from 'salvageunion-reference'
+import { Conditions, Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
 import type { OpenColumn, OpenRow } from '../../components/index'
 import {
   AbilityTrack,
   Button,
-  Conditions,
   capsLabel,
-  Facts,
   OpenLedger,
-  Prose,
   SlabSection,
-  STRIP_ART,
   Stat,
-  Strip,
-  StripFigure,
   TechLevel,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
@@ -127,9 +122,8 @@ type PilotDashProps = {
   onManage?: (picker: PilotPicker) => void
   /** Where an item's choices are saved (Edit's Details). */
   store: UnitsStore
+  /** Related units, companions included (R70): under the strip on a phone, else heading the side column. */
   linkedUnits?: ReactNode
-  /** The pilot's companions: their own region under the columns. */
-  companions?: ReactNode
   /** A phone: the groups stacked, the About clamped shorter. */
   phone: boolean
 }
@@ -143,7 +137,6 @@ export function PilotDash({
   onManage,
   store,
   linkedUnits,
-  companions,
   phone,
 }: PilotDashProps) {
   const writes = live || edit
@@ -429,6 +422,7 @@ export function PilotDash({
         traits={traitLines}
         edit={edit}
       />
+      {phone && linkedUnits}
       <Dash>
         <DashColumn wide label={buildSheetCopy('abilities')}>
           {(takenAny || edit) && (
@@ -476,6 +470,7 @@ export function PilotDash({
           )}
         </DashColumn>
         <DashColumn label={buildSheetCopy('whatCarries', { name: pilot.name })}>
+          {!phone && linkedUnits}
           {(!empty || edit) && (
             <div className="su-dash-group" data-sheet-carried="">
               <OpenLedger
@@ -513,10 +508,8 @@ export function PilotDash({
               />
             </div>
           )}
-          {linkedUnits}
         </DashColumn>
       </Dash>
-      {companions}
     </>
   )
 }
