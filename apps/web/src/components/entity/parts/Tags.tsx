@@ -19,6 +19,10 @@ import type { TagItem } from './tagItems'
  *
  * The Tag carries only the entry's ref (the model resolved it), so it needs no
  * glossary loaded: the Peek loads the one it shows.
+ *
+ * Which links are the app's: a ref's page (`hrefFor`) and an `href` (an app
+ * route) are the surface's, through its router link (`linkAs`); a `page` is a
+ * Reference page, always a plain anchor.
  */
 export function Tag({
   tag,
@@ -43,7 +47,10 @@ export function Tag({
   const opens = !insidePeek && linkable
   const ref = opens ? tag.ref : undefined
   // A relation to a player unit has no entry: its sheet is its own href.
-  const href = opens && tag.href ? tag.href : ref ? hrefFor(ref) : undefined
+  const routed = ref ? hrefFor(ref) : undefined
+  const href =
+    opens && tag.href ? tag.href : routed && tag.fragment ? `${routed}${tag.fragment}` : routed
+  const page = opens && !href ? tag.page : undefined
   const open = ref && !href && openPage ? () => openPage(ref) : undefined
   const cell = (
     <Stat
@@ -69,6 +76,13 @@ export function Tag({
       <Anchor href={href} className={cn('su-chip-link', FOCUS_RING)} {...shared} {...named}>
         {cell}
       </Anchor>
+    )
+  }
+  if (page) {
+    return (
+      <a href={page} className={cn('su-chip-link', FOCUS_RING)} {...shared} {...named}>
+        {cell}
+      </a>
     )
   }
   if (open) {

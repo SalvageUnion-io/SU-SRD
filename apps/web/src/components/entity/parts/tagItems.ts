@@ -13,8 +13,18 @@ export type TagItem = {
   /**
    * What a RELATION opens where it has no dataset entry (a player unit's
    * sheet): a related pilot, mech or crawler (`chips-and-actions.md` C11).
+   * An APP ROUTE (`/mechs/<id>`, `/p/pattern/<id>`): it goes through the
+   * surface's router link.
    */
   href?: string
+  /**
+   * A Reference page's site path the relation opens where it has no ref (a
+   * book pattern, `/chassis/mule/pattern/hauler/`): always a plain anchor, a
+   * document load, never the app's router, which would put it under `/build`.
+   */
+  page?: string
+  /** A place on the entry's page the Tag links to where the surface routes (`#tree-hacking`). */
+  fragment?: string
 }
 
 /**
@@ -26,7 +36,12 @@ export function relation(
   key: string,
   label: string,
   value: string,
-  target: { ref?: EntityRef; href?: string | undefined } = {}
+  target: {
+    ref?: EntityRef
+    href?: string | undefined
+    page?: string | undefined
+    fragment?: string | undefined
+  } = {}
 ): TagItem {
   return {
     key,
@@ -34,6 +49,8 @@ export function relation(
     param: value,
     ...(target.ref ? { ref: target.ref } : {}),
     ...(target.href ? { href: target.href } : {}),
+    ...(target.page ? { page: target.page } : {}),
+    ...(target.fragment ? { fragment: target.fragment } : {}),
   }
 }
 
