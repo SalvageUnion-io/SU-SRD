@@ -31,11 +31,12 @@ describe('DraftGate', () => {
   test('a link to another class asks; Resume opens the draft and drops the link’s pick', async () => {
     hacker()
     let resumed = 0
-    render(
-      <DraftGate kind="pilot" picks={{ class: 'scout' }} onResume={() => resumed++}>
+    const gate = (picks: { class?: string }) => (
+      <DraftGate kind="pilot" picks={picks} onResume={() => resumed++}>
         <p>the wizard</p>
       </DraftGate>
     )
+    const { rerender } = render(gate({ class: 'scout' }))
     expect(
       screen.getByRole('heading', {
         name: 'Resume your Hacker pilot draft, or start a new Scout pilot?',
@@ -45,6 +46,10 @@ describe('DraftGate', () => {
 
     await press('Resume Hacker pilot draft')
     expect(resumed).toBe(1)
+    // The wizard waits for the pick to leave the address: mounted with it, it
+    // would lay Scout over the draft it restores.
+    expect(screen.queryByText('the wizard')).toBeNull()
+    rerender(gate({}))
     expect(screen.getByText('the wizard')).toBeTruthy()
     expect(readWizardDraft(KEY)).not.toBeNull()
   })

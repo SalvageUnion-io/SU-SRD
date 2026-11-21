@@ -42,6 +42,10 @@ export function DraftGate({
 }) {
   // Read once, as the wizard would open: the draft is this tab's session's.
   const [asking, setAsking] = useState(() => draftConflict(kind, picks))
+  // Resume holds the wizard back until the link's pick has left the address:
+  // mounted with it, the wizard would lay the pick over the draft it restores.
+  const [resuming, setResuming] = useState(false)
+  if (resuming) return draftConflict(kind, picks) === null ? children : null
   if (asking === null) return children
   const question = buildWizardCopy('resumeOrStartNew', asking)
   return (
@@ -56,7 +60,7 @@ export function DraftGate({
             <Button
               variant="primary"
               onClick={() => {
-                setAsking(null)
+                setResuming(true)
                 onResume()
               }}
             >
