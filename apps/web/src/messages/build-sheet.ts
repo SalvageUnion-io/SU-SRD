@@ -97,6 +97,7 @@ export const buildSheetCopy = messages({
   openTheTradingBay: 'Open the Trading Bay',
   tl: 'TL',
   techLevel: 'Tech Level',
+  mount: 'Mount',
   noWeaponsMounted: 'No weapons mounted.',
   weaponsMounted: 'Weapons mounted',
   scrapPool: 'Scrap Pool',

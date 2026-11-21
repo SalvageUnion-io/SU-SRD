@@ -1,17 +1,13 @@
 import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 /**
  * CrawlerLiveSheet — the crawler branch of the live sheet (`Sheet`
- * dispatches to it), in the poster layout.
+ * dispatches to it).
  *
- * The body owns the identity band (Workshop-Manual layout): `CrawlerSheet`
- * renders the `SheetHero` band as its first region.
- * This component's remaining job is composing the economy band (the poster
- * `.econ` frame — `CrawlerEconFrame` — wrapping the SP `VitalGauge` + the
- * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges) and its action entry points
- * (`CrawlerEconActions`), handed to `CrawlerSheet` as `economy` and
- * `economyActions` and rendered as the identity band's vitals card and its head
- * chips, plus the Assigned units (`assignedUnitsFor`) handed down as
- * `linkedUnits`. Owns the economy-dialog state.
+ * Its job is the crawler's numbers as rows (SP, the Upgrade Pool, Upkeep: the
+ * dashboard's masthead), each live where the viewer may write and its max a
+ * field in Edit, the economy's dialogs (Pay Upkeep, Fund, Trade) and their
+ * state, the band's Tech Level stepper in Edit, and the Assigned units
+ * (`assignedRail`), handed to `CrawlerSheet`.
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -23,23 +19,20 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import type { PhoneVital } from '../../components/index'
-import { Button, linesFromBreakdown, PhoneVitals, Stat } from '../../components/index'
+import { linesFromBreakdown, Stat } from '../../components/index'
 import { changeUndoToast } from '../../lib/changeUndoToast'
-import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
+import { bayGate } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
 import { assignedRail } from './assignedRail'
 import { crawlerStamp } from './bandStamps.model'
-import type { EconLozItem } from './CrawlerEcon'
-import { CrawlerEconActions, CrawlerEconFrame } from './CrawlerEcon'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerEconomyControl } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { changedFields, freshEntity } from './freshEntity.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
-import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 import { SHEET_VITALS } from './sheetVitals.model'
 
@@ -97,70 +90,8 @@ export function CrawlerLiveSheet({
   const strip: LiveSheetStripItem[] = [
     { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },
   ]
-
-  // Tech LVL / UPKEEP / UPGRADE-pool / TRADE / CREW lozenges (poster
-  // `.lozrow`): upkeep is 5 Scrap of crawler TL per Downtime;
-  // the Upgrade Pool fills toward 30× TL; the Trading Bay
-  // sources TL+1 wares (p.223); crew leads = one per installed bay.
-  // On editable sheets the actionable lozenges (Upkeep/Upgrade/Trade)
-  // are the economy action entry points (CrawlerEconomyControl); Tech LVL and
-  // Crew are read-only readouts.
+  // The Trading Bay sources TL+1 wares (p.223): its dialog is Trade.
   const trading = bayGate(crawler, 'trading-bay')
-  const econItems: EconLozItem[] = [
-    // Tech LVL is NOT here any more: it is the crawler's own rung, and it
-    // reads as the band's TL chip beside the crawler type. The economy rail keeps the
-    // things you SPEND (upkeep, upgrade pool, trade, crew).
-    {
-      label: buildSheetCopy('upkeep'),
-      value: 5,
-      caption: buildSheetCopy('tScrap', { tl }),
-      action: editable
-        ? {
-            label: buildSheetCopy('pay'),
-            ariaLabel: buildSheetCopy('payUpkeep'),
-            onClick: () => setEconDialog('upkeep'),
-          }
-        : undefined,
-    },
-    // Upgrade is a counter toward its cap (§2.1, as Training Points), its Fund
-    // action with the others on the Vitals card's head.
-    ...(upgradeCost === null
-      ? []
-      : [
-          {
-            label: buildSheetCopy('upgrade'),
-            value: crawler.upgradePool ?? 0,
-            max: upgradeCost,
-            ...(editable
-              ? {
-                  onChange: (v: number) => patch({ upgradePool: v }),
-                  action: {
-                    label: buildSheetCopy('fund'),
-                    ariaLabel: buildSheetCopy('upgradeCrawler'),
-                    onClick: () => setEconDialog('upgrade'),
-                  },
-                }
-              : {}),
-          },
-        ]),
-    ...(trading.present
-      ? [
-          {
-            // Its Trade action only: the rail reads no Trade.
-            label: buildSheetCopy('trade'),
-            value: tradingSourceTl(tl),
-            actionOnly: true,
-            action: editable
-              ? {
-                  label: buildSheetCopy('trade'),
-                  ariaLabel: buildSheetCopy('openTheTradingBay'),
-                  onClick: () => setEconDialog('trade'),
-                }
-              : undefined,
-          },
-        ]
-      : []),
-  ]
 
   // Assigned units: a crawler is a home for a CREW, with no single lead
   // pilot or docked mech. Both places are lists — every mech docked by its OWN
@@ -173,14 +104,11 @@ export function CrawlerLiveSheet({
     { composition, withheld, storeState, holds, hrefFor, ownerOf, editable }
   )
 
-  // Economy band (poster `.econ`: SP `VitalGauge` over the Tech-LVL/Upkeep/
-  // Upgrade/Trade/Crew lozenges) — built here because it needs `patch` +
-  // the econDialog state, which CrawlerSheet does not own; handed down as
-  // `economy` and rendered inside the body's Identity card.
-  // SP and the Upgrade pool are live in Read where the viewer may write the
-  // sheet (`liveCondition`, R11), each change said with Undo (K5).
+  // SP and the Upgrade pool are live wherever the viewer may write the sheet
+  // (Read too, R11), each change said with Undo (K5).
+  const writes = liveCondition || !readOnly
   const liveNumber = (field: 'currentSP' | 'upgradePool', label: string, from: number) =>
-    liveCondition
+    writes
       ? (next: number) => {
           patch({ [field]: next })
           changeUndoToast({
@@ -192,35 +120,8 @@ export function CrawlerLiveSheet({
           })
         }
       : undefined
-  const economy = (
-    <CrawlerEconFrame
-      gauge={
-        <SheetVitalGauge
-          vital="sp"
-          value={sp}
-          max={maxSP}
-          onChange={liveNumber('currentSP', SHEET_VITALS.sp.short, sp)}
-          steppers={liveCondition ? 'end' : false}
-          onMaxChange={
-            editable
-              ? (next) => overrideCrawlerMax({ maxSpOverride: pinFor(next, spParts) })
-              : undefined
-          }
-          breakdown={editable ? spParts : undefined}
-          provenance={editable ? spLines : undefined}
-          onRevertOverride={
-            editable ? () => overrideCrawlerMax({ maxSpOverride: undefined }) : undefined
-          }
-          readOnly={!liveCondition}
-        />
-      }
-      items={econItems}
-    />
-  )
-  // The phone's block (`PhoneVitals`): SP, the Upgrade pool toward its cost,
-  // and Upkeep as a counter; Pay / Fund / Trade are its foot, rust (the action
-  // colour).
-  const phoneActions: { label: string; dialog: CrawlerEconomyDialog }[] = liveCondition
+  // Pay / Fund / Trade: the economy's dialogs, on the masthead's foot.
+  const economyActions: { label: string; dialog: CrawlerEconomyDialog }[] = writes
     ? [
         { label: buildSheetCopy('payUpkeep'), dialog: 'upkeep' },
         ...(upgradeCost === null
@@ -229,8 +130,9 @@ export function CrawlerLiveSheet({
         ...(trading.present ? [{ label: buildSheetCopy('trade'), dialog: 'trade' as const }] : []),
       ]
     : []
-  // The crawler's numbers as rows (R11): what a phone's block and the sheet
-  // dashboard's header strip both draw.
+  const onSp = liveNumber('currentSP', SHEET_VITALS.sp.short, sp)
+  const onUpgrade = liveNumber('upgradePool', buildSheetCopy('upgrade'), crawler.upgradePool ?? 0)
+  // The crawler's numbers as rows (R11): the dashboard's masthead draws them.
   const vitalRows: PhoneVital[] = [
     {
       key: 'sp',
@@ -238,7 +140,18 @@ export function CrawlerLiveSheet({
       name: SHEET_VITALS.sp.label,
       value: sp,
       max: maxSP,
-      onChange: liveNumber('currentSP', SHEET_VITALS.sp.short, sp),
+      ...(onSp ? { onChange: onSp } : {}),
+      ...(!readOnly && editable
+        ? {
+            maxEdit: {
+              onMaxChange: (next: number) =>
+                overrideCrawlerMax({ maxSpOverride: pinFor(next, spParts) }),
+              breakdown: spParts,
+              provenance: spLines,
+              onRevertOverride: () => overrideCrawlerMax({ maxSpOverride: undefined }),
+            },
+          }
+        : {}),
     },
     ...(upgradeCost === null
       ? []
@@ -249,11 +162,7 @@ export function CrawlerLiveSheet({
             name: buildSheetCopy('upgradePool'),
             value: crawler.upgradePool ?? 0,
             max: upgradeCost,
-            onChange: liveNumber(
-              'upgradePool',
-              buildSheetCopy('upgrade'),
-              crawler.upgradePool ?? 0
-            ),
+            ...(onUpgrade ? { onChange: onUpgrade } : {}),
           },
         ]),
     {
@@ -264,34 +173,11 @@ export function CrawlerLiveSheet({
       value: 5,
     },
   ]
-  const vitalActions = phoneActions.map((action) => ({
+  const vitalActions = economyActions.map((action) => ({
     key: action.dialog,
     label: action.label,
     onClick: () => setEconDialog(action.dialog),
   }))
-  const phoneVitals = (
-    <PhoneVitals
-      label={buildSheetCopy('unitVitals', { name: crawler.name })}
-      vitals={vitalRows}
-      foot={
-        phoneActions.length > 0
-          ? phoneActions.map((action) => (
-              <Button
-                key={action.dialog}
-                variant="primary"
-                size="full"
-                onClick={() => setEconDialog(action.dialog)}
-              >
-                {action.label}
-              </Button>
-            ))
-          : undefined
-      }
-    />
-  )
-  const economyActions = econItems.some((item) => item.action) ? (
-    <CrawlerEconActions items={econItems} />
-  ) : undefined
 
   return (
     <>
@@ -331,9 +217,6 @@ export function CrawlerLiveSheet({
             store={store}
             readOnly={readOnly}
             liveCondition={liveCondition}
-            economy={economy}
-            economyActions={economyActions}
-            phoneVitals={phoneVitals}
             vitalRows={vitalRows}
             vitalActions={vitalActions}
             linkedUnits={rail}
@@ -344,7 +227,7 @@ export function CrawlerLiveSheet({
           />
         )}
       />
-      {(editable || liveCondition) && (
+      {writes && (
         <CrawlerEconomyControl
           crawler={crawler}
           store={store}

@@ -21,7 +21,7 @@ const crawler = crawlerFixture({
 })
 
 describe('no crawler counts its bays (R46)', () => {
-  for (const readOnly of [true]) {
+  for (const readOnly of [true, false]) {
     test(`the rendered sheet in ${readOnly ? 'Read' : 'Edit'}`, () => {
       const { container } = render(
         <CrawlerSheet

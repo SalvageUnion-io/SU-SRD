@@ -106,29 +106,15 @@ describe('CrawlerSheet — bay function/Repair actions', () => {
     restore?.()
   })
 
-  test('intact bay leads with its function action; Repair shows only on the damaged bay', async () => {
+  test('Repair shows only on the damaged bay, on its row', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler)} />)
 
-    // Mech Bay is intact: 'Dock' enabled, and nothing to repair, so no Repair.
-    const dock = screen.getByRole('button', { name: 'Dock' })
-    expect((dock as HTMLButtonElement).disabled).toBe(false)
+    // The Mech Bay is intact, the Command Bay damaged: one Repair, enabled.
     const repairs = screen.getAllByRole('button', { name: 'Repair' })
     expect(repairs.length).toBe(1)
-  })
-
-  test('damaged bay disables its function action and promotes Repair', async () => {
-    restore = await patchCrawlerBays()
-    render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler)} />)
-
-    // Command Bay is damaged: 'Scan' disabled…
-    const scan = screen.getByRole('button', { name: 'Scan' })
-    expect((scan as HTMLButtonElement).disabled).toBe(true)
-    // …and exactly one Repair (the damaged bay's) is enabled.
-    const enabledRepairs = screen
-      .getAllByRole('button', { name: 'Repair' })
-      .filter((b) => !(b as HTMLButtonElement).disabled)
-    expect(enabledRepairs.length).toBe(1)
+    expect((repairs[0] as HTMLButtonElement).disabled).toBe(false)
+    expect(repairs[0]?.closest('tr')?.textContent).toContain('Command Bay')
   })
 
   test('Repair decrements 5 Scrap from the crawler-TL bucket (spilling higher) and flips the bay Intact', async () => {

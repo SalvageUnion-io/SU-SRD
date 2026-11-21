@@ -250,7 +250,7 @@ describe('Print markup — stat pip rows', () => {
     expect(pips.length).toBeGreaterThan(0)
   })
 
-  test('CrawlerSheet renders the SP pip row with data-pip hooks', () => {
+  test('CrawlerSheet renders the SP meter with state hooks', () => {
     const { container } = render(
       <Sheet
         kind="crawler"
@@ -259,7 +259,7 @@ describe('Print markup — stat pip rows', () => {
         softLinkStore={makeSoftLinkStoreMock()}
       />
     )
-    const pips = container.querySelectorAll('[data-pip]')
+    const pips = container.querySelectorAll('.su-strip__seg[data-state]')
     expect(pips.length).toBeGreaterThan(0)
   })
 })
