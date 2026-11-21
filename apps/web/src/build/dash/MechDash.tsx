@@ -31,8 +31,8 @@ import {
   StripFigure,
   TechLevel,
 } from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
-import { appPath } from '../../lib/appBase'
 import { bandFillFor } from '../../lib/chapters'
 import { cn } from '../../lib/cn'
 import { chassisArt } from '../../lib/photos/defaultArt'
@@ -153,10 +153,12 @@ export function MechDash({
     const name = partnerDisplayName(partner)
     const blockName = block && 'name' in block ? block.name : undefined
     return (
-      <a
+      // Through the router: a document load would run (and abandon) the
+      // site's cross-document view transition.
+      <AppLink
         key={partner.id}
         className="su-companion-cell"
-        href={`${appPath(`/mechs/${mech.id}/companions/${partner.id}`)}`}
+        href={`/mechs/${mech.id}/companions/${partner.id}`}
         style={
           {
             '--su-kind': block
@@ -182,7 +184,7 @@ export function MechDash({
             heatMax: max.heatCapacity,
           })}
         </span>
-      </a>
+      </AppLink>
     )
   })
   // The masthead's right column is About (the
