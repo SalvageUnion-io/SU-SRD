@@ -69,6 +69,7 @@ export const buildWizardCopy = messages({
   signInToBuildAn: 'Sign in to build an NPC',
   signInToBuildA: 'Sign in to build a {kind}',
   theRule: 'The rule',
+  theRuleAt: 'The rule, {cite}',
   noSystems: 'No Systems',
   noWeaponsSystemsAvailable: 'No weapons systems available.',
   armamentBayFullMounted: 'Armament Bay full · {installedWeaponCount} mounted',
