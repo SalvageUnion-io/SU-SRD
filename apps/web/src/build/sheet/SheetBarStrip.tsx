@@ -19,10 +19,20 @@ function fillOf(item: LiveSheetStripItem): number | undefined {
   return Math.max(0, Math.min(1, item.value / item.max))
 }
 
-/** Critical: a pool at a quarter or less, Heat at three quarters or more. */
+/** What fills as it is used: empty is its good end, so only running over is critical. */
+const FILLS = new Set(['cargo', 'systemSlots', 'moduleSlots'])
+
+/**
+ * Critical: a pool at a quarter or less, Heat at three quarters or more, and
+ * a hold or a slot count only past its limit (an empty hold is no alarm).
+ */
 function stateOf(item: LiveSheetStripItem, fill: number | undefined) {
   if (fill === undefined) return undefined
-  const critical = item.key === 'heat' ? fill >= 0.75 : fill <= 0.25
+  const critical = FILLS.has(item.key)
+    ? item.max !== undefined && item.value > item.max
+    : item.key === 'heat'
+      ? fill >= 0.75
+      : fill <= 0.25
   return critical ? 'critical' : undefined
 }
 

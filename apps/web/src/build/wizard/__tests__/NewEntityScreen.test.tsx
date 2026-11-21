@@ -306,7 +306,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
       />
     )
 
-    const submit = screen.getByRole('button', { name: /create blank pilot/i })
+    const submit = screen.getByRole('button', { name: 'Create Pilot' })
     expect((submit as HTMLButtonElement).disabled).toBe(true)
 
     fireEvent.change(screen.getByLabelText(/^name/i), { target: { value: 'Juno Vale' } })
@@ -358,7 +358,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
     })
     fireEvent.click(screen.getByRole('radio', { name: /mule/i }))
     // No name typed: the mech is made, named for its chassis until the sheet renames it.
-    fireEvent.click(screen.getByRole('button', { name: /create blank mech/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create Mech' }))
     await waitFor(() => expect(created.length).toBe(1))
 
     const mech = useUnits.getState().get('mech', created[0] as string)

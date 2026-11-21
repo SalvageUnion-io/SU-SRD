@@ -67,7 +67,7 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
       name="Mara Vex"
       strip={[
         { key: 'hp', label: 'HP', value: 7, max: 10 },
-        { key: 'cargo', label: 'Hold', value: 0, max: 6 },
+        { key: 'cargo', label: 'Cargo', value: 0, max: 6 },
       ]}
       renderBody={() => (
         <>

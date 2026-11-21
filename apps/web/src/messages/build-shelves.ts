@@ -21,7 +21,7 @@ export const buildShelvesCopy = messages({
   mechAssignedTo: 'Assigned {mech} to {pilot}.',
   mechNotAssigned: '{mech} could not be assigned. Try again.',
   noUnassignedMechs: 'Every Mech of yours has its Pilot.',
-  everyMechHasItsPilot: 'Mechs without a Pilot. A piloted Mech is on its Pilot’s row.',
+  everyMechHasItsPilot: 'None. A Mech with a Pilot is on its Pilot’s row.',
   playName: 'Play {name}',
   youMediate: 'You mediate',
   starterSet: 'Starter Set',

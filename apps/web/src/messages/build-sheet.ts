@@ -100,7 +100,7 @@ export const buildSheetCopy = messages({
   bays: 'Bays',
   upkeep: 'Upkeep',
   tScrap: 'T{tl}+ Scrap',
-  tScrapShort: 'T{tl} Scrap',
+  tScrapShort: 'Cost · T{tl} Scrap',
   scrapToBuild: 'Tech {tl} Scrap in this build: the Salvage Value of its Tech {tl} parts',
   tScrapEachDowntime: 'T{tl}+ Scrap each Downtime',
   upgradePool: 'Upgrade Pool',
@@ -193,7 +193,6 @@ export const buildSheetCopy = messages({
   repairScrap: 'Repair · {cost} Scrap',
   ep: 'EP',
   heat: 'Heat',
-  hold: 'Hold',
   thisMechIsDestroyedIts:
     'This Mech is destroyed. Its record stays: clear Destroyed under Conditions if this was a bookkeeping error.',
   asPrinted: 'as printed',
