@@ -102,7 +102,18 @@ const BUILD_STEPS = {
   crawler: appPath('/crawlers/new'),
 }
 
+/**
+ * Where Build's sub-nav lands signed out: each kind's step here wears the id
+ * its shelf has on the Training Bay (`Shelves`, `AREA_NAV.build`).
+ */
+const BUILD_ANCHORS = { pilot: 'shelf-pilots', mech: 'shelf-mechs', crawler: 'shelf-crawlers' }
+
 /** Build's front door: Create a Pilot → Create a Mech → Join or make a Crawler. */
 export function BuildFrontDoor() {
-  return <FrontDoor area="build" steps={<StartHere id="front-door-start" hrefs={BUILD_STEPS} />} />
+  return (
+    <FrontDoor
+      area="build"
+      steps={<StartHere id="front-door-start" hrefs={BUILD_STEPS} anchors={BUILD_ANCHORS} />}
+    />
+  )
 }

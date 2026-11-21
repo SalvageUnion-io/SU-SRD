@@ -17,6 +17,7 @@
 
 import { moveTo, SHELF } from 'game-domain/container'
 import type { Confirm } from '../../components/shared/useConfirm'
+import { handedBack } from '../../lib/games/assignmentNotices'
 import type { GameMember, RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { CONTAINER_MOVE } from '../../replica/provenance'
@@ -56,6 +57,17 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
     if (row.localId !== null) await useUnits.getState().forget(row.kind, row.localId)
   }
 
+  /** Give up a unit of the viewer's own without being told of it (`assignmentNotices`). */
+  async function ownDoing(row: RosterRow, act: () => Promise<unknown>): Promise<void> {
+    const undo = row.owner?.mine === true ? handedBack(row.appId ?? row.serverId) : null
+    try {
+      await act()
+    } catch (err) {
+      undo?.()
+      throw err
+    }
+  }
+
   return {
     assignSelf: (row) =>
       confirm({
@@ -81,12 +93,10 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
               : row.owner.label
         ),
         onConfirm: async () => {
-          await assign({
-            entityId: row.serverId,
-            userId: member.userId,
-          })
-          // Handed to somebody else, it is no longer this browser's to edit.
-          if (row.owner?.mine === true) await forgetLocal(row)
+          // Their own doing, so no notice of it (`assignmentNotices`). The
+          // copy here stays: the room serves it with its new holder, and a
+          // sheet that is not yours opens read-only (MD-10).
+          await ownDoing(row, () => assign({ entityId: row.serverId, userId: member.userId }))
         },
       }),
 
@@ -94,10 +104,10 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
       confirm({
         ...ROW_ACTION_COPY.unassign(row.name, row.kind, row.owner?.mine === true),
         onConfirm: async () => {
-          await unassign({ entityId: row.serverId })
-          // It belongs to the table now, not to this browser: keeping a local
-          // copy would leave an editor whose writes the server refuses.
-          await forgetLocal(row)
+          // The copy here stays (MD-10): the room serves it again as
+          // unassigned, and dropping it took its line off the Crew list until
+          // a reload. A sheet nobody holds opens read-only.
+          await ownDoing(row, () => unassign({ entityId: row.serverId }))
         },
       }),
 

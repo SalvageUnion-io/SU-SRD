@@ -16,11 +16,12 @@
  * The Mini is a toggle (EDL Modes): pressed, its name aims Propose at this
  * pilot (see the problem, propose the fix), the ring on its pill and the other
  * seats dimmed beside it. Sheet, its chip group's last slot, opens their
- * sheet read-only over Play.
+ * sheet read-only over Play; Up now beside it marks whose turn it is, for
+ * every seat to read (a marker only: nothing is enforced).
  */
 
 import type { CSSProperties } from 'react'
-import { Button, Entity, Stat, tokens } from '../../components/index'
+import { Button, Entity, Stat, Toggle, tokens } from '../../components/index'
 import { crewPair } from '../../lib/units/crewPair'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { mediatorCopy } from '../../messages/play-mediator'
@@ -49,6 +50,10 @@ type PlayMediatorSeatProps = {
   stepLine: string | null
   /** Propose is aimed at another seat: this one wears the one dim. */
   dim: boolean
+  /** The Mediator marked this pilot as up now. */
+  upNow: boolean
+  /** Mark, or unmark, this pilot as up now; absent while Play is read-only. */
+  onUpNow?: () => void
 }
 
 export function PlayMediatorSeat({
@@ -58,6 +63,8 @@ export function PlayMediatorSeat({
   onOpenSheet,
   stepLine,
   dim,
+  upNow,
+  onUpNow,
 }: PlayMediatorSeatProps) {
   const away = !seat.present
   const flagged = seat.vitals.find((v) => v.attention)
@@ -112,15 +119,29 @@ export function PlayMediatorSeat({
           </>
         }
         controls={
-          // The chip group's last slot, at the strip's Size (C1a, C8).
-          <Button
-            variant="ghost"
-            size="mini"
-            aria-label={mediatorCopy('openSSheet', { name: seat.name })}
-            onClick={onOpenSheet}
-          >
-            {mediatorCopy('sheet')}
-          </Button>
+          // The chip group's last slots, at the strip's Size (C1a, C8).
+          <>
+            {onUpNow ? (
+              <Toggle
+                size="mini"
+                pressed={upNow}
+                aria-label={mediatorCopy('upNowFor', { name: seat.name })}
+                onClick={onUpNow}
+              >
+                {mediatorCopy('upNow')}
+              </Toggle>
+            ) : upNow ? (
+              <Stat size="mini" label={mediatorCopy('upNow')} />
+            ) : null}
+            <Button
+              variant="ghost"
+              size="mini"
+              aria-label={mediatorCopy('openSSheet', { name: seat.name })}
+              onClick={onOpenSheet}
+            >
+              {mediatorCopy('sheet')}
+            </Button>
+          </>
         }
         body={{
           text: false,

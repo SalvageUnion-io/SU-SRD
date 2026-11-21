@@ -2,8 +2,9 @@ import { describe, expect, test } from 'bun:test'
 import { searchHref, searchQuery } from '../searchHref'
 
 describe('searchHref', () => {
-  test('opens the home page search on the words', () => {
-    expect(searchHref('portable cryopod')).toBe('/?q=portable+cryopod')
+  // RR-02: the home page has no search bar, so a query sent there showed nothing.
+  test('opens the Reference page’s search on the words', () => {
+    expect(searchHref('portable cryopod')).toBe('/reference/?q=portable+cryopod')
   })
 
   test('reads back what it writes', () => {

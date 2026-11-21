@@ -82,8 +82,8 @@ describe('an earlier address of a site page 301s to where it lives now', () => {
   const moves: Array<[from: string, to: string]> = [
     ['/titans/typhon/', '/bio-titans/typhon/'],
     ['/titans/', '/bio-titans/'],
-    ['/actions/hack/', '/?q=hack'],
-    ['/actions/hack/?ref=x', '/?q=hack&ref=x'],
+    ['/actions/hack/', '/reference/?q=hack'],
+    ['/actions/hack/?ref=x', '/reference/?q=hack&ref=x'],
     ['/catalog-categories/mech/', '/'],
     ['/sheets/mech', '/build/mechs/new'],
     ['/apple-touch-icon.png', '/favicons/su/favicon-180.png'],

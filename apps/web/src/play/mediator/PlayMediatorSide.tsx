@@ -18,10 +18,9 @@
  *    sent is a press away (All proposals, `ProposalsList`, twenty at a time).
  *
  * What the sections share is the side's `useSideFeed`, called once per screen
- * by `PlayMediatorCockpit`. The roll dispatch lives there (`usePlayRollDispatch`),
- * with the Game's log left out: the log is the crew's, and the Opposition
- * reaches them only through what is posted. Headings are Slabs; the dock is a
- * level-1 box.
+ * by `PlayMediatorCockpit`. The roll dispatch lives there (`usePlayRollDispatch`):
+ * each roll goes on the Game's log, private while the Feed's switch is on.
+ * Headings are Slabs; the dock is a level-1 box.
  */
 
 import { proposalTargets } from 'game-domain/games/proposals'

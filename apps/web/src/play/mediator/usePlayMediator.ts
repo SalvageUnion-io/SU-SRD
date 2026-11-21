@@ -16,8 +16,8 @@
  * writes nothing a player owns; a player's sheet is reached only by proposal.
  *
  * A Morale roll is kept on the NPC (`lastMediatorRoll`) and goes on Play's
- * roll log (`recordPlayRoll`), which keeps the Mediator's rolls off the
- * Game's log and posts each to the bound Discord channel.
+ * roll log (`recordPlayRoll`), which writes each to the Game's log and posts
+ * it to the bound Discord channel, unless Private rolls is on (ADR-051 §9a).
  */
 
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
@@ -127,6 +127,8 @@ type MediatorScene = SceneState & {
   set: (conditions: readonly SceneConditionId[]) => Promise<void>
   /** Count an hour passed; resolves to the hour it now is. */
   passHour: () => Promise<number>
+  /** Mark whose turn it is, or nobody's with null. */
+  setUpNow: (pilotId: string | null) => Promise<void>
 }
 
 /** The Mediator's encounters, and the one the Game is running (ADR-059). */
@@ -212,6 +214,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const broadcastMutation = useTableAct('changeLog.broadcast', gameId)
   const setConditions = useTableAct('scenes.setConditions', gameId)
   const passHour = useTableAct('scenes.passHour', gameId)
+  const setUpNow = useTableAct('scenes.setUpNow', gameId)
 
   const tray = npcs?.map(readTrayNpc) ?? null
 
@@ -404,6 +407,14 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
       set: said(async (conditions: readonly SceneConditionId[]) => {
         await setConditions({ conditions: [...conditions] })
       }),
+      // A marker: a refusal is said, and nothing waits on it.
+      setUpNow: async (pilotId: string | null) => {
+        try {
+          await setUpNow({ pilotId })
+        } catch (err) {
+          onFailure(err)
+        }
+      },
       passHour: async () => {
         try {
           return await passHour({})

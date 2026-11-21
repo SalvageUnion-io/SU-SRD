@@ -32,8 +32,18 @@ import {
 import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './mediatorFixture'
 import { narrowViewport } from './narrowViewport'
 
-/** Every act the Game's room was sent: its name and args. */
-const sent = () => acts.map(({ name, args }) => ({ name, args }))
+const LOG = 'changeLog.appendChangeLog'
+/** Every act the Game's room was sent, its name and args; a roll's log row is `logged()`'s. */
+const sent = () => acts.filter((a) => a.name !== LOG).map(({ name, args }) => ({ name, args }))
+/** The rows this screen's rolls put on the Game's log. */
+const logged = () =>
+  acts
+    .filter((a) => a.name === LOG)
+    .flatMap(
+      (a) =>
+        (a.args as { entries: { field: string; after: { description: string; private?: true } }[] })
+          .entries
+    )
 const postRoll = mock(async (_args: unknown) => ({
   kind: 'posted',
   channelId: 'c-1',
@@ -559,7 +569,7 @@ describe('the Opposition', () => {
     expect(names()).toEqual(['salvageAreas.set'])
   })
 
-  test('the chosen NPC’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed and in Discord, off the log', async () => {
+  test('the chosen NPC’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed, the Game’s log and Discord', async () => {
     await renderCockpit()
     const list = within(screen.getByRole('list', { name: 'Strikebreaker’s actions' }))
     await click(
@@ -571,7 +581,59 @@ describe('the Opposition', () => {
       expect(feedLines().some((l) => /^You · Strikebreaker · .* · 14 · Success/.test(l))).toBe(true)
     )
     expect(postRoll).toHaveBeenCalledTimes(1)
-    expect(sent().map((a) => a.name)).not.toContain('changeLog.appendChangeLog')
+    // On the Game's log, so the players' Feeds show it and a reload keeps it (B8).
+    await waitFor(() => expect(logged()).toHaveLength(1))
+    expect(logged()[0]?.field).toBe('roll')
+    expect(logged()[0]?.after.description).toMatch(/^Mediator · Strikebreaker · /)
+    expect(logged()[0]?.after).not.toHaveProperty('private')
+  })
+
+  test('Private rolls on: the roll is logged private, reads Private on the Feed and never reaches Discord', async () => {
+    await renderCockpit()
+    await click(named('Private rolls'))
+    expect(named('Private rolls').getAttribute('aria-pressed')).toBe('true')
+    await click(named('Roll the die on Morale'))
+    await waitFor(() =>
+      expect(feedLines().some((l) => /^You · Strikebreaker · Morale · .* · Private/.test(l))).toBe(
+        true
+      )
+    )
+    await waitFor(() => expect(logged()).toHaveLength(1))
+    expect(logged()[0]?.after.private).toBe(true)
+    expect(postRoll).not.toHaveBeenCalled()
+  })
+
+  test('a roll made before a reload is on the Feed from the Game’s log', async () => {
+    await renderCockpit({
+      'changeLog.rolls': [
+        {
+          _id: 'r1',
+          ts: NOW - 1000,
+          source: 'play',
+          description: 'Mediator · Strikebreaker · Morale · 4 · Holds',
+          actorName: 'Med',
+          private: true,
+        },
+      ],
+    })
+    expect(feedLines()).toContain('You · Strikebreaker · Morale · 4 · Holds · Private')
+  })
+
+  test('Up now marks a seat for the table, and pressing it again clears it', async () => {
+    await renderCockpit()
+    const first = screen.getAllByRole('button', { name: /^Up now: / })[0] as HTMLElement
+    expect(first.getAttribute('aria-pressed')).toBe('false')
+    await click(first)
+    expect(sent()).toHaveLength(1)
+    expect(sent()[0]?.name).toBe('scenes.setUpNow')
+    const marked = String(sent()[0]?.args.pilotId)
+    cleanup()
+    acts.length = 0
+    await renderCockpit({ 'scenes.current': { conditions: [], hours: 0, upNow: marked } })
+    const again = screen.getAllByRole('button', { name: /^Up now: / })[0] as HTMLElement
+    expect(again.getAttribute('aria-pressed')).toBe('true')
+    await click(again)
+    expect(sent()).toEqual([{ name: 'scenes.setUpNow', args: { pilotId: null } }])
   })
 
   test('Actions on another NPC lists its actions instead', async () => {

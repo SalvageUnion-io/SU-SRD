@@ -42,7 +42,7 @@ const idle = { timeout: 2000 }
 {name === 'ReferenceEntityIsland' && <ReferenceEntityIslandClient client:visible {...p}><Fragment set:html={standIn} /></ReferenceEntityIslandClient>}
 {name === 'KofiIsland' && <KofiIslandClient client:visible {...p}><Fragment set:html={standIn} /></KofiIslandClient>}
 {name === 'DidYouMeanIsland' && <DidYouMeanIslandClient client:idle={idle} {...p} />}
-{name === 'HomebrewIsland' && client === 'visible' && <HomebrewIslandClient client:visible {...p}><Fragment set:html={standIn} /></HomebrewIslandClient>}
+{name === 'HomebrewIsland' && client === 'interaction' && <HomebrewIslandClient client:interaction={wake} {...p}><Fragment set:html={standIn} /></HomebrewIslandClient>}
 {name === 'HomebrewIsland' && client === 'load' && <HomebrewIslandClient client:load {...p}><Fragment set:html={standIn} /></HomebrewIslandClient>}
 {name === 'RollTableIsland' && <RollTableIsland client:idle={idle} {...p} />}
 {name === 'ColumnsTableIsland' && <ColumnsTableIsland client:idle={idle} {...p} />}

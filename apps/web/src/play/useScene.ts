@@ -15,6 +15,8 @@ export type SceneState = {
   conditions: readonly SceneConditionId[]
   /** Hours passed under them. */
   hours: number
+  /** The pilot the Mediator marked as up now; absent with none. */
+  upNow?: string
 }
 
 export const CLEAR_SCENE: SceneState = { conditions: [], hours: 0 }

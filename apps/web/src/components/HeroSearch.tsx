@@ -10,7 +10,7 @@ import { Button, SearchField } from './index'
  *
  * Two renderings share this shell so the page never shifts when the island
  * mounts: `HeroSearchStatic` is the server markup (a plain GET form to the
- * home page, `/?q=…`, whose search opens on its query once its island
+ * Reference page, `/reference/?q=…`, whose search opens on its query once its island
  * mounts), and `SearchIsland`'s `hero` variant renders the same form around
  * its combobox.
  */
@@ -18,7 +18,7 @@ import { Button, SearchField } from './index'
 type HeroSearchFormProps = {
   /** The field (and, in the island, its listbox). */
   children: ReactNode
-  /** The island's submit handler; the static form goes to `/?q=…` itself. */
+  /** The island's submit handler; the static form goes to `/reference/?q=…` itself. */
   onSubmit?: FormEventHandler<HTMLFormElement>
 }
 

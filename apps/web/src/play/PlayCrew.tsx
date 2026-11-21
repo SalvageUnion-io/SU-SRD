@@ -15,6 +15,10 @@
  * while there is one (N3: plain words, no entity), announced politely as it
  * changes.
  *
+ * Whose turn the Mediator marked (`scenes.current`'s `upNow`) reads above
+ * the list, "Up now · You" for this screen's own pilot, and as a chip on that
+ * crewmate's line.
+ *
  * Presentational over `crewSeatLines`: the caller hands in the crew read
  * (`crew.vitals`, through `useGameFeed`) and the seats.
  */
@@ -30,6 +34,15 @@ import { crewLineLabel, crewSeatLines, pairedMech } from './crew.model'
 import type { CrewVitals } from './useGameFeed'
 import { useGamePresence } from './useGamePresence'
 import { useOpenSheet } from './useOpenSheet'
+import { useScene } from './useScene'
+
+const UP_NOW = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.chip,
+  fontWeight: tokens.weight.bold,
+  margin: 0,
+} satisfies CSSProperties
 
 const RESOLVING = {
   color: tokens.color.ink,
@@ -52,9 +65,18 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
   const here = useGamePresence(gameId, 'seat')
   const openSheet = useOpenSheet()
   const lines = crewSeatLines(crew, seats, selfPilotId, here)
+  const { upNow } = useScene(gameId)
+  const upName = crew?.pilots.find((p) => p.linkId === upNow)?.name
 
   return (
     <>
+      <p role="status" style={UP_NOW} hidden={upNow === undefined || upName === undefined}>
+        {upNow === undefined || upName === undefined
+          ? ''
+          : upNow === selfPilotId
+            ? playCopy('upNowYou')
+            : playCopy('upNowName', { name: upName })}
+      </p>
       {crew === null ? (
         <EmptyState variant="inline" body={playCopy('theCrewAppearsOnceThe')} />
       ) : lines.length === 0 ? (
@@ -65,6 +87,7 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
             <li key={line.pilotId}>
               <CrewLine
                 line={line}
+                upNow={line.pilotId === upNow}
                 onOpen={() => openSheet({ kind: 'pilot', id: line.pilotId, name: line.name })}
               />
               <span role="status" className="su-sr-only">
@@ -78,7 +101,15 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
   )
 }
 
-function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) {
+function CrewLine({
+  line,
+  upNow,
+  onOpen,
+}: {
+  line: CrewSeatLine
+  upNow: boolean
+  onOpen: () => void
+}) {
   const { vital } = line
   // A pilot and its mech are one Mini (`crewPair`): aboard, their mech with a
   // PILOT chip naming them; on foot, the pilot with a MECH chip for theirs.
@@ -95,12 +126,15 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
       mode={{
         kind: 'link',
         onOpen,
-        attrs: { 'aria-label': `${crewLineLabel(line)}. Open their sheet` },
+        attrs: {
+          'aria-label': `${crewLineLabel(line)}${upNow ? `, ${playCopy('upNow')}` : ''}. Open their sheet`,
+        },
       }}
       {...(pair.relations ? { relations: [...pair.relations] } : {})}
       state={
         <>
           <Stat size="mini" label={line.present ? playCopy('here') : playCopy('away')} />
+          {upNow ? <Stat size="mini" label={playCopy('upNow')} /> : null}
           {vital.attention ? (
             <Stat
               size="mini"

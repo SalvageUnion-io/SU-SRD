@@ -131,6 +131,8 @@ export const buildSheetCopy = messages({
   details: 'Details',
   itemDetails: '{name} details',
   readOnlyCrewSheet: 'Read-only crew sheet',
+  readOnlyUnassignedSheet:
+    'This sheet is assigned to nobody, so nobody can change it. Use Assign to me on the Game’s page, or ask whoever runs the table to assign it.',
   cargoKind: 'Cargo kind',
   cargo: 'Cargo',
   newCargoName: 'New cargo name',
@@ -144,6 +146,7 @@ export const buildSheetCopy = messages({
   sheetControls: 'Sheet controls',
   starterKit: 'Starter Kit',
   pattern: 'Pattern',
+  basedOn: 'Based on',
   aSavedPattern: 'A saved pattern',
   madeBy: 'Made by',
   assignedSheets: 'Assigned sheets',

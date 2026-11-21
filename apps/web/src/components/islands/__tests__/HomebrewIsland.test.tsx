@@ -7,7 +7,7 @@
 
 import { afterEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SHOW_HOMEBREW_KEY } from '../../../lib/homebrew/homebrew'
+import { SHOW_HOMEBREW_KEY } from '../../../lib/homebrew/endpoint'
 import { HomebrewIsland } from '../HomebrewIsland'
 
 const body = (id: string, name: string, chassisRef: string) => ({
@@ -61,6 +61,11 @@ describe('on a chassis page', () => {
     await settle()
     expect(asked).toEqual(['/homebrew/patterns.json?chassis=mule'])
     expect(localStorage.getItem(SHOW_HOMEBREW_KEY)).toBe('on')
+    // The switch says what a press does now, and stays pressed while on.
+    expect(screen.queryByRole('button', { name: 'Show Homebrew' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Hide Homebrew' }).getAttribute('aria-pressed')).toBe(
+      'true'
+    )
     const links = screen.getAllByRole('link').map((a) => a.getAttribute('href'))
     expect(links).toEqual(['/build/p/pattern/pat-a', '/build/p/pattern/pat-b'])
     // One Ledger, a line a pattern, all of them at every width.
@@ -77,9 +82,10 @@ describe('on a chassis page', () => {
     expect(screen.getByText('No player has shared a pattern for this chassis yet.')).toBeTruthy()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Show Homebrew' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Hide Homebrew' }))
     })
     expect(localStorage.getItem(SHOW_HOMEBREW_KEY)).toBeNull()
+    expect(screen.getByRole('button', { name: 'Show Homebrew' })).toBeTruthy()
     expect(screen.getByText(/Not from the book/)).toBeTruthy()
   })
 })

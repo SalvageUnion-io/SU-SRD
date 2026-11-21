@@ -89,6 +89,7 @@ import { situationRows, useSituationMoves } from './useSituationMoves'
 import { useStopSign } from './useStopSign'
 import { useTableMode } from './useTableMode'
 import { useWakeLock } from './useWakeLock'
+import { headedVital, vitalSettled } from './vitalWrites.model'
 
 /** The Rules pane holds the Reference's own frame, edge to edge. */
 const RULES = { margin: `calc(-1 * ${tokens.space[8]})` } satisfies CSSProperties
@@ -153,14 +154,25 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     const id = kind === 'pilot' ? pilotId : mechId
     if (id === null) return
     // The change says itself, with Undo.
-    const from = pinned.find((u) => u.kind === kind)?.vitals.find((v) => v.label === label)?.value
-    runWrite(() => useUnits.getState().update(kind, id, { [field]: next }, PLAY_TXN))
+    const shown = tableUnits(pinned)
+      .find((u) => u.kind === kind)
+      ?.vitals.find((v) => v.field === field)
+    const from = label === undefined ? undefined : shown?.value
+    // A press steps from where the vital is heading, so quick ones all apply (LG-03).
+    const key = `${id}:${field}`
+    const to = shown === undefined ? next : headedVital(key, shown.value, next, shown.max)
+    runWrite(() =>
+      useUnits
+        .getState()
+        .update(kind, id, { [field]: to }, PLAY_TXN)
+        .finally(() => (shown === undefined ? undefined : vitalSettled(key)))
+    )
     if (label !== undefined && from !== undefined)
       changeUndoToast({
         id: `${kind}:${id}:${field}`,
         label,
         from,
-        to: next,
+        to,
         undo: (value) =>
           runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_TXN)),
       })

@@ -16,37 +16,16 @@
  * (`lib/accountBar.ts`): Sign in is served on every page, and the account menu
  * islands (`when="signed-in"`; on a phone the avatar alone) mount in its place
  * only while somebody is signed in.
- * `WikiLink` is served twice (desktop cluster and phone cluster), hidden; the
- * client entry reveals both on one page load in a hundred.
  */
 
-import { Button, capsLabel, cn, FOCUS_RING } from '../components/index'
+import { Button } from '../components/index'
 import { MobileNavIsland } from '../components/islands/MobileNavIsland'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
 import { SearchIsland } from '../components/islands/SearchIsland'
 import { UnionBar } from '../components/unionBar/UnionBar'
 import { SIGN_IN_HREF } from '../lib/accountBar'
-import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { referenceCopy } from '../messages/reference'
 import { Island } from '../runtime/Island'
-
-/**
- * The quiet "WIKI" link to the `/greembeem` easter egg, served hidden: the
- * client entry rolls once per page load and shows every copy on one in a
- * hundred (`lib/wikiLink.ts`).
- */
-function WikiLink() {
-  return (
-    <a
-      href="/greembeem/"
-      className={cn('su-union-bar__quiet', capsLabel({ tracking: 'inherit' }), FOCUS_RING)}
-      hidden
-      {...{ [WIKI_LINK_ATTRIBUTE]: '' }}
-    >
-      {referenceCopy('wiki')}
-    </a>
-  )
-}
 
 /**
  * Sign in, served on every page and hidden while somebody is signed in
@@ -94,19 +73,14 @@ export function TopNavigation({
       product="reference"
       noCurrent={home}
       breadcrumbs={breadcrumbs}
-      // The WIKI link sits left of the search, so it rides the search slot; it
-      // stays when the page carries its own search.
+      // The 404 carries its own; the home needs none (search is the
+      // Reference's).
       search={
-        <>
-          <WikiLink />
-          {/* The 404 carries its own; the home needs none (search is the
-              Reference's). */}
-          {pageHasSearch || home ? null : (
-            <Island name="SearchIsland" client="interaction" ssr>
-              <SearchIsland />
-            </Island>
-          )}
-        </>
+        pageHasSearch || home ? null : (
+          <Island name="SearchIsland" client="interaction" ssr>
+            <SearchIsland />
+          </Island>
+        )
       }
       actions={
         <>
@@ -116,7 +90,6 @@ export function TopNavigation({
       }
       mobile={
         <>
-          <WikiLink />
           {home ? null : (
             <Island name="MobileSearchIsland" client="interaction" ssr>
               <MobileSearchIsland />

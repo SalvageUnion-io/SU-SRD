@@ -54,8 +54,6 @@ Canonical URLs always carry a trailing slash.
 | `DidYouMeanIsland` | idle | false | the 404's guesses: the missed path is known only in the browser |
 | `PeekIsland` | interaction | false | every page, no props, `trigger="[data-peek]"` |
 
-The WIKI link is not an island (`src/lib/wikiLink.ts`).
-
 `EntityCardStatic` ships no JS on the static path; `ReferenceEntityIsland` reuses it only for cards `cardNeedsHydration` flags.
 
 ## Build (`bun run build`)

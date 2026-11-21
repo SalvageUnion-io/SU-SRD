@@ -374,12 +374,12 @@ describe('the Mediator on the Game page', () => {
     expect(heading('Your prep')).toBeNull()
   })
 
-  test('the Mediator gets a door to the prep the Training Bay keeps, counted', async () => {
+  test('the Mediator gets a door to their prep, counted: it opens the Mediator’s Kit, where the lists are', async () => {
     await renderHub({ 'games.get': { ...GAME, mediator: true } })
     expect(heading('Your prep')).toBeTruthy()
-    expect(
-      screen.getByRole('link', { name: 'Prep in the Training Bay' }).getAttribute('href')
-    ).toBe('/')
+    expect(screen.getByRole('link', { name: 'Open the Mediator’s Kit' }).getAttribute('href')).toBe(
+      '/games#mediators-kit'
+    )
   })
 
   test('the Mediator gets the band’s door to Play and the proposals they sent', async () => {
@@ -635,39 +635,30 @@ describe('Play from the Game page', () => {
     expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])
   })
 
-  test('a viewer who owns no pilot gets no pre-selection, and picks one', async () => {
+  // LG-24: one pilot of yours is no choice, so the button opens Play for it.
+  test('with one pilot of yours it goes straight in, asking nothing', async () => {
+    await renderHub({
+      'games.members': MEDIATED,
+      'games.listing': listing([THEIRS, PILOTS[1], PREGEN]),
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Play' }))
+    })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-mine' } }])
+  })
+
+  // LG-01, LG-24: a crewmate's pilot and an unassigned one are not yours to
+  // play, held in this browser or not.
+  test('a viewer with no pilot of their own is told so, and offered nothing', async () => {
     await renderHub({
       'games.members': MEDIATED,
       'games.listing': listing([THEIRS, PREGEN]),
     })
     const dialog = await openPicker()
 
-    // Beefcake's pilot is not in this browser, so the gate could not open it.
-    expect(offered(dialog)).toHaveLength(1)
-    const radio = within(dialog).getByRole('radio', { name: /Pre-gen/ })
-    expect(radio.getAttribute('aria-checked')).toBe('false')
-    const launch = within(dialog).getByRole('button', { name: 'Play' })
-    expect(launch.hasAttribute('disabled')).toBe(true)
-
-    fireEvent.click(radio)
-    expect(launch.hasAttribute('disabled')).toBe(false)
-    await act(async () => {
-      fireEvent.click(launch)
-    })
-    expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-pregen' } }])
-  })
-
-  test('a viewer who holds none of the Game’s pilots is told so, and offered nothing', async () => {
-    await renderHub({
-      'games.members': MEDIATED,
-      'games.listing': listing([THEIRS]),
-    })
-    const dialog = await openPicker()
-
     expect(offered(dialog)).toEqual([])
-    expect(
-      within(dialog).getByText(/None of this Game's Pilots is saved in this browser/)
-    ).toBeTruthy()
+    expect(within(dialog).getByText(/No Pilot in this Game is assigned to you/)).toBeTruthy()
     expect(within(dialog).getByRole('button', { name: 'Play' }).hasAttribute('disabled')).toBe(true)
   })
 
@@ -688,7 +679,8 @@ describe('Play from the Game page', () => {
       ids.push((navigations[0] as { params: { id: string } }).params.id)
       dialog = await openPicker()
     }
-    expect(ids).toEqual(['hub-mine', 'hub-mine-2', 'hub-pregen'])
+    // Yours only: the unassigned pre-gen is on the Crew list, to assign first.
+    expect(ids).toEqual(['hub-mine', 'hub-mine-2'])
 
     for (const id of ids) {
       await openGate(id)
@@ -696,7 +688,6 @@ describe('Play from the Game page', () => {
     }
     expect(screen.queryByRole('heading', { name: 'Pilot not found' })).toBeNull()
 
-    // The one it leaves out is exactly the one the gate would refuse.
     await openGate('a-theirs')
     expect(screen.getByRole('heading', { name: 'Pilot not found' })).toBeTruthy()
   })

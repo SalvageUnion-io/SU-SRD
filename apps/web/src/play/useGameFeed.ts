@@ -34,6 +34,8 @@ export type RollLine = {
   actorName: string | null
   /** Where the row came from: 'play'. */
   source: string
+  /** The Mediator's private roll: only a Mediator's Feed is served it. */
+  private?: true
 }
 
 /** One Mediator alert (`changeLog.alerts`). */

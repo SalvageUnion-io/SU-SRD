@@ -89,6 +89,23 @@ Seats left; Opposition and the chosen NPC's actions centre (the Downtime step
 track in Downtime); Tables, Feed and the propose dock right; a Scene / Downtime
 switch in the Play bar.
 
+### 9a. The Mediator's rolls are on the Game's log; a private one is theirs (5.x)
+
+Amends §8's "the Mediator private by default". A Mediator's roll is written to
+the Game's log as a player's is, so it survives a reload and reaches every
+Feed. The Mediator's Feed has a Private rolls switch, off by default. A roll
+made with it on carries `private: true` in its `change_log` row's `after`: the
+room serves that row only to Mediators and to its roller, drops the flag from
+any row a non-Mediator appends, and the client never posts it to Discord.
+
+Up now is a marker the Mediator puts on one seat: one `change_log` row (field
+`upNow`, `after: { pilotId }`, replaced on each change), read back as the
+optional `upNow` of `scenes.current` and set by `scenes.setUpNow`. It orders
+nothing and gates nothing.
+
+Both are additive and optional: no table or column is added, and a room with
+neither reads as before.
+
 ### 10. Phones get tabs, not a second layout
 
 Below `lg` the panes are four tabs at the foot (Act, Units, Tables, Crew; the

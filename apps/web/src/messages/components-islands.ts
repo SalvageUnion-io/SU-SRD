@@ -33,6 +33,7 @@ export const islandsCopy = messages({
   homebrewFailed: 'Homebrew did not load. Try again later.',
   homebrewPatterns: 'Homebrew',
   showHomebrew: 'Show Homebrew',
+  hideHomebrew: 'Hide Homebrew',
   homebrewNoneOnChassis: 'No player has shared a pattern for this chassis yet.',
   homebrewOff:
     'Community patterns for this chassis, from players on the Reference. Not from the book.',

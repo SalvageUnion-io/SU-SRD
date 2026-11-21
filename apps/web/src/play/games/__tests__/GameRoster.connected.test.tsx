@@ -453,6 +453,19 @@ describe('every verb that changes who has a build asks first', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
+  // MD-10: the Crew list reads the replica, so dropping the copy held here took
+  // the pilot's line away until a reload. The room serves it again, unassigned.
+  test('Unassign keeps the pilot in this browser, for the Crew list to show unassigned', async () => {
+    await useUnits
+      .getState()
+      .adopt('pilot', pilotFixture({ id: 'a-mine', name: 'Roach-Boy', gameId: 'g1' }))
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    await press('Roach-Boy', 'Unassign')
+    await confirmWith('Unassign')
+    expect(mutations.map((m) => m.name)).toEqual(['ownership.unassign'])
+    expect(useUnits.getState().get('pilot', 'a-mine')?.name).toBe('Roach-Boy')
+  })
+
   test('Deleting the crawler says it is for everyone and permanent, and deletes nothing until confirmed', async () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
     const dialog = await press('#430 Tenacity', 'Delete…')

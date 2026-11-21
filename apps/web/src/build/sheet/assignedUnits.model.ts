@@ -100,12 +100,17 @@ const NEW_PATH = {
   crawler: '/crawlers/new',
 } as const satisfies Record<SheetKind, string>
 
-/** The wizard that makes a `kind` in the subject's container (ADR-052 §3). */
+/**
+ * The wizard that makes a `kind` in the subject's container (ADR-052 §3). A
+ * pilot's mech is made for that pilot (`?pilot=`, as the Training Bay's
+ * "+ Add a Mech" is): the wizard assigns it to them and comes back here.
+ */
 function createHrefFor(kind: SheetKind, subject: AssignedSubject): string {
   const container = containerOf(subject.entity)
-  return container.kind === 'game'
-    ? newInGameHref(NEW_PATH[kind], container.gameId)
-    : NEW_PATH[kind]
+  const href =
+    container.kind === 'game' ? newInGameHref(NEW_PATH[kind], container.gameId) : NEW_PATH[kind]
+  if (kind !== 'mech' || subject.kind !== 'pilot') return href
+  return `${href}${href.includes('?') ? '&' : '?'}pilot=${encodeURIComponent(subject.entity.id)}`
 }
 
 /** The sheet's own entity, by its kind. */

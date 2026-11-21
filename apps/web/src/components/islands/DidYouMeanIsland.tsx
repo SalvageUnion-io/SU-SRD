@@ -92,7 +92,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
 
   if (!query || !ready) return null
 
-  // The home page's search, opened on the query (`SearchIsland`'s hero).
+  // The Reference page's search, opened on the query (`SearchIsland`'s bar).
   const searchHere = searchHref(query)
 
   return (

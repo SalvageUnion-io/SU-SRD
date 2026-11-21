@@ -15,7 +15,6 @@ import { initBrowserObservability, installChunkRecovery } from '../lib/observabi
 import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { installTrustedTypesPolicy } from '../lib/trustedTypes'
-import { revealWikiLinks } from '../lib/wikiLink'
 import { ISLAND_COMMIT } from './islandCommit'
 import { trackScrollbarWidth } from './scrollbarWidth'
 import { shrinkWrap } from './shrinkWrap'
@@ -66,7 +65,6 @@ function onSearchShortcut(event: KeyboardEvent): void {
 }
 
 document.addEventListener('keydown', onSearchShortcut)
-revealWikiLinks(document)
 watchSharePage(document)
 // The home's slide captions: each cut-out as wide as its own words.
 shrinkWrap(document, '.su-front__show-body')

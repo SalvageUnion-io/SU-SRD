@@ -78,9 +78,22 @@ export function npcStamp(templateRef: NpcTemplateRef | undefined): BandStamp | u
 /**
  * The pattern a mech was built from: its name, and its page when it has one —
  * a saved pattern's an app route (`href`), a book pattern's a Reference page
- * (`page`), which the app's router must never take.
+ * (`page`), which the app's router must never take. `changed` once the mech's
+ * loadout is no longer the pattern's: the band then reads "Based on".
  */
-export type PatternStamp = { name: string; href?: string; page?: string }
+export type PatternStamp = { name: string; href?: string; page?: string; changed?: true }
+
+/** A saved pattern as this browser holds it: its name, or with its build to compare the mech against. */
+type SavedPattern =
+  | string
+  | { name: string; chassisRef: string; systems: string[]; modules: string[] }
+
+/** Whether two loadouts hold the same slugs, each as many times, in any order. */
+function sameLoadout(a: readonly string[], b: readonly string[]): boolean {
+  if (a.length !== b.length) return false
+  const sorted = [...b].sort()
+  return [...a].sort().every((slug, index) => slug === sorted[index])
+}
 
 /**
  * Which pattern a mech was built from (`PATTERN | Nimble Hauler`, ADR-066 §4:
@@ -88,26 +101,51 @@ export type PatternStamp = { name: string; href?: string; page?: string }
  * links to its page, named when this browser holds it; a book pattern
  * (`startingPatternRef`) links to its page under the chassis. A blank build
  * says nothing.
+ *
+ * The provenance is stored once and never rewritten, so what the band says is
+ * read against the mech as it stands (PT-13): a loadout that is no longer the
+ * pattern's is `changed`, and a mech moved to a chassis the pattern is not of
+ * says nothing. A mech given without its loadout is not compared.
  */
 export function mechPatternStamp(
   mech: {
     chassisRef: string
     sourcePattern?: string | undefined
     startingPatternRef?: string | undefined
+    systems?: readonly string[]
+    modules?: readonly string[]
   },
-  savedName: (patternId: string) => string | undefined
+  saved: (patternId: string) => SavedPattern | undefined
 ): PatternStamp | undefined {
+  const differs = (systems: readonly string[], modules: readonly string[]) =>
+    mech.systems !== undefined &&
+    mech.modules !== undefined &&
+    !(sameLoadout(mech.systems, systems) && sameLoadout(mech.modules, modules))
   if (mech.sourcePattern) {
+    const held = saved(mech.sourcePattern)
+    const href = savedPatternHref(mech.sourcePattern)
+    if (held === undefined) return { name: buildSheetCopy('aSavedPattern'), href }
+    if (typeof held === 'string') return { name: held, href }
+    if (held.chassisRef !== mech.chassisRef) return undefined
     return {
-      name: savedName(mech.sourcePattern) ?? buildSheetCopy('aSavedPattern'),
-      href: savedPatternHref(mech.sourcePattern),
+      name: held.name,
+      href,
+      ...(differs(held.systems, held.modules) ? { changed: true as const } : {}),
     }
   }
   const ref = mech.startingPatternRef
   if (!ref) return undefined
   const chassis = readReference('mechPatternStamp', () => resolveChassisRef(mech.chassisRef), null)
-  const pattern = chassis?.patterns?.find((p) => nameToSlug(p.name) === ref)
-  return chassis && pattern
-    ? { name: pattern.name, page: srdPatternHref(chassis, pattern) }
-    : { name: ref }
+  // Unreadable reference data: the stored slug is all there is to say.
+  if (!chassis) return { name: ref }
+  const pattern = chassis.patterns?.find((p) => nameToSlug(p.name) === ref)
+  // The chassis changed: this one has no such pattern.
+  if (!pattern) return undefined
+  const slugs = (items: readonly { name: string; count?: number }[]) =>
+    items.flatMap((item) => new Array<string>(item.count ?? 1).fill(nameToSlug(item.name)))
+  return {
+    name: pattern.name,
+    page: srdPatternHref(chassis, pattern),
+    ...(differs(slugs(pattern.systems), slugs(pattern.modules)) ? { changed: true as const } : {}),
+  }
 }

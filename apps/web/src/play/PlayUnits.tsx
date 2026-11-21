@@ -61,6 +61,7 @@ import { PlayVital } from './PlayVital'
 import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.model'
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
+import { headedVital, vitalSettled } from './vitalWrites.model'
 
 /** The store a box writes through; the app's own unless a test hands one in. */
 type UnitStore = UnitsStore
@@ -106,10 +107,22 @@ function Relations({ items }: { items: readonly TagItem[] }) {
   )
 }
 
-/** One fire-and-forget vital write, as the sheet sends it. */
+/**
+ * One fire-and-forget vital write, as the sheet sends it: `vital(field, shown,
+ * max)` is a gauge's `onChange`, each press a step from where the vital is
+ * heading (`vitalWrites.model`), so quick presses all apply.
+ */
 function writer<K extends 'pilot' | 'mech' | 'crawler'>(store: UnitStore, kind: K, id: string) {
-  return (patch: Partial<EntityForType<K>>) =>
-    runWrite(() => store.getState().update(kind, id, patch, PLAY_TXN))
+  return (field: keyof EntityForType<K> & string, shown: number, max: number) => (next: number) => {
+    const key = `${id}:${field}`
+    const patch = { [field]: headedVital(key, shown, next, max) } as Partial<EntityForType<K>>
+    runWrite(() =>
+      store
+        .getState()
+        .update(kind, id, patch, PLAY_TXN)
+        .finally(() => vitalSettled(key))
+    )
+  }
 }
 
 /** "Sheet", putting the unit’s sheet on the screen (`useOpenSheet`), a chip on the box’s band: Mini, the band's Size (ruleset §4.7). */
@@ -146,7 +159,7 @@ export function PlayPilotUnit({
   store = useUnits,
 }: PlayPilotUnitProps) {
   const [hp, ap] = pilotVitals(pilot, crawler).gauges
-  const write = writer(store, 'pilot', pilot.id)
+  const vital = writer(store, 'pilot', pilot.id)
   const injuries = injuryLines(pilot)
   return (
     <TitledBox
@@ -170,7 +183,7 @@ export function PlayPilotUnit({
           value={hp.value}
           max={hp.max}
           tone="pilot"
-          onChange={live ? (v) => write({ currentHP: v }) : undefined}
+          onChange={live ? vital('currentHP', hp.value, hp.max) : undefined}
         />
       ) : null}
       {ap ? (
@@ -179,7 +192,7 @@ export function PlayPilotUnit({
           value={ap.value}
           max={ap.max}
           tone="pilot"
-          onChange={live ? (v) => write({ currentAP: v }) : undefined}
+          onChange={live ? vital('currentAP', ap.value, ap.max) : undefined}
         />
       ) : null}
       <div style={CHIPS}>
@@ -250,7 +263,7 @@ export function PlayMechUnit({
   store = useUnits,
 }: PlayMechUnitProps) {
   const s = mechStats(mech, pilotAbilities, activeEffects)
-  const write = writer(store, 'mech', mech.id)
+  const vital = writer(store, 'mech', mech.id)
   // What it is built on (C11): the chassis, label first, Peeking and opening it.
   const chassis = s.chassis
     ? relation('chassis', 'Chassis', s.chassis.name, { ref: toEntityModel(s.chassis).ref })
@@ -294,7 +307,7 @@ export function PlayMechUnit({
         max={s.maxSP}
         tone="mech"
         restoresTo={restore.sp}
-        onChange={live ? (v) => write({ currentSP: v }) : undefined}
+        onChange={live ? vital('currentSP', s.sp, s.maxSP) : undefined}
       />
       <PlayVital
         label={playCopy('ep2')}
@@ -302,7 +315,7 @@ export function PlayMechUnit({
         max={s.maxEP}
         tone="mech"
         restoresTo={restore.ep}
-        onChange={live ? (v) => write({ currentEP: v }) : undefined}
+        onChange={live ? vital('currentEP', s.ep, s.maxEP) : undefined}
       />
       {showHeat ? (
         <PlayVital
@@ -312,7 +325,7 @@ export function PlayMechUnit({
           tone="mech"
           danger={s.maxHeat > 0 ? heatDangerFrom(s.maxHeat) : undefined}
           restoresTo={restore.heat}
-          onChange={live ? (v) => write({ currentHeat: v }) : undefined}
+          onChange={live ? vital('currentHeat', s.heat, s.maxHeat) : undefined}
         />
       ) : null}
       {effects.length > 0 ? (
@@ -387,7 +400,7 @@ export function PlayCrawlerUnit({
   const sp = hullGauge(crawler)
   const tl = crawler.techLevel
   const chips = bayChips(crawler)
-  const write = writer(store, 'crawler', crawler.id)
+  const vital = writer(store, 'crawler', crawler.id)
   // Solid while it is the Downtime's unit, whoever may write it; dashed for reference otherwise.
   const solid = live || downtime
   return (
@@ -411,7 +424,7 @@ export function PlayCrawlerUnit({
         value={sp.value}
         max={sp.max}
         tone="crawler"
-        onChange={live ? (v) => write({ currentSP: v }) : undefined}
+        onChange={live ? vital('currentSP', sp.value, sp.max) : undefined}
       />
       {downtime ? (
         <div style={CHIPS}>

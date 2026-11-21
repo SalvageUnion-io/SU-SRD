@@ -348,9 +348,9 @@ describe('SearchIsland', () => {
     }
   })
 
-  describe("the bar on the home page, the home page's only search", () => {
+  describe('the bar on the Reference page, where a search by address lands', () => {
     test("opens on the address's query, where the retired search page lands", async () => {
-      window.location.href = 'http://localhost/?q=mule'
+      window.location.href = 'http://localhost/reference/?q=mule'
       try {
         render(<SearchIsland />)
         const input = screen.getByRole('combobox')
@@ -393,7 +393,7 @@ describe('SearchIsland', () => {
     })
 
     test("opens on the address's query, where the retired search page lands", async () => {
-      window.location.href = 'http://localhost/?q=mule'
+      window.location.href = 'http://localhost/reference/?q=mule'
       try {
         render(<SearchIsland variant="hero" />)
         const input = screen.getByRole('combobox')

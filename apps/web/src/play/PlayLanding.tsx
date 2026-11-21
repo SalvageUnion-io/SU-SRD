@@ -37,7 +37,7 @@ import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
 import { gamePath, invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties, FormEvent } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { FrontDoor } from '../build/roster/FrontDoor'
@@ -62,8 +62,9 @@ import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
 import { cn } from '../lib/cn'
-import { useHydrateEntities, usePilots } from '../lib/entities'
+import { useOwnUnits } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
+import { MEDIATORS_KIT_ANCHOR } from '../lib/games/gameRoster'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { playCopy } from '../messages/play'
@@ -179,6 +180,9 @@ function PlayFrontDoor() {
           title={playCopy('atTheTable')}
           steps={steps}
           numbered={false}
+          // Where Play's sub-nav lands signed out (`AREA_NAV.play`): sharing a
+          // table is how you join one, and Mediate is what the Kit is for.
+          anchors={{ table: 'join', mediate: MEDIATORS_KIT_ANCHOR }}
         />
       }
     />
@@ -210,8 +214,8 @@ type PlayLandingViewProps = {
 }
 
 function PlayLandingView({ games, channels, connected = false }: PlayLandingViewProps) {
-  useHydrateEntities(['pilot'])
-  const pilots = usePilots()
+  // Your own: the replica also holds every crewmate's pilot, for Play (LG-01).
+  const pilots = useOwnUnits('pilot')
   const channelOf = new Map(
     (channels?.games ?? []).map((g) => [g.gameId, channelTag(g.binding)] as const)
   )
@@ -262,7 +266,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
         {connected && (
           // A band with its title's cut-out, as Your Games wears.
           <SlabSection
-            id="mediators-kit"
+            id={MEDIATORS_KIT_ANCHOR}
             as="h2"
             title={playCopy('mediatorsKit')}
             className="su-mediator-kit-section"
@@ -291,6 +295,15 @@ function JoinGame() {
   const [open, setOpen] = useState(false)
   const [pasted, setPasted] = useState('')
   const [wrong, setWrong] = useState(false)
+  // The sub-nav's "Join with a link" (`/games/#join`) lands here and opens it.
+  useEffect(() => {
+    const arrive = () => {
+      if (window.location.hash === '#join') setOpen(true)
+    }
+    arrive()
+    window.addEventListener('hashchange', arrive)
+    return () => window.removeEventListener('hashchange', arrive)
+  }, [])
 
   function join(event: FormEvent) {
     event.preventDefault()
@@ -305,7 +318,7 @@ function JoinGame() {
 
   return (
     <>
-      <Button variant="default" size="compact" onClick={() => setOpen(true)}>
+      <Button id="join" variant="default" size="compact" onClick={() => setOpen(true)}>
         {playCopy('joinWithALink')}
       </Button>
       <ModalShell open={open} onOpenChange={setOpen} title={playCopy('joinAGame')}>

@@ -621,6 +621,9 @@
     flex-basis: 100%;
     flex-wrap: wrap;
     gap: var(--space-8);
+    /* The panel is the rail's width, never its widest strip's: the Tech Level
+       row wraps inside it (`Segmented wrap`). */
+    min-width: 0;
     padding: var(--space-12);
   }
 

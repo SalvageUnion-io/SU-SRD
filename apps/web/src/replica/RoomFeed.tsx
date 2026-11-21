@@ -8,6 +8,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useMyPerson } from '../lib/auth/session'
+import { useAssignmentNotices } from '../lib/games/assignmentNotices'
 import { accountSocketPath, gameSocketPath } from '../rooms/routes'
 import { gameScope, serve, TABLES } from './replica'
 import { useGamesQuery } from './roomCalls'
@@ -16,6 +17,7 @@ import { forgetTableState } from './tableState'
 
 function GameFeed({ gameId }: { gameId: string }) {
   useEffect(() => openRoom(gameSocketPath(gameId), gameScope(gameId), gameId), [gameId])
+  useAssignmentNotices(gameId)
   return null
 }
 

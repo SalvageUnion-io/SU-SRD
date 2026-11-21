@@ -18,7 +18,15 @@ import type { GameUnits } from './units'
  * spend the last of it; the answer carries the Tech Level it was spent on.
  */
 
-export type SceneRead = { conditions: SceneConditionId[]; hours: number }
+export type SceneRead = {
+  conditions: SceneConditionId[]
+  hours: number
+  /** The pilot the Mediator marked as up now (ADR-051 §9a); absent with none. */
+  upNow?: string
+}
+
+/** The longest pilot id a marker keeps: an id, never prose. */
+const UP_NOW_ID = 128
 
 const CLEAR: SceneRead = { conditions: [], hours: 0 }
 
@@ -31,7 +39,32 @@ export class GameScene {
   /** The conditions in catalogue order and the hours passed; a clear Scene for a non-member too. */
   scene(actor: string): SceneRead {
     if (this.store.member(actor) === null) return CLEAR
-    return this.current() ?? CLEAR
+    const upNow = this.upNow()?.pilotId ?? null
+    return { ...(this.current() ?? CLEAR), ...(upNow === null ? {} : { upNow }) }
+  }
+
+  /**
+   * Mark whose turn it is, or nobody's with null: the Mediator's, and a marker
+   * only. It is one `change_log` row (field `upNow`), replaced each time and
+   * kept when cleared, so the Scene's record always reads newer.
+   */
+  setUpNow(actor: string, pilotId: string | null, at: number): void {
+    if (pilotId !== null && (pilotId.length === 0 || pilotId.length > UP_NOW_ID)) {
+      throw new RoomRefusal('That is not a Pilot at this table')
+    }
+    this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      this.store.rows("delete from change_log where field = 'upNow'")
+      this.store.rows(
+        'insert into change_log (id, field, after, source, actor_id, ts) values (?, ?, ?, ?, ?, ?)',
+        'up-now',
+        'upNow',
+        JSON.stringify({ pilotId }),
+        'mediator-up-now',
+        actor,
+        at
+      )
+    })
   }
 
   /** Put the Scene under exactly these conditions, each once; clearing the last clears the hours. */
@@ -95,9 +128,17 @@ export class GameScene {
 
   /** When the Scene, or the area, last changed; 0 for one never set. */
   updatedAt(table: 'scene' | 'salvage_area'): number {
-    return Number(
+    const at = Number(
       this.store.rows(`select updated_at from ${table} where id = 1`)[0]?.updated_at ?? 0
     )
+    return table === 'scene' ? Math.max(at, this.upNow()?.at ?? 0) : at
+  }
+
+  private upNow(): { pilotId: string | null; at: number } | null {
+    const row = this.store.rows("select after, ts from change_log where field = 'upNow'")[0]
+    if (row === undefined) return null
+    const { pilotId } = fromJson<{ pilotId: string | null }>(row.after)
+    return { pilotId, at: Number(row.ts) }
   }
 
   private current(): SceneRead | null {

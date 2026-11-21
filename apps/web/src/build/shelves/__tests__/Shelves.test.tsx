@@ -22,6 +22,7 @@ import {
   softLinkFixture,
 } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { areaAnchors } from '../../../components/unionBar/areaNav.model'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import { gameScope, serve } from '../../../replica/replica'
 import { holdSharedByLink } from '../../../replica/sharedByLink'
@@ -459,5 +460,15 @@ describe('the encounter tray on the NPC shelf', () => {
     await confirmDialog('Delete')
     await settle(() => useTray.getState().encounterNpcs.length === 0)
     expect(useTray.getState().encounterNpcs).toHaveLength(0)
+  })
+})
+
+// SB-07: every in-page link in Build's sub-nav has its target on the Training Bay.
+describe('Build’s sub-nav', () => {
+  test('each in-page link lands on a shelf', async () => {
+    await renderShelves()
+    const anchors = areaAnchors('build')
+    expect(anchors.length).toBeGreaterThan(0)
+    for (const id of anchors) expect(document.getElementById(id)).not.toBeNull()
   })
 })
