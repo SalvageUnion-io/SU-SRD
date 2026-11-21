@@ -45,14 +45,16 @@ export class GameRoomLogic {
     this.newId = newId
     this.units = new GameUnits(store, deps.applyOp, newId)
     this.proposals = new GameProposals(store, this.units)
-    this.roster = new GameRoster(store, this.units, deps.mintCode ?? randomInviteCode)
+    this.plan = new GamePlanStore(store)
+    this.roster = new GameRoster(store, this.units, deps.mintCode ?? randomInviteCode, (from) =>
+      this.plan.sessionDays(from)
+    )
     this.play = new GamePlay(store, this.units, newId)
     this.opposition = new GameOpposition(store, newId)
     this.transit = new GameTransit(store, this.units, this.play)
     this.scene = new GameScene(store, this.units)
     this.safety = new GameSafety(store)
     this.session = new GameSession(store)
-    this.plan = new GamePlanStore(store)
     this.log = new GameLog(store, newId)
     this.events = new GameEvents(store, newId)
   }

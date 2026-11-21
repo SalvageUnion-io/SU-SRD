@@ -15,8 +15,9 @@ import { useId, useState } from 'react'
 import { ConfirmDialog, Radio } from '../../components/app'
 import { capsLabel, InlineRef, Stack, toast, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { KIT_PATH } from '../games/prep/gamePrep.model'
-import { encounterLine, trayChoiceLabel } from './runEncounter.model'
+import { choiceLine, runChoices, trayChoiceLabel } from './runEncounter.model'
 
 const FIELDSET = {
   border: 0,
@@ -36,6 +37,8 @@ type RunEncounterDialogProps = {
   onClose: () => void
   /** The Mediator's encounters. */
   encounters: readonly Encounter[]
+  /** The Game at this table: its encounters lead, and another Game's is named. */
+  gameId: string
   /** How many NPCs are on the tray now. */
   onTray: number
   onRun: (encounterId: string, clear: boolean) => Promise<{ added: number }>
@@ -44,13 +47,21 @@ type RunEncounterDialogProps = {
 export function RunEncounterDialog({
   open,
   onClose,
-  encounters,
+  encounters: mine,
+  gameId,
   onTray,
   onRun,
 }: RunEncounterDialogProps) {
   const id = useId()
   const [chosen, setChosen] = useState<string | null>(null)
   const [clear, setClear] = useState(false)
+  const games = useGamesQuery('games.listMine', open ? {} : 'skip')
+  const choices = runChoices(
+    mine,
+    gameId,
+    (other) => games?.find((g) => g._id === other)?.name ?? null
+  )
+  const encounters = choices.map((c) => c.encounter)
   const picked = encounters.find((e) => e.id === chosen) ?? encounters[0] ?? null
 
   return (
@@ -74,7 +85,7 @@ export function RunEncounterDialog({
               <legend className={LEGEND_CAPS} style={LEGEND}>
                 {mediatorCopy('encounter')}
               </legend>
-              {encounters.map((encounter) => (
+              {choices.map(({ encounter, otherGame }) => (
                 <Radio
                   key={encounter.id}
                   name={`${id}-encounter`}
@@ -82,7 +93,7 @@ export function RunEncounterDialog({
                   checked={picked?.id === encounter.id}
                   onChange={() => setChosen(encounter.id)}
                   label={encounter.name}
-                  description={encounterLine(encounter)}
+                  description={choiceLine({ encounter, otherGame })}
                 />
               ))}
             </fieldset>

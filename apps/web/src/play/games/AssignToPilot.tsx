@@ -13,7 +13,7 @@ import { useState } from 'react'
 import { PickDialog } from '../../components/app'
 import { toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { useMechs, usePilots } from '../../lib/entities'
+import { useMechs, useOwnUnits } from '../../lib/entities'
 import { assignLink } from '../../lib/links/assignLink'
 import { soleMechlessPilot } from '../../lib/links/mechlessPilot'
 import { unitRowModel } from '../../lib/units/unitModel'
@@ -31,8 +31,9 @@ export function AssignToPilot({ gameId, mech, onClose }: AssignToPilotProps) {
   const [picked, setPicked] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // This browser holds only your own: the pilots you may pair it with.
-  const pilots = usePilots().filter((p) => p.gameId === gameId)
+  // Your own pilots here, the ones you may pair it with: the replica holds
+  // every crewmate's too, and theirs are not yours to re-mech (LG2-07).
+  const pilots = useOwnUnits('pilot').filter((p) => p.gameId === gameId)
   const mechs = useMechs()
   const softLinks = useUnits((s) => s.softLinks)
   const mechOf = (pilotId: string) => {

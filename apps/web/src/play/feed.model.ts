@@ -54,6 +54,23 @@ export type FeedSources = {
   mine: readonly PlayRoll[]
   /** The name the Game's log gives my rolls (`playRollDescription`): to drop its copies. */
   rollerName: string
+  /** The reader: a line the table attributes to the Mediator reads "You" when it is theirs. */
+  viewerId?: string | null
+}
+
+/**
+ * A Mediator's line on their own screen (MD2-12): the table says "Mediator"
+ * for an alert, a proposal and the session, and the one who did it reads
+ * "You", as their rolls do.
+ */
+const MEDIATORS: ReadonlySet<TableEvent['kind']> = new Set(['alert', 'proposal', 'session'])
+
+function asMine(text: string): string {
+  const proposes = playCopy('mediatorProposes', { what: '' })
+  if (text.startsWith(proposes))
+    return playCopy('youPropose', { what: text.slice(proposes.length) })
+  const mediator = `${playCopy('feedMediator')} `
+  return text.startsWith(mediator) ? `${playCopy('feedYou')} ${text.slice(mediator.length)}` : text
 }
 
 function show(value: unknown): string {
@@ -83,7 +100,10 @@ export function playFeedEntries({
   proposals,
   mine,
   rollerName,
+  viewerId = null,
 }: FeedSources): FeedEntry[] {
+  const said = (e: TableEvent) =>
+    viewerId !== null && e.actorId === viewerId && MEDIATORS.has(e.kind) ? asMine(e.text) : e.text
   const echoes = new Set(
     mine.filter(isDiceRoll).map((r) => `${r.at}|${playRollDescription(rollerName, r)}`)
   )
@@ -115,7 +135,7 @@ export function playFeedEntries({
               kind: e.kind === 'roll' || e.kind === 'alert' ? e.kind : 'event',
               key: `event-${e._id}`,
               ts: e.ts,
-              text: e.kind === 'roll' ? rollText(e.text, e.private) : e.text,
+              text: e.kind === 'roll' ? rollText(e.text, e.private) : said(e),
             })
           )
       : [

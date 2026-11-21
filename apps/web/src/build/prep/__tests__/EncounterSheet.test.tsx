@@ -138,6 +138,23 @@ describe("an encounter's groups", () => {
     expect(current()?.groups?.[1]).toMatchObject({ name: 'Gantry snipers', wave: 1 })
   })
 
+  // MD2-20: Enter did nothing; the button was required.
+  test('Enter in the name adds the group', async () => {
+    await renderPage()
+    await click(screen.getByRole('button', { name: 'Add a group' }))
+    const field = within(screen.getByRole('alertdialog', { name: 'Add a group' })).getByRole(
+      'textbox'
+    )
+    await act(async () => {
+      fireEvent.change(field, { target: { value: 'Gantry snipers' } })
+    })
+    await act(async () => {
+      fireEvent.keyDown(field, { key: 'Enter' })
+    })
+    await settle(() => current()?.groups?.length === 2)
+    expect(current()?.groups?.[1]?.name).toBe('Gantry snipers')
+  })
+
   test('an opponent moves into a group and back out from its ⋯ menu', async () => {
     await renderPage()
     await choose('Sniper', 'Move to Raider Band')

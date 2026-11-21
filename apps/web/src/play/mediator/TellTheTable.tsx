@@ -7,7 +7,7 @@
  * refuses.
  */
 
-import type { CSSProperties } from 'react'
+import type { CSSProperties, RefObject } from 'react'
 import { useId, useState } from 'react'
 import { FeedLine, FeedList, FeedTime } from '../../components/app'
 import { Button, EmptyState, Eyebrow, Field, Input, tokens } from '../../components/index'
@@ -37,12 +37,15 @@ export function TellTheTable({
   now,
   canWrite,
   onSend,
+  field,
 }: {
   alerts: readonly AlertLine[]
   now: number
   canWrite: boolean
   /** Resolves once sent; rejects with the server's refusal (already explained). */
   onSend: (message: string) => Promise<void>
+  /** The alert's field, for the dialog around it to open on (MD2-04). */
+  field?: RefObject<HTMLInputElement | null>
 }) {
   const id = useId()
   const [message, setMessage] = useState('')
@@ -64,6 +67,7 @@ export function TellTheTable({
       <div style={FORM}>
         <Field label={mediatorCopy('alert')} htmlFor={`${id}-alert`}>
           <Input
+            ref={field}
             id={`${id}-alert`}
             value={message}
             placeholder={mediatorCopy('contactFrontTwoSquads')}

@@ -9,7 +9,8 @@
 import { instanceName } from 'game-domain/games/encounters'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import { ENCOUNTER_REF_SCHEMAS } from 'game-domain/schemas/encounterNpc'
-import type { Npc } from 'game-domain/schemas/npc'
+import type { Npc, NpcTemplateKind } from 'game-domain/schemas/npc'
+import { NPC_TEMPLATE_KINDS } from 'game-domain/schemas/npc'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
   findEntityBySlug,
@@ -73,6 +74,8 @@ export type TrayNpc = {
   refSlug: string | null
   /** The Mediator's own designed NPC it was drawn from (ADR-067 §1), by id. */
   builtFrom: string | null
+  /** The kind of denizen that design was built from, where it was not a plain NPC. */
+  builtKind: NpcTemplateKind | null
 }
 
 const isRefSchema = (value: unknown): value is EncounterRefSchema =>
@@ -102,6 +105,7 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
         damageType: statKind === 'sp' ? 'SP' : 'HP',
         actions: built.actions,
         traits: built.traits,
+        ...(built.bioSalvageValue === undefined ? {} : { bioSalvageValue: built.bioSalvageValue }),
       }) as RefEntity)
     : null
   const entity = own ?? live ?? former?.host ?? null
@@ -142,18 +146,44 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     refSchema,
     refSlug,
     builtFrom: built?.npcId ?? null,
+    builtKind: built?.kind ?? null,
   }
 }
 
 function readBuilt(value: unknown): NonNullable<EncounterNpc['built']> | null {
   if (typeof value !== 'object' || value === null) return null
-  const { npcId, name, actions, traits } = value as Record<string, unknown>
+  const { npcId, name, actions, traits, kind, bioSalvageValue } = value as Record<string, unknown>
   if (typeof npcId !== 'string' || !Array.isArray(actions) || !Array.isArray(traits)) return null
   return {
     npcId,
     name: typeof name === 'string' && name !== '' ? name : 'NPC',
     actions: actions.filter((a): a is string => typeof a === 'string'),
     traits: traits as NonNullable<EncounterNpc['built']>['traits'],
+    ...(isTemplateKind(kind) ? { kind } : {}),
+    ...(typeof bioSalvageValue === 'number' ? { bioSalvageValue } : {}),
+  }
+}
+
+const isTemplateKind = (value: unknown): value is NpcTemplateKind =>
+  typeof value === 'string' && (NPC_TEMPLATE_KINDS as readonly string[]).includes(value)
+
+/**
+ * A designed NPC's stat block as a fight keeps it (`built`): its name, actions
+ * and traits, the kind of denizen it was built from where that is not a plain
+ * NPC, and its Bio-Salvage Value.
+ */
+export function builtSnapshot(
+  npc: Pick<Npc, 'id' | 'name' | 'actions' | 'traits'> &
+    Partial<Pick<Npc, 'templateRef' | 'bioSalvageValue'>>
+): NonNullable<EncounterNpc['built']> {
+  const kind = npc.templateRef?.schema
+  return {
+    npcId: npc.id,
+    name: npc.name,
+    actions: [...npc.actions],
+    traits: [...npc.traits],
+    ...(isTemplateKind(kind) && kind !== 'npcs' ? { kind } : {}),
+    ...(npc.bioSalvageValue === undefined ? {} : { bioSalvageValue: npc.bioSalvageValue }),
   }
 }
 
@@ -322,7 +352,8 @@ export function newTrayNpc(
  * later never changes a fight under way.
  */
 export function newBuiltTrayNpc(
-  npc: Pick<Npc, 'id' | 'name' | 'hitPoints' | 'damageType' | 'actions' | 'traits'>,
+  npc: Pick<Npc, 'id' | 'name' | 'hitPoints' | 'damageType' | 'actions' | 'traits'> &
+    Partial<Pick<Npc, 'templateRef' | 'bioSalvageValue'>>,
   taken: readonly string[],
   now: string,
   custom = ''
@@ -332,7 +363,7 @@ export function newBuiltTrayNpc(
     schemaVersion: 1,
     refSchema: 'npcs',
     refSlug: '',
-    built: { npcId: npc.id, name: npc.name, actions: [...npc.actions], traits: [...npc.traits] },
+    built: builtSnapshot(npc),
     name: instanceName(given === '' ? npc.name : given, taken),
     currentHp: npc.hitPoints,
     maxHp: npc.hitPoints,

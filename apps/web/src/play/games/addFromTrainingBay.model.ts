@@ -77,11 +77,23 @@ export function bringChoices(args: {
  * What a pick moves: each picked line's unit and a pilot's mech with it, the
  * crawler first (the one a Game may refuse), and the links to redraw once
  * they are all in the Game: those whose two ends both move.
+ *
+ * `pair` (LG2-07): one pilot with no mech and one mech with no pilot, picked
+ * together, are plainly each other's, so the mech is assigned to the pilot on
+ * arrival. Two of either, and nobody can say whose is whose: nothing is assumed.
  */
 export function bringPlan<L extends LinkEnds>(
   picked: readonly BringChoice[],
   softLinks: readonly L[]
-): { moves: Movable[]; keep: L[] } {
+): { moves: Movable[]; keep: L[]; pair: { mech: Movable; pilot: Movable } | null } {
+  const onFoot = picked.filter((c) => c.kind === 'pilot' && c.mech === null)
+  const flown = new Set(softLinks.filter((l) => l.type === 'mech-to-pilot').map((l) => l.from.id))
+  const free = picked.filter((c) => c.kind === 'mech' && !flown.has(c.id))
+  const [pilot, mech] = [onFoot[0], free[0]]
+  const pair =
+    onFoot.length === 1 && free.length === 1 && pilot !== undefined && mech !== undefined
+      ? { mech: unitOf(mech), pilot: unitOf(pilot) }
+      : null
   const units = picked.flatMap((choice): Movable[] => {
     const { mech, ...unit } = choice
     return mech === null ? [unit] : [unit, mech]
@@ -92,5 +104,8 @@ export function bringPlan<L extends LinkEnds>(
   return {
     moves,
     keep: softLinks.filter((l) => moving.has(l.from.id) && moving.has(l.to.id)),
+    pair,
   }
 }
+
+const unitOf = ({ id, name, kind }: BringChoice): Movable => ({ id, name, kind })

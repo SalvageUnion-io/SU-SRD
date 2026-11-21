@@ -48,9 +48,9 @@ function world(over: Partial<CallDeps> = {}) {
         runAct({ room: logic, actor, gameId, at: Date.now() }, name, args),
       republish: () => publisher.republish(),
       // The room's own disband also delivers each unit home; here it only ends the Game.
-      disband: async (actor: string) => {
+      disband: async (actor: string, opts?: { dropTemplateUnits?: boolean }) => {
         try {
-          logic.roster.disband(actor, Date.now())
+          logic.roster.disband(actor, Date.now(), opts)
           return { ok: true, value: null }
         } catch (error) {
           if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }

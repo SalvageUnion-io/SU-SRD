@@ -136,3 +136,28 @@ describe('spoilsOf (Core Book p.246, 269)', () => {
     expect(spoilsOf(encounter([opponent('r', 'npcs', 'raider', 3)]))).toEqual([])
   })
 })
+
+// MD2-15: the book Scylla listed its Bio-Salvage and a design built from it listed nothing.
+describe('a designed NPC’s spoils', () => {
+  const built = { npcId: 'n1', name: 'The Relay Lurker', actions: [], traits: [] }
+  test('built from a Bio-Titan it leaves Bio-Salvage equal to its SP', () => {
+    const spoils = spoilsOf(
+      encounter([
+        opponent('lurker', 'npcs', '', 39, {
+          statKind: 'sp',
+          built: { ...built, kind: 'bio-titans' },
+        }),
+      ])
+    )
+    expect(spoils).toMatchObject([{ kind: 'bio', bioSalvage: 39 }])
+  })
+
+  test('one given a Bio-Salvage Value leaves that; any other leaves nothing', () => {
+    expect(
+      spoilsOf(
+        encounter([opponent('grub', 'npcs', '', 6, { built: { ...built, bioSalvageValue: 2 } })])
+      )
+    ).toMatchObject([{ kind: 'bio', bioSalvage: 2 }])
+    expect(spoilsOf(encounter([opponent('vex', 'npcs', '', 6, { built })]))).toEqual([])
+  })
+})

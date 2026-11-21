@@ -50,8 +50,11 @@ import { useGo } from '../../components/shared/useGo'
 import { useOwnUnits } from '../../lib/entities/entities'
 import { flagOn } from '../../lib/flags'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { areaTitle } from '../../lib/pageTitle'
 import { reportWriteFailure } from '../../lib/runWrite'
+import { useTabTitle } from '../../lib/useTabTitle'
 import { buildPrepCopy } from '../../messages/build-prep'
+import { routesCopy } from '../../messages/routes'
 import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
 import { OppositionDialogs, OppositionPicker } from '../../play/mediator/OppositionPicker'
 import type { SavedPattern, TrayNpc } from '../../play/mediator/opposition.model'
@@ -63,6 +66,7 @@ import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
 import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
 import { useSheetModeStore } from '../sheet/sheetMode.model'
+import { undoToast } from '../sheet/undoToast.model'
 import { EncounterGameField } from './EncounterGame'
 import { GroupedOpposition, GroupNameDialog } from './EncounterGroups'
 import { EncounterTables } from './EncounterTables'
@@ -82,6 +86,7 @@ import {
   pinTable,
   removeGroup,
   renameGroup,
+  restoredOpponent,
   setGroupWave,
   unpinTable,
 } from './encounter.model'
@@ -122,6 +127,8 @@ export function EncounterPage({ id }: { id: string }) {
 }
 
 function EncounterBody({ encounter }: { encounter: Encounter }) {
+  // The tab names the encounter, in the Mediator's Kit (MD-02); the route's head cannot.
+  useTabTitle(areaTitle(routesCopy('mediatorsKit'), encounter.name || routesCopy('encounter')))
   const { canWrite: connected } = useSync()
   // Read until Edit is pressed, as on every sheet (R11); nothing writes in Read.
   const mode = useSheetModeStore()
@@ -167,10 +174,17 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   }))
   const fielded = encounter.opposition.map(opponentAsTray)
 
-  const remove = (opponent: EncounterOpponent) =>
+  // At once, as every edit here is, with the way back (MD2-20): Undo puts it
+  // where it stood, unless it is back already.
+  const remove = (opponent: EncounterOpponent) => {
+    const at = encounter.opposition.findIndex((o) => o.id === opponent.id)
     fire((current) => ({
       opposition: current.opposition.filter((o) => o.id !== opponent.id),
     }))
+    undoToast(buildPrepCopy('removedOpponent', { name: opponent.name }), () =>
+      fire((current) => ({ opposition: restoredOpponent(current, opponent, at) }))
+    )
+  }
 
   const move = (opponent: EncounterOpponent, groupId: string | null) =>
     fire((current) => ({

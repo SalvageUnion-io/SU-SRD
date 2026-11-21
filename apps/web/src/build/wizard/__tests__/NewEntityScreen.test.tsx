@@ -7,7 +7,7 @@
  * Conventions: toBeTruthy() not toBeInTheDocument().
  */
 
-import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import {
   act,
   cleanup,
@@ -197,6 +197,33 @@ describe('NewEntityScreen — mode routing', () => {
     expect(container.querySelector('.su-sheet--pilot')).toBeTruthy()
     expect(screen.getByRole('dialog')).toBeTruthy()
     expect(screen.getByLabelText(/callsign/i)).toBeTruthy()
+  })
+
+  // MD2-04: the dialog opened on Close, and a typed space shut it.
+  test('the Blank Crawler dialog opens with its name focused', async () => {
+    // The dialog focuses on the next frame; the frame is run here, so the
+    // test waits on no timer.
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
+    try {
+      await act(async () => {
+        render(
+          <NewEntityScreen
+            kind="crawler"
+            mode="blank"
+            wizard={null}
+            onModeChange={noop}
+            onCreated={noop}
+          />
+        )
+      })
+      const name = screen.getByRole('textbox', { name: /name/i })
+      expect(document.activeElement === name).toBe(true)
+    } finally {
+      frame.mockRestore()
+    }
   })
 
   test('chooser doors fire onModeChange with the chosen mode', () => {

@@ -41,6 +41,7 @@ const serverMocks = await installServerMocks({
 })
 
 const { MoveToContainerControl } = await import('../MoveToContainerControl')
+const { ToasterMount } = await import('../../../components/index')
 const { MoveToGameDialog } = await import('../../shelves/MoveToGameDialog')
 const { useConfirm } = await import('../../../components/shared/useConfirm')
 const { SyncProvider } = await import('../../../replica/SyncProvider')
@@ -141,7 +142,10 @@ describe('MoveToContainerControl', () => {
     const pilot = await heldPilot(null)
     let changed = 0
     wrap(
-      <MoveHarness entityType="pilot" entityId="p1" entity={pilot} onChanged={() => changed++} />
+      <>
+        <MoveHarness entityType="pilot" entityId="p1" entity={pilot} onChanged={() => changed++} />
+        <ToasterMount />
+      </>
     )
 
     fireEvent.change(screen.getByLabelText('Move to a Game or your Training Bay'), {
@@ -149,6 +153,8 @@ describe('MoveToContainerControl', () => {
     })
 
     await waitFor(() => expect(changed).toBe(1))
+    // The move says where it went, as a shelf row's does (MD2-14).
+    expect(await screen.findByText('Moved Mira Cole to Union Crawler #430.')).toBeTruthy()
     // Into a Game from the Shelf, with nothing to clear: no confirm.
     expect(screen.queryByRole('alertdialog')).toBeNull()
     const pilots = useUnits.getState().list('pilot')

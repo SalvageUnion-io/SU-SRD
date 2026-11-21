@@ -87,6 +87,7 @@ const serverMocks = await installServerMocks({
             null,
             `view ${named(p.view)}, crawler ${named(p.crawlerId)}, slot ${named(p.slot)}`
           ),
+          h('p', null, `designing for ${named(p.gameId)}`),
           call('Any NPC', () => (p.onViewChange as (v: string) => void)('any')),
           call('Crew view', () => (p.onViewChange as (v: string) => void)('crew')),
           call('Pick a crew slot', () =>
@@ -282,6 +283,16 @@ describe('/npcs/new', () => {
     await go(router, '/npcs/new')
     await press('Cancel design')
     expect(at(router).pathname).toBe('/')
+  })
+
+  test('from a Game’s Prep the designer is given that Game, and cancel goes back there', async () => {
+    const router = await mountAt('/npcs/new?game=g1')
+    expect(await screen.findByText('designing for g1')).toBeTruthy()
+    await press('Crew view')
+    expect(at(router).search).toEqual({ view: 'crew', game: 'g1' })
+    await press('Any NPC')
+    await press('Cancel design')
+    expect(at(router).pathname).toBe('/games/g1/prep')
   })
 
   test('the screen around the designer can also open a created NPC', async () => {

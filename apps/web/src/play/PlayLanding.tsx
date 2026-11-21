@@ -306,13 +306,25 @@ function JoinGame() {
   const [pasted, setPasted] = useState('')
   const [wrong, setWrong] = useState(false)
   // The sub-nav's "Join with a link" (`/games/#join`) lands here and opens it.
+  // A router link changes the hash with no `hashchange`, and a second press
+  // changes nothing at all, so the press itself is heard too (MD-03).
   useEffect(() => {
     const arrive = () => {
       if (window.location.hash === '#join') setOpen(true)
     }
+    const pressed = (event: MouseEvent) => {
+      const link = event.target instanceof Element ? event.target.closest('a[href$="#join"]') : null
+      if (link !== null) setOpen(true)
+    }
     arrive()
     window.addEventListener('hashchange', arrive)
-    return () => window.removeEventListener('hashchange', arrive)
+    window.addEventListener('popstate', arrive)
+    document.addEventListener('click', pressed)
+    return () => {
+      window.removeEventListener('hashchange', arrive)
+      window.removeEventListener('popstate', arrive)
+      document.removeEventListener('click', pressed)
+    }
   }, [])
 
   function join(event: FormEvent) {

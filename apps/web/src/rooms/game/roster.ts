@@ -2,7 +2,7 @@ import { GAME_MAX_DESCRIPTION } from 'game-domain/schemas/gamePlan'
 import type { UnitParcel } from '../handoff'
 import { parcelUnit } from '../leases'
 import { RoomRefusal } from '../refusal'
-import type { GameStore, Member } from './store'
+import type { GameRow, GameStore, Member, UnitRow } from './store'
 import { bit, fromJson } from './store'
 import type { GameUnits } from './units'
 import { unitName } from './units'
@@ -30,10 +30,26 @@ export type GameRead = {
   crawlerName: string | null
   /** The primary crawler's id, or null before one exists. */
   primaryCrawlerId: string | null
+  /**
+   * The days the table next meets, soonest first, from yesterday on (a
+   * member's own clock picks today's): all of the plan a member is told.
+   */
+  sessionDays: string[]
+  /**
+   * A Game made from a template: the units it came with that nobody has
+   * changed or been handed (`untouched`), of those still here (`came`).
+   * Deleting the Game can take the untouched ones with it (MD2-02).
+   */
+  templateUnits?: { came: number; untouched: number }
 }
 
 /** What a profile shows on a roster, as the member's account room last sent it. */
 export type Profile = { displayName: string | null; avatarUrl: string | null }
+
+const DAY_MS = 24 * 60 * 60_000
+
+/** Nobody was handed it and nothing was applied to it: as the template left it. */
+const untouched = (unit: UnitRow) => unit.ownerId === null && unit.headSeq === 0
 
 /** The longest name a Game takes: every member's list and the bot show it. */
 const GAME_NAME_MAX = 80
@@ -79,7 +95,9 @@ export class GameRoster {
   constructor(
     private readonly store: GameStore,
     private readonly units: GameUnits,
-    private readonly mintCode: () => string = randomInviteCode
+    private readonly mintCode: () => string = randomInviteCode,
+    /** The plan's session days from a day on (`GamePlanStore.sessionDays`). */
+    private readonly sessionDays: (from: string) => string[] = () => []
   ) {}
 
   /**
@@ -111,7 +129,7 @@ export class GameRoster {
   }
 
   /** The Game for one member, or null for anyone else: a non-member cannot tell it exists. */
-  read(actor: string): GameRead | null {
+  read(actor: string, at: number = Date.now()): GameRead | null {
     const game = this.store.game()
     const member = this.store.member(actor)
     if (game === null || member === null) return null
@@ -129,7 +147,20 @@ export class GameRoster {
       mechCount: this.store.units('mech').length,
       crawlerName: primary === null ? null : unitName(primary),
       primaryCrawlerId: primary?.id ?? null,
+      sessionDays: this.sessionDays(new Date(at - DAY_MS).toISOString().slice(0, 10)),
+      ...(game.templateOrigin === null ? {} : { templateUnits: this.templateUnits(game) }),
     }
+  }
+
+  /**
+   * The units a template Game came with are those made in its first moment
+   * (`seedTemplate` stamps the Game and each unit with one time). One is
+   * untouched while it is unassigned and no op has been applied to it: an
+   * assignment or an edit each move its head on.
+   */
+  private templateUnits(game: GameRow): { came: number; untouched: number } {
+    const came = this.store.units().filter((unit) => unit.createdAt === game.createdAt)
+    return { came: came.length, untouched: came.filter(untouched).length }
   }
 
   /** The roster, for any member. */
@@ -293,8 +324,16 @@ export class GameRoster {
    * back cannot change under the delivery; calling it again answers the same
    * deliveries. The Worker hands each to its account room (an accept per
    * lease, so a retry delivers once), files the tray, then wipes this room.
+   *
+   * `dropTemplateUnits` (MD2-02): a template Game's untouched units are not
+   * delivered, so they end with the room. One somebody was handed or changed
+   * is theirs and is always delivered.
    */
-  disband(actor: string, at: number): { deliveries: Delivery[]; tray: TrayDelivery } {
+  disband(
+    actor: string,
+    at: number,
+    opts: { dropTemplateUnits?: boolean } = {}
+  ): { deliveries: Delivery[]; tray: TrayDelivery } {
     return this.store.sql.transaction(() => {
       const game = this.store.requireGame()
       const organizer = this.store.member(actor)
@@ -303,7 +342,13 @@ export class GameRoster {
       if (game.disbandingAt === null) {
         this.store.rows('update game set disbanding_at = ? where id = 1', at)
       }
-      const deliveries = this.store.units().map((unit) => {
+      const dropped = (unit: UnitRow) =>
+        opts.dropTemplateUnits === true &&
+        game.templateOrigin !== null &&
+        unit.createdAt === game.createdAt &&
+        untouched(unit)
+      const kept = this.store.units().filter((unit) => !dropped(unit))
+      const deliveries = kept.map((unit) => {
         const to = unit.kind === 'crawler' ? actor : (unit.ownerId ?? actor)
         const parcel: UnitParcel = {
           leaseId: `disband:${game.gameId}:${unit.id}`,

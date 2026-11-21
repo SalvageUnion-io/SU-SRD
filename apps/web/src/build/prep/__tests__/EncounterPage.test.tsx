@@ -130,7 +130,14 @@ describe('an encounter page', () => {
   test('an unknown encounter says so and leads back to the Mediator’s Kit', async () => {
     await renderPage('missing')
     expect(screen.getByText('Encounter not found')).toBeTruthy()
-    expect(screen.getByText('Back to the Mediator’s Kit')).toBeTruthy()
+    // The back button says "Back to" itself: once (MD2-19).
+    expect(screen.getByRole('link', { name: 'Back to Mediator’s Kit' })).toBeTruthy()
+  })
+
+  // MD-02: every encounter's tab read "Encounter · Training Bay".
+  test('its tab names the encounter, in the Mediator’s Kit', async () => {
+    await renderPage()
+    expect(document.title).toBe('Ambush · Mediator’s Kit · SalvageUnion.io')
   })
 
   test('it shows the opposition, the pinned tables and the private notes', async () => {
@@ -192,6 +199,19 @@ describe('an encounter page', () => {
     await settle(() => current()?.opposition.length === 0)
     expect(current()?.opposition).toEqual([])
     expect(screen.getByText(/No opposition yet/)).toBeTruthy()
+  })
+
+  // MD2-20: it went at once, with no word and no way back.
+  test('a removed opponent comes back where it stood on Undo', async () => {
+    await renderPage()
+    const before = current()?.opposition
+    await click(screen.getByRole('button', { name: 'More for Raider' }))
+    await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Remove' }))
+    await settle(() => current()?.opposition.length === 0)
+    expect(await screen.findByText('Removed Raider.')).toBeTruthy()
+    await click(screen.getByRole('button', { name: 'Undo' }))
+    await settle(() => current()?.opposition.length === 1)
+    expect(current()?.opposition).toEqual(before)
   })
 
   test('an opponent is renamed from its ⋯ menu', async () => {

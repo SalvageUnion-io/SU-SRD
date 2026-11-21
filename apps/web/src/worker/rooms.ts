@@ -430,10 +430,14 @@ export class GameRoom extends Room {
    * Bay, the rest and the tray to the Organizer's, each member's room drops
    * the Game from its list, then the room is wiped.
    * A retry after a failed delivery delivers only what had not landed.
+   * `dropTemplateUnits`: a template Game's untouched units end with it.
    */
-  async disband(actor: string): Promise<GameActAnswer<null>> {
+  async disband(
+    actor: string,
+    opts: { dropTemplateUnits?: boolean } = {}
+  ): Promise<GameActAnswer<null>> {
     const at = Date.now()
-    const disbanded = answerOrRefuse(() => this.logic.roster.disband(actor, at))
+    const disbanded = answerOrRefuse(() => this.logic.roster.disband(actor, at, opts))
     if (!disbanded.ok) return disbanded
     const ended = disbanded.value
     for (const { to, parcel } of ended.deliveries) {

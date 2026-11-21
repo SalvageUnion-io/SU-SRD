@@ -1,6 +1,6 @@
 import { z } from 'salvageunion-reference/zod'
 import { containerFields } from './entity'
-import { NpcTraitSchema } from './npc'
+import { NPC_TEMPLATE_KINDS, NpcTraitSchema } from './npc'
 
 /**
  * EncounterNpc — one tracked NPC instance on the GM encounter tray.
@@ -105,6 +105,15 @@ export const EncounterNpcSchema = z
         name: z.string().min(1),
         actions: z.array(z.string().min(1)),
         traits: z.array(NpcTraitSchema),
+        /**
+         * The kind of denizen the design was built from (its template's
+         * schema), so the row is chipped and salvaged as one. Absent for a
+         * design from a book NPC, a crew slot or nothing, and on a snapshot
+         * taken before kinds were kept: then it is an NPC.
+         */
+        kind: z.enum(NPC_TEMPLATE_KINDS).optional(),
+        /** The design's Bio-Salvage Value, where it has one. */
+        bioSalvageValue: z.number().int().min(0).optional(),
       })
       .strict()
       .optional(),

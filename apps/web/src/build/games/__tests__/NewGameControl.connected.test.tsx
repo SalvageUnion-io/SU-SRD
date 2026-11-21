@@ -109,6 +109,24 @@ describe('who gets it', () => {
   })
 })
 
+describe('the dialog’s focus (MD2-04)', () => {
+  test('typing starts in the name, not on Close', async () => {
+    // The dialog focuses on the next frame; the frame is run here, so the
+    // test waits on no timer.
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
+    try {
+      await renderOpen()
+      await act(async () => undefined)
+      expect(document.activeElement === screen.getByLabelText('New Game name')).toBe(true)
+    } finally {
+      frame.mockRestore()
+    }
+  })
+})
+
 describe('starting a game', () => {
   test('Create waits for a name, then makes the game and shows it', async () => {
     await renderOpen()

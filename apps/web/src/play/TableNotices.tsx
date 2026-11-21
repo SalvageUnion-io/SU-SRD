@@ -8,7 +8,8 @@
  *  - **Pinned**, until answered or dismissed: the Stop Sign (which also
  *    renames the tab, and turns Play's band, `PlayBar`), each proposal
  *    awaiting this player with Accept and Decline, the Mediator's newest
- *    alert, and "Session live" with its door, then "Session ended".
+ *    alert, "You now mediate" after a hand over, and "Session live" with its
+ *    door, then "Session ended".
  *  - **Toasts**: every other member's act, off the table's event stream
  *    (`tableNotices.model.ts`), the Feed's own source.
  */
@@ -33,6 +34,7 @@ import {
   NOTICES_RESIZED,
   pausedTitle,
   pinnedAlert,
+  pinnedRole,
   resumedTitle,
 } from './tableNotices.model'
 import { useGameSession } from './useGameSession'
@@ -42,6 +44,27 @@ const STRONG = { fontWeight: tokens.weight.bold } satisfies React.CSSProperties
 
 /** What this tab dismissed: alerts by id, a session's bar by when it started. */
 const dismissed = new Set<string>()
+
+/** Where a dismissed hand over is remembered: it stays news for days, a tab does not. */
+const ROLE_SEEN = 'su-role-notice-seen'
+
+/** The hand overs this browser has dismissed, by event id. */
+function seenRoles(): string[] {
+  try {
+    const kept: unknown = JSON.parse(localStorage.getItem(ROLE_SEEN) ?? '[]')
+    return Array.isArray(kept) ? kept.filter((id) => typeof id === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function rememberRole(id: string): void {
+  try {
+    localStorage.setItem(ROLE_SEEN, JSON.stringify([...seenRoles(), id].slice(-20)))
+  } catch {
+    // Storage is off: the notice is dismissed for this tab alone.
+  }
+}
 
 /**
  * The notices' height, published as `--su-table-notices-h` on the document:
@@ -143,7 +166,12 @@ function GameNotices({
     const next = eventsToToast(events, heard.current, viewerId)
     heard.current = next.heard
     for (const event of next.toast) {
-      toast(event.text, { id: `table-event-${event._id}`, description: gameName })
+      // A hand over to the viewer is said to them, not about them.
+      const mine = event.kind === 'role' && event.about === viewerId
+      toast(mine ? playCopy('youNowMediate') : event.text, {
+        id: `table-event-${event._id}`,
+        description: gameName,
+      })
     }
   }, [events, viewerId, gameName])
 
@@ -173,10 +201,15 @@ function GameNotices({
   const endedAt = endedSession(events ?? [], Date.now())
 
   const alert = pinnedAlert(events ?? [], dismissed, viewerId, Date.now())
+  // A hand over made the viewer the Mediator: pinned while they still are.
+  const role = mediator
+    ? pinnedRole(events ?? [], new Set([...dismissed, ...seenRoles()]), viewerId, Date.now())
+    : null
   const sessionKey = `session:${gameId}`
   const onePilot = pilots.length === 1 ? pilots[0] : undefined
+  // One name a door (glossary §9): the Mediator's is Mediate, wherever it is.
   const door = mediator
-    ? { href: mediatePath(gameId), label: playCopy('openTable') }
+    ? { href: mediatePath(gameId), label: playCopy('mediate') }
     : onePilot !== undefined
       ? { href: cockpitPath(onePilot.id), label: playCopy('joinSession') }
       : { href: gamePath(gameId), label: playCopy('joinSession') }
@@ -256,6 +289,30 @@ function GameNotices({
                 size="compact"
                 aria-label={playCopy('dismissWhat', { what: alert.text })}
                 onClick={() => dismiss(alert._id)}
+              >
+                {playCopy('dismiss')}
+              </Button>
+            </div>
+          </Callout>
+        </div>
+      )}
+      {role !== null && (
+        <div role="status" data-table-notice="role">
+          <Callout tone="ink">
+            <div className="su-table-notice">
+              <div className="su-table-notice__text">
+                <Text style={STRONG}>{playCopy('youNowMediateIn', { game: gameName })}</Text>
+                <Text>{playCopy('youNowMediateBody')}</Text>
+              </div>
+              <Button
+                size="compact"
+                aria-label={playCopy('dismissWhat', {
+                  what: playCopy('youNowMediateIn', { game: gameName }),
+                })}
+                onClick={() => {
+                  rememberRole(role._id)
+                  dismiss(role._id)
+                }}
               >
                 {playCopy('dismiss')}
               </Button>

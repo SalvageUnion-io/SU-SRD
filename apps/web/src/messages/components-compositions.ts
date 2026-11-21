@@ -83,6 +83,7 @@ export const compositionsCopy = messages({
   rollTheDice: 'Roll the Dice:',
   nothingHappens: 'Nothing happens.',
   madeBy: 'Made by {name}',
+  yourDesign: 'Your design',
   itsOwnerHasntSharedThis: "Its owner hasn't shared this.",
   referenceData: 'reference data',
   notYetAdded: 'Not yet added',

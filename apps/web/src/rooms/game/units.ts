@@ -303,7 +303,8 @@ export class GameUnits {
    * Assign a pilot or mech to a member (`userId`, the caller when absent).
    * Any member takes a free one for themselves; only the table runner
    * assigns to someone else or takes one a crewmate holds (ADR-055).
-   * Assigning moves nothing and touches no link.
+   * Assigning moves nothing and touches no link. A pilot's mech goes with
+   * them where it was held as they were (`withMech`).
    */
   assign(actor: string, unitId: string, at: number, userId?: string): void {
     this.store.sql.transaction(() => {
@@ -322,7 +323,7 @@ export class GameUnits {
       if (!self && this.store.member(assignee) === null) {
         throw new RoomRefusal('They are not in this Game')
       }
-      this.reassign(unit, assignee, actor, at)
+      this.withMech(unit, assignee, actor, at)
     })
   }
 
@@ -335,8 +336,26 @@ export class GameUnits {
       if (unit.ownerId !== actor && !this.store.isTableRunner(member)) {
         throw new RoomRefusal('Only its holder or the Mediator can unassign this')
       }
-      this.reassign(unit, null, actor, at)
+      this.withMech(unit, null, actor, at)
     })
+  }
+
+  /**
+   * Put a holder on a pilot or mech, and on a pilot's mech with them when it
+   * was held as the pilot was (both free, or both one member's): a template's
+   * pairs are handed out whole, and the Game page lists such a mech on its
+   * pilot's line alone (MD2-10). A mech somebody else holds is left alone.
+   */
+  private withMech(unit: UnitRow, ownerId: string | null, author: string, at: number): void {
+    const was = unit.ownerId
+    this.reassign(unit, ownerId, author, at)
+    if (unit.kind !== 'pilot') return
+    for (const link of this.store.links()) {
+      if (link.type !== 'mech-to-pilot' || link.to.id !== unit.id) continue
+      const mech = this.store.unit(link.from.id)
+      if (mech === null || mech.kind !== 'mech' || mech.leaseId !== null) continue
+      if (mech.ownerId === was) this.reassign(mech, ownerId, author, at)
+    }
   }
 
   private ownable(unitId: string): UnitRow {

@@ -16,7 +16,8 @@
  * - Down at 0 HP is the one unit-out treatment.
  *
  * Read is the printed sheet: an empty line is left out and nothing writes;
- * Edit gives the fields, the HP track and the photo control back. A crewmate's
+ * Edit gives the fields, the HP track and the photo control back, and "Edit
+ * design", which opens the designer on this NPC (`NpcRedesignPage`). A crewmate's
  * NPC, read live from the Game's listing, and a shared one at `/p/npc/:id`
  * render read-only with no toggle, and say why.
  */
@@ -42,8 +43,10 @@ import { copyForShelf } from '../../lib/copyEntity'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import {
   isNpcDown,
+  isRedesignable,
   npcAsReferenceEntity,
   npcCurrentHP,
+  npcDesignHref,
   resolveNpcAction,
   slotPhrase,
 } from '../../lib/npcs/npcModel'
@@ -52,9 +55,11 @@ import { runWrite } from '../../lib/runWrite'
 import { npcCopy } from '../../messages/build-npc'
 import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import { isSignedIn } from '../../replica/sync'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
+import { useEncounterGame } from '../prep/useEncounterGame'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import { npcStamp } from '../sheet/bandStamps.model'
 import { LiveSheet } from '../sheet/LiveSheet'
@@ -180,13 +185,26 @@ export function NpcSheet({
     })
   }
 
+  // The Game it is kept in, when the viewer runs it: the band's chip, and the
+  // way back is that Game's Prep (as an encounter's sheet, MD2-14).
+  const inGame = useEncounterGame(npc, isSignedIn(status) && !readOnlyProp)
   const modeToggle =
     sheetMode !== null && !readOnlyProp && !writesBlocked ? (
       <>
-        {/* The way back to where the Mediator's NPCs are kept (ADR-067 §5). */}
-        <Button href={KIT_PATH} back variant="ink" size="compact">
-          {npcCopy('mediatorsKit')}
+        {/* The way back to where it is kept: its Game's Prep, else the Kit (ADR-067 §5). */}
+        <Button href={inGame?.href ?? KIT_PATH} back variant="ink" size="compact">
+          {inGame ? npcCopy('gamePrep') : npcCopy('mediatorsKit')}
         </Button>
+        {/* Edit's way into the designer: its stats, role and actions (MD2-03). */}
+        {sheetMode.editing && isRedesignable(npc) && (
+          <Button
+            href={npcDesignHref(npc.id)}
+            size="compact"
+            aria-label={npcCopy('editDesignOf', { name: npc.name })}
+          >
+            {npcCopy('editDesign')}
+          </Button>
+        )}
         <SheetModeToggle mode={sheetMode} kind="NPC" />
       </>
     ) : undefined
@@ -244,7 +262,7 @@ export function NpcSheet({
       <LiveSheet
         variant="npc"
         name={npc.name}
-        band={{ actions: modeToggle }}
+        band={{ actions: modeToggle, game: inGame }}
         actions={actions}
         kindDetail={npcStamp(npc.templateRef)}
         userMade={{ madeBy }}
@@ -331,7 +349,8 @@ export function NpcSheet({
                   vitals={
                     npc.hitPoints > 0 ? (
                       <SheetVitalGauge
-                        vital="hp"
+                        // One built from a mech-scale denizen takes Structure Points (MD2-05).
+                        vital={npc.damageType === 'SP' ? 'sp' : 'hp'}
                         value={hp}
                         max={npc.hitPoints}
                         onChange={editable ? (next) => patch({ currentHP: next }) : undefined}

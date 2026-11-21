@@ -100,6 +100,9 @@ const bodyStyle = {
   color: color.wkMuted,
 } satisfies CSSProperties
 
+/** The one-line fields whose Enter confirms: typed text, never a tick or a choice. */
+const TYPED = new Set(['text', 'search', 'number', 'date', 'email', 'url'])
+
 export function ConfirmDialog({
   open,
   onOpenChange,
@@ -168,7 +171,18 @@ export function ConfirmDialog({
       initialFocus={danger ? cancelRef : (initialFocus ?? confirmRef)}
     >
       <div style={panelStyle} aria-busy={pending || undefined}>
-        <Dialog.Description render={<div />} style={bodyStyle}>
+        <Dialog.Description
+          render={<div />}
+          style={bodyStyle}
+          // Enter in a one-line field is the dialog's yes, as in any form
+          // (MD2-20); a danger confirm is never one keypress away.
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' || danger || event.defaultPrevented) return
+            if (!(event.target instanceof HTMLInputElement) || !TYPED.has(event.target.type)) return
+            event.preventDefault()
+            void handleConfirm()
+          }}
+        >
           {body}
         </Dialog.Description>
         <FieldError>{error}</FieldError>

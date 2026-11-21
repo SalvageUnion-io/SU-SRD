@@ -13,6 +13,7 @@ import { Field, Input, Text, Textarea } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGamesCall } from '../../replica/roomCalls'
+import { GameChannelRow } from './GameChannelRow'
 
 /** Rename the Game and describe it. Its opener keys it, so each opening starts from what is kept. */
 export function GameSettingsDialog({
@@ -59,6 +60,8 @@ export function GameSettingsDialog({
             />
           </Field>
           <Text variant="hint">{playGamesCopy('gameDescriptionHint')}</Text>
+          {/* The Organiser may bind the Game's channel: offered here too (MD-20). */}
+          <GameChannelRow gameId={gameId} gameName={name} mayBind />
         </>
       }
       confirmLabel={playGamesCopy('saveSettings')}

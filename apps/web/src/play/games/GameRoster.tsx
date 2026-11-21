@@ -128,16 +128,25 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     members: roster,
     localIds: new Set(localPilots.map((p) => p.id)),
   })
-  // An assigned, piloted mech rides its pilot's row (`rowChips`) only; an
-  // unassigned one keeps its own so its seal can assign it.
-  const piloted = new Set(
-    (listing?.softLinks ?? []).flatMap((l) => (l.type === 'mech-to-pilot' ? [l.from.id] : []))
+  // A piloted mech rides its pilot's row (`rowChips`) only, where it is held
+  // as its pilot is: both one member's, or both free, as a template's pairs
+  // arrive (MD2-10; assigning the pilot takes the mech with them). Held
+  // otherwise it keeps a row of its own, so its seal or menu can set it right.
+  const idOf = (row: { appId: string | null; body: unknown }) =>
+    row.appId ?? bodyIdOf(row.body) ?? ''
+  const holderOf = new Map((listing?.pilots ?? []).map((p) => [idOf(p), p.ownerId]))
+  const pilotOf = new Map(
+    (listing?.softLinks ?? []).flatMap((l) =>
+      l.type === 'mech-to-pilot' ? [[l.from.id, l.to.id] as const] : []
+    )
   )
+  const ridesItsPilot = (m: { appId: string | null; body: unknown; ownerId: string | null }) => {
+    const pilot = pilotOf.get(idOf(m))
+    return pilot !== undefined && holderOf.has(pilot) && holderOf.get(pilot) === m.ownerId
+  }
   const mechs = ownableRows({
     kind: 'mech',
-    rows: (listing?.mechs ?? []).filter(
-      (m) => m.ownerId === null || !piloted.has(m.appId ?? bodyIdOf(m.body) ?? '')
-    ),
+    rows: (listing?.mechs ?? []).filter((m) => !ridesItsPilot(m)),
     viewerId,
     members: roster,
     localIds: new Set(localMechs.map((m) => m.id)),

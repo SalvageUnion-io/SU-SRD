@@ -6,7 +6,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { EncounterNpcSchema } from 'game-domain/schemas/encounterNpc'
-import { npcActions } from '../npcActions.model'
+import { npcActions, npcKind } from '../npcActions.model'
 import { newBuiltTrayNpc, readTrayNpc } from '../opposition.model'
 
 const NOW = '2026-11-21T12:00:00.000Z'
@@ -51,5 +51,29 @@ describe('a designed NPC on the field', () => {
       body: { name: 'Raider', refSchema: 'npcs', refSlug: 'raider', maxHp: 4 },
     })
     expect(npc.builtFrom).toBeNull()
+  })
+
+  // MD2-15: a design built from a Bio-Titan lost its kind on the field.
+  test('keeps the kind it was built from, and what it leaves', () => {
+    const lurker = {
+      ...KESSLER,
+      id: 'npc-2',
+      name: 'The Relay Lurker',
+      hitPoints: 39,
+      damageType: 'SP' as const,
+      templateRef: { schema: 'bio-titans' as const, slug: 'scylla' },
+    }
+    const body = newBuiltTrayNpc(lurker, [], NOW)
+    expect(body.built?.kind).toBe('bio-titans')
+    expect(body.statKind).toBe('sp')
+    expect(EncounterNpcSchema.safeParse({ ...body, id: 't3' }).success).toBe(true)
+    const npc = readTrayNpc({ _id: 't3', body })
+    expect(npcKind(npc)).toBe('Bio-Titan')
+    // A design from a book NPC, a crew slot or nothing is an NPC.
+    expect(npcKind(readTrayNpc({ _id: 't1', body: newBuiltTrayNpc(KESSLER, [], NOW) }))).toBe('NPC')
+    const crew = { ...KESSLER, templateRef: { schema: 'crawler-bays' as const, slug: 'med-bay' } }
+    expect(newBuiltTrayNpc(crew, [], NOW).built?.kind).toBeUndefined()
+    const fed = newBuiltTrayNpc({ ...KESSLER, bioSalvageValue: 3 }, [], NOW)
+    expect(fed.built?.bioSalvageValue).toBe(3)
   })
 })

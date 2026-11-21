@@ -7,7 +7,8 @@
  * Systems and Modules, its "loot table" (p.269), and each Vehicle or Drone's
  * Salvage Value in Scrap (p.246): Play's wreck rule (`wreckOf`), so Prep
  * promises what Play pays. A Bio-Titan leaves Bio-Salvage equal to its SP
- * (p.275), and an NPC the data gives a Bio-Salvage Value leaves that.
+ * (p.275), as does a design built from one, and an NPC the data (or its
+ * designer) gives a Bio-Salvage Value leaves that.
  * Read-only: nothing here pays out.
  */
 
@@ -67,7 +68,9 @@ export type Spoil =
  * the Bio-Salvage Value the data states for an NPC; null when it leaves none.
  */
 function bioSalvageOf(opponent: EncounterOpponent, entity: RefEntity | null): number | null {
-  if (opponent.refSchema === 'bio-titans') return opponent.maxHp > 0 ? opponent.maxHp : null
+  // A design built from a Bio-Titan leaves what a Bio-Titan does.
+  if (opponent.refSchema === 'bio-titans' || opponent.built?.kind === 'bio-titans')
+    return opponent.maxHp > 0 ? opponent.maxHp : null
   if (entity === null || !('bioSalvageValue' in entity)) return null
   const value = entity.bioSalvageValue
   return typeof value === 'number' && value > 0 ? value : null

@@ -247,9 +247,17 @@ const CALLS = {
       await mediatedByCreator(deps.game(gameId), who, mediator)
     })
   },
-  'games.destroy': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
+  /** End the Game; `dropTemplateUnits` takes a template's untouched units with it. */
+  'games.destroy': async (
+    who: Caller,
+    a: { gameId: string; dropTemplateUnits?: boolean },
+    deps: CallDeps
+  ) => {
     const room = deps.game(a.gameId)
-    const answer = await room.disband(who.discordId)
+    const answer = await room.disband(
+      who.discordId,
+      a.dropTemplateUnits === true ? { dropTemplateUnits: true } : {}
+    )
     if (!answer.ok) throw new RoomRefusal(answer.refusal)
     return republished(room, null)
   },
@@ -523,7 +531,7 @@ const CALL_ARGS = {
     templateOrigin: z.string().optional(),
     mediator: z.boolean().optional(),
   }),
-  'games.destroy': GAME,
+  'games.destroy': GAME.extend({ dropTemplateUnits: z.boolean().optional() }),
   'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),
   'games.update': GAME.extend({ name: z.string().optional(), description: z.string().optional() }),
   'games.removeMember': GAME.extend({ userId: z.string().optional() }),

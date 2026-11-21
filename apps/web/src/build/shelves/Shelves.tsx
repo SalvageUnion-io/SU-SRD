@@ -80,6 +80,7 @@ import {
   encounterNpcChips,
   encounterNpcReading,
   gameRelation,
+  hpColumnCell,
   linkChip,
   npcChips,
   npcReading,
@@ -377,7 +378,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   n.position ?? '',
                   who(npcChips({ npc: n, sharedByLink: sharedByLink?.includes(n.id) ?? false })),
                   inGame(gameRelation(n, games)),
-                  String(npcReading(n).value),
+                  hpColumnCell(npcReading(n)),
                 ],
                 menu: unitMenu('npc', n, n),
               })),
@@ -388,7 +389,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   buildShelvesCopy('tray'),
                   who(encounterNpcChips()),
                   '',
-                  String(encounterNpcReading(n).value),
+                  hpColumnCell(encounterNpcReading(n)),
                 ],
                 menu: trayMenu(n),
               })),
@@ -466,8 +467,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     under: underWith(linkChip(sharedByLink, p.id), flies),
                     cells: [
                       pilotFact(p) ?? '',
-                      // The pilot carries its mech; with none, Add a mech builds one for it.
-                      // or assigns one of yours that stands unassigned beside it.
+                      // The pilot carries its mech; with none, Add a mech builds or assigns one.
                       paired(
                         flies,
                         canWrite ? (

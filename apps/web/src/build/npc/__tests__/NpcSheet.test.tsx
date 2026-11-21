@@ -73,6 +73,41 @@ beforeEach(async () => {
   setQueryAnswers({ 'games.listMine': [] })
 })
 
+describe('an NPC kept in a Game (MD2-14)', () => {
+  async function renderInMode(npc = KESSLER) {
+    const { SheetModeContext } = await import('../../sheet/sheetMode.model')
+    await act(async () => {
+      render(
+        <SyncContext.Provider value={CONNECTED}>
+          <SheetModeContext.Provider
+            value={{ editing: false, setEditing: () => undefined } as never}
+          >
+            <NpcSheet npc={npc} madeBy="alxjrvs" readOnly={false} confirm={() => undefined} />
+          </SheetModeContext.Provider>
+        </SyncContext.Provider>
+      )
+    })
+  }
+
+  test('wears that Game on its band, and its way back is the Game’s Prep', async () => {
+    setQueryAnswers({ 'games.listMine': [{ _id: 'g1', name: 'Rust Run', tableRunner: true }] })
+    await renderInMode({ ...KESSLER, gameId: 'g1' })
+    expect(screen.getByRole('link', { name: 'Game: Rust Run' }).getAttribute('href')).toBe(
+      '/games/g1/prep'
+    )
+    expect(screen.getByRole('link', { name: 'Back to Game Prep' }).getAttribute('href')).toBe(
+      '/games/g1/prep'
+    )
+    expect(screen.queryByRole('link', { name: 'Back to Mediator’s Kit' })).toBeNull()
+  })
+
+  test('in no Game, the way back is the Mediator’s Kit', async () => {
+    await renderInMode()
+    expect(screen.getByRole('link', { name: 'Back to Mediator’s Kit' })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Back to Game Prep' })).toBeNull()
+  })
+})
+
 describe('the sheet', () => {
   test('the band names it once, user-made, credited, and what it was built from', async () => {
     // Read: the band's h1 is the one place it is named (Edit adds a name field).
@@ -164,5 +199,37 @@ describe('edits', () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
     await waitFor(() => expect(useUnits.getState().npcs[0]?.motto).toBe('Hold the line.'))
+  })
+})
+
+// MD2-03: Edit reached only the name and flavour.
+describe('Edit design', () => {
+  test('Edit offers the designer for an NPC designed as any NPC, and Read does not', async () => {
+    const { SheetModeContext } = await import('../../sheet/sheetMode.model')
+    const mode = (editing: boolean) => ({ editing, setEditing: () => undefined })
+    const sheet = (editing: boolean, npc = KESSLER) => (
+      <SyncContext.Provider value={CONNECTED}>
+        <SheetModeContext.Provider value={mode(editing) as never}>
+          <NpcSheet npc={npc} madeBy="alxjrvs" readOnly={false} confirm={() => undefined} />
+        </SheetModeContext.Provider>
+      </SyncContext.Provider>
+    )
+    let view!: ReturnType<typeof render>
+    await act(async () => {
+      view = render(sheet(false))
+    })
+    const design = () => screen.queryByRole('link', { name: 'Edit the design of Sergeant Kessler' })
+    expect(design()).toBeNull()
+    await act(async () => {
+      view.rerender(sheet(true))
+    })
+    expect(design()?.getAttribute('href')).toBe('/npcs/n1/design')
+    // A crawler's crew take their stats from their slot: no designer for them here.
+    await act(async () => {
+      view.rerender(
+        sheet(true, { ...KESSLER, templateRef: { schema: 'crawler-bays', slug: 'med-bay' } })
+      )
+    })
+    expect(design()).toBeNull()
   })
 })

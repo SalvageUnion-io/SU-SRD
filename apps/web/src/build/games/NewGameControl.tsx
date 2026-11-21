@@ -19,7 +19,7 @@
 
 import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FieldError } from '../../components/app'
 import {
   Button,
@@ -83,6 +83,8 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   const go = useGo()
 
   const [name, setName] = useState('')
+  // Typing starts in the name, never on Close (MD2-04).
+  const nameField = useRef<HTMLInputElement | null>(null)
   const start = useServerAction(
     // The creator is the Organiser, who appoints the Mediator: themselves, if they said so.
     (from: { name: string } | { templateId: TemplateId }) =>
@@ -112,7 +114,12 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   }
 
   return (
-    <ModalShell open={open} onOpenChange={onOpenChange} title={buildGamesCopy('newGame')}>
+    <ModalShell
+      open={open}
+      onOpenChange={onOpenChange}
+      title={buildGamesCopy('newGame')}
+      initialFocus={nameField}
+    >
       <div style={BODY}>
         <div style={STACK}>
           <div style={ROW}>
@@ -133,6 +140,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
             <div style={GROW}>
               <Field label={buildGamesCopy('name')}>
                 <Input
+                  ref={nameField}
                   aria-label={buildGamesCopy('newGameName')}
                   placeholder={buildGamesCopy('unionCrawler430')}
                   value={name}

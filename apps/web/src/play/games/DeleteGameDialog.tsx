@@ -23,6 +23,15 @@
  * opposition tray, and the crew's wiring. Softening that would be the failure
  * mode of a confirm dialog: it exists to be read once, correctly.
  *
+ * ## A template's untouched units can go with it (MD2-02)
+ *
+ * A Game made from a template arrives with units nobody built. Where any is
+ * still as it came (unassigned, unchanged), the dialog asks "Also delete the
+ * 13 units it came with?", ticked when every one of them is untouched, so a
+ * template tried and deleted leaves nothing behind. One somebody was handed
+ * or changed is theirs: it is never among those counted, and goes to a
+ * Training Bay as before.
+ *
  * The dialog itself is the UI library's `ConfirmDialog`, which owns the pending
  * state, keeps the dialog open on a failure, and starts focus on Cancel. This
  * file owns only the words.
@@ -30,8 +39,9 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
+import { useId, useState } from 'react'
 import { ConfirmDialog } from '../../components/app'
-import { Stack, Text } from '../../components/index'
+import { Checkbox, Stack, Text } from '../../components/index'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
@@ -45,6 +55,8 @@ type DeletableGame = {
   pilotCount: number
   mechCount: number
   memberCount: number
+  /** A template Game's units: how many it came with are here, and how many nobody has touched. */
+  templateUnits?: { came: number; untouched: number } | undefined
 }
 
 type Props = {
@@ -69,7 +81,7 @@ const SURVIVOR_LIST = {
   paddingLeft: space[20],
 } satisfies CSSProperties
 
-/** The hint rung is centred; these asides read as a left-set list. */
+const ALSO = { alignItems: 'center', display: 'flex', gap: space[8] } satisfies CSSProperties
 
 /** "4 pilots", "1 pilot", or null when there are none to mention. */
 function countPhrase(n: number, singular: string): string | null {
@@ -77,12 +89,28 @@ function countPhrase(n: number, singular: string): string | null {
   return `${n} ${n === 1 ? singular : `${singular}s`}`
 }
 
+/** "for both of you", "for all 4 of you"; alone, nobody else is counted (MD2-19). */
+const endsFor = (members: number) =>
+  members <= 1
+    ? playGamesCopy('thisEndsYourTable')
+    : playGamesCopy('thisEndsTheTableFor', {
+        who: members === 2 ? 'both of you' : `all ${members} of you`,
+      })
+
+const unitCount = (n: number) => `${n} ${n === 1 ? 'unit' : 'units'}`
+
 export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
   const destroy = useGamesCall('games.destroy')
+  const alsoId = useId()
+  const came = game?.templateUnits?.came ?? 0
+  const untouched = game?.templateUnits?.untouched ?? 0
+  // Ticked when none has been edited; the Organiser's own tick wins after that.
+  const [chosen, setChosen] = useState<boolean | null>(null)
+  const also = untouched > 0 && (chosen ?? untouched === came)
 
   async function handleConfirm() {
     if (game === null) return
-    await destroy({ gameId: game._id })
+    await destroy({ gameId: game._id, ...(also ? { dropTemplateUnits: true } : {}) })
     // The dialog then closes itself, through `onOpenChange(false)` → `onClose`.
     onDeleted?.()
   }
@@ -114,35 +142,57 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       describeError={(err) => failureMessage(err, playGamesCopy('gameDeleteFailed'))}
       body={
         <>
-          <Text>{playGamesCopy('thisEndsTheTableFor', { value: game?.memberCount ?? 0 })}</Text>
+          <Text>{endsFor(game?.memberCount ?? 0)}</Text>
 
-          <Stack gap={8}>
-            <Text variant="hint">{playGamesCopy('nothingAnybodyBuiltIsDestroyed')}</Text>
-            <ul style={SURVIVOR_LIST}>
-              {surviving.length > 0 && (
+          {also ? (
+            // The counts above would promise back what the tick deletes.
+            <Text variant="hint">{playGamesCopy('theRestGoesHome', { build: PRODUCT.build })}</Text>
+          ) : (
+            <Stack gap={8}>
+              <Text variant="hint">{playGamesCopy('nothingAnybodyBuiltIsDestroyed')}</Text>
+              <ul style={SURVIVOR_LIST}>
+                {surviving.length > 0 && (
+                  <li>
+                    <Text variant="hint">
+                      {playGamesCopy('goBackToWhoeverOwnsThem', {
+                        who: surviving.join(' and '),
+                        bay: PRODUCT.build,
+                      })}
+                    </Text>
+                  </li>
+                )}
                 <li>
                   <Text variant="hint">
-                    {playGamesCopy('goBackToWhoeverOwnsThem', {
-                      who: surviving.join(' and '),
-                      bay: PRODUCT.build,
-                    })}
+                    {game?.crawlerName === null || game?.crawlerName === undefined
+                      ? playGamesCopy('anythingUnassignedComesToYou', { build: PRODUCT.build })
+                      : playGamesCopy('andAnythingUnassignedComeTo', {
+                          crawlerName: game.crawlerName,
+                          build: PRODUCT.build,
+                        })}
                   </Text>
                 </li>
-              )}
-              <li>
-                <Text variant="hint">
-                  {game?.crawlerName === null || game?.crawlerName === undefined
-                    ? playGamesCopy('anythingUnassignedComesToYou', { build: PRODUCT.build })
-                    : playGamesCopy('andAnythingUnassignedComeTo', {
-                        crawlerName: game.crawlerName,
-                        build: PRODUCT.build,
-                      })}
-                </Text>
-              </li>
-            </ul>
-          </Stack>
+              </ul>
+            </Stack>
+          )}
 
           <Text variant="hint">{playGamesCopy('theCrewItsInviteLink')}</Text>
+
+          {untouched > 0 && (
+            <span style={ALSO}>
+              <Checkbox
+                id={alsoId}
+                checked={also}
+                onChange={(event) => setChosen(event.target.checked)}
+                aria-labelledby={`${alsoId}-label`}
+                hitArea
+              />
+              <Text id={`${alsoId}-label`}>
+                {untouched === came
+                  ? playGamesCopy('alsoDeleteTemplateUnits', { count: unitCount(untouched) })
+                  : playGamesCopy('alsoDeleteUntouchedUnits', { count: unitCount(untouched) })}
+              </Text>
+            </span>
+          )}
         </>
       }
     />

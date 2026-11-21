@@ -4,7 +4,9 @@
  * here reaches a player: the plan is the table runner's alone (`plan.get`).
  *
  * Typing edits a draft; leaving a field saves it. Adding or removing a
- * session saves at once, and removing asks first (ADR-007).
+ * session saves at once, and removing asks first (ADR-007). The sessions are
+ * numbered and listed by day, and a session whose day changes takes its new
+ * place only once its form is left, never under the cursor.
  */
 
 import type { GamePlan } from 'game-domain/schemas/gamePlan'
@@ -19,6 +21,7 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import {
   Button,
+  capsLabel,
   Field,
   Input,
   SlabSection,
@@ -27,18 +30,22 @@ import {
   tokens,
 } from '../../../components/index'
 import type { Confirm } from '../../../components/shared/useConfirm'
+import { todayDay } from '../../../lib/formatDate'
 import { runWrite } from '../../../lib/runWrite'
 import { playGamesCopy } from '../../../messages/play-games'
 import { useGamesCall, useGamesQuery } from '../../../replica/roomCalls'
 import {
   addSession,
-  datedSessions,
+  heldSessions,
   patchSession,
   removeSession,
   sessionName,
 } from './gamePrep.model'
 
 const { space } = tokens
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel()
 
 const SESSIONS = {
   display: 'flex',
@@ -63,13 +70,8 @@ const DAY = { flex: '0 1 11rem' } satisfies CSSProperties
 const TITLE = { flex: '1 1 14rem' } satisfies CSSProperties
 const ROW_END = { display: 'flex', justifyContent: 'flex-end' } satisfies CSSProperties
 const ADD = { display: 'flex' } satisfies CSSProperties
-
-/** Today as a calendar day, on the Mediator's own clock. */
-function today(): string {
-  const now = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
-}
+/** A session's number, a caps label over its form. */
+const NUMBER = { margin: 0 } satisfies CSSProperties
 
 export function GamePlanSections({
   gameId,
@@ -97,7 +99,11 @@ export function GamePlanSections({
     setDraft(next)
     runWrite(() => save({ plan: next }))
   }
-  const sessions = datedSessions(plan)
+  // The order the list last settled in: a new day waits for the form to be left.
+  const [held, setHeld] = useState<string[] | null>(null)
+  const sessions = heldSessions(plan, held)
+  const hold = () => setHeld(sessions.map((session) => session.id))
+  const settle = () => setHeld(null)
 
   return (
     <>
@@ -125,8 +131,19 @@ export function GamePlanSections({
           <Text variant="note">{playGamesCopy('noSessionsYet')}</Text>
         )}
         <ul style={SESSIONS} aria-label={playGamesCopy('sessions')}>
-          {sessions.map((session) => (
-            <li key={session.id} style={SESSION}>
+          {sessions.map((session, at) => (
+            <li
+              key={session.id}
+              style={SESSION}
+              // Hold the order while this form has the cursor; sort again on leaving it.
+              onFocus={hold}
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) settle()
+              }}
+            >
+              <h3 className={CAPS} style={NUMBER}>
+                {playGamesCopy('sessionNumber', { n: at + 1 })}
+              </h3>
               <div style={SESSION_HEAD}>
                 <div style={DAY}>
                   <Field label={playGamesCopy('sessionDay')} htmlFor={`${id}-${session.id}-day`}>
@@ -209,7 +226,7 @@ export function GamePlanSections({
           <Button
             size="compact"
             disabled={!canWrite || loading || plan.sessions.length >= GAME_PLAN_MAX_SESSIONS}
-            onClick={() => write(addSession(plan, crypto.randomUUID(), today()))}
+            onClick={() => write(addSession(plan, crypto.randomUUID(), todayDay()))}
           >
             {playGamesCopy('addSession')}
           </Button>

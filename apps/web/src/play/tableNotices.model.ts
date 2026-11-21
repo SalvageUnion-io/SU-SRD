@@ -19,6 +19,9 @@ export const NOTICES_RESIZED = 'su-table-notices-resized'
 /** How long the Mediator's alert stays pinned unless dismissed. */
 const ALERT_PINNED_MS = 10 * 60_000
 
+/** How long "You now mediate" stays pinned unless dismissed: long enough to be met at the next visit. */
+const ROLE_PINNED_MS = 7 * 24 * 60 * 60_000
+
 /** What a screen has already heard of one Game's events: each id's line as last toasted. */
 export type Heard = ReadonlyMap<string, string>
 
@@ -31,7 +34,8 @@ export type Heard = ReadonlyMap<string, string>
  * Never the viewer's own act, which their screen already showed them, nor a
  * Stop Sign event, which the pinned banner says to everyone, its shower
  * included, nor an assignment taken from the viewer, which their screen says
- * in its own words (`assignmentNotices`, MD-23).
+ * in its own words (`assignmentNotices`, MD-23). A hand over to the viewer
+ * does toast: the notices word it to them ("You now mediate").
  */
 export function eventsToToast(
   events: readonly TableEvent[],
@@ -44,7 +48,7 @@ export function eventsToToast(
     .filter((event) => heard.get(event._id) !== event.text)
     .filter((event) => event.kind !== 'stop' && event.actorId !== viewerId)
     // An assignment taken from the viewer: `assignmentNotices` tells them, once.
-    .filter((event) => event.about === undefined || event.about !== viewerId)
+    .filter((event) => event.kind !== 'assign' || event.about !== viewerId)
     .sort((a, b) => a.ts - b.ts)
   // An id the stream no longer serves stays heard: a line that scrolled off never toasts again.
   return { toast, heard: new Map([...heard, ...next]) }
@@ -62,6 +66,22 @@ export function pinnedAlert(
     .filter((event) => now - event.ts < ALERT_PINNED_MS && !dismissed.has(event._id))
     .sort((a, b) => b.ts - a.ts)
   return alerts[0] ?? null
+}
+
+/**
+ * The hand over that made the viewer this Game's Mediator, while it is news:
+ * the newest `role` event, about them, by someone else, recent and not
+ * dismissed. Null once somebody else was appointed after them.
+ */
+export function pinnedRole(
+  events: readonly TableEvent[],
+  dismissed: ReadonlySet<string>,
+  viewerId: string | null,
+  now: number
+): TableEvent | null {
+  const last = events.filter((event) => event.kind === 'role').sort((a, b) => b.ts - a.ts)[0]
+  if (last === undefined || last.about !== viewerId || last.actorId === viewerId) return null
+  return now - last.ts < ROLE_PINNED_MS && !dismissed.has(last._id) ? last : null
 }
 
 /**

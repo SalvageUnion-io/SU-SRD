@@ -9,7 +9,8 @@
  * `requireOrganizer`), and it is the only way the flag is set: `games.create`
  * seats its creator with `mediator: false`. Hand over appoints the member you
  * choose, then stands down whoever mediated before, behind a confirm with
- * focus on Cancel. With nobody mediating yet it reads **Appoint**, and a
+ * focus on Cancel, which says what goes across and what stays: a Mediator's
+ * notes are their own and never pass with the role (ADR-067 §4). With nobody mediating yet it reads **Appoint**, and a
  * solo Organizer may appoint themselves.
  *
  * Game settings (rename, describe), Remove and Leave are `GameSettings`'s
@@ -18,6 +19,7 @@
  * Game should mean is the owner's decision.
  */
 
+import { mayBindChannel } from 'game-domain/games/discord'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { ConfirmDialog } from '../../components/app'
@@ -29,15 +31,18 @@ import {
   Select,
   SlabSection,
   Stat,
+  Text,
   tokens,
 } from '../../components/index'
 import { cn } from '../../lib/cn'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { formatDay, todayDay } from '../../lib/formatDate'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { CREWMATE, useTableRead } from '../../replica/useTable'
+import { GameChannelRow } from './GameChannelRow'
 import { GameSettingsDialog, LeaveGameDialog } from './GameSettings'
 import { HUB_BODY } from './hubStyles.model'
 
@@ -74,8 +79,8 @@ export function TheGame({
   onLeft,
 }: {
   gameId: string
-  /** The Game's name and description, for its settings. */
-  game: { name: string; description?: string | null }
+  /** The Game's name and description, for its settings, and the days its table next meets. */
+  game: { name: string; description?: string | null; sessionDays?: readonly string[] }
   /** After the viewer has left the Game. */
   onLeft: () => void
   viewerId: string | null
@@ -110,6 +115,9 @@ export function TheGame({
   const mediators = members?.filter((m) => m.mediator) ?? []
   const candidates = members?.filter((m) => !m.mediator) ?? []
   const appointing = mediators.length === 0
+  // The next day the table meets, by the viewer's own clock (the room answers from yesterday on).
+  const today = todayDay()
+  const nextSession = game.sessionDays?.find((day) => day >= today)
 
   return (
     <SlabSection
@@ -177,6 +185,16 @@ export function TheGame({
         )
       }
     >
+      {/* What the Game is and when it next meets, for every member (MD2-07). */}
+      {game.description != null && game.description !== '' && <Text>{game.description}</Text>}
+      {nextSession !== undefined && (
+        <Stat
+          label={playGamesCopy('nextSession')}
+          value={formatDay(nextSession)}
+          size="mini"
+          wrap
+        />
+      )}
       {appointing && (
         <Stat
           label={playGamesCopy('mediator')}
@@ -222,6 +240,15 @@ export function TheGame({
           </li>
         ))}
       </ul>
+      {/* Where its rolls post, and the way to bind one (MD-20). */}
+      <GameChannelRow
+        gameId={gameId}
+        gameName={game.name}
+        mayBind={mayBindChannel({
+          mediator: members?.some((m) => m.userId === viewerId && m.mediator) ?? false,
+          organizer,
+        })}
+      />
       <GameSettingsDialog
         key={String(settings)}
         gameId={gameId}
@@ -249,6 +276,9 @@ export function TheGame({
               {playGamesCopy('theMediatorRunsTheTable')}
               {appointing ? '' : playGamesCopy('whoeverMediatesNowStandsDown')}
             </span>
+            {/* What moves with the role and what never does (r2 B3). */}
+            <span>{playGamesCopy('handOverGoes')}</span>
+            <span>{playGamesCopy('handOverStays')}</span>
             <Field label={playGamesCopy('whoMediates')} htmlFor={`${id}-who`}>
               <Select id={`${id}-who`} value={chosen} onChange={(e) => setChosen(e.target.value)}>
                 {candidates.map((m) => (

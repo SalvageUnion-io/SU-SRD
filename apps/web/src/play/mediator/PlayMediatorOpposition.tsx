@@ -257,6 +257,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
         open={running}
         onClose={() => setRunning(false)}
         encounters={prep.encounters}
+        gameId={mediator.gameId}
         onTray={npcs?.length ?? 0}
         onRun={async (encounterId, clear) => {
           try {

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { runAct } from '../acts'
 import {
   AT,
   bodies,
@@ -96,6 +97,82 @@ describe("a Game's settings and plan (ADR-067)", () => {
     expect(room.plan.read(MEDIATOR).sessions[0]?.scenes).toEqual([
       { id: 'c1', title: 'Dusk', encounterId: 'e1' },
     ])
+  })
+})
+
+describe('a plan’s notes are their author’s (ADR-067 §4, r2 B3)', () => {
+  const plan = {
+    schemaVersion: 1 as const,
+    notes: 'Vex works for the corpo.',
+    sessions: [{ id: 's1', date: '2026-12-01', title: 'The crossing', note: 'Ambush at dusk.' }],
+  }
+  const handOver = (room: ReturnType<typeof table>['room'], to: string, from: string) => {
+    const c = { room, actor: ORGANIZER, gameId: 'g1', at: AT + 5 }
+    expect(runAct(c, 'setMediator', { userId: to, mediator: true }).ok).toBe(true)
+    expect(runAct(c, 'setMediator', { userId: from, mediator: false }).ok).toBe(true)
+  }
+
+  test('handing the table over shows the next Mediator the sessions and no note', () => {
+    const { room } = table()
+    room.plan.write(MEDIATOR, plan, AT)
+    handOver(room, PLAYER, MEDIATOR)
+    expect(room.plan.read(PLAYER)).toEqual({
+      schemaVersion: 1,
+      notes: '',
+      sessions: [{ id: 's1', date: '2026-12-01', title: 'The crossing', note: '' }],
+    })
+    // What the new Mediator writes is theirs, and the first one's is kept for them.
+    room.plan.write(
+      PLAYER,
+      { ...plan, notes: 'Mine now.', sessions: [{ ...plan.sessions[0], note: '' }] },
+      AT + 6
+    )
+    handOver(room, MEDIATOR, PLAYER)
+    expect(room.plan.read(MEDIATOR)).toEqual(plan)
+    handOver(room, PLAYER, MEDIATOR)
+    expect(room.plan.read(PLAYER).notes).toBe('Mine now.')
+  })
+
+  test('notes kept before they had authors belong to whoever ran the table then', () => {
+    const { room, sql } = table()
+    // A row as it was written before notes had authors.
+    sql.exec('insert into plan (id, body, updated_at) values (1, ?, ?)', JSON.stringify(plan), AT)
+    expect(room.plan.read(MEDIATOR)).toEqual(plan)
+    handOver(room, PLAYER, MEDIATOR)
+    expect(room.plan.read(PLAYER).notes).toBe('')
+    expect(room.plan.read(PLAYER).sessions[0]?.note).toBe('')
+    room.plan.write(PLAYER, { ...plan, notes: 'New hand.' }, AT + 7)
+    handOver(room, MEDIATOR, PLAYER)
+    expect(room.plan.read(MEDIATOR)).toEqual(plan)
+  })
+
+  test('a session removed takes every author’s note for it', () => {
+    const { room } = table()
+    room.plan.write(MEDIATOR, plan, AT)
+    handOver(room, PLAYER, MEDIATOR)
+    room.plan.write(PLAYER, { schemaVersion: 1, notes: '', sessions: [] }, AT + 6)
+    handOver(room, MEDIATOR, PLAYER)
+    expect(room.plan.read(MEDIATOR)).toEqual({ schemaVersion: 1, notes: plan.notes, sessions: [] })
+  })
+
+  test('any member reads the coming session days, and nothing else of the plan', () => {
+    const { room } = table()
+    room.plan.write(
+      MEDIATOR,
+      {
+        ...plan,
+        sessions: [
+          ...plan.sessions,
+          { id: 's0', date: '2026-11-01', note: 'Past.' },
+          { id: 's2', note: 'Undated.' },
+        ],
+      },
+      AT
+    )
+    // A day's grace: a member west of the room is still in yesterday.
+    expect(room.roster.read(PLAYER, Date.UTC(2026, 10, 21))?.sessionDays).toEqual(['2026-12-01'])
+    expect(room.roster.read(PLAYER, Date.UTC(2026, 11, 2, 12))?.sessionDays).toEqual(['2026-12-01'])
+    expect(room.roster.read(PLAYER, Date.UTC(2026, 11, 3))?.sessionDays).toEqual([])
   })
 })
 

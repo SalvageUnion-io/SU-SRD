@@ -85,4 +85,23 @@ describe('bringPlan', () => {
     expect(plan.moves.map((m) => m.id)).toEqual(['tenacity', 'razor'])
     expect(plan.keep).toHaveLength(1)
   })
+
+  // LG2-07: moved in together, they arrived unpaired.
+  test('one pilot on foot and one free mech, picked together, are paired on arrival', () => {
+    const razor = { id: 'razor', name: 'Razor', kind: 'pilot', mech: null } as const
+    const spare = { id: 'spare', name: 'Spare', kind: 'mech', mech: null } as const
+    expect(bringPlan([spare, razor], []).pair).toEqual({
+      mech: { id: 'spare', name: 'Spare', kind: 'mech' },
+      pilot: { id: 'razor', name: 'Razor', kind: 'pilot' },
+    })
+    // Two of either, a pilot who has a mech, or a mech somebody flies: nothing is assumed.
+    const mara = { id: 'mara', name: 'Mara', kind: 'pilot', mech: null } as const
+    expect(bringPlan([spare, razor, mara], []).pair).toBeNull()
+    expect(bringPlan([razor], []).pair).toBeNull()
+    const flying = { ...razor, mech: { id: 'thresher', name: 'Thresher', kind: 'mech' } } as const
+    expect(bringPlan([spare, flying], []).pair).toBeNull()
+    expect(
+      bringPlan([spare, razor], [softLinkFixture('mech-to-pilot', 'spare', 'elsewhere')]).pair
+    ).toBeNull()
+  })
 })
