@@ -219,7 +219,7 @@ describe('fielding an encounter row’s roster', () => {
     stop()
     const [roll] = rolled
     expect(roll).toMatchObject({ tableName: 'd20', label: line.text })
-    expect(added).toBe(roll?.rolls[0])
+    expect(added).toBe(roll?.rolls[0] ?? Number.NaN)
     expect(bodies()).toHaveLength(added)
   })
 })

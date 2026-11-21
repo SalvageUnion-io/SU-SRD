@@ -57,6 +57,7 @@ function encounter(id: string, name: string, more: Partial<Encounter> = {}): Enc
 
 const GAME = { _id: 'g1', name: 'Rust Road', mediator: true, tableRunner: true }
 const PLAN: GamePlan = {
+  schemaVersion: 1,
   notes: 'The bridge is out.',
   sessions: [
     { id: 's-late', date: '2026-12-05', title: 'The Crusher', note: 'Kessler turns.' },
@@ -386,7 +387,7 @@ describe('the plan', () => {
     await click(screen.getByRole('button', { name: 'Remove The Crusher' }))
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' }))
     await settle(() => saves.length > 0)
-    expect(saves).toEqual([{ ...PLAN, sessions: [PLAN.sessions[1]] }])
+    expect(saves).toEqual([{ ...PLAN, sessions: PLAN.sessions.slice(1) }])
     expect(sessionDays()).toEqual(['2026-11-28'])
   })
 
