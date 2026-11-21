@@ -1216,7 +1216,6 @@
    strip's foot, opening into what it heads. */
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__label,
 .su-open:not(.su-open--sub) .su-open__title > .su-rule-head__label {
-  align-self: flex-end;
   background-color: var(--su-head-cut);
   color: var(--color-ink);
   flex: 0 1 auto;

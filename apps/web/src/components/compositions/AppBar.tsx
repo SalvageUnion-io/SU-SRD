@@ -63,14 +63,9 @@ const TAB_CAPS = capsLabel({ tracking: 'inherit' })
  *
  * ## Colour
  *
- * The bar wears its mode (`data-mode`). In the reference it is ink, paper on
- * it, until a page leads with a chapter band: then it wears that band's
- * colour, foreground and grain, so the site header and the band read as one
- * (`atoms/unionBarMatch.ts`). In the app it wears its area's colour on every
- * route, whatever band leads: the Training Bay is pilot orange with ink; the
- * Games, the deep crawler pink with paper. Its colours are
- * the `--su-bar-*` properties on `.su-union-bar`; the site footer wears the
- * leading band too (`footerMatchCss`).
+ * The bar is paper on ink-deep on every page and in every mode, whatever
+ * band leads (chrome K13); the site footer wears the same. Its colours are
+ * the `--su-bar-*` properties on `.su-union-bar`.
  */
 
 type AppBarProduct = 'reference' | 'build' | 'play'
@@ -111,8 +106,7 @@ type AppBarProps = {
   breadcrumbs?: BreadcrumbItem[]
 }
 
-// Its ground and ink are `.su-union-bar`'s: a page's leading band recolours
-// them (`unionBarMatch.ts`), which a style object would outrank. No rule under
+// Its ground and ink are `.su-union-bar`'s `--su-bar-*` properties. No rule under
 // it: the bar meets the page's header with no black border.
 const BAR = {
   isolation: 'isolate',

@@ -95,8 +95,8 @@ describe('NewEntityScreen — signed out', () => {
 })
 
 describe('NewEntityScreen — the gate’s landmark', () => {
-  // The Union bar takes the colour of the page's leading band, a band first in
-  // `<main>` (`unionBarMatch.ts`). The screen draws the one its gate leads,
+  // A page's leading band, first in `<main>`, sets its kind
+  // (`unionBarMatch.ts`). The screen draws the one its gate leads,
   // for every kind: the routes draw none.
   test('every gate is its own <main>', () => {
     for (const kind of ['npc', 'mech'] as const) {

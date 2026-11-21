@@ -468,16 +468,13 @@ describe('every page ends on one footer', () => {
 
   /** The page's foot bands, by their class (the footer has its own). */
   const feet = (html: string) => html.match(/class="su-chapter-foot"/g) ?? []
-  /** Whether the page's band serves the footer its colour (`footerMatchCss`). */
-  const matched = (html: string) => {
-    const key = /data-band="([\w-]+)"/.exec(html)?.[1]
-    return !!key && html.includes(`[data-band='${key}']) .su-chapter-foot{`)
-  }
+  /** Whether the page's band serves the footer a colour: it never does, the foot is ink-deep (K13). */
+  const matched = (html: string) => html.includes(' .su-chapter-foot{')
 
-  // Rulings 2026-10-19: one footer, the citation on one line in it, in the
-  // leading band's colour, no kind, no ink rule on a show page.
+  // One footer, the citation on one line in it, ink-deep (K13), no kind, no
+  // ink rule on a show page.
   for (const [name, path] of book) {
-    it(`${name} cites itself on one line in the one footer, in its band's colour`, () => {
+    it(`${name} cites itself on one line in the one footer`, () => {
       const html = page(path)
       expect(feet(html)).toHaveLength(1)
       // One line of text; only a printing's bold `//` (CiteLine) breaks it,
@@ -487,7 +484,7 @@ describe('every page ends on one footer', () => {
       )
       expect(html).not.toContain('Also in')
       expect(html).not.toContain('su-footer__kind')
-      expect(matched(html)).toBe(true)
+      expect(matched(html)).toBe(false)
     })
   }
 
@@ -504,10 +501,10 @@ describe('every page ends on one footer', () => {
     })
   }
 
-  // The footer matches the leading band on every page that leads with one.
+  // The footer is the header's ink on every page, whatever band leads it (K13).
   for (const [name, path] of [...listings, ['the Reference’s home', '/reference']] as const) {
-    it(`${name} wears its leading band on its footer`, () => {
-      expect(matched(page(path))).toBe(true)
+    it(`${name} keeps its footer ink-deep`, () => {
+      expect(matched(page(path))).toBe(false)
     })
   }
 })

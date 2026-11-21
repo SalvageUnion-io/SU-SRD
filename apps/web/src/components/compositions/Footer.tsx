@@ -9,9 +9,8 @@ import { FOCUS_RING } from '../atoms/interaction'
 
 /**
  * Footer — where every page of both tools ends, as the Workshop Manual's pages
- * do (one product, so one foot): ONE band in the colour of the band the page
- * leads with, as the Union bar wears it (`footerMatchCss`), ink with paper
- * flecks on a page that leads with none.
+ * do (one product, so one foot): ONE band in the Union bar's ink-deep with
+ * paper flecks (chrome K13).
  *
  * - **A show page** (entity, pattern, roll table) merges its entity
  *   foot into it: the citation on one line, the book first and each reprint

@@ -75,7 +75,6 @@ export function FocusPane({
             entity={entity}
             title={entity.name}
             titleAs="h2"
-            matchBar={false}
             titleSize={fontSize.hero}
           >
             <ReferenceEntityCard

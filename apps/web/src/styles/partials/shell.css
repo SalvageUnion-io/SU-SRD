@@ -24,14 +24,11 @@
 .su-union-bar {
   /* The Compact Size (`--size-compact`). */
   --su-union-bar-control: var(--size-compact);
-  /* Its colours: ink, paper on it, ruled off in ink; in the reference, until a page leads with
-     a chapter band, whose rule (`atoms/unionBarMatch.ts`) sets these to the
-     band's colour, foreground and grain, and drops the rule (transparent,
-     so the bar keeps its height and the band runs up under it). `--su-bar-on-fg` is the text on a plate of the
-     foreground (the current tab). The faded steps are the foreground's own
-     alpha tokens, never a `color-mix` of it: paper on ink is
-     `--color-paper-NN` alone (chrome K1); a bar whose foreground is ink sets
-     them to the `--color-ink-NN` steps. */
+  /* Its colours: paper on ink-deep on every page, whatever band leads it
+     (K13). `--su-bar-on-fg` is the text on a plate of the foreground (the
+     current tab). The faded steps are the foreground's own alpha tokens,
+     never a `color-mix` of it: paper on ink is `--color-paper-NN` alone
+     (chrome K1). */
   --su-bar-bg: var(--color-ink-deep);
   --su-bar-fg: var(--color-paper);
   --su-bar-on-fg: var(--color-ink);
@@ -44,35 +41,6 @@
   --su-bar-grain-ink: none;
   background-color: var(--su-bar-bg);
   color: var(--su-bar-fg);
-}
-
-/* The app's two areas wear their own colour on every route (`data-mode`,
-   `AppBar`), and no band recolours them: Build, the Training Bay, is the
-   pilot tone with ink; Play, the Cantina, the deeper crawler pink that
-   carries paper (the book's crawler pink carries neither at 4.5:1). Text on
-   a colour is the full foreground, never the faded steps: ink on pilot orange
-   reads 6.4:1, paper on the deep pink 4.6:1, and neither survives fading. */
-.su-union-bar[data-mode='build'] {
-  --su-bar-bg: var(--color-pilot);
-  --su-bar-fg: var(--color-ink);
-  --su-bar-on-fg: var(--color-paper);
-  --su-bar-fg-85: var(--su-bar-fg);
-  --su-bar-fg-70: var(--su-bar-fg);
-  --su-bar-fg-60: var(--color-ink-60);
-  --su-bar-fg-30: var(--color-ink-30);
-  --su-bar-fg-15: var(--color-ink-15);
-  --su-bar-grain-paper: none;
-  --su-bar-grain-ink: contents;
-}
-
-.su-union-bar[data-mode='play'] {
-  --su-bar-bg: var(--color-crawler-band);
-  --su-bar-fg: var(--color-paper);
-  --su-bar-on-fg: var(--color-ink);
-  --su-bar-fg-85: var(--su-bar-fg);
-  --su-bar-fg-70: var(--su-bar-fg);
-  --su-bar-grain-paper: none;
-  --su-bar-grain-ink: contents;
 }
 
 /* The bar serves both grains (`AppBar`); its ground's shows. */
@@ -536,9 +504,31 @@
   padding: var(--space-32) var(--space-16) 0;
 }
 
+/* A measured band (`measure`) keeps its head on its measure; from 64rem it
+   stands on the page column's edges, so the title plate and the column share
+   one left edge. */
+.su-chapter-band[data-measured]
+:is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
+  max-width: var(--su-band-measure);
+}
+
+@media (width >= 64rem) {
+  .su-chapter-band[data-measured]
+    :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
+    max-width: calc(var(--page-measure) + 2 * var(--su-column-pad));
+  }
+}
+
 .su-chapter-band__title {
+  margin: 0;
   font-size: var(--text-hero);
   padding: var(--space-8) var(--space-12) 0;
+}
+
+/* Beside controls, or as the chips' fill name, the title holds its line's
+   left; they keep the right. */
+.su-chapter-band__title[data-beside] {
+  margin: 0 auto 0 0;
 }
 
 .su-chapter-band__aside {
@@ -579,6 +569,7 @@
 /* The corner (a page's controls) takes the band's top padding, at its right,
    so the title row under it closes up to it. */
 .su-chapter-band__corner {
+  display: flex;
   padding: var(--space-12) var(--space-16) 0;
 }
 
@@ -1137,9 +1128,8 @@
 
 /* ══ The foot band (`components/atoms/ChapterFoot.tsx`) ════════════════════
  *
- * Its colours are these properties, ink with paper flecks until the page's
- * leading band sets them to its own (`footerMatchCss`,
- * `atoms/unionBarMatch.ts`); it has no ink rule. The citation and
+ * Its colours are these properties, the header's ink with paper flecks on
+ * every page (K13); it has no ink rule. The citation and
  * licence sit at the start, the site links at the end, and wrap under them on
  * a phone.
  */
@@ -1153,31 +1143,17 @@
   color: var(--su-foot-fg);
 }
 
-/* The foot matches the bar on every page: a page
-   with no leading band wears its area's colour at its foot as its bar does,
-   Build's pilot orange and Play's deep pink; a leading band, which outranks
-   this, sets both to its own (`unionBarMatch.ts`). */
-:root:has(.su-union-bar[data-mode='build']) .su-chapter-foot {
-  --su-foot-bg: var(--color-pilot);
-  --su-foot-fg: var(--color-ink);
-  --su-foot-mark: none;
-  --su-foot-grain-paper: none;
-  --su-foot-grain-ink: contents;
-}
-
-:root:has(.su-union-bar[data-mode='play']) .su-chapter-foot {
-  --su-foot-bg: var(--color-crawler-band);
-  --su-foot-fg: var(--color-paper);
-  --su-foot-grain-paper: none;
-  --su-foot-grain-ink: contents;
-}
-
 .su-chapter-foot__grain--paper {
   display: var(--su-foot-grain-paper);
 }
 
 .su-chapter-foot__grain--ink {
   display: var(--su-foot-grain-ink);
+}
+
+/* Its rows keep the page's measure (`measure`). */
+.su-chapter-foot :is(.su-chapter-foot__row, .su-chapter-foot__cite) {
+  max-width: var(--su-foot-measure, none);
 }
 
 /* The source's line (`cite`): its cut-out flush with the band's top edge and

@@ -10,8 +10,8 @@
  *   3. An entity page's stats as a masthead: a small label over a big
  *      numeral, on one paper board, as a sheet's own vitals read.
  *
- * `!important` appears where a style object sets the value this mock must
- * change; built for real those are the components' own.
+ * Each value here overrides a rule of the same cascade weight, never a
+ * component's style object: no `!important` (ruleset §4.10).
  */
 
 /* ── 1. The area rail ───────────────────────────────────────────────────── */
@@ -53,12 +53,12 @@
 /* ── 2. The Ledger, unframed ────────────────────────────────────────────── */
 
 .su-box.su-ledger {
-  background-color: transparent !important;
-  border-color: transparent !important;
-  border-width: 0 0 var(--bw-pill) !important;
-  border-bottom-color: var(--color-ink) !important;
-  border-style: solid !important;
-  padding: 0 !important;
+  background-color: transparent;
+  border-color: transparent;
+  border-width: 0 0 var(--bw-pill);
+  border-bottom-color: var(--color-ink);
+  border-style: solid;
+  padding: 0;
 }
 
 /* A picked row keeps its ink (ledger.css): the band's tint under paper words
@@ -96,25 +96,25 @@
   --su-grid-gap: var(--space-12);
   background: none;
   border: 0;
-  gap: var(--space-12) !important;
+  gap: var(--space-12);
   padding: 0;
 }
 
 .su-entity-page .su-stat-column:not(.su-stat-column--compact) .su-stat-column__stat {
-  align-items: flex-start !important;
+  align-items: flex-start;
   /* The head strip: a band of the kind's paint over the tile's paper. */
-  background: var(--color-paper) !important;
+  background: var(--color-paper);
   box-shadow: inset 0 calc(var(--su-tile-label) + var(--space-6)) 0 0
     var(--su-kind, var(--color-ink));
   /* A stat value's frame is the hairline (page rhythm, ruleset §3.7). */
-  border: var(--bw-hairline) solid var(--su-kind, var(--color-ink-40)) !important;
-  flex-direction: column !important;
-  gap: 0 !important;
-  height: 100% !important;
-  justify-content: flex-start !important;
-  min-height: 0 !important;
-  outline: 0 !important;
-  padding: 0 !important;
+  border: var(--bw-hairline) solid var(--su-kind, var(--color-ink-40));
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  justify-content: flex-start;
+  min-height: 0;
+  outline: 0;
+  padding: 0;
 }
 
 /* Top-down: the strip heads the tile; the label is a cut-out facing down,
@@ -124,16 +124,16 @@
   .su-stat-column:not(.su-stat-column--compact)
   .su-stat-column__stat
   > .su-stat-plate--label {
-  background-color: var(--color-paper) !important;
-  color: var(--color-ink) !important;
-  font-size: var(--su-tile-label-size, var(--text-body)) !important;
-  height: var(--su-tile-label) !important;
-  justify-content: flex-start !important;
-  letter-spacing: var(--tracking-caps-snug) !important;
-  line-height: 1 !important;
-  margin: var(--space-6) 0 0 var(--space-8) !important;
-  min-height: 0 !important;
-  padding: var(--space-4) var(--space-8) !important;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--su-tile-label-size, var(--text-body));
+  height: var(--su-tile-label);
+  justify-content: flex-start;
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: 1;
+  margin: var(--space-6) 0 0 var(--space-8);
+  min-height: 0;
+  padding: var(--space-4) var(--space-8);
 }
 
 /* A phone reads the short labels at the chip rung (ruleset Source 3). */
@@ -151,23 +151,23 @@
   .su-stat-column:not(.su-stat-column--compact)
   .su-stat-column__stat
   > .su-stat-plate--value {
-  background: none !important;
-  border: 0 !important;
-  color: var(--color-ink) !important;
-  flex: 1 1 auto !important;
-  font-size: var(--text-hero) !important;
-  justify-content: flex-start !important;
-  line-height: 1 !important;
-  min-height: 0 !important;
-  min-width: 0 !important;
-  outline: 0 !important;
-  padding: var(--space-12) var(--space-12) var(--space-8) !important;
-  width: auto !important;
+  background: none;
+  border: 0;
+  color: var(--color-ink);
+  flex: 1 1 auto;
+  font-size: var(--text-hero);
+  justify-content: flex-start;
+  line-height: 1;
+  min-height: 0;
+  min-width: 0;
+  outline: 0;
+  padding: var(--space-12) var(--space-12) var(--space-8);
+  width: auto;
 }
 
 .su-ledger .su-box__body > :not(table) {
-  background: none !important;
-  background-image: none !important;
+  background: none;
+  background-image: none;
 }
 
 /* ── 4. MOCK (revision 3): the roll table in the best grammar ───────────────
@@ -177,11 +177,7 @@
    under its label, with no cell of its own. */
 
 .su-roll {
-  --su-roll-band: color-mix(
-    in srgb,
-    var(--su-kind, var(--color-ink)) 26%,
-    var(--color-paper)
-  ) !important;
+  --su-roll-band: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
   --su-roll-range: 4rem;
 }
 
@@ -262,21 +258,6 @@
   }
 }
 
-/* L-2: the header. */
-.su-union-bar,
-.su-union-bar[data-mode] {
-  --su-bar-bg: var(--color-ink-deep) !important;
-  --su-bar-fg: var(--color-paper) !important;
-  --su-bar-on-fg: var(--color-ink) !important;
-  --su-bar-fg-85: var(--color-paper-85) !important;
-  --su-bar-fg-70: var(--color-paper-70) !important;
-  --su-bar-fg-60: var(--color-paper-60) !important;
-  --su-bar-fg-30: var(--color-paper-30) !important;
-  --su-bar-fg-15: var(--color-paper-15) !important;
-  --su-bar-grain-paper: contents !important;
-  --su-bar-grain-ink: none !important;
-}
-
 @media (width >= 64rem) {
   .su-union-bar .su-union-bar__row {
     padding-inline: var(--su-shell-edge);
@@ -287,10 +268,10 @@
      foreground (`--su-on-kind`), never a wash over the band. Where a page
      has no band the rail is a paper strip with ink words. */
   .su-union-bar[data-mode] .su-union-bar__rail[data-area] {
-    --su-bar-fg: var(--su-on-kind, var(--color-ink)) !important;
-    --su-bar-fg-70: var(--su-on-kind, var(--color-ink)) !important;
-    --su-bar-fg-85: var(--su-on-kind, var(--color-ink)) !important;
-    --su-bar-fg-60: var(--su-on-kind, var(--color-ink)) !important;
+    --su-bar-fg: var(--su-on-kind, var(--color-ink));
+    --su-bar-fg-70: var(--su-on-kind, var(--color-ink));
+    --su-bar-fg-85: var(--su-on-kind, var(--color-ink));
+    --su-bar-fg-60: var(--su-on-kind, var(--color-ink));
     background-color: var(--color-paper-85);
     border-bottom: 0;
     border-top: 0;
@@ -303,15 +284,6 @@
   }
 }
 
-/* L-3: the foot is the header's chrome (K13): one token pair for both. */
-.su-chapter-foot {
-  --su-foot-bg: var(--color-ink-deep) !important;
-  --su-foot-fg: var(--color-paper) !important;
-  --su-foot-mark: invert(1) !important;
-  --su-foot-grain-paper: contents !important;
-  --su-foot-grain-ink: none !important;
-}
-
 /* L-4: no borders on a table. */
 .su-open,
 .su-open.su-open--sub,
@@ -319,8 +291,8 @@
 .su-box.su-ledger,
 .su-roll[data-frame='box'],
 .su-scrap {
-  border-bottom: 0 !important;
-  border-top: 0 !important;
+  border-bottom: 0;
+  border-top: 0;
 }
 
 .su-open .su-open__row > :is(th, td),
@@ -406,7 +378,7 @@
 
   .su-chapter-foot :is(.su-chapter-foot__row, .su-chapter-foot__cite) {
     margin-inline: auto;
-    max-width: var(--page-measure) !important;
+    max-width: var(--page-measure);
     padding-inline: 0;
   }
 }
@@ -425,7 +397,7 @@
    column heads are a lighter band of the same colour, like any sub-head. */
 .su-roll,
 .su-roll :is(.su-roll__edge, .su-roll__cell, .su-roll__stack-entry, .su-roll__stack-col) {
-  border: 0 !important;
+  border: 0;
 }
 
 .su-roll .su-roll__table thead :is(.su-roll__col, .su-roll__edge) {
@@ -479,7 +451,7 @@
   thead
   .su-open__title
   :is(.su-rule-head__tallies, .su-rule-head__tally, .su-rule-head__note) {
-  align-self: baseline !important;
+  align-self: baseline;
   padding-bottom: 0;
 }
 
@@ -503,7 +475,7 @@
 
 .su-rule-head:not(.su-rule-head--sub) > :is(.su-rule-head__tallies, .su-rule-head__note) {
   align-items: baseline;
-  align-self: flex-start !important;
+  align-self: flex-start;
   height: auto;
   padding-bottom: var(--space-2);
 }
@@ -574,7 +546,7 @@
 /* A mark beside the tab (HOMEBREW) stands on the foot's line with it, never
    below the tab's foot. */
 .su-ledger__head .su-ledger__mark {
-  align-self: flex-end !important;
+  align-self: flex-end;
   margin-bottom: var(--space-2);
 }
 
@@ -626,13 +598,13 @@
 .su-rail-acts :is(.su-seg__option, .su-btn),
 .su-rail-acts .su-seg__option + .su-seg__option {
   align-items: center;
-  background: none !important;
+  background: none;
   border: 0;
   border-bottom: var(--bw-pill) solid transparent;
   border-radius: 0;
   box-shadow: none;
   box-sizing: border-box;
-  color: var(--su-acts-fg) !important;
+  color: var(--su-acts-fg);
   display: inline-flex;
   flex: none;
   font-family: var(--font-cond);
@@ -716,14 +688,14 @@
    box below it never sits flush on the rule (MOCK, best, revision 7). Cards
    on the page's ground (the doors) keep the Page's gap: they are no rows. */
 .su-slab-section:not(.su-slab-section--mini, .su-start-here):has(> [data-rows]) {
-  gap: 0 !important;
+  gap: 0;
 }
 
 /* A section whose body is a masonry of cards (an action grid, `MiniGrid`)
    stands its cards a gap below its strip, and its name's cut-out is the
    ground under it, not paper (best, revision 8): the cards are what is paper. */
 .su-slab-section--page:has(> .su-slab-section__body > .su-mini-grid) {
-  gap: var(--space-12) !important;
+  gap: var(--space-12);
 }
 
 .su-slab-section--page:has(> .su-slab-section__body > .su-mini-grid)
@@ -752,7 +724,7 @@
    cut-out: the phase is a plain ruled label, never a second cut-out over
    them (L-6). */
 .su-guide--page .su-guide__section > .su-slab-section__head {
-  background: none !important;
+  background: none;
   border-bottom: var(--bw-pill) solid var(--color-ink);
   min-height: 0;
   padding-block: var(--space-4);
@@ -763,7 +735,7 @@
 }
 
 .su-guide--page .su-guide__section > .su-slab-section__head > .su-rule-head__label {
-  background: none !important;
+  background: none;
   color: var(--color-ink);
   flex: 0 0 auto;
   padding-inline: 0;
@@ -790,9 +762,9 @@
 /* The Training tiers as rows: each the strip's full width. */
 .su-class-brief__cards[data-rows] > .su-class-brief__card {
   align-self: stretch;
-  flex: 0 0 auto !important;
-  max-width: none !important;
-  width: auto !important;
+  flex: 0 0 auto;
+  max-width: none;
+  width: auto;
 }
 
 .su-class-brief__cards[data-rows] > .su-class-brief__card:nth-child(even) {
@@ -802,14 +774,14 @@
 /* A section's head in a Peek is a plain ruled label: the Peek's own title
    cut-out stands right above it. */
 [role='dialog'] .su-rule-head.su-slab-section__head {
-  background: none !important;
+  background: none;
   border-bottom: var(--bw-pill) solid var(--color-ink);
   min-height: 0;
   padding-block: var(--space-4);
 }
 
 [role='dialog'] .su-rule-head.su-slab-section__head > .su-rule-head__label {
-  background: none !important;
+  background: none;
   color: var(--color-ink);
   padding-inline: 0;
 }
@@ -857,7 +829,7 @@
   thead
   .su-open__title:has(> .su-rule-head__actions)
   > .su-rule-head__label {
-  align-self: flex-start !important;
+  align-self: flex-start;
   box-sizing: border-box;
   height: var(--space-24);
   padding-block: var(--space-4) var(--space-2);
@@ -893,7 +865,7 @@
 
 /* With its acts on the rail the corner holds nothing: it takes no room. */
 .su-chapter-band .su-chapter-band__corner:not(:has(*)) {
-  display: none !important;
+  display: none;
 }
 
 /* Under 64rem the acts are the band's first row: no paint of their own, the
@@ -906,7 +878,7 @@
    the acts on a phone) to its foot. A front's eyebrow keeps a step of air. */
 .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row,
 .su-chapter-band .su-chapter-band__corner:empty + .su-chapter-band__row {
-  padding-top: 0 !important;
+  padding-top: 0;
 }
 
 .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow {
@@ -948,7 +920,7 @@
 
 /* The row is as tall as the title cut-out, no taller. */
 .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row {
-  min-height: 0 !important;
+  min-height: 0;
 }
 
 /* An eyebrow with nothing to say (the Bay's status line when all is saved)
@@ -1091,7 +1063,7 @@
 @media (width >= 64rem) {
   .su-chapter-band:not([role='dialog'] *):not(:has(> .su-chapter-band__eyebrow :not(:empty)))
     > .su-chapter-band__row {
-    padding-top: var(--space-12) !important;
+    padding-top: var(--space-12);
   }
 
   .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow {
@@ -1129,21 +1101,13 @@
   }
 }
 
-/* The band's head (kicker, title plate, acts) stands on the column's edges,
-   so the title plate and the column share one left edge: no step. */
 @media (width >= 64rem) {
-  :root
-    .su-chapter-band[data-measured]
-    :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
-    max-width: calc(var(--page-measure) + 2 * var(--su-column-pad)) !important;
-  }
-
   /* A sheet's band sits in its page's gutters: it steps out by the same. */
   :root
     .su-page-gutters
     > .su-chapter-band
     > :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
-    padding-inline: calc(var(--su-page-gutter-inline) - var(--su-column-pad)) !important;
+    padding-inline: calc(var(--su-page-gutter-inline) - var(--su-column-pad));
   }
 }
 
@@ -1159,7 +1123,7 @@
 /* The kicker's words stand where the title's do: the plate's padding in. */
 @media (width >= 64rem) {
   :root .su-chapter-band > .su-chapter-band__eyebrow {
-    padding-inline: var(--su-column-pad) !important;
+    padding-inline: var(--su-column-pad);
   }
 }
 
@@ -1236,7 +1200,7 @@
 @media (width >= 64rem) {
   .su-manual {
     column-gap: var(--space-24);
-    display: grid !important;
+    display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   }
 
@@ -1260,7 +1224,7 @@
   .su-manual__main > *,
   .su-manual__main > .su-manual__after > *,
   .su-manual__main > .su-manual__after > .su-ability-tree > * {
-    margin-top: 0 !important;
+    margin-top: 0;
   }
 
   .su-manual__main > .su-manual__after {
@@ -1275,8 +1239,8 @@
    stands in the side track. No paragraph carries a cap of its own. */
 @media (width >= 64rem) {
   .su-entity-page--guide {
-    column-gap: var(--space-24) !important;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) !important;
+    column-gap: var(--space-24);
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   }
 }
 
@@ -1284,7 +1248,7 @@
 .su-entity-page--guide .su-guide__prose .su-text + .su-text,
 .su-entity-page--guide .su-guide__note,
 .su-entity-page--guide .su-guide__aside {
-  max-width: none !important;
+  max-width: none;
 }
 
 /* A roll table's description fills its track: no cap of its own. */
@@ -1299,13 +1263,11 @@
    figure over max on a thin fill, critical in rust; the band's acts at the
    end. A quick slide, none under reduced motion. */
 :root .su-sheet-gutter {
-  padding-inline: calc(var(--su-page-gutter-inline) - var(--su-column-pad)) !important;
+  padding-inline: calc(var(--su-page-gutter-inline) - var(--su-column-pad));
 }
 
 .su-sheet-gutter [data-sheet-strip] {
-  align-items: stretch !important;
-  column-gap: var(--space-8) !important;
-  flex-wrap: nowrap !important;
+  column-gap: var(--space-8);
 }
 
 .su-sheet-bar__name {
@@ -1414,8 +1376,8 @@
 }
 
 .su-sheet-bar__acts :is(a, button) {
-  min-height: 0 !important;
-  padding-block: var(--space-4) !important;
+  min-height: 0;
+  padding-block: var(--space-4);
 }
 
 /* ── Borders by role, and boxes contained ─────────
@@ -1468,7 +1430,7 @@
    and its tagline. */
 .su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline),
 .su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline) * {
-  color: var(--color-paper) !important;
+  color: var(--color-paper);
 }
 
 /* Column labels on a pale tone strip, and a read-only Used mark's words, in
@@ -1490,28 +1452,28 @@
    phone keeps the fill (the chips under the title). */
 @media (width >= 40rem) {
   .su-chapter-band .su-chapter-band__row[data-chip-fill] {
-    align-items: center !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 
   /* The name wraps to the room its chips leave (`--su-name-basis`, chipFill)
      so they, and the acts at the corner, stay on its line. Not `!important`:
      the fit measures the name's one line with an inline `flex: none`. */
   .su-chapter-band .su-chapter-band__row[data-chip-fill] > [data-fill-name] {
-    align-self: flex-end !important;
+    align-self: flex-end;
     flex: 0 1 var(--su-name-basis, auto);
-    margin-inline-end: 0 !important;
+    margin-inline-end: 0;
     max-width: 75%;
-    order: -1000 !important;
+    order: -1000;
   }
 
   /* On the band's foot, as a strip's chips sit on its cut-out's line: a
      little room under them, none taken from the title. */
   .su-chapter-band .su-chapter-band__row[data-chip-fill] [data-fill-item] {
-    align-self: flex-end !important;
-    margin-block: var(--space-8) var(--space-8) !important;
-    order: calc(-3 * var(--su-fill, 0)) !important;
+    align-self: flex-end;
+    margin-block: var(--space-8) var(--space-8);
+    order: calc(-3 * var(--su-fill, 0));
   }
 
   /* The acts stay in the chips' flow (`chipFill` orders them last, the
@@ -1548,7 +1510,7 @@ body:has(> #root) {
 
 body > #root {
   flex: 1 0 auto;
-  min-height: 0 !important;
+  min-height: 0;
 }
 
 /* A head's read-out (a class's "Abilities | Up to 10") stands the head's 24px

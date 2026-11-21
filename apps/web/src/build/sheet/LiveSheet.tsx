@@ -221,9 +221,9 @@ const BAR_HIDDEN = {
 } satisfies CSSProperties
 
 const STRIP = {
-  alignItems: 'center',
+  alignItems: 'stretch',
   display: 'flex',
-  flexWrap: 'wrap',
+  flexWrap: 'nowrap',
   gap: tokens.space[8],
   minWidth: 0,
   transitionDuration: tokens.duration.base,

@@ -115,7 +115,7 @@ describe('Footer', () => {
     expect(band.querySelector('.su-footer__legal')).not.toBeNull()
     expect(within(band).getByRole('navigation', { name: 'Site' })).toBeTruthy()
     expect(band.querySelector('.su-stat-column, .su-badge-stamp, [data-chip-class]')).toBeNull()
-    expect(band.querySelector<HTMLElement>('.su-chapter-foot__row')?.style.maxWidth).toBe('75rem')
+    expect(band.style.getPropertyValue('--su-foot-measure')).toBe('75rem')
   })
 
   // Every printing on ONE line, the book first, `//` between.
@@ -138,9 +138,8 @@ describe('Footer', () => {
     expect(container.textContent).not.toContain('Chassis')
   })
 
-  // Rulings 2 and 4: the footer wears the page's leading band, as the Union
-  // bar does, through the stylesheet (`footerMatchCss`), never a colour of its own.
-  test('wears the leading band through the matched foot, with no colour of its own', () => {
+  // The footer's colour is the stylesheet's (ink-deep, K13), never a style of its own.
+  test('wears no colour of its own', () => {
     for (const foot of [undefined, GOPHER]) {
       const { container, unmount } = render(
         <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={foot} />
@@ -148,7 +147,7 @@ describe('Footer', () => {
       const band = container.querySelector<HTMLElement>('.su-chapter-foot')
       expect(band?.style.backgroundColor).toBe('')
       expect(band?.style.color).toBe('')
-      // Both grains are served; the matched rule shows the band's.
+      // Both grains are served; the stylesheet shows one.
       expect(band?.querySelectorAll('.su-chapter-foot__grain')).toHaveLength(2)
       unmount()
     }
