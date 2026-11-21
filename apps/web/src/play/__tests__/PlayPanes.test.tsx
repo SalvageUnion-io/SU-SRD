@@ -179,10 +179,10 @@ describe('the model', () => {
       ['Units', 'start'],
       ['Act', 'centre'],
       ['Crew', 'end'],
-      ['Tables', 'end'],
+      ['Rolls', 'end'],
     ])
     expect(PLAYER_TABS).toEqual(['act', 'crew', 'tables', 'rules'])
-    expect(playerPanes(true).map((p) => p.label)).toEqual(['Units', 'Act', 'Tables'])
+    expect(playerPanes(true).map((p) => p.label)).toEqual(['Units', 'Act', 'Rolls'])
     // Below `lg` Tables reads Rolls, and the Reference is a pane of its own.
     expect(playerPhonePanes(false, null).map((p) => p.label)).toEqual([
       'Units',
@@ -206,13 +206,13 @@ describe('the model', () => {
     expect(mediatorPanes(false).map((p) => [p.label, p.column, p.dock ?? false])).toEqual([
       ['Table', 'start', false],
       ['Opposition', 'centre', false],
-      ['Tables', 'end', false],
+      ['Rolls', 'end', false],
       ['Propose', 'end', true],
     ])
     expect(mediatorPanes(true).map((t) => [t.value, t.label])).toEqual([
       ['table', 'Table'],
       ['opposition', 'Downtime'],
-      ['tables', 'Tables'],
+      ['tables', 'Rolls'],
       ['propose', 'Propose'],
     ])
   })
@@ -264,7 +264,7 @@ describe('the tabs', () => {
       within(openPanel())
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent)
-    ).toEqual(['Tables', 'Feed'])
+    ).toEqual(['Rolls', 'Feed'])
     // The Act panel is still there, hidden: its filters survive.
     expect(screen.getAllByRole('tabpanel', { hidden: true })).toHaveLength(5)
 

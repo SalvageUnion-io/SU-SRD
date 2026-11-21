@@ -202,7 +202,6 @@ export const playCopy = messages({
   upkeepShort:
     'Paid the Upkeep, but the pool was {short} short of {scrap} Scrap of Tech {tl} or higher. Upgrade Pool now {pool}.',
   rollFailed: 'The dice could not be rolled. Try again.',
-  tables: 'Tables',
   situation: 'Situation',
   downtime: 'Downtime, {setByMediatorPhrase}',
   endDowntime2: 'End Downtime?',

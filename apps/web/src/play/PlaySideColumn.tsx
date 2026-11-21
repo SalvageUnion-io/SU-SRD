@@ -67,7 +67,7 @@ export function PlayTablesSection({
   onField?: ((lines: readonly RosterLine[]) => Promise<number>) | undefined
 }) {
   return (
-    <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('tables')}>
+    <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('rolls')}>
       <PlayTables
         downtime={downtime}
         mechTables={mechTables}

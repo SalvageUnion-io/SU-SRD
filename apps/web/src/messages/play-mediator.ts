@@ -49,7 +49,6 @@ export const mediatorCopy = messages({
   tellTheTable: 'Tell the table',
   more: 'More',
   gamePage: 'Game page',
-  reference: 'Reference',
   downtimeStepOf: 'Downtime · Step {value} of {count}',
   ofDone: '{done} of {of} done',
   whoIsDone: 'Who is done',
