@@ -159,6 +159,45 @@ describe('the table’s events', () => {
     expect(moved?.about).toBe(PLAYER)
   })
 
+  test('climbing out and ejecting each say so', () => {
+    const { act, texts } = seated()
+    act(PLAYER, 'seats.board', { pilotId: 'p1', mechId: 'm1' }, AT + 1)
+    act(PLAYER, 'seats.dismount', { pilotId: 'p1' }, AT + 2)
+    // Past the merge window, so boarding again is its own line.
+    act(PLAYER, 'seats.board', { pilotId: 'p1', mechId: 'm1' }, AT + MERGE_MS + 3)
+    act(PLAYER, 'seats.eject', { pilotId: 'p1' }, AT + MERGE_MS + 4)
+    expect(texts().slice(0, 3)).toEqual([
+      'p1 · Pilot p1 ejects',
+      'p1 · Pilot p1 boards Mech m1',
+      'p1 · Pilot p1 climbs out, on foot',
+    ])
+  })
+
+  test('the same line said again at once is counted on the line it follows, not repeated', () => {
+    const { act, texts } = seated()
+    const [first] = act(MEDIATOR, 'assign', { unitId: 'p1', userId: PLAYER }, AT + 1)
+    const [again] = act(MEDIATOR, 'assign', { unitId: 'p1', userId: PLAYER }, AT + 2)
+    const [third] = act(MEDIATOR, 'assign', { unitId: 'p1', userId: PLAYER }, AT + 3)
+    expect(again?._id).toBe(first?._id as string)
+    expect(again?.text).toBe('p1 · Pilot p1 is assigned to Player ×2')
+    expect(third?.text).toBe('p1 · Pilot p1 is assigned to Player ×3')
+    expect(texts()).toEqual(['p1 · Pilot p1 is assigned to Player ×3'])
+  })
+
+  test('a session already running, or none to end, and a Stop Sign already up or not up, say nothing', () => {
+    const { act, texts } = seated()
+    expect(act(MEDIATOR, 'session.end', undefined as never, AT + 1)).toEqual([])
+    act(MEDIATOR, 'session.start', undefined as never, AT + 2)
+    expect(act(MEDIATOR, 'session.start', undefined as never, AT + 3)).toEqual([])
+    expect(act(MEDIATOR, 'safety.liftStop', undefined as never, AT + 4)).toEqual([])
+    act(PLAYER, 'safety.showStop', undefined as never, AT + 5)
+    expect(act(MEDIATOR, 'safety.showStop', undefined as never, AT + 6)).toEqual([])
+    expect(texts()).toEqual([
+      'The Stop Sign is up. Play is paused.',
+      'Med started the group session',
+    ])
+  })
+
   test('the Stop Sign names nobody, and only its lifting is mirrored as a line', () => {
     const { act } = seated()
     const [up] = act(PLAYER, 'safety.showStop', undefined as never)

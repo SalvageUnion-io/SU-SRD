@@ -307,11 +307,6 @@ export class GameEvents {
     }
   }
 
-  /** One event by id, as `actor` reads it; null when it is gone or not theirs to read. */
-  one(actor: string, id: string): TableEvent | null {
-    return this.list(actor).find((event) => event._id === id) ?? null
-  }
-
   private vitals(actor: string, result: SubmitResult, at: number): TableEvent[] {
     if (!result.ok) return []
     const out: TableEvent[] = []
