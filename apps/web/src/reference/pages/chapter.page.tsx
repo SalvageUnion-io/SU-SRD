@@ -148,10 +148,9 @@ function chapterPage(chapterId: string): PageResult {
           </ChapterBand>
         </ChapterBandTrail.Provider>
         <div className="su-front__body su-page-body">
-          {/* One newspaper flow down the page's columns: the short lists
-              first, the big ones under them, breaking on to the next column
-              between their runs, so the columns stand level with no gutter
-              left empty. */}
+          {/* The short lists first, the big ones under them: each section's
+              rows run down the page's columns under its own heading, so no
+              list is parted from it (`.su-chapter-flow`). */}
           <div className="su-chapter-flow">
             {[...small, ...big].map((row) => (
               <ContentsChapter

@@ -119,3 +119,30 @@ export function sparseRailFor(schema: RefEnumSchemaName, entity: RefEntity): Spa
     rules,
   }
 }
+
+/** A Page's lists of what links to it, as `relationsFor` gives them. */
+type RelationList = { key: string; rows: readonly { ref: EntityRef; name: string }[] }
+
+/** The key of a keyword's own Related rules list (`relationsFor`). */
+const RELATED_RULES = 'guides'
+
+/**
+ * ONE Related rules block on a Page with a rail. A keyword's Page lists the
+ * guides that explain it (`relationsFor`), and its rail the guides that name
+ * it: the same heading twice. The rail keeps the one list, the explaining
+ * guides first, and the Page's own lists drop theirs. A Page whose rail lists
+ * no rules keeps its own list as it was.
+ */
+export function oneRelatedRules<R extends RelationList>(
+  rail: SparseRail | null,
+  relations: readonly R[]
+): { rail: SparseRail | null; relations: readonly R[] } {
+  const explained = relations.find((relation) => relation.key === RELATED_RULES)
+  if (!rail || !explained || rail.rules.length === 0) return { rail, relations }
+  const first = explained.rows.map(({ ref, name }) => ({ ref, name }))
+  const led = new Set(first.map((rule) => rule.ref.id))
+  return {
+    rail: { ...rail, rules: [...first, ...rail.rules.filter((rule) => !led.has(rule.ref.id))] },
+    relations: relations.filter((relation) => relation !== explained),
+  }
+}

@@ -34,7 +34,7 @@ import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
 import { relationsFor } from '../../../lib/pageRelations'
 import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
-import { isSparse, sparseRailFor } from '../../../lib/sparseRail'
+import { isSparse, oneRelatedRules, sparseRailFor } from '../../../lib/sparseRail'
 import { getItemStaticPaths } from '../../../lib/staticPaths'
 import { Island } from '../../../runtime/Island'
 import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
@@ -89,10 +89,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     <ColumnsTablePage data={columnsTable} tone={pageTone} />
   ) : null
   // A sparse Page's side column.
-  const sparse =
+  // Its Related rules and the Page's own are one list.
+  const { rail: sparse, relations } = oneRelatedRules(
     !rollPage && !techLevelPage && isSparse(item)
       ? sparseRailFor(schemaId as RefEnumSchemaName, item)
-      : null
+      : null,
+    relationsFor(schemaId, item)
+  )
   // An ability's Preceding and Next in its tree, at the Page's foot.
   const neighbours = abilityTreeNeighbours(item as RefMetaEntity).map(({ label, abilities }) => ({
     label,
@@ -178,7 +181,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             <EntityView item={item} schemaId={schemaId} />
           ))}
         {/* What links here, listed back (E26). */}
-        <PageRelations relations={relationsFor(schemaId, item)} />
+        <PageRelations relations={relations} />
         {/* A chassis's players' patterns, under the book's (ADR-061). */}
         {schemaId === 'chassis' && (
           <Island name="HomebrewIsland" client="visible" ssr props={{ chassisRef: itemId }}>

@@ -34,12 +34,13 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
         tone={tone}
         className={cn('su-sparse-rail__piece', 'su-sparse-rail__used')}
         shrink
-        bodyClassName={cn('su-sparse-rail__body', 'su-sparse-rail__scroll')}
+        bodyClassName={cn('su-sparse-rail__body', 'su-sparse-rail__used-body')}
       >
+        {/* The count heads the rows and stays put: only the rows scroll. */}
         <p className="su-sparse-rail__count">
           {referenceCopy('usedByCount', { count: usedBy.length })}
         </p>
-        <ul className="su-sparse-rail__rows">
+        <ul className={cn('su-sparse-rail__rows', 'su-sparse-rail__scroll')}>
           {usedBy.map((user) => (
             <li key={user.ref.id} className="su-sparse-rail__row">
               <Mention entityRef={user.ref}>{user.name}</Mention>
