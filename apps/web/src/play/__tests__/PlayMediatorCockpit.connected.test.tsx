@@ -408,14 +408,16 @@ describe('the table', () => {
 
   test('a seat that stopped beating is away, and says where it was last seen', async () => {
     await renderCockpit()
-    const wren = screen.getByRole('button', { name: /^Wren, away/ }).closest('li') as HTMLElement
+    const wren = screen
+      .getByRole('button', { name: /^Mule \(Mech\), Wren, away/ })
+      .closest('li') as HTMLElement
     expect(wren.dataset.away).toBe('true')
     expect(within(wren).getByText('Last seen Boarded · Mule')).toBeTruthy()
   })
 
   test('tapping a seat aims Propose at that pilot and focuses To; the proposal sends', async () => {
     await renderCockpit()
-    await click(screen.getByRole('button', { name: /^Rook, here/ }))
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
     const dock = region('Propose')
     expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')
     expect(document.activeElement).toBe(dock.getByLabelText('To'))
@@ -433,7 +435,7 @@ describe('the table', () => {
 
   test('Setbacks fills Propose with the book’s 2 HP default for the pilot aimed at', async () => {
     await renderCockpit()
-    await click(screen.getByRole('button', { name: /^Rook, here/ }))
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
     const dock = region('Propose')
     await click(dock.getByRole('button', { name: 'Setbacks' }))
     const dialog = within(screen.getByRole('dialog'))
@@ -949,7 +951,7 @@ describe('below `lg`, on a phone (play.md §11)', () => {
 
   test('tapping a seat opens Propose, aimed at that pilot, with focus in To', async () => {
     await renderCockpit()
-    await click(screen.getByRole('button', { name: /^Rook, here/ }))
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
     expect(phoneTab('Propose').getAttribute('aria-selected')).toBe('true')
     const dock = within(openPanel().getByRole('region', { name: 'Propose' }))
     expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')
