@@ -245,12 +245,13 @@ describe('PilotSheet — equipment choice cards', () => {
     const pilot = makePilot({ abilities: ['custom-sniper-rifle'], equipment: [], crawlerLevel: 4 })
     const { store, updateMock } = makePilotStubStore(pilot)
     const { container } = render(<PilotSheet pilot={pilot} store={store} />)
-    const line = container.querySelector('[data-sheet-carried] li')
+    const line = container.querySelector('[data-sheet-carried] .su-open__row')
     expect(line?.textContent ?? '').toContain(SNIPER_NAME)
-    expect(line?.textContent ?? '').toContain('5 SP')
     expect(
       screen.queryByRole('button', { name: new RegExp(`remove ${SNIPER_NAME}`, 'i') })
     ).toBeNull()
+    // Its picks are made in its Details, the whole card with its choices.
+    fireEvent.click(screen.getByRole('button', { name: `${SNIPER_NAME} details` }))
     expandCards()
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /Energy/i }))

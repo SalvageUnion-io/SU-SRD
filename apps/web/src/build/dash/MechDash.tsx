@@ -8,38 +8,164 @@
  *   What it carries and who it is: Cargo, the Chassis, what was written
  *     about it, and the units it is assigned to.
  *
- * Three columns from 80rem, two from 48rem; a phone stacks them under the
- * pinned vitals. Edit keeps the build layout (`MechSheet`).
+ * Three columns from 80rem, two from 48rem; a phone stacks them. Edit is the
+ * same dashboard with its controls in place (R11): the identity's fields
+ * under the board, the photo, the maxima, the conditions, each item's
+ * condition, Uses, Repair, Details and remove, Manage, the chassis's swap
+ * and Chassis Modder pick, the Hold's moves and its intake, and the drones'
+ * cards under the columns, where their loadouts are fitted.
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { ReactNode } from 'react'
-import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
-import { Conditions, Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
-import type { OpenColumn } from '../../components/index'
-import { capsLabel, Mention, OpenLedger, Stat, TechLevel } from '../../components/index'
+import type { CSSProperties, ReactNode } from 'react'
+import {
+  entityRef,
+  nameToSlug,
+  SalvageUnionReference,
+  STAT_LABELS,
+  toEntityModel,
+} from 'salvageunion-reference'
+import { pinFor } from 'salvageunion-reference/rules'
+import {
+  Conditions,
+  Facts,
+  heatDangerFrom,
+  Prose,
+  STRIP_ART,
+  Strip,
+  StripFigure,
+} from '../../components/app'
+import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
+import {
+  Button,
+  capsLabel,
+  Field,
+  Mention,
+  OpenLedger,
+  Stat,
+  TechLevel,
+  tokens,
+} from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { reportCargo } from '../../lib/cargo/reportCargo'
+import { changeUndoToast } from '../../lib/changeUndoToast'
 import { cn } from '../../lib/cn'
 import { chassisArt } from '../../lib/photos/defaultArt'
-import { buildMechActions } from '../../lib/rules/actionList'
+import { CHASSIS_MODDER } from '../../lib/rules/chassisModder'
+import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { mechVitalRows } from '../sheet/MechVitals'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import type { UnitsStore } from '../../replica/units'
+import { CargoLotControls } from '../sheet/CargoLotItem'
+import { ChangeChassis, ChassisModderControl } from '../sheet/chassisControls'
+import { HoldAdder } from '../sheet/HoldAdder'
+import { MechConditionsEditor } from '../sheet/MechConditionsEditor'
+import { MechAppearanceField, MechDescriptionField, MechIdentityPanel } from '../sheet/MechIdentity'
+import { MechItemControls } from '../sheet/MechItemMini'
 import type { MechSheetModel } from '../sheet/mechSheet.model'
-import type { MechSheetActions } from '../sheet/mechSheetActions.model'
+import type { ItemKind, MechSheetActions } from '../sheet/mechSheetActions.model'
 import { slotCount } from '../sheet/mechSlots.model'
+import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { Cost } from './Cost'
-import { Dash, DashColumn, DashGroup, PinnedVitals } from './Dash'
+import { Dash, DashColumn, DashGroup } from './Dash'
 import { ITEM_COLUMNS, itemRows } from './itemRows'
 import { RowRules } from './RowRules'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
+/** Edit's identity: the player's fields, a step apart. */
+const FIELDS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+  minWidth: 0,
+} satisfies CSSProperties
+
 const CARGO_COLUMNS: readonly OpenColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
   { key: 'units', label: buildSheetCopy('slots'), phone: true },
 ]
+
+/**
+ * A mech's three vitals as rows (SP, EP, Heat), named from the one vitals map
+ * (R11) and written with one Undo toast a change (K5). In Edit each max is a
+ * field with its provenance and its revert.
+ */
+function mechVitalRows({
+  mech,
+  model,
+  actions,
+  writes,
+  edit = false,
+}: {
+  mech: Mech
+  model: MechSheetModel
+  actions: MechSheetActions
+  writes: boolean
+  edit?: boolean
+}): PhoneVital[] {
+  const change = (field: 'currentSP' | 'currentEP' | 'currentHeat', label: string, from: number) =>
+    writes
+      ? (next: number) => {
+          actions.patchMech({ [field]: next })
+          changeUndoToast({
+            id: `mech:${mech.id}:${field}`,
+            label,
+            from,
+            to: next,
+            undo: (value) => actions.patchMech({ [field]: value }),
+          })
+        }
+      : undefined
+  const { maxSP, maxEP, heatCap } = model
+  const row = (
+    key: 'sp' | 'ep' | 'heat',
+    field: 'currentSP' | 'currentEP' | 'currentHeat',
+    override: 'maxSpOverride' | 'maxEpOverride' | 'maxHeatOverride',
+    value: number,
+    max: number,
+    parts: MechSheetModel['spParts'],
+    lines: MechSheetModel['spLines']
+  ): PhoneVital => {
+    const onChange = change(field, SHEET_VITALS[key].short, value)
+    return {
+      key,
+      label: SHEET_VITALS[key].short,
+      name: SHEET_VITALS[key].label,
+      value,
+      max,
+      ...(key === 'heat' && max > 0 ? { danger: heatDangerFrom(max) } : {}),
+      ...(onChange ? { onChange } : {}),
+      ...(edit
+        ? {
+            maxEdit: {
+              onMaxChange: (next: number) =>
+                actions.overrideMechMax({ [override]: pinFor(next, parts) }),
+              breakdown: parts,
+              provenance: lines,
+              onRevertOverride: () => actions.overrideMechMax({ [override]: undefined }),
+            },
+          }
+        : {}),
+    }
+  }
+  return [
+    row('sp', 'currentSP', 'maxSpOverride', model.currentSP, maxSP, model.spParts, model.spLines),
+    row('ep', 'currentEP', 'maxEpOverride', model.currentEP, maxEP, model.epParts, model.epLines),
+    row(
+      'heat',
+      'currentHeat',
+      'maxHeatOverride',
+      model.currentHeat,
+      heatCap,
+      model.heatParts,
+      model.heatLines
+    ),
+  ]
+}
 
 type MechDashProps = {
   mech: Mech
@@ -47,11 +173,17 @@ type MechDashProps = {
   actions: MechSheetActions
   /** The viewer may write it, so the vitals step in Read (R11). */
   live: boolean
+  /** Edit: the same dashboard with its controls in place. */
+  edit?: boolean
+  /** Opens a collection's picker (Edit's Manage). */
+  onManage?: (kind: ItemKind) => void
+  /** Where an item's choices and the conditions are saved. */
+  store: UnitsStore
   crawler: Crawler | null
   linkedUnits?: ReactNode
-  /** The drones its chassis fields: their own region under the columns. */
+  /** The drones its chassis fields, in Edit: their cards under the columns. */
   partners?: ReactNode
-  /** A phone: the vitals pinned, the groups stacked. */
+  /** A phone: the groups stacked. */
   phone: boolean
 }
 
@@ -60,23 +192,28 @@ export function MechDash({
   model,
   actions,
   live,
+  edit = false,
+  onManage,
+  store,
+  crawler,
   linkedUnits,
   partners,
   phone,
 }: MechDashProps) {
   const { capacity, cargo } = model
-  const chassis = model.chassisEntity
-  const vitals = mechVitalRows({ mech, model, actions, writes: live })
+  const vitals = mechVitalRows({ mech, model, actions, writes: live || edit, edit })
   const conditions = mech.conditions ?? []
-  const foot =
-    conditions.length > 0 ? (
-      <>
-        <span className={cn('su-strip__foot-label', CAPS, CAPS)}>
-          {buildSheetCopy('conditions')}
-        </span>
-        <Conditions conditions={[...conditions]} />
-      </>
-    ) : undefined
+  const foot = edit ? (
+    <>
+      <span className={cn('su-strip__foot-label', CAPS)}>{buildSheetCopy('conditions')}</span>
+      <MechConditionsEditor mech={mech} store={store} />
+    </>
+  ) : conditions.length > 0 ? (
+    <>
+      <span className={cn('su-strip__foot-label', CAPS)}>{buildSheetCopy('conditions')}</span>
+      <Conditions conditions={[...conditions]} />
+    </>
+  ) : undefined
   const lots = cargo.state.carrierLots
   const { used, cap, free, over } = cargo.usage
   const figures = (
@@ -118,26 +255,101 @@ export function MechDash({
       fallback={chassisArt(mech.chassisRef)}
       name={mech.name}
       frame={STRIP_ART}
+      onChange={
+        edit
+          ? (photo) => store.getState().update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
+          : undefined
+      }
     />
   )
-  const chassisModel = chassis ? toEntityModel(chassis) : undefined
   // What the chassis itself does (its abilities are records in the actions
-  // schema): printed in full in the side column, the chassis named.
-  const chassisAbilities = buildMechActions(mech).filter((action) => action.kind === 'chassis')
+  // schema, a Chassis Modder's pick among them): printed in full in the side
+  // column, the chassis named.
+  const chassisAbilities = model.chassisAbilities
+  const modder = model.chassisModder
+    ? SalvageUnionReference.Abilities.getBySlug(CHASSIS_MODDER)
+    : undefined
+  const chassisControls = edit && (
+    <>
+      <ChangeChassis mech={mech} patch={actions.patchMech} />
+      {model.chassisModder && (
+        <ChassisModderControl
+          chassisModder={model.chassisModder}
+          onModChassis={(slug) => actions.patchMech({ moddedChassisAbility: slug ?? undefined })}
+        />
+      )}
+    </>
+  )
+  const manage = (kind: ItemKind, label: string) =>
+    edit && onManage ? (
+      <Button size="compact" onClick={() => onManage(kind)}>
+        {label}
+      </Button>
+    ) : undefined
+  /** A collection's rows; in Edit each item's controls close its line. */
+  const loadoutRows = (kind: ItemKind): OpenRow[] => {
+    const rows = itemRows(mech, kind)
+    if (!edit) return rows
+    const slugs = kind === 'system' ? mech.systems : mech.modules
+    const held = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
+    return rows.map((row, index) => {
+      const slug = slugs[index] ?? ''
+      return {
+        ...row,
+        state: undefined,
+        controls: (
+          <MechItemControls
+            slug={slug}
+            entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
+            condition={held[slug] ?? 'intact'}
+            usesRemaining={mech.itemUses?.[slug]}
+            scrapPool={model.scrapPool}
+            scrapPoolLocked={cargo.crawlerLocked}
+            onStatusCycle={() => runWrite(() => actions.cycleItemCondition(kind, slug))}
+            onUsesChange={(next) => runWrite(() => actions.setItemUses(slug, next))}
+            onRepair={(deductTl, cost) =>
+              runWrite(() => actions.repairItem(kind, slug, deductTl, cost))
+            }
+            choices={{ mechId: mech.id, seed: mech.itemChoices?.[slug], store }}
+            onRemove={() => actions.removeItem(kind, index)}
+          />
+        ),
+      }
+    })
+  }
   // The masthead's right column is About (the
   // description, clamped, with More). Quirk and Appearance are short lines on
   // the figures' rail, beside SYS, MODS and CARGO. The side column keeps only
   // tables.
-  const identity = mech.description ? (
+  const identity = edit ? (
+    <div style={FIELDS}>
+      <MechIdentityPanel
+        mech={mech}
+        patch={actions.patchMech}
+        after={
+          <>
+            <Field
+              label={buildSheetCopy('quirk')}
+              value={mech.quirk ?? ''}
+              onSave={actions.saveQuirk}
+              placeholder={buildSheetCopy('noQuirkRecorded')}
+            />
+            <MechAppearanceField mech={mech} onSave={actions.saveAppearance} />
+          </>
+        }
+      />
+      <MechDescriptionField mech={mech} onSave={actions.saveDescription} />
+    </div>
+  ) : mech.description ? (
     <div className="su-mast-id">
       <div className="su-mast-id__about">
-        <p className={cn('su-mast-id__label', CAPS, CAPS)}>{buildSheetCopy('about')}</p>
+        <p className={cn('su-mast-id__label', CAPS)}>{buildSheetCopy('about')}</p>
         <Prose text={mech.description} lines={phone ? 3 : 5} />
       </div>
     </div>
   ) : undefined
   const traitLines =
-    mech.quirk || mech.appearance ? (
+    !edit && (mech.quirk || mech.appearance) ? (
       <Facts
         className="su-mast-traits"
         itemClassName="su-mast-trait"
@@ -150,52 +362,49 @@ export function MechDash({
     ) : undefined
   return (
     <>
-      {phone && (
-        <PinnedVitals
-          label={buildSheetCopy('unitVitals', { name: mech.name })}
-          name={mech.name}
-          vitals={vitals}
-          foot={foot}
-        />
-      )}
-      {phone && linkedUnits}
       <Strip
         label={buildSheetCopy('unitVitals', { name: mech.name })}
-        art={phone ? undefined : art}
-        vitals={phone ? [] : vitals}
+        art={phone && !edit ? undefined : art}
+        vitals={vitals}
         figures={figures}
-        foot={phone ? undefined : foot}
+        foot={foot}
         identity={identity}
         traits={traitLines}
+        edit={edit}
       />
+      {phone && linkedUnits}
       <Dash>
         <DashColumn wide label={buildSheetCopy('whatHas', { name: mech.name })}>
-          {mech.systems.length > 0 && (
+          {(mech.systems.length > 0 || edit) && (
             <OpenLedger
               as="h2"
               className="su-open--loadout"
               title={buildSheetCopy('systems')}
+              actions={manage('system', buildSheetCopy('manageSystems'))}
+              empty={buildSheetCopy('noSystemsInstalled')}
               tally={slotCount(
                 capacity.systemSlotsUsed,
                 capacity.systemSlotsMax,
                 capacity.asPrinted
               )}
               columns={ITEM_COLUMNS}
-              groups={[{ key: 'systems', rows: itemRows(mech, 'system') }]}
+              groups={[{ key: 'systems', rows: loadoutRows('system') }]}
             />
           )}
-          {mech.modules.length > 0 && (
+          {(mech.modules.length > 0 || edit) && (
             <OpenLedger
               as="h2"
               className="su-open--loadout"
               title={buildSheetCopy('modules')}
+              actions={manage('module', buildSheetCopy('manageModules'))}
+              empty={buildSheetCopy('noModulesInstalled')}
               tally={slotCount(
                 capacity.moduleSlotsUsed,
                 capacity.moduleSlotsMax,
                 capacity.asPrinted
               )}
               columns={ITEM_COLUMNS}
-              groups={[{ key: 'modules', rows: itemRows(mech, 'module') }]}
+              groups={[{ key: 'modules', rows: loadoutRows('module') }]}
             />
           )}
         </DashColumn>
@@ -208,27 +417,38 @@ export function MechDash({
           {/* The side column shows the chassis
               ability only: its strip reads "Chassis ability" with the
               ability's name in it, and its body is the ability's words. */}
-          {chassisModel &&
-            chassisAbilities.map((action) => {
-              const actionModel = toEntityModel(action.action)
-              return (
-                <DashGroup
-                  key={action.key}
-                  title={buildSheetCopy('chassisAbility')}
-                  tally={
-                    <>
-                      <Mention entityRef={actionModel.ref}>{action.name}</Mention>
-                      {actionModel.cost && <Cost cost={actionModel.cost} />}
-                    </>
-                  }
-                >
-                  <div className="su-dash-item su-chassis-ability">
-                    <RowRules entity={action.action} chassisName={model.chassisName} />
-                  </div>
-                </DashGroup>
-              )
-            })}
-          <div className="su-dash-group">
+          {chassisAbilities.map((ability, index) => {
+            const abilityModel = toEntityModel(ability)
+            return (
+              <DashGroup
+                key={ability.id}
+                title={buildSheetCopy('chassisAbility')}
+                tally={
+                  <>
+                    <Mention entityRef={abilityModel.ref}>{ability.name}</Mention>
+                    {abilityModel.cost && <Cost cost={abilityModel.cost} />}
+                    {modder && nameToSlug(ability.name) === model.chassisModder?.current && (
+                      // The ability a Chassis Modder added names where it comes from.
+                      <Mention entityRef={entityRef(modder)}>{modder.name}</Mention>
+                    )}
+                  </>
+                }
+                actions={index === 0 ? chassisControls : undefined}
+              >
+                <div className="su-dash-item su-chassis-ability">
+                  <RowRules entity={ability} chassisName={model.chassisName} />
+                </div>
+              </DashGroup>
+            )
+          })}
+          {edit && chassisAbilities.length === 0 && (
+            <DashGroup
+              title={buildSheetCopy('chassis')}
+              tally={model.chassisName}
+              actions={chassisControls}
+            />
+          )}
+          <div className="su-dash-group" data-storage-side="mech">
             <OpenLedger
               as="h2"
               title={buildSheetCopy('cargo')}
@@ -246,6 +466,15 @@ export function MechDash({
                     id: lot.id,
                     name: lot.name,
                     meta: lot.cat === 'SCRAP' ? undefined : lot.cat,
+                    controls: edit ? (
+                      <CargoLotControls
+                        lot={lot}
+                        side="mech"
+                        cargo={cargo}
+                        linked={crawler !== null}
+                        onRemove={() => reportCargo(cargo.removeMechLot(lot.id))}
+                      />
+                    ) : undefined,
                     cells: [
                       lot.tl !== undefined ? <TechLevel key="tl" level={lot.tl} /> : '',
                       lot.units,
@@ -262,6 +491,17 @@ export function MechDash({
               )}
               {over && <Stat size="mini" label={buildSheetCopy('overCapacity')} state="critical" />}
             </div>
+            {/* Said on the page, not only in a tooltip a touch screen never shows. */}
+            {edit && cargo.crawlerLocked !== null && (
+              <p className="su-dash-quiet">{cargo.crawlerLocked}</p>
+            )}
+            {edit && (
+              <HoldAdder
+                verb="Load"
+                containerLabel={buildSheetCopy('mechHold')}
+                onAdd={(lot) => reportCargo(cargo.addMechLot(lot))}
+              />
+            )}
           </div>
         </DashColumn>
       </Dash>

@@ -292,6 +292,7 @@ describe('CrawlerSheet — crew HP editing (CrewLeadMini)', () => {
   test('Edit puts the fields and the HP gauge in the Mini body', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
+    expandCards()
     const head = crewMini('Dax Orsund')
     // The name alone is the Peek trigger; the HP gauge is the body's.
     expect(head.querySelector('[data-peek]')?.getAttribute('data-peek')).toBe(

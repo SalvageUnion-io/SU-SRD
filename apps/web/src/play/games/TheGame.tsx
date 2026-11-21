@@ -154,7 +154,7 @@ export function TheGame({
               {m.organizer && <Stat label={playGamesCopy('organiser')} size="mini" />}
             </span>
             {pilotsOf(m.userId).length > 0 && (
-              <span className={cn('su-game-member__pilots', CAPS, CAPS)}>
+              <span className={cn('su-game-member__pilots', CAPS)}>
                 {pilotsOf(m.userId)
                   .map((pilot) => pilot.name)
                   .join(' · ')}

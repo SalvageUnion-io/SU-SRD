@@ -12,6 +12,7 @@
 import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { toast, tokens } from '../components/index'
+import { componentsCopy } from '../messages/components'
 
 /** One number a line moves: its name, the value its run started from, and now. */
 export type UndoChange = { key: string; label: string; from: number; to: number }
@@ -92,7 +93,11 @@ export function changesUndoToast({
         <span key={c.key}>
           {i > 0 ? ' · ' : ''}
           {c.label} {c.from}
-          <ArrowRight size={tokens.iconSize.mini} aria-label="to" style={GLYPH} />
+          <ArrowRight
+            size={tokens.iconSize.mini}
+            aria-label={componentsCopy('changedTo')}
+            style={GLYPH}
+          />
           {c.to}
         </span>
       ))}
@@ -101,7 +106,7 @@ export function changesUndoToast({
       id,
       duration: 8000,
       action: {
-        label: 'Undo',
+        label: componentsCopy('undo'),
         onClick: () => {
           origins.delete(id)
           undo(start)

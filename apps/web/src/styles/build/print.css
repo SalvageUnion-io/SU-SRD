@@ -203,25 +203,30 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Stat pips (src/components Stat + VitalGauge) — keep trackable boxes on paper.
+   * Stat pips (src/components Stat + VitalGauge) and the masthead's meter
+   * segments (`Strip`) — keep trackable boxes on paper.
    *
    * The global `*` reset above forces every background to white, which would
    * erase a filled pip's fill and make it indistinguishable from an empty one.
-   * Re-assert an ink-black fill on filled pips (`data-pip="on"`) and force
-   * exact colour rendering so the fill survives the print pipeline.
-   * Empty pips (`data-pip="off"`) stay white with a black border.
+   * Re-assert an ink-black fill on filled pips (`data-pip="on"`, a lit
+   * segment) and force exact colour rendering so the fill survives the print
+   * pipeline. Empty ones stay white with a black border.
    * ------------------------------------------------------------------------- */
-  [data-pip] {
+  [data-pip],
+  .su-strip__seg {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     border-color: #000 !important;
   }
 
-  [data-pip='on'] {
+  [data-pip='on'],
+  .su-strip__seg[data-state='on'],
+  .su-strip__seg[data-state='danger'] {
     background-color: #000 !important;
   }
 
-  [data-pip='off'] {
+  [data-pip='off'],
+  .su-strip__seg[data-state='off'] {
     background-color: #fff !important;
   }
 

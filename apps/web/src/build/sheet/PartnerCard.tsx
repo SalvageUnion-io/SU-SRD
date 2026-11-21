@@ -190,7 +190,7 @@ export function PartnerCard({
     patch({ [field]: pin }, LIVE_SHEET_OVERRIDE)
   }
 
-  // The mech's vitals, gauge for gauge (`MechVitals`): Edit pins a max with
+  // The mech's vitals, gauge for gauge (`mechVitalRows`): Edit pins a max with
   // its provenance and ↺ reverts it; Read draws the track alone.
   const vitals: {
     vital: SheetVital

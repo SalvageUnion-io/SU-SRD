@@ -1,57 +1,16 @@
 /**
- * CrawlerSheet — the crawler variant BODY for the LiveSheet shell, in the
- * poster layout.
+ * CrawlerSheet — the crawler variant BODY for the LiveSheet shell: the
+ * crawler's dashboard (`CrawlerDash`) in Read and in Edit, Edit's writes
+ * handed to it (R11).
  *
- * The body OWNS the identity band now (Workshop-Manual crawler sheet):
- * This body renders `SheetHero` as its first region.
- * Following the printed sheet (`Editable_..._Crawler_Sheets.pdf`), the regions
- * stack in the columns every sheet shares (`SheetColumns`, ruleset §1.2):
+ * It owns the writes the dashboard's controls make: a partial patch on the
+ * crawler, bay Repair (5 Scrap from the crawler-TL bucket up, a short pool
+ * said, never a block), installing and removing an expansion bay, removing a
+ * mounted weapon, and the weapons picker (`CrawlerSystemsEditModal`) that
+ * Mount opens. Free Edit throughout (ADR-021).
  *
- *   Identity Band: edge wordmark ∥ Name/Type/Ability/Description fields ∥ the
- *     Economy rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts, built
- *     by CrawlerLiveSheet and passed as `economy`) → Bays (2-column masonry, the
- *     Armament Bay's weapons inside their bay) → Related units, under the
- *     bays (a crew of many pilots and mechs is a list that grows downward).
- *   The Storage Bay, what the crawler carries, is the permanent right
- *     sidebar: beside the sheet from the 64rem rung, under the opening on a
- *     phone.
- *
- * Economy (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade lozenges) is built by
- * `CrawlerLiveSheet` (it owns the economy-dialog state + `patch`) and handed
- * down as the `economy` slot, rendered inside the Identity card below the
- * identity fields.
- *
- * Bays stay ONE unified grid (no crew/functional split; the poster's
- * homebrew/custom-bay split needs a data-model flag the schema does not have)
- * as compact entity cards (max 2
- * columns), each with Intact/Damaged status, its crew lead as a
- * contentful Mini (`CrewLeadMini`), a "Docks <mech>" one-liner on the Mech Bay, and a
- * function/Repair action pair. Repair decrements 5 Scrap from the
- * crawler-TL pool bucket, spilling into higher buckets — a short pool is
- * advisory, never a block.
- *
- * Armament Bay Weapons — collection section (unified edit language
- * archetype B): always-available '+ Add' opening the existing weapons
- * picker (CrawlerSystemsEditModal), per-card remove (✕). It is the live
- * mounted loadout, not a play-control panel, so it has its own
- * content-column card.
- *
- * Storage Bay (The Hold) — the unlimited StorageManifest (side='crawler'),
- * in the sidebar; Load is cap-checked against the docked mech. Keeps the
- * Stow/Load transfer feature.
- *
- * A phone in Read is `CrawlerPhoneSheet` (`PhoneSheet`, R11): the numbers,
- * then the tabs Bays, Storage, About.
- *
- * No play-control panel lives on the sheet. Tech Level is the chapter band's
- * TL chip (built by CrawlerLiveSheet), its stepper on the chip in Edit. The
- * scrap pool has no section of its own: bay Repair below spends from it
- * (`scrapPoolBucket` / `addToScrapPool`), as mech repair does from the mech
- * sheet. Downtime, Salvaging and Crafting are not the sheet's. The Vitals
- * (SP `VitalGauge`, via `economy`) and per-card activation (the bays'
- * status/repair controls) are live here.
- *
- * readOnly suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)).
+ * readOnly suppresses every edit affordance (a sheet the viewer cannot write:
+ * public, a crewmate's, the Starter Set, or Read).
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -59,22 +18,11 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { PhoneVital } from '../../components/index'
-import {
-  Button,
-  EmptyState,
-  Entity,
-  HeaderMenu,
-  MiniGrid,
-  SlabSection,
-  tokens,
-} from '../../components/index'
-import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { tokens } from '../../components/index'
 import { useCargo } from '../../lib/cargo/useCargo'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
-import { assignmentFor } from '../../lib/npcs/npcModel'
-import { crawlerTypeArt } from '../../lib/photos/defaultArt'
 import { poolShortfall } from '../../lib/rules/crawlerEconomy'
-import { BAY_REPAIR_COST, bayRepairPatch, resolveCrawlerSystem } from '../../lib/rules/crawlerItems'
+import { BAY_REPAIR_COST, bayRepairPatch } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
 import { expansionCrawlerBays } from '../../lib/wizard/crawlerFormState'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -82,21 +30,12 @@ import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
+import type { CrawlerDashEdit } from '../dash/CrawlerDash'
 import { CrawlerDash } from '../dash/CrawlerDash'
-import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
-import { CrawlerBayCard } from './CrawlerSheetItems'
-import { CrawlerStorage } from './CrawlerStorage'
-import { storageShows } from './crawlerStorage.model'
-import { SheetColumns } from './SheetColumns'
-import { SheetHero } from './SheetHero'
-import { UnknownItemLine } from './UnknownItemLine'
-import { usePhoneRead } from './usePhoneRead'
+import { usePhone } from './usePhone'
 
-/** A column that may shrink below its content inside the region grids. */
-const SHRINK = { minWidth: 0 } satisfies CSSProperties
-
-/** The section root: `@container` scopes the region grids to the sheet's own width. */
+/** The section root: `@container` scopes the dashboard to the sheet's own width. */
 const ROOT = {
   containerType: 'inline-size',
   display: 'flex',
@@ -108,61 +47,29 @@ type CrawlerSheetProps = {
   crawler: Crawler
   /**
    * The docked mech (the first mech assigned to this crawler by its own
-   * `mech-to-crawler` link, resolved by the composition resolver) — the Hold's
-   * Load target. Null when nothing is docked.
+   * `mech-to-crawler` link): the hold's Load target. Null when nothing is docked.
    */
   mech?: Mech | null
-  /** The docked mech's sheet: the Hold's load target and the Mech Bay's Mini open it. */
+  /** The docked mech's sheet: the Mech Bay's line opens it. */
   mechHref?: string
-  /**
-   * Injectable store — defaults to useUnits.
-   * Pass a stub in tests to avoid Zustand side effects.
-   */
+  /** Injectable store — defaults to useUnits. */
   store?: UnitsStore
-  /** Suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)). */
+  /** Suppresses every edit affordance. */
   readOnly?: boolean
   /**
    * Read, on a sheet its owner may track (`CrawlerLiveSheet`'s `editable`): a
-   * bay's condition still steps, as the SP gauge does.
+   * bay's condition still steps, as SP does.
    */
   liveCondition?: boolean
-  /**
-   * The economy band content (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade
-   * lozenges) — built by `CrawlerLiveSheet` (it owns the economy-dialog state
-   * and `patch`), rendered as the identity band's vitals rail. Undefined
-   * renders nothing extra (e.g. a bare test render with no economy slot wired).
-   */
-  economy?: ReactNode
-  /**
-   * The economy's action chips (Pay / Fund / Trade), built by `CrawlerLiveSheet`
-   * beside `economy` and set on the vitals card's head, not in its body.
-   */
-  economyActions?: ReactNode
-  /** A phone's vitals block in Read (`PhoneVitals`), built beside `economy`. */
-  phoneVitals?: ReactNode
-  /**
-   * SP, the Upgrade Pool and Upkeep as
-   * rows, and the economy's dialogs (Pay Upkeep, Fund, Trade), for the sheet
-   * dashboard's header strip and a phone's pinned vitals.
-   */
+  /** SP, the Upgrade Pool and Upkeep as rows, for the dashboard's strip. */
   vitalRows?: readonly PhoneVital[]
+  /** The economy's dialogs (Pay Upkeep, Fund, Trade), on the strip's foot. */
   vitalActions?: readonly { key: string; label: string; onClick: () => void }[]
-  /**
-   * The Related units rail content (docked mech + lead pilot rail row/
-   * RailEmpty), built by CrawlerLiveSheet from `composition` — CrawlerSheet has
-   * no composition access of its own, so this is passed straight through
-   * into the content column, under the Bays.
-   */
+  /** The Assigned Units, built by CrawlerLiveSheet from `composition`. */
   linkedUnits?: ReactNode
-  /**
-   * The crew slots built NPCs fill (ADR-044), resolved by the composition. A
-   * filled slot shows its NPC in place of the inline crew (Q2).
-   */
+  /** The crew slots built NPCs fill (ADR-044). */
   crew?: readonly CrewAssignment[]
-  /**
-   * Where the Bays section's one "Crew…" link goes: the crew board for this
-   * crawler (D8). Omitted, there is no link.
-   */
+  /** The crew board for this crawler (D8): the bays' Crew link in Edit. */
   crewHref?: string
 }
 
@@ -173,10 +80,6 @@ export function CrawlerSheet({
   store = useUnits,
   readOnly = false,
   liveCondition = false,
-  economy,
-  economyActions,
-  // MOCK: Read draws the vitals from `vitalRows`; the phone block is unused.
-  phoneVitals: _phoneVitals,
   vitalRows = [],
   vitalActions = [],
   linkedUnits,
@@ -185,18 +88,13 @@ export function CrawlerSheet({
 }: CrawlerSheetProps) {
   const storeState = store()
   const cargo = useCargo({ mech, crawler, store, readOnly })
-
-  // Weapons '+ Add' opens the existing picker modal (archetype B — always
-  // available; the modal itself carries the p.213/p.216 mount cap). Free
-  // Edit: add/remove is not rule-gated (ADR-021).
+  const phone = usePhone()
+  // Mount opens the weapons picker; the modal carries the mount cap.
   const [systemsModalOpen, setSystemsModalOpen] = useState(false)
-  // Identity is a FIELD section (unified edit language archetype A): its own
-  // Edit/Done toggle, rendered in the `SheetHero` panel's action row.
 
   /**
-   * Persist a partial patch on this crawler (fire-and-forget write). The
-   * updater form receives the FRESHEST record so array edits (weapons) don't
-   * race the async store.update round-trip and drop a selection.
+   * Persist a partial patch on this crawler. The updater form receives the
+   * FRESHEST record so array edits (weapons) don't race the store round-trip.
    */
   function patchCrawler(input: Partial<Crawler> | ((current: Crawler) => Partial<Crawler>)) {
     if (readOnly) return
@@ -207,20 +105,11 @@ export function CrawlerSheet({
 
   const tl = crawler.techLevel
   const bays = crawler.crawlerBays ?? []
-  const intactBays = bays.filter((b) => (b.condition ?? 'intact') === 'intact').length
-  const pool = crawler.scrapPool ?? {}
-
-  // Repair affordability is advisory only — TL+ buckets count.
-  const repairShortfall = poolShortfall(pool, tl, BAY_REPAIR_COST)
 
   /**
-   * Repair a damaged bay (`bayRepairPatch`: 5 Scrap from the crawler-TL
-   * bucket up, then the bay flips Intact). A short pool still repairs — the
-   * shortfall is surfaced on the button, never a block.
-   *
-   * Tagged `LIVE_SHEET_TXN`: Scrap leaves the pool by a rule, so the Change Log
-   * should not call it a hand edit. One of the three sanctioned Live-Sheet
-   * transactions in `docs/ARCHITECTURE.md#live-sheet`.
+   * Repair a damaged bay (`bayRepairPatch`). Tagged `LIVE_SHEET_TXN`: Scrap
+   * leaves the pool by a rule, so the Change Log should not call it a hand
+   * edit (`docs/ARCHITECTURE.md#live-sheet`).
    */
   function repairBay(entry: CrawlerBayEntry, index: number) {
     if (readOnly) return
@@ -232,277 +121,58 @@ export function CrawlerSheet({
     )
   }
 
-  /** Remove one mounted weapon (per-card ✕ — archetype B). */
-  function removeWeapon(slug: string) {
-    patchCrawler((current) => ({ systems: current.systems.filter((s) => s !== slug) }))
-  }
-
+  // The Bio-Mech, Bio-Crafting and Nanite Processing Bays and VR Tubes are
+  // built or found in play, so the seed leaves them out: Edit installs them.
   const expansionBays = expansionCrawlerBays()
-  const expansionSlugs = new Set(expansionBays.map((b) => b.slug))
-  const installable = expansionBays.filter((b) => !bays.some((e) => e.bayRef === b.slug))
-
-  /**
-   * Install an expansion bay (Free Edit): the Bio-Mech, Bio-Crafting and
-   * Nanite Processing Bays and VR Tubes are built or found in play, so the
-   * seed leaves them out. What it cost is the table's to take from the pool.
-   */
-  function addExpansionBay(slug: string) {
-    const bay = expansionBays.find((b) => b.slug === slug)
-    if (!bay) return
-    patchCrawler((current) => ({ crawlerBays: [...(current.crawlerBays ?? []), bay.entry] }))
-  }
-
-  /** Uninstall the expansion bay at `index` (Free Edit). */
-  function removeBay(index: number) {
-    patchCrawler((current) => ({
-      crawlerBays: (current.crawlerBays ?? []).filter((_, i) => i !== index),
-    }))
-  }
-
-  /** The Armament Bay's mounted weapons — rendered INSIDE that bay. */
-  const armamentContents =
-    crawler.systems.length === 0 ? (
-      // A weapon picked on the bay's own choice is mounted: no "No weapons
-      // mounted." under it.
-      readOnly || armamentPicked(crawler) ? undefined : (
-        <EmptyState variant="quiet" body={buildSheetCopy('noWeaponsMounted')} />
-      )
-    ) : (
-      // Header-only Minis across the bay, each Peeking its whole card.
-      <MiniGrid label={buildSheetCopy('weaponsMounted')}>
-        {crawler.systems.map((slug) => {
-          const system = resolveCrawlerSystem(slug)
-          return (
-            <li key={slug}>
-              {system ? (
-                <Entity size="mini" context="loadout" entity={system} mode={{ kind: 'link' }} />
-              ) : (
-                <UnknownItemLine
-                  slug={slug}
-                  schemaName="systems"
-                  readOnly={readOnly}
-                  onRemove={() => removeWeapon(slug)}
-                />
-              )}
-            </li>
-          )
-        })}
-      </MiniGrid>
-    )
-
-  /** The Storage Bay's scrap pool and the crawler hold: rendered INSIDE it; null when Read has neither. */
-  const shows = storageShows(crawler, readOnly)
-  const storageContents =
-    shows.pool || shows.hold ? (
-      <CrawlerStorage
-        crawler={crawler}
-        mech={mech}
-        mechHref={mechHref}
-        cargo={cargo}
-        storeState={storeState}
-        readOnly={readOnly}
-      />
-    ) : undefined
-
-  /** Which special bay is this? Drives what gets rendered INSIDE it. */
-  function bayKind(entry: CrawlerBayEntry): 'mech' | 'armament' | 'storage' | 'plain' {
-    if (entry.bayRef === 'mech-bay') return 'mech'
-    if (entry.bayRef === 'armament-bay') return 'armament'
-    if (entry.bayRef === 'storage-bay') return 'storage'
-    return 'plain'
-  }
-
-  /**
-   * One bay card, with whatever that bay HOLDS rendered inside it: the
-   * Armament Bay's mounted weapons, the Storage Bay's scrap pool and hold.
-   * A bay's contents belong in the bay, not in a section elsewhere on the
-   * sheet describing it from a distance.
-   */
-  function renderBay(entry: CrawlerBayEntry, i: number) {
-    const kind = bayKind(entry)
-    // A link names a bay by its slug, so only the first entry of a bay listed
-    // twice is the slot it crews (ADR-044's known limit).
-    const crewSlot = bays.findIndex((b) => b.bayRef === entry.bayRef) === i
-    return (
-      <CrawlerBayCard
-        assigned={crewSlot ? assignmentFor(crew, { kind: 'bay', bayRef: entry.bayRef }) : undefined}
-        crawlerId={crawler.id}
-        entry={entry}
-        index={i}
-        crawlerTl={tl}
-        repairShortfall={repairShortfall}
-        onRepair={repairBay}
-        seedSelections={crawler.bayChoices?.[entry.bayRef]}
-        store={store}
-        readOnly={readOnly}
-        liveCondition={liveCondition}
-        dockedMech={kind === 'mech' && mech ? { name: mech.name, href: mechHref } : undefined}
-        // "Mount" opens the weapons picker — the thing the verb means — rather
-        // than the bay's rules text.
-        onFunction={kind === 'armament' && !readOnly ? () => setSystemsModalOpen(true) : undefined}
-        contents={
-          kind === 'armament' ? armamentContents : kind === 'storage' ? storageContents : undefined
-        }
-        onRemove={expansionSlugs.has(entry.bayRef) ? () => removeBay(i) : undefined}
-      />
-    )
-  }
-
-  // A phone in Read is the numbers, then tabs (`CrawlerPhoneSheet`).
-  const phoneRead = usePhoneRead(readOnly)
-
-  /** The Storage Bay(s), by their place in the bay list: the sidebar's. */
-  const storageBays = bays.flatMap((entry, i) =>
-    bayKind(entry) === 'storage' ? [{ entry, i }] : []
-  )
+  const edit: CrawlerDashEdit | undefined = readOnly
+    ? undefined
+    : {
+        patch: patchCrawler,
+        repairBay,
+        repairShortfall: poolShortfall(crawler.scrapPool ?? {}, tl, BAY_REPAIR_COST),
+        installable: expansionBays.filter((b) => !bays.some((e) => e.bayRef === b.slug)),
+        addBay: (slug) => {
+          const bay = expansionBays.find((b) => b.slug === slug)
+          if (bay)
+            patchCrawler((current) => ({
+              crawlerBays: [...(current.crawlerBays ?? []), bay.entry],
+            }))
+        },
+        removable: new Set(expansionBays.map((b) => b.slug)),
+        removeBay: (index) =>
+          patchCrawler((current) => ({
+            crawlerBays: (current.crawlerBays ?? []).filter((_, i) => i !== index),
+          })),
+        removeWeapon: (slug) =>
+          patchCrawler((current) => ({ systems: current.systems.filter((s) => s !== slug) })),
+        mountWeapons: () => setSystemsModalOpen(true),
+        crewHref,
+      }
 
   return (
     <section
       aria-label={buildSheetCopy('crawlerSheet', { name: crawler.name })}
-      // `.su-sheet-section` is a print-stylesheet target (page-break rules);
-      // `@container` scopes the poster region grid below to the SHEET's own
-      // width, not the viewport.
+      // `.su-sheet-section` is a print-stylesheet target (page-break rules).
       className="su-sheet-section"
       style={ROOT}
     >
-      {/* ===== The Workshop-Manual crawler sheet's regions, in the columns
-          every sheet shares (`SheetColumns`): Identity → Bays (Armament
-          weapons inside their bay) → Related units, and the Storage Bay, what
-          the crawler carries, in the sidebar (ruleset §1.2). ===== */}
-      {readOnly ? (
-        // Read is the sheet dashboard at
-        // every width; a phone stacks it under its pinned vitals. Edit keeps
-        // the build layout below.
-        <CrawlerDash
-          crawler={crawler}
-          mech={mech}
-          mechHref={mechHref}
-          store={store}
-          cargo={cargo}
-          liveCondition={liveCondition}
-          vitals={vitalRows}
-          vitalActions={vitalActions}
-          linkedUnits={linkedUnits}
-          crew={crew}
-          phone={phoneRead}
-        />
-      ) : (
-        <SheetColumns
-          asideLabel={buildSheetCopy('whatCarries', { name: crawler.name })}
-          hero={
-            // ===== Identity Band (Workshop-Manual crawler sheet top region) =====
-            // Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
-            // rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
-            // toned frame — no name pseudoheader stamp.
-            <SheetHero
-              name={crawler.name}
-              fields={
-                <CrawlerIdentityPanel
-                  crawler={crawler}
-                  store={store}
-                  storeState={storeState}
-                  patch={readOnly ? undefined : patchCrawler}
-                  readOnly={readOnly}
-                  typeCrew={assignmentFor(crew, { kind: 'type' })}
-                  photo={
-                    <EntityPhoto
-                      photo={crawler.photo}
-                      fallback={crawlerTypeArt(crawler.type)}
-                      name={crawler.name}
-                      onChange={
-                        readOnly
-                          ? undefined
-                          : (photo) =>
-                              storeState.update('crawler', crawler.id, { photo }, LIVE_SHEET_MANUAL)
-                      }
-                    />
-                  }
-                />
-              }
-              vitals={economy}
-              vitalsActions={economyActions}
-            />
-          }
-          // ----- The Storage Bay, the sidebar: the crawler's own BAY, its
-          // card (the hold IS a bay, Core Book p.213), holding the scrap pool
-          // and the crawler hold. With no Storage Bay installed both still have
-          // to go somewhere: they are crawler-level data (the pool is what bay
-          // REPAIRS spend), so hiding them with the bay would strand them; they
-          // render under a Storage Bay Slab instead. -----
-          aside={
-            storageBays.length > 0
-              ? storageBays.map(({ entry, i }) => (
-                  <div key={`storage-${i}`} style={SHRINK}>
-                    {renderBay(entry, i)}
-                  </div>
-                ))
-              : storageContents && (
-                  <SlabSection title={buildSheetCopy('storageBay')}>{storageContents}</SlabSection>
-                )
-          }
-        >
-          {/* Bays — ONE unified grid, every bay but the Storage Bay, which is
-            the sidebar's (no crew/functional split). */}
-          {bays.length > storageBays.length && (
-            <SlabSection
-              fold="open"
-              title={buildSheetCopy('bays')}
-              count={{ label: buildSheetCopy('intact'), value: intactBays, max: bays.length }}
-              actions={
-                crewHref === undefined && (readOnly || installable.length === 0) ? undefined : (
-                  <>
-                    {!readOnly && installable.length > 0 && (
-                      // + Bay: a menu of the bays it can add, one look with Crew beside it.
-                      <HeaderMenu
-                        variant="button"
-                        size="compact"
-                        trigger={buildSheetCopy('addBay')}
-                        label={buildSheetCopy('addAnExpansionBay')}
-                        sections={[
-                          installable.map((b) => ({
-                            id: b.slug,
-                            label: b.name,
-                            onSelect: () => addExpansionBay(b.slug),
-                          })),
-                        ]}
-                      />
-                    )}
-                    {crewHref !== undefined && (
-                      <Button
-                        href={crewHref}
-                        size="compact"
-                        aria-label={buildSheetCopy('crewDesignAndAssignCrawler', {
-                          name: crawler.name,
-                        })}
-                      >
-                        {buildSheetCopy('crew')}
-                      </Button>
-                    )}
-                  </>
-                )
-              }
-            >
-              {/* Each bay a contentful Mini and what belongs to it, in one
-                subtle border (`MiniGroup`), a cell of the masonry grid. */}
-              <MiniGrid label={buildSheetCopy('bays')}>
-                {bays.map((entry, i) =>
-                  bayKind(entry) === 'storage' ? null : (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
-                    <li key={`${entry.bayRef}-${i}`}>{renderBay(entry, i)}</li>
-                  )
-                )}
-              </MiniGrid>
-            </SlabSection>
-          )}
-          {/* Related units — under the Bays: a crawler's crew is every pilot
-            and mech it homes, a list that grows down the content column. */}
-          {linkedUnits}
-        </SheetColumns>
-      )}
-
-      {/* The weapons picker — the existing master-detail modal, mounted
-          lazily so its reference preload only runs once '+ Add' opens it. */}
-      {!readOnly && systemsModalOpen && (
+      <CrawlerDash
+        crawler={crawler}
+        mech={mech}
+        mechHref={mechHref}
+        store={store}
+        cargo={cargo}
+        liveCondition={liveCondition}
+        vitals={vitalRows}
+        vitalActions={vitalActions}
+        linkedUnits={linkedUnits}
+        crew={crew}
+        edit={edit}
+        phone={phone}
+      />
+      {/* The weapons picker, mounted lazily so its reference preload only
+          runs once Mount opens it. */}
+      {edit && systemsModalOpen && (
         <CrawlerSystemsEditModal
           open
           onClose={() => setSystemsModalOpen(false)}
@@ -511,12 +181,5 @@ export function CrawlerSheet({
         />
       )}
     </section>
-  )
-}
-
-/** The Armament Bay's own weapon choice holds a pick. */
-function armamentPicked(crawler: Crawler): boolean {
-  return Object.values(crawler.bayChoices?.['armament-bay'] ?? {}).some(
-    (picks) => Array.isArray(picks) && picks.length > 0
   )
 }

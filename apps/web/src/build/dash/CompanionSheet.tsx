@@ -368,7 +368,7 @@ export function CompanionSheet({
               about !== '' ? (
                 <div className="su-mast-id">
                   <div className="su-mast-id__about">
-                    <p className={cn('su-mast-id__label', CAPS, CAPS)}>{buildSheetCopy('about')}</p>
+                    <p className={cn('su-mast-id__label', CAPS)}>{buildSheetCopy('about')}</p>
                     <Prose text={about} lines={5} />
                   </div>
                 </div>

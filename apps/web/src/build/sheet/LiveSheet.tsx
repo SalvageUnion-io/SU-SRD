@@ -38,9 +38,7 @@ import {
   Stat,
   Tag,
   tokens,
-  useMediaQuery,
 } from '../../components/index'
-import { widthAtLeast } from '../../design/tokens'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { BandStamp, PatternStamp } from './bandStamps.model'
 import { RailActs } from './RailActs'
@@ -164,8 +162,6 @@ type LiveSheetProps = {
    * PATTERN chip.
    */
   quoted?: boolean
-  /** The body pins its own vitals on a phone (`PinnedVitals`); the bar condenses from 40rem. */
-  pinsVitals?: boolean
 }
 
 /** Sticky bar height: one compact row. */
@@ -329,14 +325,12 @@ export function LiveSheet({
   out,
   userMade,
   quoted = false,
-  pinsVitals = false,
 }: LiveSheetProps) {
   // A 1px sentinel beneath the bar, NOT the identity block: the bar seams and
   // fills the moment you scroll past IT, not once a whole region clears.
   const topRef = useRef<HTMLDivElement | null>(null)
-  const scrolled = useCondensed(topRef)
-  const phone = !useMediaQuery(widthAtLeast('sm'), true)
-  const condensed = scrolled && !(pinsVitals && phone)
+  // The one sticky bar, at every width: the name and the vitals in brief.
+  const condensed = useCondensed(topRef)
 
   const title = quoted ? `“${name}”` : name
   const game = band?.game

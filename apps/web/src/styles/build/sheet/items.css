@@ -29,6 +29,14 @@
 .su-sheet-item__remove {
   min-width: var(--size-mini);
   padding: 0;
+  position: relative;
+}
+
+/* Its target is 24px (WCAG 2.5.8), centred on the 18px square. */
+.su-sheet-item__remove::after {
+  content: '';
+  inset: min(0px, calc(50% - var(--space-12)));
+  position: absolute;
 }
 
 @media print {

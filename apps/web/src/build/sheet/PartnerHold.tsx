@@ -2,20 +2,16 @@
  * PartnerHold — the partner's cargo hold and its boundary with the crawler
  * Storage Bay.
  *
- * A deliberately smaller surface than `StorageManifest`, which renders the
- * mech⇄crawler boundary. That component is built around two named sides, a
- * counterpart panel and a scrap-pool round trip; a partner carries between 1
- * and 3 slots, so a third side there would have cost far more than it
- * returned. The transfer semantics
- * are not duplicated — both go through the same `cargoTransfer` reducer — and
- * nor is the lot: every lot is the one `CargoLotLine`.
+ * A partner carries between 1 and 3 slots. The transfer semantics are the
+ * mech and crawler holds' (`cargoTransfer`), and every lot is the one
+ * `CargoLotLine`.
  *
  * Vocabulary matches the mech hold, because a partner "uses the same rules as
  * Mechs": Load in, Unload out, Stow across to the Storage Bay. The Bay keeps
  * its own Stow/Unstow pair on the crawler sheet.
  *
- * Every move goes through `reportCargo` — the same helper `StorageManifest`
- * uses. The disabled states below pre-empt the predictable refusals; the
+ * Every move goes through `reportCargo` — the same helper the mech and
+ * crawler holds use. The disabled states below pre-empt the predictable refusals; the
  * unpredictable ones (a blocked or failed save, a second click landing after
  * the first already moved the lot) only exist in the resolved result, and
  * dropping it left the player with a button that appeared to do nothing.

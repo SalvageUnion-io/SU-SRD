@@ -37,7 +37,6 @@ export const mechCopy = messages({
   chassisChangedItsScrapRefunded: 'Chassis changed — its Scrap refunded and the loadout cleared.',
   customBuildPatternPrefillCleared: 'Custom build — pattern prefill cleared.',
   theUnionCrawler: 'The Union Crawler',
-  mechChassis: 'Mech Chassis',
   theSystemList: 'The System list',
   theModulesList: 'The Modules list',
   quirksTable: 'Quirks Table',

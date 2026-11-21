@@ -100,7 +100,6 @@ import { MoveToGameDialog } from './MoveToGameDialog'
 import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
 import {
-  BAYS,
   CRAWLER_COLUMNS,
   inGame,
   MECH_COLUMNS,
@@ -519,7 +518,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                       inGame(gameRelation(c, games)),
                       String(crawlerReading(c).value),
                       read(r, VITAL.sp),
-                      read(r, BAYS),
                     ],
                     menu: unitMenu('crawler', c, c),
                   }

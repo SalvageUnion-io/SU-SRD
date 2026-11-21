@@ -40,7 +40,7 @@ export function SheetBarStrip({
 }) {
   return (
     <>
-      <span className={cn('su-sheet-bar__name', CAPS, CAPS)}>
+      <span className={cn('su-sheet-bar__name', CAPS)}>
         <b>{title}</b>
         {nameAside && <span>{nameAside}</span>}
         <small>{kind}</small>
@@ -56,7 +56,7 @@ export function SheetBarStrip({
             )}
             data-state={stateOf(item, fill)}
           >
-            <span className={cn('su-sheet-bar__label', CAPS, CAPS)}>{item.label}</span>
+            <span className={cn('su-sheet-bar__label', CAPS)}>{item.label}</span>
             <span className="su-sheet-bar__figure">
               <b>{item.value}</b>
               {item.max !== undefined && <i>/{item.max}</i>}

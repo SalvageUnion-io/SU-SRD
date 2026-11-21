@@ -66,6 +66,11 @@ export type OpenRow = {
   meta?: ReactNode
   /** What it is on this sheet: a stamp (Damaged), its Uses. */
   state?: ReactNode
+  /**
+   * Edit's controls for the row, in place after its state (C8): a condition's
+   * stepper, Uses, Details, the remove ✕. Read gives none; the row is the same.
+   */
+  controls?: ReactNode
   /** One per column, in order; `''` or `null` prints the empty mark. */
   cells: readonly ReactNode[]
   /** The line under the row: what it does. */
@@ -186,8 +191,9 @@ function Row({
                 row.name
               )}
             </span>
-            {row.meta && <span className={cn('su-open__meta', CAPS, CAPS)}>{row.meta}</span>}
+            {row.meta && <span className={cn('su-open__meta', CAPS)}>{row.meta}</span>}
             {row.state && <span className="su-open__state">{row.state}</span>}
+            {row.controls && <span className="su-open__controls">{row.controls}</span>}
           </span>
         </th>
         {columns.map((column, index) => {
@@ -243,7 +249,7 @@ function Group({
   return (
     <tbody>
       {group.label !== undefined && (
-        <tr className={cn('su-open__group', CAPS, CAPS)}>
+        <tr className={cn('su-open__group', CAPS)}>
           <th colSpan={span} scope="rowgroup">
             <span className="su-open__group-line">
               {group.fold ? (
@@ -304,13 +310,14 @@ export function OpenLedger({
   // The table is named by its title, as a screen reader lists it.
   const titleId = useId()
   return (
-    <table className={cn('su-open', className)} aria-labelledby={titleId}>
+    // `data-form`: a list's form, the same in Read and Edit (R11).
+    <table className={cn('su-open', className)} aria-labelledby={titleId} data-form="ledger">
       <thead className={CAPS}>
         <tr>
           <th scope="col">
             {/* The tab is its section's head (L2): a Slab's row, as the outline reads it. */}
             <span className="su-open__title" data-slab="">
-              <Heading id={titleId} className={cn('su-rule-head__label', CAPS, CAPS)}>
+              <Heading id={titleId} className={cn('su-rule-head__label', CAPS)}>
                 {title}
               </Heading>
               {tallies.length > 0 && (
@@ -318,7 +325,7 @@ export function OpenLedger({
                   {tallies.map((entry) => (
                     <span
                       key={entry.label}
-                      className={cn('su-rule-head__tally', CAPS, CAPS)}
+                      className={cn('su-rule-head__tally', CAPS)}
                       data-state={entry.state === 'critical' ? 'critical' : undefined}
                       title={entry.title}
                     >
@@ -330,7 +337,7 @@ export function OpenLedger({
                   ))}
                 </span>
               )}
-              {note && <span className={cn('su-rule-head__note', CAPS, CAPS)}>{note}</span>}
+              {note && <span className={cn('su-rule-head__note', CAPS)}>{note}</span>}
               {actions && <div className="su-rule-head__actions">{actions}</div>}
             </span>
           </th>

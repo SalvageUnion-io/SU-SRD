@@ -388,6 +388,15 @@
 .su-step-btn--cell {
   min-height: 0;
   min-width: var(--space-24);
+  position: relative;
+}
+
+/* Its target is 24px tall whatever it draws at (WCAG 2.5.8): a hit area
+   centred on it, never smaller than the button. */
+.su-step-btn--cell::after {
+  content: '';
+  inset: min(0px, calc(50% - var(--space-12)));
+  position: absolute;
 }
 
 /* A spent step (at its min or max) drains like a disabled rust button

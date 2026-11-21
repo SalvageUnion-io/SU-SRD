@@ -8,7 +8,7 @@
  * purposes of modification … it should only be red when that value has been
  * manually modified."
  *
- * So the max renders overridden — rust numeral, `*`, ↺, "overridden from N",
+ * So the max renders overridden — rust numeral, `*`, ↺ "Revert to derived (N)",
  * and an Override line in the ledger — if and only if the stored pin differs
  * from what the rules derive right now. All five read ONE flag
  * (`StatBreakdown.overridden`), so they cannot disagree.
@@ -54,9 +54,6 @@ const basePilotInput = {
   conditions: [] as string[],
 }
 
-/** The pilot sheet's override tone: `--tone-deep` (rust on the pilot sheet). */
-const OVERRIDE_TONE = 'var(--tone-deep)'
-
 beforeEach(() => {
   resetStores()
 })
@@ -98,14 +95,18 @@ async function seedPilot(): Promise<{ pilot: Pilot; crawler: Crawler }> {
 }
 
 /**
- * The HP gauge's own subtree. Queries are scoped to it because a role query
- * over the whole Live Sheet (every ability card) costs seconds per call.
+ * The HP vital's own subtree on the masthead. Queries are scoped to it because
+ * a role query over the whole Live Sheet (every ability card) costs seconds
+ * per call.
  */
 function hpGauge(): HTMLElement {
-  const el = document.querySelector<HTMLElement>('[role="group"][aria-label^="HP "]')
-  if (!el) throw new Error('HP gauge not rendered')
+  const el = document.querySelector<HTMLElement>('.su-strip__cell[data-vital="hp"]')
+  if (!el) throw new Error('HP vital not rendered')
   return el
 }
+
+/** Whether the max wears the override marks: its tone's deep ink (`data-overridden`). */
+const tonedOverride = () => hpGauge().querySelector('.su-vital-max[data-overridden]') !== null
 
 function storedPin(pilotId: string): number | undefined {
   return useUnits.getState().get('pilot', pilotId)?.maxHpOverride
@@ -142,12 +143,11 @@ async function hpMax(value: number): Promise<HTMLElement> {
 
 /** Every override affordance on the HP gauge, read together. */
 async function expectNotOverridden(value: number): Promise<void> {
-  const max = await hpMax(value)
+  await hpMax(value)
   const gauge = within(hpGauge())
-  expect(max.style.color).not.toBe(OVERRIDE_TONE)
+  expect(tonedOverride()).toBe(false)
   expect(gauge.queryByText('*')).toBeNull()
   expect(gauge.queryByRole('button', { name: /revert hp max/i })).toBeNull()
-  expect(gauge.queryByText(/overridden from/i)).toBeNull()
   // The ledger agrees: no Derived/Override lines tacked onto the derivation.
   expect(await ledgerText()).not.toContain('pinned by hand')
 }
@@ -176,14 +176,14 @@ async function ledgerText(): Promise<string> {
 }
 
 async function expectOverridden(value: number, from: number): Promise<void> {
-  const max = await hpMax(value)
+  await hpMax(value)
   const gauge = within(hpGauge())
-  expect(max.style.color).toBe(OVERRIDE_TONE)
+  expect(tonedOverride()).toBe(true)
   expect(gauge.getByText('*')).toBeTruthy()
-  expect(
-    gauge.getByRole('button', { name: new RegExp(`revert hp max to derived ${from}`, 'i') })
-  ).toBeTruthy()
-  expect(gauge.getByText(new RegExp(`overridden from ${from}`, 'i'))).toBeTruthy()
+  const revert = gauge.getByRole('button', {
+    name: new RegExp(`revert hp max to derived ${from}`, 'i'),
+  })
+  expect(revert.getAttribute('title')).toBe(`Revert to derived (${from})`)
   expect(await ledgerText()).toContain('pinned by hand')
 }
 

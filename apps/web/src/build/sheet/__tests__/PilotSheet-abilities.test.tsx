@@ -182,39 +182,20 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
     expandCards()
 
     expect(screen.queryByRole('button', { name: /^More for / })).toBeNull()
-    // Read is the dashboard: the ability's row carries its cost box and a
-    // static Used stamp.
-    const row = dashRow('Talk Shop')
-    expect(row.textContent).toContain('3')
-    expect(within(row).getByText('Used')).toBeTruthy()
+    // Its Mini on the track carries its cost and a static Used stamp.
+    const line = abilityLine('Talk Shop')
+    expect(line.textContent).toContain('3 AP')
+    expect(within(line).getByText('Used')).toBeTruthy()
   })
 })
 
-/** Open the folded Generic Abilities section (`expandCards` may have); returns it. */
-async function openGeneric(): Promise<HTMLElement> {
-  const fold = screen.getByRole('button', { name: /^(Expand|Collapse) Generic Abilities$/ })
-  if (fold.getAttribute('aria-expanded') !== 'true') {
-    await act(async () => {
-      fireEvent.click(fold)
-    })
-  }
-  const section = fold.closest('section')
-  if (!section) throw new Error('no Generic Abilities section')
-  return section
-}
-
-/** A section's fold, by its title: open or not, and whether its body shows. */
-const foldOf = (title: string) => {
-  const button = screen.getByRole('button', { name: new RegExp(`^(Collapse|Expand) ${title}$`) })
-  const section = button.closest('section')
-  const body = section?.querySelector<HTMLElement>(':scope > .su-slab-section__body')
-  return {
-    section,
-    open: button.getAttribute('aria-expanded') === 'true',
-    shown: body !== null && body !== undefined && !body.hidden,
-    grid: body?.querySelector<HTMLElement>(':scope > ul.su-mini-grid') ?? null,
-    trees: body?.querySelector<HTMLElement>(':scope > .su-pilot-trees') ?? null,
-  }
+/** The Generic Abilities, a Ledger of the side column. */
+function genericLedger(): HTMLElement {
+  const table = screen
+    .getAllByRole('table')
+    .find((t) => t.querySelector('.su-rule-head__label')?.textContent === 'Generic Abilities')
+  if (!table) throw new Error('no Generic Abilities ledger')
+  return table
 }
 
 /** The class's trees: each on its track, the trees side by side. */
@@ -224,106 +205,79 @@ const treesOf = (): HTMLElement => {
   return trees
 }
 
-/** Read's trees: the class's trees side by side, an open Ledger each. */
-const dashTrees = (): HTMLElement[] => [
-  ...document.querySelectorAll<HTMLElement>('.su-trees > table.su-open'),
+/** Each tree's section, under the slab naming it. */
+const treeSections = (): HTMLElement[] => [
+  ...treesOf().querySelectorAll<HTMLElement>(':scope > section'),
 ]
 
-/** Read's row for an ability, by its name. */
-const dashRow = (name: string): HTMLElement => {
-  const row = screen
-    .getAllByRole('rowheader')
-    .find((cell) => cell.textContent?.includes(name))
-    ?.closest<HTMLElement>('tr')
-  if (!row) throw new Error(`no ${name} row`)
-  return row
+/** A tree's name, its slab's. */
+const treeTitle = (section: HTMLElement) =>
+  section.querySelector('.su-slab-section__head > :first-child')?.textContent ?? ''
+
+/** An ability's place on its track, by its name. */
+const abilityLine = (name: string): HTMLElement => {
+  const line = [...document.querySelectorAll<HTMLElement>('.su-ability-track__tier')].find((tier) =>
+    tier.querySelector('.su-entity-mini__name')?.textContent?.startsWith(name)
+  )
+  if (!line) throw new Error(`no ${name} on a track`)
+  return line
 }
 
-describe('PilotSheet — the abilities fold: the trees on their tracks, the Generic a masonry grid', () => {
-  test('Read: the class trees lead, each a Ledger; the Generic abilities taken are their own Ledger beside', () => {
-    const pilot = makePilot({ abilities: ['mech-acquisition', 'tip-top-shape'] })
-    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
-    const trees = dashTrees()
-    expect(trees.length).toBeGreaterThan(0)
-    const generic = screen
-      .getAllByRole('table')
-      .find(
-        (table) => table.querySelector('.su-rule-head__label')?.textContent === 'Generic Abilities'
-      )
-    // The Generic tree is never one of the class's trees.
-    if (generic) expect(trees.includes(generic)).toBe(false)
-  })
-
-  for (const readOnly of [false]) {
-    test(`tree abilities on top and open, Generic abilities under them and folded (${readOnly ? 'Read' : 'Edit'})`, () => {
+describe('PilotSheet — one form in Read and Edit: the trees on their tracks, the Generic a Ledger', () => {
+  for (const readOnly of [true, false]) {
+    const mode = readOnly ? 'Read' : 'Edit'
+    test(`${mode}: each class tree a track of Minis; the Generic abilities a Ledger of the side column`, () => {
       const pilot = makePilot({ abilities: ['mech-acquisition', 'tip-top-shape'] })
       render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly={readOnly} />)
 
-      const trees = foldOf('Abilities')
-      const generic = foldOf('Generic Abilities')
-      // Two sections, in this order.
-      expect(trees.section).toBeTruthy()
-      expect(generic.section).toBeTruthy()
-      expect(
-        (trees.section as HTMLElement).compareDocumentPosition(generic.section as HTMLElement) &
-          Node.DOCUMENT_POSITION_FOLLOWING
-      ).toBeTruthy()
-      // Their default folds: the trees open, the Generic tree shut.
-      expect(trees.open).toBe(true)
-      expect(trees.shown).toBe(true)
-      expect(generic.open).toBe(false)
-      expect(generic.shown).toBe(false)
-      // The trees each a track of contentful Minis, one ability a tier; the
-      // Generic tree a masonry grid of them, one a cell.
-      const tiers = Array.from(trees.trees?.querySelectorAll('.su-ability-track__tier') ?? [])
-      const cells = Array.from(generic.grid?.children ?? [])
-      for (const group of [tiers, cells]) {
-        expect(group.length).toBeGreaterThan(0)
-        for (const cell of group) {
-          expect(cell.tagName).toBe('LI')
-          expect(cell.querySelector('.su-entity-mini[data-contentful]')).toBeTruthy()
-        }
+      expect(treesOf().dataset.form).toBe('track')
+      const tiers = [...treesOf().querySelectorAll('.su-ability-track__tier')]
+      expect(tiers.length).toBeGreaterThan(0)
+      for (const tier of tiers) {
+        expect(tier.tagName).toBe('LI')
+        expect(tier.querySelector('.su-entity-mini')).toBeTruthy()
       }
+      const generic = genericLedger()
+      expect(generic.dataset.form).toBe('ledger')
+      // The Generic tree is never one of the class's trees.
+      expect(treesOf().contains(generic)).toBe(false)
     })
   }
 })
 
 describe('PilotSheet — the Generic tree is intrinsic', () => {
-  test('a pilot with no stored abilities still shows the Generic Minis', async () => {
+  test('a pilot with no stored abilities still has the Generic abilities', () => {
     const pilot = makePilot({ abilities: [] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
-    expandCards()
 
-    // Never stored, never picked: every pilot carries the whole tree (Bonesaw
-    // reads his Generic cards beside his one stored ability), in its own
-    // section under the trees the pilot chose, which say none are learned.
-    const generic = await openGeneric()
-    const names = Array.from(generic.querySelectorAll('.su-entity-mini__name')).map(
+    // Never stored, never picked: every pilot carries the whole tree, in its
+    // own Ledger beside the trees the pilot chose, which say none are learned.
+    const names = Array.from(genericLedger().querySelectorAll('.su-open__name')).map(
       (n) => n.textContent ?? ''
     )
     for (const name of ['Repair', 'Area Salvage', 'Mech Salvage', 'Patch Up']) {
       expect(names.some((n) => n.startsWith(name))).toBe(true)
     }
     expect(screen.getByText('No abilities learned yet.')).toBeTruthy()
-    // …with the same live-play toggle as any other ability.
+    // …with the same live-play menu as any other ability.
     expect(screen.getByRole('button', { name: 'More for Repair' })).toBeTruthy()
   })
 
-  test('a stored ability prints beside the Generic tree, not instead of it', async () => {
+  test('a stored ability prints beside the Generic tree, not instead of it', () => {
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
-    expandCards()
-    await openGeneric()
     expect(screen.getByRole('button', { name: 'More for Repair' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'More for Talk Shop' })).toBeTruthy()
   })
 })
 
-/** The tree abilities' names, tree by tree, each tree's in its order. */
+/** The taken tree abilities' names, tree by tree, each tree's in its order. */
 const treeAbilityNames = () =>
-  Array.from(treesOf().querySelectorAll('.su-ability-track__tier .su-entity-mini__name')).map(
-    (name) => name.textContent ?? ''
-  )
+  Array.from(
+    treesOf().querySelectorAll(
+      '.su-ability-track__tier > :not(.su-pilot-ability--unlearned) .su-entity-mini__name'
+    )
+  ).map((name) => name.textContent ?? '')
 
 describe('PilotSheet — the tree abilities, tree by tree', () => {
   test("only the Abilities taken, each a contentful Mini, in its tree's order", () => {
@@ -366,9 +320,7 @@ describe('PilotSheet — the tree abilities, tree by tree', () => {
     const pilot = makePilot({ classRef: 'salvager', abilities: ['squeeze-it-in'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
 
-    const trees = dashTrees().map(
-      (table) => table.querySelector('.su-rule-head__label')?.textContent
-    )
+    const trees = treeSections().map(treeTitle)
     expect(trees.length).toBeGreaterThan(2)
     expect(trees[0]).toBe('Salvaging')
     expect(trees[1]).toBe('Mechanical Knowledge')
@@ -433,38 +385,39 @@ describe("PilotSheet — a hybrid's Add Abilities offers its origin's trees", ()
 })
 
 describe("PilotSheet — the class's own trees", () => {
-  test('a Core class shows its Core trees whole, the untaken greyed, never its Advanced tree', () => {
-    const pilot = makePilot({ classRef: 'Engineer', abilities: ['talk-shop'] })
-    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
-    const rows = dashTrees().flatMap((table) => [
-      ...table.querySelectorAll<HTMLElement>('tr.su-open__row'),
-    ])
-    const names = rows.map((row) => row.querySelector('th')?.textContent ?? '')
-    // Its Core trees whole: Talk Shop's tree-mates are there, greyed.
-    expect(names.some((n) => n.includes('Engineering Expertise'))).toBe(true)
-    expect(names.some((n) => n.includes('Union Engineer'))).toBe(false)
-    const greyed = rows.filter((row) => row.dataset.dim !== undefined)
-    expect(greyed.length).toBe(names.length - 1)
-    // Each tree its own Ledger, side by side.
-    expect(dashTrees().length).toBeGreaterThan(1)
-  })
+  for (const readOnly of [true, false]) {
+    test(`a Core class shows its Core trees whole, the untaken greyed, never its Advanced tree (${readOnly ? 'Read' : 'Edit'})`, () => {
+      const pilot = makePilot({ classRef: 'Engineer', abilities: ['talk-shop'] })
+      render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly={readOnly} />)
+      const tiers = [...treesOf().querySelectorAll<HTMLElement>('.su-ability-track__tier')]
+      const names = tiers.map(
+        (tier) => tier.querySelector('.su-entity-mini__name')?.textContent ?? ''
+      )
+      // Its Core trees whole: Talk Shop's tree-mates are there, greyed.
+      expect(names.some((n) => n.includes('Engineering Expertise'))).toBe(true)
+      expect(names.some((n) => n.includes('Union Engineer'))).toBe(false)
+      const greyed = tiers.filter((tier) => tier.querySelector('.su-pilot-ability--unlearned'))
+      expect(greyed.length).toBe(names.length - 1)
+      // Each tree its own track, side by side.
+      expect(treeSections().length).toBeGreaterThan(1)
+    })
+  }
 })
 
 describe('PilotSheet — a taken ability reads its full rules', () => {
-  test('Talk Shop taken reads its rules; its untaken tree-mates their lead alone', () => {
-    const pilot = makePilot({ classRef: 'Engineer', abilities: ['talk-shop'] })
-    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
-    // The taken ability starts open, its rules showing; the untaken stay shut.
-    const talkShop = dashRow('Talk Shop')
-    expect(talkShop.dataset.open).toBe('')
-    const panel = talkShop.querySelector('[aria-controls]')?.getAttribute('aria-controls')
-    const rules = panel ? document.getElementById(panel) : null
-    expect(rules?.hidden).toBe(false)
-    expect((rules?.textContent ?? '').length).toBeGreaterThan(0)
-    const untaken = dashTrees().flatMap((table) => [
-      ...table.querySelectorAll<HTMLElement>('tr.su-open__row[data-dim]'),
-    ])
-    expect(untaken.length).toBeGreaterThan(0)
-    for (const row of untaken) expect(row.dataset.open).toBeUndefined()
-  })
+  for (const readOnly of [true, false]) {
+    test(`Talk Shop taken reads its rules; its untaken tree-mates their head alone, without controls (${readOnly ? 'Read' : 'Edit'})`, () => {
+      const pilot = makePilot({ classRef: 'Engineer', abilities: ['talk-shop'] })
+      render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly={readOnly} />)
+      const talkShop = abilityLine('Talk Shop')
+      expect(talkShop.querySelector('.su-entity-mini[data-contentful]')).toBeTruthy()
+      expect(talkShop.querySelector('.su-pilot-ability--unlearned')).toBeNull()
+      const untaken = [...treesOf().querySelectorAll<HTMLElement>('.su-pilot-ability--unlearned')]
+      expect(untaken.length).toBeGreaterThan(0)
+      for (const line of untaken) {
+        expect(line.querySelector('.su-entity-mini[data-contentful]')).toBeNull()
+        expect(line.querySelector('button[aria-label^="More for"]')).toBeNull()
+      }
+    })
+  }
 })

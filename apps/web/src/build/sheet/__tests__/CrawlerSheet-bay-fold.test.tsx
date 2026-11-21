@@ -1,10 +1,7 @@
 /**
- * CrawlerSheet — a bay reads as Bay Info, When Damaged, then everything else.
- *
- * On a sheet both folding sections start shut: the crew Mini and the roll
- * bar stay in view, and the bay's rules and its damaged clause wait until the
- * reader opens them. A damaged bay opens its When Damaged. Real SRD bays
- * (Pilot Bay, Trading Bay), no patched rows.
+ * CrawlerSheet — a bay is a line of the crew manifest, in Read and in Edit:
+ * its rules and its damaged clause wait behind the line until the reader
+ * opens it. Real SRD bays (Pilot Bay, Trading Bay), no patched rows.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -13,13 +10,6 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { CrawlerSheet } from '../CrawlerSheet'
-
-/** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
-function openCrewDetails() {
-  for (const toggle of screen.queryAllByRole('button', { name: /^Edit .* crew details$/ })) {
-    fireEvent.click(toggle)
-  }
-}
 
 const crawler: Crawler = {
   id: 'crawler-fold-1',
@@ -35,10 +25,6 @@ const crawler: Crawler = {
 
 const store = () => makeSingleUnitStore('crawler', crawler)
 
-/** A section's fold, named for its bay ("Expand Pilot Bay Bay Info"). */
-const fold = (bay: string, section: string) =>
-  screen.getByRole('button', { name: new RegExp(`^(Expand|Collapse) ${bay} ${section}$`) })
-
 /** Shown: in the document and under no shut fold. */
 function shown(text: string | RegExp): boolean {
   const node = screen.queryByText(text)
@@ -49,79 +35,14 @@ const TRAINING = 'Pilot Training Points (TP)'
 const PILOT_DAMAGED = /If the Pilot Bay is damaged, you cannot train/
 
 describe('a crawler bay on the sheet', () => {
-  test('starts with Bay Info and When Damaged shut: crew lead and roll bar in view', () => {
-    render(<CrawlerSheet crawler={crawler} store={store()} />)
-    expect(fold('Pilot Bay', 'Bay Info').getAttribute('aria-expanded')).toBe('false')
-    expect(fold('Pilot Bay', 'When Damaged').getAttribute('aria-expanded')).toBe('false')
-    expect(screen.getByRole('group', { name: 'Pilot Bay crew lead' })).toBeTruthy()
-    expect(shown(TRAINING)).toBe(false)
-    expect(shown(PILOT_DAMAGED)).toBe(false)
-    expect(screen.getByRole('button', { name: 'Roll the die on Trading Bay' })).toBeTruthy()
-    expect(shown('Trading Scrap')).toBe(false)
-  })
-
-  test('Bay Info leads, then When Damaged, then the crew', () => {
-    render(<CrawlerSheet crawler={crawler} store={store()} />)
-    const info = fold('Pilot Bay', 'Bay Info')
-    const crew = screen.getByRole('group', { name: 'Pilot Bay crew lead' })
-    const damaged = fold('Pilot Bay', 'When Damaged')
-    expect(info.compareDocumentPosition(damaged) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(damaged.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  })
-
-  test('Bay Info and When Damaged come before the roll table and the rest', () => {
-    render(<CrawlerSheet crawler={crawler} store={store()} />)
-    const damaged = fold('Trading Bay', 'When Damaged')
-    const roll = screen.getByRole('button', { name: 'Roll the die on Trading Bay' })
-    expect(damaged.compareDocumentPosition(roll) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  })
-
-  test("the Storage Bay's Scrap Pool and Crawler Hold head at its sections' Mini Size", () => {
-    const withStorage: Crawler = { ...crawler, crawlerBays: [{ bayRef: 'storage-bay' }] }
-    render(<CrawlerSheet crawler={withStorage} store={store()} />)
-    for (const title of ['Scrap Pool', 'Crawler Hold']) {
-      const section = screen.getByText(title).closest('.su-slab-section')
-      expect(section?.classList.contains('su-slab-section--mini')).toBe(true)
-    }
-  })
-
-  test('each fold opens its own section of its own bay, and shuts it again', () => {
-    render(<CrawlerSheet crawler={crawler} store={store()} />)
-    fireEvent.click(fold('Pilot Bay', 'Bay Info'))
-    expect(fold('Pilot Bay', 'Bay Info').getAttribute('aria-expanded')).toBe('true')
-    expect(shown(TRAINING)).toBe(true)
-    expect(shown('Trading Scrap')).toBe(false)
-    expect(shown(PILOT_DAMAGED)).toBe(false)
-    fireEvent.click(fold('Pilot Bay', 'When Damaged'))
-    expect(shown(PILOT_DAMAGED)).toBe(true)
-    fireEvent.click(fold('Pilot Bay', 'Bay Info'))
-    expect(shown(TRAINING)).toBe(false)
-  })
-
-  test('a click inside the bay does not unfold it: only the fold does', () => {
-    render(<CrawlerSheet crawler={crawler} store={store()} />)
-    openCrewDetails()
-    fireEvent.click(screen.getByRole('button', { name: 'Edit pilot bay crew name' }))
-    expect(screen.getByRole('group', { name: 'Pilot Bay crew lead' })).toBeTruthy()
-    expect(fold('Pilot Bay', 'Bay Info').getAttribute('aria-expanded')).toBe('false')
-  })
-
-  test('a damaged bay opens its When Damaged', () => {
-    const damaged: Crawler = {
-      ...crawler,
-      crawlerBays: [{ bayRef: 'pilot-bay', condition: 'damaged' }],
-    }
-    render(<CrawlerSheet crawler={damaged} store={store()} />)
-    expect(fold('Pilot Bay', 'When Damaged').getAttribute('aria-expanded')).toBe('true')
-    expect(shown(PILOT_DAMAGED)).toBe(true)
-    expect(fold('Pilot Bay', 'Bay Info').getAttribute('aria-expanded')).toBe('false')
-  })
-
-  test("a read-only sheet's bay line starts shut and opens its rules", () => {
-    // Read is the crew manifest: a bay is a line, its rules a press away.
-    render(<CrawlerSheet crawler={crawler} store={store()} readOnly />)
-    expect(shown(TRAINING)).toBe(false)
-    fireEvent.click(screen.getByRole('button', { name: 'Pilot Bay rules and crew' }))
-    expect(shown(TRAINING)).toBe(true)
-  })
+  for (const readOnly of [true, false]) {
+    test(`in ${readOnly ? 'Read' : 'Edit'} its line starts shut and opens its rules`, () => {
+      render(<CrawlerSheet crawler={crawler} store={store()} readOnly={readOnly} />)
+      expect(shown(TRAINING)).toBe(false)
+      expect(shown(PILOT_DAMAGED)).toBe(false)
+      fireEvent.click(screen.getByRole('button', { name: 'Pilot Bay rules and crew' }))
+      expect(shown(TRAINING)).toBe(true)
+      expect(shown(PILOT_DAMAGED)).toBe(true)
+    })
+  }
 })

@@ -2,13 +2,12 @@
  * R61 A box fits its content: a Live Sheet's opening is as tall as what is in
  * it. From the 64rem rung, with a sidebar, the Vitals panel heads the sidebar
  * (one render, a portal) and the opening is its fields alone; on a phone the
- * opening's longer fields (`HeroMore`) follow the Vitals, so the name and the
- * vitals share the first screen (§1.10).
+ * Vitals stay in the opening.
  */
 import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
 import { SheetColumns } from '../SheetColumns'
-import { HeroMore, SheetHero } from '../SheetHero'
+import { SheetHero } from '../SheetHero'
 
 const realMatchMedia = window.matchMedia
 afterEach(() => {
@@ -35,9 +34,7 @@ const sheet = () =>
           fields={
             <>
               <p>Callsign</p>
-              <HeroMore>
-                <p>Motto</p>
-              </HeroMore>
+              <p>Motto</p>
             </>
           }
           vitals={<p>Hit Points</p>}
@@ -62,16 +59,10 @@ describe('SheetHero — R61 a box fits its content', () => {
     expect(container.querySelector('.su-sheet-hero-fields')?.textContent).toContain('Motto')
   })
 
-  test('on a phone the Vitals stay in the opening and the longer fields follow them', () => {
+  test('on a phone the Vitals stay in the opening', () => {
     viewport(() => false)
     const { container } = sheet()
     const hero = container.querySelector<HTMLElement>('.su-sheet-hero')
     expect(hero?.querySelector('.su-sheet-vitals')?.textContent).toContain('Hit Points')
-    expect(container.querySelector('.su-sheet-hero-fields')?.textContent).not.toContain('Motto')
-    const panels = [...(hero?.children ?? [])].map((el) => el.textContent ?? '')
-    const vitalsAt = panels.findIndex((text) => text.includes('Hit Points'))
-    const mottoAt = panels.findIndex((text) => text.includes('Motto'))
-    expect(vitalsAt).toBeGreaterThan(-1)
-    expect(mottoAt).toBeGreaterThan(vitalsAt)
   })
 })

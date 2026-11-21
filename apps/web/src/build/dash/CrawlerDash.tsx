@@ -14,32 +14,33 @@
  *     every bay's are.
  *   Then the weapons, the crawler's type (its ability and its crew) and
  *     what was written about it.
+ *
+ * Edit is the same dashboard with its controls in place (R11): the identity's
+ * fields under the board, the photo, SP's max, each bay's condition, Repair
+ * and remove on its row, its choices and crew lead's fields in its
+ * opened line, + Bay and Crew on the manifest's head, the pool's steppers and
+ * the hold's moves and intake, the weapons' Mount and remove, and the type's
+ * crew lead's fields.
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { ComponentProps, ReactNode } from 'react'
 import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
-import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
-import { EntityChoices, Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
-import type { CSSVarStyle, OpenColumn, OpenRow, PhoneVital } from '../../components/index'
+import { Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
+import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
 import {
   Button,
   Content,
-  capsLabel,
-  damagedEffectOf,
-  EntityRollMini,
   embeddedPeekAddress,
+  HeaderMenu,
   Mention,
   OpenLedger,
   Stat,
   TechLevel,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
-import { useEntityChoices } from '../../components/shared/useEntityChoices'
-import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
-import { cn } from '../../lib/cn'
 import {
   resolveCrawlerBay,
   resolveCrawlerType,
@@ -49,21 +50,19 @@ import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { assignmentFor } from '../../lib/npcs/npcModel'
 import { crawlerTypeArt } from '../../lib/photos/defaultArt'
 import { resolveCrawlerSystem } from '../../lib/rules/crawlerItems'
-import { EXOTIC_RESOURCES, exoticBucket, hasExotic } from '../../lib/rules/exoticSalvage'
-import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
+import { CrawlerIdentityFields } from '../sheet/CrawlerIdentity'
 import type { CrawlerBayEntry } from '../sheet/CrawlerSheetItems'
-import { splitBayContent } from '../sheet/CrawlerSheetItems'
-import { EXOTIC_NAME } from '../sheet/exoticNames.model'
-import { LinkedUnitLink } from '../sheet/LinkedUnitLink'
+import { SheetRemoveButton } from '../sheet/rowControls'
+import type { SheetPatch } from '../sheet/sheetViewProps.model'
+import { TypeCrewLead } from '../sheet/TypeCrewLead'
+import { BayControls, BayDetail } from './BayRow'
 import { LeadCell } from './bayLead'
 import { leadOf } from './bayLead.model'
-import { Dash, DashColumn, DashGroup, PinnedVitals } from './Dash'
-
-/** A caps label: the condensed face in capitals (ruleset §3.12). */
-const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
+import { Dash, DashColumn, DashGroup } from './Dash'
+import { StorageBay } from './StorageBay'
 
 const BAY_COLUMNS: readonly OpenColumn[] = [
   { key: 'lead', label: buildSheetCopy('crewLeadColumn'), kind: 'text', phone: true },
@@ -78,119 +77,27 @@ const WEAPON_COLUMNS: readonly OpenColumn[] = [
   { key: 'damage', label: buildSheetCopy('dmg'), title: buildSheetCopy('damage'), phone: true },
 ]
 
-const STORED_COLUMNS: readonly OpenColumn[] = [
-  { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
-  { key: 'units', label: buildSheetCopy('units'), phone: true },
-]
-
 const TYPE_COLUMNS: readonly OpenColumn[] = [
   { key: 'hp', label: buildSheetCopy('hp'), phone: true },
 ]
 
-/** A bay's line opened: its rules, what a Damaged bay does, its choices and its crew lead. */
-function BayDetail({
-  crawler,
-  entry,
-  index,
-  store,
-  liveCondition,
-  dockedMech,
-  contents,
-}: {
-  crawler: Crawler
-  entry: CrawlerBayEntry
-  index: number
-  store: UnitsStore
-  liveCondition: boolean
-  assigned: CrewAssignment | undefined
-  dockedMech?: { name: string; href: string | undefined } | undefined
-  contents?: ReactNode
-}) {
-  const storeState = store()
-  const { selections } = useEntityChoices(
-    'crawler',
-    crawler.id,
-    entry.bayRef,
-    'bayChoices',
-    crawler.bayChoices?.[entry.bayRef],
-    store
-  )
-  const bay = resolveCrawlerBay(entry.bayRef)
-  if (!bay) return null
-  const damaged = (entry.condition ?? 'intact') === 'damaged'
-  const { normal } = splitBayContent(bay.content)
-  const damagedText = damagedEffectOf(bay) ?? ''
-  return (
-    <div className="su-bay-detail">
-      <div className="su-bay-detail__part">
-        <p className={cn('su-dash-sub', CAPS, CAPS)}>{buildSheetCopy('bayRules')}</p>
-        <div className="su-dash-prose">
-          <Content body={normal as ComponentProps<typeof Content>['body']} fontSize="sm" />
-        </div>
-        <EntityChoices
-          entity={bay}
-          selections={selections}
-          onSelectionChange={undefined}
-          techLevel={crawler.techLevel}
-        />
-        <EntityRollMini entity={bay} disabled={damaged} />
-        {contents}
-      </div>
-      <div className="su-bay-detail__part">
-        {damagedText && (
-          <>
-            <p className={cn('su-dash-sub', CAPS, CAPS)}>{buildSheetCopy('ifDamaged')}</p>
-            <p className="su-dash-prose">{damagedText}</p>
-          </>
-        )}
-        {dockedMech && (
-          <p className="su-dash-prose">
-            {buildSheetCopy('docks')}{' '}
-            <LinkedUnitLink kind="mech" name={dockedMech.name} href={dockedMech.href} />
-          </p>
-        )}
-        {/* The crew lead prints once, on the bay's own
-            line (name, Keepsake, Motto, HP); opened, the line adds what the
-            table wrote about them, which the line has no room for. */}
-        {(entry.npcDescription?.trim() || (entry.npcFacts ?? []).length > 0) && (
-          <section aria-label={buildSheetCopy('crewLead', { bayName: bay.name })}>
-            <p className={cn('su-dash-sub', CAPS, CAPS)}>{buildSheetCopy('crewLeadColumn')}</p>
-            {entry.npcDescription?.trim() && (
-              <p className="su-dash-prose">{entry.npcDescription}</p>
-            )}
-            {(entry.npcFacts ?? []).length > 0 && (
-              <ul className="su-dash-prose">
-                {(entry.npcFacts ?? []).map((fact) => (
-                  <li key={fact}>{fact}</li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
-        {/* A bay's condition is session state: it writes in Read (R11). */}
-        {liveCondition && (
-          <div>
-            <Button
-              size="mini"
-              onClick={() =>
-                runWrite(() =>
-                  storeState.updateCrawlerBay(
-                    crawler.id,
-                    entry.bayRef,
-                    { condition: damaged ? 'intact' : 'damaged' },
-                    index,
-                    LIVE_SHEET_MANUAL
-                  )
-                )
-              }
-            >
-              {buildSheetCopy(damaged ? 'markIntact' : 'markDamaged')}
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+/** Edit's writes, from `CrawlerSheet`; absent, the dashboard reads. */
+export type CrawlerDashEdit = {
+  patch: SheetPatch
+  /** Repair a damaged bay from the pool (`bayRepairPatch`). */
+  repairBay: (entry: CrawlerBayEntry, index: number) => void
+  /** Scrap the pool is short of a repair: advisory, said on Repair. */
+  repairShortfall: number
+  /** The expansion bays it may add, and which installed ones it may remove. */
+  installable: readonly { slug: string; name: string }[]
+  addBay: (slug: string) => void
+  removable: ReadonlySet<string>
+  removeBay: (index: number) => void
+  removeWeapon: (slug: string) => void
+  /** Opens the weapons picker: the Armament Bay's Mount. */
+  mountWeapons: () => void
+  /** The crew board for this crawler (D8). */
+  crewHref?: string | undefined
 }
 
 type CrawlerDashProps = {
@@ -207,7 +114,9 @@ type CrawlerDashProps = {
   vitalActions: readonly { key: string; label: string; onClick: () => void }[]
   linkedUnits?: ReactNode
   crew?: readonly CrewAssignment[] | undefined
-  /** A phone: the vitals pinned, the groups stacked. */
+  /** Edit: the same dashboard with its controls in place. */
+  edit?: CrawlerDashEdit | undefined
+  /** A phone: the groups stacked. */
   phone: boolean
 }
 
@@ -222,13 +131,12 @@ export function CrawlerDash({
   vitalActions,
   linkedUnits,
   crew,
+  edit,
   phone,
 }: CrawlerDashProps) {
+  const editing = edit !== undefined
   const tl = crawler.techLevel
   const bays = crawler.crawlerBays ?? []
-  const intact = bays.filter((bay) => (bay.condition ?? 'intact') === 'intact').length
-  const pool = crawler.scrapPool ?? {}
-  const lots = cargo.state.depotLots
   const type = crawler.type ? resolveCrawlerType(crawler.type) : null
   const abilities = resolveCrawlerTypeAbilities(crawler.type)
   const gauges = vitals.filter((vital) => vital.max !== undefined)
@@ -245,6 +153,9 @@ export function CrawlerDash({
       id: slug,
       name: model?.title ?? slug,
       entityRef: model?.ref,
+      controls: edit ? (
+        <SheetRemoveButton name={model?.title ?? slug} onRemove={() => edit.removeWeapon(slug)} />
+      ) : undefined,
       // Traits are the open row's, not the line's.
       cells: [
         model?.techLevel !== undefined ? <TechLevel key="tl" level={model.techLevel} /> : '',
@@ -254,11 +165,20 @@ export function CrawlerDash({
     }
   })
   const weaponsLedger =
-    weapons.length > 0 ? (
+    weapons.length > 0 || edit ? (
       <OpenLedger
         title={buildSheetCopy('weapons')}
         columns={WEAPON_COLUMNS}
         groups={[{ key: 'weapons', rows: weapons }]}
+        actions={
+          edit ? (
+            <Button size="compact" onClick={edit.mountWeapons}>
+              {buildSheetCopy('mount')}
+            </Button>
+          ) : undefined
+        }
+        // A weapon picked on the Armament Bay's own choice is mounted.
+        empty={armamentPicked(crawler) ? undefined : buildSheetCopy('noWeaponsMounted')}
       />
     ) : null
 
@@ -269,12 +189,25 @@ export function CrawlerDash({
     const assigned = first ? assignmentFor(crew, { kind: 'bay', bayRef: entry.bayRef }) : undefined
     const lead = leadOf(bay?.npc, entry, crawler.bayChoices?.[entry.bayRef], assigned)
     const damaged = (entry.condition ?? 'intact') === 'damaged'
+    const name = bay?.name ?? entry.bayRef
     return {
       id: `${entry.bayRef}-${index}`,
-      name: bay?.name ?? entry.bayRef,
+      name,
       entityRef: bay ? toEntityModel({ ...bay, npc: undefined }).ref : undefined,
-      state: damaged ? (
-        <Stat size="mini" label={buildSheetCopy('damaged')} state="critical" />
+      state:
+        damaged && !edit ? (
+          <Stat size="mini" label={buildSheetCopy('damaged')} state="critical" />
+        ) : undefined,
+      controls: edit ? (
+        <BayControls
+          crawlerId={crawler.id}
+          entry={entry}
+          index={index}
+          name={name}
+          tl={tl}
+          store={store}
+          edit={edit}
+        />
       ) : undefined,
       cells: [
         lead.name || lead.position ? (
@@ -300,6 +233,7 @@ export function CrawlerDash({
                 index={index}
                 store={store}
                 liveCondition={liveCondition}
+                edit={editing}
                 assigned={assigned}
                 dockedMech={
                   entry.bayRef === 'mech-bay' && mech
@@ -339,22 +273,12 @@ export function CrawlerDash({
           unit={buildSheetCopy('tScrap', { tl })}
         />
       )}
-      {bays.length > 0 && (
-        <StripFigure
-          label={buildSheetCopy('bays')}
-          name={`${buildSheetCopy('bays')}: ${intact}/${bays.length} ${buildSheetCopy('intact')}`}
-          value={intact}
-          max={bays.length}
-          meter="pips"
-          tint="ink"
-        />
-      )}
     </>
   )
-  const actionsFoot = (size: 'compact' | 'full') =>
+  const actionsFoot =
     vitalActions.length > 0
       ? vitalActions.map((action) => (
-          <Button key={action.key} variant="default" size={size} onClick={action.onClick}>
+          <Button key={action.key} size="compact" onClick={action.onClick}>
             {action.label}
           </Button>
         ))
@@ -365,27 +289,30 @@ export function CrawlerDash({
       fallback={crawlerTypeArt(crawler.type)}
       name={crawler.name}
       frame={STRIP_ART}
+      onChange={
+        edit
+          ? (photo) => store.getState().update('crawler', crawler.id, { photo }, LIVE_SHEET_MANUAL)
+          : undefined
+      }
     />
   )
   return (
     <>
-      {phone && (
-        <PinnedVitals
-          label={buildSheetCopy('unitVitals', { name: crawler.name })}
-          name={crawler.name}
-          vitals={vitals}
-          foot={actionsFoot('full')}
-        />
-      )}
-      {phone && linkedUnits}
       <Strip
         label={buildSheetCopy('unitVitals', { name: crawler.name })}
-        art={phone ? undefined : art}
-        vitals={phone ? [] : gauges}
+        art={phone && !edit ? undefined : art}
+        vitals={gauges}
         figures={figures}
-        foot={phone ? undefined : actionsFoot('compact')}
+        foot={actionsFoot}
+        edit={editing}
         identity={
-          // On a page what was written about the crawler sits beside its numbers.
+          edit ? (
+            <CrawlerIdentityFields
+              crawler={crawler}
+              storeState={store.getState()}
+              patch={edit.patch}
+            />
+          ) : // On a page what was written about the crawler sits beside its numbers.
           crawler.description ? (
             <Facts
               facts={[
@@ -400,70 +327,53 @@ export function CrawlerDash({
           ) : undefined
         }
       />
+      {phone && linkedUnits}
       <Dash>
         <DashColumn wide label={buildSheetCopy('bays')}>
           <OpenLedger
             as="h2"
             title={buildSheetCopy('bays')}
-            tally={{ label: buildSheetCopy('intact'), value: intact, max: bays.length }}
             columns={BAY_COLUMNS}
             groups={[{ key: 'bays', rows: bayRows }]}
             className="su-open--manifest"
+            actions={
+              edit && (edit.installable.length > 0 || edit.crewHref !== undefined) ? (
+                <>
+                  {edit.installable.length > 0 && (
+                    // + Bay: a menu of the bays it can add, Crew beside it.
+                    <HeaderMenu
+                      variant="button"
+                      size="compact"
+                      trigger={buildSheetCopy('addBay')}
+                      label={buildSheetCopy('addAnExpansionBay')}
+                      sections={[
+                        edit.installable.map((b) => ({
+                          id: b.slug,
+                          label: b.name,
+                          onSelect: () => edit.addBay(b.slug),
+                        })),
+                      ]}
+                    />
+                  )}
+                  {edit.crewHref !== undefined && (
+                    <Button
+                      href={edit.crewHref}
+                      size="compact"
+                      aria-label={buildSheetCopy('crewDesignAndAssignCrawler', {
+                        name: crawler.name,
+                      })}
+                    >
+                      {buildSheetCopy('crew')}
+                    </Button>
+                  )}
+                </>
+              ) : undefined
+            }
           />
         </DashColumn>
         <DashColumn label={buildSheetCopy('whatCarries', { name: crawler.name })}>
           {!phone && linkedUnits}
-          {/* The Storage Bay as one deliberate object:
-              "Unlimited" on its head, Scrap as a six-cell board (a Tech Level
-              chip over its count), then what is stored as its rows. */}
-          <DashGroup title={buildSheetCopy('storageBay')} tally={buildSheetCopy('unlimited')}>
-            <p className={cn('su-dash-sub su-scrap__label', CAPS)}>{buildSheetCopy('scrap')}</p>
-            <Facts
-              className="su-scrap"
-              itemClassName="su-scrap__cell"
-              label={buildSheetCopy('scrapByTechLevel')}
-              facts={NUMERIC_TECH_LEVELS.map((level) => {
-                const count = scrapPoolBucket(pool, level)
-                return {
-                  key: String(level),
-                  label: <TechLevel level={level} />,
-                  value: count,
-                  empty: count === 0,
-                  style: { '--tl': `var(--color-tl-${level})` } as CSSVarStyle,
-                }
-              })}
-            />
-            {hasExotic(pool) && (
-              <Facts
-                facts={EXOTIC_RESOURCES.map((resource) => ({
-                  key: resource.key,
-                  label: EXOTIC_NAME[resource.key],
-                  value: exoticBucket(pool, resource.key),
-                }))}
-              />
-            )}
-            <OpenLedger
-              as="h3"
-              title={buildSheetCopy('stored')}
-              columns={STORED_COLUMNS}
-              groups={[
-                {
-                  key: 'lots',
-                  rows: lots.map((lot) => ({
-                    id: lot.id,
-                    name: lot.name,
-                    meta: lot.cat === 'SCRAP' ? undefined : lot.cat,
-                    cells: [
-                      lot.tl !== undefined ? <TechLevel key="tl" level={lot.tl} /> : '',
-                      lot.units,
-                    ],
-                  })),
-                },
-              ]}
-              empty={buildSheetCopy('nothingStored')}
-              className="su-open--sub"
-            />
-          </DashGroup>
+          <StorageBay crawler={crawler} mech={mech} cargo={cargo} store={store} edit={editing} />
           {weaponsLedger}
           {type && (
             <DashGroup title={buildSheetCopy('crawlerType', { type: type.name })}>
@@ -482,7 +392,18 @@ export function CrawlerDash({
                   </div>
                 )
               })}
-              {typeLead && (typeLead.name || typeLead.position) && (
+              {/* The type's crew lead is a section of its own: the abilities' Mentions are no strip of theirs (C8). */}
+              {edit && crawler.type && (
+                <section className="su-dash-item" aria-label={buildSheetCopy('typeCrew')}>
+                  <TypeCrewLead
+                    crawler={crawler}
+                    typeRef={crawler.type}
+                    store={store}
+                    assigned={assignmentFor(crew, { kind: 'type' })}
+                  />
+                </section>
+              )}
+              {!edit && typeLead && (typeLead.name || typeLead.position) && (
                 <OpenLedger
                   as="h3"
                   title={buildSheetCopy('typeCrew')}
@@ -519,5 +440,12 @@ export function CrawlerDash({
         </DashColumn>
       </Dash>
     </>
+  )
+}
+
+/** The Armament Bay's own weapon choice holds a pick. */
+function armamentPicked(crawler: Crawler): boolean {
+  return Object.values(crawler.bayChoices?.['armament-bay'] ?? {}).some(
+    (picks) => Array.isArray(picks) && picks.length > 0
   )
 }

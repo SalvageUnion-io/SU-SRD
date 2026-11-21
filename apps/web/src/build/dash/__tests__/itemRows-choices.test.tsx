@@ -30,7 +30,7 @@ describe('itemRows — a made choice', () => {
       { ...fitted, itemChoices: { [TURRET]: { [choice.id]: [model] } } },
       'system'
     )
-    const { container } = render(<>{row?.state}</>)
+    const { container } = render(row?.state)
     expect(container.textContent).toContain(model)
   })
 

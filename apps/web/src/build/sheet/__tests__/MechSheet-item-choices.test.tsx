@@ -88,4 +88,21 @@ describe('MechSheet — an item’s chosen options', () => {
     renderSheet(makeMech({ systems: [PLAIN] }))
     expect(screen.queryByRole('button', { name: /details$/i })).toBeNull()
   })
+
+  test('removing the last copy of an item drops its choices; removing one of two keeps them', async () => {
+    const choices = { [TURRET]: { weapon: ['Kept'] }, other: { x: ['y'] } }
+    const update = renderSheet(makeMech({ systems: [TURRET, TURRET], itemChoices: choices }))
+    await act(async () => {
+      fireEvent.click(must(screen.getAllByRole('button', { name: `Remove ${TURRET_NAME}` })[0]))
+    })
+    const first = must(must(update.mock.calls[0])[2])
+    expect(first.systems).toEqual([TURRET])
+    expect(first.itemChoices).toBeUndefined()
+    await act(async () => {
+      fireEvent.click(must(screen.getAllByRole('button', { name: `Remove ${TURRET_NAME}` })[0]))
+    })
+    const last = must(must(update.mock.calls[1])[2])
+    expect(last.systems).toEqual([])
+    expect(last.itemChoices).toEqual({ other: { x: ['y'] } })
+  })
 })

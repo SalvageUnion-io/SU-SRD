@@ -20,7 +20,6 @@ const step = (chassisName: string) => (
     onSelectChassis={() => {}}
     onSelectPattern={() => {}}
     onSelectCustom={() => {}}
-    cite={{ source: 'Salvage Union Workshop Manual', page: 95 }}
   />
 )
 

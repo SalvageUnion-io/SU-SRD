@@ -85,7 +85,7 @@ function pairing(roster: ReturnType<typeof starterRoster>): Map<string, Mech> {
 function chassisMeta(mech: Mech, chassis: { name: string } | null | undefined) {
   if (!chassis) return null
   if (chassis.name.toLowerCase() === mech.name.toLowerCase()) return null
-  return <span className={cn('su-open__meta', CAPS, CAPS)}>{chassis.name}</span>
+  return <span className={cn('su-open__meta', CAPS)}>{chassis.name}</span>
 }
 
 function mechCells(mech: Mech | undefined) {

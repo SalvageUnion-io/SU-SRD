@@ -10,7 +10,7 @@
  *   3. The header strip (`.su-strip`): art, live vitals, then the fixed
  *      figures, every cell a small label, a big numeral and a slim meter.
  *   4. The dashboard grid (`.su-dash`): three columns from 80rem, two from
- *      48rem, one below; a phone pins the vitals (`.su-dash-pin`).
+ *      48rem, one below; a phone stacks them under the strip, whose vitals step.
  *
  * Unlayered and app-only for the mock; built for real, 1 and 2 are the UI
  * library's (`partials/containers.css`, `partials/ledger.css`).
@@ -299,12 +299,19 @@
   display: none;
 }
 
-.su-open__state {
+.su-open__state,
+.su-open__controls {
   align-items: center;
   align-self: center;
   display: inline-flex;
   flex: none;
   gap: var(--space-4);
+}
+
+/* Edit's controls close the name's line, at its end. */
+.su-open__controls {
+  flex-wrap: wrap;
+  margin-left: auto;
 }
 
 .su-open__row > td {
@@ -445,29 +452,6 @@
 /* The second name on a paired line (a pilot's mech): a name, not a value. */
 .su-open__pair-name {
   font-weight: var(--font-weight-semibold);
-}
-
-/* A level numeral before a name (an ability's tier): ink when taken. */
-.su-open-level {
-  align-items: center;
-  border: var(--bw-chrome) solid var(--color-ink-40);
-  border-radius: var(--radius-badge);
-  color: var(--color-ink-55);
-  display: inline-flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-chip);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
-  height: var(--size-mini);
-  justify-content: center;
-  line-height: 1;
-  width: var(--size-mini);
-}
-
-.su-open-level[data-on] {
-  background-color: var(--color-ink);
-  border-color: var(--color-ink);
-  color: var(--color-paper);
 }
 
 /* A Tech Level as a chip on paper, framed in its colour on the map: the
@@ -698,6 +682,64 @@
   background-color: var(--color-ink-10);
   color: var(--color-ink-40);
   cursor: default;
+}
+
+/* On a phone the joined − | + is the Full Size, a thumb's target (§2.1). */
+@media not (width >= 40rem) {
+  .su-strip__stepper > button {
+    height: var(--size-full);
+    width: var(--size-full);
+  }
+}
+
+/* Edit's max: a button on the max's own type, underlined dotted; the field
+   it opens is as wide as three figures. An override reads in the deep tone. */
+.su-vital-max {
+  align-items: baseline;
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.su-vital-max__button,
+.su-vital-max__revert {
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  min-block-size: var(--space-24);
+  min-inline-size: var(--space-24);
+  padding: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.su-vital-max[data-overridden] .su-vital-max__button {
+  color: var(--tone-deep, var(--color-ink));
+}
+
+.su-vital-max__input {
+  font: inherit;
+  inline-size: 3.5ch;
+}
+
+/* Its ⓘ stands the max's 24px beside it (§4.7). */
+.su-vital-max__why {
+  align-items: center;
+  align-self: center;
+  border-bottom: 0;
+  display: inline-flex;
+  font-size: var(--text-chip);
+  min-block-size: var(--space-24);
+  justify-content: center;
+  min-inline-size: var(--space-24);
+}
+
+/* A condition alone on a Ledger row's line (an intact bay's) stands the
+   line's 24px (the opener's, the name's), its badge centred in it (§4.7);
+   beside its row's other Mini controls it keeps their chip height. */
+.su-open__controls > .su-sheet-item__condition:only-child > button {
+  height: var(--space-24);
 }
 
 .su-strip__cell--figure {
@@ -982,19 +1024,6 @@
   line-height: 1.3;
 }
 
-/* A sub-label inside a group or a row's detail. */
-.su-dash-sub {
-  border-bottom: var(--bw-hairline) solid var(--color-ink-25);
-  color: var(--color-ink-75);
-  font-family: var(--font-cond);
-  font-size: var(--text-chip);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps);
-  line-height: 1.3;
-  margin: 0;
-  padding-bottom: var(--space-2);
-}
-
 .su-dash-item {
   display: flex;
   flex-direction: column;
@@ -1105,29 +1134,6 @@
   font-size: var(--text-chip);
   font-weight: var(--font-weight-semibold);
   letter-spacing: var(--tracking-caps-tight);
-}
-
-/* ── A phone: the vitals pinned, the groups stacked ─────────────────────── */
-
-.su-dash-pin {
-  background-color: var(--color-wk-bg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  margin-inline: calc(-1 * var(--su-page-gutter-inline));
-  padding: var(--space-8) var(--su-page-gutter-inline);
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky);
-}
-
-.su-dash-pin[data-stuck] {
-  box-shadow: var(--shadow-lift);
-}
-
-.su-dash-pin .su-phone-glance {
-  border-color: var(--color-ink);
-  border-width: var(--bw-chrome);
 }
 
 @media not (width >= 40rem) {
@@ -1382,7 +1388,6 @@
 }
 
 /* The lead numeral's column too (an ability's tier). */
-.su-trees .su-open__row[data-opens] + .su-open__under > td,
 .su-open--generic .su-open__row[data-opens] + .su-open__under > td {
   padding-inline-start: calc(var(--space-12) + var(--space-24) + var(--space-2));
 }
@@ -1511,21 +1516,6 @@
   width: 6rem;
 }
 
-/* A pilot's trees: side by side, as the class page prints them. */
-.su-trees {
-  --su-grid-gap: var(--space-24);
-  --su-grid-max: 1;
-  --su-grid-row-gap: var(--space-20);
-  align-items: start;
-}
-
-@container (width >= 48rem) {
-  .su-trees {
-    --su-grid-max: 3;
-  }
-}
-
-.su-trees .su-open__clamp,
 .su-open--generic .su-open__clamp {
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -1545,6 +1535,18 @@
   align-self: center;
   display: none;
   padding-block: var(--space-12);
+}
+
+/* Edit keeps the photo at every width: it is where the photo is changed. */
+.su-mast[data-edit] .su-mast__art {
+  display: block;
+}
+
+@media not (width >= 40rem) {
+  .su-mast[data-edit] .su-mast__art {
+    justify-self: start;
+    max-width: 9rem;
+  }
 }
 
 .su-mast__art figure {
@@ -1574,6 +1576,24 @@
 
 .su-mast .su-strip__vitals > .su-strip__cell:first-child {
   padding-inline-start: 0;
+}
+
+/* On a phone the vitals stack, one a row at the page's width, so the Full
+   Size − | + sits beside its numeral, never over the next vital (§2.1). */
+@media not (width >= 40rem) {
+  .su-mast .su-strip__vitals {
+    flex-direction: column;
+  }
+
+  .su-mast .su-strip__vitals > .su-strip__cell {
+    flex: none;
+    padding-inline: 0;
+  }
+
+  .su-mast .su-strip__vitals > .su-strip__cell + .su-strip__cell {
+    border-left: 0;
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+  }
 }
 
 .su-mast .su-strip__label {
@@ -1718,6 +1738,19 @@
     grid-column: auto;
     padding-inline-start: var(--space-32);
   }
+
+  /* Edit's identity is its fields: under the board, at the board's and the
+     column's width, so the board keeps its height. */
+  .su-mast[data-edit] .su-mast__art {
+    grid-row: span 2;
+  }
+
+  .su-mast[data-edit] .su-mast__identity {
+    border-left: 0;
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+    grid-column: 2 / -1;
+    padding-inline-start: 0;
+  }
 }
 
 /* ── A phone ────────────────────────────────────────────────────────────── */
@@ -1753,23 +1786,11 @@
 }
 
 /* The opener, the tier and the name hold one line; the name wraps inside it. */
-.su-trees .su-open__name-line,
 .su-open--generic .su-open__name-line {
   flex-wrap: nowrap;
 }
 
-.su-trees .su-open__name {
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-.su-trees .su-open__meta {
-  flex: none;
-}
-
-.su-trees .su-open__row[data-opens] + .su-open__under > td,
-.su-open--generic .su-open__row[data-opens] + .su-open__under > td,
-.su-trees .su-open__detail-body {
+.su-open--generic .su-open__row[data-opens] + .su-open__under > td {
   padding-inline-start: calc(
     var(--space-12) +
     var(--space-24) +
@@ -1952,77 +1973,7 @@
   }
 }
 
-/* ── The phone masthead ────────────────────────────
-   The pinned glance, set as the page's masthead is: each vital a small label
-   over a hero numeral over a thick bar in the unit's colour, on paper, closed
-   by the masthead's ink rule. Stuck to the top it drops a rung so it does not
-   eat the screen. */
-
-.su-dash-pin {
-  background-color: var(--color-paper);
-  border-bottom: var(--bw-pill) solid var(--color-ink);
-  padding-block: var(--space-12);
-}
-
-.su-dash-pin .su-phone-glance {
-  background-color: transparent;
-  border: 0;
-  border-radius: 0;
-  column-gap: var(--space-12);
-}
-
-.su-dash-pin .su-phone-glance > li + li {
-  border-left: var(--bw-hairline) solid var(--color-ink-20);
-  padding-left: var(--space-12);
-}
-
-.su-dash-pin .su-phone-glance__cell {
-  border-radius: 0;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: start;
-  padding: 0;
-  row-gap: var(--space-4);
-  text-align: left;
-  width: 100%;
-}
-
-.su-dash-pin .su-phone-glance__value > b {
-  font-size: var(--text-hero);
-  line-height: 0.9;
-}
-
-.su-dash-pin .su-phone-glance__value > i {
-  font-size: var(--text-lede);
-}
-
-.su-dash-pin .su-phone-glance__meter {
-  border-radius: 0;
-  height: var(--space-8);
-  width: 100%;
-}
-
-.su-dash-pin .su-phone-glance__cell[aria-expanded='true'] {
-  background-color: transparent;
-  box-shadow: none;
-}
-
-.su-dash-pin[data-stuck] {
-  padding-block: var(--space-6);
-}
-
-.su-dash-pin[data-stuck] .su-phone-glance__value > b {
-  font-size: var(--text-title);
-}
-
-.su-dash-pin[data-stuck] .su-phone-glance__meter {
-  height: var(--space-4);
-}
-
 /* ── The Storage Bay's Scrap board ─────────────── */
-
-.su-scrap__label {
-  margin: var(--space-8) 0 var(--space-4);
-}
 
 .su-scrap {
   background-color: var(--color-paper);
@@ -2046,10 +1997,6 @@
 
 .su-scrap .su-scrap__cell:nth-child(even) {
   background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
-}
-
-.su-scrap .su-scrap__cell[data-empty] .su-tl {
-  opacity: 0.45;
 }
 
 /* On a phone the Starter crew's head keeps one line:

@@ -229,6 +229,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R8: ['roll-instrument.e2e.ts'],
   R10: ['tokens/texture-placement', '_texture.ts', 'PlayFrame.test.tsx'],
   R11: ['_sheetGrammar.ts', 'sheetGrammar.test.ts', 'SheetModeToggle.test.tsx'],
+  R11a: ['oneForm.test.tsx'],
   R12: ['_siblingHeights.ts', '_typeFloor.ts', 'sizeHeights.test.ts', 'biome.jsonc#R12'],
   R15: [
     'select-mode/picker-opacity',
@@ -275,8 +276,8 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     'damagedEffect.test.tsx',
     'CrawlerSheet-bay-fold.test.tsx',
     'CrewLeadMini.test.tsx',
-    '_nestingDepth.ts#R46',
     'toEntityModel.test.ts#counts its bays',
+    'CrawlerSheet-bay-count.test.tsx',
   ],
   R47: ['CrawlerTechLevelPage.test.tsx', 'CompactIndex.test.tsx'],
   R48: [
@@ -309,12 +310,12 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
 }
 
 /** A law's id as the canon and its citations spell it. */
-const LAW_ID = /^(?:R\d+|[EN]\d+|C\d+[ab]?|K\d+|L\d+|§\d+(?:\.\d+)*|Source \d+)$/
+const LAW_ID = /^(?:R\d+a?|[EN]\d+|C\d+[ab]?|K\d+|L\d+|§\d+(?:\.\d+)*|Source \d+)$/
 
 /** The ids each canon doc defines, in order. */
 export function lawsIn(doc: keyof typeof CANON_DOCS, text: string): string[] {
   const lines = text.split('\n')
-  if (doc === 'hard') return lines.flatMap((l) => l.match(/^- \*\*([RK]\d+) /)?.slice(1) ?? [])
+  if (doc === 'hard') return lines.flatMap((l) => l.match(/^- \*\*([RK]\d+a?) /)?.slice(1) ?? [])
   if (doc === 'ledger') return lines.flatMap((l) => l.match(/^- \*\*(L\d+) /)?.slice(1) ?? [])
   if (doc === 'chips')
     return lines.flatMap((l) => l.match(/^- \*\*(C\d+[ab]?)\*\*/)?.slice(1) ?? [])
