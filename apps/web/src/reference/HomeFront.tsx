@@ -1,5 +1,5 @@
 // The home page: its slideshow (`HomeHero`), the site's name and the pitch on
-// a cream cut-out under the header, over seven slides of the book's art, each
+// an ink-deep cut-out under the header, over seven slides of the book's art, each
 // (but the first) a line and one action named for the slide on a cut-out over
 // the footer, then the tagline's slide.
 import type { CSSProperties } from 'react'
@@ -100,7 +100,7 @@ function heroSlides(): Slide[] {
 /**
  * The home is its slideshow, edge to edge and the whole height between the
  * header and the footer. Each slide's art covers the ground. The site's name
- * and the pitch stand on a paper cut-out notched into the header; each
+ * and the pitch stand on an ink-deep cut-out notched into the header; each
  * slide's words on one notched into the footer, in the same place every time.
  * The show is CSS (the page is served without React): a slide out of its turn
  * is hidden, so only the one in view is seen, pressed or focused (chrome K3).
@@ -139,17 +139,17 @@ export function HomeHero() {
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             )}
-            {/* The slide's words on a cream cut-out at its lower right, on the
+            {/* The slide's words on an ink-deep cut-out at its lower right, speckled as the header, on the
                 footer: its heading and line, then its action (named for the
                 slide) at the plate's right. The pitch's slide has none. */}
             {slide.kind !== 'pitch' && (
               <div className="su-front__show-copy">
                 {slide.kind === 'quote' ? (
-                  <div className="su-front__show-plate su-front__show-plate--quote">
+                  <div className="su-front__show-plate su-front__show-plate--quote su-grain--paper">
                     <Tagline />
                   </div>
                 ) : (
-                  <div className="su-front__show-plate">
+                  <div className="su-front__show-plate su-grain--paper">
                     <div className="su-front__show-words">
                       {slide.heading && <p className="su-front__show-heading">{slide.heading}</p>}
                       <p className="su-front__show-body">{slide.body}</p>
@@ -172,14 +172,18 @@ export function HomeHero() {
           </li>
         ))}
       </ul>
-      {/* The site's name on a cream cut-out under the header, the page's one
+      {/* The site's name on an ink-deep cut-out under the header, speckled as it is, the page's one
           h1, and the pitch tucked under it on cut-outs of its own, each line
           as wide as its words. */}
       <div className="su-front__show-head">
         <div className="su-front__show-brand">
-          <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
+          <h1 className={cn('su-front__show-name su-grain--paper', capsLabel())}>
+            {referenceCopy('siteName')}
+          </h1>
           <p className="su-front__show-pitch">
-            <span className="su-front__show-pitch-line">{referenceCopy('pitchValue')}</span>
+            <span className="su-front__show-pitch-line su-grain--paper">
+              {referenceCopy('pitchValue')}
+            </span>
           </p>
         </div>
         {/* The show's one outline beside each slide's rust act (§1.8): hidden

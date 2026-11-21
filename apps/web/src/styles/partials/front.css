@@ -143,7 +143,8 @@ body:has(.su-front--show) main {
   text-wrap: balance;
 }
 
-/* The site's name on a cut-out in the header's dress (paper on ink-deep)
+/* The site's name on a cut-out in the header's dress (paper on ink-deep,
+   its speckle: `.su-grain--paper`)
    notched into it at the top left, the chapter title's face at its size, and
    the pitch flowing flush out of its foot on the same ground. */
 .su-front__show-head {
