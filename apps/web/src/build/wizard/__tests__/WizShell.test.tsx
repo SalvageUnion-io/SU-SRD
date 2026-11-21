@@ -26,7 +26,7 @@ function renderStep() {
 }
 
 describe('WizShell', () => {
-  test('a new step opens at the top with focus on its heading; the first is left as the page opened', () => {
+  test('every step opens at the top with focus on its heading, the first too (PT-20)', () => {
     const scrollTo = mock((..._args: unknown[]) => {})
     const original = window.scrollTo
     window.scrollTo = scrollTo as unknown as typeof window.scrollTo
@@ -46,16 +46,16 @@ describe('WizShell', () => {
     )
     try {
       const view = render(step(0, 'Gain Scrap'))
-      expect(scrollTo).not.toHaveBeenCalled()
-      expect(document.activeElement).toBe(document.body)
-      view.rerender(step(1, 'Choose your Chassis'))
       expect(scrollTo).toHaveBeenCalledTimes(1)
+      expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }))
+      view.rerender(step(1, 'Choose your Chassis'))
+      expect(scrollTo).toHaveBeenCalledTimes(2)
       const h1 = screen.getByRole('heading', { level: 1 })
       expect(document.activeElement).toBe(h1)
       expect(h1.getAttribute('tabindex')).toBe('-1')
       // The same step drawn again moves nothing.
       view.rerender(step(1, 'Choose your Chassis'))
-      expect(scrollTo).toHaveBeenCalledTimes(1)
+      expect(scrollTo).toHaveBeenCalledTimes(2)
     } finally {
       window.scrollTo = original
     }
