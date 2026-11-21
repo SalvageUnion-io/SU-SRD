@@ -10,7 +10,7 @@
  *   3. The header strip (`.su-strip`): art, live vitals, then the fixed
  *      figures, every cell a small label, a big numeral and a slim meter.
  *   4. The dashboard grid (`.su-dash`): three columns from 80rem, two from
- *      48rem, one below; a phone pins the vitals (`.su-dash-pin`).
+ *      48rem, one below; a phone stacks them under the strip, whose vitals step.
  *
  * Unlayered and app-only for the mock; built for real, 1 and 2 are the UI
  * library's (`partials/containers.css`, `partials/ledger.css`).
@@ -698,6 +698,49 @@
   cursor: default;
 }
 
+/* On a phone the joined − | + is the Full Size, a thumb's target (§2.1). */
+@media not (width >= 40rem) {
+  .su-strip__stepper > button {
+    height: var(--size-full);
+    width: var(--size-full);
+  }
+}
+
+/* Edit's max: a button on the max's own type, underlined dotted; the field
+   it opens is as wide as three figures. An override reads in the deep tone. */
+.su-vital-max {
+  align-items: baseline;
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.su-vital-max__button,
+.su-vital-max__revert {
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  min-height: 24px;
+  min-width: 24px;
+  padding: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.su-vital-max[data-overridden] .su-vital-max__button {
+  color: var(--tone-deep, var(--color-ink));
+}
+
+.su-vital-max__input {
+  font: inherit;
+  inline-size: 3.5ch;
+}
+
+.su-vital-max__why {
+  font-size: var(--text-chip);
+}
+
 .su-strip__cell--figure {
   flex: 1 0 5.25rem;
   padding-inline: var(--space-12);
@@ -1103,29 +1146,6 @@
   font-size: var(--text-chip);
   font-weight: var(--font-weight-semibold);
   letter-spacing: var(--tracking-caps-tight);
-}
-
-/* ── A phone: the vitals pinned, the groups stacked ─────────────────────── */
-
-.su-dash-pin {
-  background-color: var(--color-wk-bg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  margin-inline: calc(-1 * var(--su-page-gutter-inline));
-  padding: var(--space-8) var(--su-page-gutter-inline);
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky);
-}
-
-.su-dash-pin[data-stuck] {
-  box-shadow: var(--shadow-lift);
-}
-
-.su-dash-pin .su-phone-glance {
-  border-color: var(--color-ink);
-  border-width: var(--bw-chrome);
 }
 
 @media not (width >= 40rem) {
@@ -1948,72 +1968,6 @@
       );
     row-gap: var(--space-4);
   }
-}
-
-/* ── The phone masthead ────────────────────────────
-   The pinned glance, set as the page's masthead is: each vital a small label
-   over a hero numeral over a thick bar in the unit's colour, on paper, closed
-   by the masthead's ink rule. Stuck to the top it drops a rung so it does not
-   eat the screen. */
-
-.su-dash-pin {
-  background-color: var(--color-paper);
-  border-bottom: var(--bw-pill) solid var(--color-ink);
-  padding-block: var(--space-12);
-}
-
-.su-dash-pin .su-phone-glance {
-  background-color: transparent;
-  border: 0;
-  border-radius: 0;
-  column-gap: var(--space-12);
-}
-
-.su-dash-pin .su-phone-glance > li + li {
-  border-left: var(--bw-hairline) solid var(--color-ink-20);
-  padding-left: var(--space-12);
-}
-
-.su-dash-pin .su-phone-glance__cell {
-  border-radius: 0;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: start;
-  padding: 0;
-  row-gap: var(--space-4);
-  text-align: left;
-  width: 100%;
-}
-
-.su-dash-pin .su-phone-glance__value > b {
-  font-size: var(--text-hero);
-  line-height: 0.9;
-}
-
-.su-dash-pin .su-phone-glance__value > i {
-  font-size: var(--text-lede);
-}
-
-.su-dash-pin .su-phone-glance__meter {
-  border-radius: 0;
-  height: var(--space-8);
-  width: 100%;
-}
-
-.su-dash-pin .su-phone-glance__cell[aria-expanded='true'] {
-  background-color: transparent;
-  box-shadow: none;
-}
-
-.su-dash-pin[data-stuck] {
-  padding-block: var(--space-6);
-}
-
-.su-dash-pin[data-stuck] .su-phone-glance__value > b {
-  font-size: var(--text-title);
-}
-
-.su-dash-pin[data-stuck] .su-phone-glance__meter {
-  height: var(--space-4);
 }
 
 /* ── The Storage Bay's Scrap board ─────────────── */

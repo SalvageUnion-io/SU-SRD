@@ -112,7 +112,6 @@ export function MechLiveSheet({
       // Read's header strip carries TL and
       // SV with the chassis's other figures, so the band leaves them out (R59).
       rank={readOnly ? undefined : <MechBandRank chassisRef={mech.chassisRef} />}
-      pinsVitals={readOnly}
       out={
         mechHasCondition(mech, 'Destroyed')
           ? {

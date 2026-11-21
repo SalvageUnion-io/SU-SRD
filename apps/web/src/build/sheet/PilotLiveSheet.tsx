@@ -84,7 +84,6 @@ export function PilotLiveSheet({
   return (
     <LiveSheet
       variant="pilot"
-      pinsVitals={readOnly}
       name={callsign}
       nameAside={realName}
       strip={strip}

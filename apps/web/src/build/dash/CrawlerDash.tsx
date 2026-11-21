@@ -65,7 +65,7 @@ import { EXOTIC_NAME } from '../sheet/exoticNames.model'
 import { LinkedUnitLink } from '../sheet/LinkedUnitLink'
 import { LeadCell } from './bayLead'
 import { leadOf } from './bayLead.model'
-import { Dash, DashColumn, DashGroup, PinnedVitals } from './Dash'
+import { Dash, DashColumn, DashGroup } from './Dash'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -379,20 +379,12 @@ export function CrawlerDash({
   )
   return (
     <>
-      {phone && (
-        <PinnedVitals
-          label={buildSheetCopy('unitVitals', { name: crawler.name })}
-          name={crawler.name}
-          vitals={vitals}
-          foot={actionsFoot('full')}
-        />
-      )}
       <Strip
         label={buildSheetCopy('unitVitals', { name: crawler.name })}
         art={phone ? undefined : art}
-        vitals={phone ? [] : gauges}
+        vitals={gauges}
         figures={figures}
-        foot={phone ? undefined : actionsFoot('compact')}
+        foot={actionsFoot('compact')}
         identity={
           // On a page what was written about the crawler sits beside its numbers.
           crawler.description ? (

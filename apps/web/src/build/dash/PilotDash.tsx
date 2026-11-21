@@ -40,7 +40,7 @@ import type { AbilityEntry, PilotSheetModel } from '../sheet/pilotSheet.model'
 import { inventoryEmpty } from '../sheet/pilotSheet.model'
 import type { PilotSheetActions } from '../sheet/pilotSheetActions.model'
 import { Cost } from './Cost'
-import { Dash, DashColumn, DashGroup, PinnedVitals } from './Dash'
+import { Dash, DashColumn, DashGroup } from './Dash'
 import { RowRules } from './RowRules'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
@@ -284,20 +284,12 @@ export function PilotDash({
   ) : undefined
   return (
     <>
-      {phone && (
-        <PinnedVitals
-          label={buildSheetCopy('unitVitals', { name: pilot.name })}
-          name={pilot.name}
-          vitals={vitals}
-          foot={foot}
-        />
-      )}
       <Strip
         label={buildSheetCopy('unitVitals', { name: pilot.name })}
         art={phone ? undefined : art}
-        vitals={phone ? [] : vitals}
+        vitals={vitals}
         figures={figures}
-        foot={phone ? undefined : foot}
+        foot={foot}
         identity={identity}
         traits={traitLines}
       />

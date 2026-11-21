@@ -320,7 +320,6 @@ export function CrawlerLiveSheet({
         // The crawler's rung is the band's TL chip, ahead of its type (C2's
         // rank before relation); Edit grows its stepper on the chip, a Free
         // Edit of the stored rung (the Upgrade dialog is the play path).
-        pinsVitals={readOnly}
         // Read's header strip carries the
         // Tech Level with the crawler's other figures, so the band leaves it
         // out (R59); Edit keeps its stepper here.

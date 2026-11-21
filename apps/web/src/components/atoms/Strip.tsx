@@ -19,14 +19,17 @@
  */
 
 import { Minus, Plus } from 'lucide-react'
-import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import * as tokens from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { atomsCopy } from '../../messages/components-atoms'
 import type { CSSVarStyle } from '../../styles/cssVars'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
-import type { PhoneVital } from './PhoneVitals'
+import { trackSegmentState } from './pipRows'
+import { VitalMax } from './VitalMax'
+import type { PhoneVital } from './vitalControl'
+import { meterColumns, useVitalControl } from './vitalControl'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -34,17 +37,6 @@ const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 /** The strip's art frame (`EntityPhoto`'s `frame`): a square thumbnail. */
 // biome-ignore lint/style/useComponentExportOnlyModules: the strip's own frame, beside it
 export const STRIP_ART = { aspectRatio: '1 / 1' } satisfies CSSProperties
-
-/** Past twelve a meter is two rows, as the phone's block draws it. */
-const columnsFor = (count: number) => (count > 12 ? Math.ceil(count / 2) : count)
-
-type SegmentState = 'off' | 'redline' | 'on' | 'danger'
-
-function segmentState(index: number, value: number, max: number, danger?: number): SegmentState {
-  const from = danger ?? Number.POSITIVE_INFINITY
-  if (index >= value) return index >= from && index < max ? 'redline' : 'off'
-  return index >= max || index >= from ? 'danger' : 'on'
-}
 
 function Meter({
   value,
@@ -60,7 +52,7 @@ function Meter({
   cargo?: boolean
 }) {
   const count = Math.max(max, value)
-  const tracks = { gridTemplateColumns: `repeat(${columnsFor(count)}, minmax(0, 1fr))` } // design-tokens-ignore(item-grid): a meter's segments, a fixed track
+  const tracks = { gridTemplateColumns: `repeat(${meterColumns(count)}, minmax(0, 1fr))` } // design-tokens-ignore(item-grid): a meter's segments, a fixed track
   return (
     <span
       className="su-strip__meter"
@@ -75,58 +67,33 @@ function Meter({
           // biome-ignore lint/suspicious/noArrayIndexKey: a meter's segments are its positions
           key={index}
           className="su-strip__seg"
-          data-state={segmentState(index, value, max, danger)}
+          data-state={trackSegmentState(index, value, max, danger)}
         />
       ))}
     </span>
   )
 }
 
-/** A live number: label, numeral, − | +, and its meter. */
+/**
+ * A live number: label, numeral, − | +, and its meter, stepping through the
+ * one control `PhoneVitals` shares (`useVitalControl`). In Edit its max is
+ * `VitalMax`, a field a press away.
+ */
 function StripVital({ vital }: { vital: PhoneVital }) {
-  const { label, name, value, max, note, danger, onChange } = vital
-  const ceiling = max ?? Number.POSITIVE_INFINITY
-  const clamp = (next: number) => Math.min(Math.max(next, 0), ceiling)
-  const shown = onChange ? clamp(value) : Math.max(0, value)
-  const over = max !== undefined && shown > max
-  const count = max === undefined ? 0 : Math.max(max, shown)
-  const summary = max === undefined ? `${name} ${shown}` : `${name} ${shown} of ${max}`
-
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (!onChange || max === undefined) return
-    const to: Record<string, number> = {
-      ArrowRight: shown + 1,
-      ArrowUp: shown + 1,
-      ArrowLeft: shown - 1,
-      ArrowDown: shown - 1,
-      Home: 0,
-      End: max,
-    }
-    const next = to[event.key]
-    if (next === undefined) return
-    event.preventDefault()
-    onChange(clamp(next))
-  }
-  // A tap on a segment sets the value (`pipClickValue`'s rule): a lit one
-  // clears from there, an unlit one fills up to it.
-  const onMeterClick = (event: MouseEvent<HTMLElement>) => {
-    if (!onChange || !(event.target instanceof Element)) return
-    const raw = event.target.closest('[data-pip-index]')?.getAttribute('data-pip-index')
-    if (raw == null) return
-    const index = Number(raw)
-    onChange(clamp(index < shown ? index : index + 1))
-  }
+  const { label, name, max, note, onChange, maxEdit } = vital
+  const control = useVitalControl(vital)
+  const { shown, count, summary } = control
   const segments = Array.from({ length: count }, (_, index) => (
     <span
       // biome-ignore lint/suspicious/noArrayIndexKey: a meter's segments are its positions
       key={index}
       className="su-strip__seg"
       data-pip-index={index}
-      data-state={segmentState(index, shown, max ?? 0, danger)}
+      data-state={control.segment(index)}
     />
   ))
   const meterStyle = {
-    gridTemplateColumns: `repeat(${columnsFor(count)}, minmax(0, 1fr))`, // design-tokens-ignore(item-grid): a meter's segments, a fixed track
+    gridTemplateColumns: `repeat(${meterColumns(count)}, minmax(0, 1fr))`, // design-tokens-ignore(item-grid): a meter's segments, a fixed track
   }
   return (
     <div
@@ -139,27 +106,34 @@ function StripVital({ vital }: { vital: PhoneVital }) {
         <small>{max === undefined ? note : name}</small>
       </p>
       <div className="su-strip__read">
-        <p className={cn('su-strip__num', CAPS)} data-over={over ? '' : undefined}>
+        <p className={cn('su-strip__num', CAPS)} data-over={control.over ? '' : undefined}>
           <b>{shown}</b>
-          {max !== undefined && <i>/{max}</i>}
+          {max !== undefined &&
+            (maxEdit ? (
+              <i>
+                /<VitalMax label={name} max={max} edit={maxEdit} />
+              </i>
+            ) : (
+              <i>/{max}</i>
+            ))}
         </p>
         {onChange && (
           <span className="su-strip__stepper">
             <button
               type="button"
               aria-label={atomsCopy('decrease2', { label: name })}
-              disabled={shown <= 0}
+              disabled={control.atFloor}
               className={FOCUS_RING}
-              onClick={() => onChange(clamp(shown - 1))}
+              {...control.press(-1)}
             >
               <Minus aria-hidden="true" size={tokens.iconSize.compact} />
             </button>
             <button
               type="button"
               aria-label={atomsCopy('increase2', { label: name })}
-              disabled={shown >= ceiling}
+              disabled={control.atCeiling}
               className={FOCUS_RING}
-              onClick={() => onChange(clamp(shown + 1))}
+              {...control.press(1)}
             >
               <Plus aria-hidden="true" size={tokens.iconSize.compact} />
             </button>
@@ -185,8 +159,8 @@ function StripVital({ vital }: { vital: PhoneVital }) {
           data-rows={count > 12 ? 2 : 1}
           data-live=""
           style={meterStyle}
-          onKeyDown={onKeyDown}
-          onClick={onMeterClick}
+          onKeyDown={control.onKeyDown}
+          onClick={control.onMeterClick}
         >
           {segments}
         </div>

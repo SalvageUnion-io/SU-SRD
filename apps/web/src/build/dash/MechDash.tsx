@@ -49,7 +49,7 @@ import type { MechSheetActions } from '../sheet/mechSheetActions.model'
 import { slotCount } from '../sheet/mechSlots.model'
 import { partnerDisplayName } from '../sheet/partnerDisplay.model'
 import { Cost } from './Cost'
-import { Dash, DashColumn, DashGroup, PinnedVitals } from './Dash'
+import { Dash, DashColumn, DashGroup } from './Dash'
 import { ITEM_COLUMNS, itemRows } from './itemRows'
 import { RowRules } from './RowRules'
 
@@ -207,20 +207,12 @@ export function MechDash({
     ) : undefined
   return (
     <>
-      {phone && (
-        <PinnedVitals
-          label={buildSheetCopy('unitVitals', { name: mech.name })}
-          name={mech.name}
-          vitals={vitals}
-          foot={foot}
-        />
-      )}
       <Strip
         label={buildSheetCopy('unitVitals', { name: mech.name })}
         art={phone ? undefined : art}
-        vitals={phone ? [] : vitals}
+        vitals={vitals}
         figures={figures}
-        foot={phone ? undefined : foot}
+        foot={foot}
         identity={identity}
         traits={traitLines}
       />
