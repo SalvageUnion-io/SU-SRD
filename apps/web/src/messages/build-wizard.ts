@@ -62,6 +62,12 @@ export const buildWizardCopy = messages({
     'A pattern is your plan: a Chassis and its loadout. Build With This makes a Mech of it, fresh.',
   forPilot: 'For {name}: the Mech is assigned to them once it is made.',
   mechNotGivenTo: 'The Mech could not be given to {name}.',
+  mechAssignedTo: 'Assigned {mech} to {pilot}.',
+  mechNotPaired:
+    'The Mech was made, but could not be assigned to your Pilot. Assign it from the Crew.',
+  theMech: 'the Mech',
+  undo: 'Undo',
+  couldNotUndo: 'The assignment could not be undone. Unassign it from the Mech’s sheet.',
   qty: 'Qty',
   noEquipment: 'No Equipment',
   noTechLevel1Equipment: 'No tech level 1 equipment found.',

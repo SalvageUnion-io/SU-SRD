@@ -712,6 +712,41 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     await forgetHeld(['mech', 'm-pair'], ['mech', 'm-spare'], ['pilot', 'p-bay'])
   })
 
+  test('a mech of yours is paired with your pilot from its row: Assign to a Pilot… (LG-07)', async () => {
+    setSyncStatus('live')
+    await emptyBay()
+    const store = useUnits.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'a-mine', name: 'Roach-Boy', gameId: 'g1' }))
+    await store.adopt('mech', mechFixture({ id: 'a-mech', name: 'Iron Mongrel', gameId: 'g1' }))
+    await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT], mechs: [MY_MECH] }))
+    // The mech's own verb, and only on a mech.
+    expect(await rowsOffering(['Roach-Boy', 'Ash', 'Iron Mongrel'], 'Assign to a Pilot…')).toEqual([
+      'Iron Mongrel',
+    ])
+
+    const menu = await openMenu('Iron Mongrel')
+    await act(async () => {
+      fireEvent.click(within(menu).getByRole('menuitem', { name: 'Assign to a Pilot…' }))
+    })
+    const dialog = await screen.findByRole('dialog', { name: 'Assign Iron Mongrel to a Pilot' })
+    // Yours only, and the one with no mech is chosen already.
+    const radios = within(dialog).getAllByRole('radio')
+    expect(radios).toHaveLength(1)
+    expect(radios[0]?.getAttribute('aria-checked')).toBe('true')
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Assign' }))
+    })
+    const paired = () =>
+      useUnits
+        .getState()
+        .softLinks.some(
+          (l) => l.type === 'mech-to-pilot' && l.from.id === 'a-mech' && l.to.id === 'a-mine'
+        )
+    await settle(paired)
+    expect(paired()).toBe(true)
+    await forgetHeld(['mech', 'a-mech'], ['pilot', 'a-mine'])
+  })
+
   test('with nothing built it says so, and offers the ways to have one (LG-10)', async () => {
     setSyncStatus('live')
     await emptyBay()

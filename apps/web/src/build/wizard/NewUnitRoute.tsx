@@ -1,9 +1,11 @@
 import { useLocation, useNavigate } from '@tanstack/react-router'
 import type { SheetKind } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import type { ReactNode } from 'react'
 import { toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { assignLink } from '../../lib/links/assignLink'
+import { pairNewMechInGame } from '../../lib/links/mechlessPilot'
 import type { NewUnitSearch } from '../../lib/newUnitRoute'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { useUnits } from '../../replica/units'
@@ -53,12 +55,44 @@ export function NewUnitRoute({
   // Cancelling goes back to the page the build was started from: the Game's
   // page (`?game=`), or the Training Bay.
   const goBack = useWizardReturn(search.game)
+  // A mech built in a Game by a member with one mech-less pilot there is that
+  // pilot's: assigned at once, with the way back in the notice. Two such
+  // pilots and nobody can say whose, so the Crew's own "Assign" asks.
+  const pairInGame = (mechId: string) => {
+    if (kind !== 'mech' || search.game === undefined) return
+    pairNewMechInGame(mechId, search.game).then(
+      (paired) => {
+        if (paired === null) return
+        const mech = useUnits.getState().mechs.find((m) => m.id === mechId)
+        toast.success(
+          buildWizardCopy('mechAssignedTo', {
+            mech: mech?.name ?? buildWizardCopy('theMech'),
+            pilot: pilotLabel(paired.pilot),
+          }),
+          {
+            action: {
+              label: buildWizardCopy('undo'),
+              onClick: () =>
+                void paired
+                  .undo()
+                  .catch((err: unknown) =>
+                    toast.error(failureMessage(err, buildWizardCopy('couldNotUndo')))
+                  ),
+            },
+          }
+        )
+      },
+      // Unassigned is where it would have stood anyway; say it is not paired.
+      (err: unknown) => toast.error(failureMessage(err, buildWizardCopy('mechNotPaired')))
+    )
+  }
   // Finishing: a mech built for a pilot is assigned to it, then the pilot's
   // page shows the pair; a build started from a Game goes back to its page;
   // otherwise the new sheet opens, its Related units offering Assign.
   const handleComplete = (id?: string) => {
     if (id === undefined) return goBack()
     if (pilot === undefined) {
+      pairInGame(id)
       if (search.game !== undefined) return goBack()
       return void navigate({ to: SHEET_PATH[kind], params: { id } })
     }
@@ -95,11 +129,11 @@ export function NewUnitRoute({
       onModeChange={(next) =>
         void navigate({ to: NEW_PATH[kind], search: (prev) => ({ ...prev, mode: next }) })
       }
-      onCreated={(id) =>
-        pilot === undefined
-          ? void navigate({ to: SHEET_PATH[kind], params: { id } })
-          : handleComplete(id)
-      }
+      onCreated={(id) => {
+        if (pilot !== undefined) return handleComplete(id)
+        pairInGame(id)
+        void navigate({ to: SHEET_PATH[kind], params: { id } })
+      }}
     />
   )
 }

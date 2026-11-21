@@ -62,6 +62,15 @@ export const playGamesCopy = messages({
   bringNote:
     'The same unit moves into this Game; nothing is copied. A Pilot brings their Mech, still assigned. You can move them back later.',
   moveIn: 'Move in',
+  assignToAPilot: 'Assign to a Pilot…',
+  assignMechToAPilot: 'Assign {name} to a Pilot',
+  yourPilotsHere: 'Your Pilots in this Game',
+  noPilotOfYoursHere:
+    'You have no Pilot in this Game yet. Add one above, then assign this Mech to them.',
+  assignReplaces: 'A Pilot flies one Mech: assigning this one replaces the Mech they have.',
+  assign: 'Assign',
+  mechAssignedTo: 'Assigned {mech} to {pilot}.',
+  mechNotAssigned: '{mech} could not be assigned. Try again.',
   broughtIn: '{name} moved into this Game.',
   broughtInMany: '{count} units moved into this Game.',
   couldNotBringIn: '{name} could not be moved. Try again.',
