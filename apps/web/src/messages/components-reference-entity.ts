@@ -37,6 +37,8 @@ export const referenceEntityCopy = messages({
   formationCount: '{quantity} × {chassis}',
   npc: 'NPC',
   chosen: 'Chosen',
+  cancel: 'Cancel',
+  apply: 'Apply',
   noMatchingEntities: 'No matching entities.',
   choice: 'Choice',
   viewDetails: 'View details',

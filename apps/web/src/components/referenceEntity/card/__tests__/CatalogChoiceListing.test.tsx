@@ -4,7 +4,7 @@
  * "Show options" listing in read-only, a single-select picker when editable.
  */
 import { describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../choiceCard/choiceSelectionHelpers'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -54,11 +54,46 @@ describe('Armament Bay — Weapons System catalog listing', () => {
     // the modal (EntitySearcher) opens: its search field + the weapons pool appear
     expect(screen.getByLabelText('Search')).toBeTruthy()
     expect(screen.getByText('Red Laser')).toBeTruthy()
-    // A row's tap is the pick: it chooses and closes, no second act.
+    // The one picker convention (PT-16): a row opens its Page, Choose marks
+    // it, Apply writes it and closes. A row's tap alone writes nothing.
     const row = document.querySelector('[data-searcher-open="Red Laser"]')
     if (!(row instanceof HTMLElement)) throw new Error('no Red Laser row')
     fireEvent.click(row)
+    expect(calls).toHaveLength(0)
+    expect(screen.getByLabelText('Search')).toBeTruthy()
+    const apply = screen.getByRole('button', { name: 'Apply' })
+    expect((apply as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(
+      within(screen.getByRole('group', { name: 'Red Laser actions' })).getByRole('button', {
+        name: 'Choose',
+      })
+    )
+    expect(calls).toHaveLength(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
     expect(calls.at(-1)).toMatchObject({ [armamentBay().choices?.[0]?.id ?? '']: ['Red Laser'] })
+    expect(screen.queryByLabelText('Search')).toBeNull()
+  })
+
+  test('editable: Cancel leaves the choice as it was', () => {
+    const calls: ChoiceSelections[] = []
+    render(
+      <ReferenceEntityCard
+        data={armamentBay()}
+        selections={{}}
+        onSelectionChange={(next) => calls.push(next)}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Choose Armament Bay Weapons System/i }))
+    const row = document.querySelector('[data-searcher-open="Red Laser"]')
+    if (!(row instanceof HTMLElement)) throw new Error('no Red Laser row')
+    fireEvent.click(row)
+    fireEvent.click(
+      within(screen.getByRole('group', { name: 'Red Laser actions' })).getByRole('button', {
+        name: 'Choose',
+      })
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(calls).toHaveLength(0)
     expect(screen.queryByLabelText('Search')).toBeNull()
   })
 
