@@ -265,15 +265,19 @@ function buildPartnerActions(
       companion,
     }))
   const printed = droneOwnLoadout(statBlock)
-  const slugs = (entities: readonly Parameters<typeof getEntitySlug>[0][]) =>
-    entities.map((e) => getEntitySlug(e))
+  // A drone's integrated hardware is seeded into its own lists when granted
+  // (`partnerGrants`), so a printed item already there is not dealt twice.
+  const slugs = (
+    entities: readonly Parameters<typeof getEntitySlug>[0][],
+    installed: readonly string[]
+  ) => entities.map((e) => getEntitySlug(e)).filter((slug) => !installed.includes(slug))
   return [
     ...own,
     ...itemActions({
       // A companion's record keeps no picks: its installed items read unpicked.
       choices: undefined,
-      systems: [...slugs(printed.systems), ...partner.systems],
-      modules: [...slugs(printed.modules), ...partner.modules],
+      systems: [...slugs(printed.systems, partner.systems), ...partner.systems],
+      modules: [...slugs(printed.modules, partner.modules), ...partner.modules],
       systemConditions: partner.systemConditions,
       moduleConditions: partner.moduleConditions,
       keyOf: (kind, slug) => `partner:${partner.id}:${kind}:${slug}`,
