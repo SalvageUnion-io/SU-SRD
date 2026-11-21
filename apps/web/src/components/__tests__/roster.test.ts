@@ -38,7 +38,6 @@ const ROSTER = {
     'ActivationCost', // §6.1 the cost's pointed box, the one standout
     'ChipButton', // §6.1 Badge: a chip that is its own control (R16)
     'Ledger', // §5.12 Ledger: a compared or picked list's table (L9)
-    'OpenLedger', // L1 the Ledger's open form, a sheet's lists
     'TechLevel', // L4 a row's one rank stamp, the Tech Level swatch
     'Facts', // §3.7 a list of labelled values
     'Prose', // §3.7's words at length: a sheet's long text, folded

@@ -1,129 +1,34 @@
 /**
- * OpenLedger — The Ledger, unframed.
- *
- * Best variant: the head is the Ledger's own (ledger.md L2, L5): an ink strip
- * with the title on a paper cut-out at its left and the column labels
- * reversed on it; the rows band paper and cream (L3) on hairlines; a row with
- * rules opens in place under itself (its chevron, `aria-expanded`), its
- * columns holding still. No frame and no foot bar: the strip is the only
- * paint, so a page of six tables reads as six lists, not six boxes.
- *
- * (From the sheet variant:) rows, not cards.
+ * The Ledger's open form (ledger.md L1): `<Ledger open …>` renders this. The
+ * head is the Ledger's own (L2, L5): an ink strip with the title on a paper
+ * cut-out at its left and the column labels reversed on it; the rows band
+ * paper and cream (L3) on hairlines; a row with rules opens in place under
+ * itself (its chevron, `aria-expanded`), its columns holding still. No frame
+ * and no foot bar: the strip is the only paint, so a page of six tables reads
+ * as six lists, not six boxes.
  *
  * One table for a section. Its head row IS the section's head: the label on
- * its rule, its tally beside it, and the column labels at the rule's end
- * (small caps, not stamps), so a column is named once for every sub-group
- * under it. A sub-group (Turn, Short, a tree) is a small label on a hairline.
- * A row is one thing: its name (a `Mention`, so it opens its Page and Peeks
- * its whole card), what marks it on this sheet, then its figures in fixed
- * tabular columns; the line under it is what it does, two lines at most.
- *
- * It is `Ledger`'s open form (ledger.md L1, L2): the same rows and columns
- * with no frame and no painted head strip, so a sheet's lists read alike at
- * every width.
+ * its cut-out, its tally beside it, the column labels on the strip. A
+ * sub-group (Turn, Short, a tree) is a small label on a hairline. A row is
+ * one thing: its name (a `Mention`, so it opens its Page and Peeks its whole
+ * card), its one stamp, then its figures in fixed tabular columns; the line
+ * under it is what it does.
  */
 
 import { ChevronDown } from 'lucide-react'
-import type { ElementType, ReactNode } from 'react'
 import { Fragment, useId, useState } from 'react'
-import type { EntityRef } from 'salvageunion-reference'
 import * as tokens from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { entityCopy } from '../../messages/components-entity'
-import type { CSSVarStyle } from '../../styles/cssVars'
 import { capsLabel } from '../atoms/capsLabel'
 import { InlineRef } from '../atoms/InlineRef'
 import type { SlabCount } from '../atoms/slabSummary'
+import { CostMark } from './CostMark'
 import { Mention } from './forms/Mention'
+import type { LedgerColumn, LedgerGroup, LedgerOpenProps, LedgerRow } from './Ledger'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
-
-export type OpenColumn = {
-  key: string
-  /** The column's label on the rule: `RNG`, `DMG`. */
-  label: string
-  /** Its words in full, for the hover and assistive tech. */
-  title?: string
-  /** `figure` (default): a centred tabular figure. `text`: words, left. */
-  kind?: 'figure' | 'text'
-  /** Kept on a phone; the others give way to the name. */
-  phone?: boolean
-  /** Its values label themselves (a cost badge reads "2 AP"), so the head prints no label; the label is still read. A column keyed `cost` is quiet unless it says otherwise (L15). */
-  quiet?: boolean
-}
-
-export type OpenRow = {
-  id: string
-  name: ReactNode
-  /** The entity the row names: its name opens the Page and Peeks the card. */
-  entityRef?: EntityRef | undefined
-  /** Where the row's name goes, when it is not a reference entity (a sheet). */
-  href?: string | undefined
-  /** Before the name: a level numeral, a Tech Level swatch. */
-  lead?: ReactNode
-  /** After the name, quiet caps: its traits, where it comes from. */
-  meta?: ReactNode
-  /** What it is on this sheet: a stamp (Damaged), its Uses. */
-  state?: ReactNode
-  /**
-   * Edit's controls for the row, in place after its state (C8): a condition's
-   * stepper, Uses, Details, the remove ✕. Read gives none; the row is the same.
-   */
-  controls?: ReactNode
-  /** One per column, in order; `''` or `null` prints the empty mark. */
-  cells: readonly ReactNode[]
-  /** The line under the row: what it does. */
-  under?: ReactNode
-  /** Greyed: an ability not taken, a destroyed item. */
-  dim?: boolean
-  /** With it the row opens: its rules in full, under it. */
-  detail?: ReactNode
-  /** The opener's name: "Command Bay rules". */
-  detailLabel?: string
-  /** Starts open (the pilot's taken abilities read without a press). */
-  defaultOpen?: boolean
-}
-
-type OpenGroup = {
-  key: string
-  /** The sub-group's label; absent, the rows follow the head. */
-  label?: ReactNode
-  /** A quiet note at the label's line end: a tree's track. */
-  note?: ReactNode
-  rows: readonly OpenRow[]
-  /**
-   * The sub-group folds, and starts shut: what every unit of the kind has
-   * (a pilot's Generic abilities) stays a line until it is asked for.
-   */
-  fold?: 'closed'
-}
-
-type OpenLedgerProps = {
-  title: ReactNode
-  /** The title's element: the section's heading. */
-  as?: ElementType
-  /** The section's tally, as a Slab's value count reads under the rule look. */
-  tally?: SlabCount | readonly SlabCount[]
-  /** A quiet word at the title's end instead of a tally. */
-  note?: ReactNode
-  /** The section's controls, at the head's end (its "+ New…", Manage). */
-  actions?: ReactNode
-  /** Said before the rows: an error, a hint. */
-  lead?: ReactNode
-  columns: readonly OpenColumn[]
-  groups: readonly OpenGroup[]
-  /** Said when there is nothing to list. */
-  empty?: string
-  /** The books these rows are printed in: the foot's cut-out, bottom right. */
-  cite?: ReactNode
-  /**
-   * Every row's rules stand open, with no opener: a reference Page shows its
-   * whole self, nothing folded (R43, R44).
-   */
-  whole?: boolean
-  className?: string
-}
 
 function Row({
   row,
@@ -133,10 +38,10 @@ function Row({
   gutter,
   whole,
 }: {
-  row: OpenRow
-  columns: readonly OpenColumn[]
+  row: LedgerRow
+  columns: readonly LedgerColumn[]
   span: number
-  /** Its rules stand open, with no opener (`OpenLedger`'s `whole`). */
+  /** Its rules stand open, with no opener (the Ledger's `whole`). */
   whole: boolean
   /** Another row of the ledger opens: this one keeps the opener's column. */
   gutter: boolean
@@ -192,7 +97,7 @@ function Row({
               )}
             </span>
             {row.meta && <span className={cn('su-open__meta', CAPS)}>{row.meta}</span>}
-            {row.state && <span className="su-open__state">{row.state}</span>}
+            {row.stamp && <span className="su-open__state">{row.stamp}</span>}
             {row.controls && <span className="su-open__controls">{row.controls}</span>}
           </span>
         </th>
@@ -239,8 +144,8 @@ function Group({
   gutter,
   whole,
 }: {
-  group: OpenGroup
-  columns: readonly OpenColumn[]
+  group: LedgerGroup
+  columns: readonly LedgerColumn[]
   span: number
   gutter: boolean
   whole: boolean
@@ -288,7 +193,7 @@ function Group({
   )
 }
 
-export function OpenLedger({
+export function LedgerOpen({
   title,
   as: Heading = 'h3',
   tally,
@@ -301,7 +206,7 @@ export function OpenLedger({
   cite,
   whole = false,
   className,
-}: OpenLedgerProps) {
+}: LedgerOpenProps) {
   const span = columns.length + 1
   const tallies = tally === undefined ? [] : Array.isArray(tally) ? tally : [tally as SlabCount]
   const filled = groups.filter((group) => group.rows.length > 0)
@@ -350,12 +255,11 @@ export function OpenLedger({
               data-phone={column.phone ? '' : undefined}
               title={column.title}
             >
-              {(column.quiet ?? column.key === 'cost') ? (
-                <span className="su-sr-only">{column.label}</span>
-              ) : (
-                // A paper cut-out on the strip's foot, as the title's tab (L2).
-                <span className="su-open__col-tab">{column.label}</span>
-              )}
+              {/* A paper cut-out on the strip's foot, as the title's tab (L2). */}
+              <span className="su-open__col-tab">
+                {column.key === 'cost' && <CostMark />}
+                {column.label}
+              </span>
             </th>
           ))}
         </tr>
@@ -399,20 +303,5 @@ export function OpenLedger({
         </tfoot>
       )}
     </table>
-  )
-}
-
-/** A Tech Level as a chip on paper, framed in its colour on the map (§3.8). */
-export function TechLevel({ level }: { level: number | string | undefined }) {
-  if (level === undefined || level === '') return null
-  const key = typeof level === 'number' ? level : String(level).toLowerCase()
-  return (
-    <span
-      className="su-tl"
-      style={{ '--tl': `var(--color-tl-${key})` } as CSSVarStyle}
-      title={entityCopy('techLevelN', { level: String(level) })}
-    >
-      {level}
-    </span>
   )
 }

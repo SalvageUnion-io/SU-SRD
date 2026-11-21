@@ -36,7 +36,7 @@ Canon for every primitive: a component breaking a rule is wrong; [the origin](ht
    3. **Condition** — `StatusBadge`: a tri-state control, a glyph in listings, absent from Reference.
    4. **Rolls** — `RollTableInstrument` (R8): the result a readout plus a marked row (§3.4); Reference toasts it.
    5. **Cargo** — `SlotGrid`; Reference shows the cap only.
-   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Bio · SYS, MODS, Heat, Cargo; Upkeep, Upgrade · action type, RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`), the last read chip; action slots follow it (C8). A Ledger's columns keep it; none is `—` (L5).
+   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Bio · SYS, MODS, Heat, Cargo; Upkeep, Upgrade · action type, RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`), the last read chip; action slots follow it (C8). A Ledger keeps it, dropping a column no row fills (L5).
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — painted only by `Button` / `buttonVariants` and `InlineRef`, never aliased; destruction is rust behind `ConfirmDialog`; no state colour fills a button. Focus, selection and chrome accents are ink.
    2. **§3.2 Stamps label · slabs section · tags cite** — a section head is a Slab (R1), a related thing a relation chip (C11).

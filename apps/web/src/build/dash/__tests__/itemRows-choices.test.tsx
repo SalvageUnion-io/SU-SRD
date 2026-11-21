@@ -30,12 +30,12 @@ describe('itemRows — a made choice', () => {
       { ...fitted, itemChoices: { [TURRET]: { [choice.id]: [model] } } },
       'system'
     )
-    const { container } = render(row?.state)
+    const { container } = render(row?.stamp)
     expect(container.textContent).toContain(model)
   })
 
   test('with no pick, the row says nothing of it', () => {
     const [row] = itemRows(fitted, 'system')
-    expect(row?.state).toBeUndefined()
+    expect(row?.stamp).toBeUndefined()
   })
 })

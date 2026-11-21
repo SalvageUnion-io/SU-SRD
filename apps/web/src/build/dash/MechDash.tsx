@@ -36,13 +36,13 @@ import {
   Strip,
   StripFigure,
 } from '../../components/app'
-import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
+import type { LedgerColumn, LedgerRow, PhoneVital } from '../../components/index'
 import {
   Button,
   capsLabel,
   Field,
+  Ledger,
   Mention,
-  OpenLedger,
   Stat,
   TechLevel,
   tokens,
@@ -84,7 +84,10 @@ const FIELDS = {
   minWidth: 0,
 } satisfies CSSProperties
 
-const CARGO_COLUMNS: readonly OpenColumn[] = [
+/** The Uses column, which Edit leaves to its steppers. */
+const USES_AT = ITEM_COLUMNS.findIndex((column) => column.key === 'uses')
+
+const CARGO_COLUMNS: readonly LedgerColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
   { key: 'units', label: buildSheetCopy('slots'), phone: true },
 ]
@@ -287,7 +290,7 @@ export function MechDash({
       </Button>
     ) : undefined
   /** A collection's rows; in Edit each item's controls close its line. */
-  const loadoutRows = (kind: ItemKind): OpenRow[] => {
+  const loadoutRows = (kind: ItemKind): LedgerRow[] => {
     const rows = itemRows(mech, kind)
     if (!edit) return rows
     const slugs = kind === 'system' ? mech.systems : mech.modules
@@ -296,7 +299,9 @@ export function MechDash({
       const slug = slugs[index] ?? ''
       return {
         ...row,
-        state: undefined,
+        stamp: undefined,
+        // Edit steps the Uses in its controls; the column is Read's.
+        cells: row.cells.map((cell, at) => (at === USES_AT ? '' : cell)),
         controls: (
           <MechItemControls
             slug={slug}
@@ -376,7 +381,8 @@ export function MechDash({
       <Dash>
         <DashColumn wide label={buildSheetCopy('whatHas', { name: mech.name })}>
           {(mech.systems.length > 0 || edit) && (
-            <OpenLedger
+            <Ledger
+              open
               as="h2"
               className="su-open--loadout"
               title={buildSheetCopy('systems')}
@@ -392,7 +398,8 @@ export function MechDash({
             />
           )}
           {(mech.modules.length > 0 || edit) && (
-            <OpenLedger
+            <Ledger
+              open
               as="h2"
               className="su-open--loadout"
               title={buildSheetCopy('modules')}
@@ -449,7 +456,8 @@ export function MechDash({
             />
           )}
           <div className="su-dash-group" data-storage-side="mech">
-            <OpenLedger
+            <Ledger
+              open
               as="h2"
               title={buildSheetCopy('cargo')}
               tally={{

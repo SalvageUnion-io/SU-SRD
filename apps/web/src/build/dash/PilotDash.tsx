@@ -22,12 +22,12 @@ import type { ReactNode } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import { CONDITION_LABELS, toEntityModel } from 'salvageunion-reference'
 import { Conditions, Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
-import type { OpenColumn, OpenRow } from '../../components/index'
+import type { LedgerColumn, LedgerRow } from '../../components/index'
 import {
   AbilityTrack,
   Button,
   capsLabel,
-  OpenLedger,
+  Ledger,
   SlabSection,
   Stat,
   TechLevel,
@@ -59,21 +59,21 @@ import { RowRules } from './RowRules'
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
-const ABILITY_COLUMNS: readonly OpenColumn[] = [
+const ABILITY_COLUMNS: readonly LedgerColumn[] = [
   { key: 'action', label: buildSheetCopy('action'), kind: 'text' },
   {
     key: 'cost',
     label: buildSheetCopy('cost'),
     title: buildSheetCopy('activationCost'),
     phone: true,
-    // A cost badge says what it is; no head label.
-    quiet: true,
   },
 ]
 
-const GEAR_COLUMNS: readonly OpenColumn[] = [
+const GEAR_COLUMNS: readonly LedgerColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel'), phone: true },
   { key: 'slots', label: buildSheetCopy('slots'), phone: true },
+  // A Uses count is a column, not a chip on the name (L4); Edit steps it in place.
+  { key: 'uses', label: buildSheetCopy('uses'), phone: true },
 ]
 
 /**
@@ -206,7 +206,7 @@ export function PilotDash({
     model.unresolvedAbilities.length > 0
 
   const generic = model.genericAbilities.filter((entry) => !entry.unlearned)
-  const genericRows: OpenRow[] = generic.map((entry) => {
+  const genericRows: LedgerRow[] = generic.map((entry) => {
     const ability = toEntityModel(entry.ability)
     const action = ability.actionType === 'DownTime' ? 'Downtime' : (ability.actionType ?? '')
     const isUsed = used.includes(entry.slug)
@@ -215,7 +215,7 @@ export function PilotDash({
       name: ability.title,
       entityRef: ability.ref,
       meta: action === '' ? undefined : <span className="su-open__phone-only">{action}</span>,
-      state: isUsed && !edit ? <Stat size="mini" label={buildSheetCopy('used')} /> : undefined,
+      stamp: isUsed && !edit ? <Stat size="mini" label={buildSheetCopy('used')} /> : undefined,
       controls: edit ? (
         <AbilityMenu
           ability={entry.ability}
@@ -230,8 +230,8 @@ export function PilotDash({
     }
   })
 
-  const gear: OpenRow[] = [
-    ...model.ordinaryEquipment.map((slug): OpenRow => {
+  const gear: LedgerRow[] = [
+    ...model.ordinaryEquipment.map((slug): LedgerRow => {
       const entity = resolveEquipment(slug)
       const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
       const usesLeft = pilot.equipmentUses?.[slug]
@@ -263,17 +263,14 @@ export function PilotDash({
         name,
         entityRef: item?.ref,
         meta: entity ? undefined : buildSheetCopy('unknown'),
-        state: edit ? (
+        stamp: edit ? (
           chips.length > 0 ? (
             chips
           ) : undefined
-        ) : condition !== 'intact' || usesLeft !== undefined || chips.length > 0 ? (
+        ) : condition !== 'intact' || chips.length > 0 ? (
           <>
             {condition !== 'intact' && (
               <Stat size="mini" label={CONDITION_LABELS[condition]} state="critical" />
-            )}
-            {usesLeft !== undefined && (
-              <Stat size="mini" label={buildSheetCopy('uses')} value={usesLeft} />
             )}
             {chips}
           </>
@@ -312,17 +309,21 @@ export function PilotDash({
             )}
           </>
         ) : undefined,
-        cells: [entity ? <TechLevel key="tl" level={level ?? entity.techLevel} /> : '', 1],
+        cells: [
+          entity ? <TechLevel key="tl" level={level ?? entity.techLevel} /> : '',
+          1,
+          !edit && maxUses !== null ? `${usesLeft ?? maxUses}/${maxUses}` : '',
+        ],
         dim: condition === 'destroyed',
         detail: entity && !granted ? <RowRules entity={entity} instance={instance} /> : undefined,
       }
     }),
     ...model.genericInventory.map(
-      (entry, index): OpenRow => ({
+      (entry, index): LedgerRow => ({
         id: entry.id,
         name: entry.qty && entry.qty > 1 ? `${entry.name} ×${entry.qty}` : entry.name,
         meta: entry.note,
-        cells: ['', entry.slotCost],
+        cells: ['', entry.slotCost, ''],
         controls: edit ? (
           <SheetRemoveButton
             name={entry.name}
@@ -442,7 +443,8 @@ export function PilotDash({
                 </div>
               )}
               {model.unresolvedAbilities.length > 0 && (
-                <OpenLedger
+                <Ledger
+                  open
                   className="su-open--sub su-open--generic"
                   as="h3"
                   title={buildSheetCopy('unknownAbilities')}
@@ -473,7 +475,8 @@ export function PilotDash({
           {!phone && linkedUnits}
           {(!empty || edit) && (
             <div className="su-dash-group" data-sheet-carried="">
-              <OpenLedger
+              <Ledger
+                open
                 as="h2"
                 title={buildSheetCopy('inventory')}
                 tally={{
@@ -500,7 +503,8 @@ export function PilotDash({
             // Every pilot's Generic Abilities are a table of the side column,
             // under Inventory: a row each, header only, opening its rules in place.
             <div className="su-dash-group">
-              <OpenLedger
+              <Ledger
+                open
                 as="h2"
                 title={buildSheetCopy('genericAbilities')}
                 columns={ABILITY_COLUMNS}

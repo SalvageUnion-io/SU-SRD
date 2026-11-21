@@ -35,11 +35,11 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { FieldError, RosterSkeleton } from '../../components/app'
-import type { HeaderMenuItem, OpenColumn, OpenRow } from '../../components/index'
+import type { HeaderMenuItem, LedgerColumn, LedgerRow } from '../../components/index'
 import {
   Button,
   HeaderMenu,
-  OpenLedger,
+  Ledger,
   SlabSection,
   Stat,
   TechLevel,
@@ -285,7 +285,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   // The crew as ONE manifest, a line a
   // unit under the columns the table reads — who holds it, and the numbers
   // Play spends. Its ⋯ menu rides the row, as a Compact's does.
-  const MANIFEST: readonly OpenColumn[] = [
+  const MANIFEST: readonly LedgerColumn[] = [
     // A phone drops Member so HP and SP never clip.
     { key: 'who', label: playGamesCopy('member'), kind: 'text' },
     { key: 'tl', label: playGamesCopy('tl'), title: playGamesCopy('techLevel') },
@@ -304,7 +304,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     row.kind === 'pilot' && typeof row.body.classRef === 'string'
       ? (resolveClass(row.body.classRef)?.name ?? '')
       : ''
-  function manifestRow(row: RosterRow): OpenRow {
+  function manifestRow(row: RosterRow): LedgerRow {
     const chips = rowChips(row)
     const linked = chips.linked?.[0]
     const mech = linked?.readings ?? []
@@ -319,7 +319,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       meta:
         [classNameOf(row), linked?.name ? `in ${linked.name}` : ''].filter(Boolean).join(' · ') ||
         undefined,
-      state: (
+      stamp: (
         <>
           {row.primary && <Stat size="mini" label={playGamesCopy('primary')} />}
           {/* The seal is the assign control: a row of yours says Mine in its
@@ -404,7 +404,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         // column labels at its end, so the "+ New…" buttons sit on their own
         // line under the rule rather than between the two (the page's one rust
         // button stays the band's).
-        <OpenLedger
+        <Ledger
+          open
           as="h2"
           title={playGamesCopy('crew')}
           {...(seats !== null && seats.total > 0

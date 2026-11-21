@@ -25,13 +25,13 @@ import type { RefMetaEntity } from 'salvageunion-reference'
 import { getAssetUrl, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { installedSlots, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
-import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
+import type { LedgerColumn, LedgerRow, PhoneVital } from '../../components/index'
 import {
   ChapterBand,
   Chips,
   capsLabel,
+  Ledger,
   Mention,
-  OpenLedger,
   relation,
   Tag,
   TechLevel,
@@ -67,12 +67,12 @@ import { RowRules } from './RowRules'
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
-const ABILITY_COLUMNS: readonly OpenColumn[] = [
+const ABILITY_COLUMNS: readonly LedgerColumn[] = [
   { key: 'action', label: buildSheetCopy('action'), kind: 'text', phone: true },
   { key: 'cost', label: buildSheetCopy('cost'), phone: true },
 ]
 
-const CARGO_COLUMNS: readonly OpenColumn[] = [
+const CARGO_COLUMNS: readonly LedgerColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
   { key: 'slots', label: buildSheetCopy('slots'), phone: true },
 ]
@@ -222,7 +222,7 @@ export function CompanionSheet({
   const cargoUsed = lots.reduce((sum, lot) => sum + lot.units, 0)
 
   const allActions = buildCompanionActions({ kind: hostKind, id: hostId }, [partner])
-  const abilityRows: OpenRow[] = allActions
+  const abilityRows: LedgerRow[] = allActions
     .filter((action) => action.kind === 'chassis')
     .map((action) => {
       const actionModel = toEntityModel(action.action)
@@ -378,20 +378,23 @@ export function CompanionSheet({
           <Dash>
             <DashColumn wide label={name}>
               {abilityRows.length > 0 && (
-                <OpenLedger
+                <Ledger
+                  open
                   title={buildSheetCopy('abilities')}
                   columns={ABILITY_COLUMNS}
                   groups={[{ key: 'abilities', rows: abilityRows }]}
                 />
               )}
-              <OpenLedger
+              <Ledger
+                open
                 title={buildSheetCopy('systems')}
                 tally={{ label: buildSheetCopy('slots'), value: sysUsed, max: sysMax }}
                 columns={ITEM_COLUMNS}
                 groups={[{ key: 'systems', rows: systems }]}
                 empty={buildSheetCopy('nothingFitted')}
               />
-              <OpenLedger
+              <Ledger
+                open
                 title={buildSheetCopy('modules')}
                 tally={{ label: buildSheetCopy('slots'), value: modUsed, max: modMax }}
                 columns={ITEM_COLUMNS}
@@ -401,7 +404,8 @@ export function CompanionSheet({
             </DashColumn>
             <DashColumn label={buildSheetCopy('whatCarries', { name })}>
               <div className="su-dash-group">
-                <OpenLedger
+                <Ledger
+                  open
                   title={buildSheetCopy('cargo')}
                   tally={{
                     label: buildSheetCopy('slots'),

@@ -8,7 +8,7 @@ import { referenceEntityCopy } from '../../../messages/components-reference-enti
 import { Slab } from '../../atoms/Slab'
 import { MiniGrid } from '../../containers/MiniGrid'
 import { Entity } from '../../entity/Entity'
-import { OpenLedger } from '../../entity/OpenLedger'
+import { Ledger } from '../../entity/Ledger'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
 import { cardKey } from './cardHelpers'
@@ -213,7 +213,7 @@ const LOADOUT_PAGE = {
 } satisfies CSSProperties
 
 /**
- * A pattern PAGE's loadout, under its chassis ability. * each group (Systems, Modules) is the mech sheet's own list (`OpenLedger`
+ * A pattern PAGE's loadout, under its chassis ability. * each group (Systems, Modules) is the mech sheet's own list (`Ledger`
  * over `itemRows`): a zebra line a part, its figures in the sheet's columns,
  * its rules opening in place under it. Multiples repeat, as on the sheet.
  */
@@ -235,7 +235,8 @@ export function PatternLoadoutRows({
         const modules = slugs.every((slug) => resolveModule(slug) !== null)
         const fitted = { systems: modules ? [] : slugs, modules: modules ? slugs : [] }
         return (
-          <OpenLedger
+          <Ledger
+            open
             key={group.label}
             className="su-open--loadout"
             // A reference Page shows its whole self: every row's rules open (R43).

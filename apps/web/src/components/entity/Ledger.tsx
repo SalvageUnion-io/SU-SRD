@@ -1,5 +1,6 @@
-// The LEDGER (docs/design-system: L1 to L9), a list of entities to compare or
-// pick from as ONE framed block: the Compact's frame in the list's band colour,
+// The LEDGER (docs/design-system: L1 to L9), the one table a list of entities
+// to compare or pick from is. `open` renders its open form (`LedgerOpen`): a
+// section's grouped rows that open in place, unframed. Otherwise it is ONE block: the Compact's frame in the list's band colour,
 // one column-head strip on the band carrying the column labels as stamps, then
 // a Mini-height line per entity: its name (the link and Peek, a `Mention`), an
 // optional stamp (TL, Starting), and its values in fixed columns, in the stat
@@ -9,7 +10,7 @@
 // foot, and its sources on the card foot's cut-out (`EntityCardIdentityFooter`
 // on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react'
-import type { CSSProperties, MouseEvent, ReactNode } from 'react'
+import type { CSSProperties, ElementType, MouseEvent, ReactNode } from 'react'
 import { Fragment, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { iconSize } from '../../design/tokens'
@@ -18,28 +19,32 @@ import { entityCopy } from '../../messages/components-entity'
 import { Badge } from '../atoms/Badge'
 import { capsLabel } from '../atoms/capsLabel'
 import { InlineRef } from '../atoms/InlineRef'
+import type { SlabCount } from '../atoms/slabSummary'
 import { Box } from '../containers/Box'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 import { EntityCardIdentityFooter } from '../referenceEntity/card/EntityCardIdentityFooter'
 import type { CardFootMeta } from '../referenceEntity/card/referenceEntityCardTypes'
+import { CostMark } from './CostMark'
 import { useEntitySurface } from './entitySurfaceContext'
 import { Mention } from './forms/Mention'
+import { LedgerOpen } from './LedgerOpen'
 import type { Paint } from './parts/paint'
 import { paintFor } from './parts/paint'
 import { usePeekAttrs } from './peekContext'
 
 export type LedgerColumn = {
   key: string
+  /** Its stamp on the head strip: `RNG`, `DMG`. */
   label: string
   /** The label spelled out, on hover and for a screen reader. */
   title?: string
   /**
-   * `figure`: a numeral, centred in its column; `text`: a word; `quiet`: one
-   * line of words, muted, taking the room left; `line`: body copy that takes
-   * the room left and wraps.
+   * `figure` (the default): a numeral, centred in its column; `text`: a word;
+   * `quiet`: one line of words, muted, taking the room left; `line`: body
+   * copy that takes the room left and wraps.
    */
-  kind: 'figure' | 'text' | 'quiet' | 'line'
-  /** Kept on a phone. */
+  kind?: 'figure' | 'text' | 'quiet' | 'line'
+  /** Kept on a phone; the others give way to the name. */
   phone?: boolean
 }
 
@@ -55,21 +60,29 @@ function AddressedName({ row, href }: { row: LedgerRow; href: string }) {
 
 export type LedgerRow = {
   id: string
-  name: string
+  name: ReactNode
   /** The entity the name links to and Peeks. */
-  entityRef: EntityRef | undefined
+  entityRef?: EntityRef | undefined
   /** Where the name links when it is no reference entity's Page (a shared pattern, a search result, a player's own sheet). */
-  href?: string
+  href?: string | undefined
   /** Attributes for that link: a search result's `role="option"`. */
   linkAttrs?: Record<string, unknown>
-  /** The row's one stamp, at the name cell's end (`TL | 1`, Starting). */
+  /** Open form: before the name, a level numeral or a Tech Level swatch. */
+  lead?: ReactNode
+  /** Open form: after the name, quiet caps (its traits, where it comes from). */
+  meta?: ReactNode
+  /** The row's one stamp, after the name (`TL | 1`, Starting, Damaged). */
   stamp?: ReactNode
+  /** Open form: Edit's controls for the row, in place after its stamp (C8); Read gives none. */
+  controls?: ReactNode
   /** One per column, in order; an empty cell draws `—`. */
   cells: readonly ReactNode[]
   /** The row's last cell: its menu, its count or its stepper. */
   trailing?: ReactNode
-  /** The pick's marks under the name (`CHOSEN | Energy`, hard rule R60). */
+  /** The line under the name: the pick's marks (`CHOSEN | Energy`, R60), what it does. */
   under?: ReactNode
+  /** Open form: greyed, an ability not taken or a destroyed item. */
+  dim?: boolean
   /**
    * In select: whether the row is inked. Left out, the selected row is. A count
    * pick sets it (a row with a copy), and the selected row is then the one
@@ -78,8 +91,52 @@ export type LedgerRow = {
   picked?: boolean
   /** In select: why the row cannot be picked now; it wears the one dim and says why on a pointer. */
   blocked?: string
-  /** In select: the row's card, opened under its line while it is selected. */
+  /**
+   * Opened under the row's line: in select, its card while it is selected;
+   * in the open form, its rules, behind its chevron.
+   */
   detail?: ReactNode
+  /** Open form: the opener's name ("Command Bay rules"). */
+  detailLabel?: string
+  /** Open form: the row starts open (the pilot's taken abilities read without a press). */
+  defaultOpen?: boolean
+}
+
+/** An open form's sub-group (Turn, a tree): its rows under a small caps label. */
+export type LedgerGroup = {
+  key: string
+  /** The sub-group's label; absent, the rows follow the head. */
+  label?: ReactNode
+  /** A quiet note at the label's line end: a tree's track. */
+  note?: ReactNode
+  rows: readonly LedgerRow[]
+  /** The sub-group folds, and starts shut: what every unit of the kind has stays a line until asked for. */
+  fold?: 'closed'
+}
+
+/** The open form's props: a section's grouped rows, unframed (L1). */
+export type LedgerOpenProps = {
+  open: true
+  title: ReactNode
+  /** The title's element: the section's heading. */
+  as?: ElementType
+  /** The section's tally, as a Slab's value count reads. */
+  tally?: SlabCount | readonly SlabCount[]
+  /** A quiet word at the title's end instead of a tally. */
+  note?: ReactNode
+  /** The section's controls, at the head's end (its "+ New…", Manage). */
+  actions?: ReactNode
+  /** Said before the rows: an error, a hint. */
+  lead?: ReactNode
+  columns: readonly LedgerColumn[]
+  groups: readonly LedgerGroup[]
+  /** Said when there is nothing to list. */
+  empty?: string
+  /** The books these rows are printed in: the foot's cut-out, bottom right. */
+  cite?: ReactNode
+  /** Every row's rules stand open, with no opener: a reference Page shows its whole self (R43, R44). */
+  whole?: boolean
+  className?: string
 }
 
 /** A picker (L7): each row a radio of one group. */
@@ -150,26 +207,7 @@ function isTally(count: ReactNode): boolean {
   return typeof count === 'number' || (typeof count === 'string' && /^\d+$/.test(count.trim()))
 }
 
-export function Ledger({
-  tone = 'ink',
-  paint: paintProp,
-  nameLabel,
-  count,
-  columns,
-  rows,
-  foot,
-  sort,
-  mark,
-  onSort,
-  label,
-  action,
-  empty,
-  total,
-  trailingLabel,
-  select,
-  note,
-  footMeta,
-}: {
+type LedgerListProps = {
   /** The band's tone on the colour map (a kind's, `ink` for a mixed list): the frame's colour and the head strip's. */
   tone?: string
   /** The band's paint, for a list whose band is no tone token's (a wizard's `--tone`). It replaces `tone`. */
@@ -203,7 +241,75 @@ export function Ledger({
   note?: ReactNode
   /** A plain fact left of the sources on the foot band (`COSTS | its Salvage Value`). */
   footMeta?: CardFootMeta[]
-}) {
+}
+
+/** The indices of the columns some row fills: a list drops a column no row fills (L5). */
+function filledColumns(columns: readonly LedgerColumn[], rows: readonly LedgerRow[]): number[] {
+  const all = columns.map((_, index) => index)
+  if (rows.length === 0) return all
+  return all.filter((index) => rows.some((row) => !isEmpty(row.cells[index])))
+}
+
+const keep = <T,>(cells: readonly T[], kept: readonly number[]) =>
+  kept.map((index) => cells[index] as T)
+
+const keepRow = (row: LedgerRow, kept: readonly number[]): LedgerRow => ({
+  ...row,
+  cells: keep(row.cells, kept),
+})
+
+/** One Ledger (L1): the open form with `open`, else the list's one block. */
+export function Ledger(props: LedgerListProps | LedgerOpenProps) {
+  if ('open' in props) {
+    const kept = filledColumns(
+      props.columns,
+      props.groups.flatMap((group) => group.rows)
+    )
+    if (kept.length === props.columns.length) return <LedgerOpen {...props} />
+    return (
+      <LedgerOpen
+        {...props}
+        columns={keep(props.columns, kept)}
+        groups={props.groups.map((group) => ({
+          ...group,
+          rows: group.rows.map((row) => keepRow(row, kept)),
+        }))}
+      />
+    )
+  }
+  const kept = filledColumns(props.columns, props.rows)
+  if (kept.length === props.columns.length) return <LedgerList {...props} />
+  const { total } = props
+  return (
+    <LedgerList
+      {...props}
+      columns={keep(props.columns, kept)}
+      rows={props.rows.map((row) => keepRow(row, kept))}
+      {...(total ? { total: { ...total, cells: keep(total.cells, kept) } } : {})}
+    />
+  )
+}
+
+function LedgerList({
+  tone = 'ink',
+  paint: paintProp,
+  nameLabel,
+  count,
+  columns,
+  rows,
+  foot,
+  sort,
+  mark,
+  onSort,
+  label,
+  action,
+  empty,
+  total,
+  trailingLabel,
+  select,
+  note,
+  footMeta,
+}: LedgerListProps) {
   const group = useId()
   const surface = useEntitySurface()
   const paint = paintProp ?? paintFor(tone, { texture: surface.texture })
@@ -221,6 +327,7 @@ export function Ledger({
   const stamp = (key: string, text: string, title?: string) => {
     const mark = (
       <Badge shape="stamp" size="mini" surface="solid">
+        {key === 'cost' && <CostMark />}
         {text}
         {onSort && sortSlot(sort, key)}
       </Badge>
@@ -230,7 +337,12 @@ export function Ledger({
         type="button"
         className="su-ledger__sort"
         title={title}
-        aria-label={entityCopy('sortBy', { column: title ?? text })}
+        // The name holds the visible label (SC 2.5.3): "Sort by SP (Structure Points)".
+        aria-label={
+          title && title !== text
+            ? entityCopy('sortByTitled', { column: text, title })
+            : entityCopy('sortBy', { column: text })
+        }
         onClick={() => onSort(key)}
       >
         {mark}
@@ -291,32 +403,12 @@ export function Ledger({
               <th
                 key={column.key}
                 scope="col"
-                data-kind={column.kind}
+                data-kind={column.kind ?? 'figure'}
                 data-phone={column.phone || undefined}
                 data-line={column.key === phoneLine || undefined}
                 aria-sort={ariaSort(column.key)}
               >
-                {/* A cost's values label themselves ("2 EP"); the head prints no label, a reader still hears it. Where the head sorts, its handle stays as a bare mark. */}
-                {column.key === 'cost' ? (
-                  onSort ? (
-                    <button
-                      type="button"
-                      className="su-ledger__sort"
-                      title={column.title ?? column.label}
-                      aria-label={entityCopy('sortBy', { column: column.title ?? column.label })}
-                      onClick={() => onSort(column.key)}
-                    >
-                      <Badge shape="stamp" size="mini" surface="solid">
-                        <span className="su-sr-only">{column.label}</span>
-                        {sort?.key === column.key ? sortMark(sort) : '↕'}
-                      </Badge>
-                    </button>
-                  ) : (
-                    <span className="su-sr-only">{column.label}</span>
-                  )
-                ) : (
-                  stamp(column.key, column.label, column.title)
-                )}
+                {stamp(column.key, column.label, column.title)}
               </th>
             ))}
             {hasTrailing && (
@@ -395,7 +487,7 @@ export function Ledger({
                   {columns.map((column, cell) => (
                     <td
                       key={column.key}
-                      data-kind={column.kind}
+                      data-kind={column.kind ?? 'figure'}
                       data-phone={column.phone || undefined}
                       data-line={column.key === phoneLine || undefined}
                       data-empty={isEmpty(row.cells[cell]) || undefined}
@@ -434,7 +526,11 @@ export function Ledger({
                 {total.label}
               </th>
               {columns.map((column, index) => (
-                <td key={column.key} data-kind={column.kind} data-phone={column.phone || undefined}>
+                <td
+                  key={column.key}
+                  data-kind={column.kind ?? 'figure'}
+                  data-phone={column.phone || undefined}
+                >
                   {total.cells[index]}
                 </td>
               ))}

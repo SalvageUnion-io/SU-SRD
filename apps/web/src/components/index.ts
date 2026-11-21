@@ -253,7 +253,13 @@ export { Mention } from './entity/forms/Mention'
 // MiniGroup — an entity's contentful Mini and the Minis that belong to it
 // in one subtle border (a crawler bay and its crew), no nesting
 // Ledger — a compared or picked list's one framed table (ledger.md L1 to L9).
-export type { LedgerColumn, LedgerRow, LedgerSelect, LedgerSort } from './entity/Ledger'
+export type {
+  LedgerColumn,
+  LedgerGroup,
+  LedgerRow,
+  LedgerSelect,
+  LedgerSort,
+} from './entity/Ledger'
 export { Ledger } from './entity/Ledger'
 export type { LinkedUnit } from './entity/LinkedUnits'
 export { LinkedUnits } from './entity/LinkedUnits'
@@ -261,13 +267,12 @@ export { LinkedUnits } from './entity/LinkedUnits'
 export { SELECT_DIM } from './entity/modes/selectedRing'
 export type { NameRefCandidate, NameRefIndex, NameRefMatch } from './entity/nameRefs'
 export { findNameRefs } from './entity/nameRefs'
-export type { OpenColumn, OpenRow } from './entity/OpenLedger'
-export { OpenLedger, TechLevel } from './entity/OpenLedger'
 export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
 export { embeddedPeekAddress } from './entity/peekContext'
+export { TechLevel } from './entity/TechLevel'
 export type { EntityFormModel, EntityMode } from './entity/types'
 // MarkdownSection — a repo-root markdown file (one heading, paragraphs and
 // links) as a section; InlineMarkdown — one line of it, links only

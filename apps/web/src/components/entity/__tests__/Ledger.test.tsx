@@ -135,7 +135,7 @@ describe('Ledger: a head stamp sorts only where the list asks (L2)', () => {
   test('with onSort each stamp and the tab sort, and the sorted column says so', () => {
     const onSort = mock((_key: string) => {})
     const { container, getByRole } = draw({ onSort, sort: { key: 'slots', descending: true } })
-    fireEvent.click(getByRole('button', { name: 'Sort by Range' }))
+    fireEvent.click(getByRole('button', { name: 'Sort by RNG (Range)' }))
     fireEvent.click(getByRole('button', { name: 'Sort by Systems' }))
     expect(onSort.mock.calls.map(([key]) => key)).toEqual(['rng', 'name'])
     const sorted = container.querySelector('thead th[aria-sort]')

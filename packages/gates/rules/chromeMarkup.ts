@@ -57,7 +57,7 @@ const DL_ELEMENTS = new Set(['dl', 'dt', 'dd'])
 /** Where a `<table>` may be drawn (ledger.md L9): a list compared or picked from is a Ledger. */
 const TABLE_HOMES: Record<string, string> = {
   'apps/web/src/components/entity/Ledger.tsx': 'the Ledger',
-  'apps/web/src/components/entity/OpenLedger.tsx': "the Ledger's open form, a sheet's lists (L1)",
+  'apps/web/src/components/entity/LedgerOpen.tsx': "the Ledger's open form, a sheet's lists (L1)",
   'apps/web/src/components/compositions/RollTableInstrument.tsx': 'the roll instrument (R8)',
   'apps/web/src/reference/pages/api.page.tsx':
     "a document page's schema table: prose, no entity list",

@@ -15,8 +15,8 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { useState } from 'react'
 import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 import { Facts } from '../../components/app'
-import type { CSSVarStyle, OpenColumn } from '../../components/index'
-import { Button, OpenLedger, Stat, TechLevel } from '../../components/index'
+import type { CSSVarStyle, LedgerColumn } from '../../components/index'
+import { Button, Ledger, Stat, TechLevel } from '../../components/index'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
@@ -36,7 +36,7 @@ import { EXOTIC_NAME } from '../sheet/exoticNames.model'
 import { HoldAdder } from '../sheet/HoldAdder'
 import { DashGroup } from './Dash'
 
-const STORED_COLUMNS: readonly OpenColumn[] = [
+const STORED_COLUMNS: readonly LedgerColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
   { key: 'units', label: buildSheetCopy('units'), phone: true },
 ]
@@ -135,7 +135,8 @@ export function StorageBay({
             }))}
           />
         )}
-        <OpenLedger
+        <Ledger
+          open
           as="h3"
           title={buildSheetCopy('stored')}
           columns={STORED_COLUMNS}

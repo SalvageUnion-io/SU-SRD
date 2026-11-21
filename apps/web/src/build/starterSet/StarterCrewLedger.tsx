@@ -28,8 +28,8 @@ import {
   pilotMaxHP,
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
-import type { OpenColumn, OpenRow } from '../../components/index'
-import { CiteLine, capsLabel, InlineRef, OpenLedger, TechLevel } from '../../components/index'
+import type { LedgerColumn, LedgerRow } from '../../components/index'
+import { CiteLine, capsLabel, InlineRef, Ledger, TechLevel } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { resolveClass } from '../../lib/classRef'
 import { cn } from '../../lib/cn'
@@ -52,7 +52,7 @@ const BOOK: Record<StarterRosterId, string> = {
   quickstart: QUICKSTART_BOOK,
 }
 
-const PAIR_COLUMNS: readonly OpenColumn[] = [
+const PAIR_COLUMNS: readonly LedgerColumn[] = [
   { key: 'hp', label: buildStarterSetCopy('hp'), phone: true },
   { key: 'ap', label: buildStarterSetCopy('ap'), phone: true },
   { key: 'mech', label: buildStarterSetCopy('mech'), kind: 'text', phone: true },
@@ -62,7 +62,7 @@ const PAIR_COLUMNS: readonly OpenColumn[] = [
   { key: 'heat', label: buildStarterSetCopy('heat') },
 ]
 
-const CRAWLER_COLUMNS: readonly OpenColumn[] = [
+const CRAWLER_COLUMNS: readonly LedgerColumn[] = [
   { key: 'type', label: buildStarterSetCopy('type'), kind: 'text', phone: true },
   { key: 'tl', label: buildStarterSetCopy('tl'), title: buildStarterSetCopy('techLevel') },
   { key: 'sp', label: buildStarterSetCopy('sp'), phone: true },
@@ -105,27 +105,27 @@ function mechCells(mech: Mech | undefined) {
   ]
 }
 
-function pilotRow(pilot: Pilot, mech: Mech | undefined, confirm: Confirm | undefined): OpenRow {
+function pilotRow(pilot: Pilot, mech: Mech | undefined, confirm: Confirm | undefined): LedgerRow {
   const pilotClass = resolveClass(pilot.classRef)
   return {
     id: pilot.id,
     name: pilot.name,
     href: `/starter/pilot/${pilot.id}`,
     meta: pilotClass?.name,
-    state: confirm ? (
+    stamp: confirm ? (
       <CopyStarterMenu kind="pilot" templateId={pilot.id} name={pilot.name} confirm={confirm} />
     ) : undefined,
     cells: [pilotMaxHP(pilot), pilotMaxAP(pilot), ...mechCells(mech)],
   }
 }
 
-function crawlerRow(crawler: Crawler, confirm: Confirm | undefined): OpenRow {
+function crawlerRow(crawler: Crawler, confirm: Confirm | undefined): LedgerRow {
   const type = crawler.type ? resolveCrawlerType(crawler.type) : null
   return {
     id: crawler.id,
     name: crawler.name,
     href: `/starter/crawler/${crawler.id}`,
-    state: confirm ? (
+    stamp: confirm ? (
       <CopyStarterMenu
         kind="crawler"
         templateId={crawler.id}
@@ -160,7 +160,8 @@ export function StarterCrewLedger({
   const loose = crew.mechs.filter((mech) => !paired.has(mech.id))
   return (
     <div className="su-dash-group__body">
-      <OpenLedger
+      <Ledger
+        open
         as={as}
         title={buildStarterSetCopy('pilotsAndTheirMechs')}
         className="su-open--pairs"
@@ -179,7 +180,7 @@ export function StarterCrewLedger({
               name: mech.name,
               href: `/starter/mech/${mech.id}`,
               meta: chassisMeta(mech, resolveChassisRef(mech.chassisRef)),
-              state: confirm ? (
+              stamp: confirm ? (
                 <CopyStarterMenu
                   kind="mech"
                   templateId={mech.id}
@@ -196,7 +197,8 @@ export function StarterCrewLedger({
           : {})}
       />
       {crew.crawlers.length > 0 && (
-        <OpenLedger
+        <Ledger
+          open
           as={as}
           title={buildStarterSetCopy('unionCrawler')}
           columns={CRAWLER_COLUMNS}

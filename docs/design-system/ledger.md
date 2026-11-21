@@ -1,8 +1,8 @@
 # The Ledger
 
-A list you compare or pick from is one table, between the book's banded table and the Compacts ([EDL](entity-display-language.md) E2). A row is no strip: [chips-and-actions.md](chips-and-actions.md) does not lay it. Code: `components/entity/Ledger`, `OpenLedger`.
+A list you compare or pick from is one table, between the book's banded table and the Compacts ([EDL](entity-display-language.md) E2). A row is no strip: [chips-and-actions.md](chips-and-actions.md) does not lay it. Code: `components/entity/Ledger`.
 
-- **L1 One table a list, unframed** — one `Ledger` (a sheet's: its open form, `OpenLedger`): the head strip, the rows, and a 2px ink rule closing them; no frame. No row wears a band, frame or tone of its own. An open row opens its rules in place under itself (its chevron); a sub-group is a small caps label on a hairline.
+- **L1 One table a list, unframed** — one `Ledger` (a sheet's: its `open` form): the head strip, the rows, and a 2px ink rule closing them; no frame. No row wears a band, frame or tone of its own. An open row opens its rules in place under itself (its chevron); a sub-group is a small caps label on a hairline.
 - **L2 The head strip** — the band's colour, speckled (R10). The list's title is a paper cut-out tab at its left (E22), with no count: the tab is the section head, and no Slab stands over a Ledger. A tab that would repeat its page's title reads Name, still a cut-out. Each column's label is a cut-out too, on one line; a picker ends the strip with what it asks (`CHOOSE | 1`) or its budget. On an SRD index, and nowhere else, the tab and each stamp sort by their column (§3.13's one exception), the sorted one marked by a chevron.
 - **L3 Rows** — a Mini's line, banded paper and `--color-band-cream`, a 1px hairline between. A quiet line is one line, cut with "…"; nothing else is cut, nor anything on a Page: a prose column wraps.
 - **L4 The name** — first, in condensed caps (`capsLabel`), the row's link, with Peek (a loadout's parts link too). The only stamp on a row is its mark (STARTING) or rank (TL).

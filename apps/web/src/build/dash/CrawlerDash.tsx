@@ -28,14 +28,14 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { ComponentProps, ReactNode } from 'react'
 import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
-import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
+import type { LedgerColumn, LedgerRow, PhoneVital } from '../../components/index'
 import {
   Button,
   Content,
   embeddedPeekAddress,
   HeaderMenu,
+  Ledger,
   Mention,
-  OpenLedger,
   Stat,
   TechLevel,
 } from '../../components/index'
@@ -64,20 +64,20 @@ import { leadOf } from './bayLead.model'
 import { Dash, DashColumn, DashGroup } from './Dash'
 import { StorageBay } from './StorageBay'
 
-const BAY_COLUMNS: readonly OpenColumn[] = [
+const BAY_COLUMNS: readonly LedgerColumn[] = [
   { key: 'lead', label: buildSheetCopy('crewLeadColumn'), kind: 'text', phone: true },
   { key: 'keepsake', label: buildSheetCopy('keepsake'), kind: 'text' },
   { key: 'motto', label: buildSheetCopy('motto'), kind: 'text' },
   { key: 'hp', label: buildSheetCopy('hp'), phone: true },
 ]
 
-const WEAPON_COLUMNS: readonly OpenColumn[] = [
+const WEAPON_COLUMNS: readonly LedgerColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
   { key: 'range', label: buildSheetCopy('rng'), title: buildSheetCopy('range'), phone: true },
   { key: 'damage', label: buildSheetCopy('dmg'), title: buildSheetCopy('damage'), phone: true },
 ]
 
-const TYPE_COLUMNS: readonly OpenColumn[] = [
+const TYPE_COLUMNS: readonly LedgerColumn[] = [
   { key: 'hp', label: buildSheetCopy('hp'), phone: true },
 ]
 
@@ -142,7 +142,7 @@ export function CrawlerDash({
   const gauges = vitals.filter((vital) => vital.max !== undefined)
   const upkeep = vitals.find((vital) => vital.key === 'upkeep')
 
-  const weapons: OpenRow[] = crawler.systems.map((slug) => {
+  const weapons: LedgerRow[] = crawler.systems.map((slug) => {
     const system = resolveCrawlerSystem(slug)
     const model = system ? toEntityModel(system) : undefined
     const short = (key: string) => {
@@ -166,7 +166,8 @@ export function CrawlerDash({
   })
   const weaponsLedger =
     weapons.length > 0 || edit ? (
-      <OpenLedger
+      <Ledger
+        open
         title={buildSheetCopy('weapons')}
         columns={WEAPON_COLUMNS}
         groups={[{ key: 'weapons', rows: weapons }]}
@@ -182,7 +183,7 @@ export function CrawlerDash({
       />
     ) : null
 
-  const bayRows: OpenRow[] = bays.map((entry, index) => {
+  const bayRows: LedgerRow[] = bays.map((entry, index) => {
     const bay = resolveCrawlerBay(entry.bayRef)
     // Only a bay's first slot is crewed by a built NPC (D8).
     const first = bays.findIndex((other) => other.bayRef === entry.bayRef) === index
@@ -194,7 +195,7 @@ export function CrawlerDash({
       id: `${entry.bayRef}-${index}`,
       name,
       entityRef: bay ? toEntityModel({ ...bay, npc: undefined }).ref : undefined,
-      state:
+      stamp:
         damaged && !edit ? (
           <Stat size="mini" label={buildSheetCopy('damaged')} state="critical" />
         ) : undefined,
@@ -330,7 +331,8 @@ export function CrawlerDash({
       {phone && linkedUnits}
       <Dash>
         <DashColumn wide label={buildSheetCopy('bays')}>
-          <OpenLedger
+          <Ledger
+            open
             as="h2"
             title={buildSheetCopy('bays')}
             columns={BAY_COLUMNS}
@@ -404,7 +406,8 @@ export function CrawlerDash({
                 </section>
               )}
               {!edit && typeLead && (typeLead.name || typeLead.position) && (
-                <OpenLedger
+                <Ledger
+                  open
                   as="h3"
                   title={buildSheetCopy('typeCrew')}
                   columns={TYPE_COLUMNS}
