@@ -57,7 +57,7 @@ Canon for every primitive: a component that contradicts a rule is wrong; [the or
    13. **§3.13 The emphasis ladder** — rust is what you came to do: a region's one door (Play, Build With This, a step's Next) and every Use; then ink, outline, ghost. On a band a rust button wears an ink keyline, any other is outlined: a read stamp and a button never share a look on one line (a Ledger's sorting stamp, L2, apart).
    14. **§3.14 One act, one emphasis** — an act (every + New one act) wears one variant on every screen (bar §1.9's door); a make is outlined.
 4. **§4 Foundations** — tokens, one home: `apps/web/src/styles/theme.css`.
-   1. **§4.1 Colour roles** — values in `theme.css` alone. `--color-paper` is the one light surface, `--color-wk-bg` the page ground, `--color-band-cream` the one cream.
+   1. **§4.1 Colour roles** — `--color-paper` is the one light surface, `--color-wk-bg` the page ground, `--color-desk` the margin, `--color-band-cream` the one cream.
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground.
    2. **§4.2 The tracking ladder** — tokens only (`--tracking-*`): tight the label default, snug at the 11px floor, caps for chips, wide for header stamps, eyebrow the brand caption.
    3. **§4.3 The border map** — 3px `--bw-entity` full card, 2px `--bw-entity-compact` (contentful below Full, `Box`), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value cells, table rules, sheet Identity/Vitals. A Compact, Mini or Box is inked only with content under its head.
