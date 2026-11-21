@@ -45,6 +45,8 @@
  * somebody to take it; a shelf is already somebody's.
  */
 
+import { libCopy } from '../messages/lib'
+
 /** The loosest shape this needs: an opaque body that may carry a name. */
 export type CopyableBody = Record<string, unknown>
 
@@ -65,7 +67,7 @@ const DROPPED_FIELDS = ['id', 'createdAt', 'updatedAt'] as const
  * copy of one thing is numbered (`COPY OF Leaky 2`), so no two rows read alike.
  */
 export function copyName(name: string, taken: readonly string[] = []): string {
-  const base = `COPY OF ${name}`
+  const base = libCopy('copyOf', { name })
   if (!taken.includes(base)) return base
   let n = 2
   while (taken.includes(`${base} ${n}`)) n += 1

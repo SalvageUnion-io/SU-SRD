@@ -24,6 +24,7 @@ import type { CrewSlot, SoftLink } from 'game-domain/schemas/softLink'
 import type { RefEntity, RefNPC, RefObjectChoice } from 'salvageunion-reference'
 import { findEntityBySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resolvePool } from 'salvageunion-reference/rules'
+import { libNpcsCopy } from '../../messages/lib-npcs'
 import { readReference } from '../readReference'
 
 /** The parts of an NPC the renderers read — a saved record or a designer draft. */
@@ -92,7 +93,7 @@ export function npcAsReferenceEntity(npc: NpcView): ReferenceNpc {
   return {
     id: npc.id ?? DRAFT_ID,
     schemaName: 'npcs',
-    name: npc.name.trim() || 'Unnamed NPC',
+    name: npc.name.trim() || libNpcsCopy('unnamedNpc'),
     source: 'Salvage Union Workshop Manual',
     page: 1,
     hitPoints: npc.hitPoints,
@@ -149,8 +150,8 @@ export function npcKicker(npc: Pick<NpcView, 'templateRef'>): string | undefined
   const name = templateName(ref)
   if (isDenizenKind(ref.schema)) return name === null ? undefined : `From ${name}`
   if (ref.schema === 'crawler-bays')
-    return name === null ? 'Crawler crew' : `Crawler crew · ${name}`
-  return name === null ? 'Crawler crew' : `Crawler crew · ${name} type`
+    return name === null ? libNpcsCopy('crawlerCrew') : libNpcsCopy('crawlerCrewOfBay', { name })
+  return name === null ? libNpcsCopy('crawlerCrew') : libNpcsCopy('crawlerCrewOfType', { name })
 }
 
 /* -------------------------------------------------------------------------- */
@@ -371,7 +372,7 @@ export function slotParam(slot: CrewSlot): string {
 
 /** A slot's short name: "Med Bay", or "Type NPC". */
 function slotName(slot: CrewSlot): string {
-  if (slot.kind === 'type') return 'Type NPC'
+  if (slot.kind === 'type') return libNpcsCopy('typeNpc')
   const bay = readReference(
     'npcModel.slotName',
     () => SalvageUnionReference.CrawlerBays.getBySlug(slot.bayRef)?.name ?? null,
@@ -382,6 +383,6 @@ function slotName(slot: CrewSlot): string {
 
 /** A slot's name for a sentence: "the Med Bay", "the type's NPC slot". */
 export function slotPhrase(slot: CrewSlot): string {
-  if (slot.kind === 'type') return "the type's NPC slot"
+  if (slot.kind === 'type') return libNpcsCopy('theTypesNpcSlot')
   return `the ${slotName(slot)}`
 }

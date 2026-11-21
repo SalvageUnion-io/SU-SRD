@@ -36,7 +36,7 @@ import { itemHref } from './entityHref'
 export type BuildLink = { href: string; label: string; ariaLabel?: string }
 
 /** The page action's one visible label, whatever it builds. */
-const BUILD_WITH_THIS = 'Build With This'
+const BUILD_WITH_THIS = referenceCopy('buildWithThis')
 
 /**
  * A `/…/new` path in the app, opened straight on the guided wizard, with
@@ -159,9 +159,15 @@ export type GuideExits = {
 
 /** The creation guides, by `guideType`, in the order a new crew walks them. */
 const CREATION_GUIDES = [
-  { guideType: 'character-creation', build: { path: '/pilots/new', label: 'Build a Pilot' } },
-  { guideType: 'mech-creation', build: { path: '/mechs/new', label: 'Build a Mech' } },
-  { guideType: 'crawler-creation', build: { path: '/crawlers/new', label: 'Build a crawler' } },
+  {
+    guideType: 'character-creation',
+    build: { path: '/pilots/new', label: referenceCopy('buildAPilot') },
+  },
+  { guideType: 'mech-creation', build: { path: '/mechs/new', label: referenceCopy('buildAMech') } },
+  {
+    guideType: 'crawler-creation',
+    build: { path: '/crawlers/new', label: referenceCopy('buildACrawler') },
+  },
 ] as const
 
 /** A creation guide's exits, or `null` for any other page. */
@@ -182,6 +188,6 @@ export function guideExitsFor(schemaId: string, item: RefEntity): GuideExits | n
     next: nextGuide
       ? { href: itemHref('guides', getEntitySlug(nextGuide)), label: nextGuide.name }
       : null,
-    starterSet: { href: STARTER_SET_HREF, label: 'Or play the Starter Set' },
+    starterSet: { href: STARTER_SET_HREF, label: referenceCopy('orPlayTheStarterSet') },
   }
 }

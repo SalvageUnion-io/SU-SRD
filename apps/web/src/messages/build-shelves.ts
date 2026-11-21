@@ -59,4 +59,9 @@ export const buildShelvesCopy = messages({
   mechName: 'Mech name',
   patternName: 'Pattern name',
   tray: 'Tray',
+
+  sharedByLink: 'Shared by link',
+  onlyMe: 'Only me',
+  sharedWithACrew: 'Shared with a crew',
+  sharedWith: 'Shared with {game}',
 })
