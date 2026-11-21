@@ -19,6 +19,8 @@
  * Pure: `SyncProvider` feeds it the inputs and publishes the answer.
  */
 
+import { sharedCopy } from '../messages/components-shared'
+
 export const SYNC_STATUSES = ['signedOut', 'syncing', 'live', 'offline'] as const
 export type SyncStatus = (typeof SYNC_STATUSES)[number]
 
@@ -90,11 +92,11 @@ export function resetSync(next: SyncStatus = 'signedOut'): void {
 export type BlockedWriteReason = 'offline' | 'settling' | 'signedOut' | 'outdated'
 
 const BLOCKED_WRITE_COPY: Record<BlockedWriteReason, string> = {
-  settling: 'Still signing in — that change was not saved. Try again in a moment.',
+  settling: sharedCopy('writeBlockedSettling'),
   // The act, not the condition: the bar's sync status says why.
-  offline: 'That change was not saved: your Games are read-only for now.',
-  signedOut: 'Sign in to build and edit — nothing is saved without an account.',
-  outdated: 'The app has been updated — that change was not saved. Reloading onto the new version.',
+  offline: sharedCopy('writeBlockedOffline'),
+  signedOut: sharedCopy('writeBlockedSignedOut'),
+  outdated: sharedCopy('writeBlockedOutdated'),
 }
 
 const REASON_OF: Record<Exclude<SyncStatus, 'live'>, BlockedWriteReason> = {
