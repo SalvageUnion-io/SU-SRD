@@ -231,7 +231,6 @@ export function CrawlerDash({
 }: CrawlerDashProps) {
   const tl = crawler.techLevel
   const bays = crawler.crawlerBays ?? []
-  const intact = bays.filter((bay) => (bay.condition ?? 'intact') === 'intact').length
   const pool = crawler.scrapPool ?? {}
   const lots = cargo.state.depotLots
   const type = crawler.type ? resolveCrawlerType(crawler.type) : null
@@ -344,16 +343,6 @@ export function CrawlerDash({
           unit={buildSheetCopy('tScrap', { tl })}
         />
       )}
-      {bays.length > 0 && (
-        <StripFigure
-          label={buildSheetCopy('bays')}
-          name={`${buildSheetCopy('bays')}: ${intact}/${bays.length} ${buildSheetCopy('intact')}`}
-          value={intact}
-          max={bays.length}
-          meter="pips"
-          tint="ink"
-        />
-      )}
     </>
   )
   const actionsFoot = (size: 'compact' | 'full') =>
@@ -406,7 +395,6 @@ export function CrawlerDash({
           <OpenLedger
             as="h2"
             title={buildSheetCopy('bays')}
-            tally={{ label: buildSheetCopy('intact'), value: intact, max: bays.length }}
             columns={BAY_COLUMNS}
             groups={[{ key: 'bays', rows: bayRows }]}
             className="su-open--manifest"

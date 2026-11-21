@@ -9,9 +9,6 @@ import type { UnitReading } from '../../lib/units/unitModel'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { ShelfLink } from './ShelfLedger'
 
-/** The crawler's bays reading, by its label on the rail. */
-export const BAYS = 'Bays'
-
 const fig = (key: string, title: string, phone = false): LedgerColumn => ({
   key,
   label: key,
@@ -48,7 +45,6 @@ export const CRAWLER_COLUMNS = [
   GAME,
   fig(buildShelvesCopy('tl'), buildShelvesCopy('techLevel')),
   fig(VITAL.sp, buildShelvesCopy('structurePoints')),
-  fig(BAYS, buildShelvesCopy('baysIntact')),
 ]
 export const NPC_COLUMNS = [
   word('position', buildShelvesCopy('position')),

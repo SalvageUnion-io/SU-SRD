@@ -39,7 +39,6 @@ import { CrawlerSheet } from './CrawlerSheet'
 import { changedFields, freshEntity } from './freshEntity.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
-import { bayStates } from './railStats.model'
 import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 import { SHEET_VITALS } from './sheetVitals.model'
@@ -90,8 +89,6 @@ export function CrawlerLiveSheet({
     if (!changed) return
     runWrite(() => storeState.update('crawler', crawler.id, changed, LIVE_SHEET_OVERRIDE))
   }
-  const states = bayStates(crawler)
-  const intactBays = states.filter((s) => s === 'intact').length
   const tl = crawler.techLevel
   // The Upgrade pool fills toward the next Tech Level's cost; at Tech 6 there
   // is none (crawler-tech-levels.json), so no gauge.
@@ -99,17 +96,6 @@ export function CrawlerLiveSheet({
 
   const strip: LiveSheetStripItem[] = [
     { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },
-    ...(states.length > 0
-      ? [
-          {
-            key: 'bays',
-            label: buildSheetCopy('bays'),
-
-            value: intactBays,
-            max: states.length,
-          },
-        ]
-      : []),
   ]
 
   // Tech LVL / UPKEEP / UPGRADE-pool / TRADE / CREW lozenges (poster

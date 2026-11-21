@@ -274,6 +274,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     'CrewLeadMini.test.tsx',
     '_nestingDepth.ts#R46',
     'toEntityModel.test.ts#counts its bays',
+    'CrawlerSheet-bay-count.test.tsx',
   ],
   R47: ['CrawlerTechLevelPage.test.tsx', 'CompactIndex.test.tsx'],
   R48: [
