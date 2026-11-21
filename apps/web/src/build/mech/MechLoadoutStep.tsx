@@ -193,9 +193,13 @@ export function MechLoadoutStep({
 
   return (
     <div className="su-wiz-step">
-      {/* The three budgets, each a meter: what is left to spend, what is filled. */}
+      {/* The three budgets, each a meter counting up: Scrap spent, slots filled. */}
       <div className="su-wiz-budget">
-        <WizMeter label={mechCopy('scrap')} value={scrapRemaining} max={MECH_CREATION_SCRAP_CAP} />
+        <WizMeter
+          label={mechCopy('scrapSpent')}
+          value={MECH_CREATION_SCRAP_CAP - scrapRemaining}
+          max={MECH_CREATION_SCRAP_CAP}
+        />
         <WizMeter
           label={mechCopy('systemSlots')}
           value={slots.systems.used}

@@ -348,11 +348,12 @@ export function MechWizard({
   // the step's own meters show all three).
   const trackers = (() => {
     const scrap = (
+      // Spent, as the slots read filled: every budget counts up to its cap.
       <WizTracker
-        label={mechCopy('scrap')}
-        value={budget.remaining}
+        label={mechCopy('scrapSpent')}
+        value={MECH_CREATION_SCRAP_CAP - budget.remaining}
         max={MECH_CREATION_SCRAP_CAP}
-        testId="scrap-remaining"
+        testId="scrap-spent"
       />
     )
     switch (step) {

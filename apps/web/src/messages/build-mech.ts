@@ -43,7 +43,7 @@ export const mechCopy = messages({
   quirksTable: 'Quirks Table',
   mechAppearanceTable: 'Mech Appearance Table',
   patternNameTable: 'Pattern Name Table',
-  scrap: 'Scrap',
+  scrapSpent: 'Scrap spent',
   systemSlots: 'System Slots',
   moduleSlots: 'Module Slots',
   createMech: 'Create Mech ✦',
