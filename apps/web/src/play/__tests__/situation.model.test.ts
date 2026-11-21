@@ -31,6 +31,21 @@ describe('soloMechOptions', () => {
     expect(options.every((o) => o.state === 'yours' && o.note === null)).toBe(true)
   })
 
+  test('a mech another pilot is assigned still boards, and says it is theirs', () => {
+    const options = soloMechOptions(
+      'mara',
+      [
+        mechFixture({ id: 'disco', name: 'Disco Inferno' }),
+        mechFixture({ id: 'buzzard', name: 'Buzzard' }),
+      ],
+      links
+    )
+    expect(options.map((o) => [o.name, o.state, o.flownByOther ?? false, o.note])).toEqual([
+      ['Disco Inferno', 'yours', false, null],
+      ['Buzzard', 'yours', true, 'Another Pilot’s Mech'],
+    ])
+  })
+
   test('a destroyed mech is listed with its reason', () => {
     const [wreck] = soloMechOptions(
       'bonesaw',

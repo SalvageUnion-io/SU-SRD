@@ -32,6 +32,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { containerOf } from 'game-domain/container'
 import { cockpitPath, sheetPath } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import { useEffect } from 'react'
 import { RoutePending } from '../components/shared/RouteFallbacks'
@@ -127,7 +128,7 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
       <PlayRefusal
         area="build"
         title={playCopy('youreNotInThisPilots')}
-        body={playCopy('playOpensForMembersOf', { name: pilot.name })}
+        body={playCopy('playOpensForMembersOf', { name: pilotLabel(pilot) })}
         link={TO_TRAINING_BAY}
       />
     )

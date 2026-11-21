@@ -64,7 +64,7 @@ describe('link previews', () => {
   it('read the shared database', async () => {
     const db = await seeded()
     expect(title(await (await worker.fetch(discordbot('/p/pilot/p-1'), env(db))).text())).toBe(
-      'Bonesaw'
+      'Bonesaw · Rosa Vance'
     )
     expect(
       title(await (await worker.fetch(discordbot('/games/invite/K7QR2XA'), env(db))).text())

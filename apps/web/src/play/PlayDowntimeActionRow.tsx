@@ -13,6 +13,7 @@
  * plain content (N3, play.md §12).
  */
 
+import { pilotLabel } from 'game-domain/pilotLabel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
@@ -96,7 +97,7 @@ export function PlayDowntimeActionRow({
   const controls = away
     ? undefined
     : id === 'train'
-      ? open(pilot ? { kind: 'pilot', id: pilot.id, name: pilot.name } : null, 'Spend TP')
+      ? open(pilot ? { kind: 'pilot', id: pilot.id, name: pilotLabel(pilot) } : null, 'Spend TP')
       : id === 'craftTrade'
         ? open(crawler ? { kind: 'crawler', id: crawler.id, name: crawler.name } : null, 'Open')
         : undefined

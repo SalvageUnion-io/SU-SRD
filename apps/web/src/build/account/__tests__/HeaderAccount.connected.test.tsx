@@ -9,7 +9,7 @@ import type { ReactNode } from 'react'
  *
  * - **Signed in, Connected** — the trigger is a menu button carrying the
  *   player's display name and avatar circle; its menu holds the player's own
- *   places (Your Games, Your Characters: the Training Bay), then Settings (to `/settings`) and
+ *   places (Your Games, Training Bay), then Settings (to `/settings`) and
  *   Sign out, then About, Changelog and Suggest or report. The slot itself
  *   carries no Games button: Play is a tab of the bar (ADR-066).
  * - **Signed in, offline** — the identity stays and Sign out still works.
@@ -33,7 +33,7 @@ const signOut = mock(async () => undefined)
 // module is mocked through `also` rather than `authReact` so the two actions
 // are spies this file can read. `also` resolves from `serverMock.ts`.
 const serverMocks = await installServerMocks({
-  router: true,
+  router: 'probed',
   authReact: { useSession: () => ({ isAuthenticated: authed, isLoading: false }) },
   also: {
     '../../lib/auth/session': () => ({ signIn, signOut }),
@@ -97,7 +97,7 @@ describe('signed in and connected', () => {
     expect(trigger.textContent).toContain('BE')
   })
 
-  test('its menu holds Your Games and Your Characters, Settings and Sign out, then the site’s pages', async () => {
+  test('its menu holds Your Games and Training Bay, Settings and Sign out, then the site’s pages', async () => {
     serve(QUERIES)
     wrap(<HeaderActions />)
 
@@ -108,7 +108,7 @@ describe('signed in and connected', () => {
         .map((item) => item.textContent)
     ).toEqual([
       'Your Games',
-      'Your Characters',
+      'Training Bay',
       'Settings',
       'Sign out',
       'About',
@@ -117,10 +117,10 @@ describe('signed in and connected', () => {
     ])
   })
 
-  test('Your Games and Your Characters route in the app', async () => {
+  test('Your Games and Training Bay route in the app', async () => {
     serve(QUERIES)
     wrap(<HeaderActions />)
-    for (const name of ['Your Games', 'Your Characters']) {
+    for (const name of ['Your Games', 'Training Bay']) {
       const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))
       await act(async () => {
         fireEvent.click(within(menu).getByRole('menuitem', { name }))
@@ -141,7 +141,7 @@ describe('signed in and connected', () => {
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
-  test('Sign out signs out', async () => {
+  test('Sign out signs out, and goes home', async () => {
     serve(QUERIES)
     wrap(<HeaderActions />)
 
@@ -150,6 +150,7 @@ describe('signed in and connected', () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Sign out' }))
     })
     expect(signOut).toHaveBeenCalledTimes(1)
+    expect(serverMocks.navigations).toEqual([{ to: '/' }])
   })
 
   test('the account slot carries no Games control: Games is a tab', () => {

@@ -419,7 +419,7 @@ describe('the table', () => {
   test('a seat that stopped beating is away, and says where it was last seen', async () => {
     await renderCockpit()
     const wren = screen
-      .getByRole('button', { name: /^Mule \(Mech\), Wren, away/ })
+      .getByRole('button', { name: /^Wren \(Pilot\), away/ })
       .closest('li') as HTMLElement
     expect(wren.dataset.away).toBe('true')
     expect(within(wren).getByText('Last seen Boarded · Mule')).toBeTruthy()

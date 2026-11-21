@@ -1,4 +1,5 @@
 import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
+import { pilotLabel } from 'game-domain/pilotLabel'
 /**
  * The Downtime step box's plan (play.md §6): what the current step will apply,
  * line by line, read from the pure patches in `game-domain/rules/downtime`
@@ -171,7 +172,7 @@ function pilotLine(pilot: Pilot, crawler: Crawler | null, tl: number): PlanLine 
     chips.push({ label: 'Injuries healed', value: String(healed) })
   }
   if (chips.length === 0) return null
-  return { key: 'pilot', title: pilot.name, chips, steps, skippable: true }
+  return { key: 'pilot', title: pilotLabel(pilot), chips, steps, skippable: true }
 }
 
 function usesLine(pilot: Pilot | null, mech: Mech | null, crawler: Crawler | null, tl: number) {
@@ -265,7 +266,7 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
     const tp = pilot.trainingPoints ?? 0
     lines.push({
       key: 'train',
-      title: pilot.name,
+      title: pilotLabel(pilot),
       chips: [{ label: 'TP', value: arrow(tp, tp + 1) }],
       steps: ['trainPilots'],
       skippable: true,

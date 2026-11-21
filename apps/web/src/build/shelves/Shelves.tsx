@@ -20,9 +20,10 @@
  *    folded, the read-only Starter Set, as the front door shows it (`StarterShelf`).
  *
  * Each item is a library Compact (`UnitRow`) with its chips and a ⋯ menu: Open, Move
- * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete…. Every
- * verb that changes what you have asks first, through the page's one confirm,
- * which has to outlive the menu that asked.
+ * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete…. A verb
+ * that takes something away asks first, through the page's one confirm, which
+ * has to outlive the menu that asked; Make a copy only adds, so it runs at once
+ * and its notice opens the copy (`makeACopy`).
  *
  * ## Modes
  *
@@ -39,8 +40,10 @@
  * NPCs are not yours to keep and do not belong here.
  */
 
+import { containerOf, sameContainer } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { cockpitPath } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useContext, useState } from 'react'
@@ -51,7 +54,7 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { Tagline } from '../../components/Tagline'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { copyForShelf, copyName } from '../../lib/copyEntity'
+import { copyPattern, copyUnit } from '../../lib/copiedToast'
 import {
   useCrawlers,
   useHydrateEntities,
@@ -65,7 +68,7 @@ import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
-import { patternCopy, savedPatternHref } from '../../lib/patterns/patterns'
+import { savedPatternHref } from '../../lib/patterns/patterns'
 import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
 import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
@@ -94,6 +97,7 @@ import { BackupMenu } from '../export/BackupMenu'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { RailActs } from '../sheet/RailActs'
 import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
+import { AddAMech } from './AddAMech'
 import { EncounterShelf } from './EncounterShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
@@ -176,7 +180,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const trayNpcs = useTray((s) => s.encounterNpcs)
 
   // Chip names from your own units alone: a link to a crewmate's names nothing here.
-  const pilotNames = new Map(pilots.map((p) => [p.id, p.name]))
+  const pilotNames = new Map(pilots.map((p) => [p.id, pilotLabel(p)]))
   const mechNames = new Map(mechs.map((m) => [m.id, m.name]))
   // A pilot's max HP and AP follow the crawler they are aboard, a Game's
   // crawler too, which is no shelf item of theirs (C13) but still read here.
@@ -227,17 +231,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         {
           id: 'copy',
           label: 'Make a copy',
-          onSelect: writable(() =>
-            confirm({
-              ...ROW_ACTION_COPY.copyOnShelf(unit.name),
-              onConfirm: async () => {
-                const created = await useUnits
-                  .getState()
-                  .create(type, copyForShelf(copyBody, unit.name) as never)
-                toast.success(`Made ${created.name}.`)
-              },
-            })
-          ),
+          // A copy only adds: it runs at once, and its notice opens it.
+          onSelect: writable(() => void copyUnit(type, unit.name, copyBody, go)),
         },
         ...(type === 'mech'
           ? [
@@ -297,17 +292,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         {
           id: 'copy',
           label: 'Make a copy',
-          onSelect: writable(() =>
-            confirm({
-              ...ROW_ACTION_COPY.copyOnShelf(pattern.name),
-              onConfirm: async () => {
-                const created = await usePatterns
-                  .getState()
-                  .create({ ...patternCopy(pattern), name: copyName(pattern.name) })
-                toast.success(`Made ${created.name}.`)
-              },
-            })
-          ),
+          onSelect: writable(() => void copyPattern(pattern, go)),
         },
         {
           id: 'export',
@@ -449,21 +434,35 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 rows={pilots.map((p) => {
                   const r = pilotReadings.get(p.id)
                   const flies = crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames })
+                  // Callsign first, then the name, as everywhere a pilot is named.
+                  const name = pilotLabel(p)
                   return {
                     id: p.id,
-                    name: p.name,
+                    name,
                     href: `/pilots/${p.id}`,
                     // On a phone its mech rides under the name (the column is hidden).
                     under: underWith(linkChip(sharedByLink, p.id), flies),
                     cells: [
                       pilotFact(p) ?? '',
                       // The pilot carries its mech; with none, Add a mech builds one for it.
-                      paired(flies, canWrite ? newMechFor(p.id) : undefined),
+                      // or assigns one of yours that stands unassigned beside it.
+                      paired(
+                        flies,
+                        canWrite ? (
+                          <AddAMech
+                            pilot={{ id: p.id, name }}
+                            spares={spareMechs.filter((m) =>
+                              sameContainer(containerOf(m), containerOf(p))
+                            )}
+                            newHref={newMechFor(p.id)}
+                          />
+                        ) : undefined
+                      ),
                       inGame(gameRelation(p, games)),
                       read(r, VITAL.hp),
                       read(r, VITAL.ap),
                     ],
-                    menu: unitMenu('pilot', p, p),
+                    menu: unitMenu('pilot', { id: p.id, name, gameId: p.gameId }, p),
                     // Play runs a pilot (ADR-066): one press from the Training Bay.
                     ...(status === 'signedOut' ? {} : { play: cockpitPath(p.id) }),
                   }

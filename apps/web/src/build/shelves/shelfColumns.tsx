@@ -64,19 +64,13 @@ export const read = (readings: readonly UnitReading[] | undefined, label: string
 
 /**
  * A pilot's mech, as a link to its sheet; with none, the way to add one
- * (`addHref`, where a write could land), else the dash.
+ * (`add`, where a write could land: `AddAMech`), else the dash.
  */
 export const paired = (
   linked: readonly { name: string; href?: string | undefined }[],
-  addHref?: string
+  add?: ReactNode
 ): ReactNode =>
-  linked[0] ? (
-    <ShelfLink href={linked[0].href}>{linked[0].name}</ShelfLink>
-  ) : addHref ? (
-    <ShelfLink href={addHref}>{buildShelvesCopy('addAMech')}</ShelfLink>
-  ) : (
-    ''
-  )
+  linked[0] ? <ShelfLink href={linked[0].href}>{linked[0].name}</ShelfLink> : (add ?? '')
 
 /** The Game it is in, as a link to that Game's page. */
 export const inGame = (relations: readonly { value: string; href: string }[]): ReactNode =>

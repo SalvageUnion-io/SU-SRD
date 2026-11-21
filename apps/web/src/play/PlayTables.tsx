@@ -155,7 +155,8 @@ export function PlayTables({
         <FieldRoster key={`${open}:${landed}`} lines={roster} onField={onField} />
       )}
       {binding != null && <div style={POST}>{postsToLabel(solo, binding)}</div>}
-      {binding === null && <Text variant="note">{playCopy('noChannelIsBoundYet')}</Text>}
+      {/* A Game's channel is bound from its channel button; solo Play shows none. */}
+      {binding === null && !solo && <Text variant="note">{playCopy('noChannelIsBoundYet')}</Text>}
     </div>
   )
 }

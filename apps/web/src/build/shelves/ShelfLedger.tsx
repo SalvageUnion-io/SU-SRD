@@ -25,6 +25,8 @@ type ShelfLedgerRow = {
   menu: HeaderMenuItem[][]
   /** Its Play door (a pilot's Cockpit), before the ⋯ menu. */
   play?: string
+  /** The door's words where the line has room to name who it plays ("Play GHOST"); "Play" otherwise. */
+  playLabel?: string
 }
 
 type ShelfLedgerProps = {
@@ -65,7 +67,7 @@ function trailingOf(row: ShelfLedgerRow): ReactNode {
           size="mini"
           aria-label={buildShelvesCopy('playName', { name: row.name })}
         >
-          {buildShelvesCopy('play')}
+          {row.playLabel ?? buildShelvesCopy('play')}
         </Button>
       )}
       {menu && (

@@ -18,6 +18,7 @@
  */
 
 import { sheetPath } from 'game-domain/entityKinds'
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import type { PartnerInstance } from 'game-domain/schemas/partner'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
@@ -167,7 +168,7 @@ export function CompanionSheet({
   const entity = block as RefMetaEntity
   const model = toEntityModel(entity)
   const name = partnerDisplayName(partner)
-  const hostName = 'callsign' in host && host.callsign.trim() !== '' ? host.callsign : host.name
+  const hostName = 'callsign' in host ? pilotCallsign(host) : host.name
   const max = partnerDerivedStats(partner, partnerTechLevel(partner, undefined))
   const patch = (fields: Partial<PartnerInstance>) =>
     runWrite(() =>

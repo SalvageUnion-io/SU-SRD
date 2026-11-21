@@ -1,6 +1,6 @@
 /**
  * The sheet's "⋯" writes (R62: a unit's acts ride its ⋯): Make a copy puts a
- * separate copy on the shelf, Delete removes the unit, each behind its
+ * separate copy on the shelf at once, Delete removes the unit behind its
  * confirm; a mech also saves as a pattern there.
  */
 
@@ -65,7 +65,8 @@ describe('the sheet’s ⋯ writes', () => {
     render(<Sheet kind="pilot" id={pilot.id} />)
 
     await pick('Make a copy')
-    await confirmWith('Make a copy of Yara Voss?', 'Make a copy')
+    // A copy only adds: it runs at once, behind no confirm.
+    expect(screen.queryByRole('alertdialog')).toBeNull()
 
     await waitFor(() => expect(useUnits.getState().pilots).toHaveLength(2))
     const copy = useUnits.getState().pilots.find((p) => p.id !== pilot.id)

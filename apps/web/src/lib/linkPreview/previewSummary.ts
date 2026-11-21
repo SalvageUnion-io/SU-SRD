@@ -14,6 +14,7 @@
  * anyone with the link may read; a null answer becomes the plain private card.
  */
 
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { OgCardProps } from '../../components/compositions/ogCardText'
 import { color } from '../../design/tokens'
@@ -95,7 +96,7 @@ export function sheetCard(answer: PreviewAnswer, nameOf: NameOf, address: string
       return {
         kind: 'sheet',
         kicker: joinParts(['Pilot', classRef ? nameOf('classes', classRef) : undefined]),
-        title: text(body, 'callsign') ?? text(body, 'name') ?? 'Pilot',
+        title: pilotLabel(body as Record<string, unknown> | null),
         tone: color.pilot,
         stats: [],
         byline: joinParts([owned(ownerName, 'pilot'), gameName]),

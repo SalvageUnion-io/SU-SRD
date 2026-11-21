@@ -32,6 +32,7 @@
  * Situation) decides what an activation spends and whether it touches Heat.
  */
 
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -379,7 +380,7 @@ export function useActionsDeck({
       const { patch } = carried
       if (patch) runWrite(() => s.update('pilot', pilot.id, patch, meta))
       setHaul(
-        haulText(result, carried, playCopy('salvagePilotInventory', { name: fresh.callsign }))
+        haulText(result, carried, playCopy('salvagePilotInventory', { name: pilotCallsign(fresh) }))
       )
     }
     step(current, { applied: true })

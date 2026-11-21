@@ -3,7 +3,7 @@
  * Game only: one Mini per other seat at the table, in the Mini grid
  * (`MiniGrid`; ruleset §1.3: Play's lists are Minis), its Mini chips what
  * the table needs at a glance: the pair as `crewPair` draws it (aboard, the
- * mech with `PILOT | Rook`; on foot, the pilot with `MECH | Atlas` for theirs,
+ * mech's Mini still named for the pilot, with `MECH | Atlas`; on foot, the pilot's with the same chip,
  * C11; the pair's form says on foot or aboard, so no chip repeats it and
  * the name keeps its room), whether they are here ("Here", or "Away" once their seat
  * stops beating), and one vital: the one that needs looking at (▲, critical,
@@ -111,8 +111,8 @@ function CrewLine({
   onOpen: () => void
 }) {
   const { vital } = line
-  // A pilot and its mech are one Mini (`crewPair`): aboard, their mech with a
-  // PILOT chip naming them; on foot, the pilot with a MECH chip for theirs.
+  // A pilot and its mech are one Mini (`crewPair`), named for the pilot:
+  // aboard, the mech's tone and readings; on foot, the pilot's. A MECH chip either way.
   const pair = crewPair({
     pilot: { id: line.pilotId, name: line.name },
     mech: pairedMech(line),

@@ -1,3 +1,4 @@
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { crawlerUpkeepCost } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../replica/units'
 /**
@@ -164,8 +165,8 @@ export function PlayPilotUnit({
   return (
     <TitledBox
       as="section"
-      title={pilot.name}
-      label={playCopy('pilot', { name: pilot.name })}
+      title={pilotLabel(pilot)}
+      label={playCopy('pilot', { name: pilotLabel(pilot) })}
       tone="pilot"
       className="su-play-unit"
       reference={!live}
@@ -173,7 +174,7 @@ export function PlayPilotUnit({
       controls={
         <>
           {stamp(live ? 'Live' : 'Read only')}
-          {onOpenSheet ? <SheetButton name={pilot.name} onOpen={onOpenSheet} /> : null}
+          {onOpenSheet ? <SheetButton name={pilotLabel(pilot)} onOpen={onOpenSheet} /> : null}
         </>
       }
     >

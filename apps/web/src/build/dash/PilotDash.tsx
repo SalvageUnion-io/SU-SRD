@@ -17,6 +17,7 @@
  *     Uses, Details and ✕, and the adder for a carried thing of the table's.
  */
 
+import { pilotLabel } from 'game-domain/pilotLabel'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
@@ -204,7 +205,7 @@ export function PilotDash({
     <EntityPhoto
       photo={pilot.photo}
       fallback={classArt(pilot.classRef)}
-      name={pilot.callsign || pilot.name}
+      name={pilotLabel(pilot)}
       frame={STRIP_ART}
       onChange={
         edit

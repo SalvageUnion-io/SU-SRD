@@ -90,7 +90,13 @@ beforeEach(() => {
 afterEach(() => restoreViewport())
 
 function makePilot(): Pilot {
-  return pilotFixture({ id: 'p-phone', name: 'Bonesaw', currentHP: 7, currentAP: 3 })
+  return pilotFixture({
+    id: 'p-phone',
+    name: 'Bonesaw',
+    callsign: 'Bonesaw',
+    currentHP: 7,
+    currentAP: 3,
+  })
 }
 
 function makeMech(): Mech {

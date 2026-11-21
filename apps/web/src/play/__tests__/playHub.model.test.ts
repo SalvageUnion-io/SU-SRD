@@ -94,14 +94,10 @@ describe('its doors', () => {
     expect(gameDoors(GAME, [])).toEqual([])
   })
 
-  test('once a session is live: Mediate, and each pilot joins it', () => {
+  test('once a session is live: Mediate, and a pilot’s door still says Play and the pilot', () => {
     expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }], true)).toEqual([
       MEDIATE,
-      {
-        label: 'Join as Bonesaw',
-        href: '/pilots/p1/play',
-        ariaLabel: 'Join the session in The Rust Belt Run as Bonesaw',
-      },
+      BONESAW,
     ])
   })
 })
@@ -154,7 +150,8 @@ describe('its crew', () => {
     expect(crew.map((u) => [u.kind, u.name])).toEqual([
       ['crawler', 'Big Sal'],
       ['crawler', 'Second Wind'],
-      ['mech', 'Spectrum'],
+      // Boarded: the mech's Mini, still under the pilot's name.
+      ['mech', 'Rook'],
       ['pilot', 'Vesper'],
       ['mech', 'Thresher'],
     ])
@@ -163,7 +160,7 @@ describe('its crew', () => {
       { label: 'EP', value: '5/5' },
       { label: 'Heat', value: '0/9' },
     ])
-    expect(crew[2]?.relations?.[0]?.param).toBe('Rook')
+    expect(crew[2]?.relations?.[0]?.param).toBe('Spectrum')
     expect(crew[3]?.href).toBe('/pilots/a-p2')
   })
 

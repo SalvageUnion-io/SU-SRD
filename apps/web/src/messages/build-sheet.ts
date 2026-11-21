@@ -294,7 +294,6 @@ export const buildSheetCopy = messages({
   exportFailed: 'That export did not download. Try again.',
   moveToAGame: 'Move to a Game…',
   makeACopy: 'Make a copy',
-  made: 'Made {name}.',
   delete: 'Delete…',
   play: 'Play',
   playAs: 'Play as {name}',

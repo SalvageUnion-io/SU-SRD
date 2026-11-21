@@ -57,6 +57,7 @@ function units() {
   const pilot: Pilot = pilotFixture({
     id: 'dt-p',
     name: 'Bonesaw',
+    callsign: 'Bonesaw',
     currentHP: 3,
     currentAP: 1,
     trainingPoints: 2,

@@ -28,7 +28,7 @@ import { moveTo } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { useUnits } from '../../replica/units'
 import type { StarterRosterId } from './starterTemplates'
-import { starterRoster, starterTemplate, starterTemplates } from './starterTemplates'
+import { rosterOf, starterRoster, starterTemplate, starterTemplates } from './starterTemplates'
 
 /**
  * Copy one template into `to`, as a build the player owns. Resolves to what was
@@ -55,6 +55,45 @@ export async function copyStarter(
   return await useUnits
     .getState()
     .create(kind, { ...body, seedRef: templateId, ...moveTo(to) } as never)
+}
+
+/** The mech a roster pairs with one of its pilots (`mech-to-pilot`), or null: a mech nobody flies, or no pilot. */
+export function starterMechOf(pilotTemplateId: string): { id: string; name: string } | null {
+  const roster = rosterOf(pilotTemplateId)
+  const link = roster?.softLinks.find(
+    (l) => l.type === 'mech-to-pilot' && l.to.id === pilotTemplateId
+  )
+  const mech = link === undefined ? null : starterTemplate('mech', link.from.id)
+  return mech === null ? null : { id: mech.id, name: mech.name }
+}
+
+/**
+ * Copy a pilot with the mech their book gives them, the mech already assigned
+ * (the page lists them as a pair, so the copy is one). All or nothing, as the
+ * crew's copy is: a refusal part way deletes what was made.
+ */
+export async function copyStarterPilot(
+  templateId: string,
+  to: Container
+): Promise<{ id: string; name: string; mech: { id: string; name: string } | null }> {
+  const paired = starterMechOf(templateId)
+  const made: { kind: SheetKind; id: string }[] = []
+  try {
+    const pilot = await copyStarter('pilot', templateId, to)
+    made.push({ kind: 'pilot', id: pilot.id })
+    if (paired === null) return { ...pilot, mech: null }
+    const mech = await copyStarter('mech', paired.id, to)
+    made.push({ kind: 'mech', id: mech.id })
+    await useUnits.getState().create('softLink', {
+      from: { type: 'mech', id: mech.id },
+      to: { type: 'pilot', id: pilot.id },
+      type: 'mech-to-pilot',
+    })
+    return { id: pilot.id, name: pilot.name, mech: { id: mech.id, name: mech.name } }
+  } catch (error) {
+    await undoCopies(made)
+    throw error
+  }
 }
 
 /** What a whole-crew copy made: how many builds, and how many links between them. */

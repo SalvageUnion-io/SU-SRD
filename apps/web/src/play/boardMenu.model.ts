@@ -23,6 +23,7 @@
  */
 
 import { hasCondition, storedMechConditions } from 'game-domain/mechConditions'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
 import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { SeatMount, SeatResolving } from 'game-domain/schemas/seat'
@@ -72,6 +73,8 @@ export type BoardOption = {
   state: BoardState
   /** Why it can't be boarded, that it is a spare, or which of your pilots flies it; else null. */
   note: string | null
+  /** One of yours that another of your pilots is assigned: boardable, but not this pilot's hangar. */
+  flownByOther?: boolean
 }
 
 /** Whether choosing this option does anything: your own boards, a spare is assigned to you first. */
@@ -162,7 +165,7 @@ export function boardMenu(args: {
   const pilotName = new Map<string, string>()
   for (const p of listing?.pilots ?? []) {
     const id = linkId(p)
-    if (id !== null) pilotName.set(id, nameOf(p.body, 'Another pilot'))
+    if (id !== null) pilotName.set(id, pilotLabelOf(bodyOf(p.body)) ?? 'Another pilot')
   }
   const aboard = new Map<string, string>()
   for (const seat of sources.seats) {
@@ -224,6 +227,7 @@ export function boardMenu(args: {
     if (option.state === 'yours' && flownBy !== undefined && mechId !== assigned?.id) {
       const flier = pilotName.get(flownBy)
       option.note = flier ? playCopy('pilotsMech', { name: flier }) : playCopy('anotherPilotsMech')
+      option.flownByOther = true
     }
     ranked.push({ option, rank: mechId === assigned?.id ? 0 : row.ownerId === viewerId ? 1 : 2 })
   }

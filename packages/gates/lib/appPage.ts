@@ -109,7 +109,12 @@ export async function playDoor(page: Page, name: string | RegExp, base = ''): Pr
   return new URL(href, page.url()).pathname
 }
 
-/** Copy a Starter Set build (`pilot/starter-pilot-bonesaw`) to the Training Bay from its sheet's "Make a copy". */
+/**
+ * Copy a Starter Set build (`pilot/starter-pilot-bonesaw`) to the Training Bay
+ * from its sheet's "Make a copy". A pilot brings their mech, assigned, and the
+ * page lands on the copy. An account already in a Game picks the Training Bay
+ * from the control's menu first.
+ */
 export async function copyStarter(
   page: Page,
   sheet: string,
@@ -118,7 +123,11 @@ export async function copyStarter(
 ): Promise<void> {
   await openApp(page, `/starter/${sheet}`, base)
   await page.getByRole('button', { name: 'Make a copy', exact: true }).first().click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
+  const confirm = page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' })
+  const toBay = page.getByRole('menuitem', { name: 'Training Bay', exact: true })
+  await confirm.or(toBay).first().waitFor({ timeout: 20_000 })
+  if (await toBay.isVisible()) await toBay.click()
+  await confirm.click()
   // A crawler's name is its number and name ("Crawler #430 'Tenacity'").
   await page
     .getByText(new RegExp(`^Copied .*${name}.* to your Training Bay`))

@@ -7,6 +7,7 @@
  * is a companion on it.
  */
 
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { useState } from 'react'
 import { useGameListing } from '../replica/gameListing'
 import { useUnits } from '../replica/units'
@@ -42,7 +43,7 @@ export function useSheetOnScreen(target: PlayTarget, play: Play, units: PlayUnit
         ...partnerChoices({ kind, id, partners: (body as { partners?: unknown })?.partners }, yours)
       )
   }
-  if (play.pilot) add('pilot', play.pilot.id, play.pilot.name, play.pilot)
+  if (play.pilot) add('pilot', play.pilot.id, pilotLabel(play.pilot), play.pilot)
   if (units.mech) add('mech', units.mech.mech.id, units.mech.mech.name, units.mech.mech)
   for (const spare of units.hangar)
     add('mech', spare.mechId, spare.name, store.get('mech', spare.mechId))

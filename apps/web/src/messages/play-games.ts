@@ -55,11 +55,29 @@ export const playGamesCopy = messages({
   bringMechs: 'Mechs',
   bringCrawlers: 'Crawlers',
   nothingInYourTrainingBay:
-    'Nothing in your Training Bay to bring in: every unit of yours is in a Game.',
-  bringNote: 'The same unit moves into this Game; nothing is copied. You can move it back later.',
+    'Nothing in your Training Bay to bring in: every Pilot and Mech of yours is already in a Game. Build another here, or copy one from the Starter Set.',
+  nothingBuiltYet:
+    'You have no Pilots or Mechs yet. Build one for this Game, or copy one from the Starter Set.',
+  starterSet: 'Starter Set',
+  bringNote:
+    'The same unit moves into this Game; nothing is copied. A Pilot brings their Mech, still assigned. You can move them back later.',
   moveIn: 'Move in',
+  assignToAPilot: 'Assign to a Pilot…',
+  assignMechToAPilot: 'Assign {name} to a Pilot',
+  yourPilotsHere: 'Your Pilots in this Game',
+  noPilotOfYoursHere:
+    'You have no Pilot in this Game yet. Add one above, then assign this Mech to them.',
+  assignReplaces: 'A Pilot flies one Mech: assigning this one replaces the Mech they have.',
+  assign: 'Assign',
+  mechAssignedTo: 'Assigned {mech} to {pilot}.',
+  mechNotAssigned: '{mech} could not be assigned. Try again.',
   broughtIn: '{name} moved into this Game.',
+  broughtInMany: '{count} units moved into this Game.',
   couldNotBringIn: '{name} could not be moved. Try again.',
+  couldNotBringInMany: 'Not everything could be moved. Try again.',
+  moveTheseIn: 'Move these into {game}?',
+  moveTheseBack:
+    'You can move them back to your Training Bay later, but you’ll need to make those assignments again.',
   theCrew: 'the crew',
   nobodyHasBroughtAUnit: 'Nobody has brought a unit to this Game yet.',
   checkingThatInvite: 'Checking that invite…',

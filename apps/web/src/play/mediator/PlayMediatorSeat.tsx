@@ -68,23 +68,19 @@ export function PlayMediatorSeat({
 }: PlayMediatorSeatProps) {
   const away = !seat.present
   const flagged = seat.vitals.find((v) => v.attention)
-  // Aboard, the seat is their mech with a PILOT chip naming them; else the
-  // pilot with a MECH chip for the one assigned: one Mini (`crewPair`).
+  // Aboard, the seat wears their mech's tone and readings and keeps their
+  // name, with a MECH chip; on foot the pilot's, with the same chip (`crewPair`).
   const pair = crewPair({
     pilot: { id: seat.pilotId, name: seat.name },
     mech: seat.mech,
     boarded: seat.mech?.boarded ?? false,
   })
   // The toggle's name opens on what it shows (WCAG 2.5.3): "Bonesaw (Pilot)",
-  // aboard "Mazona (Mech)", then the seat's reading.
-  const shown = mediatorCopy('seatShown', {
-    name: pair.name,
-    kind: pair.kind === 'mech' ? 'Mech' : 'Pilot',
-  })
-  const reading =
-    pair.kind === 'pilot' && seat.label.startsWith(`${seat.name}, `)
-      ? seat.label.slice(seat.name.length + 2)
-      : seat.label
+  // aboard or on foot, then the seat's reading.
+  const shown = mediatorCopy('seatShown', { name: pair.name, kind: 'Pilot' })
+  const reading = seat.label.startsWith(`${seat.name}, `)
+    ? seat.label.slice(seat.name.length + 2)
+    : seat.label
   return (
     <li
       className="su-play-seat"

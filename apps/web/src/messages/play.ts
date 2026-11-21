@@ -290,10 +290,18 @@ export const playCopy = messages({
   couldNotEndSession: 'Could not end the session.',
   joinSession: 'Join session',
   startGroupSessionOf: 'Start a group session of {game}',
-  joinAs: 'Join as {name}',
-  joinSessionAs: 'Join the session in {game} as {name}',
+  // One meaning per door (glossary §9): a Game's door joins or opens its table,
+  // a pilot's door plays that pilot.
+  openTable: 'Open table',
+  playPilot: 'Play {name}',
+  playPilotIn: 'Play {name} in {game}',
   noGamesYet:
-    'You’re in no Games yet. Start one with + New Game, or join one with its invite link.',
+    'You’re in no Games yet. Start one with + New Game, or join one with its invite link. Play works solo too: your Pilots are below.',
+  yourPilots: 'Your Pilots',
+  pilotClass: 'Class',
+  newPilot: '+ New Pilot',
+  noPilotsPlayWorksSolo:
+    'No Pilots yet. Play works solo: build a Pilot, or copy one from the Starter Set, and play it from here with no Game.',
   gamesListOffline: 'Your Games list once the connection returns.',
   mediatorsKit: 'Mediator’s Kit',
 })

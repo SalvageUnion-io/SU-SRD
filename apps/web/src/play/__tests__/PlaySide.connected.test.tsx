@@ -436,6 +436,12 @@ describe('Discord (play.md §9)', () => {
     await roll([3])
     expect(postRoll).not.toHaveBeenCalled()
   })
+
+  test('solo, nothing bound: no channel hint, for there is no channel button to follow (SB-28)', async () => {
+    answers({ 'channelBindings.current': null })
+    await renderSide({ gameId: null })
+    expect(screen.queryByText(/No channel is bound yet/)).toBeNull()
+  })
 })
 
 describe('the Tables (play.md §8)', () => {

@@ -34,6 +34,7 @@ import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import { useState } from 'react'
 import { FieldError, RosterSkeleton } from '../../components/app'
 import type { HeaderMenuItem, LedgerColumn, LedgerRow } from '../../components/index'
 import {
@@ -69,6 +70,7 @@ import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall, useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
 import { AddFromTrainingBay } from './AddFromTrainingBay'
+import { AssignToPilot } from './AssignToPilot'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
@@ -89,6 +91,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   // One confirm for every row verb; see `useRowActions`.
   const { confirm, dialog: confirmDialog } = useConfirm()
   const rowActions = useRowActions(confirm, gameId)
+  // The mech "Assign to a Pilot…" is open for.
+  const [pairing, setPairing] = useState<{ id: string; name: string } | null>(null)
   const go = useGo()
 
   const members = useTableRead('games.members', { gameId })
@@ -235,6 +239,16 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         onSelect: act(() => rowActions.unassign(row)),
       })
     }
+    // Pair your mech with a pilot of yours here: the link is the mech's to
+    // draw, so only on one this browser holds (ADR-037).
+    if (row.kind === 'mech' && row.owner?.mine === true && row.localId !== null) {
+      const mech = { id: row.localId, name: row.name }
+      verbs.push({
+        id: 'assign-pilot',
+        label: playGamesCopy('assignToAPilot'),
+        onSelect: act(() => setPairing(mech)),
+      })
+    }
     if (row.can.makePrimary) {
       verbs.push({
         id: 'primary',
@@ -298,8 +312,6 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     chips: Pick<Parameters<typeof UnitRow>[0], 'readings' | 'linked'>,
     label: string
   ) => chips.readings?.find((reading) => reading.label === label)?.value ?? ''
-  const callsignOf = (row: RosterRow) =>
-    row.kind === 'pilot' && typeof row.body.callsign === 'string' ? row.body.callsign.trim() : ''
   const classNameOf = (row: RosterRow) =>
     row.kind === 'pilot' && typeof row.body.classRef === 'string'
       ? (resolveClass(row.body.classRef)?.name ?? '')
@@ -312,8 +324,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     const tl = readingOf(chips, 'TL') || mechOf('TL')
     return {
       id: row.serverId,
-      // A pilot goes by their callsign, else their name.
-      name: callsignOf(row) || row.name,
+      // A pilot's callsign, then their name (`pilotLabel`, in `ownableRows`).
+      name: row.name,
       href: rosterSheetHref(row),
       // A pilot's line wears their Class, then the mech they are in.
       meta:
@@ -441,6 +453,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         />
       )}
 
+      <AssignToPilot gameId={gameId} mech={pairing} onClose={() => setPairing(null)} />
       {confirmDialog}
     </>
   )
