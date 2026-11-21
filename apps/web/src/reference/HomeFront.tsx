@@ -240,6 +240,17 @@ export function HomeHero() {
           <span className={cn('su-front__show-yours-label', capsLabel())}>
             {referenceCopy('showWelcomeBack')}
           </span>
+          {/* The Game last opened, by name: served hidden, and filled where
+              the device remembers one (`markLastGame`, the page's script). */}
+          <Button
+            href={appPath('/games/')}
+            linkAs="a"
+            variant="primary"
+            size="compact"
+            className="su-front__show-game"
+            data-last-game=""
+            hidden
+          />
           <Button href={appPath('/')} linkAs="a" variant="default" size="compact">
             {referenceCopy('showTrainingBay')}
           </Button>

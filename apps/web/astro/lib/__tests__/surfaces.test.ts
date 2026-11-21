@@ -39,13 +39,24 @@ describe('home: the front door, its slideshow alone', () => {
     expect(html).not.toContain('su-chapter-band')
   })
 
-  it('shows no search bar, and serves the field out of sight for "/" and Cmd/Ctrl+K to open (RR-01)', () => {
+  it('shows its search under the slides at every width, its key cap "/"; the bar serves none (r2 H6)', () => {
     expect(islands(html, 'SearchIsland')).toBe(1)
-    expect(html).toMatch(
-      /class="su-union-bar__search-onkey"><astro-island data-island="SearchIsland"/
-    )
     expect(islands(html, 'MobileSearchIsland')).toBe(0)
-    expect(html).not.toContain('su-hero-search')
+    const afterShow = html.slice(html.lastIndexOf('data-show-controls'), html.indexOf('<footer'))
+    expect(afterShow).toMatch(
+      /class="su-front__search[^"]*"[^>]*><astro-island[^>]*data-island="SearchIsland"/
+    )
+    expect(afterShow).toContain('su-hero-search')
+    expect(afterShow).toMatch(/<kbd[^>]*>\/<\/kbd>/)
+    const bar = html.slice(0, html.indexOf('<main'))
+    expect(bar).not.toContain('data-island="SearchIsland"')
+  })
+
+  it('serves the welcome-back strip its link to the last Game, hidden until the script names one', () => {
+    const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
+    expect(head).toMatch(
+      /<a[^>]*data-last-game[^>]*hidden[^>]*>|<a[^>]*hidden[^>]*data-last-game[^>]*>/
+    )
   })
 
   it('carries no area rail: the chapters are the Reference’s', () => {
@@ -91,7 +102,9 @@ describe('home: the front door, its slideshow alone', () => {
   it('shows the pitch, six action slides each one action to one part of the site, then the tagline', () => {
     expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(8)
     // The six, and "Start building" on the pitch and on the tagline.
-    expect(show.match(/su-btn--primary/g)).toHaveLength(8)
+    // Counted in the slides alone: the strip and the search under them have their own.
+    const slides = show.slice(0, show.indexOf('class="su-front__show-head"'))
+    expect(slides.match(/su-btn--primary/g)).toHaveLength(8)
     for (const href of ['/reference/', '/build/', '/games/']) {
       expect(show).toContain(`href="${href}"`)
     }

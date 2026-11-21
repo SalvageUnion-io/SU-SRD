@@ -5,8 +5,8 @@ import { componentsCopy } from '../messages/components'
 import { Button, SearchField } from './index'
 
 /**
- * The 404's search: a wide field and a Search button on its band. The home
- * page searches from the Union bar, as every other page does.
+ * A page's own search: a wide field and a Search button, on the 404's band
+ * and under the home's slideshow (where its key cap reads "/").
  *
  * Two renderings share this shell so the page never shifts when the island
  * mounts: `HeroSearchStatic` is the server markup (a plain GET form to the
@@ -36,7 +36,7 @@ export function HeroSearchForm({ children, onSubmit }: HeroSearchFormProps) {
 }
 
 /** The server markup: the same form, no listeners. */
-export function HeroSearchStatic() {
+export function HeroSearchStatic({ shortcut = '⌘K' }: { shortcut?: string } = {}) {
   return (
     <HeroSearchForm>
       <div className="su-hero-search__box">
@@ -45,7 +45,7 @@ export function HeroSearchStatic() {
           name={SEARCH_PARAM}
           placeholder={HERO_SEARCH_PLACEHOLDER}
           aria-label={componentsCopy('searchTheReference')}
-          shortcut="⌘K"
+          shortcut={shortcut}
           glyph="full"
           containerClassName="su-hero-search__field"
         />

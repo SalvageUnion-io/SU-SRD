@@ -98,6 +98,28 @@ body:has(.su-front--show) main {
   min-height: 0;
 }
 
+/* The home's search, under the slides: a band in the header's dress the
+   width of the page, its field at a reading measure. Always in view, a phone
+   included (r2 H6); its list opens upward, over the slides. */
+.su-front__search {
+  background-color: var(--color-ink-deep);
+  flex: none;
+  padding: var(--space-12) var(--su-shell-edge, var(--space-24));
+  position: relative;
+  z-index: 1;
+}
+
+.su-front__search search {
+  margin-inline: auto;
+  max-inline-size: 44rem;
+}
+
+@media not (width >= 40rem) {
+  .su-front__search {
+    padding-inline: var(--space-12);
+  }
+}
+
 .su-front__show {
   --su-show-step: 7s;
   background-color: var(--color-ink);
@@ -248,6 +270,11 @@ html[data-srd-signed-in] .su-front__show-yours {
   display: flex;
 }
 
+/* The Game last opened: out of the strip until the script names one. */
+.su-front__show-game[hidden] {
+  display: none;
+}
+
 .su-front__show-yours-label {
   font-size: var(--text-caption);
 }
@@ -300,11 +327,13 @@ html[data-srd-signed-in] .su-front__show-yours {
     animation-delay: calc(var(--su-show-step) * (var(--su-show-i) - 0.2));
   }
 
-  /* Held while an act is pointed at or a slide's own control is focused, and
-     for good once paused: the whole show is the screen, so hovering it is no
+  /* Held while an act is pointed at, a slide's own control is focused or a
+     finger is down on its plate (`[data-touched]`, `watchSlideshow`), and for
+     good once paused: the whole show is the screen, so hovering it is no
      sign, and a press on Previous or Next must leave it turning. */
   .su-front__show:is(
     [data-paused],
+    [data-touched],
     :has(.su-front__show-slides:focus-within),
     :has(.su-front__show-act:hover)
   ) .su-front__show-slide {
@@ -399,10 +428,15 @@ html[data-srd-signed-in] .su-front__show-yours {
     font-size: var(--text-readout);
   }
 
-  /* The tagline keeps its line: its action goes under it. */
-  .su-front__show-plate--quote {
+  /* A slide's words keep the plate's width: its action goes under them. Beside
+     the button a sentence was a column two words wide (r2 H6). */
+  .su-front__show-plate {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .su-front__show-plate > .su-front__show-words {
+    flex: none;
   }
 
   .su-front__show-body {
