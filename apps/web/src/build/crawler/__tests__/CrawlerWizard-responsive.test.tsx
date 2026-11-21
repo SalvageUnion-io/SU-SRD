@@ -36,7 +36,7 @@ describe('CrawlerWizard — responsive wizard layout', () => {
     const { container } = await renderBuilder()
     const stepper = container.querySelector('nav[aria-label="Steps"]')
     expect(stepper).toBeTruthy()
-    for (const label of ['Crawler Type', 'Armament Bay', 'Name & Crew', 'Review']) {
+    for (const label of ['Crawler Type', 'Armament Bay', 'Name & Crew Leads', 'Review']) {
       expect(stepper?.textContent).toContain(label)
     }
   })

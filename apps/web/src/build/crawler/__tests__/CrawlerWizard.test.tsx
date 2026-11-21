@@ -230,7 +230,7 @@ describe('CrawlerWizard — create mode', () => {
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/')
     await clickNext()
 
-    // --- Step 3: Name your Crawler and its Crew (crew rows → fields) ---
+    // --- Step 3: Name your Crawler and its crew leads (crew rows → fields) ---
     await expandRow('Battle')
     await fillIdentity('grizzled veteran name', 'Vex')
     await fillIdentity('grizzled veteran motto', 'No retreat')
@@ -294,7 +294,7 @@ describe('CrawlerWizard — create mode', () => {
     renderWizard()
     await walkToArmament('Battle')
     await addOne(weaponSystemAtTL(1).name) // satisfy the min-1 mount
-    await clickNext() // Name & Crew
+    await clickNext() // Name & Crew Leads
 
     // Name left empty — Next stays disabled, Review/Create is unreachable.
     expect(getNextButton().disabled).toBe(true)
