@@ -8,12 +8,13 @@ import type { Finding } from './_findings'
  * - `shell` — the page is `LiveSheet`'s (`main[data-variant]`), its chapter
  *   band's corner holds the sheet's actions, and on a sheet the viewer may
  *   write the band offers Read | Edit.
- * - `hero` — the body opens on `SheetHero` (`.su-sheet-hero`), its vitals the
+ * - `hero` — a pilot, mech or crawler is its dashboard (`.su-dash`) in Read
+ *   and Edit alike, its masthead and columns standing for the hero and the
+ *   sidebar; an NPC opens on `SheetHero` (`.su-sheet-hero`), its vitals the
  *   one stack (`.su-sheet-vitals`): in the opening, or from the 64rem rung
- *   heading the sidebar (`.su-sheet-aside-vitals`). A phone in Read opens on
- *   its plain vitals (`.su-phone-vitals`, ruleset §2.1) and then its tabs
- *   (`phone-tabs`). Read may instead be the dashboard (`.su-dash`, R11): its
- *   masthead and columns stand for the hero and the sidebar.
+ *   heading the sidebar (`.su-sheet-aside-vitals`). A phone in Read with
+ *   plain vitals (`.su-phone-vitals`, ruleset §2.1) has tabs under them
+ *   (`phone-tabs`).
  * - `vitals` — every gauge in the opening but a Mini's own is a `SheetVitalGauge`
  *   (`[data-vital]`), captioned in full words from the one map
  *   (`SHEET_VITAL_WORDS`, kept equal to `sheetVitals.model.ts` by
@@ -23,7 +24,9 @@ import type { Finding } from './_findings'
  *   "nothing here" line.
  * - `remove` — in Edit every remove control in the body is the one
  *   `SheetRemoveButton` (a photo's own control aside).
- * - `aside` — what the unit carries is the permanent right sidebar
+ * - `aside` — on a dashboard every carried list and hold is in its side
+ *   column (`.su-dash__col` that is not `--wide`). Otherwise what the unit
+ *   carries is the permanent right sidebar
  *   (`SheetColumns`, ruleset §1.2): a sheet that carries something has one
  *   (`[data-sheet-aside]`), every carried list (`[data-sheet-carried]`) and
  *   hold (`[data-storage-side]`) is in it, none of its sections folds (an
@@ -103,9 +106,9 @@ export function scanSheetGrammar({
   const hero = body.querySelector('.su-sheet-hero')
   // A phone in Read: the plain vitals, then the tabs.
   const plain = edit ? null : body.querySelector('.su-phone-vitals')
-  // Read may be the dashboard (R11): its masthead and columns stand for the
-  // hero and the sidebar. Edit always opens on SheetHero.
-  const dash = edit ? null : body.querySelector('.su-dash')
+  // A dashboard, in Read and Edit (R11): its masthead and columns stand for
+  // the hero and the sidebar.
+  const dash = body.querySelector('.su-dash')
   if (!hero && !plain && !dash) {
     found.push({ rule: 'hero', detail: `${kind}: the body opens on no SheetHero` })
   }
@@ -143,8 +146,10 @@ export function scanSheetGrammar({
   if (!carries && aside) {
     found.push({ rule: 'aside', detail: `${kind}: a sidebar on a sheet that carries nothing` })
   }
+  // On a dashboard, the side column holds what the unit carries.
+  const home = dash ? '.su-dash__col:not(.su-dash__col--wide)' : '[data-sheet-aside]'
   for (const held of body.querySelectorAll('[data-sheet-carried], [data-storage-side]')) {
-    if (!held.closest('[data-sheet-aside]')) {
+    if (!held.closest(home)) {
       const name = held.getAttribute('aria-label') ?? held.getAttribute('data-storage-side')
       found.push({ rule: 'aside', detail: `${kind}: carried things outside the sidebar (${name})` })
     }
@@ -223,7 +228,7 @@ export async function findSheetGrammar(
 ): Promise<Finding[]> {
   // The sheet loads its record after the route settles: wait for its opening.
   await page
-    .locator('main[data-variant] .su-sheet-hero')
+    .locator('main[data-variant] :is(.su-sheet-hero, .su-dash)')
     .first()
     .waitFor({ timeout: 30_000 })
     .catch(() => {})

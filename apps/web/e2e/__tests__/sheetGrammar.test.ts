@@ -275,3 +275,22 @@ describe('the sidebar', () => {
     ).toEqual(['aside: npc: a sidebar on a sheet that carries nothing'])
   })
 })
+
+describe('dashboard', () => {
+  /** A dashboard: its wide column, then its side column. */
+  const dash = (wideCol: string, side: string) =>
+    `<div class="su-dash"><div class="su-dash__col su-dash__col--wide">${wideCol}</div><div class="su-dash__col">${side}</div></div>`
+
+  test('stands for the hero and the sidebar in Read and in Edit', () => {
+    const body = dash('<p>Bays</p>', '<div data-storage-side="crawler"></div>')
+    expect(scan(sheet({ body, kind: 'crawler' }), false, true)).toEqual([])
+    expect(scan(sheet({ body, kind: 'crawler' }), true, true)).toEqual([])
+  })
+
+  test('what the unit carries is in its side column', () => {
+    const body = dash('<div data-storage-side="mech"></div>', '<p>Weapons</p>')
+    expect(scan(sheet({ body, kind: 'mech' }), true, true)).toEqual([
+      { rule: 'aside', detail: 'mech: carried things outside the sidebar (mech)' },
+    ])
+  })
+})
