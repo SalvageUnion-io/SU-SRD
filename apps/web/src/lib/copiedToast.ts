@@ -81,7 +81,7 @@ type CopyOptions = {
 }
 
 /** The mech a pilot flies, where these units hold it; else null. */
-export function mechFlownBy(
+function mechFlownBy(
   pilotId: string,
   units: Pick<Units, 'get' | 'softLinks'> = useUnits.getState()
 ): { id: string; name: string } | null {
@@ -100,7 +100,7 @@ export const keptMech = (type: EntityKind, id: string, units?: Units): string | 
  * pilot. With `mech`, the pilot's mech is copied and paired with the copy, all
  * or nothing.
  */
-export function copyUnit(
+function copyUnit(
   type: EntityKind,
   name: string,
   body: Parameters<typeof copyForShelf>[0],

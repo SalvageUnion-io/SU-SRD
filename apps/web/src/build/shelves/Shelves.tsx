@@ -54,7 +54,7 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { Tagline } from '../../components/Tagline'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { copyAsking, copyPattern, keptMech } from '../../lib/copiedToast'
+import { copyAsking, keptMech } from '../../lib/copiedToast'
 import {
   useCrawlers,
   useHydrateEntities,
@@ -63,12 +63,12 @@ import {
   useSoftLinkList,
 } from '../../lib/entities'
 import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
-import { buildEntityExport, buildPatternExport } from '../../lib/export/buildExportBundle'
+import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
-import { mechFromPattern, pastStartingRules, savedPatternHref } from '../../lib/patterns/patterns'
+import { savedPatternHref } from '../../lib/patterns/patterns'
 import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
 import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
@@ -95,7 +95,6 @@ import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { BackupMenu } from '../export/BackupMenu'
-import { buildConfirmBody, builtToast, mechNamesTaken } from '../mech/Pattern/buildConfirm.model'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { BuildStartHere } from '../roster/FrontDoor'
 import { RailActs } from '../sheet/RailActs'
@@ -105,6 +104,7 @@ import { EncounterShelf } from './EncounterShelf'
 import { MechShelf } from './MechShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
+import { patternMenuOf } from './patternMenu.model'
 import { RenameDialog } from './RenameDialog'
 import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
@@ -303,66 +303,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     ]
   }
 
-  function patternMenu(pattern: MechPattern): HeaderMenuItem[][] {
-    return [
-      [
-        { id: 'open', label: 'Open', onSelect: () => go(savedPatternHref(pattern.id)) },
-        {
-          id: 'build',
-          label: buildShelvesCopy('buildWithThis'),
-          // One confirm, as wherever a pattern is built from; you land on the mech.
-          onSelect: writable(() =>
-            confirm({
-              title: buildShelvesCopy('buildAMechFrom', { name: pattern.name }),
-              body: [buildConfirmBody({ book: false, past: pastStartingRules(pattern) })],
-              confirmLabel: buildShelvesCopy('build'),
-              pendingLabel: buildShelvesCopy('building'),
-              tone: 'default',
-              failure: buildShelvesCopy('mechNotBuilt'),
-              onConfirm: async () => {
-                const mech = await useUnits
-                  .getState()
-                  .create('mech', mechFromPattern(pattern, mechNamesTaken()))
-                builtToast(mech.name)
-                go(`/mechs/${mech.id}`)
-              },
-            })
-          ),
-        },
-        renameItem(
-          {
-            name: pattern.name,
-            label: buildShelvesCopy('patternName'),
-            save: (name) => usePatterns.getState().update(pattern.id, { name }),
-          },
-          canWrite ? setRenaming : undefined
-        ),
-        {
-          id: 'copy',
-          label: buildShelvesCopy('makeACopy'),
-          onSelect: writable(() => void copyPattern(pattern, go)),
-        },
-        {
-          id: 'export',
-          label: 'Export',
-          onSelect: () => {
-            downloadJson(exportFileName('pattern', pattern.name), buildPatternExport(pattern))
-            toast.success(`Exported ${pattern.name}.`)
-          },
-        },
-      ],
-      [
-        deleteItem(
-          writable(() =>
-            confirm({
-              ...ROW_ACTION_COPY.deleteBuild(pattern.name),
-              onConfirm: () => usePatterns.getState().delete(pattern.id),
-            })
-          )
-        ),
-      ],
-    ]
-  }
+  const patternMenu = (pattern: MechPattern) =>
+    patternMenuOf(pattern, { go, confirm, canWrite, rename: setRenaming })
 
   // -- the shelves ------------------------------------------------------------
 

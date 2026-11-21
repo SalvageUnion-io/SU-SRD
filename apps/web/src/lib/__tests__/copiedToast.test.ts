@@ -109,7 +109,7 @@ describe('copying a pilot (r2 G6)', () => {
       pilot,
       () => {}
     )
-    expect(asked[0]?.title).toBe('Copy the mech too?')
+    expect(asked[0]?.title).toBe('Copy the Mech too?')
     expect(asked[0]?.confirmLabel).toBe('Copy both')
     expect(asked[0]?.alternate?.label).toBe('Pilot only')
     // Nothing is made until an answer.

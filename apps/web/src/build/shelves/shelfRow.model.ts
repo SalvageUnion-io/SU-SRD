@@ -5,9 +5,13 @@
  */
 import type { EntityKind } from 'game-domain/entityKinds'
 
-/** The line of the unit just made, found by its name's link. */
-const rowOf = (type: EntityKind, id: string): Element | null =>
-  document.querySelector(`.su-shelf-ledger tbody a[href$="/${type}s/${id}"]`)?.closest('tr') ?? null
+/** The line of the unit just made: the table row its name's link stands in. */
+function rowOf(type: EntityKind, id: string): Element | null {
+  const path = ['', `${type}s`, id].join('/')
+  for (const link of document.getElementsByTagName('a'))
+    if (link.getAttribute('href')?.endsWith(path)) return link.closest('tr')
+  return null
+}
 
 /** Scroll the unit's line into view once the shelf has drawn it. */
 export function showShelfRow(
