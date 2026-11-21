@@ -289,7 +289,7 @@ describe('the Feed (play.md §8)', () => {
     expect(feedLines()).toEqual([
       expect.stringContaining('Mediator proposes Bonesaw HP → 5'),
       expect.stringContaining('You · Core Mechanic · 14 · Success'),
-      'Mags · Core Mechanic · 20 · Nailed it',
+      expect.stringContaining('Mags · Core Mechanic · 20 · Nailed it'),
     ])
   })
 

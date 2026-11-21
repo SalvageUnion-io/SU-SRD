@@ -53,7 +53,7 @@ import { PlayFeedSection } from './PlaySideColumn'
 import { mediatorTarget, PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
-import { StopSignBanner, StopSignButton } from './StopSign'
+import { StopSignButton } from './StopSign'
 import { usePlayChannelBinding } from './usePlayChannel'
 import { usePlayChannelControls } from './usePlayChannelControls'
 import { useSideFeed } from './usePlaySide'
@@ -84,6 +84,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     log: false,
     rolls: mediator.rolls,
     alerts: mediator.alerts,
+    events: mediator.events,
     proposals: [],
   })
   const wide = usePlayWide()
@@ -158,6 +159,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             stamp={wide ? 'Mediator' : undefined}
             short={!wide}
             tone={PHASE_TONE[running ? 'downtime' : 'scene']}
+            paused={sign?.shown === true}
             live={status === 'live'}
             here={mediator.crew === null ? null : here}
             of={mediator.crew === null ? null : of}
@@ -172,7 +174,6 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             menu={<PlayMediatorBarActions mediator={mediator} wide={wide} channel={channel.row} />}
           />
           {channel.dialog}
-          <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
         </>
       }
       pinned={

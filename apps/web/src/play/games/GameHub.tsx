@@ -36,10 +36,9 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { PageShell } from '../../components/app'
-import { Button, Callout, Pending, SlabSection, Text, tokens } from '../../components/index'
+import { Button, Callout, Pending, SlabSection, Text } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { areaTitle } from '../../lib/pageTitle'
 import { useTabTitle } from '../../lib/useTabTitle'
@@ -47,7 +46,6 @@ import { playGamesCopy } from '../../messages/play-games'
 import { routesCopy } from '../../messages/routes'
 import type { GameCallResult } from '../../replica/roomCalls'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
-import { StopSignBanner } from '../StopSign'
 import { useGameSession } from '../useGameSession'
 import { useStopSign } from '../useStopSign'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
@@ -69,7 +67,6 @@ type GameHubProps = {
 }
 
 /** The Stop Sign's banner leads the page: the sections start a block's gap under it. */
-const STOP_BANNER = { marginBottom: tokens.space[24] } satisfies CSSProperties
 
 /** Play's hub, where your Games are listed. */
 const PLAY_HUB = '/games/'
@@ -106,11 +103,6 @@ function GameSections({ game }: { game: Game }) {
   return (
     // Its crew is one manifest (`GameRoster`).
     <>
-      {sign?.shown && (
-        <div style={STOP_BANNER}>
-          <StopSignBanner sign={sign} />
-        </div>
-      )}
       <div style={HUB_COLUMNS}>
         <div style={HUB_MAIN}>
           {/* The crew manifest leads the

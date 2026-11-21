@@ -46,8 +46,9 @@ export function useSideFeed({
   log = true,
   rolls,
   alerts,
+  events,
   proposals,
-}: Pick<FeedSources, 'rolls' | 'alerts' | 'proposals'> & {
+}: Pick<FeedSources, 'rolls' | 'alerts' | 'events' | 'proposals'> & {
   target: PlayScreen
   /** Who the Feed and the Game's log say rolled from this screen. */
   rollerName: string
@@ -58,7 +59,7 @@ export function useSideFeed({
   const dispatch = usePlayRollDispatch({ target, rollerName, binding, log })
   const [openedAt] = useState(() => Date.now())
   const mine = usePlayRollLog().filter((roll) => roll.at >= openedAt)
-  const entries = playFeedEntries({ rolls, alerts, proposals, mine, rollerName })
+  const entries = playFeedEntries({ rolls, alerts, events, proposals, mine, rollerName })
   return { gameId: target.gameId, binding, dispatch, entries }
 }
 
@@ -79,6 +80,7 @@ export function usePlaySide({ target, play }: PlayColumnProps): PlaySide {
     binding,
     rolls: inGame ? feed.rolls : null,
     alerts: inGame ? feed.alerts : [],
+    events: inGame ? feed.events : null,
     proposals: inGame ? feed.proposals : [],
   })
   return { ...side, feed, seats: sources.seats }

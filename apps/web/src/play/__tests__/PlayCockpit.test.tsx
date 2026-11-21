@@ -147,7 +147,7 @@ describe('the Cockpit frame', () => {
     expect(await screen.findByRole('menuitem', { name: /Game page/ })).toBeTruthy()
   })
 
-  test('in a Game, the bar has Stop; up, the Stop Sign pauses the screen under the bar', async () => {
+  test('in a Game, the bar has Stop; up, the Stop Sign turns the band the stop colour', async () => {
     answerReads({
       ...ANSWERS,
       'safety.stopSign': {
@@ -161,8 +161,8 @@ describe('the Cockpit frame', () => {
         name: 'Show the Stop Sign',
       }) as HTMLButtonElement
       expect(stop.disabled).toBe(true)
-      expect(screen.getByText('Stop Sign: the game is paused')).toBeTruthy()
-      expect(screen.queryByRole('button', { name: 'Resume play' })).toBeNull()
+      // The words and Resume are the pinned notice's (`TableNotices`), over every screen.
+      expect(screen.getByRole('banner').style.background).toBe('rgb(176, 67, 43)')
     } finally {
       answerReads(ANSWERS)
     }

@@ -18,7 +18,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { FeedLine, FeedList, FieldError } from '../components/app'
+import { FeedLine, FeedList, FeedTime, FieldError } from '../components/app'
 import { Button, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
@@ -126,7 +126,12 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
             )
           }
           default:
-            return <FeedLine key={entry.key}>{entry.text}</FeedLine>
+            // The table's log reads with its times (a session's record).
+            return (
+              <FeedLine key={entry.key} end={<FeedTime ts={entry.ts} format="clock" />}>
+                {entry.text}
+              </FeedLine>
+            )
         }
       })}
     </FeedList>

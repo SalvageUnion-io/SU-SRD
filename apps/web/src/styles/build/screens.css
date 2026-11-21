@@ -92,3 +92,45 @@ html[data-signed-out-view]:not([data-signed-out-fonts]) .su-signed-out-static {
   inline-size: 100%;
   max-inline-size: 12rem;
 }
+
+/*
+ * The table's notices (`play/TableNotices.tsx`): pinned to the top of every
+ * screen of the app while a Game of the reader's has something to say (a
+ * Stop Sign, a proposal, the Mediator's alert, a live session). Empty, it
+ * takes no room.
+ */
+.su-table-notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8) var(--space-12) 0;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.su-table-notices:empty {
+  display: none;
+}
+
+.su-table-notice {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  justify-content: space-between;
+}
+
+.su-table-notice__text {
+  display: flex;
+  flex: 1 1 14rem;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.su-table-notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
