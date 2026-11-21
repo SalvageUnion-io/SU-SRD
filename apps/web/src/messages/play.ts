@@ -43,6 +43,8 @@ export const playCopy = messages({
   play: 'Play',
   game: 'Game',
   more: 'More',
+  moreOf: 'More of {name}',
+  lessOf: 'Less of {name}',
   gamePage: 'Game page',
   showASheet: 'Show a sheet',
   kindPilot: 'Pilot',

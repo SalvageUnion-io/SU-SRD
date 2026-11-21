@@ -61,7 +61,7 @@ type PlayActionRowProps = {
  * A closed row's effect, two lines at most; one cut short says so with a
  * More that opens it in place, and a Less that closes it.
  */
-function RowEffect({ text }: { text: string }) {
+function RowEffect({ text, name }: { text: string; name: string }) {
   const box = useRef<HTMLDivElement>(null)
   const [full, setFull] = useState(false)
   const [cut, setCut] = useState(false)
@@ -74,7 +74,14 @@ function RowEffect({ text }: { text: string }) {
     <div ref={box} className="su-play-act__effect-box" data-full={full || undefined}>
       <TraitProse as="p" className="su-play-act__effect" text={text} />
       {(cut || full) && (
-        <Button variant="ghost" size="mini" aria-expanded={full} onClick={() => setFull(!full)}>
+        <Button
+          variant="ghost"
+          size="mini"
+          aria-expanded={full}
+          // Its own name, beside the bar's More: "More of Jury Rig".
+          aria-label={playCopy(full ? 'lessOf' : 'moreOf', { name })}
+          onClick={() => setFull(!full)}
+        >
           {atomsCopy(full ? 'less' : 'more')}
         </Button>
       )}
@@ -137,7 +144,7 @@ export function PlayActionRow({
         {playCopy('use')}
       </Button>
     )
-  const effect = !open && summary ? <RowEffect text={summary} /> : null
+  const effect = !open && summary ? <RowEffect text={summary} name={entry.name} /> : null
   // Below `lg` the control ends the body's line, beside the closed row's effect.
   const line: ReactNode =
     !wide && control ? (
