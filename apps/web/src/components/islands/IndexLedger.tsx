@@ -409,6 +409,31 @@ export function sortIndexItems(
   return sortModels(models, indexColumns(schemaId, models), schemaId, sort).map(({ item }) => item)
 }
 
+/**
+ * The one stat a kind's entries carry beside their names where there is no
+ * room for columns (a chapter's index): the List's first measure a phone
+ * keeps ("SP 12"), else the cost ("1 AP") where a quarter of them pay one.
+ * `undefined` where an entry has none.
+ */
+export function indexLeadStat(
+  schemaId: string,
+  items: readonly RefEntity[]
+): (item: RefEntity) => string | undefined {
+  const models = items.map((item) => ({ item, model: toEntityModel(item as RefMetaEntity) }))
+  const columns = indexColumns(schemaId, models)
+  const measure = columns.find((column) => column.kind === 'figure' && column.phone)
+  // A cost only a few entries pay (nine of the equipment) is no stat of the kind.
+  const paid = models.filter(({ item, model }) => COST.value(item, model)).length
+  const lead = measure ?? (paid * 4 >= models.length ? COST : undefined)
+  const byItem = new Map(models.map((entry) => [entry.item, entry.model]))
+  return (item) => {
+    const model = byItem.get(item)
+    const value = lead && model ? lead.value(item, model) : ''
+    if (value === '') return undefined
+    return measure ? `${measure.label} ${value}` : value
+  }
+}
+
 type IndexLedgerProps = {
   schemaId: string
   /** The listing's plural name: the name column's label. */

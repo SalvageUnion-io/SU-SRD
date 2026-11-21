@@ -9,7 +9,7 @@ import type { RefEntity } from 'salvageunion-reference'
 import { getModel, getUniqueSources, getUniqueTechLevels } from 'salvageunion-reference'
 import { listingTraits } from '../../../lib/listingTraits'
 import { formatSort, parseSort } from '../../../lib/useListingFilters'
-import { compareCells, IndexLedger } from '../IndexLedger'
+import { compareCells, IndexLedger, indexLeadStat } from '../IndexLedger'
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
 /** A whole schema's listing renders past Bun's 5 s default under coverage. */
@@ -310,4 +310,20 @@ describe("the List's columns", () => {
     },
     HEAVY
   )
+})
+
+describe("a kind's one stat, for a chapter's index (RR-18)", () => {
+  it('is the List’s first measure, by its short label', () => {
+    const chassis = all('chassis')
+    const statOf = indexLeadStat('chassis', chassis)
+    expect(chassis.every((item) => /^SP \d+$/.test(statOf(item) ?? ''))).toBe(true)
+  })
+
+  it('is nothing where the kind has no measure and few entries pay a cost', () => {
+    const equipment = all('equipment')
+    const statOf = indexLeadStat('equipment', equipment)
+    expect(equipment.some((item) => statOf(item) !== undefined)).toBe(false)
+    const keywords = all('keywords')
+    expect(indexLeadStat('keywords', keywords)(keywords[0] as RefEntity)).toBeUndefined()
+  })
 })
