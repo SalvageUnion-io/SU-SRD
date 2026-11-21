@@ -44,9 +44,18 @@ export function RailActs({ children }: { children: ReactNode }) {
     }
     place()
     media.addEventListener('change', place)
+    // The bar shows the rail of its `data-mode`, and that can change under an
+    // open page (a pilot found to be in a Game reads under Play): follow it,
+    // or the acts stay in a rail that no longer shows.
+    const area = new MutationObserver(() => {
+      tries = 0
+      place()
+    })
+    area.observe(document.body, { attributes: true, attributeFilter: ['data-mode'], subtree: true })
     return () => {
       cancelAnimationFrame(frame)
       media.removeEventListener('change', place)
+      area.disconnect()
     }
   }, [])
 

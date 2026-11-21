@@ -1,5 +1,5 @@
 import type { RefClass, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { ClassAbilityTree, ClassAdvancement } from './ClassAbilityTree'
+import { ClassAbilityTree, ClassAdvancement, ClassContents } from './ClassAbilityTree'
 import type { NameRefIndex, PageRefIndex } from './index'
 import { ReferenceEntityCard } from './index'
 import { ReferenceSurface } from './ReferenceSurface'
@@ -52,6 +52,8 @@ export function EntityCardStatic({ item, pattern, pageRefs, nameRefs }: EntityCa
         pattern={pattern}
         size="full"
         presentation="page"
+        // On this page leads a class's Page, over its art (RR-13).
+        leadExtraContent={classEntity ? <ClassContents classEntity={classEntity} /> : undefined}
         afterExtraContent={classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined}
         // A class's Advancement stands under its art, in the room a tall
         // painting leaves beside the Core trees.

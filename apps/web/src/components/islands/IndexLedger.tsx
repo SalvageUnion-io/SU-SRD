@@ -2,7 +2,7 @@
 // §2.6 order in fixed columns.
 import { useMemo, useState } from 'react'
 import type { EntityModel, RefEntity, RefMetaEntity } from 'salvageunion-reference'
-import { toEntityModel } from 'salvageunion-reference'
+import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { entityTraitNames } from '../../lib/listingTraits'
 import { islandsCopy } from '../../messages/components-islands'
 import { Stat } from '../atoms/Stat'
@@ -107,10 +107,26 @@ const TRAITS: IndexColumn = {
   value: (_item, model) => entityTraitNames(model).join(', '),
 }
 
-/** The row's Tech Level, sorted by though it is the name's stamp, not a column (ledger L4). */
+/** The row's Tech Level, sorted by its stamp on the head strip: the name's rank, not a column (ledger L4). */
 const SORT_TECH_LEVEL = 'tl'
 
 const ACTIONS = names(islandsCopy('actions'), 'actions')
+
+const OWN_TREES = names(islandsCopy('coreTrees'), 'coreTrees')
+
+/**
+ * A class's Core trees: a Core class's own, and for a Hybrid Class the Core
+ * trees it branches into, which its tree's requirement names (Core Book p.23).
+ */
+const CLASS_TREES: IndexColumn = {
+  ...OWN_TREES,
+  value: (item, model) => {
+    const own = OWN_TREES.value(item, model)
+    if (own || !('advancedTree' in item) || !item.advancedTree) return own
+    const tree = SalvageUnionReference.AbilityTreeRequirements.getByName(item.advancedTree)
+    return tree ? tree.requirement.join(', ') : ''
+  },
+}
 
 /** The quiet line a kind's rows end on; every other kind's is its opening words. */
 const QUIET: Readonly<Record<string, IndexColumn>> = {
@@ -121,7 +137,7 @@ const QUIET: Readonly<Record<string, IndexColumn>> = {
   squads: ACTIONS,
   meld: ACTIONS,
   drones: names(islandsCopy('systems'), 'systems'),
-  classes: names(islandsCopy('coreTrees'), 'coreTrees'),
+  classes: CLASS_TREES,
 }
 
 /** The words a kind's rows carry before their stats. */
@@ -238,6 +254,9 @@ function pickable(columns: readonly IndexColumn[]): readonly IndexColumn[] {
   return columns.filter((column) => column.kind !== 'quiet')
 }
 
+/** From this many columns a List is dense: a narrow frame has no room for its quiet line too. */
+const DENSE_COLUMNS = 4
+
 /** How many columns a phone's row holds beside its name and stamp (ledger L8). */
 const PHONE_COLUMNS = 2
 
@@ -280,7 +299,7 @@ type IndexLedgerProps = {
    * choice. With it the List offers its Columns control on a phone (RR-06).
    */
   phone?: { columns: readonly string[]; setColumns: (keys: readonly string[]) => void }
-  /** Say the order above the list, with the way to sort by Tech Level (the first of a listing's lists). */
+  /** Say the order above the list, with the way back to the book's (the first of a listing's lists). */
   orderNote?: boolean
 }
 
@@ -385,11 +404,6 @@ export function IndexLedger({
       {orderNote && (
         <p className="su-listing__order" aria-live="polite">
           {sorted ? sortedLine(sorted) : islandsCopy('bookOrder')}
-          {hasTechLevels && sort?.key !== SORT_TECH_LEVEL && (
-            <Button variant="ghost" size="compact" onClick={() => sortBy(SORT_TECH_LEVEL)}>
-              {islandsCopy('sortByTechLevel')}
-            </Button>
-          )}
           {sort && order && (
             <Button variant="ghost" size="compact" onClick={order.clear}>
               {islandsCopy('backToBookOrder')}
@@ -418,23 +432,37 @@ export function IndexLedger({
           ))}
         </fieldset>
       )}
-      <Ledger
-        label={noun}
-        paint={paintFor(first.tone, { texture: surface.texture })}
-        nameLabel={plain ? islandsCopy('name') : noun}
-        columns={columns}
-        rows={rows.map((row) => ({
-          id: row.id,
-          name: row.name,
-          entityRef: row.entityRef,
-          stamp: row.techLevel ? (
-            <Stat label={islandsCopy('tl')} value={row.techLevel} size="mini" />
-          ) : undefined,
-          cells: row.cells,
-        }))}
-        sort={sort}
-        onSort={sortBy}
-      />
+      {/* The list is a section of its own: the note and the phone's column
+          picks over it are the listing's tools, never controls beside it (C8). */}
+      <section>
+        <Ledger
+          label={noun}
+          paint={paintFor(first.tone, { texture: surface.texture })}
+          nameLabel={plain ? islandsCopy('name') : noun}
+          columns={columns}
+          rows={rows.map((row) => ({
+            id: row.id,
+            name: row.name,
+            entityRef: row.entityRef,
+            stamp: row.techLevel ? (
+              <Stat label={islandsCopy('tl')} value={row.techLevel} size="mini" />
+            ) : undefined,
+            cells: row.cells,
+          }))}
+          sort={sort}
+          onSort={sortBy}
+          {...(hasTechLevels
+            ? {
+                rank: {
+                  key: SORT_TECH_LEVEL,
+                  label: islandsCopy('tl'),
+                  title: islandsCopy('techLevel'),
+                },
+              }
+            : {})}
+          dense={shown.length >= DENSE_COLUMNS}
+        />
+      </section>
     </>
   )
 }

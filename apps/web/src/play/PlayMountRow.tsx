@@ -72,7 +72,8 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
           variant="button"
           disabled={off}
           label={playCopy('boardChooseAMech')}
-          trigger="Board"
+          // Its own words: Board is the rust act beside it and on a parked Mech (§3.14).
+          trigger={playCopy('chooseWhichMech')}
           sections={boardMenuSections(play.mechs, choose)}
         />
       )}

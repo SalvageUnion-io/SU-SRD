@@ -162,7 +162,8 @@ async function peekAt(page: Page, trigger: Locator, where: string): Promise<stri
   await trigger.hover()
   const popup = page.locator('[data-peek-popup]')
   await expect(
-    popup.locator('.su-entity-compact__head, .su-entity-mini, .su-roll').first(),
+    // An entity's head, a Mini, a roll table, or a term's Slab (E27, `PeekTerm`).
+    popup.locator('.su-entity-compact__head, .su-entity-mini, .su-roll, [data-slab]').first(),
     `${where}: the Peek draws its card`
   ).toBeVisible()
   const faults = (await page.evaluate(scanPlate)).map((f) => `${where}: ${f}`)

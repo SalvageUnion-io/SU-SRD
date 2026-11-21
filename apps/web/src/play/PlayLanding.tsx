@@ -410,7 +410,9 @@ function PlayGameItem({
           doors.length > 0
             ? // A chip's height (C8). The first is your role's door, so rust
               // (ruleset §1.9, §3.13: Mediate where you mediate, else Play);
-              // any other is the paper plate beside it.
+              // any other is the paper plate beside it. Each is marked a
+              // role's door, the one act whose look the viewer's role picks
+              // (§3.14): a pilot's own line below says Play in rust.
               doors.map((door, index) =>
                 door.start ? (
                   // Start the session, then open the Mediator's screen.
@@ -419,6 +421,7 @@ function PlayGameItem({
                     aria-label={door.ariaLabel}
                     variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
+                    data-role-door=""
                     disabled={session === null || !session.canWrite || session.pending}
                     onClick={() => {
                       void session?.start().then((started) => {
@@ -435,6 +438,7 @@ function PlayGameItem({
                     aria-label={door.ariaLabel}
                     variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
+                    data-role-door=""
                   >
                     {door.label}
                   </Button>

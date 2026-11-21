@@ -18,7 +18,15 @@
 import type { Page } from '@playwright/test'
 import { appPath } from 'game-domain/appAddress'
 import { cockpitPath, invitePath } from '../../game-domain/src/entityKinds'
-import { copyStarter, editSheet, openApp, sheetHref, sheetLink, waitForReady } from './appPage'
+import {
+  copyStarter,
+  editSheet,
+  forgetSheetMode,
+  openApp,
+  sheetHref,
+  sheetLink,
+  waitForReady,
+} from './appPage'
 
 /** The pages the seed makes, as a route or a gallery page names them: `:pilot`, … */
 export const SEED_KEYS = [
@@ -192,6 +200,9 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   if (!soloId) throw new Error(`no pilot id in ${solo}`)
   const playSolo = appPath(cockpitPath(soloId))
   const playMediator = `${game}/mediate`
+
+  // The seed edited sheets to make them; its pages open as a first visit's do, in Read.
+  await forgetSheetMode(page)
 
   return {
     pilot,

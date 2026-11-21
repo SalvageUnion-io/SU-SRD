@@ -231,6 +231,13 @@ type LedgerListProps = {
   mark?: ReactNode
   /** With it, a column's label sorts by that column (`name` for the names). */
   onSort?: (key: string) => void
+  /**
+   * The rows' rank stamp (`TL`), named on the head strip beside the tab: with
+   * `onSort` it sorts by the rank, as a column's stamp does by its column.
+   */
+  rank?: { key: string; label: string; title?: string }
+  /** More columns than a narrow frame holds: between a phone and `lg` the quiet line gives way and the cells sit closer. */
+  dense?: boolean
   /** Names the table for a screen reader. */
   label: string
   /** At the head strip's end, on its own paper cut-out: the list's one make (`+ New pilot`). */
@@ -312,6 +319,8 @@ function LedgerList({
   sort,
   mark,
   onSort,
+  rank,
+  dense = false,
   label,
   action,
   empty,
@@ -379,6 +388,7 @@ function LedgerList({
         {...(presentation ? { role: 'presentation' } : { 'aria-label': label })}
         data-phone-line={phoneLine ? '' : undefined}
         data-trailing-fills={!roomy && hasTrailing ? '' : undefined}
+        data-dense={dense ? '' : undefined}
       >
         <thead>
           <tr
@@ -386,7 +396,7 @@ function LedgerList({
             data-grain={paint.grain}
             style={{ backgroundColor: paint.background, color: paint.color }}
           >
-            <th scope="col" aria-sort={ariaSort('name')}>
+            <th scope="col" aria-sort={ariaSort('name') ?? (rank && ariaSort(rank.key))}>
               {/* The title's cut-out: the Compact head's paper tab. */}
               <span className={TITLE_LINE}>
                 <span className="su-entity-compact__notch">
@@ -409,6 +419,9 @@ function LedgerList({
                   )}
                 </span>
                 {mark && <span className="su-ledger__mark">{mark}</span>}
+                {rank && onSort && (
+                  <span className="su-ledger__rank">{stamp(rank.key, rank.label, rank.title)}</span>
+                )}
               </span>
             </th>
             {columns.map((column) => (

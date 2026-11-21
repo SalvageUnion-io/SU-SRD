@@ -71,9 +71,17 @@ describe('a sort in the address', () => {
       listing('chassis')
       // Unsorted, the list says whose order it is in (RR-09).
       expect(screen.getByText(/In the book’s order/)).toBeTruthy()
-      fireEvent.click(screen.getByRole('button', { name: 'Sort by Tech Level' }))
+      // The Tech Level sorts from the head strip, as every column does (RR-09):
+      // its stamp stands over the rows' own, and no button beside the list.
+      expect(screen.queryByRole('button', { name: 'Sort by Tech Level' })).toBeNull()
+      const rank = screen.getByRole('button', { name: 'Sort by TL (Tech Level)' })
+      expect(rank.closest('thead')).not.toBeNull()
+      fireEvent.click(rank)
       expect(window.location.search).toBe('?sort=tl')
       expect(screen.getByText('Sorted by Tech Level, low to high.')).toBeTruthy()
+      expect(rank.closest('th')?.getAttribute('aria-sort')).toBe('ascending')
+      fireEvent.click(rank)
+      expect(window.location.search).toBe('?sort=-tl')
       fireEvent.click(screen.getByRole('button', { name: 'Book order' }))
       expect(window.location.search).toBe('')
     },
@@ -144,6 +152,34 @@ describe("the List's columns", () => {
     )
     expect(heads(container)).toContain('SP')
     expect(heads(container)).not.toContain('BIO')
+  })
+
+  it('a list with no Tech Levels has no rank to sort by', () => {
+    const { container } = render(
+      <IndexLedger schemaId="keywords" noun="Keywords" items={all('keywords')} />
+    )
+    expect(container.querySelector('.su-ledger__rank')).toBeNull()
+  })
+
+  it('a Hybrid Class’s line names the Core trees it branches into (RR-23)', () => {
+    const hybrids = all('classes').filter((item) => !('coreTrees' in item))
+    const { container } = render(
+      <IndexLedger schemaId="classes" noun="Hybrid Classes" items={hybrids} />
+    )
+    const at = heads(container).indexOf('Core Trees')
+    expect(at).toBeGreaterThan(0)
+    const row = Array.from(container.querySelectorAll('tbody tr')).find((tr) =>
+      tr.textContent?.startsWith('Fabricator')
+    )
+    expect(row?.children[at]?.textContent).toBe('Forging, Electronics')
+  })
+
+  it('a list of many columns is dense, a list of few is not (RR-24’s frame)', () => {
+    const chassis = render(<IndexLedger schemaId="chassis" noun="Chassis" items={all('chassis')} />)
+    expect(chassis.container.querySelector('table')?.hasAttribute('data-dense')).toBe(true)
+    cleanup()
+    const traits = render(<IndexLedger schemaId="traits" noun="Traits" items={all('traits')} />)
+    expect(traits.container.querySelector('table')?.hasAttribute('data-dense')).toBe(false)
   })
 
   it('a phone’s two columns are the reader’s, from ?cols= (RR-06)', () => {

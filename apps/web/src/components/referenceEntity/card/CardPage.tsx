@@ -9,7 +9,7 @@ import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
 import { NeighbourRow } from '../../compositions/NeighbourRow'
 import { SlabSection } from '../../containers/SlabSection'
-import { ChipLink, factRef } from '../../entity'
+import { ChipLink, factRef, statTerm, TermChip } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { Mention } from '../../entity/forms/Mention'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
@@ -90,6 +90,8 @@ type CardPageProps = {
    * phone; its own side track, after the main one in the markup.
    */
   aside?: ReactNode
+  /** `leadExtraContent`: the Page's first block, before the art in the markup. */
+  lead?: ReactNode
   /** `afterExtraContent`. */
   after: ReactNode
   sectionAs?: ElementType
@@ -117,6 +119,7 @@ export function CardPage({
   sections,
   actionSeal,
   patterns,
+  lead,
   after,
   aside,
   sectionAs,
@@ -291,15 +294,16 @@ export function CardPage({
               className="su-stat-column__stat"
             />
           )
-          // A stat the glossary defines is a term (E27): a press, hover or
-          // focus opens its entry, where a `title` says nothing on a phone.
-          // One with no entry keeps its hint as a native tooltip (E23).
+          // A stat is a term (E27): a press, hover or focus opens its glossary
+          // entry, or, where the glossary has none (Cargo Capacity), its
+          // meaning in the app's words: a `title` says nothing on a phone.
           const ref = factRef(stat)
+          const term = ref ? undefined : statTerm(stat)
           return (
             <li
               key={stat.key}
               className="su-stat-column__cell"
-              title={ref ? undefined : stat.hoverText}
+              title={ref || term ? undefined : stat.hoverText}
             >
               {ref ? (
                 <ChipLink
@@ -308,6 +312,10 @@ export function CardPage({
                 >
                   {cell}
                 </ChipLink>
+              ) : term ? (
+                <TermChip term={term} value={String(stat.value)}>
+                  {cell}
+                </TermChip>
               ) : (
                 cell
               )}
@@ -340,6 +348,7 @@ export function CardPage({
     const side = !!hero || statsAside || split.side.length > 0
     return (
       <div className="su-entity-page su-manual">
+        {lead && <div className="su-manual__lead">{lead}</div>}
         {side && (
           <div className="su-manual__side">
             {hero && <div className="su-manual__art">{hero}</div>}
@@ -367,8 +376,12 @@ export function CardPage({
           {sections}
           {table && <div className="su-entity-page__table">{table}</div>}
           {patterns.length > 0 && (
-            // The Ledger's title tab names the section and keeps the count.
-            <PatternLedger chassis={entity} patterns={patterns} />
+            // The Ledger's title tab names the section and keeps the count. A
+            // section of its own: the stat tiles before it are the Page's,
+            // never controls beside this list (C8).
+            <section>
+              <PatternLedger chassis={entity} patterns={patterns} />
+            </section>
           )}
           <NeighbourRow
             as={sectionAs}

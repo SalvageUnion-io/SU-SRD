@@ -66,8 +66,8 @@
 
 /*
  * On this page (`ClassContents`): the class's sections as a wrapping line of
- * links under their slab, where a phone's long column starts. From `lg` the
- * Page is two tracks and the list is not drawn.
+ * links under their slab, the Page's first block (`.su-manual__lead`): over
+ * the art where a phone's long column starts, over both tracks from `lg`.
  */
 .su-class-contents {
   display: flex;
@@ -95,12 +95,6 @@
   min-block-size: var(--space-24);
   text-decoration: underline;
   text-underline-offset: 0.2em;
-}
-
-@media (width >= 64rem) {
-  .su-class-contents {
-    display: none;
-  }
 }
 
 /*

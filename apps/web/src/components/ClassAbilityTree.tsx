@@ -10,6 +10,7 @@ import { componentsCopy } from '../messages/components'
 import { capsLabel } from './atoms/capsLabel'
 import { FOCUS_RING } from './atoms/interaction'
 import { Box } from './containers/Box'
+import { TermChip, TRAINING_POINTS } from './entity'
 import { RowDress } from './entity/rowDress'
 import type { TreeTrack } from './index'
 import { Chips, Head, Slab, SlabSection, Stat, TitledBox } from './index'
@@ -195,10 +196,13 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
                 paint={tierPaint(card.tier)}
                 chips={
                   card.cost && (
-                    <Chips
-                      size="mini"
-                      chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
-                    />
+                    // TP has no glossary entry: its box opens what it means (E27).
+                    <TermChip term={TRAINING_POINTS} value={String(card.cost)}>
+                      <Chips
+                        size="mini"
+                        chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
+                      />
+                    </TermChip>
                   )
                 }
               >
@@ -357,13 +361,15 @@ const REQUIRED_ID = 'required-trees'
 const pathAnchor = (name: string) => `path-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
 
 /**
- * ON THIS PAGE: a class Page's sections as links, leading its trees. A class
- * reads as one long column on a phone (Training, its Core trees, then every
- * path it advances along), so the list stands where that scroll starts; from
- * `lg` the Page is two tracks a screen high and the list is not drawn
- * (`pages-class.css`). Every entry lands on a heading the page already has.
+ * ON THIS PAGE: a class Page's sections as links, the Page's first block. A
+ * class reads as one long column on a phone (the art, Training, its Core
+ * trees, then every path it advances along), so the list stands over the art,
+ * where that scroll starts; from `lg` it runs the page's measure over both
+ * tracks (`pages-class.css`). Every entry lands on a heading the page has.
  */
-function ClassContents({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
+export function ClassContents({ classEntity }: ClassAbilityTreeProps) {
+  const plan = useMemo(() => resolveClassPlan(classEntity), [classEntity])
+  if (plan.kind === 'none') return null
   const entries: { href: string; label: string }[] = [
     { href: TRAINING_ID, label: componentsCopy('training') },
   ]
@@ -435,7 +441,6 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     const { path, branches } = plan
     return (
       <div className="su-ability-tree">
-        <ClassContents plan={plan} />
         <ClassBrief plan={plan} />
         <SlabSection id={ABILITIES_ID} title={componentsCopy('abilities')} page>
           <div className="su-class-path__trees" data-entity-fit="">
@@ -453,7 +458,6 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
   // side track, under the art.
   return (
     <div className="su-ability-tree">
-      <ClassContents plan={plan} />
       <ClassBrief plan={plan} />
       {plan.coreTrees.length > 0 && coreTreesSection(plan.coreTrees.slice(0, mainCoreCount(plan)))}
     </div>

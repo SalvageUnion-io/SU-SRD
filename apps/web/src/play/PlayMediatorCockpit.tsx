@@ -140,7 +140,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
           idPrefix="mediate"
           canWrite={mediator.canWrite}
           actions={
-            <Toggle size="mini" pressed={privately} onClick={() => setPrivately((on) => !on)}>
+            <Toggle size="compact" pressed={privately} onClick={() => setPrivately((on) => !on)}>
               {playCopy('privateRolls')}
             </Toggle>
           }

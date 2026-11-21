@@ -180,6 +180,7 @@ function ReferenceEntityCardInner({
   statsOverride,
   subtitleExtra,
   afterExtraContent,
+  leadExtraContent,
   asideExtraContent,
   asideLead: asideLeadRequested = false,
   footMeta,
@@ -491,6 +492,7 @@ function ReferenceEntityCardInner({
         guide={guideStepsNode}
         sections={nestedGroupsNode}
         patterns={hide?.patterns ? [] : patternList}
+        lead={leadExtraContent}
         after={afterExtraContent}
         aside={asideExtraContent}
         sectionAs={sectionAs}

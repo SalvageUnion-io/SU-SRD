@@ -220,11 +220,19 @@
 }
 
 /* The compact value as a button (Play's change-by-an-amount): the read-out's
- * own type, underlined so it reads as pressable. */
+ * own type, underlined so it reads as pressable. Its box is WCAG 2.2's 24px
+ * target (2.5.8) around the one line of type, drawn into the room over the
+ * head so the pips keep their place. */
 .su-vital-gauge__value-button {
+  align-items: flex-end;
   background: none;
   border: 0;
   cursor: pointer;
+  display: inline-flex;
+  justify-content: flex-end;
+  margin-block: calc(1em - var(--space-24)) 0; /* design-tokens-ignore(raw-spacing): the target's height less the one line it draws */
+  min-block-size: var(--space-24);
+  min-inline-size: var(--space-24);
   padding: 0;
   text-decoration: underline dotted;
   text-underline-offset: 3px;

@@ -434,8 +434,15 @@
     padding-inline: var(--space-8) var(--space-4);
   }
 
+  /* The title is the widest thing in its column: a size and a pad down, so a
+     crew whose Mechs have long names keeps to the page (R44). */
+  .su-open.su-open--pairs .su-open__title {
+    padding-inline: var(--space-4);
+  }
+
   .su-open.su-open--pairs .su-open__title > .su-rule-head__label {
-    font-size: var(--text-readout);
+    font-size: var(--text-lede);
+    padding-inline: var(--space-8);
   }
 
   .su-open.su-open--pairs :is(.su-open__row > td, thead th):is(:nth-child(2), :nth-child(3)) {

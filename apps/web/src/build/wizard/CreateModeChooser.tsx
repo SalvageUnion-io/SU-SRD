@@ -14,7 +14,7 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { Button, ChapterBand, Eyebrow, Text, TitledBox, tokens } from '../../components/index'
+import { Button, ChapterBand, Slab, Text, TitledBox, tokens } from '../../components/index'
 import { clearWizardDraft, readWizardDraft, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { usePatterns } from '../../replica/collections'
 import { BookPatternBuild } from '../mech/Pattern/BookPatternBuild'
@@ -107,9 +107,8 @@ export function CreateModeChooser({
           onBuilt={onBuilt}
           gameId={gameId}
         />
-        <Eyebrow as="h3" tone="muted">
-          {buildWizardCopy('yourPatterns')}
-        </Eyebrow>
+        {/* A section head is the one Slab (R53). */}
+        <Slab as="h3" label={buildWizardCopy('yourPatterns')} />
         <PatternList onInstantiated={onBuilt} gameId={gameId} />
       </TitledBox>
     </div>
