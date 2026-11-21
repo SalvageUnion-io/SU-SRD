@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
  * The Games hub (`/games/`, ADR-066): + New Game and Join with a link on its
@@ -178,6 +178,32 @@ describe('the Play landing', () => {
     const heading = wastes.getByRole('heading', { name: 'Wastes (Game)' })
     expect(heading.closest('[data-fill-whole]')).not.toBeNull()
     expect(heading.className).toContain('su-entity-compact__title--whole')
+  })
+
+  // MD-03: "Join with a link" and "Mediator's Kit" in Play's sub-nav went to
+  // ids no element had, signed in or out.
+  test('every in-page link of Play’s sub-nav has its target, signed out and signed in', async () => {
+    const { areaAnchors } = await import('../../components/unionBar/areaNav.model')
+    const anchors = areaAnchors('play')
+    expect(anchors).toEqual(['join', 'mediators-kit'])
+    answerReads({})
+    await renderAs('signedOut')
+    for (const id of anchors) expect(document.getElementById(id)).not.toBeNull()
+    cleanup()
+    answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
+    await renderAs('live')
+    for (const id of anchors) expect(document.getElementById(id)).not.toBeNull()
+  })
+
+  test('arriving on #join opens Join a Game', async () => {
+    window.location.hash = '#join'
+    try {
+      answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
+      await renderAs('live')
+      expect(screen.getByRole('dialog', { name: 'Join a Game' })).toBeTruthy()
+    } finally {
+      window.location.hash = ''
+    }
   })
 
   // LG-01: the replica holds every crewmate's pilot too (for Play's Crew

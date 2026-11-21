@@ -37,7 +37,7 @@ import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
 import { gamePath, invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties, FormEvent } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { FrontDoor } from '../build/roster/FrontDoor'
@@ -179,6 +179,9 @@ function PlayFrontDoor() {
           title={playCopy('atTheTable')}
           steps={steps}
           numbered={false}
+          // Where Play's sub-nav lands signed out (`AREA_NAV.play`): sharing a
+          // table is how you join one, and Mediate is what the Kit is for.
+          anchors={{ table: 'join', mediate: 'mediators-kit' }}
         />
       }
     />
@@ -291,6 +294,15 @@ function JoinGame() {
   const [open, setOpen] = useState(false)
   const [pasted, setPasted] = useState('')
   const [wrong, setWrong] = useState(false)
+  // The sub-nav's "Join with a link" (`/games/#join`) lands here and opens it.
+  useEffect(() => {
+    const arrive = () => {
+      if (window.location.hash === '#join') setOpen(true)
+    }
+    arrive()
+    window.addEventListener('hashchange', arrive)
+    return () => window.removeEventListener('hashchange', arrive)
+  }, [])
 
   function join(event: FormEvent) {
     event.preventDefault()
@@ -305,7 +317,7 @@ function JoinGame() {
 
   return (
     <>
-      <Button variant="default" size="compact" onClick={() => setOpen(true)}>
+      <Button id="join" variant="default" size="compact" onClick={() => setOpen(true)}>
         {playCopy('joinWithALink')}
       </Button>
       <ModalShell open={open} onOpenChange={setOpen} title={playCopy('joinAGame')}>
