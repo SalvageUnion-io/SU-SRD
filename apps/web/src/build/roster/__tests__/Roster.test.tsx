@@ -14,7 +14,7 @@
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
@@ -397,7 +397,7 @@ describe('Training Bay — items', () => {
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 
-  test('the ⋯ menu offers Open, Move, Make a copy, Save as pattern (mechs), Export and Delete', async () => {
+  test('the ⋯ menu offers Open, Move, Make a copy, Rename and Save as pattern (mechs), Export and Delete', async () => {
     await seedEntity('mech', 'Iron Jaw')
     await renderShelves()
 
@@ -406,7 +406,45 @@ describe('Training Bay — items', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map((item) => item.textContent)
-    ).toEqual(['Open', 'Move to a Game…', 'Make a copy', 'Save as pattern', 'Export', 'Delete…'])
+    ).toEqual([
+      'Open',
+      'Move to a Game…',
+      'Make a copy',
+      'Rename…',
+      'Save as pattern',
+      'Export',
+      'Delete…',
+    ])
+  })
+
+  test('Rename… changes a mech’s name from the list', async () => {
+    const mech = await seedEntity('mech', 'Iron Jaw')
+    await renderShelves()
+    fireEvent.click(within(await openMenu('Iron Jaw')).getByRole('menuitem', { name: 'Rename…' }))
+    const field = await screen.findByRole('textbox', { name: 'Mech name' })
+    fireEvent.change(field, { target: { value: 'Iron Jaw Mk II' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
+    await waitFor(() => expect(useUnits.getState().get('mech', mech)?.name).toBe('Iron Jaw Mk II'))
+  })
+
+  test('the Mechs shelf says a build’s slots and Scrap, and a column sorts it', async () => {
+    await seedEntity('mech', 'Bravo')
+    await useUnits
+      .getState()
+      .create('mech', { ...baseMechInput, name: 'Alpha', chassisRef: 'mule' })
+    await renderShelves()
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    const names = () =>
+      within(mechs)
+        .getAllByRole('link')
+        .map((a) => a.textContent)
+        .filter((text) => text === 'Alpha' || text === 'Bravo')
+    expect(within(mechs).getByRole('button', { name: /sort by scrap/i })).toBeTruthy()
+    const byName = () => within(mechs).getByRole('button', { name: /sort by mechs/i })
+    fireEvent.click(byName())
+    expect(names()).toEqual(['Alpha', 'Bravo'])
+    fireEvent.click(byName())
+    expect(names()).toEqual(['Bravo', 'Alpha'])
   })
 
   test('a pilot’s menu has no Save as pattern', async () => {

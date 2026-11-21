@@ -14,7 +14,7 @@ describe('renaming a mech', () => {
     const patches: object[] = []
     const mech = mechFixture({ id: 'm1', name: 'Scrapper', startingPatternRef: 'swiss-cheese' })
     render(<MechIdentityPanel mech={mech} patch={(p) => patches.push(p)} />)
-    const control = () => screen.getByLabelText('Edit pattern name')
+    const control = () => screen.getByLabelText('Edit mech name')
     fireEvent.click(control())
     fireEvent.change(control(), { target: { value: '  Old Rusty  ' } })
     fireEvent.keyDown(control(), { key: 'Enter' })
@@ -24,7 +24,7 @@ describe('renaming a mech', () => {
   test('an empty name is never written', async () => {
     const patches: object[] = []
     render(<MechIdentityPanel mech={mechFixture({ id: 'm1' })} patch={(p) => patches.push(p)} />)
-    const control = () => screen.getByLabelText('Edit pattern name')
+    const control = () => screen.getByLabelText('Edit mech name')
     fireEvent.click(control())
     fireEvent.change(control(), { target: { value: '   ' } })
     fireEvent.keyDown(control(), { key: 'Enter' })

@@ -271,7 +271,7 @@ describe('mechCreationStepGate', () => {
   it('pattern: the name is required (a mech’s name IS its pattern)', () => {
     const blocked = mechCreationStepGate('pattern', { ...legalMechForm(), name: '  ' })
     expect(blocked.ok).toBe(false)
-    expect(blocked.reason).toBe('Name your Pattern to continue')
+    expect(blocked.reason).toBe('Name your Mech to continue')
     expect(mechCreationStepGate('pattern', legalMechForm()).ok).toBe(true)
   })
 

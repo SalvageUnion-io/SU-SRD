@@ -370,7 +370,7 @@ function mechChassisGate(form: MechWizardFormState): StepGateResult {
 
 function mechNameGate(form: MechWizardFormState): StepGateResult {
   if (form.name.trim() === '') {
-    return { ok: false, reason: 'Name your Pattern to continue' }
+    return { ok: false, reason: 'Name your Mech to continue' }
   }
   return OK
 }

@@ -53,6 +53,7 @@ import { cn } from '../../lib/cn'
 import { chassisArt } from '../../lib/photos/defaultArt'
 import { CHASSIS_MODDER } from '../../lib/rules/chassisModder'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import { mechScrap } from '../../lib/rules/mechScrap'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
@@ -247,8 +248,17 @@ export function MechDash({
         tint="cargo"
         over={over}
       />
-      {/* Tech Level and Salvage Value are the chassis's
-          own facts, so they sit with the Chassis in the side column. */}
+      {/* What the build is worth, as the Scrap of each Tech Level it takes. */}
+      {mechScrap(mech).byTechLevel.map(({ techLevel, scrap }) => (
+        <StripFigure
+          key={techLevel}
+          label={buildSheetCopy('tScrapShort', { tl: techLevel })}
+          name={buildSheetCopy('scrapToBuild', { tl: techLevel })}
+          value={scrap}
+          meter="bar"
+          tint={{ tl: techLevel }}
+        />
+      ))}
     </>
   )
   const art = (

@@ -24,6 +24,7 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
+import { mechScrap } from '../../lib/rules/mechScrap'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
 import { assignedRail } from './assignedRail'
@@ -111,7 +112,7 @@ export function MechLiveSheet({
       fromPattern={mechPatternStamp(mech, (id) => savedPatterns.find((p) => p.id === id)?.name)}
       // Read's header strip carries TL and
       // SV with the chassis's other figures, so the band leaves them out (R59).
-      rank={readOnly ? undefined : <MechBandRank chassisRef={mech.chassisRef} />}
+      rank={readOnly ? undefined : <MechBandRank mech={mech} />}
       out={
         mechHasCondition(mech, 'Destroyed')
           ? {
@@ -138,21 +139,19 @@ export function MechLiveSheet({
 }
 
 /**
- * The chassis's Tech Level and Salvage Value on the band (C2's rank), as a
- * crawler's TL rides its band: the two chassis facts nothing else on the
- * sheet says.
+ * The chassis's Tech Level and the build's Salvage Value on the band (C2's
+ * rank), as a crawler's TL rides its band. The Salvage Value is the whole
+ * mech's, chassis and loadout: a variant is compared on what it costs.
  */
-function MechBandRank({ chassisRef }: { chassisRef: string }) {
-  const chassis = resolveChassisRef(chassisRef)
+function MechBandRank({ mech }: { mech: Mech }) {
+  const chassis = resolveChassisRef(mech.chassisRef)
   if (!chassis) return null
   return (
     <>
       {typeof chassis.techLevel === 'number' && (
         <Stat label={buildSheetCopy('tl')} value={chassis.techLevel} />
       )}
-      {typeof chassis.salvageValue === 'number' && (
-        <Stat label={STAT_LABELS.salvageValue.short} value={chassis.salvageValue} />
-      )}
+      <Stat label={STAT_LABELS.salvageValue.short} value={mechScrap(mech).total} />
     </>
   )
 }

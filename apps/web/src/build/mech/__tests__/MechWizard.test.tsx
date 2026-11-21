@@ -191,7 +191,7 @@ describe('MechWizard — hard creation enforcement', () => {
 
     // Name required — nothing persisted while blocked.
     expect(getCreateButton().disabled).toBe(true)
-    expect(screen.getByText('Name your Pattern to continue')).toBeTruthy()
+    expect(screen.getByText('Name your Mech to continue')).toBeTruthy()
     expect(useUnits.getState().list('mech').length).toBe(0)
     await fillIdentity('mech name', 'Iron Fist')
     expect(getCreateButton().disabled).toBe(false)
