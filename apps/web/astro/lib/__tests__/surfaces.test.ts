@@ -69,9 +69,9 @@ describe('home: the front door, its slideshow alone', () => {
     expect(show).not.toContain('su-front__show-heading')
   })
 
-  it('shows the pitch, five action slides each one action to one part of the site, then the tagline', () => {
-    expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(7)
-    expect(show.match(/su-btn--primary/g)).toHaveLength(5)
+  it('shows the pitch, six action slides each one action to one part of the site, then the tagline', () => {
+    expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(8)
+    expect(show.match(/su-btn--primary/g)).toHaveLength(6)
     for (const href of ['/reference/', '/build/', '/games/']) {
       expect(show).toContain(`href="${href}"`)
     }
@@ -84,6 +84,7 @@ describe('home: the front door, its slideshow alone', () => {
       'Know the rules',
       'Build your crew',
       'Play at the table',
+      'Run the Game',
       'Get the books',
       'Roll in Discord',
     ]) {
@@ -93,7 +94,7 @@ describe('home: the front door, its slideshow alone', () => {
 
   it('draws each slide’s art as a decorative image (empty alt, so art not yet uploaded draws nothing), the first one first', () => {
     const arts = show.match(/<img[^>]*su-front__show-art[^>]*>/g) ?? []
-    // Seven slides, seven paintings, none twice.
+    // Eight slides, seven paintings (the Mediator's waits for its own), none twice.
     expect(arts).toHaveLength(7)
     expect(new Set(arts.map((art) => art.match(/src="([^"]+)"/)?.[1])).size).toBe(7)
     for (const art of arts) {

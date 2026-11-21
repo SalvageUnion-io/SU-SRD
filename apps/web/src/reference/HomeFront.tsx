@@ -1,5 +1,5 @@
 // The home page: its slideshow (`HomeHero`), the site's name on an ink-deep
-// cut-out under the header, over seven slides of the book's art: first the
+// cut-out under the header, over eight slides of the book's art: first the
 // pitch, then each a line and one action named for the slide, on a cut-out
 // over the footer, then the tagline's slide.
 import { Pause, Play } from 'lucide-react'
@@ -70,6 +70,16 @@ function heroSlides(): Slide[] {
       body: referenceCopy('showPlayBody'),
       href: appPath('/games/'),
       art: painting('slide-union'),
+    },
+    // The Mediator's side of Play: prep, then the table. On the ink ground
+    // until its painting is in the bucket (`hero/slide-mediator.webp`).
+    {
+      key: 'mediate',
+      kind: 'action',
+      title: referenceCopy('showMediate'),
+      body: referenceCopy('showMediateBody'),
+      href: appPath('/games/'),
+      art: undefined,
     },
     {
       key: 'buy',

@@ -110,7 +110,7 @@ export const playCopy = messages({
     'A Game seats the crew at one table. Every roll and change shows on every screen, and in your Discord channel if you bind one.',
   mediate: 'Mediate',
   mediateBody:
-    'The Mediator runs the opposition, Downtime and the Union Crawler, and anyone can show the Stop Sign.',
+    'The Mediator designs NPCs, prepares encounters and plans sessions, then runs the opposition live.',
   yourSession: 'your session',
   pilotNotFound: 'Pilot not found',
   hasNoPilot: '{name} has no Pilot',
