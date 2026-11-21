@@ -137,7 +137,6 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
             pattern.name,
             searchSquashedName(pattern.name.toLowerCase()),
             PATTERN_KIND,
-            entity.name,
             extractContentText(pattern.content ?? []),
           ]
             .join(' ')

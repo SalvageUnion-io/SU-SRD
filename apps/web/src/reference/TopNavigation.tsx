@@ -99,9 +99,17 @@ export function TopNavigation({
       search={
         <>
           <WikiLink />
-          {/* The 404 carries its own; the home needs none (search is the
-              Reference's). */}
-          {pageHasSearch || home ? null : (
+          {/* The 404 carries its own. The home shows no search bar: its field
+              is served out of sight and comes into the bar when "/" or
+              Cmd/Ctrl+K (or "Look something up") focuses it
+              (`.su-union-bar__search-onkey`, shell.css). */}
+          {pageHasSearch ? null : home ? (
+            <div className="su-union-bar__search-onkey">
+              <Island name="SearchIsland" client="interaction" ssr>
+                <SearchIsland />
+              </Island>
+            </div>
+          ) : (
             <Island name="SearchIsland" client="interaction" ssr>
               <SearchIsland />
             </Island>

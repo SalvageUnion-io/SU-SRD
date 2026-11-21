@@ -39,8 +39,11 @@ describe('home: the front door, its slideshow alone', () => {
     expect(html).not.toContain('su-chapter-band')
   })
 
-  it('carries no search: that is the Reference’s (desktop field and phone trigger alike)', () => {
-    expect(islands(html, 'SearchIsland')).toBe(0)
+  it('shows no search bar, and serves the field out of sight for "/" and Cmd/Ctrl+K to open (RR-01)', () => {
+    expect(islands(html, 'SearchIsland')).toBe(1)
+    expect(html).toMatch(
+      /class="su-union-bar__search-onkey"><astro-island data-island="SearchIsland"/
+    )
     expect(islands(html, 'MobileSearchIsland')).toBe(0)
     expect(html).not.toContain('su-hero-search')
   })
@@ -55,14 +58,30 @@ describe('home: the front door, its slideshow alone', () => {
     expect(show).toMatch(/su-front__show-plate--quote[^"]*"><figure class="su-tagline"/)
   })
 
-  it('names the site alone in the head; the first slide says the pitch on its plate, no action', () => {
+  it('names the site in the head; the first slide says the pitch over its two ways forward (SB-08)', () => {
     const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
     expect(head).toContain('su-front__show-name')
     expect(head).not.toContain('su-front__show-pitch')
     const first = show.slice(0, show.indexOf('</li>'))
     expect(first).toContain('su-front__show-copy')
     expect(first).toContain('su-front__show-pitch')
-    expect(first).not.toContain('su-btn--primary')
+    expect(first).toMatch(/href="\/build\/"[^>]*>(?:<[^>]+>)*Start building</)
+    // Opens the search where the script runs, else the Reference's Contents.
+    expect(first).toMatch(
+      /<a[^>]*href="\/reference\/"[^>]*data-search-open[^>]*>(?:<[^>]+>)*Look something up</
+    )
+  })
+
+  it('gives every slide a way forward', () => {
+    const slides = show.split('class="su-front__show-slide"').slice(1)
+    expect(slides).toHaveLength(7)
+    for (const slide of slides) expect(slide).toContain('su-front__show-act')
+  })
+
+  it('serves a signed-in reader the doors to their Training Bay and Games, out of the page until then (MD-28)', () => {
+    const yours = show.slice(show.indexOf('su-front__show-yours'))
+    expect(yours).toMatch(/href="\/build\/"[^>]*>(?:<[^>]+>)*Training Bay</)
+    expect(yours).toMatch(/href="\/games\/"[^>]*>(?:<[^>]+>)*Games</)
   })
 
   it('words each action slide by its line alone, no heading over it', () => {
@@ -71,7 +90,8 @@ describe('home: the front door, its slideshow alone', () => {
 
   it('shows the pitch, five action slides each one action to one part of the site, then the tagline', () => {
     expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(7)
-    expect(show.match(/su-btn--primary/g)).toHaveLength(5)
+    // The five, and "Start building" on the pitch and on the tagline.
+    expect(show.match(/su-btn--primary/g)).toHaveLength(7)
     for (const href of ['/reference/', '/build/', '/games/']) {
       expect(show).toContain(`href="${href}"`)
     }

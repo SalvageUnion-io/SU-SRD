@@ -49,6 +49,19 @@ document.addEventListener(ISLAND_COMMIT, (event) => {
   if ((event.target as HTMLElement).dataset.island === 'SearchIsland') searchMounted = true
 })
 
+/** Focuses the page's search field (the first one drawn); false where it has none. */
+function focusSearch(): boolean {
+  for (const input of document.querySelectorAll<HTMLInputElement>(
+    '[data-island="SearchIsland"] input'
+  )) {
+    if (input.getClientRects().length === 0) continue
+    input.focus()
+    input.select()
+    return true
+  }
+  return false
+}
+
 /**
  * Cmd+K / Ctrl+K, or "/", before any search field has mounted: focus the
  * server-rendered field on show, which wakes its island (`interaction`), and
@@ -57,17 +70,18 @@ document.addEventListener(ISLAND_COMMIT, (event) => {
  */
 function onSearchShortcut(event: KeyboardEvent): void {
   if (searchMounted || !isSearchShortcut(event)) return
-  for (const input of document.querySelectorAll<HTMLInputElement>(
-    '[data-island="SearchIsland"] input'
-  )) {
-    if (input.getClientRects().length === 0) continue
-    event.preventDefault()
-    input.focus()
-    return
-  }
+  if (focusSearch()) event.preventDefault()
 }
 
 document.addEventListener('keydown', onSearchShortcut)
+// A link that opens search where the page has one (the home's "Look something
+// up"): with none, or without this script, it goes where it points.
+document.addEventListener('click', (event) => {
+  const link = event.target instanceof Element ? event.target.closest('[data-search-open]') : null
+  if (!link || event.defaultPrevented) return
+  if (event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey)) return
+  if (focusSearch()) event.preventDefault()
+})
 // The served key caps say "⌘K"; off a Mac they say "Ctrl K" from the start.
 correctShortcutHints(document, navigator.platform)
 revealWikiLinks(document)

@@ -290,6 +290,23 @@
   display: contents;
 }
 
+/* The home's search (`TopNavigation`): no bar is shown; the field is served
+   out of sight and takes its place in the bar only while it holds the focus
+   ("/", Cmd/Ctrl+K, the first slide's "Look something up", or Tab). Clipped,
+   never `display: none`, so it can take that focus. */
+.su-union-bar__search-onkey:not(:focus-within) {
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.su-union-bar__search-onkey:focus-within {
+  display: contents;
+}
+
 /* Below `lg` the search is the bar's second row, full width, rather than a
    trigger squeezed in beside the switcher, which ran into the Play tab on a
    phone. The 56px row keeps its height (the phone cluster sets it), the cluster's other members stay in the
@@ -341,6 +358,21 @@
 
   .su-union-bar:has(.su-union-bar__search .su-search-field) .su-mobile-search__trigger {
     display: none;
+  }
+
+  /* The home's field out of sight: the bar keeps to its one row. */
+  .su-union-bar__end:has(.su-union-bar__search-onkey:not(:focus-within)) {
+    flex-basis: auto;
+    padding-bottom: 0;
+  }
+
+  .su-union-bar__end > .su-union-bar__search:has(.su-union-bar__search-onkey:not(:focus-within)) {
+    flex: none;
+    min-height: 0;
+  }
+
+  .su-union-bar__search-onkey:focus-within {
+    display: block;
   }
 }
 

@@ -35,6 +35,11 @@ export const referenceCopy = messages({
   patternOf: '{pattern} Pattern {chassis}',
   relationKind: 'Kind',
   relationPage: 'Page',
+  showStart: 'Start building',
+  showLookUp: 'Look something up',
+  showWelcomeBack: 'Welcome back',
+  showTrainingBay: 'Training Bay',
+  showGames: 'Games',
   showReference: 'Know the rules',
   showReferenceBody:
     'Every Chassis, System, Module, Ability and rule in the book, searchable and cited to its page.',

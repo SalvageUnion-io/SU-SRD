@@ -211,6 +211,38 @@ body:has(.su-front--show) main {
   width: auto;
 }
 
+/* The pitch's plate: its words over its two actions. */
+.su-front__show-plate--pitch {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.su-front__show-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+}
+
+/* A returning reader's doors, at the head's right in the name's dress: out of
+   the page until somebody is signed in (`markSignedIn`). */
+.su-front__show-yours {
+  align-items: center;
+  background-color: var(--color-ink-deep);
+  color: var(--color-paper);
+  display: none;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+  padding: var(--space-12) var(--space-16);
+}
+
+html[data-srd-signed-in] .su-front__show-yours {
+  display: flex;
+}
+
+.su-front__show-yours-label {
+  font-size: var(--text-caption);
+}
+
 /* Always left of the button, a phone included. One measure on every slide,
    so each line sits on two even rows and the plate keeps its size. */
 .su-front__show-words {
@@ -342,6 +374,12 @@ body:has(.su-front--show) main {
 
   .su-front__show-pitch {
     font-size: var(--text-readout);
+  }
+
+  /* The tagline keeps its line: its action goes under it. */
+  .su-front__show-plate--quote {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .su-front__show-body {
