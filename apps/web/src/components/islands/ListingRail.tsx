@@ -196,7 +196,7 @@ export function ListingRail({
       {showFilters && hasFacets && (
         <div className="su-rail__facets" id="srd-rail-facets">
           {hasTechLevels && (
-            <Segmented label={islandsCopy('techLevel')}>
+            <Segmented label={islandsCopy('techLevel')} wrap>
               <span className="su-rail__stamp" aria-hidden="true">
                 {islandsCopy('tl')}
               </span>
