@@ -9,8 +9,8 @@ import { BreadcrumbTrail } from '../atoms/BreadcrumbTrail'
 import { capsLabel } from '../atoms/capsLabel'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
-import type { Area } from '../unionBar/areaNav'
-import { AREA_NAV } from '../unionBar/areaNav'
+import type { Area } from '../unionBar/areaNav.model'
+import { AREA_NAV } from '../unionBar/areaNav.model'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })

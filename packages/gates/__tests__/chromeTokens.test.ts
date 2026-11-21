@@ -10,10 +10,10 @@ import {
   CAPS_RULES,
   chromeTokens,
   LOADING_ATOMS,
-  SLIDESHOW,
   scanChromeSources,
 } from '../rules/chromeTokens'
 import { ENTITY_FRAME_STYLE_FILES } from '../rules/entityFrames'
+import { SLIDESHOW } from '../rules/slideshow'
 import { Exited, trapExit } from './trapExit'
 
 /**

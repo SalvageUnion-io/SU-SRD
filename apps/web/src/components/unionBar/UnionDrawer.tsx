@@ -9,8 +9,8 @@ import { unionBarCopy } from '../../messages/components-union-bar'
 import { FOCUS_RING } from '../atoms/interaction'
 import type { NavDrawerCategory, NavDrawerItem } from '../index'
 import { Button, NavDrawer } from '../index'
-import type { AreaNav } from './areaNav'
-import { AREA_NAV } from './areaNav'
+import type { AreaNav } from './areaNav.model'
+import { AREA_NAV } from './areaNav.model'
 
 /**
  * UnionDrawer — the Union bar's one phone drawer, the same in both render

@@ -64,7 +64,7 @@ export const STYLES_DIR = 'apps/web/src/styles'
  * Rules that may still set words on a TL ground, each with why: a drone
  * companion's cell wears the drone's tech level (drones are pending above).
  */
-export const TL_TEXT_EXEMPT: Readonly<Record<string, string>> = {
+const TL_TEXT_EXEMPT: Readonly<Record<string, string>> = {
   '.su-companion-cell': 'a drone companion wears its tech level, as drones do (PENDING_TL_GROUNDS)',
 }
 

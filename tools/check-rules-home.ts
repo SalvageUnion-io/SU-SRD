@@ -52,7 +52,7 @@ function walk(dir: string, skip: (path: string) => boolean): string[] {
 }
 
 /**
- * The design system's own folders and barrel: their `.ts` modules are the
+ * The design system's own folders and barrels: their `.ts` modules are the
  * presentational helpers the primitives share (a tone's paint, a chip set),
  * not product rules, so rule 2 reads the product surfaces around them.
  */
@@ -65,6 +65,7 @@ const DESIGN_SYSTEM = new Set([
   'markdownSection',
   'referenceEntity',
   'index.ts',
+  'app.ts',
 ])
 
 /** Non-test `.ts` files under a product surface's folder that are neither a hook nor a `*.model.ts`. */
