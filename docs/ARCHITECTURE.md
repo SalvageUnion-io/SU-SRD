@@ -177,8 +177,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: offline, the player's own sheets come back from the device; Convex stays of record.
     Amends ADR-030 §1 and ADR-034; replaced by ADR-063 decision 9 (the outbox).
 59. **ADR-059 The Mediator's prep kit** · [full text](adr/059-mediator-prep-kit.md)
-    Built: encounters on the Training Bay shelf (opposition, tables, private notes), run into a Game's Opposition as a copy. §5 (flagged): groups, waves, a briefing to tell the table; encounters in the device copy.
-    Amends ADR-052 §1.
+    Built: encounters, run into a Game's Opposition as a copy. §5 (flagged): groups, waves, a briefing.
+    Amends ADR-052 §1; amended by ADR-067.
 60. **ADR-060 Feature flags** · [full text](adr/060-feature-flags.md)
     Built: `src/lib/flags.ts`; unfinished surfaces merge dark: off on production's origin, on in Previews, dev and test-seam builds.
 61. **ADR-061 Homebrew on the SRD** · [full text](adr/061-homebrew.md)
@@ -193,3 +193,5 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 66. **ADR-066 Reference | Training Bay | Games** · [full text](adr/066-training-bay-and-games.md)
     Header links Reference | Builder | Games, logo `/`; Play is a pilot page's mode; no Games in Builder.
     Amends ADR-051 §1, ADR-052 §1, §4–§6, ADR-062 §1–§3.
+67. **ADR-067 Game Prep and plan** · [full text](adr/067-game-prep.md)
+    Amends ADR-059.

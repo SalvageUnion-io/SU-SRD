@@ -20,5 +20,6 @@ export const routesCopy = messages({
   play: 'Play',
   game: 'Game',
   mediate: 'Mediate',
+  prep: 'Prep',
   joinAGame: 'Join a Game',
 })

@@ -45,6 +45,12 @@ export type PeekSize = 'compact' | 'mini'
  */
 export const PeekSizeContext = createContext<PeekSize>('compact')
 
+/**
+ * Set where a trigger must not Peek: a picker's list, whose opened Page beside
+ * it is the read, so a card over the list would only hide the next entry.
+ */
+export const PeekOffContext = createContext(false)
+
 /** Set on a trigger whose Peek opens as a Mini (`PeekSizeContext`). */
 export const PEEK_SIZE_ATTRIBUTE = 'data-peek-size'
 
@@ -108,7 +114,8 @@ export function tablePeekAddress(source: unknown): string | undefined {
  * The attributes that make an element a Peek trigger, or none: a synthetic ref
  * (built from embedded data) has no dataset row to show unless its caller
  * names one (`address`, an `embeddedPeekAddress`), a pattern is drawn by its
- * own page, and inside a Peek nothing peeks again. A `down` trigger (damaged
+ * own page, and inside a Peek (or a picker's list, `PeekOffContext`) nothing
+ * peeks. A `down` trigger (damaged
  * or destroyed) says so, and its Peek is down the same way; one inside a
  * Compact or a Mini says its Peek is a Mini (E23).
  */
@@ -119,7 +126,8 @@ export function usePeekAttrs(
 ): PeekAttrs {
   const inside = useInsidePeek()
   const size = useContext(PeekSizeContext)
-  if (inside) return {}
+  const off = useContext(PeekOffContext)
+  if (inside || off) return {}
   const at = address ?? (ref && !ref.synthetic && !ref.pattern ? peekAddress(ref) : undefined)
   if (!at) return {}
   const condition = conditionOf(down)

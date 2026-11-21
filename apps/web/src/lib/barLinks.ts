@@ -14,13 +14,18 @@ export type UnionMode = 'build' | 'play'
 
 /**
  * Which tab a route (a path inside the app) is under: the Games for Your
- * Games, a Game's page and its Mediator's Cockpit, and an invite (which joins a
- * Game); the Training Bay for everything else, a pilot's Play mode among it
- * (ADR-066). A page may know better than its path: see `useBarMode`.
+ * Games, a Game's page, its Prep and its Mediator's Cockpit, an invite (which
+ * joins a Game), and the Mediator's Kit's own sheets (an NPC, an encounter:
+ * the Kit lists them under Play, ADR-067 §5); the Training Bay for everything
+ * else, a pilot's Play mode among it (ADR-066). A page may know better than
+ * its path: see `useBarMode`.
  */
 export function unionHere(path: string): UnionMode {
-  return path === '/games' || path.startsWith('/games/') ? 'play' : 'build'
+  return PLAY_ROOTS.some((root) => path === root || path.startsWith(`${root}/`)) ? 'play' : 'build'
 }
+
+/** The routes under the Games tab. */
+const PLAY_ROOTS = ['/games', '/npcs', '/encounters'] as const
 
 /**
  * A page that knows better than its path: a pilot in a Game is that Game's, so

@@ -64,6 +64,7 @@ import { paintFor } from '../entity'
 import { Entity } from '../entity/Entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { SelectedSeal } from '../entity/modes/select'
+import { PeekOffContext } from '../entity/peekContext'
 import type { EntityLinkAttrs } from '../entity/types'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { SearcherToolbar } from './EntitySearcherFilters'
@@ -158,6 +159,22 @@ type EntitySearcherProps = {
    * or in the bottom bar on a narrow screen. Replaces DONE.
    */
   railActions?: ReactNode
+  /** The caller's own entities, searched instead of the `schema` collection
+   * (a Mediator's designed NPCs, shaped as `npcs` entities). */
+  entities?: readonly PoolEntity[]
+  /** Above the toolbar: what the picker draws from (the Opposition's kinds). */
+  lead?: ReactNode
+  /** The query the search field opens with, and a report of each change, so a
+   * host that swaps collections keeps one search across them. */
+  initialQuery?: string
+  onQueryChange?: (query: string) => void
+  /** A choice that goes with adding the focused entity, beside its ADD. */
+  focusExtra?: (entity: EntityLike) => ReactNode
+  /** The chosen list already resolved, shown in the rail instead of
+   * `selected` (which still drives the list's seals and counts). */
+  railEntities?: readonly PoolEntity[]
+  /** The entities are the player's own (`entities`): the Page credits no book. */
+  userMade?: boolean
   /**
    * The host draws the frame (the SRD Explorer's dialog head): the searcher
    * hands it its toolbar, for the host's band, and its body, for under it,
@@ -195,6 +212,13 @@ export function EntitySearcher({
   hide,
   showChassisAbility,
   railActions,
+  entities,
+  lead,
+  initialQuery,
+  onQueryChange,
+  focusExtra,
+  railEntities,
+  userMade,
   frame,
 }: EntitySearcherProps) {
   // Actions/choices are never pickable inside a picker; anything else is the
@@ -217,6 +241,8 @@ export function EntitySearcher({
     idOf,
     filter,
     facets,
+    entities,
+    initialQuery,
     browse,
     chosenLabel,
     homeTechLevel: techLevel,
@@ -239,11 +265,12 @@ export function EntitySearcher({
   // `filter` (or a facet) has since excluded can still be focused.
   const byId = useMemo(() => {
     const map = new Map<string, PoolEntity>()
-    for (const e of SalvageUnionReference.findAllIn(schema, () => true) as PoolEntity[]) {
+    const all = entities ?? (SalvageUnionReference.findAllIn(schema, () => true) as PoolEntity[])
+    for (const e of all) {
       if (!map.has(idOf(e))) map.set(idOf(e), e)
     }
     return map
-  }, [schema, idOf])
+  }, [schema, idOf, entities])
   // Only what was opened: until then the list stands alone.
   const focusedId = browse ? null : focusId
   const focused = focusedId ? byId.get(focusedId) : undefined
@@ -316,7 +343,10 @@ export function EntitySearcher({
         <SearchField
           ref={searchRef}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            onQueryChange?.(e.target.value)
+          }}
           onKeyDown={(e) => {
             if (e.key !== 'Enter') return
             e.preventDefault()
@@ -395,7 +425,9 @@ export function EntitySearcher({
         {/* A picker's entry opens its Page beside the list, so it has no hover
             card over the rows under it. */}
         <InsidePeekContext.Provider value={!browse}>
-          <div className={cn('su-searcher__list', browse && 'su-grid')}>{tokens}</div>
+          <PeekOffContext.Provider value={!browse}>
+            <div className={cn('su-searcher__list', browse && 'su-grid')}>{tokens}</div>
+          </PeekOffContext.Provider>
         </InsidePeekContext.Provider>
         {visible.length === 0 && emptyMessage && (
           <EmptyState variant="inline" className="su-searcher__none" body={emptyMessage} />
@@ -417,6 +449,8 @@ export function EntitySearcher({
       hide={cardHide}
       showChassisAbility={showChassisAbility}
       onAdd={() => focusedId && add(focusedId)}
+      extra={focusExtra?.(focused)}
+      userMade={userMade}
       onBack={wide ? undefined : back}
       backRef={backRef}
     />
@@ -443,6 +477,7 @@ export function EntitySearcher({
         chosenLabel={chosenLabel}
         schema={schema}
         selected={selected}
+        resolved={railEntities}
         idOf={idOf}
         budget={budget}
         mode={focusMode}
@@ -475,7 +510,12 @@ export function EntitySearcher({
   // controls' one height there too), the rest filling its body.
   if (frame) {
     return frame({
-      toolbar: !takeover && <div className="su-searcher-panel su-searcher__on-band">{toolbar}</div>,
+      toolbar: !takeover && (
+        <div className="su-searcher-panel su-searcher__on-band">
+          {lead}
+          {toolbar}
+        </div>
+      ),
       body: (
         <section aria-label={title} className="su-searcher-panel" style={HOSTED_STYLE}>
           {searcher}
@@ -516,6 +556,7 @@ export function EntitySearcher({
           {subtitle}
         </p>
       )}
+      {!takeover && lead}
       {!takeover && toolbar}
       {searcher}
     </TitledBox>

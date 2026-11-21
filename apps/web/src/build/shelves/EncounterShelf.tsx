@@ -23,7 +23,14 @@ import { blankEncounter, encounterCopy, encounterHref } from '../prep/encounter.
 import { useSheetModeStore } from '../sheet/sheetMode.model'
 import { ShelfLedger } from './ShelfLedger'
 
-export function EncounterShelf({ confirm }: { confirm: Confirm }) {
+export function EncounterShelf({
+  confirm,
+  games,
+}: {
+  confirm: Confirm
+  /** The viewer's Games, to name the one an encounter is prepared for. */
+  games?: readonly { _id: string; name: string }[] | undefined
+}) {
   const { canWrite } = useSync()
   const go = useGo()
   const hydrated = useHydrateOnMount(() => useEncounters.getState().hydrate())
@@ -79,6 +86,7 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
       title={buildPrepCopy('encounters')}
       tone="adversary"
       columns={[
+        { key: 'game', label: 'Game', kind: 'text' },
         { key: 'opp', label: 'Opposition', kind: 'figure' },
         { key: 'tables', label: 'Tables', kind: 'figure' },
       ]}
@@ -94,7 +102,11 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
         id: e.id,
         name: e.name,
         href: encounterHref(e.id),
-        cells: [String(encounterReading(e).value), String(e.tables.length || '')],
+        cells: [
+          games?.find((g) => g._id === e.gameId)?.name ?? '',
+          String(encounterReading(e).value),
+          String(e.tables.length || ''),
+        ],
         menu: menu(e),
       }))}
     />

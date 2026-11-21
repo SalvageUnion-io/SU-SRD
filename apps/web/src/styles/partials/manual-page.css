@@ -242,3 +242,43 @@
     margin-top: 0;
   }
 }
+
+/* A picker's focus pane (`.su-searcher__page`) is a column, never a page: it
+   keeps the phone's one column at every width, so the stat tiles fit it. */
+@media (width >= 64rem) {
+  .su-searcher__page .su-manual {
+    display: flex;
+  }
+
+  .su-searcher__page .su-manual > .su-manual__main,
+  .su-searcher__page .su-manual > .su-manual__side {
+    display: contents;
+  }
+
+  .su-searcher__page .su-manual > *,
+  .su-searcher__page .su-manual__main > *,
+  .su-searcher__page .su-manual__side > * {
+    margin-top: 0;
+  }
+}
+
+/* And it reads the short labels, as a phone does: four tiles share its width. */
+.su-searcher__page .su-stat-label--long {
+  display: none;
+}
+
+.su-searcher__page .su-stat-label--short {
+  display: inline;
+}
+
+.su-searcher__page
+  .su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--label:has(.su-stat-label--short) {
+  --su-tile-label-size: var(--text-chip);
+}
+
+.su-searcher__page .su-manual__stats .su-stat-column__stat > .su-stat-plate--label {
+  padding: 0 var(--space-4);
+}

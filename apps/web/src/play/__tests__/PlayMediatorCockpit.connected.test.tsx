@@ -729,11 +729,11 @@ describe('the Opposition', () => {
     act(() => useEncounters.setState({ encounters: [] }))
   })
 
-  test('with nothing prepped, Run an encounter points to the Training Bay', async () => {
+  test('with nothing prepped, Run an encounter points to the Mediator’s Kit', async () => {
     await renderCockpit()
     await click(named('Run an encounter'))
     const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
-    expect(dialog.getByRole('link', { name: 'Training Bay' })).toBeTruthy()
+    expect(dialog.getByRole('link', { name: 'Mediator’s Kit' })).toBeTruthy()
     await click(dialog.getAllByRole('button', { name: 'Close' }).at(-1) as HTMLElement)
     expect(sent().some((s) => s.name === 'mediator.runEncounter')).toBe(false)
   })
@@ -751,6 +751,8 @@ describe('the Opposition', () => {
     expect(screen.getByText('Behind the crusher.')).toBeTruthy()
     expect(screen.getByRole('list', { name: "This encounter's tables" })).toBeTruthy()
     await click(named('End Ambush'))
+    // With opposition still out, End asks whether to clear it (ADR-007: never for you).
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'End' }))
     expect(sent()).toContainEqual({ name: 'mediator.endEncounter', args: {} })
   })
 

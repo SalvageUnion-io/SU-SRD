@@ -9,6 +9,7 @@
 import { instanceName } from 'game-domain/games/encounters'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import { ENCOUNTER_REF_SCHEMAS } from 'game-domain/schemas/encounterNpc'
+import type { Npc } from 'game-domain/schemas/npc'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
   findEntityBySlug,
@@ -17,6 +18,7 @@ import {
   nameToSlug,
   resolveFormerSlug,
 } from 'salvageunion-reference'
+import { npcAsReferenceEntity } from '../../lib/npcs/npcModel'
 import { asReferencePattern } from '../../lib/patterns/patterns'
 import type { ImportantRoll, ImportantTrack, MoraleRoll } from '../../lib/rules/opposition'
 import { importantTrackOf, isDown, isImportantRoll, trackOf } from '../../lib/rules/opposition'
@@ -69,6 +71,8 @@ export type TrayNpc = {
   /** The schema it came from, for the picker's counts. */
   refSchema: EncounterRefSchema | null
   refSlug: string | null
+  /** The Mediator's own designed NPC it was drawn from (ADR-067 §1), by id. */
+  builtFrom: string | null
 }
 
 const isRefSchema = (value: unknown): value is EncounterRefSchema =>
@@ -84,7 +88,23 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
   const refSlug = typeof body.refSlug === 'string' ? body.refSlug : null
   const live = refSchema && refSlug ? findEntityBySlug(refSchema, refSlug) : null
   const former = !live && refSchema && refSlug ? resolveFormerSlug(refSchema, refSlug) : null
-  const entity = live ?? former?.host ?? null
+  const maxHp = num(body.maxHp, 0)
+  const statKind = body.statKind === 'sp' ? 'sp' : 'hp'
+  const name = typeof body.name === 'string' ? body.name : 'Unnamed'
+  const built = readBuilt(body.built)
+  // One of the Mediator's own: its snapshot reads as an `npcs` entity, so its
+  // card and its actions draw as a book NPC's do.
+  const own = built
+    ? (npcAsReferenceEntity({
+        id: built.npcId,
+        name: built.name,
+        hitPoints: maxHp,
+        damageType: statKind === 'sp' ? 'SP' : 'HP',
+        actions: built.actions,
+        traits: built.traits,
+      }) as RefEntity)
+    : null
+  const entity = own ?? live ?? former?.host ?? null
   const saved = readUserPattern(body.userPattern)
   const picked = !live
     ? null
@@ -93,17 +113,15 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
       : typeof body.refPattern === 'string'
         ? patternBySlug(live, body.refPattern)
         : null
-  const maxHp = num(body.maxHp, 0)
   const currentHp = num(body.currentHp, maxHp)
   const roll = body.lastMediatorRoll as MoraleRoll | undefined
-  const statKind = body.statKind === 'sp' ? 'sp' : 'hp'
   const track = importantTrackOf(refSchema, entity, statKind, picked)
   const important = body.important === true && track !== null
   const maxEp = num(body.maxEp, track?.reactor?.maxEp ?? 0)
   const heatCap = num(body.heatCap, track?.reactor?.heatCap ?? 0)
   return {
     id: row._id,
-    name: typeof body.name === 'string' ? body.name : 'Unnamed',
+    name,
     entity,
     pattern: picked ?? former?.pattern ?? null,
     currentHp,
@@ -123,6 +141,19 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     group: readGroup(body.group),
     refSchema,
     refSlug,
+    builtFrom: built?.npcId ?? null,
+  }
+}
+
+function readBuilt(value: unknown): NonNullable<EncounterNpc['built']> | null {
+  if (typeof value !== 'object' || value === null) return null
+  const { npcId, name, actions, traits } = value as Record<string, unknown>
+  if (typeof npcId !== 'string' || !Array.isArray(actions) || !Array.isArray(traits)) return null
+  return {
+    npcId,
+    name: typeof name === 'string' && name !== '' ? name : 'NPC',
+    actions: actions.filter((a): a is string => typeof a === 'string'),
+    traits: traits as NonNullable<EncounterNpc['built']>['traits'],
   }
 }
 
@@ -279,6 +310,33 @@ export function newTrayNpc(
     currentHp: maxHp,
     maxHp,
     statKind,
+    conditions: [],
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+
+/**
+ * A new tray instance of one of the Mediator's own designed NPCs (ADR-067
+ * §1), at full HP or SP: a snapshot of its stat block, so editing the design
+ * later never changes a fight under way.
+ */
+export function newBuiltTrayNpc(
+  npc: Pick<Npc, 'id' | 'name' | 'hitPoints' | 'damageType' | 'actions' | 'traits'>,
+  taken: readonly string[],
+  now: string,
+  custom = ''
+): Omit<EncounterNpc, 'id' | 'gameId'> {
+  const given = custom.trim()
+  return {
+    schemaVersion: 1,
+    refSchema: 'npcs',
+    refSlug: '',
+    built: { npcId: npc.id, name: npc.name, actions: [...npc.actions], traits: [...npc.traits] },
+    name: instanceName(given === '' ? npc.name : given, taken),
+    currentHp: npc.hitPoints,
+    maxHp: npc.hitPoints,
+    statKind: npc.damageType === 'SP' ? 'sp' : 'hp',
     conditions: [],
     createdAt: now,
     updatedAt: now,

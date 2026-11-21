@@ -213,7 +213,65 @@ describe('the sections under the roster', () => {
     // outright, so offering either would be a control that only ever errors.
     expect(heading('Invite link')).toBeNull()
     expect(screen.queryByRole('button', { name: /Hand over|Appoint/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'More for The Game' })).toBeNull()
+    // What a member may do is leave: the menu holds that and nothing of the Organiser's.
+    await openGameMenu()
+    expect(screen.getByRole('menuitem', { name: 'Leave this Game…' })).toBeTruthy()
+    expect(screen.queryByRole('menuitem', { name: 'Delete this Game…' })).toBeNull()
+    expect(screen.queryByRole('menuitem', { name: 'Game settings…' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Remove / })).toBeNull()
+  })
+
+  test('a member leaves behind a confirm; their units go home, the page goes to Games (MD-11)', async () => {
+    await renderHub()
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Leave this Game…' }))
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('go back to your Training Bay; nothing is deleted')
+    expect(mutations).toHaveLength(0)
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Leave' }))
+    })
+    expect(mutations).toEqual([{ name: 'games.removeMember', args: { gameId: 'g1' } }])
+    expect(navigations).toEqual([{ to: '/games' }])
+  })
+
+  test('the Organiser removes a member, and renames and describes the Game (MD-11, MD-12)', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true },
+      'games.members': [
+        { userId: 'u1', displayName: 'Ash', mediator: false, organizer: true, joinedAt: 1 },
+        { userId: 'u2', displayName: 'Beefcake', mediator: false, organizer: false, joinedAt: 2 },
+      ],
+    })
+    // Nobody removes the Organiser, themselves included.
+    expect(screen.queryByRole('button', { name: 'Remove Ash from this Game' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Beefcake from this Game' }))
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' })
+      )
+    })
+    expect(mutations).toEqual([
+      { name: 'games.removeMember', args: { gameId: 'g1', userId: 'u2' } },
+    ])
+    expect(navigations).toEqual([])
+
+    mutations.length = 0
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Game settings…' }))
+    const settings = within(screen.getByRole('alertdialog'))
+    expect((settings.getByLabelText('Name') as HTMLInputElement).value).toBe(GAME.name)
+    fireEvent.change(settings.getByLabelText('Name'), { target: { value: 'Rust Coast' } })
+    fireEvent.change(settings.getByLabelText('Description'), { target: { value: 'A long haul.' } })
+    await act(async () => {
+      fireEvent.click(settings.getByRole('button', { name: 'Save' }))
+    })
+    expect(mutations).toEqual([
+      {
+        name: 'games.update',
+        args: { gameId: 'g1', name: 'Rust Coast', description: 'A long haul.' },
+      },
+    ])
   })
 
   test('the Organizer gets the invite link, who mediates, and ending the game', async () => {
@@ -374,12 +432,14 @@ describe('the Mediator on the Game page', () => {
     expect(heading('Your prep')).toBeNull()
   })
 
-  test('the Mediator gets a door to their prep, counted: it opens the Mediator’s Kit, where the lists are', async () => {
-    await renderHub({ 'games.get': { ...GAME, mediator: true } })
-    expect(heading('Your prep')).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Open the Mediator’s Kit' }).getAttribute('href')).toBe(
-      '/games#mediators-kit'
+  test('the table runner gets a door to this Game’s Prep, under its title (MD-02, MD-24)', async () => {
+    await renderHub({ 'games.get': { ...GAME, mediator: true, tableRunner: true } })
+    expect(heading('Prep')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Open this Game’s Prep' }).getAttribute('href')).toBe(
+      '/games/g1/prep'
     )
+    // The band carries the same door, beside Mediate.
+    expect(screen.getByRole('link', { name: 'Prep' }).getAttribute('href')).toBe('/games/g1/prep')
   })
 
   test('the Mediator gets the band’s door to Play and the proposals they sent', async () => {

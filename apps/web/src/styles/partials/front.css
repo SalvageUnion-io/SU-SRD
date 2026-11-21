@@ -260,7 +260,7 @@ html[data-srd-signed-in] .su-front__show-yours {
   text-wrap: balance;
 }
 
-/* One slide's turn in a show of seven (`heroSlides`): each holds a seventh
+/* One slide's turn in a show of eight (`heroSlides`): each holds an eighth
    of the loop, sliding in from the right over its first fifth of a step and
    out to the left as the next slides in behind it. Out of its turn, before it
    and after, a slide is hidden (K3): never seen, pressed or focused over the
@@ -270,12 +270,12 @@ html[data-srd-signed-in] .su-front__show-yours {
     transform: translateX(100%);
     visibility: hidden;
   }
-  2.857%,
-  14.286% {
+  2.5%,
+  12.5% {
     transform: translateX(0);
     visibility: visible;
   }
-  17.143%,
+  15%,
   100% {
     transform: translateX(-100%);
     visibility: hidden;

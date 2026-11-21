@@ -3,7 +3,13 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationChassis } from 'salvageunion-reference/rules'
 import { must } from '../../components/__tests__/must'
 import { appPath } from '../appBase'
-import { buildLinkFor, guideExitsFor, patternBuildLinkFor, STARTER_SET_HREF } from '../buildLink'
+import {
+  buildLinkFor,
+  guideExitsFor,
+  mediatorLinksFor,
+  patternBuildLinkFor,
+  STARTER_SET_HREF,
+} from '../buildLink'
 
 describe('buildLinkFor', () => {
   test('a Tech 1 chassis opens the mech wizard on it, by slug, under the app base', () => {
@@ -119,5 +125,21 @@ describe('guideExitsFor', () => {
 
   test("the Starter Set is the app's /starter", () => {
     expect(STARTER_SET_HREF).toBe(`${appPath('/starter')}`)
+  })
+})
+
+describe('mediatorLinksFor', () => {
+  test('a denizen page leads into an encounter and the NPC designer, by kind and slug', () => {
+    const titan = must(SalvageUnionReference.BioTitans.all()[0])
+    const from = `from=bio-titans%3A${getEntitySlug(titan)}`
+    expect(mediatorLinksFor('bio-titans', titan)).toEqual({
+      add: { href: `${appPath('/encounters/add')}?${from}`, label: 'Add to an encounter' },
+      design: { href: `${appPath('/npcs/new')}?${from}`, label: 'Design from this' },
+    })
+  })
+
+  test('a page that is no denizen has none', () => {
+    const mule = must(SalvageUnionReference.Chassis.getByName('Mule'))
+    expect(mediatorLinksFor('chassis', mule)).toBeNull()
   })
 })

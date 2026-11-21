@@ -182,6 +182,11 @@ describe('the bar’s rules', () => {
     expect(unionHere('/games/g1/mediate')).toBe('play')
     expect(unionHere('/games/invite/abc')).toBe('play')
     expect(unionHere('/gamesroom')).toBe('build')
+    // The Mediator's Kit's sheets are Play's, where the Kit lists them (MD-02).
+    expect(unionHere('/npcs/n1')).toBe('play')
+    expect(unionHere('/npcs/new')).toBe('play')
+    expect(unionHere('/encounters/e1')).toBe('play')
+    expect(unionHere('/games/g1/prep')).toBe('play')
   })
 
   test('a Game’s page keeps the bar: it is a Manage page, not a Cockpit', () => {

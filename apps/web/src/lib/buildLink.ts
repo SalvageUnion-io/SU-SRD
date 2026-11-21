@@ -24,6 +24,7 @@ import {
   isLegalCreationClass,
   isLegalStartingPattern,
 } from 'salvageunion-reference/rules'
+import { referenceCopy } from '../messages/reference'
 import { appPath } from './appBase'
 import { itemHref } from './entityHref'
 
@@ -89,6 +90,29 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
     }
     default:
       return null
+  }
+}
+
+/** The Reference kinds an encounter fields and the NPC designer starts from. */
+const DENIZEN_KINDS = ['npcs', 'squads', 'creatures', 'vehicles', 'drones', 'meld', 'bio-titans']
+
+/**
+ * A denizen page's way into the Mediator's tools, shown to a signed-in reader
+ * (`.su-mediator-acts`): field it in one of their encounters
+ * (`/encounters/add`), or design an NPC of their own from it (`/npcs/new`).
+ */
+export type MediatorLinks = { add: BuildLink; design: BuildLink }
+
+/** The page's Mediator links, or `null` where it is no denizen. */
+export function mediatorLinksFor(schemaId: string, item: RefEntity): MediatorLinks | null {
+  if (!DENIZEN_KINDS.includes(schemaId)) return null
+  const from = new URLSearchParams({ from: `${schemaId}:${getEntitySlug(item)}` })
+  return {
+    add: {
+      href: `${appPath('/encounters/add')}?${from}`,
+      label: referenceCopy('addToAnEncounter'),
+    },
+    design: { href: `${appPath('/npcs/new')}?${from}`, label: referenceCopy('designFromThis') },
   }
 }
 

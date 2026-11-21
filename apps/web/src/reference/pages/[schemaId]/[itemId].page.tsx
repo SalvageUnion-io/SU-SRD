@@ -23,7 +23,7 @@ import {
   resolveEntityPageMeta,
 } from '../../../components/index'
 import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
-import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
+import { buildLinkFor, guideExitsFor, mediatorLinksFor } from '../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
 import { componentEmbedFor } from '../../../lib/componentEmbed'
 import { entityTitle, META_DESCRIPTION_MAX, SITE_URL } from '../../../lib/constants'
@@ -166,6 +166,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         build={buildLinkFor(schemaId, item)}
         buy={'purchaseLink' in item ? item.purchaseLink : undefined}
         exits={guideExitsFor(schemaId, item)}
+        mediator={mediatorLinksFor(schemaId, item)}
         rail={sparse ? <SparseRail rail={sparse} tone={chapter.tone} /> : undefined}
         foot={
           // An ability's neighbours in its tree, under the body.

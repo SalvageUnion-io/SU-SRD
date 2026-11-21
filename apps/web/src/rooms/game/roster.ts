@@ -1,3 +1,4 @@
+import { GAME_MAX_DESCRIPTION } from 'game-domain/schemas/gamePlan'
 import type { UnitParcel } from '../handoff'
 import { parcelUnit } from '../leases'
 import { RoomRefusal } from '../refusal'
@@ -16,6 +17,7 @@ import { unitName } from './units'
 export type GameRead = {
   gameId: string
   name: string
+  description: string | null
   templateOrigin: string | null
   mediator: boolean
   organizer: boolean
@@ -63,6 +65,16 @@ function normalizeCode(raw: string): string {
   return raw.trim().toUpperCase()
 }
 
+/** A Game's name as it is kept: trimmed, never blank, never too long. */
+function gameName(raw: string): string {
+  const name = raw.trim()
+  if (name.length === 0) throw new RoomRefusal('A Game needs a name')
+  if (name.length > GAME_NAME_MAX) {
+    throw new RoomRefusal(`A Game’s name is at most ${GAME_NAME_MAX} characters`)
+  }
+  return name
+}
+
 export class GameRoster {
   constructor(
     private readonly store: GameStore,
@@ -78,11 +90,7 @@ export class GameRoster {
     actor: string,
     args: { gameId: string; name: string; templateOrigin?: string; profile: Profile; at: number }
   ): void {
-    const name = args.name.trim()
-    if (name.length === 0) throw new RoomRefusal('A Game needs a name')
-    if (name.length > GAME_NAME_MAX) {
-      throw new RoomRefusal(`A Game’s name is at most ${GAME_NAME_MAX} characters`)
-    }
+    const name = gameName(args.name)
     this.store.sql.transaction(() => {
       if (this.store.game() !== null) return
       this.store.rows(
@@ -111,6 +119,7 @@ export class GameRoster {
     return {
       gameId: game.gameId,
       name: game.name,
+      description: game.description,
       templateOrigin: game.templateOrigin,
       mediator: member.mediator,
       organizer: member.organizer,
@@ -124,6 +133,53 @@ export class GameRoster {
   }
 
   /** The roster, for any member. */
+  /**
+   * The Game's settings (ADR-067 §3), the Organiser's to change: its name,
+   * and the description its invite shows (blank clears it).
+   */
+  updateSettings(actor: string, patch: { name?: string; description?: string }): void {
+    this.store.sql.transaction(() => {
+      this.store.requireOrganizer(actor)
+      if (patch.name !== undefined) {
+        this.store.rows('update game set name = ? where id = 1', gameName(patch.name))
+      }
+      if (patch.description !== undefined) {
+        const description = patch.description.trim()
+        if (description.length > GAME_MAX_DESCRIPTION) {
+          throw new RoomRefusal(
+            `A Game’s description is at most ${GAME_MAX_DESCRIPTION} characters`
+          )
+        }
+        this.store.rows(
+          'update game set description = ? where id = 1',
+          description === '' ? null : description
+        )
+      }
+    })
+  }
+
+  /**
+   * Who may take `userId` out of the Game, and what leaves with them: a
+   * member leaves on their own word, the Organiser removes anyone else, and
+   * the Organiser stays (the Game is theirs to delete). Answers the ids of the
+   * member's own pilots and mechs, which go back to their Training Bay before
+   * they are forgotten (`forgetMember`); never deleted (ADR-007).
+   */
+  leaving(actor: string, userId: string): string[] {
+    this.store.requireGame()
+    if (this.store.member(actor) === null) throw new RoomRefusal('Not a member of this Game')
+    const target = this.store.member(userId)
+    if (target === null) throw new RoomRefusal('That user is not a member of this Game')
+    if (actor !== userId) this.store.requireOrganizer(actor)
+    if (target.organizer) {
+      throw new RoomRefusal('The Organiser cannot leave their own Game: delete it instead')
+    }
+    return this.store
+      .units()
+      .filter((unit) => unit.ownerId === userId && unit.kind !== 'crawler')
+      .map((unit) => unit.id)
+  }
+
   members(actor: string): Member[] {
     if (this.store.member(actor) === null) return []
     return this.store.members()

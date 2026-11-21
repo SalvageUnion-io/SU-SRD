@@ -38,6 +38,7 @@ import {
 } from '../rooms/game/socketActs'
 import type { UnitRow } from '../rooms/game/store'
 import { GameStore } from '../rooms/game/store'
+import { handOff } from '../rooms/handoff'
 import type { PresenceMessage, SocketSeat } from '../rooms/presence'
 import { HERE_ACT, presentMembers, seatOf } from '../rooms/presence'
 import type { ClientMessage, ServerMessage } from '../rooms/protocol'
@@ -392,6 +393,33 @@ export class GameRoom extends Room {
       await accountHome(userId).leftGame(this.gameId)
     }
     await this.wipe()
+    this.dropStrangers()
+    return { ok: true, value: null }
+  }
+
+  /**
+   * A member leaves, or the Organiser removes them (ADR-067 §3): each pilot
+   * and mech of theirs is handed back to their Training Bay first, by the
+   * same handoff a player's own move makes, so nothing is ever deleted; then
+   * the roster forgets them and their room drops the Game from its list. A
+   * retry after a failed handoff moves only what had not landed.
+   */
+  async dismiss(actor: string, userId: string): Promise<GameActAnswer<null>> {
+    const at = Date.now()
+    const leaving = answerOrRefuse(() => this.logic.roster.leaving(actor, userId))
+    if (!leaving.ok) return leaving
+    const to = { kind: 'account', userId } as const
+    for (const unitId of leaving.value) {
+      await handOff(this.logic.transit, accountHome(userId), {
+        leaseId: crypto.randomUUID(),
+        unitId,
+        actor: userId,
+        to,
+        at,
+      })
+    }
+    this.logic.roster.forgetMember(userId)
+    await accountHome(userId).leftGame(this.gameId)
     this.dropStrangers()
     return { ok: true, value: null }
   }

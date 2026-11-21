@@ -15,6 +15,7 @@ import { useId, useState } from 'react'
 import { ConfirmDialog, Radio } from '../../components/app'
 import { capsLabel, InlineRef, Stack, toast, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
+import { KIT_PATH } from '../games/prep/gamePrep.model'
 import { encounterLine, trayChoiceLabel } from './runEncounter.model'
 
 const FIELDSET = {
@@ -63,7 +64,7 @@ export function RunEncounterDialog({
         encounters.length === 0 ? (
           <>
             {mediatorCopy('noEncountersYet')}{' '}
-            <InlineRef href="/">{mediatorCopy('trainingBay')}</InlineRef>
+            <InlineRef href={KIT_PATH}>{mediatorCopy('trainingBay')}</InlineRef>
             {mediatorCopy('noEncountersTail')}
           </>
         ) : (

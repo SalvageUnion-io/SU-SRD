@@ -6,6 +6,7 @@
  */
 
 import type { TrayNpcBody } from 'game-domain/games/encounters'
+import { instanceName } from 'game-domain/games/encounters'
 import type { Encounter, EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
 import {
   ENCOUNTER_MAX_GROUP_NAME,
@@ -18,8 +19,9 @@ import {
 import type { HeaderMenuItem } from '../../components/index'
 import { copyName } from '../../lib/copyEntity'
 import { buildPrepCopy } from '../../messages/build-prep'
+import { npcKind } from '../../play/mediator/npcActions.model'
 import type { TrayNpc } from '../../play/mediator/opposition.model'
-import { readTrayNpc } from '../../play/mediator/opposition.model'
+import { newTrayNpc, readTrayNpc } from '../../play/mediator/opposition.model'
 import type { EncounterCreateInput } from '../../replica/collections'
 
 /** An encounter's page, in the Training Bay. */
@@ -49,10 +51,55 @@ export function opponentFrom(npc: TrayNpcBody, id: string): EncounterOpponent {
     refSlug: npc.refSlug,
     ...(npc.refPattern === undefined ? {} : { refPattern: npc.refPattern }),
     ...(npc.userPattern === undefined ? {} : { userPattern: npc.userPattern }),
+    ...(npc.built === undefined ? {} : { built: npc.built }),
     name: npc.name,
     maxHp: npc.maxHp,
     statKind: npc.statKind,
   }
+}
+
+/**
+ * The opposition with a copy of one opponent right after it, named apart
+ * ("Raider", then "Raider 2"), in the same group; unchanged with no room.
+ */
+export function duplicateOpponent(
+  encounter: Pick<Encounter, 'opposition'>,
+  opponentId: string,
+  id: string
+): EncounterOpponent[] {
+  const at = encounter.opposition.findIndex((o) => o.id === opponentId)
+  const source = encounter.opposition[at]
+  if (source === undefined || !hasRoomFor(encounter)) return [...encounter.opposition]
+  const copy = {
+    ...source,
+    id,
+    name: instanceName(
+      source.name,
+      encounter.opposition.map((o) => o.name)
+    ),
+  }
+  return [...encounter.opposition.slice(0, at + 1), copy, ...encounter.opposition.slice(at + 1)]
+}
+
+/**
+ * The opposition with one more drawn from a Reference denizen (its page's "Add
+ * to an encounter"), named apart from the rest; `null` with no room.
+ */
+export function oppositionWith(
+  encounter: Pick<Encounter, 'opposition'>,
+  schema: Parameters<typeof newTrayNpc>[0],
+  entity: Parameters<typeof newTrayNpc>[1],
+  id: string,
+  now: string
+): EncounterOpponent[] | null {
+  if (!hasRoomFor(encounter)) return null
+  const body = newTrayNpc(
+    schema,
+    entity,
+    encounter.opposition.map((o) => o.name),
+    now
+  )
+  return [...encounter.opposition, opponentFrom(body, id)]
 }
 
 /** Whether another opponent fits. */
@@ -63,6 +110,22 @@ export function hasRoomFor(encounter: Pick<Encounter, 'opposition'>): boolean {
 /** An opponent read the way the Opposition reads a tray row, at full HP or SP. */
 export function opponentAsTray(opponent: EncounterOpponent): TrayNpc {
   return readTrayNpc({ _id: opponent.id, body: { ...opponent, currentHp: opponent.maxHp } })
+}
+
+/**
+ * What a row is, beside its name: its kind, then what it was drawn from where
+ * the name no longer says ("Bio-Titan · Scylla" for a renamed Scylla, "Mech ·
+ * Hussar" for a Hussar named after its pattern). A plain NPC under its own
+ * name has nothing to add.
+ */
+export function opponentNote(opponent: EncounterOpponent): string | undefined {
+  const { entity, pattern } = opponentAsTray(opponent)
+  const named = opponent.name.trim().toLowerCase()
+  const source = [entity?.name, pattern?.name].filter(
+    (part): part is string => typeof part === 'string' && part.toLowerCase() !== named
+  )
+  if (opponent.refSchema === 'npcs' && source.length === 0) return undefined
+  return [npcKind(opponent), ...source].join(' · ')
 }
 
 /** The tables with `name` pinned last, once; unchanged when it is pinned or there is no room. */

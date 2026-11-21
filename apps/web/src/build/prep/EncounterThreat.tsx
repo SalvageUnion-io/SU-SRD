@@ -123,7 +123,7 @@ export function ThreatReadLine({
   )
 }
 
-/** The spoils (Core Book p.246, 269): what each opponent could leave behind. */
+/** The spoils (Core Book p.246, 269, 275): what each opponent could leave behind. */
 export function EncounterSpoils({
   encounter,
   editing,
@@ -169,6 +169,14 @@ function SpoilLines({ spoil }: { spoil: Spoil }) {
             ? buildPrepCopy('scrap', { value: spoil.salvageValue })
             : buildPrepCopy('scrapTech', { value: spoil.salvageValue, tech: spoil.techLevel })}
         </Text>
+      </Stack>
+    )
+  }
+  if (spoil.kind === 'bio') {
+    return (
+      <Stack gap={4}>
+        <Text as="h3">{spoil.opponent.name}</Text>
+        <Text variant="body">{buildPrepCopy('bioSalvage', { value: spoil.bioSalvage })}</Text>
       </Stack>
     )
   }

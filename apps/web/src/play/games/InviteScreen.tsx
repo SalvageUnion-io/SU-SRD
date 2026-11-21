@@ -46,6 +46,9 @@ const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } sati
 /** The invite's words, a step up from the body's. */
 const WORDS = { fontSize: 'var(--text-readout)' } satisfies CSSProperties
 
+/** The Game's own description, a paragraph under the invitation. */
+const DESCRIPTION = { display: 'block', marginTop: tokens.space[8] } satisfies CSSProperties
+
 /**
  * The page column: an invitation is a short read, so it does not span the
  * hub's width. It stands in the middle of the room under the band, a size up,
@@ -121,6 +124,8 @@ function InviteWords({ preview }: { preview: InvitePreviewAnswer }) {
     <Text style={WORDS}>
       You're invited to <strong>{preview.gameName}</strong>
       {preview.mediatedBy ? `, mediated by ${preview.mediatedBy}` : ''}.
+      {/* What the Game says of itself (ADR-067 §3), in its Organiser's words. */}
+      {preview.description ? <span style={DESCRIPTION}>{preview.description}</span> : null}
     </Text>
   )
 }

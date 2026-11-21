@@ -396,8 +396,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           />
         </div>
         <div className="su-shelf-ledgers__col">
-          <EncounterShelf confirm={confirm} />
+          <EncounterShelf confirm={confirm} games={games} />
         </div>
+        <MoveToGameDialog
+          subject={moving}
+          onClose={() => setMoving(null)}
+          games={games}
+          confirm={confirm}
+        />
         {dialog}
       </>
     )

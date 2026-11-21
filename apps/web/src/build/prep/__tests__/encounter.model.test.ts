@@ -8,11 +8,14 @@ import {
 import { encounterLine, trayChoiceLabel } from '../../../play/mediator/runEncounter.model'
 import {
   blankEncounter,
+  duplicateOpponent,
   encounterCopy,
   encounterHref,
   hasRoomFor,
   opponentAsTray,
   opponentFrom,
+  opponentNote,
+  oppositionWith,
   pinTable,
   unpinTable,
 } from '../encounter.model'
@@ -113,5 +116,79 @@ describe('running one from Play', () => {
   test('the clear-first choice names what it removes', () => {
     expect(trayChoiceLabel(1)).toBe('Clear it first (removes 1 NPC on the tray)')
     expect(trayChoiceLabel(3)).toBe('Clear it first (removes 3 NPCs on the tray)')
+  })
+})
+
+describe('what a row is, beside its name (MD-18)', () => {
+  const row = (extra: Partial<EncounterOpponent>): EncounterOpponent => ({ ...band, ...extra })
+
+  test('a plain NPC under its own name has nothing to add', () => {
+    expect(
+      opponentNote(row({ refSchema: 'npcs', refSlug: 'raider', name: 'Raider' }))
+    ).toBeUndefined()
+  })
+
+  test('a renamed unit keeps its kind and what it was drawn from', () => {
+    expect(
+      opponentNote(
+        row({
+          refSchema: 'bio-titans',
+          refSlug: 'scylla',
+          name: 'The Relay Lurker',
+          statKind: 'sp',
+        })
+      )
+    ).toBe('Bio-Titan · Scylla')
+    expect(opponentNote(row({ refSchema: 'npcs', refSlug: 'raider', name: 'Vex' }))).toBe(
+      'NPC · Raider'
+    )
+  })
+
+  test('a mech named after its pattern says its chassis', () => {
+    expect(
+      opponentNote(
+        row({ refSchema: 'chassis', refSlug: 'mule', refPattern: 'hauler', name: 'Hauler' })
+      )
+    ).toBe('Mech · Mule')
+  })
+
+  test('a unit under its own name still says its kind', () => {
+    expect(opponentNote(band)).toBe('Squad')
+  })
+})
+
+describe('Make a copy of a row (MD-27)', () => {
+  test('the copy follows its source, named apart, in the same group', () => {
+    const grouped = { ...band, groupId: 'g' }
+    const next = duplicateOpponent({ opposition: [grouped, { ...band, id: 'o2' }] }, 'o1', 'new')
+    expect(next.map((o) => [o.id, o.name, o.groupId])).toEqual([
+      ['o1', 'Raider Band', 'g'],
+      ['new', 'Raider Band 2', 'g'],
+      ['o2', 'Raider Band', undefined],
+    ])
+  })
+
+  test('a full encounter, or a row that is gone, changes nothing', () => {
+    const full = Array.from({ length: ENCOUNTER_MAX_OPPOSITION }, (_, i) => ({
+      ...band,
+      id: `o${i}`,
+    }))
+    expect(duplicateOpponent({ opposition: full }, 'o1', 'new')).toHaveLength(
+      ENCOUNTER_MAX_OPPOSITION
+    )
+    expect(duplicateOpponent({ opposition: [band] }, 'nope', 'new')).toEqual([band])
+  })
+})
+
+describe('a Reference denizen added from its page', () => {
+  test('joins the opposition at full strength, named apart; a full encounter takes none', async () => {
+    const { SalvageUnionReference } = await import('salvageunion-reference')
+    const squad = SalvageUnionReference.Squads.all()[0]
+    if (!squad) throw new Error('no squad')
+    const next = oppositionWith(ambush, 'squads', squad, 'o2', NOW)
+    expect(next).toHaveLength(2)
+    expect(next?.[1]).toMatchObject({ id: 'o2', refSchema: 'squads', name: squad.name })
+    const full = { opposition: Array.from({ length: ENCOUNTER_MAX_OPPOSITION }, () => band) }
+    expect(oppositionWith(full, 'squads', squad, 'o3', NOW)).toBeNull()
   })
 })

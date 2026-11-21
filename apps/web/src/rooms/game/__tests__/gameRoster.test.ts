@@ -55,6 +55,50 @@ describe('making a Game', () => {
   })
 })
 
+describe("a Game's settings and plan (ADR-067)", () => {
+  test('the Organiser renames it and says what it is; nobody else does', () => {
+    const { room } = table()
+    expect(() => room.roster.updateSettings(PLAYER, { name: 'Mine' })).toThrow('Only the Organiser')
+    room.roster.updateSettings(ORGANIZER, { name: '  Rust Coast ', description: ' A long haul. ' })
+    expect(room.roster.read(PLAYER)).toMatchObject({
+      name: 'Rust Coast',
+      description: 'A long haul.',
+    })
+    expect(() => room.roster.updateSettings(ORGANIZER, { name: ' ' })).toThrow(
+      'A Game needs a name'
+    )
+    expect(() => room.roster.updateSettings(ORGANIZER, { description: 'x'.repeat(281) })).toThrow(
+      'at most 280'
+    )
+    // Blank clears it; the name is left alone.
+    room.roster.updateSettings(ORGANIZER, { description: '  ' })
+    expect(room.roster.read(PLAYER)).toMatchObject({ name: 'Rust Coast', description: null })
+  })
+
+  test("the plan is the table runner's alone, and reads empty until written", () => {
+    const { room } = table()
+    expect(room.plan.read(MEDIATOR)).toEqual({ schemaVersion: 1, notes: '', sessions: [] })
+    expect(() => room.plan.read(PLAYER)).toThrow()
+    const plan = {
+      schemaVersion: 1 as const,
+      notes: 'The Glass Wastes.',
+      sessions: [{ id: 's1', date: '2026-12-01', title: 'The crossing', note: 'Ambush at dusk.' }],
+    }
+    expect(() => room.plan.write(PLAYER, plan, AT)).toThrow()
+    room.plan.write(MEDIATOR, plan, AT)
+    expect(room.plan.read(MEDIATOR)).toEqual(plan)
+    // A scene may name an encounter: the shape is there for the next layer.
+    const withScene = {
+      ...plan,
+      sessions: [{ ...plan.sessions[0], scenes: [{ id: 'c1', title: 'Dusk', encounterId: 'e1' }] }],
+    }
+    room.plan.write(MEDIATOR, withScene, AT + 1)
+    expect(room.plan.read(MEDIATOR).sessions[0]?.scenes).toEqual([
+      { id: 'c1', title: 'Dusk', encounterId: 'e1' },
+    ])
+  })
+})
+
 describe('the invite URL', () => {
   test('one code per Game, minted once; joining twice is not an error', () => {
     const { room, code } = table()

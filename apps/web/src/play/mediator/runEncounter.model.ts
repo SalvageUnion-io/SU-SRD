@@ -16,7 +16,12 @@ export function encounterLine(encounter: Pick<Encounter, 'opposition' | 'tables'
   ].join(' · ')
 }
 
+/** "1 NPC", "4 NPCs": what is on the field, counted. */
+export function fieldCount(onTray: number): string {
+  return count(onTray, 'NPC', 'NPCs')
+}
+
 /** The clear-first choice, naming what it removes. */
 export function trayChoiceLabel(onTray: number): string {
-  return mediatorCopy('clearItFirst', { count: count(onTray, 'NPC', 'NPCs') })
+  return mediatorCopy('clearItFirst', { count: fieldCount(onTray) })
 }

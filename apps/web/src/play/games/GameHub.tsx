@@ -55,7 +55,7 @@ import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
-import { HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
+import { HUB_ACTIONS, HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
 import { LaunchPlay } from './LaunchPlay'
 import { MediatorPrep } from './MediatorPrep'
 import { ProposalInbox } from './ProposalInbox'
@@ -128,24 +128,25 @@ function GameSections({ game }: { game: Game }) {
             gameId={gameId}
             viewerId={viewerId}
             organizer={game.organizer}
+            game={game}
             onDelete={() => setConfirmingDelete(true)}
+            onLeft={() => {
+              if (router) void router.navigate({ to: '/games' })
+            }}
           />
-          {/* The Mediator's door to the prep the Training Bay keeps (ADR-066). */}
-          {game.mediator && <MediatorPrep />}
+          {/* The table runner's door to this Game's Prep (ADR-067 §3). */}
+          {game.tableRunner && <MediatorPrep gameId={gameId} />}
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (
-            <SlabSection
-              as="h2"
-              id="invite-link-heading"
-              title={playGamesCopy('inviteLink')}
-              actions={
-                <>
-                  <CopyInviteLink gameId={gameId} />
-                  <ResetInviteLink gameId={gameId} />
-                </>
-              }
-            />
+            // Its buttons are wider than the strip's room beside the title in
+            // this column, so they are the section's body, under its title.
+            <SlabSection as="h2" id="invite-link-heading" title={playGamesCopy('inviteLink')}>
+              <div style={HUB_ACTIONS}>
+                <CopyInviteLink gameId={gameId} />
+                <ResetInviteLink gameId={gameId} />
+              </div>
+            </SlabSection>
           )}
           {/* Safety runs last, so the two columns end together. */}
           <GameSafety sign={sign} />

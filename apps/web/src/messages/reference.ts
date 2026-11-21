@@ -14,6 +14,9 @@ export const referenceCopy = messages({
   techLevels: 'Tech Levels',
   app: 'APP',
   whereNext: 'Where next',
+  forTheMediator: 'For the Mediator',
+  addToAnEncounter: 'Add to an encounter',
+  designFromThis: 'Design from this',
   level: 'Level',
   signInWithDiscord: 'Sign in with Discord',
   shareThisPage: 'Share this page',
@@ -48,6 +51,9 @@ export const referenceCopy = messages({
   showPlay: 'Play at the table',
   showPlayBody:
     'Roll, spend and take damage on live sheets, solo or with your whole crew in one shared Game.',
+  showMediate: 'Run the Game',
+  showMediateBody:
+    'Mediators design NPCs, prepare encounters and plan sessions, then run the opposition from one screen.',
   showBuy: 'Get the books',
   showBuyBody: 'Get the Source Books direct from Leyline Press, available in Print and Digital',
   showDiscord: 'Roll in Discord',

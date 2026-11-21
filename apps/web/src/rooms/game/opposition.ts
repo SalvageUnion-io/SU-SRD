@@ -228,11 +228,26 @@ export class GameOpposition {
     })
   }
 
-  /** Stop running it: its notes leave Play, and what it fielded stays on the tray. */
-  endEncounter(actor: string): void {
+  /**
+   * Stop running it: its notes leave Play, and what it fielded stays on the
+   * tray unless the Mediator chose to clear the field with it (`clear`, their
+   * choice in a dialog that counts what goes, ADR-007).
+   */
+  endEncounter(actor: string, options: { clear?: boolean } = {}): void {
     this.store.sql.transaction(() => {
       this.store.requireMediator(actor)
       this.store.rows('delete from running_encounter')
+      if (options.clear === true) this.store.rows('delete from tray')
+    })
+  }
+
+  /** Clear the field: every NPC leaves the tray at once. The running encounter stays. */
+  clearTray(actor: string): { removed: number } {
+    return this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      const removed = this.store.rows('select id from tray').length
+      this.store.rows('delete from tray')
+      return { removed }
     })
   }
 
