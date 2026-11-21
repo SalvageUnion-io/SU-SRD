@@ -32,12 +32,9 @@ function page(): PageResult {
           <div>
             <Slab as="h2" label={pagesCopy('theService')} />
             <p>
-              The Bot provides dice-rolling and reference lookups for the Salvage Union tabletop
-              roleplaying game via Discord slash commands (<code>{pagesCopy('su')}</code>). With a
-              salvageunion.io account signed in with Discord, it also shows your account, Games and
-              sheets, and posts Play’s rolls to a channel you bind. It is provided free of charge,
-              “as is,” without warranty of any kind. We may change, suspend, or discontinue the Bot
-              at any time.
+              {pagesCopy('theBotProvidesDiceRolling')}
+              <code>{pagesCopy('su')}</code>
+              {pagesCopy('withASalvageunionIoAccount')}
             </p>
           </div>
 
@@ -49,7 +46,7 @@ function page(): PageResult {
           <div>
             <Slab as="h2" label={pagesCopy('intellectualProperty')} />
             <p>
-              Salvage Union is copyrighted by{' '}
+              {pagesCopy('salvageUnionIsCopyrightedBy')}{' '}
               <InlineRef
                 href="https://leyline.press"
                 target="_blank"
@@ -58,8 +55,7 @@ function page(): PageResult {
               >
                 {pagesCopy('leylinePress')}
               </InlineRef>
-              . The Bot is an unofficial, community reference tool and is not affiliated with or
-              endorsed by Leyline Press. Game data is drawn from the community reference at{' '}
+              {pagesCopy('theBotIsAnUnofficial')}{' '}
               <InlineRef href="/" style={BOLD}>
                 {pagesCopy('salvageunionIo')}
               </InlineRef>
@@ -75,7 +71,7 @@ function page(): PageResult {
           <div>
             <Slab as="h2" label={pagesCopy('contact')} />
             <p>
-              Questions about these terms:{' '}
+              {pagesCopy('questionsAboutTheseTerms')}{' '}
               <InlineRef href="mailto:privacy@salvageunion.io" style={BOLD}>
                 {pagesCopy('privacySalvageunionIo')}
               </InlineRef>
@@ -84,7 +80,7 @@ function page(): PageResult {
           </div>
 
           <p style={SMALL_PRINT}>
-            See also the{' '}
+            {pagesCopy('seeAlsoThe')}{' '}
             <InlineRef href="/bot/privacy/" style={BOLD}>
               {pagesCopy('privacyPolicy')}
             </InlineRef>

@@ -178,7 +178,7 @@ export function ListingRail({
           aria-controls="srd-rail-facets"
           onClick={on.toggleFacets}
         >
-          Filters
+          {islandsCopy('filters')}
           {activeFacets > 0 && (
             <>
               {' '}

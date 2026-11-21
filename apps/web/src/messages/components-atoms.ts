@@ -33,4 +33,13 @@ export const atomsCopy = messages({
   revertMaxToDerived: 'Revert {label} max to derived {overriddenFrom}',
   revertToDerived: 'Revert to derived ({overriddenFrom})',
   overriddenFrom2: 'overridden from {overriddenFrom}',
+  supportMeOnKofi: 'Support me on Ko-fi',
+  slotsFilled: '{used} of {cap} slots filled',
+  overCapacity: '{summary} — over capacity',
+  overRedline: '{summary}, over redline',
+  howThisIsDerivedTitle: '{statLabel} · how this is derived',
+  ctrlK: 'Ctrl K',
+  installedItems: 'Installed items',
+  pinnedByHand: 'pinned by hand',
+  overriddenTo: '{sum}; overridden to {value}',
 })

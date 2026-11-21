@@ -1,4 +1,5 @@
 import type { StatBreakdown } from 'salvageunion-reference/rules'
+import { atomsCopy } from '../../messages/components-atoms'
 import type { ProvenanceLine } from './StatProvenance'
 
 export type ProvenanceLabels = {
@@ -49,7 +50,7 @@ export function linesFromBreakdown(
   if (parts.installed !== 0) {
     lines.push({
       kind: 'contribution',
-      label: labels.installed ?? 'Installed items',
+      label: labels.installed ?? atomsCopy('installedItems'),
       ...(labels.installedDetail ? { detail: labels.installedDetail } : {}),
       amount: parts.installed,
     })
@@ -74,7 +75,7 @@ export function linesFromBreakdown(
     lines.push({
       kind: 'override',
       label: 'Override',
-      detail: 'pinned by hand',
+      detail: atomsCopy('pinnedByHand'),
       amount: parts.override ?? parts.total,
     })
   }
@@ -99,5 +100,7 @@ export function summarizeBreakdown(parts: StatBreakdown, labels: ProvenanceLabel
     terms.push(`${sign}${Math.abs(parts.installed)} ${labels.installed ?? 'installed'}`)
   }
   const sum = `${terms.join(' ')} = ${parts.derived}`
-  return parts.overridden ? `${sum}; overridden to ${parts.override ?? parts.total}` : sum
+  return parts.overridden
+    ? atomsCopy('overriddenTo', { sum, value: parts.override ?? parts.total })
+    : sum
 }

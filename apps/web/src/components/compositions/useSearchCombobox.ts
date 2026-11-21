@@ -278,7 +278,7 @@ export function useSearchCombobox({
     ? null
     : !ready
       ? query.trim()
-        ? loadingCopy('reference data')
+        ? loadingCopy(compositionsCopy('referenceData'))
         : null
       : results.length > 0
         ? `${results.length} result${results.length === 1 ? '' : 's'} found`

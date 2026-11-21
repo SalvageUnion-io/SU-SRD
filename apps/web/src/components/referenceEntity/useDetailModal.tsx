@@ -48,7 +48,9 @@ export function useDetailModal(
 
   // The Page's title: a pattern's quoted name, else the entity's.
   const name =
-    data && 'name' in data && typeof data.name === 'string' ? data.name : 'Entity details'
+    data && 'name' in data && typeof data.name === 'string'
+      ? data.name
+      : referenceEntityCopy('entityDetails')
   const title = options?.pattern ? quotePatternName(options.pattern.name) : name
 
   const control: ReferenceEntityControl = {

@@ -36,6 +36,7 @@ import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
 import { isSparse, oneRelatedRules, sparseRailFor } from '../../../lib/sparseRail'
 import { getItemStaticPaths } from '../../../lib/staticPaths'
+import { pagesCopy } from '../../../messages/reference-pages'
 import { Island } from '../../../runtime/Island'
 import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
@@ -119,9 +120,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const metaDescription = truncate(
     firstParagraph ||
       (statLine
-        ? `${itemName} — ${schemaName} for the Salvage Union TTRPG. ${statLine}.${traitLine}`
-        : itemDescription ||
-          `${itemName}: ${schemaName} reference for the Salvage Union tabletop RPG.`),
+        ? pagesCopy('entityMetaWithStats', { itemName, schemaName, statLine, traitLine })
+        : itemDescription || pagesCopy('entityMeta', { itemName, schemaName })),
     META_DESCRIPTION_MAX
   )
 
@@ -141,7 +141,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             additional: {
               additionalProperty: {
                 '@type': 'PropertyValue',
-                name: 'Tech Level',
+                name: pagesCopy('techLevel'),
                 value: displayData.techLevel,
               },
             },

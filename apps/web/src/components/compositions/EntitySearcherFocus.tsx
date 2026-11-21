@@ -10,6 +10,7 @@
 
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import { borderWidth, color, fontSize, space } from '../../design/tokens'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { BackLabel } from '../atoms/BackLabel'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
@@ -64,7 +65,13 @@ export function FocusPane({
 }) {
   const chosen = count > 0
   const addLabel =
-    mode === 'single' ? 'Choose' : chosen ? 'Add another' : railName ? `Add to ${railName}` : 'Add'
+    mode === 'single'
+      ? compositionsCopy('choose')
+      : chosen
+        ? compositionsCopy('addAnother')
+        : railName
+          ? compositionsCopy('addTo', { name: railName })
+          : compositionsCopy('add')
   const canAdd = mode === 'count' || !chosen
 
   return (

@@ -1,4 +1,5 @@
 import type { RefObjectTable } from 'salvageunion-reference'
+import { compositionsCopy } from '../../messages/components-compositions'
 
 /** One banded row of a d20 table: its range `key`, its outcome `label`
  * (when the row names one) and its text. */
@@ -25,7 +26,7 @@ export function withNothingHappens<T extends RollTableType>(table: T): T {
   if (!table || table.type === 'columns') return table
   const keys = Object.keys(table).filter((key) => key !== 'type')
   if (keys.length !== 1 || keys[0] !== '20') return table
-  return { ...table, '1-19': { value: 'Nothing happens.' } }
+  return { ...table, '1-19': { value: compositionsCopy('nothingHappens') } }
 }
 
 /**

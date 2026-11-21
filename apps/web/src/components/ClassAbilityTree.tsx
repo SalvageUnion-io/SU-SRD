@@ -156,7 +156,7 @@ function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
     trees.push(`, ${branch.tree}`)
     if (branch.owner) trees.push(' (', classMention(branch.owner), ')')
   }
-  trees.push(': take Abilities from any of these.')
+  trees.push(componentsCopy('takeAbilitiesFromAnyOfThese'))
   return trees
 }
 
@@ -180,7 +180,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
         actions={
           <Stat
             label={componentsCopy('abilities')}
-            value={`Up to ${plan.classEntity.maxAbilities}`}
+            value={componentsCopy('upTo', { count: plan.classEntity.maxAbilities })}
             size="compact"
           />
         }
@@ -268,7 +268,12 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
   const kind = hybrid ? 'Hybrid' : 'Legendary'
   const note = hybrid
     ? toEntityModel(hybrid).lead
-    : `Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${name} Ability.`
+    : componentsCopy('stayThenOne', {
+        article: articleFor(classEntity.name),
+        className: classEntity.name,
+        tree: path.advanced.tree,
+        name,
+      })
   // A Hybrid Class's path wears its rust, the class's own its orange.
   const track: TreeTrack = hybrid ? 'hybrid' : 'core'
   const paint = tierPaint(track)

@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
+import { atomsCopy } from '../../messages/components-atoms'
 
 /**
  * KofiButton — the official Ko-fi "Support me on Ko-fi" widget button.
@@ -40,7 +41,7 @@ export type KofiButtonProps = {
   code: string
 }
 
-const LABEL = 'Support me on Ko-fi'
+const LABEL = atomsCopy('supportMeOnKofi')
 
 /**
  * The button's accent colour (hex). The widget sets its label in white on this,

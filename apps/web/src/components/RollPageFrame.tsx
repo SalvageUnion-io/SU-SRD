@@ -30,7 +30,7 @@ export function RollPageFrame({ density, description, children }: RollPageFrameP
       ))}
       {children}
       <p className="su-roll-page__credit">
-        Dice rolling powered by{' '}
+        {componentsCopy('diceRollingPoweredBy')}{' '}
         <InlineRef href="https://randsum.dev" target="_blank" rel="noopener noreferrer">
           {componentsCopy('randsumDev')}
         </InlineRef>

@@ -7,9 +7,10 @@
 
 import type { RefObjectAnyPattern } from 'salvageunion-reference'
 import { isLegalStartingPattern } from 'salvageunion-reference/rules'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 
 /** The stamp a pattern the book sanctions as a starting build wears. */
-export const LEGAL_STARTING_PATTERN = 'Legal Starting Pattern'
+export const LEGAL_STARTING_PATTERN = referenceEntityCopy('legalStartingPattern')
 
 /**
  * The book's own words for it, printed under each of the five such patterns

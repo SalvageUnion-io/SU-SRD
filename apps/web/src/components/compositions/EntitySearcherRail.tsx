@@ -288,7 +288,11 @@ export function SelectionRail({
                 variant="ghost"
                 size="iconOnly"
                 {...list.toggleProps}
-                aria-label={`${list.open ? 'Hide' : 'Show'} ${chosenLabel.toLowerCase()}`}
+                aria-label={
+                  list.open
+                    ? compositionsCopy('hideChosen', { label: chosenLabel.toLowerCase() })
+                    : compositionsCopy('showChosen', { label: chosenLabel.toLowerCase() })
+                }
               >
                 <ChevronDown
                   aria-hidden="true"

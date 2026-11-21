@@ -97,13 +97,13 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
       setFailed(null)
     },
     {
-      failure: 'The photo could not be saved. Try again.',
+      failure: sharedCopy('photoNotSaved'),
       toastId: 'entity-photo',
       playerErrors: PHOTO_PLAYER_ERRORS,
     }
   )
   const removal = useServerAction(async () => onChange?.(undefined), {
-    failure: 'The photo could not be removed. Try again.',
+    failure: sharedCopy('photoNotRemoved'),
     toastId: 'entity-photo',
   })
   const busy = upload.pending || removal.pending
@@ -141,7 +141,9 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
             size="compact"
             disabled={busy}
             onClick={() => input.current?.click()}
-            aria-label={`${photo ? 'Replace' : 'Upload'} ${name}'s photo`}
+            aria-label={
+              photo ? sharedCopy('replaceSPhoto', { name }) : sharedCopy('uploadSPhoto', { name })
+            }
             style={CONTROL}
           >
             {/* The labels name the act; the picture above says what of. */}

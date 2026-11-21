@@ -40,7 +40,7 @@ export function ColumnsTableView({ data, tone, roll, onRoll }: ColumnsTableViewP
         size="full"
         tone={tone}
         density="compact"
-        stamp="Roll the Dice:"
+        stamp={componentsCopy('rollTheDice')}
         onRoll={onRoll}
         hint={componentsCopy('theColumnThenTheEntry')}
         table={{

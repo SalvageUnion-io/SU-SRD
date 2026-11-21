@@ -7,6 +7,7 @@ import {
   visiblePatterns,
 } from 'salvageunion-reference'
 import { ogCardFor } from '../../lib/ogCard'
+import { islandsCopy } from '../../messages/components-islands'
 import { GameDataGate } from '../GameDataGate'
 import { BrandCard, OgCard } from '../index'
 
@@ -120,7 +121,7 @@ function OgCardResolved() {
 }
 
 /** The default preview's kicker; the Discord banner's says the app's. */
-const SRD_KICKER = 'Reference and Character Manager'
+const SRD_KICKER = islandsCopy('referenceAndCharacterManager')
 
 /**
  * Deliberately NOT wrapped in `IslandErrorBoundary`: this is rendered by the

@@ -13,6 +13,7 @@ import {
   searchIn,
   techLevelRank,
 } from 'salvageunion-reference'
+import { compositionsCopy } from '../../messages/components-compositions'
 import type {
   EntityLike,
   FacetConfig,
@@ -22,7 +23,7 @@ import type {
 } from './entitySearcherTypes'
 
 /** The Tech level row's label: the one row the toolbar may set inline. */
-export const TECH_LEVEL_ROW = 'Tech Level'
+export const TECH_LEVEL_ROW = compositionsCopy('techLevel')
 
 function tlLabel(tl: TechLevelLike): string {
   return typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'
@@ -261,7 +262,7 @@ export function useSearcherPool({
           [
             ['all', 'All'],
             ['equipped', `${chosenLabel} only`],
-            ['available', 'Not yet added'],
+            ['available', compositionsCopy('notYetAdded')],
           ] as const
         ).map(([value, label]) => ({
           key: value,

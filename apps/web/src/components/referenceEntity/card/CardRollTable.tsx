@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../../lib/dice'
+import { compositionsCopy } from '../../../messages/components-compositions'
 import type { Size } from '../../../styles/sizing'
 import { FOCUS_RING } from '../../atoms/interaction'
 import {
@@ -145,7 +146,7 @@ export function CardRollTable({
     })
   }
 
-  const stamp = isColumns ? 'Roll the Dice:' : 'Roll the Die:'
+  const stamp = isColumns ? compositionsCopy('rollTheDice') : compositionsCopy('rollTheDie')
   const onRoll = disabled ? undefined : isColumns ? rollColumns : rollBands
 
   if (inline) {

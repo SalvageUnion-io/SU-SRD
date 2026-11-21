@@ -19,7 +19,7 @@ import { DocPage } from '../DocPage'
 import type { PageModule, PageResult } from '../types'
 
 const TITLE = pageTitle(pagesCopy('changelog'))
-const DESCRIPTION = `Changes to the salvageunion.io reference site and its app over time.`
+const DESCRIPTION = pagesCopy('changelogDescription')
 
 function page(): PageResult {
   const entries = readChangelog()
@@ -41,8 +41,7 @@ function page(): PageResult {
     children: (
       <DocPage title={pagesCopy('changelog')} measure="48rem" gap={space[32]}>
         <p style={PROSE}>
-          Features, fixes and speed-ups to the Reference and the app, newest first. For full commit
-          history see the{' '}
+          {pagesCopy('featuresFixesAndSpeedUps')}{' '}
           <InlineRef
             href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"
             target="_blank"
