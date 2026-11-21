@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { modKeyHint } from '../../../lib/searchShortcut'
+import { modKeyHint } from '../modKeyHint'
 
 describe('modKeyHint', () => {
   test('a Mac or iOS keyboard reads the Command key', () => {

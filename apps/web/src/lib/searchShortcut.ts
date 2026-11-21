@@ -5,10 +5,15 @@
  * and `SearchIsland` after.
  */
 
+import { modKeyHint } from '../components/atoms/modKeyHint'
+
+/** Where a key press is text going into a field. */
+const FIELDS = ['input', 'textarea', 'select'].join()
+
 /** Whether a key press here is text going into a field. */
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
-  return target.isContentEditable || target.matches('input, textarea, select')
+  return target.isContentEditable || target.matches(FIELDS)
 }
 
 /** Whether `event` is one of the search shortcuts. */
@@ -23,11 +28,6 @@ export function isSearchShortcut(event: KeyboardEvent): boolean {
   )
 }
 
-/** "⌘K" where there is a Command key, else "Ctrl K". */
-export function modKeyHint(platform: string): string {
-  return /Mac|iPhone|iPad/.test(platform) ? '⌘K' : 'Ctrl K'
-}
-
 /**
  * The served key caps read "⌘K" (the server cannot know the keyboard); this
  * corrects them before a search has mounted, so a reader off a Mac is never
@@ -35,7 +35,8 @@ export function modKeyHint(platform: string): string {
  */
 export function correctShortcutHints(root: ParentNode, platform: string): void {
   const hint = modKeyHint(platform)
-  for (const cap of root.querySelectorAll('.su-search-field__shortcut kbd')) {
-    if (cap.textContent !== hint) cap.textContent = hint
+  for (const cap of root.querySelectorAll('.su-search-field__shortcut')) {
+    const key = cap.querySelector('kbd')
+    if (key && key.textContent !== hint) key.textContent = hint
   }
 }

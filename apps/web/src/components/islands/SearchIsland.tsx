@@ -66,7 +66,9 @@ const LISTBOX_BAR = {
   ...LISTBOX,
   minWidth: '100%',
   right: 0,
-  width: 'min(34rem, calc(100vw - 2rem))',
+  // A reading width, never wider than the screen less its gutters.
+  maxWidth: '92vw',
+  width: '34rem',
 } satisfies CSSProperties
 
 const RELATIVE = { position: 'relative' } satisfies CSSProperties

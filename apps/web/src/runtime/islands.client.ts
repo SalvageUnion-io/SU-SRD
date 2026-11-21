@@ -82,6 +82,15 @@ document.addEventListener('click', (event) => {
   if (event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey)) return
   if (focusSearch()) event.preventDefault()
 })
+// The home's search is served out of sight (`.su-union-bar__search-onkey`): it
+// is open, in the bar, for as long as the focus is inside it.
+for (const field of document.querySelectorAll('.su-union-bar__search-onkey')) {
+  field.addEventListener('focusin', () => field.setAttribute('data-open', ''))
+  field.addEventListener('focusout', (event) => {
+    const to = (event as FocusEvent).relatedTarget
+    if (!(to instanceof Node) || !field.contains(to)) field.removeAttribute('data-open')
+  })
+}
 // The served key caps say "⌘K"; off a Mac they say "Ctrl K" from the start.
 correctShortcutHints(document, navigator.platform)
 revealWikiLinks(document)

@@ -108,7 +108,7 @@ const TRAITS: IndexColumn = {
 }
 
 /** The row's Tech Level, sorted by though it is the name's stamp, not a column (ledger L4). */
-export const SORT_TECH_LEVEL = 'tl'
+const SORT_TECH_LEVEL = 'tl'
 
 const ACTIONS = names(islandsCopy('actions'), 'actions')
 
@@ -362,13 +362,14 @@ export function IndexLedger({
     sort?.key === SORT_TECH_LEVEL ||
     sortColumn?.kind === 'figure' ||
     ['range', 'damage'].includes(sort?.key ?? '')
-  const sortedCopy = sort?.descending
-    ? measured
-      ? 'sortedDown'
-      : 'sortedZa'
-    : measured
-      ? 'sortedUp'
-      : 'sortedAz'
+  const sortedLine = (column: string) =>
+    sort?.descending
+      ? measured
+        ? islandsCopy('sortedDown', { column })
+        : islandsCopy('sortedZa', { column })
+      : measured
+        ? islandsCopy('sortedUp', { column })
+        : islandsCopy('sortedAz', { column })
   const shown = pickable(columns)
   const onPhone = shown.filter((column) => column.phone).map((column) => column.key)
   /** Slot `slot` of the phone's row shows `key`; the other slot keeps its own, or swaps. */
@@ -383,7 +384,7 @@ export function IndexLedger({
     <>
       {orderNote && (
         <p className="su-listing__order" aria-live="polite">
-          {sorted ? islandsCopy(sortedCopy, { column: sorted }) : islandsCopy('bookOrder')}
+          {sorted ? sortedLine(sorted) : islandsCopy('bookOrder')}
           {hasTechLevels && sort?.key !== SORT_TECH_LEVEL && (
             <Button variant="ghost" size="compact" onClick={() => sortBy(SORT_TECH_LEVEL)}>
               {islandsCopy('sortByTechLevel')}

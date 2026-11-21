@@ -127,20 +127,28 @@ export function searchSquashedName(nameText: string): string {
 
 /**
  * What a reader types for a rule other than its name: a stat's abbreviation as
- * the sheets print it, a table by its famous result. By the lowered name of the
+ * the sheets print it, a table by its famous result. By the name of the
  * entity it finds; a whole query equal to one ranks just under an exact name.
  */
-const SEARCH_ALIASES: Readonly<Record<string, readonly string[]>> = {
-  'ability points': ['ap'],
-  'core mechanic': ['nat 20', 'natural 20', 'nat 1', 'natural 1', 'd20'],
-  'crawler downtime': ['tp', 'training points'],
-  'energy points': ['ep'],
-  'group initiative': ['initiative', 'turn order'],
-  'hit points': ['hp'],
-  'salvage value': ['sv'],
-  'structure points': ['sp'],
-  'tech level': ['tl'],
+const ALIASES_AS_PRINTED: Readonly<Record<string, readonly string[]>> = {
+  'Ability Points': ['AP'],
+  'Core Mechanic': ['nat 20', 'natural 20', 'nat 1', 'natural 1', 'd20'],
+  'Crawler Downtime': ['TP', 'Training Points'],
+  'Energy Points': ['EP'],
+  'Group Initiative': ['initiative', 'turn order'],
+  'Hit Points': ['HP'],
+  'Salvage Value': ['SV'],
+  'Structure Points': ['SP'],
+  'Tech Level': ['TL'],
 }
+
+/** `ALIASES_AS_PRINTED`, lowered: a query and a name are matched lowered. */
+const SEARCH_ALIASES: Readonly<Record<string, readonly string[]>> = Object.fromEntries(
+  Object.entries(ALIASES_AS_PRINTED).map(([name, aliases]) => [
+    name.toLowerCase(),
+    aliases.map((alias) => alias.toLowerCase()),
+  ])
+)
 
 /** The aliases of the entity of this lowered name (`SEARCH_ALIASES`), or none. */
 export function searchAliases(nameText: string): readonly string[] {

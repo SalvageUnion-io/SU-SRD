@@ -86,7 +86,7 @@ describe('a press on a reference term', () => {
     const ref = burn()
     render(
       <EntitySurfaceProvider value={{ hrefFor }}>
-        <Tag tag={{ name: 'Burn', param: '2', ref }} linkable />
+        <Tag tag={{ key: 'burn', name: 'Burn', param: '2', ref }} linkable />
         <PeekHost />
       </EntitySurfaceProvider>
     )

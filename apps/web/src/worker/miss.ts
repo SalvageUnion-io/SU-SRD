@@ -38,6 +38,9 @@ import { currentPathFor, formerSitePath, retiredSitePage } from '../lib/redirect
 
 type Assets = { fetch(request: Request): Promise<Response> }
 
+/** A permanent redirect is cacheable for a day. */
+const MOVED_CACHE = 'public, max-age=86400'
+
 /** `/404`, not `/404.html`: the asset server's HTML handling redirects the latter. */
 const NOT_FOUND_PAGE = '/404'
 
@@ -96,7 +99,7 @@ export async function serveMiss(request: Request, env: { ASSETS: Assets }): Prom
       status: 301,
       headers: {
         location: `${moved}${query}`,
-        'cache-control': 'public, max-age=86400',
+        'cache-control': MOVED_CACHE,
       },
     })
   }
@@ -110,7 +113,7 @@ export async function serveMiss(request: Request, env: { ASSETS: Assets }): Prom
     if (spelled.ok) {
       return new Response(null, {
         status: 301,
-        headers: { location: `${lower}${url.search}`, 'cache-control': 'public, max-age=86400' },
+        headers: { location: `${lower}${url.search}`, 'cache-control': MOVED_CACHE },
       })
     }
   }
