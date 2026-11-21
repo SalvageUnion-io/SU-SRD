@@ -4,32 +4,36 @@
  * NPC's box. Hidden from players: the Opposition is the one thing ADR-030 §5
  * keeps from the crew, and `mediator.npcs` serves it to the Mediator alone.
  *
- * The picker searches the Opposition's schemas; a new instance starts at full
- * HP and takes a numbered name when it duplicates one, or the name typed under
- * Draw from (cleared once used), so the table can tell its opposition apart.
- * An entity with patterns (a chassis, a Bio-Titan) asks which one beneath the
- * list before it is added. Delete asks first and is never done for you
+ * The picker searches the Opposition's kinds (tabs above one search that
+ * carries across them) and the Mediator's own designed NPCs under Yours; a
+ * new instance starts at full HP and takes a numbered name when it duplicates
+ * one, or the name typed in the rail (cleared once used), so the table can
+ * tell its opposition apart. An entity with patterns (a chassis, a Bio-Titan)
+ * offers them beside its Add: one step. Delete asks first and is never done for you
  * (ADR-007); Rename gives an NPC a name of the Mediator's own.
  *
  * Presentational: `usePlayMediator` reads the Opposition and makes the writes.
  */
 
 import type { RosterLine } from 'game-domain/rules/encounterRoster'
-import type { CSSProperties } from 'react'
-import { useId, useState } from 'react'
+import type { Npc } from 'game-domain/schemas/npc'
+import type { ComponentProps, CSSProperties } from 'react'
+import { useId, useMemo, useState } from 'react'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { findEntityBySlug } from 'salvageunion-reference'
+import { findEntityBySlug, searchIn } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { ConfirmDialog } from '../../components/app'
 import {
-  Button,
   EntitySearcher,
   Eyebrow,
   Input,
+  Segmented,
+  SegmentedOption,
   Select,
   Stack,
   tokens,
 } from '../../components/index'
+import { npcAsReferenceEntity } from '../../lib/npcs/npcModel'
 import { mediatorCopy } from '../../messages/play-mediator'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from './opposition.model'
 import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
@@ -39,6 +43,8 @@ const { space } = tokens
 /** What the Mediator's screen can ask of the Opposition. */
 export type TrayWrites = {
   add: (schema: EncounterRefSchema, entity: RefEntity, draw?: TrayDraw) => Promise<unknown>
+  /** Field one of the Mediator's own designed NPCs, as a snapshot (ADR-067 §1). */
+  addBuilt: (npc: Npc, name: string) => Promise<unknown>
   setHp: (npc: TrayNpc, next: number) => Promise<unknown>
   morale: (npc: TrayNpc) => Promise<unknown>
   /** One Reaction or Morale roll for a whole group, kept on each member standing (p.267-268). */
@@ -62,12 +68,6 @@ export type TrayWrites = {
   field: (lines: readonly RosterLine[]) => Promise<number>
 }
 
-const PATTERN_ACTIONS = {
-  display: 'flex',
-  gap: space[6],
-  marginTop: space[4],
-} satisfies CSSProperties
-
 /** Why Rename refuses a blank name; the server would refuse it too. */
 const EMPTY_NAME = 'A name cannot be blank.'
 
@@ -88,137 +88,204 @@ function savedFor(
   return saved.filter((p) => resolveChassisRef(p.chassisRef)?.id === entity.id)
 }
 
+/** An entity as the searcher takes one of the caller's own. */
+type PoolEntity = NonNullable<ComponentProps<typeof EntitySearcher>['entities']>[number]
+
+/** The picker's kinds: the Opposition's schemas, then the Mediator's own designed NPCs. */
+type Kind = EncounterRefSchema | typeof YOURS
+const YOURS = 'yours'
+
+const yoursId = (item: { id?: string }) => item.id ?? ''
+
+const LEAD = {
+  padding: `${space[12]} ${space[16]} 0`,
+} satisfies CSSProperties
+
+const PATTERN = { flex: '0 1 16rem', minWidth: 0 } satisfies CSSProperties
+
+/** How many of a kind's entries the query finds; null with nothing typed. */
+function matches(kind: Kind, query: string, yours: readonly { name: string }[]): number | null {
+  const q = query.trim()
+  if (q === '') return null
+  if (kind === YOURS) {
+    return yours.filter((n) => n.name.toLowerCase().includes(q.toLowerCase())).length
+  }
+  return searchIn(kind, q).length
+}
+
 /**
  * The picker, inside the shared floating picker modal: `SheetPickerModal`
  * hands it its `title` and `onClose`, and it passes them to the searcher,
- * which owns the frame. Which schema it searches is chosen beneath the list.
+ * which owns the frame. The kinds sit above the search, which carries across
+ * them: each kind says how many it finds. A mech's pattern is chosen beside
+ * its Add, in one step. "On the field" lists everything out, of every kind.
  */
 export function OppositionPicker({
   npcs,
   saved,
+  yours = [],
   onAdd,
+  onAddBuilt,
   title,
   onClose,
 }: {
   npcs: readonly TrayNpc[]
   saved: readonly SavedPattern[]
+  /** The Mediator's own designed NPCs, offered under Yours. */
+  yours?: readonly Npc[]
   onAdd: (schema: EncounterRefSchema, entity: RefEntity, draw: TrayDraw) => void
+  onAddBuilt?: (npc: Npc, name: string) => void
   title?: string
   onClose?: () => void
 }) {
   const id = useId()
-  const [schema, setSchema] = useState<EncounterRefSchema>('npcs')
-  // An entity with patterns waits here while its pattern is chosen.
-  const [pending, setPending] = useState<{ entity: RefEntity; pattern: string } | null>(null)
+  const [kind, setKind] = useState<Kind>('npcs')
+  const [query, setQuery] = useState('')
+  // The pattern picked for an entity, by its slug; unset, its first one.
+  const [patterns, setPatterns] = useState<Record<string, string>>({})
   // The Mediator's own name for the next one added, cleared once used.
   const [name, setName] = useState('')
-  const add = (entity: RefEntity, draw: TrayDraw = {}) => {
-    onAdd(schema, entity, { ...draw, ...(name.trim() === '' ? {} : { name }) })
-    setName('')
+  const ownEntities = useMemo(
+    () => yours.map((npc) => npcAsReferenceEntity(npc) as PoolEntity),
+    [yours]
+  )
+  const railEntities = useMemo(
+    () => npcs.flatMap((n) => (n.entity === null ? [] : [n.entity as PoolEntity])),
+    [npcs]
+  )
+  const kinds: { kind: Kind; label: string }[] = [
+    ...OPPOSITION_SCHEMAS.map((s) => ({ kind: s.schema as Kind, label: s.label })),
+    ...(onAddBuilt ? [{ kind: YOURS as Kind, label: mediatorCopy('yours') }] : []),
+  ]
+  const lead = (
+    <div style={LEAD}>
+      <Segmented label={mediatorCopy('drawFrom')} size="compact" wrap>
+        {kinds.map((k) => {
+          const found = matches(k.kind, query, yours)
+          return (
+            <SegmentedOption key={k.kind} pressed={k.kind === kind} onClick={() => setKind(k.kind)}>
+              {found === null ? k.label : `${k.label} ${found}`}
+            </SegmentedOption>
+          )
+        })}
+      </Segmented>
+    </div>
+  )
+  const nameField = (
+    <Stack gap={6}>
+      <Eyebrow as="label" tone="muted" htmlFor={`${id}-name`}>
+        {mediatorCopy('nameOptional')}
+      </Eyebrow>
+      <Input
+        id={`${id}-name`}
+        value={name}
+        placeholder={mediatorCopy('eGRedLeader')}
+        autoComplete="off"
+        onChange={(e) => setName(e.target.value)}
+      />
+    </Stack>
+  )
+  const shared = {
+    mode: 'count' as const,
+    chosenLabel: mediatorCopy('onTheField'),
+    title,
+    onClose,
+    lead,
+    initialQuery: query,
+    onQueryChange: setQuery,
+    railEntities,
+    railActions: nameField,
+    emptyMessage: mediatorCopy('nothingOfThisKind'),
   }
-  // The Opposition's own counts, so a card says how many are already out.
-  const selected = npcs
-    .filter((n) => n.refSchema === schema && n.refSlug)
-    .map((n) => n.refSlug ?? '')
-  const pendingPatterns = pending ? patternsOf(pending.entity) : []
-  const pendingSaved = pending ? savedFor(schema, pending.entity, saved) : []
-  const addPending = () => {
-    if (pending === null) return
-    const pattern = pendingPatterns.find((p) => bookValue(p) === pending.pattern)
-    const own = pendingSaved.find((p) => savedValue(p) === pending.pattern)
-    add(pending.entity, pattern ? { pattern } : own ? { saved: own } : {})
-    setPending(null)
+
+  if (kind === YOURS) {
+    return (
+      <EntitySearcher
+        key={kind}
+        {...shared}
+        schema="npcs"
+        entities={ownEntities}
+        userMade
+        selected={npcs.flatMap((n) => (n.builtFrom === null ? [] : [n.builtFrom]))}
+        idOf={yoursId}
+        emptyMessage={
+          yours.length === 0 ? mediatorCopy('noNpcsOfYourOwn') : mediatorCopy('nothingOfThisKind')
+        }
+        onAdd={(npcId) => {
+          const npc = yours.find((n) => n.id === npcId)
+          if (npc === undefined) return
+          onAddBuilt?.(npc, name)
+          setName('')
+        }}
+      />
+    )
+  }
+
+  const schema = kind
+  /** The pattern Select's value for an entity: the one picked, else its first. */
+  const patternOf = (entity: RefEntity): string => {
+    const picked = patterns[slugOf(entity as { name: string })]
+    if (picked !== undefined) return picked
+    const [book] = patternsOf(entity)
+    const [own] = savedFor(schema, entity, saved)
+    return book ? bookValue(book) : own ? savedValue(own) : NO_PATTERN
   }
   return (
     <EntitySearcher
-      key={schema}
+      key={kind}
+      {...shared}
       schema={schema}
-      mode="count"
-      selected={selected}
+      selected={npcs
+        .filter((n) => n.refSchema === schema && n.refSlug && n.builtFrom === null)
+        .map((n) => n.refSlug ?? '')}
       idOf={slugOf}
       onAdd={(slug) => {
         const entity = findEntityBySlug(schema, slug)
         if (entity === null) return
-        const [book] = patternsOf(entity)
-        const [own] = savedFor(schema, entity, saved)
-        if (book) setPending({ entity, pattern: bookValue(book) })
-        else if (own) setPending({ entity, pattern: savedValue(own) })
-        else add(entity)
+        const value = patternOf(entity)
+        const pattern = patternsOf(entity).find((p) => bookValue(p) === value)
+        const own = savedFor(schema, entity, saved).find((p) => savedValue(p) === value)
+        onAdd(schema, entity, {
+          ...(pattern ? { pattern } : own ? { saved: own } : {}),
+          ...(name.trim() === '' ? {} : { name }),
+        })
+        setName('')
       }}
-      chosenLabel={mediatorCopy('onTheField')}
-      title={title}
-      onClose={onClose}
-      railActions={
-        <Stack gap={6}>
-          <Eyebrow as="label" tone="muted" htmlFor={`${id}-schema`}>
-            {mediatorCopy('drawFrom')}
-          </Eyebrow>
+      focusExtra={(item) => {
+        const entity = findEntityBySlug(schema, slugOf(item))
+        if (entity === null) return null
+        const book = patternsOf(entity)
+        const own = savedFor(schema, entity, saved)
+        if (book.length === 0 && own.length === 0) return null
+        return (
           <Select
-            id={`${id}-schema`}
-            value={schema}
-            onChange={(e) => {
-              setPending(null)
-              setSchema(e.target.value as EncounterRefSchema)
-            }}
+            aria-label={mediatorCopy('pattern', { name: item.name })}
+            style={PATTERN}
+            value={patternOf(entity)}
+            onChange={(e) => setPatterns({ ...patterns, [slugOf(item)]: e.target.value })}
           >
-            {OPPOSITION_SCHEMAS.map((s) => (
-              <option key={s.schema} value={s.schema}>
-                {s.label}
-              </option>
-            ))}
+            {own.length > 0 ? (
+              <optgroup label={mediatorCopy('savedPatterns')}>
+                {own.map((p) => (
+                  <option key={p.id} value={savedValue(p)}>
+                    {p.name} · {p.madeBy}
+                  </option>
+                ))}
+              </optgroup>
+            ) : null}
+            {book.length > 0 ? (
+              <optgroup label={mediatorCopy('fromTheBook')}>
+                {book.map((p) => (
+                  <option key={p.name} value={bookValue(p)}>
+                    {p.name}
+                  </option>
+                ))}
+              </optgroup>
+            ) : null}
+            <option value={NO_PATTERN}>{mediatorCopy('noPattern')}</option>
           </Select>
-          <Eyebrow as="label" tone="muted" htmlFor={`${id}-name`}>
-            {mediatorCopy('nameOptional')}
-          </Eyebrow>
-          <Input
-            id={`${id}-name`}
-            value={name}
-            placeholder={mediatorCopy('eGRedLeader')}
-            autoComplete="off"
-            onChange={(e) => setName(e.target.value)}
-          />
-          {pending ? (
-            <>
-              <Eyebrow as="label" tone="muted" htmlFor={`${id}-pattern`}>
-                {mediatorCopy('pattern', { name: pending.entity.name })}
-              </Eyebrow>
-              <Select
-                id={`${id}-pattern`}
-                value={pending.pattern}
-                onChange={(e) => setPending({ ...pending, pattern: e.target.value })}
-              >
-                {pendingSaved.length > 0 ? (
-                  <optgroup label={mediatorCopy('savedPatterns')}>
-                    {pendingSaved.map((p) => (
-                      <option key={p.id} value={savedValue(p)}>
-                        {p.name} · {p.madeBy}
-                      </option>
-                    ))}
-                  </optgroup>
-                ) : null}
-                {pendingPatterns.length > 0 ? (
-                  <optgroup label={mediatorCopy('fromTheBook')}>
-                    {pendingPatterns.map((p) => (
-                      <option key={p.name} value={bookValue(p)}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ) : null}
-                <option value={NO_PATTERN}>{mediatorCopy('noPattern')}</option>
-              </Select>
-              <div style={PATTERN_ACTIONS}>
-                <Button variant="primary" size="compact" onClick={addPending}>
-                  {mediatorCopy('addToTheField')}
-                </Button>
-                <Button variant="ghost" size="compact" onClick={() => setPending(null)}>
-                  {mediatorCopy('cancel')}
-                </Button>
-              </div>
-            </>
-          ) : null}
-        </Stack>
-      }
+        )
+      }}
     />
   )
 }

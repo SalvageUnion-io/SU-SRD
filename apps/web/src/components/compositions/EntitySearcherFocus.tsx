@@ -8,7 +8,7 @@
  * Removing is the sidebar's.
  */
 
-import type { CSSProperties, Ref } from 'react'
+import type { CSSProperties, ReactNode, Ref } from 'react'
 import { borderWidth, color, fontSize, space } from '../../design/tokens'
 import { BackLabel } from '../atoms/BackLabel'
 import { Badge } from '../atoms/Badge'
@@ -35,6 +35,8 @@ export function FocusPane({
   hide,
   showChassisAbility,
   onAdd,
+  extra,
+  userMade,
   onBack,
   backRef,
 }: {
@@ -49,6 +51,10 @@ export function FocusPane({
   hide: ReferenceEntityCardHideConfig
   showChassisAbility?: boolean
   onAdd: () => void
+  /** A choice that goes with adding (which pattern), beside the button. */
+  extra?: ReactNode
+  /** The player's own entity: the Page credits no book. */
+  userMade?: boolean
   /** Narrow only: back to the list. */
   onBack?: () => void
   backRef?: Ref<HTMLButtonElement>
@@ -81,6 +87,7 @@ export function FocusPane({
               data={entity}
               presentation="page"
               hide={hide}
+              userMade={userMade}
               showChassisAbility={showChassisAbility}
             />
           </EntityDetailPage>
@@ -97,6 +104,7 @@ export function FocusPane({
           <Badge shape="stamp">{mode === 'count' ? `${count} ${chosenLabel}` : chosenLabel}</Badge>
         )}
         <span style={GROW_STYLE} />
+        {extra}
         {canAdd && (
           <Button variant="primary" size="compact" onClick={onAdd}>
             {addLabel}

@@ -248,7 +248,9 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
         <OppositionPicker
           npcs={npcs ?? []}
           saved={mediator.savedPatterns}
+          yours={mediator.ownNpcs}
           onAdd={(schema, entity, draw) => fail(tray.add(schema, entity, draw))}
+          onAddBuilt={(npc, name) => fail(tray.addBuilt(npc, name))}
         />
       </SheetPickerModal>
       <RunEncounterDialog

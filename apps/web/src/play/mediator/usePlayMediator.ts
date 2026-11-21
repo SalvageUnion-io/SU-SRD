@@ -24,12 +24,14 @@ import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Encounter, RunningEncounter } from 'game-domain/schemas/encounter'
 import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
+import type { Npc } from 'game-domain/schemas/npc'
 import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { dieForTable, rollD20, rollForTable, toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useWorkerRead } from '../../lib/connection/workerRead'
+import { useOwnUnits } from '../../lib/entities/entities'
 import { flagOn } from '../../lib/flags'
 import type { ImportantRoll } from '../../lib/rules/opposition'
 import {
@@ -66,7 +68,7 @@ import type { MediatorSeat } from './mediatorTable.model'
 import { mediatorSeats } from './mediatorTable.model'
 import type { TrayWrites } from './OppositionPicker'
 import type { SavedPattern, TrayNpc } from './opposition.model'
-import { newTrayNpc, readSavedPattern, readTrayNpc } from './opposition.model'
+import { newBuiltTrayNpc, newTrayNpc, readSavedPattern, readTrayNpc } from './opposition.model'
 import type { ProposeArgs } from './ProposeDock'
 import type { SentProposal } from './proposalLine.model'
 
@@ -93,6 +95,8 @@ export type PlayMediator = {
   /** The tray, hidden from players; null while it loads. */
   npcs: TrayNpc[] | null
   savedPatterns: SavedPattern[]
+  /** The Mediator's own designed NPCs, for the picker's Yours. */
+  ownNpcs: Npc[]
   tray: TrayWrites
   /**
    * Settle a downed wreck's salvage: claim it (`salvaged`, once), then write
@@ -175,6 +179,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const here = useGamePresence(gameId, 'seat')
   const now = useClock()
   const store = useUnits()
+  const ownNpcs = useOwnUnits('npc')
   const [sentLimit, setSentLimit] = useState(PROPOSALS_PAGE)
 
   const members = useTableRead('games.members', { gameId })
@@ -355,6 +360,15 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     },
     remove: (npc) => removeNpc({ npcId: npcId(npc) }),
     clear: () => clearTray({}),
+    addBuilt: (npc, name) =>
+      addNpc({
+        body: newBuiltTrayNpc(
+          npc,
+          (tray ?? []).map((n) => n.name),
+          new Date().toISOString(),
+          name
+        ),
+      }),
     rename: (npc, name) => updateNpc({ npcId: npcId(npc), patch: { name } }),
     field: async (lines) => {
       // One at a time, each name counted against the ones before it, so four
@@ -416,6 +430,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
       },
     },
     npcs: tray,
+    ownNpcs,
     savedPatterns: (patterns ?? []).flatMap((row) => readSavedPattern(row) ?? []),
     tray: trayWrites,
     salvageWreck: said(async (npc: TrayNpc, haul: (c: Crawler) => Partial<Crawler> | null) => {

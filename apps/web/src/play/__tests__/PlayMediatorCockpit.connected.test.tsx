@@ -689,6 +689,8 @@ describe('the Opposition', () => {
     expect(screen.getByText('Behind the crusher.')).toBeTruthy()
     expect(screen.getByRole('list', { name: "This encounter's tables" })).toBeTruthy()
     await click(named('End Ambush'))
+    // With opposition still out, End asks whether to clear it (ADR-007: never for you).
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'End' }))
     expect(sent()).toContainEqual({ name: 'mediator.endEncounter', args: {} })
   })
 

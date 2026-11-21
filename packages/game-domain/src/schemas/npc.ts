@@ -21,7 +21,7 @@ import { photoFields } from './photo'
  */
 
 /** A trait, in the package's own shape (`TraitSchema` in salvageunion-reference). */
-const NpcTraitSchema = z
+export const NpcTraitSchema = z
   .object({
     type: z.string().min(1),
     amount: z.union([z.number().int().min(0), z.string()]).optional(),

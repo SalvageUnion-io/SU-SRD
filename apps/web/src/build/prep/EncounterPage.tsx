@@ -47,13 +47,14 @@ import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
+import { useOwnUnits } from '../../lib/entities/entities'
 import { flagOn } from '../../lib/flags'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { reportWriteFailure } from '../../lib/runWrite'
 import { buildPrepCopy } from '../../messages/build-prep'
 import { OppositionDialogs, OppositionPicker } from '../../play/mediator/OppositionPicker'
 import type { SavedPattern, TrayNpc } from '../../play/mediator/opposition.model'
-import { newTrayNpc } from '../../play/mediator/opposition.model'
+import { newBuiltTrayNpc, newTrayNpc } from '../../play/mediator/opposition.model'
 import { useEncounters, usePatterns } from '../../replica/collections'
 import { useSync } from '../../replica/syncContext'
 import { LiveSheet } from '../sheet/LiveSheet'
@@ -125,6 +126,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   const go = useGo()
   const { confirm, dialog } = useConfirm()
   const patterns = usePatterns((s) => s.mechPatterns)
+  const ownNpcs = useOwnUnits('npc')
   const [picking, setPicking] = useState(false)
   const [renaming, setRenaming] = useState<TrayNpc | null>(null)
   // The group being named: `null` for a new one, absent when the dialog is shut.
@@ -416,6 +418,21 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
         <OppositionPicker
           npcs={fielded}
           saved={saved}
+          yours={ownNpcs}
+          onAddBuilt={(npc, name) =>
+            fire((current) => {
+              if (!hasRoomFor(current)) return {}
+              const body = newBuiltTrayNpc(
+                npc,
+                current.opposition.map((o) => o.name),
+                new Date().toISOString(),
+                name
+              )
+              return {
+                opposition: [...current.opposition, opponentFrom(body, crypto.randomUUID())],
+              }
+            })
+          }
           onAdd={(schema, entity, draw) =>
             fire((current) => {
               if (!hasRoomFor(current)) return {}

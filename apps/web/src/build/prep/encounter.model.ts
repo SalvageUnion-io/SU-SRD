@@ -51,6 +51,7 @@ export function opponentFrom(npc: TrayNpcBody, id: string): EncounterOpponent {
     refSlug: npc.refSlug,
     ...(npc.refPattern === undefined ? {} : { refPattern: npc.refPattern }),
     ...(npc.userPattern === undefined ? {} : { userPattern: npc.userPattern }),
+    ...(npc.built === undefined ? {} : { built: npc.built }),
     name: npc.name,
     maxHp: npc.maxHp,
     statKind: npc.statKind,

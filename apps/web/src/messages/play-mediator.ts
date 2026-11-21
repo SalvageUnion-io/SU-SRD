@@ -43,7 +43,9 @@ export const mediatorCopy = messages({
   savedPatterns: 'Saved patterns',
   fromTheBook: 'From the book',
   noPattern: 'No pattern',
-  addToTheField: 'Add to the field',
+  yours: 'Yours',
+  nothingOfThisKind: 'Nothing of this kind matches. The counts above say where your search does.',
+  noNpcsOfYourOwn: "You have designed no NPCs yet. Design one from the Mediator's Kit.",
   cancel: 'Cancel',
   itLeavesTheOppositionFor:
     'It leaves the Opposition for good, with its HP and its last Morale roll.',

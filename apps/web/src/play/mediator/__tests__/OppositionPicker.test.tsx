@@ -10,6 +10,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import type { Npc } from 'game-domain/schemas/npc'
 import { useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SheetPickerModal } from '../../../build/sheet/SheetPickerModal'
@@ -33,6 +34,7 @@ function trayWrites(refuse: ReadonlySet<keyof TrayWrites> = new Set()): TrayWrit
     }
   return {
     add: record('add'),
+    addBuilt: record('addBuilt'),
     setHp: record('setHp'),
     morale: record('morale'),
     groupRoll: record('groupRoll'),
@@ -119,6 +121,8 @@ function Harness({
         <OppositionPicker
           npcs={npcs}
           saved={savedPatterns}
+          yours={[KESSLER]}
+          onAddBuilt={(npc, name) => void writes.addBuilt(npc, name)}
           onAdd={(schema, entity, draw) =>
             void writes.add(schema, entity, draw).catch((err) => failures.push(err))
           }
@@ -135,6 +139,19 @@ function Harness({
       />
     </>
   )
+}
+
+/** One of the Mediator's own designed NPCs. */
+const KESSLER: Npc = {
+  id: 'npc-1',
+  schemaVersion: 1,
+  name: 'Sergeant Kessler',
+  hitPoints: 9,
+  damageType: 'HP',
+  actions: ['rifle'],
+  traits: [],
+  createdAt: ROLLED_AT,
+  updatedAt: ROLLED_AT,
 }
 
 async function renderTab(
@@ -218,7 +235,7 @@ describe('+ From the reference', () => {
   test('opens on NPCs, adds the one picked, and counts what is already on the field', async () => {
     await renderTab([fallenRaider])
     const picker = await openPicker()
-    expect((picker.getByLabelText('Draw from') as HTMLSelectElement).value).toBe('npcs')
+    expect(picker.getByRole('button', { name: 'NPCs' }).getAttribute('aria-pressed')).toBe('true')
     // The Raider already on the field is marked chosen in the list.
     const raider = searcherMini('Raider', dialog())?.closest('.su-searcher__item')
     expect(raider?.hasAttribute('data-selected')).toBe(true)
@@ -231,12 +248,10 @@ describe('+ From the reference', () => {
     expect(entity.name).toBe('Trooper')
   })
 
-  test('Draw from switches the schema it searches', async () => {
+  test('the kinds sit above the search; a kind switches what it searches', async () => {
     await renderTab([])
     const picker = await openPicker()
-    await act(async () => {
-      fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'creatures' } })
-    })
+    await click(picker.getByRole('button', { name: 'Creatures' }))
     expect(searcherMini('Trooper', dialog())).toBeNull()
     await add('Wasteland Bear')
     const [schema, entity] = (calls[0]?.args ?? []) as [EncounterRefSchema, RefEntity]
@@ -244,7 +259,34 @@ describe('+ From the reference', () => {
     expect(entity.name).toBe('Wasteland Bear')
   })
 
-  test('a name typed under Draw from goes with the next add, then clears', async () => {
+  test('one search carries across the kinds, each saying how many it finds (MD-05)', async () => {
+    await renderTab([])
+    const picker = await openPicker()
+    await act(async () => {
+      fireEvent.change(picker.getByLabelText('Search'), { target: { value: 'Wasteland Bear' } })
+    })
+    expect(picker.getByRole('button', { name: /^Creatures [1-9]/ })).toBeTruthy()
+    await click(picker.getByRole('button', { name: /^Creatures/ }))
+    // The search is still there on the kind it moved to.
+    expect((picker.getByLabelText('Search') as HTMLInputElement).value).toBe('Wasteland Bear')
+    expect(searcherMini('Wasteland Bear', dialog())).not.toBeNull()
+  })
+
+  test('On the field counts every kind, not only the one showing (MD-22)', async () => {
+    await renderTab([rifleSquad, fallenRaider])
+    await openPicker()
+    expect(within(dialog()).getAllByTestId('rail-entry')).toHaveLength(2)
+  })
+
+  test("Yours offers the Mediator's own designed NPCs (MD-07)", async () => {
+    await renderTab([])
+    const picker = await openPicker()
+    await click(picker.getByRole('button', { name: 'Yours' }))
+    await add('Sergeant Kessler')
+    expect(calls).toEqual([{ name: 'addBuilt', args: [KESSLER, ''] }])
+  })
+
+  test('a name typed in the rail goes with the next add, then clears', async () => {
     await renderTab([])
     const picker = await openPicker()
     const name = picker.getByLabelText('Name (optional)') as HTMLInputElement
@@ -259,10 +301,7 @@ describe('+ From the reference', () => {
     expect(calls[1]?.args[2]).toEqual({})
   })
 
-  // The Mechs pool is every chassis card at full size: switching to it alone
-  // renders for ~2.3s (measured), so one test walks every pattern path and
-  // carries a longer timeout.
-  test('Mechs asks which pattern before adding, saved ones too; Cancel adds nothing, No pattern the bare chassis', async () => {
+  test('a mech is added in one step, its pattern chosen beside Add, saved ones too (MD-06)', async () => {
     const redLeader: SavedPattern = {
       id: 'p1',
       name: 'Red Leader',
@@ -279,35 +318,28 @@ describe('+ From the reference', () => {
     }
     await renderTab([], { savedPatterns: [redLeader, onAnother] })
     const picker = await openPicker()
-    await act(async () => {
-      fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'chassis' } })
-    })
+    await click(picker.getByRole('button', { name: 'Mechs' }))
     await act(async () => {
       fireEvent.change(picker.getByLabelText('Search'), { target: { value: 'Mule' } })
     })
-    const addMule = () => add('Mule')
     const choose = async (value: string) => {
       await act(async () => {
         fireEvent.change(picker.getByLabelText('Mule pattern'), { target: { value } })
       })
     }
 
-    await addMule()
-    // Nothing is added until the pattern is chosen; the first is preselected.
-    expect(calls).toHaveLength(0)
-    expect((picker.getByLabelText('Mule pattern') as HTMLSelectElement).value).toBe('book:hauler')
-    await click(picker.getByRole('button', { name: 'Cancel' }))
-    expect(picker.queryByLabelText('Mule pattern')).toBeNull()
-    expect(calls).toHaveLength(0)
+    // One press adds it as the pattern showing: the first is preselected.
+    await add('Mule')
+    expect(calls).toHaveLength(1)
+    expect((calls[0]?.args[2] as TrayDraw | undefined)?.pattern?.name).toBe('Hauler')
 
-    await addMule()
     // Saved patterns built on this chassis are offered by maker; others are not.
     const options = [...(picker.getByLabelText('Mule pattern') as HTMLSelectElement).options]
     expect(options.map((o) => o.text)).toContain('Red Leader · Player')
     expect(options.map((o) => o.text)).not.toContain('Elsewhere · Player')
     await choose('book:crusher')
-    await click(picker.getByRole('button', { name: 'Add to the field' }))
-    const [schema, entity, draw] = (calls[0]?.args ?? []) as [
+    await add('Mule')
+    const [schema, entity, draw] = (calls[1]?.args ?? []) as [
       EncounterRefSchema,
       RefEntity,
       TrayDraw,
@@ -315,17 +347,14 @@ describe('+ From the reference', () => {
     expect(schema).toBe('chassis')
     expect(entity.name).toBe('Mule')
     expect(draw.pattern?.name).toBe('Crusher')
-    expect(picker.queryByLabelText('Mule pattern')).toBeNull()
 
-    await addMule()
     await choose('saved:p1')
-    await click(picker.getByRole('button', { name: 'Add to the field' }))
-    expect(calls[1]?.args[2]).toEqual({ saved: redLeader })
+    await add('Mule')
+    expect(calls[2]?.args[2]).toEqual({ saved: redLeader })
 
-    await addMule()
     await choose('')
-    await click(picker.getByRole('button', { name: 'Add to the field' }))
-    expect(calls[2]?.args[2]).toEqual({})
+    await add('Mule')
+    expect(calls[3]?.args[2]).toEqual({})
   }, 20_000)
 
   test('a refused add goes to onFailure', async () => {

@@ -1,5 +1,6 @@
 import { z } from 'salvageunion-reference/zod'
 import { containerFields } from './entity'
+import { NpcTraitSchema } from './npc'
 
 /**
  * EncounterNpc — one tracked NPC instance on the GM encounter tray.
@@ -87,6 +88,23 @@ export const EncounterNpcSchema = z
         name: z.string().min(1),
         systems: z.array(z.string()),
         modules: z.array(z.string()),
+      })
+      .strict()
+      .optional(),
+
+    /**
+     * Drawn from one of the Mediator's own designed NPCs (ADR-067 §1): a
+     * snapshot of its stat block as it stood, actions as slugs, so the
+     * instance never changes under a fight when the design is edited. Then
+     * `refSlug` is empty and `maxHp`/`statKind` carry its HP or SP.
+     */
+    built: z
+      .object({
+        npcId: z.string().min(1),
+        /** The design's name, whatever this instance is called. */
+        name: z.string().min(1),
+        actions: z.array(z.string().min(1)),
+        traits: z.array(NpcTraitSchema),
       })
       .strict()
       .optional(),

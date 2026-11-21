@@ -40,6 +40,7 @@ const EncounterOpponentSchema = EncounterNpcSchema.pick({
   refName: true,
   refPattern: true,
   userPattern: true,
+  built: true,
   name: true,
   maxHp: true,
   statKind: true,
