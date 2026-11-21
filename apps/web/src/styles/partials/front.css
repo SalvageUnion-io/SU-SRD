@@ -131,16 +131,19 @@ body:has(.su-front--show) main {
   position: absolute;
 }
 
-/* The first slide's pitch, and a slide's heading over its line: the title's
-   face, a step under the name. */
-.su-front__show-pitch,
-.su-front__show-heading {
+/* The first slide's pitch: the title's face, a step under the name. */
+.su-front__show-pitch {
   font-family: var(--font-cond);
   font-size: var(--text-title);
   font-weight: var(--font-weight-bold);
   line-height: 1.2;
   margin: 0;
   text-wrap: balance;
+}
+
+/* The pitch sets on two balanced lines at every width. */
+.su-front__show-pitch {
+  max-inline-size: 22rem;
 }
 
 /* The site's name on a cut-out in the header's dress (paper on ink-deep,
@@ -174,7 +177,7 @@ body:has(.su-front--show) main {
   font-weight: var(--font-weight-bold);
   line-height: 0.92;
   margin: 0;
-  padding: var(--space-12) var(--space-16) var(--space-4);
+  padding: var(--space-12) var(--space-16);
   white-space: nowrap;
 }
 
@@ -224,22 +227,23 @@ body:has(.su-front--show) main {
 }
 
 /* One slide's turn in a show of seven (`heroSlides`): each holds a seventh
-   of the loop, fading in over its first fifth and out just past its end.
-   Out of its turn, before it and after, a slide is hidden (K3): never seen,
-   pressed or focused over the one in view. */
+   of the loop, sliding in from the right over its first fifth of a step and
+   out to the left as the next slides in behind it. Out of its turn, before it
+   and after, a slide is hidden (K3): never seen, pressed or focused over the
+   one in view. */
 @keyframes su-front-show {
   0% {
-    opacity: 0;
+    transform: translateX(100%);
     visibility: hidden;
   }
   2.857%,
-  12.857% {
-    opacity: 1;
+  14.286% {
+    transform: translateX(0);
     visibility: visible;
   }
-  15%,
+  17.143%,
   100% {
-    opacity: 0;
+    transform: translateX(-100%);
     visibility: hidden;
   }
 }
@@ -271,6 +275,18 @@ body:has(.su-front--show) main {
   padding: 0;
   position: absolute;
   z-index: 2;
+}
+
+/* Hollow: a paper outline and paper glyph over the art, as the on-ink ghost
+   (button.css), a faint paper wash under the pointer. */
+.su-front__show-pause.su-btn--default {
+  background-color: transparent;
+  border-color: var(--color-paper);
+  color: var(--color-paper);
+}
+
+.su-front__show-pause.su-btn--default:hover:not(:disabled) {
+  background-color: var(--color-paper-15);
 }
 
 .su-front__show-pause[aria-pressed='true'] .su-front__show-pause-icon,
@@ -322,8 +338,7 @@ body:has(.su-front--show) main {
     right: var(--space-12);
   }
 
-  .su-front__show-pitch,
-  .su-front__show-heading {
+  .su-front__show-pitch {
     font-size: var(--text-lede);
   }
 }

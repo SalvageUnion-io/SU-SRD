@@ -8,7 +8,7 @@ export const SCRIPT_FONT_VARIABLE = '--font-caveat'
 export const SCRIPT_FONT = `var(${SCRIPT_FONT_VARIABLE})`
 
 /** The face the quote is set in, as `FontFaceSet.load` names it: `stack` is the property's value. */
-export const scriptFace = (stack: string): string => `600 1em ${stack}`
+export const scriptFace = (stack: string): string => `700 1em ${stack}`
 
 /** Whether `pathname` is the front door, `/` under the app's base path. */
 export function isFrontDoor(pathname: string, basePath: string): boolean {

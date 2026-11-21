@@ -56,5 +56,5 @@ export const FONTS = [
     [500, 600, 700],
     'sans-serif'
   ),
-  family('Caveat', '--font-caveat', 'caveat', [600], 'cursive'),
+  family('Caveat', '--font-caveat', 'caveat', [700], 'cursive'),
 ]

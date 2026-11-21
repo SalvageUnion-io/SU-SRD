@@ -65,13 +65,8 @@ describe('home: the front door, its slideshow alone', () => {
     expect(first).not.toContain('su-btn--primary')
   })
 
-  it('heads the first three action slides, each with its own line', () => {
-    const headings = [...show.matchAll(/su-front__show-heading">([^<]+)</g)].map((m) => m[1])
-    expect(headings).toEqual([
-      'A Full System Reference Document',
-      'Build your salvager',
-      'Join the union',
-    ])
+  it('words each action slide by its line alone, no heading over it', () => {
+    expect(show).not.toContain('su-front__show-heading')
   })
 
   it('shows the pitch, five action slides each one action to one part of the site, then the tagline', () => {

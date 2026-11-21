@@ -23,8 +23,6 @@ type Slide = {
   | {
       kind: 'action'
       title: string
-      /** The line over the body, in the title's face; some slides have none. */
-      heading?: string
       body: string
       href: string
       external?: boolean
@@ -53,7 +51,6 @@ function heroSlides(): Slide[] {
       key: 'reference',
       kind: 'action',
       title: referenceCopy('showReference'),
-      heading: referenceCopy('showReferenceHeading'),
       body: referenceCopy('showReferenceBody'),
       href: '/reference/',
       art: painting('slide-city'),
@@ -62,7 +59,6 @@ function heroSlides(): Slide[] {
       key: 'build',
       kind: 'action',
       title: referenceCopy('showBuild'),
-      heading: referenceCopy('showBuildHeading'),
       body: referenceCopy('showBuildBody'),
       href: appPath('/'),
       art: painting('build'),
@@ -71,7 +67,6 @@ function heroSlides(): Slide[] {
       key: 'play',
       kind: 'action',
       title: referenceCopy('showPlay'),
-      heading: referenceCopy('showPlayHeading'),
       body: referenceCopy('showPlayBody'),
       href: appPath('/games/'),
       art: painting('slide-union'),
@@ -158,7 +153,6 @@ export function HomeHero() {
               ) : (
                 <div className="su-front__show-plate su-grain--paper">
                   <div className="su-front__show-words">
-                    {slide.heading && <p className="su-front__show-heading">{slide.heading}</p>}
                     <p className="su-front__show-body">{slide.body}</p>
                   </div>
                   <Button

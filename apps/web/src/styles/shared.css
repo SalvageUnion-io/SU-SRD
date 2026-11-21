@@ -82,6 +82,12 @@
   }
 }
 
+/* On the home show's ink-deep plate the tagline is paper, as every plate's
+   words. */
+.su-front__show-plate--quote .su-tagline {
+  color: var(--color-paper);
+}
+
 /*
  * The not-found content (`NotFound.tsx`, `islands/DidYouMeanIsland.tsx`),
  * on the static `/404` and the app's unmatched route alike: the rules
