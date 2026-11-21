@@ -186,6 +186,31 @@ describe('CrawlerSheet — the type and its special NPC', () => {
     )
   })
 
+  test('naming the type NPC keeps what was already written about them', async () => {
+    restore = await patchCrawlers()
+    const update = mock(async () => makeCrawler())
+    const crawler = makeCrawler({ type: BATTLE_REF, typeNpc: { npcName: 'Vex', npcCurrentHP: 8 } })
+    renderIdentity(crawler, makeStubStore(crawler, update))
+    openCrewDetails()
+
+    const field = screen.getByLabelText('Edit battle crew name')
+    await act(async () => {
+      fireEvent.click(field)
+    })
+    const input = screen.getByLabelText('Edit battle crew name')
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'Mara Vex' } })
+      fireEvent.blur(input)
+    })
+
+    expect(update).toHaveBeenCalledWith(
+      'crawler',
+      crawler.id,
+      { typeNpc: { npcName: 'Mara Vex', npcCurrentHP: 8 } },
+      LIVE_SHEET_MANUAL
+    )
+  })
+
   test('Augmented edge: hitPoints:0 NPC renders no HP block', async () => {
     restore = await patchCrawlers()
     const crawler = makeCrawler({ type: AUGMENTED_REF, typeNpc: { npcName: 'Oracle' } })
