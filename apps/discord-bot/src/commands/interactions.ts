@@ -87,6 +87,8 @@ export type CommandButtonInteraction = {
   /** A select menu's picked option values; empty for a button. */
   values: readonly string[]
   user: { id: string; displayName?: string }
+  /** The channel the button was pressed in, when Discord sent one. */
+  channelId?: string | null
   reply(payload: ReplyPayload): Promise<unknown>
 }
 

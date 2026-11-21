@@ -349,6 +349,7 @@ export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInterac
     customId: raw.data?.custom_id ?? '',
     values: raw.data?.values ?? [],
     ...actorOf(raw),
+    channelId: (raw as { channel_id?: string }).channel_id ?? null,
     ...replyMembers(ctx),
   } as CommandButtonInteraction
 }

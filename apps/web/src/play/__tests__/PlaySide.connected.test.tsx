@@ -21,7 +21,7 @@ import {
   mock,
   test,
 } from 'bun:test'
-import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
@@ -413,9 +413,23 @@ describe('Discord (play.md §9)', () => {
   test('nothing bound: the Tables say rolls stay in Play; nothing is sent', async () => {
     answers({ 'channelBindings.current': null })
     await renderSide()
-    expect(screen.getByText(/No channel is bound yet/)).toBeTruthy()
+    // A player cannot bind a Game's channel: told who can, offered no control.
+    expect(screen.getByText('None bound: the Mediator or Organiser connects one')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Set up a Discord channel' })).toBeNull()
     await roll([3])
     expect(postRoll).not.toHaveBeenCalled()
+  })
+
+  test('nothing bound, the Mediator’s: the row sets one up, with the bot’s link and the command', async () => {
+    answers({ 'channelBindings.current': null })
+    await renderSide({ mediator: true })
+    expect(screen.getByText('None bound: rolls stay in Play')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Set up a Discord channel' }))
+    const dialog = within(await screen.findByRole('dialog'))
+    expect(
+      dialog.getByRole('link', { name: 'Add the bot to your server' }).getAttribute('href')
+    ).toContain('discord.com/oauth2/authorize')
+    expect(dialog.getByRole('button', { name: 'Copy /su bind' })).toBeTruthy()
   })
 })
 

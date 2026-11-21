@@ -58,7 +58,7 @@ function isChannelId(channelId: unknown): channelId is string {
 function parseRequest(body: unknown): PostRollRelayRequest | null {
   const raw = body as Partial<PostRollRelayRequest> | null
   if (raw === null || typeof raw !== 'object') return null
-  const { channelId, tableName, rolls, roller, ownerDiscordId } = raw
+  const { channelId, tableName, rolls, roller, ownerDiscordId, label } = raw
   if (!isChannelId(channelId)) return null
   // `|` separates the parts of a roll result (`encodeRollResult`).
   if (typeof tableName !== 'string' || tableName.includes('|')) return null
@@ -69,6 +69,7 @@ function parseRequest(body: unknown): PostRollRelayRequest | null {
     rolls,
     ...(typeof roller === 'string' && roller.length > 0 ? { roller } : {}),
     ...(typeof ownerDiscordId === 'string' && ownerDiscordId.length > 0 ? { ownerDiscordId } : {}),
+    ...(typeof label === 'string' && label.trim().length > 0 ? { label } : {}),
   }
 }
 
@@ -130,7 +131,8 @@ async function handlePostRoll(request: Request, env: Env): Promise<Response> {
   const message = buildPostedRollMessage(
     encodeRollResult(parsed.tableName, parsed.rolls),
     parsed.roller,
-    parsed.ownerDiscordId
+    parsed.ownerDiscordId,
+    parsed.label
   )
   if ('error' in message) {
     return answer({ ok: false, status: null, message: message.error }, 422)

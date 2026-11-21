@@ -19,7 +19,12 @@
  */
 
 import type { BotRelay } from 'game-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll, relayUrl } from 'game-domain/botWire'
+import {
+  BOT_RELAY_POST_ROLL_PATH,
+  isPostableRoll,
+  ROLL_LABEL_MAX,
+  relayUrl,
+} from 'game-domain/botWire'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import type { PostRollResult } from 'game-domain/games/discord'
@@ -391,7 +396,7 @@ const CALLS = {
     a: {
       gameId?: string
       pilotId?: string
-      roll: { tableName: string; rolls: number[] }
+      roll: { tableName: string; rolls: number[]; label?: string | undefined }
     },
     deps: CallDeps
   ): Promise<PostRollResult> => {
@@ -403,7 +408,7 @@ const CALLS = {
     const binding = await rollChannel(deps.db, who.discordId, gameId)
     if (binding === null) return { kind: 'unbound' }
     const { channelId } = binding
-    const { tableName, rolls } = a.roll
+    const { tableName, rolls, label } = a.roll
     if (!isPostableRoll(tableName, rolls)) {
       return { kind: 'failed', channelId, message: 'That roll cannot be posted.' }
     }
@@ -418,6 +423,9 @@ const CALLS = {
       tableName,
       rolls,
       roller,
+      ...(label !== undefined && label !== tableName
+        ? { label: label.slice(0, ROLL_LABEL_MAX) }
+        : {}),
       ...(isDiscord ? { ownerDiscordId: who.discordId } : {}),
     }
     try {
@@ -490,7 +498,11 @@ const CALL_ARGS = {
   'channelBindings.postRoll': z.object({
     gameId: z.string().optional(),
     pilotId: z.string().optional(),
-    roll: z.object({ tableName: z.string(), rolls: z.array(z.number()) }),
+    roll: z.object({
+      tableName: z.string(),
+      rolls: z.array(z.number()),
+      label: z.string().optional(),
+    }),
   }),
 } satisfies Record<GameCallName, z.ZodType>
 

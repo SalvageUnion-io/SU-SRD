@@ -47,6 +47,15 @@ export function channelButtonLabel(
   )
 }
 
+/**
+ * The Rolls pane's "Discord channel" row: where rolls post, or that nothing is
+ * bound and who can change that.
+ */
+export function channelState(solo: boolean, binding: PlayBinding | null, mayBind: boolean): string {
+  if (binding !== null) return postsToLabel(solo, binding)
+  return mayBind ? playCopy('channelNoneBound') : playCopy('channelNoneBoundPlayer')
+}
+
 /** Where the screen's rolls post: "Rolls post to #salvage-run", or whose channel. */
 export function postsToLabel(solo: boolean, binding?: PlayBinding | null): string {
   const tag = channelTag(binding)

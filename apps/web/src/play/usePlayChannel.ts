@@ -83,7 +83,13 @@ export function usePlayRollDispatch({
 
   const send = useCallback(
     (roll: PlayRoll) => {
-      const { target: t, binding: b, canWrite: writable, postRoll: action } = latest.current
+      const {
+        target: t,
+        binding: b,
+        canWrite: writable,
+        postRoll: action,
+        log: named,
+      } = latest.current
       if (!writable) {
         settle(roll.id, {
           kind: 'failed',
@@ -101,7 +107,13 @@ export function usePlayRollDispatch({
         ...(t.gameId === null ? {} : { gameId: t.gameId }),
         // The Mediator's screen plays no pilot: the card names the account.
         ...(t.pilotId === null ? {} : { pilotId: t.pilotId }),
-        roll: { tableName: roll.tableName || roll.label, rolls: roll.rolls },
+        roll: {
+          tableName: roll.tableName || roll.label,
+          rolls: roll.rolls,
+          // What the roll was for (an ability's name), which the card prints. The
+          // Mediator's is left off: its label names the Opposition.
+          ...(named && roll.label && roll.label !== roll.tableName ? { label: roll.label } : {}),
+        },
       })
         .then((result: PostRollResult) => settle(roll.id, result))
         .catch((err: unknown) =>

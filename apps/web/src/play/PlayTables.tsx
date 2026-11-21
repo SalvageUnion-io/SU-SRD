@@ -33,9 +33,9 @@ import {
   tokens,
 } from '../components/index'
 import { playCopy } from '../messages/play'
-import type { PlayBinding } from './channels.model'
-import { postsToLabel } from './channels.model'
+import type { ChannelOwner, PlayBinding } from './channels.model'
 import { readRoster } from './mediator/encounterRoster.model'
+import { PlayChannelRow } from './PlayChannelRow'
 import { PlayRollTable } from './PlayRollTable'
 import { recordPlayRoll } from './playRolls.model'
 import { findTables, pinnedTables } from './tables.model'
@@ -47,15 +47,6 @@ const STACK = {
   minWidth: 0,
 } satisfies CSSProperties
 
-const POST = {
-  alignItems: 'center',
-  color: tokens.color.ink,
-  display: 'flex',
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
 type PlayTablesProps = {
   /** Downtime is running: its tables are the pinned ones. */
   downtime: boolean
@@ -65,6 +56,8 @@ type PlayTablesProps = {
   solo: boolean
   /** The bound channel: undefined while unknown, null when none. */
   binding: PlayBinding | null | undefined
+  /** Whose channel the row is of, and whether the viewer may bind it. */
+  channel?: { owner: ChannelOwner; mayBind: boolean } | undefined
   /** The Mediator's running encounter's own tables (ADR-059), above the Situation's. */
   prepared?: readonly string[] | undefined
   /**
@@ -77,8 +70,8 @@ type PlayTablesProps = {
 export function PlayTables({
   downtime,
   mechTables = 'reactor',
-  solo,
   binding,
+  channel,
   prepared = [],
   onField,
 }: PlayTablesProps) {
@@ -154,8 +147,9 @@ export function PlayTables({
       {onField && roster.length > 0 && (
         <FieldRoster key={`${open}:${landed}`} lines={roster} onField={onField} />
       )}
-      {binding != null && <div style={POST}>{postsToLabel(solo, binding)}</div>}
-      {binding === null && <Text variant="note">{playCopy('noChannelIsBoundYet')}</Text>}
+      {binding !== undefined && channel && (
+        <PlayChannelRow owner={channel.owner} binding={binding} mayBind={channel.mayBind} />
+      )}
     </div>
   )
 }

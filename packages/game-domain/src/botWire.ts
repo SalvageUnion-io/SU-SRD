@@ -19,7 +19,8 @@ import type { SheetTable } from './entityKinds'
  * Every operation the bot may ask the site. The writes never touch
  * anybody's sheet: `bindChannel` and `unbindChannel` (`/su bind`, `/su
  * unbind`) are the bot's own apparatus, `usage` bumps a weekly command tally
- * and `feedback` hands on a `/su feedback` note (ADR-057).
+ * and `feedback` hands on a `/su feedback` note (ADR-057). `logRoll` puts a
+ * public `/su roll` made in a Game's bound channel on that Game's Feed.
  */
 const BOT_OP_NAMES = [
   'me',
@@ -30,6 +31,7 @@ const BOT_OP_NAMES = [
   'unbindChannel',
   'usage',
   'feedback',
+  'logRoll',
 ] as const
 
 /** One of {@link BOT_OP_NAMES}. */
@@ -241,12 +243,17 @@ export const relayUrl = (path: string): string => `https://relay${path}`
 export const BOT_RELAY_POST_ROLL_PATH = '/relay/post-roll'
 
 /** A roll as the card replays it (the table and its die, two on a columns table), and where. */
+/** The longest `label` a roll card prints; longer is cut. */
+export const ROLL_LABEL_MAX = 80
+
 export type PostRollRelayRequest = {
   tableName: string
   rolls: number[]
   channelId: string
   /** Who rolled, for the card's context line ("rolled by …"). */
   roller?: string
+  /** What the roll was for (an ability, a system), when it is not the table itself. */
+  label?: string
   /** The roller's Discord id: the only person whose `Roll again` works. */
   ownerDiscordId?: string
 }
@@ -326,6 +333,24 @@ export type BotUsageArgs = { name: string; guildId?: string }
 
 /** `usage` answers only that it counted. */
 export type BotUsageResult = { ok: true }
+
+/**
+ * `logRoll`: a public roll the bot answered in `channelId`. Where that channel
+ * is bound to a Game the roller belongs to, the roll joins the Game's Feed;
+ * anywhere else it is counted nowhere (`logged: false`), which is not a refusal.
+ */
+export type LogRollArgs = {
+  discordId: string
+  channelId: string
+  tableName: string
+  rolls: number[]
+  /** What it came to, as the card's headline reads. */
+  outcome?: string
+  /** The roller's name in Discord, where they have set none in the app. */
+  roller?: string
+}
+
+export type LogRollResult = { ok: true; logged: boolean }
 
 /** `feedback`: a `/su feedback` note, sent on for filing as a GitHub issue. */
 export type BotFeedbackArgs = { discordId: string; kind: 'suggestion' | 'report'; text: string }

@@ -129,6 +129,58 @@ describe('answerBot', () => {
     )
   })
 
+  it('puts a public roll in a Game’s bound channel on that Game’s log, as its roller', async () => {
+    const db = await filled()
+    signedIn(db, { accountId: 'acct-sol', discordId: 'd-sol', name: 'sol' })
+    await answerBot(db, 'bindChannel', { discordId: 'd-rosa', channelId: 'c-1', game: 'g-1' })
+    const acts: unknown[] = []
+    const rooms = {
+      account: () => ({ profile: async () => null }),
+    } as unknown as BotRooms
+    const log = (gameId: string) => ({
+      act: async (actor: string, name: string, args: unknown) => {
+        acts.push({ gameId, actor, name, args })
+        return { ok: true }
+      },
+    })
+    const roll = { channelId: 'c-1', tableName: 'Core Mechanic', rolls: [14], outcome: 'Success' }
+    expect(await answerBot(db, 'logRoll', { ...roll, discordId: 'd-rosa' }, rooms, log)).toEqual({
+      ok: true,
+      logged: true,
+    })
+    expect(acts).toHaveLength(1)
+    expect(acts[0]).toMatchObject({
+      gameId: 'g-1',
+      actor: 'd-rosa',
+      name: 'changeLog.appendChangeLog',
+      args: {
+        entries: [
+          {
+            entityType: 'game',
+            field: 'roll',
+            source: 'discord',
+            after: {
+              description: 'rosa · Core Mechanic · 14 · Success',
+              result: { kind: 'core', roll: 14, outcome: 'Success' },
+            },
+          },
+        ],
+      },
+    })
+    // Somebody not in the Game, an unbound channel, a roll no die made: nothing is logged.
+    const none = { ok: true, logged: false }
+    expect(await answerBot(db, 'logRoll', { ...roll, discordId: 'd-sol' }, rooms, log)).toEqual(
+      none
+    )
+    expect(
+      await answerBot(db, 'logRoll', { ...roll, discordId: 'd-rosa', channelId: 'c-9' }, rooms, log)
+    ).toEqual(none)
+    expect(
+      await answerBot(db, 'logRoll', { ...roll, discordId: 'd-rosa', rolls: [99] }, rooms, log)
+    ).toEqual(none)
+    expect(acts).toHaveLength(1)
+  })
+
   it('cannot answer the rooms’ ops without the rooms', async () => {
     const db = await filled()
     for (const op of ['sheet', 'mine'] as const) {

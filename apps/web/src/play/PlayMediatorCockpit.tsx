@@ -82,6 +82,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     target: mediatorTarget(mediator.gameId),
     rollerName: 'Mediator',
     binding,
+    channel: { owner: { kind: 'game', gameName }, mayBind: true },
     log: false,
     rolls: mediator.rolls,
     alerts: mediator.alerts,
