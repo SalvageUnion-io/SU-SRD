@@ -10,6 +10,7 @@ export const routesCopy = messages({
   settings: 'Settings',
   linkPreview: 'Link preview',
   sharedSheet: 'Shared sheet',
+  pattern: 'Pattern',
   retiredLink: 'Retired link',
   encounter: 'Encounter',
   designAnNpc: 'Design an NPC',

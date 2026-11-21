@@ -3,7 +3,8 @@ import type { RefModule, RefSystem } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { FieldError } from '../../components/app'
-import { Callout, ReferenceEntityCard, tokens } from '../../components/index'
+import { Callout, InlineRef, ReferenceEntityCard, tokens } from '../../components/index'
+import { appPath } from '../../lib/appBase'
 import { readReference } from '../../lib/readReference'
 import { hasIntegratedLocomotion, LOCOMOTION } from '../../lib/rules/locomotion'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
@@ -20,12 +21,14 @@ type MechReviewStepProps = {
   form: MechWizardFormState
   submitError: string | null
   /**
-   * Unspent Tech 1 Scrap — rendered as the banking callout
-   * "N Tech 1 Scrap banks to your Union Crawler". TEXT ONLY, deliberately:
-   * no cross-entity write (ADR-007 automation boundary) — the crawler's
-   * Scrap Pool field is the manual landing spot.
+   * Unspent Tech 1 Scrap. With a crawler to bank it (`crawler`) the review
+   * says so and links that crawler, whose Scrap Pool is where the player
+   * notes it; with none, or nothing left, it says nothing. TEXT ONLY,
+   * deliberately: no cross-entity write (ADR-007 automation boundary).
    */
   bankedScrap: number
+  /** The crawler the leftover banks to: this Game's, else the player's own. */
+  crawler?: { id: string; name: string } | undefined
   /** The slot budgets, for the lists' sums. */
   capacity: {
     systemSlotsUsed: number
@@ -49,6 +52,7 @@ export function MechReviewStep({
   form,
   submitError,
   bankedScrap,
+  crawler,
   capacity,
   namePart,
 }: MechReviewStepProps) {
@@ -129,10 +133,17 @@ export function MechReviewStep({
             <RecapStat label={mechCopy('appearance')} value={form.appearance} />
           </Recap>
         )}
-        {/* An unlabelled note (ruleset §5, N5), as the crawler review's reminder. */}
-        <Callout role="note">
-          <span style={NOTE}>{mechCopy('tech1ScrapBanksTo', { bankedScrap })}</span>
-        </Callout>
+        {/* An unlabelled note (ruleset §5, N5), as the crawler review's reminder:
+            only where there is Scrap left and a crawler to bank it. */}
+        {bankedScrap > 0 && crawler && (
+          <Callout role="note">
+            <span style={NOTE}>
+              {mechCopy('tech1ScrapBanksTo', { bankedScrap })}{' '}
+              <InlineRef href={appPath(`/crawlers/${crawler.id}`)}>{crawler.name}</InlineRef>
+              {mechCopy('noteItInItsScrapPool')}
+            </span>
+          </Callout>
+        )}
         {form.chassisName && (
           <div>
             <SavePatternButton

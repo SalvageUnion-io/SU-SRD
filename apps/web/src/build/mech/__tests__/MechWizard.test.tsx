@@ -47,12 +47,6 @@ function systemByName(name: string) {
   return system
 }
 
-function moduleByName(name: string) {
-  const module = SalvageUnionReference.Modules.getByName(name)
-  if (!module) throw new Error(`module "${name}" not found`)
-  return module
-}
-
 // ---------------------------------------------------------------------------
 // Interaction helpers (WizShell skeleton)
 // ---------------------------------------------------------------------------
@@ -120,15 +114,8 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     await fillIdentity('mech name', 'Iron Fist')
     expect(getCreateButton().disabled).toBe(false)
 
-    // The text-only banking callout, then create.
-    const notes = screen.getAllByRole('note').map((note) => note.textContent ?? '')
-    expect(
-      notes.some((text) =>
-        text.includes(
-          `${afterChassis - cargoPod.salvageValue - moduleByName('Comms Module').salvageValue} Tech 1 Scrap banks`
-        )
-      )
-    ).toBe(true)
+    // No crawler to bank the leftover Scrap to: the review says nothing of it (U12).
+    expect(screen.queryByText(/banks to your Union Crawler/)).toBeNull()
     await clickButton(/Create Mech/i)
 
     await waitFor(() => {
@@ -328,4 +315,30 @@ describe('MechWizard — preselected chassis', () => {
     )
     expect(isPicked('Mule')).toBe(true)
   }, 30000)
+})
+
+describe('MechWizard — leftover Scrap (U12)', () => {
+  async function toReview() {
+    renderWizard()
+    await pickRadio('Mule')
+    await clickNext()
+    await clickNext()
+    await clickNext()
+  }
+
+  it('says nothing of banking it with no crawler to bank it to', async () => {
+    await toReview()
+    expect(screen.queryByText(/banks to your Union Crawler/)).toBeNull()
+  })
+
+  it('names the player’s crawler, linked, where there is one', async () => {
+    await useUnits
+      .getState()
+      .create('crawler', { schemaVersion: 1, name: 'Old Faithful', techLevel: 1, systems: [] })
+    await toReview()
+    expect(
+      screen.getByText(/Tech 1 Scrap is left over\. It banks to your Union Crawler,/)
+    ).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Old Faithful' })).toBeTruthy()
+  })
 })

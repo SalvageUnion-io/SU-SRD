@@ -5,6 +5,7 @@ import type { BookCite, ChoiceSelections } from 'salvageunion-reference'
 import { bookQuote, nameToSlug } from 'salvageunion-reference'
 import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { toast } from '../../components/index'
+import { useCrawlers } from '../../lib/entities'
 import {
   clampMechCreationDraft,
   mechCreationBudgetFor,
@@ -124,6 +125,12 @@ export function MechWizard({
     clamp: clampMechCreationDraft,
     reapply: (restored) => withMechPreselection(restored, preselectChassis, preselectPattern),
   })
+
+  // Where leftover Scrap banks: the crawler of the Game the mech is built
+  // for, else one on the player's own shelf; none, and the review says nothing.
+  const bank = useCrawlers().find((crawler) =>
+    gameId === undefined ? typeof crawler.gameId !== 'string' : crawler.gameId === gameId
+  )
 
   // The step machine + the create submit, shared with the pilot, crawler and
   // NPC wizards (`useWizardFlow`); the mech's create input is a plain projection
@@ -474,6 +481,7 @@ export function MechWizard({
           form={form}
           submitError={submitError}
           bankedScrap={Math.max(0, budget.remaining)}
+          crawler={bank}
           capacity={capacity}
           namePart={part(
             'pattern',

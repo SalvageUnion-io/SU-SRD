@@ -21,6 +21,7 @@
  */
 
 import { useNavigate } from '@tanstack/react-router'
+import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Photo } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
@@ -43,6 +44,7 @@ import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { chapterForSchema } from '../../../lib/chapters'
 import { playerMessage } from '../../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
+import { areaTitle } from '../../../lib/pageTitle'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
   asReferencePattern,
@@ -50,7 +52,9 @@ import {
   patternChassis,
   patternCopy,
 } from '../../../lib/patterns/patterns'
+import { useTabTitle } from '../../../lib/useTabTitle'
 import { mechCopy } from '../../../messages/build-mech'
+import { routesCopy } from '../../../messages/routes'
 import { usePatterns } from '../../../replica/collections'
 import { useSync } from '../../../replica/syncContext'
 import { useUnits } from '../../../replica/units'
@@ -59,6 +63,7 @@ import { SignInControl } from '../../account/SignInControl'
 import { HomebrewControls } from '../../homebrew/HomebrewControls'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
 import { RailActs } from '../../sheet/RailActs'
+import { PatternEditControls } from './PatternEditControls'
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
 export type PublicPatternAnswer = {
@@ -128,6 +133,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const { status, canWrite } = useSync()
   const [busy, setBusy] = useState<'build' | 'copy' | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
+
+  // The tab is named for the pattern, as a sheet's is for its unit.
+  useTabTitle(areaTitle(PRODUCT.build, `${pattern.name} · ${routesCopy('pattern')}`))
 
   // Where a book page cites its printings, this one credits its maker.
   useCitePageCredit(`Homebrew // Made by ${madeBy}`)
@@ -225,6 +233,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                     {mechCopy('share')}
                   </Button>
                 )}
+                {editable && <PatternEditControls pattern={pattern} />}
                 <HomebrewControls appId={pattern.id} name={pattern.name} />
               </RailActs>
             ) : undefined
