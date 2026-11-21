@@ -32,6 +32,7 @@ export const npcCopy = messages({
   replace: 'Replace',
   findATemplate: 'Find a template',
   mediatorsKit: 'Mediator’s Kit',
+  gamePrep: 'Game Prep',
   templateKind: 'Kind of denizen',
   findAnNpcInThe: 'Find a denizen in the reference',
   templates: 'Templates',

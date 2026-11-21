@@ -157,6 +157,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'changeLog.alerts': [],
     'changeLog.rolls': [],
     'channelBindings.current': null,
+    'games.listMine': [],
     'safety.stopSign': null,
     'account.me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
     ...over,

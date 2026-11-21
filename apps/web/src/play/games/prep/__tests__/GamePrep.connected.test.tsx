@@ -276,7 +276,7 @@ describe('a Game’s NPCs', () => {
     expect(npcs.getByText('Sergeant')).toBeTruthy()
     expect(npcs.queryByText('Voss')).toBeNull()
     expect(npcs.getByRole('link', { name: '+ Design an NPC' }).getAttribute('href')).toBe(
-      '/npcs/new'
+      '/npcs/new?game=g1'
     )
   })
 })

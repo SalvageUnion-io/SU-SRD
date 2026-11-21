@@ -55,9 +55,11 @@ import { runWrite } from '../../lib/runWrite'
 import { npcCopy } from '../../messages/build-npc'
 import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import { isSignedIn } from '../../replica/sync'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
+import { useEncounterGame } from '../prep/useEncounterGame'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import { npcStamp } from '../sheet/bandStamps.model'
 import { LiveSheet } from '../sheet/LiveSheet'
@@ -183,12 +185,15 @@ export function NpcSheet({
     })
   }
 
+  // The Game it is kept in, when the viewer runs it: the band's chip, and the
+  // way back is that Game's Prep (as an encounter's sheet, MD2-14).
+  const inGame = useEncounterGame(npc, isSignedIn(status) && !readOnlyProp)
   const modeToggle =
     sheetMode !== null && !readOnlyProp && !writesBlocked ? (
       <>
-        {/* The way back to where the Mediator's NPCs are kept (ADR-067 §5). */}
-        <Button href={KIT_PATH} back variant="ink" size="compact">
-          {npcCopy('mediatorsKit')}
+        {/* The way back to where it is kept: its Game's Prep, else the Kit (ADR-067 §5). */}
+        <Button href={inGame?.href ?? KIT_PATH} back variant="ink" size="compact">
+          {inGame ? npcCopy('gamePrep') : npcCopy('mediatorsKit')}
         </Button>
         {/* Edit's way into the designer: its stats, role and actions (MD2-03). */}
         {sheetMode.editing && isRedesignable(npc) && (
@@ -257,7 +262,7 @@ export function NpcSheet({
       <LiveSheet
         variant="npc"
         name={npc.name}
-        band={{ actions: modeToggle }}
+        band={{ actions: modeToggle, game: inGame }}
         actions={actions}
         kindDetail={npcStamp(npc.templateRef)}
         userMade={{ madeBy }}

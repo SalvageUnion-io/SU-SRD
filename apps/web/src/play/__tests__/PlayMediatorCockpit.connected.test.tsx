@@ -206,6 +206,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       },
     ],
     'channelBindings.current': { channelId: 'c-1', boundAt: 1 },
+    'games.listMine': [],
     'safety.stopSign': null,
     'account.me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
     ...over,

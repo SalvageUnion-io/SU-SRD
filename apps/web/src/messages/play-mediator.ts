@@ -22,6 +22,8 @@ export const mediatorCopy = messages({
   you: 'You',
   briefing: 'Briefing',
   briefingSent: 'Briefing sent to the table.',
+  anotherGame: 'another Game',
+  preparedFor: 'prepared for {game}',
   noEncountersYet: 'No encounters yet. Prep one in your',
   trainingBay: 'Mediator’s Kit',
   noEncountersTail: ': its opposition, the tables to hand and your notes.',

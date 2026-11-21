@@ -228,7 +228,11 @@ function PrepSections({ gameId }: { gameId: string }) {
             { key: 'hp', label: 'HP', kind: 'figure' },
           ]}
           action={
-            <Button href="/npcs/new" variant="default" size="compact">
+            <Button
+              href={`/npcs/new?game=${encodeURIComponent(gameId)}`}
+              variant="default"
+              size="compact"
+            >
               {playGamesCopy('designAnNpc')}
             </Button>
           }
