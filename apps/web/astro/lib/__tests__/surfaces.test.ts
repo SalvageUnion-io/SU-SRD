@@ -237,6 +237,16 @@ describe('a listing (a Ledger under a visible heading)', () => {
     expect(html).not.toMatch(/\d+ Chassis/)
   })
 
+  it('holds a filtered address’s rows from before the first paint, and says what scripts-off loses (r2 H8)', () => {
+    const script = html.indexOf('data-listing-pending')
+    const island = html.indexOf('data-island="SchemaViewerIsland"')
+    // The page's own script, ahead of the rows it hides.
+    expect(script).toBeGreaterThan(-1)
+    expect(script).toBeLessThan(island)
+    expect(html.slice(0, island)).toMatch(/<script>\(function\(\)\{[^<]*"tl"[^<]*<\/script>/)
+    expect(html).toMatch(/<noscript><p class="su-listing__noscript">[^<]*need JavaScript/)
+  })
+
   it('first paints the listing itself, so the mount draws nothing new', () => {
     // The island's own List from build-time data, not a stand-in: one Ledger,
     // a line per chassis, each linking to its page.

@@ -804,9 +804,19 @@ html[data-srd-signed-in] .su-mediator-acts {
 
 /* A listing opened on a filtered or sorted address: the served rows are the
    unfiltered list, so they keep their place out of sight until the island
-   draws the right ones (`directives/interaction.ts`), rather than flash. */
-[data-island-pending] .su-listing__groups {
+   draws the right ones (`directives/interaction.ts`), rather than flash; held
+   from before the first paint by the page's own script (`listingPending`). */
+[data-island-pending] .su-listing__groups,
+html[data-listing-pending] .su-listing__groups {
   visibility: hidden;
+}
+
+/* With scripts off the address's filter is not applied: the listing says so
+   over its rows (`listingNeedsScripts`). */
+.su-listing__noscript {
+  border: var(--bw-chrome) solid var(--color-ink);
+  margin: var(--space-12) var(--su-shell-edge, var(--space-16));
+  padding: var(--space-8) var(--space-12);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
