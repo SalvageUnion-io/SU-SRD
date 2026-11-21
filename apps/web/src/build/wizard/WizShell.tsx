@@ -24,9 +24,9 @@ import {
   pillStyle,
   pillTrackersStyle,
   promptStyle,
+  STEP_BODY,
   shellStyle,
   shellUnderBandStyle,
-  stepBodyStyle,
   stepFrameStyle,
   stepHeadStyle,
   stepNoteStyle,
@@ -495,7 +495,7 @@ export function WizShell({
                 </h1>
               </div>
               <Box body="flush">
-                <div style={stepBodyStyle}>
+                <div className={STEP_BODY}>
                   {children}
                   {footerNote && (
                     <p id={STEP_NOTE_ID} role="status" style={stepNoteStyle}>

@@ -184,6 +184,12 @@
   padding: var(--space-12) var(--su-column-pad, var(--space-16));
 }
 
+/* A pattern with nothing written (a player's saved one) opens on its
+   loadout: no blank paper bar stands in for the words. */
+.su-entity-page__opening:empty {
+  display: none;
+}
+
 .su-entity-page__prose {
   display: flex;
   flex-direction: column;

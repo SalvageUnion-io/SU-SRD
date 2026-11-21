@@ -57,3 +57,19 @@ describe('sortShelfRows', () => {
     ).toEqual(['alpha', 'Bravo', 'Charlie'])
   })
 })
+
+describe('the Mechs shelf columns', () => {
+  test('a narrow shelf spares the live readings and keeps what tells two builds apart', async () => {
+    const { MECH_COLUMNS } = await import('../shelfColumns')
+    expect(MECH_COLUMNS.filter((column) => column.spare).map((column) => column.key)).toEqual([
+      'SP',
+      'EP',
+      'Heat',
+    ])
+    // A phone keeps the chassis and the Scrap.
+    expect(MECH_COLUMNS.filter((column) => column.phone).map((column) => column.key)).toEqual([
+      'chassis',
+      'Scrap',
+    ])
+  })
+})
