@@ -49,6 +49,7 @@ import { areaTitle } from '../../../lib/pageTitle'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
   asReferencePattern,
+  countedLoadout,
   mechFromPattern,
   pastStartingRules,
   patternChassis,
@@ -57,6 +58,7 @@ import {
 import { useTabTitle } from '../../../lib/useTabTitle'
 import { mechCopy } from '../../../messages/build-mech'
 import { routesCopy } from '../../../messages/routes'
+import { PatternLoadout } from '../../../reference/PatternLoadout'
 import { usePatterns } from '../../../replica/collections'
 import { useSync } from '../../../replica/syncContext'
 import { useUnits } from '../../../replica/units'
@@ -253,6 +255,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
         </ChapterBand>
 
         <div className="su-entity__body su-page-body">
+          {/* Its loadout at a glance, with what it uses and costs, as a book
+              pattern's page opens (r2 G4). */}
+          {chassis && <PatternLoadout chassis={chassis} pattern={countedLoadout(pattern)} />}
           {chassis ? (
             <ReferenceEntityCard
               data={chassis}

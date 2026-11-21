@@ -22,7 +22,7 @@ const toastId = (sheetId: string) => `undo:${sheetId}`
 let watching = false
 
 /** The sheet changed (or is gone): its standing Undo leaves. */
-export function sheetChanged(sheetId: string): void {
+function sheetChanged(sheetId: string): void {
   if (!standing.delete(sheetId)) return
   toast.dismiss(toastId(sheetId))
 }

@@ -29,7 +29,7 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { useSync } from '../../replica/syncContext'
 import { useEntityLog } from '../../replica/useEntityLog'
 import type { LogLine } from './changeLog.model'
-import { logChanges, RESTORABLE } from './changeLog.model'
+import { logChanges } from './changeLog.model'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -78,6 +78,9 @@ const AFTER = { fontWeight: tokens.weight.medium, color: tokens.color.ink } sati
 
 /** The drawer body's fill; its padding steps up at `sm` (`.su-sheet-changelog-body`). */
 const BODY = { backgroundColor: tokens.color.paper } satisfies CSSProperties
+
+/** How many of the newest changes offer Restore. */
+const RESTORABLE = 10
 
 /** A change's lines stack, each whole. */
 const LINES = { display: 'grid', gap: tokens.space[4] } satisfies CSSProperties

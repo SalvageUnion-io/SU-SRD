@@ -2,16 +2,25 @@
  * The Training Bay's Mechs shelf: the mechs no pilot of yours flies (a piloted
  * mech is on its pilot's row), each line saying what tells two builds on one
  * chassis apart (Tech Level, slots filled, Scrap), and any column sorting it.
+ * A build over its chassis's slots wears the rule-breaking mark under its name,
+ * and the sort is remembered across a reload.
  */
 import type { Mech } from 'game-domain/schemas/mech'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { RuleBreakMark } from '../../components/app'
 import type { HeaderMenuItem, LedgerSort } from '../../components/index'
 import { chassisFact } from '../../lib/shelves/shelfItems'
 import { VITAL } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { buildShelvesCopy } from '../../messages/build-shelves'
-import { mechBuildFigures, nextSort, sortShelfRows } from './mechShelf.model'
+import {
+  mechBuildFigures,
+  nextSort,
+  rememberSort,
+  sortShelfRows,
+  storedSort,
+} from './mechShelf.model'
 import { ShelfLedger } from './ShelfLedger'
 import { inGame, MECH_COLUMNS, read } from './shelfColumns'
 
@@ -37,7 +46,8 @@ export function MechShelf({
   action?: ReactNode
   empty: string
 }) {
-  const [sort, setSort] = useState<LedgerSort | undefined>(undefined)
+  // The sort is kept for the next visit (this browser's storage, a convenience).
+  const [sort, setSort] = useState<LedgerSort | undefined>(storedSort)
   const rows = mechs.map((mech) => {
     const r = readings.get(mech.id)
     const figures = mechBuildFigures(mech)
@@ -54,7 +64,7 @@ export function MechShelf({
       [VITAL.ep]: read(r, VITAL.ep),
       [VITAL.heat]: read(r, VITAL.heat),
     }
-    return { mech, name: mech.name, own, values }
+    return { mech, name: mech.name, own, values, over: figures.over }
   })
   return (
     <ShelfLedger
@@ -65,13 +75,25 @@ export function MechShelf({
       action={action}
       empty={empty}
       sort={sort}
-      onSort={(key) => setSort((now) => nextSort(now, key))}
+      onSort={(key) => {
+        const next = nextSort(sort, key)
+        rememberSort(next)
+        setSort(next)
+      }}
       rows={sortShelfRows(rows, sort, (row, key) => row.values[key]).map(
-        ({ mech, own, values }) => ({
+        ({ mech, own, values, over }) => ({
           id: mech.id,
           name: mech.name,
           href: `/mechs/${mech.id}`,
-          under: own.under,
+          // A build over its chassis's slots says so in words, under its name (R71).
+          under: over ? (
+            <>
+              {own.under}
+              <RuleBreakMark />
+            </>
+          ) : (
+            own.under
+          ),
           cells: MECH_COLUMNS.map((column) =>
             column.key === 'game' ? inGame(own.game) : (values[column.key] ?? '')
           ),

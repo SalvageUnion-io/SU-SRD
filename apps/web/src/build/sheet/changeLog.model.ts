@@ -29,9 +29,6 @@ export type LogChange = {
   before: Record<string, unknown>
 }
 
-/** How many of the newest changes offer Restore. */
-export const RESTORABLE = 10
-
 type NameOf = (slug: string) => string | undefined
 
 /** Fields that hold a list of the book's things, and how each is named. */

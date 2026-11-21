@@ -142,6 +142,24 @@ export function asReferencePattern(
   }
 }
 
+/**
+ * A saved pattern's loadout as the book lists one: a line a part, its copies
+ * counted ("Mini Mortar ×2"), for the loadout Ledger and its totals.
+ */
+export function countedLoadout(pattern: Pick<MechPattern, 'name' | 'systems' | 'modules'>): {
+  name: string
+  systems: { name: string; count: number }[]
+  modules: { name: string; count: number }[]
+} {
+  const counted = (parts: readonly RefEntity[]) => {
+    const lines = new Map<string, number>()
+    for (const part of parts) lines.set(part.name, (lines.get(part.name) ?? 0) + 1)
+    return [...lines].map(([name, count]) => ({ name, count }))
+  }
+  const { systems, modules } = patternLoadout(pattern)
+  return { name: pattern.name, systems: counted(systems), modules: counted(modules) }
+}
+
 /** The chassis a pattern is built on, or null for a slug the reference lacks. */
 export function patternChassis(pattern: Pick<MechPattern, 'chassisRef'>): RefChassis | null {
   return resolveChassisRef(pattern.chassisRef)

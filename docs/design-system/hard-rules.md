@@ -41,7 +41,7 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pe
 - **R65 An action says what it does, and all are there** (§1.4, R59) — Play's board lists them, never a sheet: every action of what the pilot and mech carry, the chassis ability and each companion's. A row's body is its effect alone: text the data tags `notInPlay` is left out, never reworded. Rows group by action type under Mini Slabs, Passive and untyped last.
 - **R67 A guided build asks four things** (N6, R16, L9) — a wizard has at most four steps, each a decision; what the book only tells you is its step's cited `Callout`, never a step. A step's options are a Ledger in select, the pick's card beside it. The bar is a reserved strip, never over content: the budget's count, Cancel, one rust Next.
 - **R70 Related units are one section** (R49) — a sheet's crew, mech, crawler and companions, each a link; in Read even empty, a place per slot.
-- **R71 One rule-breaking mark** — a count over its cap (slots, Cargo, Inventory) wears `RuleBreakMark` on its `StripFigure`, in words; the save toasts what broke and by how much. A printed over-slot pattern wears none.
+- **R71 One rule-breaking mark** — a count over its cap (slots, Cargo, Inventory) wears `RuleBreakMark` by its count, in words; the save toasts what broke and by how much. A printed over-slot pattern wears none.
 
 ## Measures
 
