@@ -22,6 +22,7 @@
 import { useSyncExternalStore } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
+import { localStore } from '../lib/safeLocalStorage'
 import { PLAY_TXN } from '../replica/provenance'
 import { CORE_MECHANIC_TABLE } from './tables.model'
 
@@ -84,6 +85,32 @@ export function recordPlayRoll(input: PlayRollInput): PlayRoll {
  */
 export function setPrivateRolls(on: boolean): void {
   privately = on
+}
+
+/** Where this browser keeps a Game's Private rolls switch: `'on'`, or absent for off. */
+const privateRollsKey = (gameId: string) => `su:play:private-rolls:${gameId}`
+
+/**
+ * Whether the Mediator left Private rolls on for this Game (r2 B2): this
+ * browser's `localStorage`, so the switch holds across a reload and leaving
+ * the screen. Off where storage is missing, blocked or empty.
+ */
+export function storedPrivateRolls(gameId: string): boolean {
+  try {
+    return localStore()?.getItem(privateRollsKey(gameId)) === 'on'
+  } catch {
+    return false
+  }
+}
+
+/** Remember the switch for this Game. */
+export function rememberPrivateRolls(gameId: string, on: boolean): void {
+  try {
+    if (on) localStore()?.setItem(privateRollsKey(gameId), 'on')
+    else localStore()?.removeItem(privateRollsKey(gameId))
+  } catch {
+    // A full or blocked store only costs the remembered switch.
+  }
 }
 
 /** Record an applied change (no dice): the Feed lists it, nothing is posted. */

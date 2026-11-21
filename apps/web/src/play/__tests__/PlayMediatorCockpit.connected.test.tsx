@@ -631,6 +631,24 @@ describe('the Opposition', () => {
     expect(postRoll).not.toHaveBeenCalled()
   })
 
+  test('Private rolls is remembered for the Game across a reload, and sits in the Rolls head (r2 B2)', async () => {
+    await renderCockpit()
+    await click(named('Private rolls'))
+    cleanup()
+    await renderCockpit()
+    const again = named('Private rolls')
+    expect(again.getAttribute('aria-pressed')).toBe('true')
+    expect(again.closest('section')?.querySelector('h2')?.textContent).toBe('Rolls')
+    // And the next roll after the reload is private at once.
+    await click(named('Roll the die on Morale'))
+    await waitFor(() => expect(logged()).toHaveLength(1))
+    expect(logged()[0]?.after.private).toBe(true)
+    await click(again)
+    cleanup()
+    await renderCockpit()
+    expect(named('Private rolls').getAttribute('aria-pressed')).toBe('false')
+  })
+
   test('a roll made before a reload is on the Feed from the Game’s log', async () => {
     await renderCockpit({
       'changeLog.rolls': [

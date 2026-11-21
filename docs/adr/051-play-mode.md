@@ -93,7 +93,8 @@ switch in the Play bar.
 
 Amends §8's "the Mediator private by default". A Mediator's roll is written to
 the Game's log as a player's is, so it survives a reload and reaches every
-Feed. The Mediator's Feed has a Private rolls switch, off by default. A roll
+Feed. The Mediator's Rolls pane has a Private rolls switch, off by default and
+remembered per Game in the browser (r2 B2). A roll
 made with it on carries `private: true` in its `change_log` row's `after`: the
 room serves that row only to Mediators and to its roller, drops the flag from
 any row a non-Mediator appends, and the client never posts it to Discord.

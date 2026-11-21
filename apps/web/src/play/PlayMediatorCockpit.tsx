@@ -55,7 +55,7 @@ import { PlayFeedSection } from './PlaySideColumn'
 import { mediatorTarget, PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
-import { setPrivateRolls } from './playRolls.model'
+import { rememberPrivateRolls, setPrivateRolls, storedPrivateRolls } from './playRolls.model'
 import { StopSignButton } from './StopSign'
 import { useGameSession } from './useGameSession'
 import { usePlayChannelBinding } from './usePlayChannel'
@@ -79,13 +79,18 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   const binding = usePlayChannelBinding({ gameId })
   // The Mediator's side (play.md §10): every roll goes on the Game's log, so
   // the players' Feeds show it and a reload keeps it, and posts while a channel
-  // is bound; with Private rolls on, a roll is kept from the players and from
-  // Discord. Nothing awaits the Mediator's answer, so no proposal is on its Feed.
-  const [privately, setPrivately] = useState(false)
-  useEffect(() => {
-    setPrivateRolls(privately)
-    return () => setPrivateRolls(false)
-  }, [privately])
+  // is bound; with Private rolls on (the Rolls pane's switch), a roll is kept
+  // from the players and from Discord. Nothing awaits the Mediator's answer, so no proposal is on its Feed.
+  // The switch is remembered per Game (r2 B2): a secret roll that goes public
+  // cannot be taken back, so a reload never turns it off.
+  const [privately, setPrivately] = useState(() => storedPrivateRolls(gameId))
+  // Set while rendering, so a roll made the moment the screen opens is private too.
+  setPrivateRolls(privately)
+  useEffect(() => () => setPrivateRolls(false), [])
+  const togglePrivately = () => {
+    rememberPrivateRolls(gameId, !privately)
+    setPrivately(!privately)
+  }
   const side = useSideFeed({
     target: mediatorTarget(mediator.gameId),
     rollerName: 'Mediator',
@@ -135,16 +140,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             setFocusTo(true)
           }}
         />
-        <PlayFeedSection
-          side={side}
-          idPrefix="mediate"
-          canWrite={mediator.canWrite}
-          actions={
-            <Toggle size="compact" pressed={privately} onClick={() => setPrivately((on) => !on)}>
-              {playCopy('privateRolls')}
-            </Toggle>
-          }
-        />
+        <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} />
       </>
     ),
     opposition: running ? (
@@ -152,7 +148,19 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     ) : (
       <PlayMediatorOpposition mediator={mediator} rollFor={rollFor} />
     ),
-    tables: <MediatorTablesAndFeed mediator={mediator} side={side} />,
+    // Private rolls sits where the rolls are (r2 B2): the Rolls pane's head,
+    // which is the phone's Rolls tab.
+    tables: (
+      <MediatorTablesAndFeed
+        mediator={mediator}
+        side={side}
+        actions={
+          <Toggle size="compact" pressed={privately} onClick={togglePrivately}>
+            {playCopy('privateRolls')}
+          </Toggle>
+        }
+      />
+    ),
     // The Reference beside the board (the player's `SrdExplorer`), so a rule is read
     // without covering the seats; a phone opens it from the ⋯.
     rules: <SrdExplorer />,
