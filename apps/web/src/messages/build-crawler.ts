@@ -19,7 +19,7 @@ export const crawlerCopy = messages({
   whatTheCrawlerIsIts: 'What the crawler is, its build and history.',
   scrapPool: 'Scrap Pool',
   theGroupsBankedScrapBucketed:
-    'The group’s banked Scrap, bucketed by tech level — including whatever your Pilots didn’t spend crafting their Mechs. Optional; leave at 0 for a fresh start.',
+    'The group’s banked Scrap, bucketed by tech level: add the Tech 1 Scrap each Mech’s review said it banks here.',
   scrapT: 'Scrap T{value}',
   t: 'T{slice}',
   sp: 'SP',
