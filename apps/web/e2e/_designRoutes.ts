@@ -228,8 +228,9 @@ export function expectWithinBaseline(
  * A signed-out corpus gate (hard rule R0): walk `routes` (the whole reference
  * corpus by default, `corpusRoutes`) and fail on every finding `find` makes on
  * a view, bar a pending rule's (`holdPending`). There is no baseline. With
- * `draws`, every view must show what it matches, so the gate never passes by
- * reading nothing.
+ * `draws`, every view must draw at least one thing it matches, so the gate
+ * never passes by reading nothing. A match the reader cannot see (in a shut
+ * fold, R43's one) is no match: the scans read only what is drawn.
  */
 export async function expectCorpusClean(
   page: Page,
@@ -251,7 +252,8 @@ export async function expectCorpusClean(
     page,
     async (view) => {
       if (draws) {
-        await expect(page.locator(draws).first(), `${view.where} draws ${draws}`).toBeVisible()
+        const drawn = page.locator(draws).filter({ visible: true }).first()
+        await expect(drawn, `${view.where} draws ${draws}`).toBeVisible()
       }
       return place(view.where, await find(view))
     },

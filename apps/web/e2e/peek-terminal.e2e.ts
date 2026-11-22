@@ -214,12 +214,17 @@ test('a Peek of every kind is terminal', { tag: '@pr' }, async ({ page }) => {
     // opener: open every row, as a reader reaching for them would.
     const shut = page.locator('.su-open__toggle[aria-expanded="false"]')
     for (let left = await shut.count(); left > 0; left--) await shut.first().click()
+    // A class page's Ability unfolds its rules in place (R43's one fold), the
+    // roll Mini of its action among them: unfold each, as a reader would.
+    const folded = page.locator('details.su-ability-open:not([open]) > summary')
+    for (let left = await folded.count(); left > 0; left--) await folded.first().click()
     const addresses = await page.evaluate(() =>
       [...document.querySelectorAll('[data-peek]')]
         .filter((el) => !el.closest('[data-peek-popup], [role="listbox"]'))
+        // Only a trigger a reader can reach: drawn, and not in a shut fold.
         .filter((el) => {
           const r = el.getBoundingClientRect()
-          return r.width > 0 && r.height > 0
+          return r.width > 0 && r.height > 0 && el.checkVisibility()
         })
         .map((el) => el.getAttribute('data-peek') ?? '')
     )

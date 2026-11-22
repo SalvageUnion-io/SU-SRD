@@ -283,6 +283,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R42: ['_entityFrames.ts#bottom-edge', 'DocPanel.test.tsx'],
   R43: [
     '_pageWhole.ts#fold',
+    'pageWhole.test.ts',
     'pagePresentation.test.tsx',
     'abilityTreeRelations.test.tsx',
     'rollTablePage.test.ts',

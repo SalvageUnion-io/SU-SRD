@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { itemHref } from '../lib/entityHref'
@@ -33,6 +34,7 @@ export function ReferenceAbilityTrack({
   track,
   titleAs,
   size = 'compact',
+  rules,
 }: {
   abilities: readonly RefAbility[]
   track: TreeTrack
@@ -40,6 +42,8 @@ export function ReferenceAbilityTrack({
   titleAs?: 'h3'
   /** `token` where the track sits inside a level-1 frame (a path card). */
   size?: 'compact' | 'mini'
+  /** Compact only: what opens in place under each Ability (a class page's rules, r5 E5). */
+  rules?: (ability: RefAbility) => ReactNode
 }) {
   return (
     <AbilityTrack
@@ -57,16 +61,19 @@ export function ReferenceAbilityTrack({
             wholeName
           />
         ) : (
-          <Entity
-            size="compact"
-            entity={ability}
-            mode={{ kind: 'link', href: abilityHref(ability) }}
-            omit={OMIT_KIND}
-            lead
-            peek
-            titleAs={titleAs}
-            wholeName
-          />
+          <>
+            <Entity
+              size="compact"
+              entity={ability}
+              mode={{ kind: 'link', href: abilityHref(ability) }}
+              omit={OMIT_KIND}
+              lead
+              peek
+              titleAs={titleAs}
+              wholeName
+            />
+            {rules?.(ability)}
+          </>
         )
       }
     />

@@ -455,6 +455,14 @@ describe('a class page links its abilities', () => {
     expect(links.map(([, href]) => href)).toContain('/abilities/hacking-kit/')
     expect(links.every(([, , attrs]) => !attrs?.includes('target='))).toBe(true)
   })
+
+  it('each ability on its track opens its full rules and roll table in place (r5 E5)', () => {
+    const opens = html.split('<details class="su-ability-open"').slice(1)
+    expect(opens.length).toBeGreaterThan(2)
+    const dos = opens.find((one) => one.includes('Denial of Service Attack'))
+    // The rules card: its action's roll table is inside the row's own details.
+    expect(dos?.slice(0, dos.indexOf('</details>'))).toContain('su-roll')
+  })
 })
 
 /**
