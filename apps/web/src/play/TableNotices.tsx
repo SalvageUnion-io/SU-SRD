@@ -44,6 +44,7 @@ import { useTableAct, useTableRead } from '../replica/useTable'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { gamePilots } from './play.model'
 import { acceptedUndo, proposalChange } from './proposalAnswer.model'
+import { downtimeWaits, firstSight, onHub } from './sessionNotices.model'
 import type { Notice } from './TableNoticeStack'
 import { NoticeStack } from './TableNoticeStack'
 import type { Heard, KnownGame } from './tableNotices.model'
@@ -68,17 +69,6 @@ import { useStopSign } from './useStopSign'
 
 const STRONG = { fontWeight: tokens.weight.bold } satisfies React.CSSProperties
 
-/** A running Downtime whose current step this pilot has not taken (r6 C5). */
-function downtimeWaits(
-  downtime: { running: boolean; stepIndex: number | null; doneSteps: readonly number[] } | null
-): boolean {
-  if (downtime === null || !downtime.running) return false
-  return !downtime.doneSteps.includes(downtime.stepIndex ?? 0)
-}
-
-/** The Games page: each Game's card carries its one Join session (r6 C4). */
-const GAMES_HUB = /^\/games\/?$/
-
 /** The Mediator's screen, whose Propose dock says every answer (r5 B7). */
 const MEDIATE_PATH = /\/mediate\/?$/
 
@@ -87,9 +77,6 @@ const dismissed = new Set<string>()
 
 /** Where a dismissed hand over is remembered: it stays news for days, a tab does not. */
 const ROLE_SEEN = 'su-role-notice-seen'
-
-/** The Games page is open (`GAMES_HUB`). */
-const onHub = (pathname: string) => GAMES_HUB.test(pathname)
 
 /** The hand overs this browser has dismissed, by event id. */
 function seenRoles(): string[] {
@@ -107,30 +94,6 @@ function rememberRole(id: string): void {
   } catch {
     // Storage is off: the notice is dismissed for this tab alone.
   }
-}
-
-/** Where the session ends this browser has been told of are remembered (r6 C1). */
-const ENDED_SEEN = 'su-session-ended-seen'
-
-/** The ends shown in this tab: they stay up until it moves on or dismisses them. */
-const showingEnded = new Set<string>()
-
-/**
- * "Session ended" is news the first time it is seen, never again (r6 C1): it
- * stays in the tab that first showed it, and no other visit pins it.
- */
-function firstSight(key: string): boolean {
-  if (showingEnded.has(key)) return true
-  try {
-    const kept: unknown = JSON.parse(localStorage.getItem(ENDED_SEEN) ?? '[]')
-    const seen = Array.isArray(kept) ? kept.filter((k) => typeof k === 'string') : []
-    if (seen.includes(key)) return false
-    localStorage.setItem(ENDED_SEEN, JSON.stringify([...seen, key].slice(-20)))
-  } catch {
-    // Storage is off: it is said in this tab alone.
-  }
-  showingEnded.add(key)
-  return true
 }
 
 /**
