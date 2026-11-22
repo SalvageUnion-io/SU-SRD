@@ -82,17 +82,17 @@ const ROW_END = {
 /** The saved sign sits at the row's start, away from the button. */
 const SIGN = { margin: 0, marginRight: 'auto' } satisfies CSSProperties
 
-const SIGN_COPY = {
-  saving: 'planSaving',
-  saved: 'planSaved',
-  failed: 'planNotSaved',
-} as const
+/** A save sign's words, each key said outright so the catalogue sees it. */
+function signWords(state: PlanSaveSign['state']): string {
+  if (state === 'saving') return playGamesCopy('planSaving')
+  return state === 'saved' ? playGamesCopy('planSaved') : playGamesCopy('planNotSaved')
+}
 
 /** Whether what was last typed here is kept; said to a screen reader as it changes. */
 function SaveSign({ sign, at }: { sign: PlanSaveSign | null; at: string }) {
   return (
     <p role="status" className={CAPS} style={SIGN}>
-      {sign?.at === at ? playGamesCopy(SIGN_COPY[sign.state]) : ''}
+      {sign?.at === at ? signWords(sign.state) : ''}
     </p>
   )
 }

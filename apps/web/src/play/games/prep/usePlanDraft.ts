@@ -11,7 +11,7 @@ import { reportWriteFailure } from '../../../lib/runWrite'
 import { useGamesCall } from '../../../replica/roomCalls'
 
 /** How long typing rests before the draft is saved. */
-export const PLAN_AUTOSAVE_MS = 800
+const PLAN_AUTOSAVE_MS = 800
 
 /** Where the last edit was (`notes`, or a session's id) and how far its save has got. */
 export type PlanSaveSign = { at: string; state: 'saving' | 'saved' | 'failed' }

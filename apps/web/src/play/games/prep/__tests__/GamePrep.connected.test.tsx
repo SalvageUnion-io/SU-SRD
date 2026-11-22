@@ -37,7 +37,8 @@ const { useUnits } = await import('../../../../replica/units')
 const { hydrateStores } = await import('../../../../components/__tests__/hydrateStores')
 const { useSheetModeStore } = await import('../../../../build/sheet/sheetMode.model')
 const { GamePrep } = await import('../GamePrep')
-const { PLAN_AUTOSAVE_MS } = await import('../usePlanDraft')
+/** `usePlanDraft`'s rest before a save, which it keeps to itself (the rules-home gate). */
+const PLAN_AUTOSAVE_MS = 800
 
 withSignedInBackend()
 
