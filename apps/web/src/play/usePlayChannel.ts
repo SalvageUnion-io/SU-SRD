@@ -130,7 +130,8 @@ export function usePlayRollDispatch({
   useEffect(
     () =>
       onPlayRoll((roll) => {
-        if (!isDiceRoll(roll)) return
+        // A line in a slot is the Game's to read even without dice: what a wreck yielded (r5 B2).
+        if (!isDiceRoll(roll) && roll.slot === undefined) return
         const { target: t, rollerName: name, canWrite: writable } = latest.current
         if (t.gameId !== null && writable) {
           void sendChangeLog([
@@ -146,13 +147,14 @@ export function usePlayRollDispatch({
                 ...(roll.private ? { private: true as const } : {}),
                 // The Opposition's names stay in the room (ADR-051 §9b).
                 ...(roll.veiled ? { veiled: veiledRollDescription(roll) } : {}),
+                ...(roll.slot === undefined ? {} : { slot: roll.slot }),
               },
               roll.at
             ),
           ])
         }
         // A private roll stays off Discord: nothing mirrors it out of the room.
-        if (!roll.private) send(roll)
+        if (!roll.private && isDiceRoll(roll)) send(roll)
       }),
     [send]
   )

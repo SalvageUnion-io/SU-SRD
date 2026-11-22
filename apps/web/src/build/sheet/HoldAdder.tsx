@@ -41,9 +41,9 @@ function coerceTl(raw: string): number {
  *   - `Cargo` (default) — a free-text SEALED unit lot (name + slot cost) via
  *     `makeUnitLot`, the original behaviour.
  *   - `Scrap` — an arbitrary bulk SCRAP lot at a chosen tech level (1–6) via
- *     `makeScrapLot`, so a crawler (or mech) can stow scrap by hand. This is
- *     the physical-cargo path; the crawler's abstract scrap POOL is not
- *     edited here.
+ *     `makeScrapLot`, so a crawler (or mech) can stow scrap by hand. Into a
+ *     mech it joins the row of its Tech Level; into the Storage Bay it goes
+ *     to the crawler's scrap pool, the one Scrap it has (r5 B3).
  * The verb is the side's intake word — 'Load' into the mech hold, 'Stow' into
  * the crawler Storage Bay.
  */

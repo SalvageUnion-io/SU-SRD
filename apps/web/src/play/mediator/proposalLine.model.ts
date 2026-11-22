@@ -5,14 +5,14 @@
  */
 
 import type { ProposalField, ProposalTarget } from 'game-domain/games/proposals'
-import { clampProposalValue, fieldLabel } from 'game-domain/games/proposals'
+import { clampProposalValue, fieldLabel, proposalValueText } from 'game-domain/games/proposals'
 import type { SentProposal } from '../../rooms/game/proposals'
 
 export type { SentProposal }
 
 /** "Judge · HP → 4 · "Ejection burn"". */
 export function proposalLine(p: SentProposal): string {
-  const value = p.after === null || p.after === undefined ? '—' : String(p.after)
+  const value = proposalValueText(p.after)
   return [
     p.targetName ?? 'A sheet',
     `${fieldLabel(p.field)} → ${value}`,

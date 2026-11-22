@@ -39,6 +39,15 @@ select.su-container-select {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* A Game's doors (Start session, Mediate, Prep, Play) are the Mediator's and
+   the player's way in from a phone: there each is a full touch target, not a
+   24px chip (r5 B13). */
+@media (pointer: coarse) {
+  .su-hub-game [data-role-door].su-btn {
+    min-height: var(--size-full);
+  }
+}
+
 /* A crew line is a link to its sheet, a line under the Game's doors: it
    stands WCAG 2.2's 24px target (2.5.8). */
 .su-hub-game .su-entity-linked > a.su-entity-mini {

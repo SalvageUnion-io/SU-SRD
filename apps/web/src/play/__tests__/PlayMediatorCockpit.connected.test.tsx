@@ -488,6 +488,27 @@ describe('the table', () => {
     ])
   })
 
+  test('a boarded pilot’s seat aims at the Mech, the pilot one press away; Enter sends (r5 B7)', async () => {
+    await renderCockpit()
+    await click(screen.getByRole('button', { name: /^Bonesaw \(Pilot\), here/ }))
+    const dock = region('Propose')
+    expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-buzzard')
+    await click(dock.getByRole('button', { name: 'Aim at Bonesaw' }))
+    expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-bonesaw')
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('Amount'), { target: { value: '2' } })
+    })
+    await act(async () => {
+      fireEvent.submit(dock.getByLabelText('Amount').closest('form') as HTMLFormElement)
+    })
+    expect(sent()).toEqual([
+      {
+        name: 'ops.propose',
+        args: { entityId: 'row-bonesaw', entityType: 'pilot', field: 'currentHP', after: 5 },
+      },
+    ])
+  })
+
   test('Set to still proposes the value itself', async () => {
     await renderCockpit()
     await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
@@ -617,7 +638,11 @@ describe('the Opposition', () => {
           ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
       ).toBe(true)
     )
-    expect(names()).toEqual(['mediator.updateNpc'])
+    // The roll is kept with the wreck first (r5 B1), then the wreck is claimed.
+    expect(sent().map((a) => Object.keys((a.args as { patch: object }).patch))).toEqual([
+      ['salvageRoll'],
+      ['salvaged'],
+    ])
     await restoreCrawler()
   })
 
@@ -687,6 +712,9 @@ describe('the Opposition', () => {
     await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
     const offer = await screen.findByRole('button', { name: 'Propose 3 HP from Raider to…' })
     expect(offer.textContent).toContain('Propose 3 HP to…')
+    // Beside the result, above the table's rows, in view after the roll (r5 B6).
+    const firstRow = offer.closest('.su-play-resolve')?.querySelector('.su-roll__row') as Element
+    expect(offer.compareDocumentPosition(firstRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     acts.length = 0
     await click(offer)
     // HP damage goes to Pilots, never to a Mech; each says what it is left with.

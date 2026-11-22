@@ -53,6 +53,7 @@ const TRAY_PATCH = z.object({
   name: z.string().optional(),
   lastMediatorRoll: z.unknown().optional(),
   salvaged: z.literal(true).optional(),
+  salvageRoll: z.unknown().optional(),
   important: z.boolean().optional(),
   maxEp: z.number().optional(),
   heatCap: z.number().optional(),

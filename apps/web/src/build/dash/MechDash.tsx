@@ -61,6 +61,7 @@ import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
+import { CargoCatTag } from '../sheet/CargoCatTag'
 import { CargoLotControls } from '../sheet/CargoLotItem'
 import { ChangeChassis, ChassisModderControl } from '../sheet/chassisControls'
 import { HoldAdder } from '../sheet/HoldAdder'
@@ -521,7 +522,7 @@ export function MechDash({
                   rows: lots.map((lot) => ({
                     id: lot.id,
                     name: lot.name,
-                    meta: lot.cat === 'SCRAP' ? undefined : lot.cat,
+                    meta: lot.cat === 'SCRAP' ? undefined : <CargoCatTag cat={lot.cat} />,
                     controls: edit ? (
                       <CargoLotControls
                         lot={lot}
@@ -549,6 +550,10 @@ export function MechDash({
             {/* Said on the page, not only in a tooltip a touch screen never shows. */}
             {edit && cargo.crawlerLocked !== null && (
               <p className="su-dash-quiet">{cargo.crawlerLocked}</p>
+            )}
+            {/* Why Stow is greyed, said on the page (r5 B4): it needs a crawler's Storage Bay. */}
+            {edit && crawler === null && lots.length > 0 && (
+              <p className="su-dash-quiet">{buildSheetCopy('stowNeedsCrawler')}</p>
             )}
             {edit && (
               <HoldAdder

@@ -2,7 +2,7 @@
  * PlayMediatorSide — the Mediator's end column's panes (play.md §10): the running encounter's Notes, the player's Tables and Feed sections (the Tables pane), then the Propose dock (the Propose pane).
  *
  *  - **Briefing** (ADR-059 §5; `RunningNotes`, on the Opposition tab below `lg`): the running encounter's, what the Pilots
- *    see, and Tell the table, which sends it as an alert. Shown only while
+ *    see, and Send the briefing, which sends it as an alert. Shown only while
  *    one with a briefing is running, behind the `encounterSheet` flag.
  *  - **Notes** (ADR-059): the running encounter's, the Mediator's alone,
  *    shown only while one with notes is running.

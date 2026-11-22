@@ -116,6 +116,15 @@ Mediator's) deletes the alert's `change_log` row, so it leaves every strip and
 Feed, and writes one `withdrawn` event ("Mediator withdrew an alert"). What
 was posted to the bound channel stays there, followed by that line.
 
+**A wreck keeps its salvage roll (r5 B1, B2).** A downed Mech's tray record
+may carry `salvageRoll` (`{ roll, rolledAt }`), set by `mediator.updateNpc`
+while it is down and unsalvaged, so its band outlasts leaving Mediate. A
+Mediator's roll row may carry `slot` (`wreck:<npc id>`): appending one deletes
+the slot's earlier `roll` row, so a re-roll, and the line that says what was
+taken and where, stay one Feed line. A haul to a crew Mech is a proposal on
+`cargoLots` holding the lots it adds; accepting adds them to the hold as it
+is then. Discord keeps what it was posted.
+
 All of it is additive and optional: no table or column is added, and a room with
 neither reads as before.
 

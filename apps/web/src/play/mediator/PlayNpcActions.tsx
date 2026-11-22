@@ -16,7 +16,8 @@
  * tray's own (`TrayWrites.morale`): the Morale table, open, its stamp the
  * roll, the NPC's last roll its marked row, kept on the NPC and in its box.
  *
- * A weapon's roll offers its hit (r4 D2): "Propose 3 HP to…" lists the seats
+ * A weapon's roll offers its hit (r4 D2), beside the result at the top of the
+ * resolve, above the table (r5 B6): "Propose 3 HP to…" lists the seats
  * that take that damage (`hitTargets`), and pressing one sends the proposal,
  * the weapon its reason. Nothing is offered on the table's Failure rows, a
  * miss; the player still decides whether a proposal applies.
@@ -24,6 +25,7 @@
 
 import type { ProposalTarget } from 'game-domain/games/proposals'
 import { PROPOSAL_REASON_MAX } from 'game-domain/games/proposals'
+import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { resultForTable, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import {
@@ -35,6 +37,7 @@ import {
   Slab,
   TraitProse,
   toast,
+  tokens,
 } from '../../components/index'
 import { actionEffect } from '../../lib/rules/actionEffect'
 import { mediatorCopy } from '../../messages/play-mediator'
@@ -55,6 +58,17 @@ export type NpcHit = {
   /** Resolves when the server has the proposal; rejects with its refusal, already said. */
   onPropose: (args: ProposeArgs) => Promise<void>
 }
+
+/** How the book names the owning chassis in its abilities' text. */
+const CHASSIS_TOKEN = '[(CHASSIS)]'
+
+/** A roll's result and its hit, on one line that wraps. */
+const RESULT = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties
 
 /** The NPC Action table (Workshop Manual): what every NPC action's roll reads. */
 const NPC_ACTION = 'NPC Action'
@@ -158,7 +172,16 @@ function NpcActionRow({
   rollFor: typeof rollForTable
 }) {
   // The same row text as the player's board: the effect alone.
-  const effect = useMemo(() => actionEffect(entry.action), [entry.action])
+  // A chassis ability names its chassis by a token: the row reads the name (r5 B9).
+  const effect = useMemo(
+    () =>
+      actionEffect(entry.action).map((block) =>
+        typeof block.value === 'string' && block.value.includes(CHASSIS_TOKEN)
+          ? { ...block, value: block.value.replaceAll(CHASSIS_TOKEN, entry.source) }
+          : block
+      ),
+    [entry.action, entry.source]
+  )
   const model = useMemo(
     () => ({ ...toEntityModel(entry.action), prose: effect }),
     [entry.action, effect]
@@ -215,31 +238,37 @@ function NpcActionRow({
               body: {
                 children: (
                   <div className="su-play-resolve">
+                    {/* The result and its hit sit at the top, above the table (r5 B6). */}
+                    {rolled ? (
+                      <div style={RESULT}>
+                        <p className="su-play-resolve__note" aria-live="polite">
+                          {rolled.die} · {rolled.band}
+                        </p>
+                        {!missed(rolled.band) && damage && hit ? (
+                          <HitOffer npc={npc} weapon={entry.name} damage={damage} hit={hit} />
+                        ) : null}
+                      </div>
+                    ) : null}
                     <PlayRollInstrument
                       table={NPC_ACTION}
                       roll={rolled?.die ?? null}
                       onRoll={live ? () => void roll() : undefined}
                     />
-                    {rolled ? (
-                      <p className="su-play-resolve__note" aria-live="polite">
-                        {rolled.die} · {rolled.band}
-                      </p>
-                    ) : null}
-                    {rolled && !missed(rolled.band) && damage && hit ? (
-                      <HitOffer npc={npc} weapon={entry.name} damage={damage} hit={hit} />
-                    ) : null}
                   </div>
                 ),
               },
             }
-          : typeof first === 'string'
-            ? {
-                body: {
-                  text: false,
-                  children: <TraitProse as="p" className="su-play-act__effect" text={first} />,
-                },
-              }
-            : {})}
+          : {
+              // Always contentful, so a weapon with no effect text still shows its
+              // range, damage and traits before Use (r5 B8).
+              body: {
+                text: false,
+                children:
+                  typeof first === 'string' ? (
+                    <TraitProse as="p" className="su-play-act__effect" text={first} />
+                  ) : null,
+              },
+            })}
       />
     </li>
   )

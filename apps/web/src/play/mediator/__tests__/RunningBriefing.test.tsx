@@ -1,6 +1,6 @@
 /**
  * The running encounter's briefing (ADR-059 §5): shown as written, sent to the
- * table only when the Mediator presses Tell the table.
+ * table only when the Mediator presses Send the briefing.
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
@@ -35,14 +35,14 @@ async function renderBriefing(onTell: (message: string) => Promise<void>, canWri
 }
 
 describe('a running briefing', () => {
-  test('shows as written and sends only on Tell the table', async () => {
+  test('shows as written and sends only on Send the briefing (r5 B10)', async () => {
     const onTell = mock(async (_message: string) => {})
     await renderBriefing(onTell)
     expect(screen.getByRole('heading', { name: 'Briefing' })).toBeTruthy()
     expect(screen.getByText(/Something moves on the gantry/)).toBeTruthy()
     expect(onTell).not.toHaveBeenCalled()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Tell the table' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Send the briefing' }))
     })
     expect(onTell).toHaveBeenCalledWith(
       'Smoke rises from the crusher.\nSomething moves on the gantry.'
@@ -55,7 +55,7 @@ describe('a running briefing', () => {
       throw new Error('refused')
     })
     await renderBriefing(onTell)
-    const button = screen.getByRole('button', { name: 'Tell the table' }) as HTMLButtonElement
+    const button = screen.getByRole('button', { name: 'Send the briefing' }) as HTMLButtonElement
     await act(async () => {
       fireEvent.click(button)
     })
@@ -64,7 +64,7 @@ describe('a running briefing', () => {
 
   test('read-only, nothing can be sent', async () => {
     await renderBriefing(async () => {}, false)
-    const button = screen.getByRole('button', { name: 'Tell the table' }) as HTMLButtonElement
+    const button = screen.getByRole('button', { name: 'Send the briefing' }) as HTMLButtonElement
     expect(button.disabled).toBe(true)
   })
 })

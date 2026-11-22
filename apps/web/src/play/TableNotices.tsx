@@ -63,6 +63,9 @@ import { useStopSign } from './useStopSign'
 
 const STRONG = { fontWeight: tokens.weight.bold } satisfies React.CSSProperties
 
+/** The Mediator's screen, whose Propose dock says every answer (r5 B7). */
+const MEDIATE_PATH = /\/mediate\/?$/
+
 /** What this tab dismissed: alerts by id, a session's bar by when it started. */
 const dismissed = new Set<string>()
 
@@ -279,6 +282,8 @@ function GameNotices({
     }
     for (const event of next.toast) {
       if (pinnedSays(event, pinned, viewerId)) continue
+      // On Mediate the Propose dock's Newest proposal line says a player's answer (r5 B7).
+      if (event.kind === 'proposal' && mediator && MEDIATE_PATH.test(pathname)) continue
       // A hand over to the viewer is said to them, not about them.
       const mine = event.kind === 'role' && event.about === viewerId
       toast(mine ? playCopy('youNowMediate') : event.text, {

@@ -58,6 +58,8 @@ export type TrayNpc = {
   down: boolean
   /** Its wreck has been salvaged or scrapped: nothing is left to take. */
   salvaged: boolean
+  /** Its wreck's Mech Salvage roll, kept until it is salvaged (r5 B1); null before one. */
+  salvageRoll: number | null
   lastRoll: MoraleRoll | null
   /** What marking it important adds; null when it cannot be (a Bio-Titan, Meld). */
   track: ImportantTrack | null
@@ -83,6 +85,12 @@ const isRefSchema = (value: unknown): value is EncounterRefSchema =>
 
 const num = (value: unknown, fallback: number): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback
+
+/** A kept Mech Salvage die, 1–20, or null. */
+function readSalvageRoll(value: unknown): number | null {
+  const roll = (value as { roll?: unknown } | null)?.roll
+  return typeof roll === 'number' && Number.isInteger(roll) && roll >= 1 && roll <= 20 ? roll : null
+}
 
 /** Read a `mediator.npcs` row without trusting its body's shape. */
 export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
@@ -133,6 +141,7 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     statKind,
     down: isDown(currentHp, maxHp),
     salvaged: body.salvaged === true,
+    salvageRoll: readSalvageRoll(body.salvageRoll),
     lastRoll: roll && typeof roll.roll === 'number' ? roll : null,
     track,
     important,
