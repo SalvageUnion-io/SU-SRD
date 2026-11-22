@@ -11,7 +11,13 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { installServerMocks } from '../../../components/__tests__/serverMock'
-import { acts, answerActs, closeRooms, openRooms } from '../../../replica/__tests__/fakeRooms'
+import {
+  acts,
+  answerActs,
+  batches,
+  closeRooms,
+  openRooms,
+} from '../../../replica/__tests__/fakeRooms'
 
 const serverMocks = await installServerMocks()
 
@@ -21,6 +27,7 @@ const { SyncProvider } = await import('../../../replica/SyncProvider')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
 const { useUnits } = await import('../../../replica/units')
+const { hold } = await import('../../../replica/replica')
 
 afterAll(() => {
   serverMocks.restore()
@@ -146,6 +153,71 @@ describe('ChangeLogDrawer', () => {
     expect(restored).toEqual([['name'], ['chassisRef', 'systems']])
   })
 
+  test('a change taken back says so and has no button; its undo has none either (r4 E2)', async () => {
+    await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1' }))
+    openRooms(null)
+    const entries = [
+      row({
+        _id: 'op2:equipment',
+        field: 'equipment',
+        before: [],
+        after: ['rope'],
+        source: 'live-sheet-undo:op1',
+      }),
+      row({ _id: 'op1:equipment', field: 'equipment', before: ['rope'], after: [] }),
+      row({ _id: 'op0:name', field: 'name', before: 'A', after: 'B' }),
+    ]
+    answerActs(({ name }) => (name === 'changeLog.forEntity' ? entries : undefined))
+
+    connected(
+      <ChangeLogDrawer
+        entityType="pilot"
+        entityId="p1"
+        entityName="Leaky"
+        open
+        onOpenChange={() => {}}
+        onRestore={() => {}}
+      />
+    )
+
+    await waitFor(() => expect(screen.getByText(/^Removed /)).toBeTruthy())
+    expect(screen.getByText('Put back')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Put back/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Remove:/ })).toBeNull()
+    expect(screen.getAllByRole('button', { name: /^Set back to A/ })).toHaveLength(1)
+    // To the second: ten quick edits read apart.
+    expect(document.querySelector('time')?.textContent).toMatch(/\d{1,2}:\d{2}:\d{2}/)
+  })
+
+  test('a change that arrives while the dialog is open goes under Just now (r4 E2)', async () => {
+    await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1' }))
+    openRooms(null)
+    let entries = [row({ _id: 'op0:name', field: 'name', before: 'A', after: 'B' })]
+    answerActs(({ name }) => (name === 'changeLog.forEntity' ? entries : undefined))
+
+    connected(
+      <ChangeLogDrawer
+        entityType="pilot"
+        entityId="p1"
+        entityName="Leaky"
+        open
+        onOpenChange={() => {}}
+      />
+    )
+    await waitFor(() => expect(screen.getByText(/Name:/)).toBeTruthy())
+    expect(screen.queryByText('Just now')).toBeNull()
+
+    entries = [row({ _id: 'op1:callsign' }), ...entries]
+    // The unit's head moves: the log is asked again.
+    act(() => {
+      hold('pilot', pilotFixture({ id: 'p1', callsign: 'Wraith' }), { headSeq: 9 })
+    })
+    await waitFor(() => expect(screen.getByText('Just now')).toBeTruthy())
+    const justNow = screen.getByRole('region', { name: 'Just now' })
+    expect(justNow.textContent).toContain('Callsign')
+    expect(justNow.textContent).not.toContain('Name:')
+  })
+
   test('shows an empty state when the entity has no logged changes', async () => {
     connected(
       <ChangeLogDrawer
@@ -206,5 +278,42 @@ describe('Sheet — Change Log menu wiring', () => {
 
     // The drawer (ModalShell dialog) mounts with the "Change Log" title.
     await waitFor(() => expect(screen.getByText(/kept with your account/i)).toBeTruthy())
+  })
+
+  test('Ctrl+Z steps back one change at a time, each write naming the change it took back (r4 E3)', async () => {
+    const pilot = await useUnits.getState().create('pilot', basePilotInput)
+    openRooms(null)
+    const entries = [
+      row({ _id: 'op2:callsign', field: 'callsign', before: 'Spook', after: 'Ghost' }),
+      row({ _id: 'op1:motto', field: 'motto', before: 'Old words.', after: 'Everything burns.' }),
+    ]
+    answerActs(({ name }) => (name === 'changeLog.forEntity' ? entries : undefined))
+    connected(<Sheet kind="pilot" id={pilot.id} />)
+    const sources = () =>
+      batches.flatMap((batch) => batch.ops.map((op) => (op as { source?: string }).source))
+
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true })
+    })
+    await waitFor(() => expect(sources()).toContain('live-sheet-undo:op2'))
+    expect(useUnits.getState().get('pilot', pilot.id)?.callsign).toBe('Spook')
+
+    // The log has not caught up: the next press still steps one further back.
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true })
+    })
+    await waitFor(() => expect(sources()).toContain('live-sheet-undo:op1'))
+    expect(useUnits.getState().get('pilot', pilot.id)?.motto).toBe('Old words.')
+    expect(sources().filter((source) => source === 'live-sheet-undo:op2')).toHaveLength(1)
+
+    // In a text field Ctrl+Z is the field's own.
+    const field = document.createElement('input')
+    document.body.append(field)
+    const before = batches.length
+    await act(async () => {
+      fireEvent.keyDown(field, { key: 'z', ctrlKey: true })
+    })
+    field.remove()
+    expect(batches.length).toBe(before)
   })
 })

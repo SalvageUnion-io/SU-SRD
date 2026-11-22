@@ -50,7 +50,7 @@ import { MoveToGameDialog } from '../shelves/MoveToGameDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { ChangeLogDrawer } from './ChangeLogDrawer'
 import { CrawlerLiveSheet } from './CrawlerLiveSheet'
-import { logDefaults, reverseChange } from './changeLog.model'
+import { logDefaults } from './changeLog.model'
 import type { EntityLookup } from './composition.model'
 import { resolveSheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
@@ -59,8 +59,9 @@ import { PilotLiveSheet } from './PilotLiveSheet'
 import { SheetFallback } from './SheetFallback'
 import { SheetModeToggle } from './SheetModeToggle'
 import { useSheetMode } from './sheetMode.model'
+import { useSheetUndo } from './sheetUndo.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
-import { leaveSheet, undoToast } from './undoToast.model'
+import { leaveSheet } from './undoToast.model'
 import type { OwnerOf } from './unitOwners.model'
 
 /**
@@ -263,6 +264,24 @@ export function Sheet({
       ? { ...linked, mech: linked.crawlerMechs.find((m) => holds('mech', m.id)) ?? null }
       : linked
   const resolved = resolveSheetEntity(own, kind, id)
+  // What an absent number stood for: the Change Log's reading, and Undo's.
+  const defaults = !resolved
+    ? {}
+    : logDefaults(
+        resolved.kind === 'pilot'
+          ? { ...resolved, crawler: composition.crawler }
+          : resolved.kind === 'mech'
+            ? { ...resolved, pilotAbilities: pilotAbilities ?? composition.pilot?.abilities }
+            : resolved
+      )
+  const undo = useSheetUndo({
+    kind,
+    id,
+    gameId: resolved?.entity.gameId ?? null,
+    storeState,
+    defaults,
+    blocked: readOnlyProp || writesBlocked || !resolved,
+  })
 
   if (!resolved) {
     return <SheetFallback kind={kind} status="missing" back={back} />
@@ -317,6 +336,12 @@ export function Sheet({
         id: 'change-log',
         label: buildSheetCopy('changeLog'),
         onSelect: () => setChangeLogOpen(true),
+      },
+      // One change back at a time, as Ctrl+Z does (r4 E3).
+      {
+        id: 'undo',
+        label: buildSheetCopy('undoLastChange'),
+        onSelect: writesBlocked || status !== 'live' ? undefined : () => void undo.undoLast(),
       },
     ],
     [
@@ -522,30 +547,8 @@ export function Sheet({
             entityName={entity.name}
             open={changeLogOpen}
             onOpenChange={setChangeLogOpen}
-            defaults={logDefaults(
-              resolved.kind === 'pilot'
-                ? { ...resolved, crawler: composition.crawler }
-                : resolved.kind === 'mech'
-                  ? {
-                      ...resolved,
-                      pilotAbilities: pilotAbilities ?? composition.pilot?.abilities,
-                    }
-                  : resolved
-            )}
-            onRestore={
-              writesBlocked
-                ? undefined
-                : (change, did) => {
-                    // The one change, reversed on the sheet as it is now (r3 B1).
-                    const now: Record<string, unknown> = storeState.get(kind, id) ?? entity
-                    const back = reverseChange(change, now)
-                    const prior = Object.fromEntries(
-                      Object.keys(back).map((field) => [field, now[field]])
-                    )
-                    patch(back)
-                    undoToast(did.done, () => patch(prior), id)
-                  }
-            }
+            defaults={defaults}
+            onRestore={writesBlocked ? undefined : (change, did) => void undo.reverse(change, did)}
           />
           {/*
             Mounted here, beside the Change Log, for the same reason: the dialog

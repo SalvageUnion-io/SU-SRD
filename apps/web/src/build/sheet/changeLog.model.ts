@@ -19,6 +19,7 @@ import { resolveClass } from '../../lib/classRef'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { SHEET_REDO_SOURCE, SHEET_UNDO_SOURCE } from '../../replica/provenance'
 import type { EntityLogRow } from '../../rooms/ops'
 
 /** One line of a change: a sentence, or a named value's before and after. */
@@ -39,6 +40,13 @@ export type LogChange = {
   from?: 'play' | 'downtime'
   /** What spent the points, where the write named it: "Squeeze It In". */
   did?: string
+  /**
+   * This write took another change back, or (`again`) redid it (r4 E2): the
+   * change's id, from the write's `source` (`sheetUndo`, `sheetRedo`).
+   */
+  reverses?: { id: string; again: boolean }
+  /** A later write took this change back, and none has redone it since. */
+  reversed?: boolean
 }
 
 /** One field of a write: absent sides are undefined. */
@@ -208,9 +216,12 @@ const opOf = (row: EntityLogRow) =>
  * `downtime`, then the action's name after a colon where the write gave one
  * (`sourceOf`, `replica/provenance.ts`).
  */
-function origin(source: string): Pick<LogChange, 'from' | 'did'> {
+function origin(source: string): Pick<LogChange, 'from' | 'did' | 'reverses'> {
   const at = source.indexOf(':')
   const surface = at === -1 ? source : source.slice(0, at)
+  if ((surface === SHEET_UNDO_SOURCE || surface === SHEET_REDO_SOURCE) && at !== -1) {
+    return { reverses: { id: source.slice(at + 1), again: surface === SHEET_REDO_SOURCE } }
+  }
   if (surface !== 'play' && surface !== 'downtime') return {}
   const did = at === -1 ? '' : source.slice(at + 1).trim()
   return did === '' ? { from: surface } : { from: surface, did }
@@ -243,7 +254,46 @@ export function logChanges(rows: readonly EntityLogRow[], defaults: LogDefaults 
     if (row.field in REFS) change.lines.unshift(...rowLines(row, defaults))
     else change.lines.push(...rowLines(row, defaults))
   }
-  return [...changes.values()]
+  const all = [...changes.values()]
+  // Oldest first: a change is taken back by an undo that names it, until a redo does.
+  const reversed = new Set<string>()
+  for (const { reverses } of [...all].reverse()) {
+    if (!reverses) continue
+    if (reverses.again) reversed.delete(reverses.id)
+    else reversed.add(reverses.id)
+  }
+  for (const change of all) if (reversed.has(change.id)) change.reversed = true
+  return all
+}
+
+/**
+ * Whether a change still offers its button (r4 E2): an applied change that
+ * has not been taken back, and is not itself a taking back (its own way back
+ * is the change it reversed, whose button returns with a redo).
+ */
+export const reversible = (change: LogChange): boolean =>
+  change.state === 'applied' && !change.reversed && !change.reverses
+
+/**
+ * The change Ctrl+Z and "Undo last change" take back next (r4 E3): the newest
+ * one that still stands, so pressing again steps one change further back.
+ */
+export const lastUndoable = (changes: readonly LogChange[]): LogChange | undefined =>
+  changes.find(reversible)
+
+/**
+ * The log in two runs (r4 E2): the changes that arrived since the dialog
+ * opened (`seen` is what it held then), and the ones it opened with, which
+ * keep their order so no line moves under the pointer.
+ */
+export function splitJustNow(
+  changes: readonly LogChange[],
+  seen: ReadonlySet<string>
+): { justNow: LogChange[]; earlier: LogChange[] } {
+  return {
+    justNow: changes.filter((change) => !seen.has(change.id)),
+    earlier: changes.filter((change) => seen.has(change.id)),
+  }
 }
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
@@ -293,13 +343,37 @@ function reverseList(
   return [...result, ...removed]
 }
 
+type Keyed = Record<string, unknown>
+
+const keyed = (value: unknown): Keyed | null =>
+  value === undefined || value === null
+    ? {}
+    : typeof value === 'object' && !Array.isArray(value)
+      ? (value as Keyed)
+      : null
+
+/**
+ * A keyed record (conditions by slug, an item's choices) as it is now with one
+ * write's move taken back (r4 E3): each key the write set or dropped reads as
+ * it did before, and every other key stays as it is.
+ */
+function reverseKeyed(now: Keyed, before: Keyed, after: Keyed): Keyed | undefined {
+  const result = { ...now }
+  for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) {
+    if (same(before[key], after[key])) continue
+    if (key in before) result[key] = before[key]
+    else delete result[key]
+  }
+  return Object.keys(result).length === 0 ? undefined : result
+}
+
 const list = (value: unknown): unknown[] | null =>
   value === undefined || value === null ? [] : Array.isArray(value) ? value : null
 
 /**
  * The patch that reverses one change on the sheet as it is now (r3 B1). A
- * list field takes back only what the change moved; any other field is set
- * to what it was (undefined: it was absent).
+ * list field takes back only what the change moved, a keyed record only the
+ * keys it moved; any other field is set to what it was (undefined: absent).
  */
 export function reverseChange(
   change: Pick<LogChange, 'fields'>,
@@ -311,13 +385,40 @@ export function reverseChange(
     const became = list(after)
     const current = list(now[field])
     const listed = Array.isArray(before) || Array.isArray(after)
-    patch[field] = listed && was && became && current ? reverseList(current, was, became) : before
+    if (listed && was && became && current) {
+      patch[field] = reverseList(current, was, became)
+      continue
+    }
+    const [wasKeyed, becameKeyed, nowKeyed] = [keyed(before), keyed(after), keyed(now[field])]
+    const maps = [before, after].some((side) => side !== null && typeof side === 'object')
+    patch[field] =
+      maps && wasKeyed && becameKeyed && nowKeyed
+        ? reverseKeyed(nowKeyed, wasKeyed, becameKeyed)
+        : before
   }
   return patch
 }
 
-/** What a change's button does, and what its toast says it did. */
-export type Reversal = { label: string; done: string }
+/**
+ * One edit taken back on the record as it is now (r4 E3): what a removal's
+ * own Undo writes, so several removals each keep an Undo that puts back its
+ * own thing and nothing else. `was` is the record before the edit, `after`
+ * the fields the edit wrote.
+ */
+export function takeBack<T extends object>(now: T, was: T, after: Partial<T>): Partial<T> {
+  const fields = Object.keys(after).map((field) => ({
+    field,
+    before: (was as Keyed)[field],
+    after: (after as Keyed)[field],
+  }))
+  return reverseChange({ fields }, now as Keyed) as Partial<T>
+}
+
+/**
+ * What a change's button does, what its toast says it did, and what the line
+ * reads once it is done (`was`, r4 E2).
+ */
+export type Reversal = { label: string; done: string; was: string }
 
 /**
  * A change's button in the words of what it will do (r3 B1): "Put back" for
@@ -338,11 +439,13 @@ export function reversal(change: LogChange, defaults: LogDefaults = {}): Reversa
       return {
         label: buildSheetCopy('logPutBack'),
         done: buildSheetCopy('logPutBackDone', { names: names(removed) }),
+        was: buildSheetCopy('logPutBack'),
       }
     }
     return {
       label: buildSheetCopy('logTakeOff'),
       done: buildSheetCopy('logTakeOffDone', { names: names(missing(after, before)) }),
+      was: buildSheetCopy('logRemovedAgain'),
     }
   }
   const value = values[0]
@@ -352,6 +455,7 @@ export function reversal(change: LogChange, defaults: LogDefaults = {}): Reversa
       return {
         label: buildSheetCopy('logClear'),
         done: buildSheetCopy('logClearDone', { label: value.label }),
+        was: buildSheetCopy('logCleared'),
       }
     }
     const short = value.before.length <= SHORT_VALUE
@@ -362,9 +466,14 @@ export function reversal(change: LogChange, defaults: LogDefaults = {}): Reversa
       done: short
         ? buildSheetCopy('logSetBackDone', { label: value.label, value: value.before })
         : buildSheetCopy('logSetBackDonePlain', { label: value.label }),
+      was: buildSheetCopy('logSetBackWas'),
     }
   }
-  return { label: buildSheetCopy('logUndoChange'), done: buildSheetCopy('logUndoChangeDone') }
+  return {
+    label: buildSheetCopy('logUndoChange'),
+    done: buildSheetCopy('logUndoChangeDone'),
+    was: buildSheetCopy('logUndone'),
+  }
 }
 
 /** The longest value a button names; a longer one reads "Set back". */

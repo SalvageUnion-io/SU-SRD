@@ -2,7 +2,17 @@
 
 import { describe, expect, test } from 'bun:test'
 import type { EntityLogRow } from '../../../rooms/ops'
-import { fieldLabel, lineText, logChanges, reversal, reverseChange } from '../changeLog.model'
+import {
+  fieldLabel,
+  lastUndoable,
+  lineText,
+  logChanges,
+  reversal,
+  reverseChange,
+  reversible,
+  splitJustNow,
+  takeBack,
+} from '../changeLog.model'
 
 const row = (over: Partial<EntityLogRow>): EntityLogRow => ({
   _id: 'op1:name',
@@ -145,7 +155,11 @@ describe('reversing one change (r3 B1)', () => {
     expect(reverseChange(removed, { systems: ['red-laser'] })).toEqual({
       systems: ['red-laser', 'mini-mortar'],
     })
-    expect(reversal(removed)).toEqual({ label: 'Put back', done: 'Put back Mini Mortar.' })
+    expect(reversal(removed)).toEqual({
+      label: 'Put back',
+      done: 'Put back Mini Mortar.',
+      was: 'Put back',
+    })
   })
 
   test('an addition takes off only what it added, and keeps what came after', () => {
@@ -158,7 +172,11 @@ describe('reversing one change (r3 B1)', () => {
     expect(reverseChange(added, { systems: ['red-laser', 'armour-plating', 'cargo-pod'] })).toEqual(
       { systems: ['red-laser', 'cargo-pod'] }
     )
-    expect(reversal(added)).toEqual({ label: 'Remove', done: 'Removed Armour Plating.' })
+    expect(reversal(added)).toEqual({
+      label: 'Remove',
+      done: 'Removed Armour Plating.',
+      was: 'Removed again',
+    })
   })
 
   test('an addition already taken off again changes nothing', () => {
@@ -174,7 +192,11 @@ describe('reversing one change (r3 B1)', () => {
   test('a value is set back, and the button says to what', () => {
     const set = one({ _id: 'o:currentSP', field: 'currentSP', before: 5, after: 3 })
     expect(reverseChange(set, { currentSP: 1 })).toEqual({ currentSP: 5 })
-    expect(reversal(set)).toEqual({ label: 'Set back to 5', done: 'Current SP set back to 5.' })
+    expect(reversal(set)).toEqual({
+      label: 'Set back to 5',
+      done: 'Current SP set back to 5.',
+      was: 'Set back',
+    })
   })
 
   test('a lot altered in a list reads as it did, and the other lots stay', () => {
@@ -209,5 +231,72 @@ describe('reversing one change (r3 B1)', () => {
       systems: ['red-laser', 'cargo-pod', 'rigging-arm'],
     })
     expect(reversal(swap).label).toBe('Undo this change')
+  })
+})
+
+describe('a change is taken back once (r4 E2, E3)', () => {
+  const removed = (id: string, source = 'live-sheet') =>
+    row({ _id: `${id}:systems`, field: 'systems', before: ['red-laser'], after: [], source })
+  const added = (id: string, source: string) =>
+    row({ _id: `${id}:systems`, field: 'systems', before: [], after: ['red-laser'], source })
+
+  test('a write that names a change marks it taken back, and offers neither again', () => {
+    const [undo, original] = logChanges([added('op2', 'live-sheet-undo:op1'), removed('op1')])
+    expect(original?.reversed).toBe(true)
+    expect(undo?.reverses).toEqual({ id: 'op1', again: false })
+    expect(reversible(original as never)).toBe(false)
+    expect(reversible(undo as never)).toBe(false)
+  })
+
+  test('a redo makes the change stand again', () => {
+    const changes = logChanges([
+      removed('op3', 'live-sheet-redo:op1'),
+      added('op2', 'live-sheet-undo:op1'),
+      removed('op1'),
+    ])
+    expect(changes[2]?.reversed).toBeUndefined()
+    expect(lastUndoable(changes)?.id).toBe('op1')
+  })
+
+  test('stepping back skips what is already taken back, one change at a time', () => {
+    const rows = [removed('op2'), row({ _id: 'op1:name' })]
+    expect(lastUndoable(logChanges(rows))?.id).toBe('op2')
+    const after = [added('op3', 'live-sheet-undo:op2'), ...rows]
+    expect(lastUndoable(logChanges(after))?.id).toBe('op1')
+    const last = [row({ _id: 'op4:name', before: 'B', after: 'A', source: 'live-sheet-undo:op1' })]
+    expect(lastUndoable(logChanges([...last, ...after]))).toBeUndefined()
+  })
+
+  test('a proposal still unanswered is never the one stepped back', () => {
+    expect(lastUndoable(logChanges([row({ state: 'proposed' })]))).toBeUndefined()
+  })
+
+  test('changes that arrive while the dialog is open sit apart, and the rest keep their order', () => {
+    const changes = logChanges([removed('op3'), removed('op2'), row({ _id: 'op1:name' })])
+    const { justNow, earlier } = splitJustNow(changes, new Set(['op2', 'op1']))
+    expect(justNow.map((c) => c.id)).toEqual(['op3'])
+    expect(earlier.map((c) => c.id)).toEqual(['op2', 'op1'])
+  })
+})
+
+describe('takeBack: a removal put back on the sheet as it is now (r4 E3)', () => {
+  test('each of several removals puts back only its own item', () => {
+    const start = { systems: ['a', 'b', 'c'] }
+    const first = { systems: ['b', 'c'] }
+    const second = { systems: ['c'] }
+    // Undo the FIRST removal after the second: b stays off.
+    expect(takeBack(second, start, first)).toEqual({ systems: ['c', 'a'] })
+    expect(takeBack({ systems: ['c', 'a'] }, first, second)).toEqual({ systems: ['c', 'a', 'b'] })
+  })
+
+  test('a keyed record gets back only the keys the edit dropped', () => {
+    type Loadout = { systems: string[]; itemChoices: Record<string, Record<string, string>> }
+    const was: Loadout = { systems: ['a'], itemChoices: { a: { x: 'one' }, b: { y: 'two' } } }
+    const after: Loadout = { systems: [], itemChoices: { b: { y: 'two' } } }
+    const now: Loadout = { systems: ['z'], itemChoices: { b: { y: 'three' } } }
+    expect(takeBack(now, was, after)).toEqual({
+      systems: ['z', 'a'],
+      itemChoices: { a: { x: 'one' }, b: { y: 'three' } },
+    })
   })
 })
