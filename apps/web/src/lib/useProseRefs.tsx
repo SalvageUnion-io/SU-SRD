@@ -7,6 +7,7 @@ import { Mention } from '../components/entity/forms/Mention'
 import { ProseOwnerContext } from '../components/entity/nameRefs'
 import { useInsidePeek } from '../components/entity/peekContext'
 import { space } from '../design/tokens'
+import { emphasisRuns, inside, splitEmphasis } from './proseEmphasis'
 import { ProseSectionContext } from './proseSection'
 import { segmentProse } from './segmentProse'
 
@@ -58,7 +59,11 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
     if (!text) return null
     const segments = segmentProse(text, { nameRefs, pageRefs, owner })
     const [only] = segments
-    if (segments.length === 1 && only?.kind === 'text') return text
+    // The book's `*italics*` print in italics, their asterisks dropped (`proseEmphasis`).
+    const italics = emphasisRuns(text)
+    if (segments.length === 1 && only?.kind === 'text' && italics.length === 0) return text
+    const em = (key: string, at: number, node: ReactNode) =>
+      inside(at, italics) ? <em key={`em-${key}`}>{node}</em> : node
     // In a section a term links at its first mention alone (`ProseSection`),
     // and is plain words after.
     const linked = new Set<string>()
@@ -72,20 +77,27 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
     // Within a paragraph a term's first link is the keyboard's stop; a later
     // one is still a link, never a second stop.
     let stops = new Set<string>()
-    return segments.map((segment) => {
+    return segments.flatMap((segment) => {
       const key = `${segment.kind}-${segment.start}`
-      if (segment.kind === 'text') return segment.text
+      if (segment.kind === 'text') {
+        if (italics.length === 0) return segment.text
+        return splitEmphasis(segment.text, segment.start, italics).map((piece) =>
+          piece.italic ? <em key={`em-${piece.start}`}>{piece.text}</em> : piece.text
+        )
+      }
       if (segment.kind === 'break') {
         stops = new Set()
         return <span key={key} style={PARAGRAPH_BREAK} />
       }
       const ref = segment.kind === 'trait' ? mentionRef(segment.name) : segment.ref
       // A book's page reference cites: it links every time.
-      if (segment.kind !== 'page' && again(ref)) return segment.text
+      if (segment.kind !== 'page' && again(ref)) return em(key, segment.start, segment.text)
       const term = ref ? `${ref.schemaName}:${ref.id}` : ''
       const repeat = term !== '' && stops.has(term)
       stops.add(term)
-      return (
+      return em(
+        key,
+        segment.start,
         <Mention key={key} entityRef={ref} repeat={repeat}>
           {segment.text}
         </Mention>
