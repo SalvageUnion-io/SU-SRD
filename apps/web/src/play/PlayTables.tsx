@@ -14,12 +14,15 @@
  * Every roll goes through `recordPlayRoll`, so it lands on the Feed, the
  * Game's log and, while one is bound, the Discord channel.
  *
+ * A table asked for by name (`askPlayTable`: a vital at 0's "Roll Critical
+ * Damage") opens the same way, with the keyboard on its stamp.
+ *
  * The open table sits directly in the column (level 1, play.md §12).
  */
 
 import type { RosterLine } from 'game-domain/rules/encounterRoster'
 import type { CSSProperties } from 'react'
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { OverloadTable } from 'salvageunion-reference/rules'
@@ -39,6 +42,7 @@ import { PlayChannelRow } from './PlayChannelRow'
 import { PlayRollTable } from './PlayRollTable'
 import { recordPlayRoll } from './playRolls.model'
 import { findTables, pinnedTables } from './tables.model'
+import { onPlayTableAsked } from './zeroVital.model'
 
 const STACK = {
   display: 'flex',
@@ -80,6 +84,26 @@ export function PlayTables({
   const [landed, setLanded] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const findId = useId()
+  // A table asked for by name (a vital at 0's "Roll Critical Damage", r4 A5)
+  // opens here, and is brought on screen.
+  const hostRef = useRef<HTMLDivElement>(null)
+  const [asked, setAsked] = useState(0)
+  useEffect(
+    () =>
+      onPlayTableAsked((name) => {
+        setOpen(name)
+        setLanded(null)
+        setAsked((n) => n + 1)
+      }),
+    []
+  )
+  useEffect(() => {
+    if (asked === 0) return
+    const shown = hostRef.current?.querySelector('.su-roll')
+    if (shown && typeof shown.scrollIntoView === 'function')
+      shown.scrollIntoView({ block: 'nearest' })
+    hostRef.current?.querySelector<HTMLElement>('.su-roll button:not([disabled])')?.focus()
+  }, [asked])
   const tables = SalvageUnionReference.RollTables.all()
   const found = findTables(
     tables.map((t) => t.name),
@@ -95,7 +119,7 @@ export function PlayTables({
   const roster = onField && table && landed !== null ? rosterOf(table.table, landed) : []
 
   return (
-    <div style={STACK}>
+    <div ref={hostRef} style={STACK}>
       <SearchField
         type="search"
         placeholder={playCopy('rollATable')}

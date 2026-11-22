@@ -18,6 +18,7 @@ import { playCopy } from '../messages/play'
 import { PLAY_UNDO } from '../replica/provenance'
 import { useUnits } from '../replica/units'
 import type { ProposalRead } from '../rooms/game/proposals'
+import { zeroUnit, zeroVitalNotice } from './zeroVital.model'
 
 type Asked = Pick<ProposalRead, 'field' | 'after' | 'current'>
 
@@ -48,7 +49,11 @@ export function acceptedUndo(
     from: current,
     to: after,
     did: playCopy('accepted'),
-    undo: (value) =>
-      runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO)),
+    undo: (value) => {
+      runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO))
+      zeroVitalNotice(zeroUnit(useUnits.getState(), kind, id), field, after, value)
+    },
   })
+  // Accepted down to 0 SP or 0 HP: what is due next (r4 A5).
+  zeroVitalNotice(zeroUnit(useUnits.getState(), kind, id), field, current, after)
 }

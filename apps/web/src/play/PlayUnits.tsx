@@ -64,6 +64,7 @@ import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.mode
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
 import { headedVital, vitalNow, vitalSettled } from './vitalWrites.model'
+import { zeroUnit, zeroVitalNotice } from './zeroVital.model'
 
 /** The store a box writes through; the app's own unless a test hands one in. */
 type UnitStore = UnitsStore
@@ -134,8 +135,13 @@ function writer<K extends 'pilot' | 'mech' | 'crawler'>(store: UnitStore, kind: 
         from,
         to,
         ...(note === undefined ? {} : { did: note }),
-        undo: (value) => runWrite(() => write(field, value, PLAY_UNDO)),
+        undo: (value) => {
+          runWrite(() => write(field, value, PLAY_UNDO))
+          zeroVitalNotice(zeroUnit(store.getState(), kind, id), field, to, value)
+        },
       })
+      // At 0 SP or 0 HP: what is due, on the Feed and with its table's button (r4 A5).
+      zeroVitalNotice(zeroUnit(store.getState(), kind, id), field, from, to)
     }
 }
 

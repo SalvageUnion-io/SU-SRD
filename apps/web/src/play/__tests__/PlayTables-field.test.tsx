@@ -84,3 +84,15 @@ describe('an encounter table’s rolled roster', () => {
     expect(screen.queryByRole('region', { name: 'The rolled opposition' })).toBeNull()
   })
 })
+
+// r4 A5: a vital at 0's "Roll Critical Damage" opens the table here.
+describe('a table asked for by name', () => {
+  test('opens in the Tables section, its stamp ready to roll', async () => {
+    const { askPlayTable } = await import('../zeroVital.model')
+    render(<PlayTables downtime={false} solo binding={null} />)
+    expect(screen.queryByRole('button', { name: 'Roll the die on Critical Damage' })).toBeNull()
+    act(() => askPlayTable('Critical Damage'))
+    const stamp = screen.getByRole('button', { name: 'Roll the die on Critical Damage' })
+    expect(document.activeElement).toBe(stamp)
+  })
+})

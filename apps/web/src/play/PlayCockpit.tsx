@@ -44,7 +44,7 @@ import { mayBindChannel } from 'game-domain/games/discord'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { HeaderMenuItem } from '../components/index'
 import { HeaderMenu, tokens } from '../components/index'
 import { changeUndoToast } from '../lib/changeUndoToast'
@@ -92,6 +92,7 @@ import { useStopSign } from './useStopSign'
 import { useTableMode } from './useTableMode'
 import { useWakeLock } from './useWakeLock'
 import { headedVital, vitalNow, vitalSettled } from './vitalWrites.model'
+import { onPlayTableAsked, zeroUnit, zeroVitalNotice } from './zeroVital.model'
 
 /** The Rules pane holds the Reference's own frame, edge to edge. */
 const RULES = { margin: `calc(-1 * ${tokens.space[8]})` } satisfies CSSProperties
@@ -196,10 +197,25 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
         to,
         // An amount more than there was says it was capped (r2 C6).
         ...(note === undefined ? {} : { did: note }),
-        undo: (value) =>
-          runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO)),
+        undo: (value) => {
+          runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO))
+          zeroVitalNotice(zeroUnit(useUnits.getState(), kind, id), field, to, value)
+        },
       })
+    // At 0 SP or 0 HP: what is due, on the Feed and with its table's button (r4 A5).
+    if (from !== undefined)
+      zeroVitalNotice(zeroUnit(useUnits.getState(), kind, id), field, from, to)
   }
+  // The button on that notice: the Rolls tab, where the table opens (`PlayTables`).
+  const closeSheet = onScreen.close
+  useEffect(
+    () =>
+      onPlayTableAsked(() => {
+        closeSheet()
+        setTab('tables')
+      }),
+    [closeSheet]
+  )
   const openTab = (next: PlayerPane) => {
     onScreen.close()
     setTab(next)
