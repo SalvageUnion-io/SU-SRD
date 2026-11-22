@@ -69,7 +69,7 @@ export function MediatorPlan({ gameId, canWrite }: { gameId: string; canWrite: b
       id="mediate-plan"
       title={mediatorCopy('plan')}
       actions={
-        <Button size="mini" href={gamePrepPath(gameId)}>
+        <Button size="compact" href={gamePrepPath(gameId)}>
           {mediatorCopy('openPrep')}
         </Button>
       }
