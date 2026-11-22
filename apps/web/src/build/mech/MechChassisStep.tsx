@@ -24,6 +24,7 @@ import { newInGameHref } from '../../lib/wizard/fromGame'
 import { mechCopy } from '../../messages/build-mech'
 import { PickList } from '../wizard/PickList'
 import type { PickColumn } from '../wizard/pickLedger.model'
+import { SkipToNext } from '../wizard/SkipToNext'
 import { CHASSIS_COLUMNS, PATTERN_STRIP_ID } from './chassisColumns.model'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
@@ -211,6 +212,8 @@ export function MechChassisStep({
         )}
       </div>
 
+      {/* Past the card's links to Next (r5 C6). */}
+      <SkipToNext />
       <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky">
         {selectedChassis === undefined ? (
           <EmptyState variant="quiet" body={mechCopy('pickAChassisToReveal')} bodyInk="inherit" />

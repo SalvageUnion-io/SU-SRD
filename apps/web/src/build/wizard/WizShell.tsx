@@ -15,6 +15,7 @@ import {
 import type { KeepAsFileActs } from './KeepAsFile'
 import { KeepAsFile } from './KeepAsFile'
 import { SaveSignInDialog } from './SaveSignInDialog'
+import { WIZ_NEXT_ID } from './SkipToNext'
 import { WizardGameChip } from './WizardGameChip'
 import { promptShows, scrollToAsked, useInView } from './wizPrompt.model'
 import {
@@ -484,6 +485,7 @@ export function WizShell({
       <Button
         variant="primary"
         size="full"
+        id={WIZ_NEXT_ID}
         className="su-wiz-pill-cta"
         style={nextDisabled && !busy ? ctaLockedStyle : ctaStyle}
         onClick={savesHere ? saveNow : onNext}
