@@ -376,6 +376,21 @@ describe('the sections under the roster', () => {
     expect(screen.getByText(/Hand over needs another member/)).toBeTruthy()
   })
 
+  test('members with no name go by their joining order, never one word for all (r6 C11)', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, mediator: true },
+      'games.members': [
+        { userId: 'u1', displayName: 'Ash', mediator: true, organizer: true, joinedAt: 1 },
+        { userId: 'u2', displayName: null, mediator: false, organizer: false, joinedAt: 2 },
+        { userId: 'u3', displayName: null, mediator: false, organizer: false, joinedAt: 3 },
+      ],
+    })
+    const members = screen.getByRole('list', { name: 'Members' })
+    expect(within(members).getByText('Player 2')).toBeTruthy()
+    expect(within(members).getByText('Player 3')).toBeTruthy()
+    expect(within(members).queryByText('Crewmate')).toBeNull()
+  })
+
   test('Hand over appoints the chosen member first, then stands the old Mediator down', async () => {
     await renderHub({
       'games.get': { ...GAME, organizer: true, mediator: true },

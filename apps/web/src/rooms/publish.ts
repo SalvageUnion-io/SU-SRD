@@ -1,5 +1,6 @@
 import type { EntityKind } from 'game-domain/entityKinds'
 import type { LinkShape } from 'game-domain/links/linkRules'
+import { memberName } from 'game-domain/memberName'
 import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { GameStore, UnitRow } from './game/store'
 import { fromJson } from './game/store'
@@ -154,8 +155,11 @@ export function gamePublished(store: GameStore, gameId: string): Published {
       game: {
         name: game.name,
         description: game.description,
-        // A Mediator with no name is not named (r5 B14): the invite reads whole without the clause.
-        mediatedBy: mediator?.displayName ?? null,
+        // A Mediator with no name goes by their joining order, as the Members list names them (r6 C11).
+        mediatedBy:
+          mediator === undefined
+            ? null
+            : memberName(mediator.displayName, members.indexOf(mediator)),
         members: members.map((m) => ({
           discordId: m.userId,
           mediator: m.mediator,

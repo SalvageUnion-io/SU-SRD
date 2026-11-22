@@ -10,6 +10,7 @@
  * room, or the account room's for the solo table (`gameId` null).
  */
 
+import { memberName } from 'game-domain/memberName'
 import type { RunningEncounter } from 'game-domain/schemas/encounter'
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import type { z } from 'salvageunion-reference/zod'
@@ -91,17 +92,25 @@ function downtimeState(held: unknown, args: Args): DowntimeState | null {
 /**
  * A Game's member as a screen names them: the name their account goes by
  * (`games.names`, read fresh, never stored in the Game), else the one the
- * Game last heard, else Crewmate.
+ * Game last heard, else their place in the joining order, "Player 2"
+ * (`memberName`, r6 C11), never one word for everybody.
  */
 type GameMemberRead = Omit<Member, 'displayName' | 'avatarUrl'> & {
   displayName: string
   avatarUrl?: string
+  /** No account name: `displayName` is their place in the joining order. */
+  unnamed?: true
 }
 
-function memberRead({ displayName, avatarUrl, ...member }: Member): GameMemberRead {
+function memberRead(
+  { displayName, avatarUrl, ...member }: Member,
+  joinIndex: number
+): GameMemberRead {
+  const unnamed = displayName === null || displayName.trim() === ''
   return {
     ...member,
-    displayName: displayName ?? CREWMATE,
+    displayName: memberName(displayName, joinIndex),
+    ...(unnamed ? { unnamed: true as const } : {}),
     ...(avatarUrl === null ? {} : { avatarUrl }),
   }
 }
@@ -117,7 +126,9 @@ export function namedMembers(
   if (names === undefined) return [...members]
   return members.map((m) => {
     const name = names[m.userId]
-    return name === undefined || name === m.displayName ? m : { ...m, displayName: name }
+    if (name === undefined || name === m.displayName) return m
+    const { unnamed: _unnamed, ...named } = m
+    return { ...named, displayName: name }
   })
 }
 
@@ -126,7 +137,7 @@ const ANSWERED_BY: Record<ReadName, Answer> = {
   // The roster, in join order, off the Game's snapshot.
   'games.members': {
     table: 'members',
-    answer: (held) => (held as Member[]).map(memberRead),
+    answer: (held) => (held as Member[]).map((member, i) => memberRead(member, i)),
   },
   'scenes.current': { table: 'scene' },
   'salvageAreas.here': { table: 'salvageArea' },
