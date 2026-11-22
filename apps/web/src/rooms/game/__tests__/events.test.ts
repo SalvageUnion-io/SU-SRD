@@ -257,7 +257,7 @@ describe('the table’s events', () => {
       type: 'mech-to-pilot',
       from: { type: 'mech', id: 'm1' },
       to: { type: 'pilot', id: 'p1' },
-    }
+    } as const
     act(PLAYER, 'drawLink', { link }, AT + 1)
     act(PLAYER, 'removeLink', { link }, AT + MERGE_MS + 2)
     expect(texts().slice(0, 2)).toEqual([
