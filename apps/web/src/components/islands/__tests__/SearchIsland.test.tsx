@@ -266,7 +266,7 @@ describe('SearchIsland', () => {
       await act(async () => {
         jest.advanceTimersByTime(DEBOUNCE_MS)
       })
-      expect(screen.getByRole('listbox').textContent).toContain('Loading search index')
+      expect(screen.getByRole('listbox').textContent).toContain('Searching…')
       expect(screen.queryAllByRole('option').length).toBe(0)
 
       // Data lands → the [ready] effect re-runs the pending query with real data.
@@ -288,7 +288,8 @@ describe('SearchIsland', () => {
     // 'c' prefix-matches many category names
     await typeAndSettle(input, 'c')
 
-    const options = screen.getAllByRole('option')
+    // Ten rows, then "Show more" (r4 F1).
+    const options = screen.getAllByRole('option').filter((o) => o.tagName === 'A')
     expect(options.length).toBeLessThanOrEqual(10)
 
     // Count category rows (schema: 'Category')
@@ -431,7 +432,10 @@ describe('SearchIsland', () => {
     )
     await typeAndSettle(screen.getByRole('combobox'), 'mule')
 
-    const options = screen.getAllByRole('option')
+    // Every result; "Show more" is the list's own act, never a link (r4 F1).
+    const options = screen
+      .getAllByRole('option')
+      .filter((option) => !option.textContent?.startsWith('Show more'))
     expect(options.length).toBeGreaterThan(0)
     for (const option of options) {
       expect(option.tagName).toBe('A')

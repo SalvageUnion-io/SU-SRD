@@ -70,6 +70,7 @@ export function searchCompactIndex(
       nameText,
       usedTypo,
       ...(entry.pattern && !entry.rule ? {} : { schemaName: entry.schemaName }),
+      ...(entry.embedded ? { embedded: true } : {}),
     })
 
     results.push({

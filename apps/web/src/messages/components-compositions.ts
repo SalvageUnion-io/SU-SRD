@@ -56,7 +56,8 @@ export const compositionsCopy = messages({
   yourCrewSharesOneUnion:
     'Your crew shares one Union Crawler. Make it, or open the invite link a crewmate sends you to join their Game.',
   step: 'Step',
-  openTheFilteredList: 'Open the filtered list',
+  showMore: 'Show more',
+  moreResults: '{count} more results',
   startHere: 'Start here',
   results: 'Results',
   kind: 'Kind',
@@ -83,6 +84,5 @@ export const compositionsCopy = messages({
   madeBy: 'Made by {name}',
   yourDesign: 'Your design',
   itsOwnerHasntSharedThis: "Its owner hasn't shared this.",
-  referenceData: 'reference data',
   notYetAdded: 'Not yet added',
 })

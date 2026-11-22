@@ -160,7 +160,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   ],
   K4: ['tokens/raw-shadow', 'tokens/raw-z-index'],
   K5: ['chrome/one-toaster', 'chrome/offline-copy'],
-  K6: ['chrome-tokens/loading-mark', 'copy/banned-variant'],
+  K6: ['chrome-tokens/loading-mark', 'copy/banned-variant', 'SearchListbox.test.tsx'],
   K7: ['chrome/dialog-width', 'ModalShell.test.tsx', 'biome.jsonc#K7'],
   K8: ['chrome-tokens/raw-alert', 'copy/banned-variant'],
   K9: ['chrome/focus-ring', 'focusRing.contrast.test.ts'],

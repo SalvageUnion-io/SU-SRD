@@ -1,5 +1,5 @@
 import { Text } from '../atoms/Text'
-import { loadingCopy } from './loadingCopy'
+import { loadingCopy, SEARCHING } from './loadingCopy'
 
 type PendingProps = {
   /** What is loading, e.g. `the crew` → "Loading the crew…". Omit it for the
@@ -10,6 +10,8 @@ type PendingProps = {
    * body): a `<p>` cannot hold another.
    */
   as?: 'p' | 'span'
+  /** A search waiting on its index: "Searching…", K6's one other line. */
+  searching?: boolean
 }
 
 /**
@@ -17,10 +19,10 @@ type PendingProps = {
  * a muted hint announced politely as a status, in `loadingCopy`'s words. A
  * shape known ahead is a `Skeleton`; a route's wait is `RoutePending`.
  */
-export function Pending({ label, as = 'p' }: PendingProps) {
+export function Pending({ label, as = 'p', searching = false }: PendingProps) {
   return (
     <Text as={as} variant="hint" role="status" aria-live="polite">
-      {loadingCopy(label)}
+      {searching ? SEARCHING : loadingCopy(label)}
     </Text>
   )
 }

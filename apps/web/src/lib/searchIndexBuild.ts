@@ -38,6 +38,7 @@ import { TRAINING_POINTS } from '../components/entity'
 import type { EntityFormModel } from '../components/index'
 import { itemHref, patternHref } from './entityHref'
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
+import { listingEntries } from './listingEntries'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 const TEXT_FIELDS = ['description', 'effect', 'goals', 'assets', 'weaknesses'] as const
@@ -114,6 +115,11 @@ function ruleEntries(): CompactSearchEntry[] {
 export function buildSearchIndexEntries(): CompactSearchEntry[] {
   // The rules' own rows lead: on equal terms a rule's name is found before the guide that tells it.
   const entries: CompactSearchEntry[] = ruleEntries()
+  // The roll tables another record prints as its own: ranked under that owner.
+  // What the Roll Tables listing leaves out (`listingEntries`).
+  const tables = SalvageUnionReference.RollTables.all()
+  const topLevel = new Set(listingEntries('roll-tables', tables).map((table) => table.name))
+  const embedded = new Set(tables.filter((t) => !topLevel.has(t.name)).map((t) => t.name))
 
   for (const schema of getEntitySchemas()) {
     // Runtime-validated narrowing (string catalog id → schema name) instead
@@ -170,6 +176,7 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
         text: parts.join(' ').toLowerCase(),
         model: rowModel(entity),
         ...(aliases.length > 0 ? { aliases: [...aliases] } : {}),
+        ...(schema.id === 'roll-tables' && embedded.has(entity.name) ? { embedded: true } : {}),
       })
 
       // And by its own name, as a row of its own that opens its own page

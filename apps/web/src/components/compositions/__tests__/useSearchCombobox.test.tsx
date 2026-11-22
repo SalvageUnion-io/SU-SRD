@@ -50,17 +50,30 @@ describe('useSearchCombobox', () => {
     )
   })
 
-  test('moreRow: a full list ends in the row for what it left out, by kind', async () => {
-    const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {}, moreRow: true }))
+  test('moreRow: "Show more" follows the first ten, and lengthens the list in place (r4 F1)', async () => {
+    const onSubmit = mock(() => {})
+    const { result } = renderHook(() => useSearchCombobox({ onSubmit, moreRow: true }))
     await typeAndSettle(result, 'laser')
 
-    expect(result.current.results.length).toBeLessThanOrEqual(10)
+    expect(result.current.results).toHaveLength(11)
     const last = must(result.current.results.at(-1))
     expect(last.kind).toBe('more')
-    if (last.kind !== 'more') return
-    expect(last.title).toMatch(/^\d+ more /)
-    expect(last.title).toContain(schemaPluralLabel(last.schemaId))
-    expect(last.query).toBe('laser')
+    expect(last.title).toBe('Show more')
+    expect(last.group).toMatch(/^\d+\+? more results$/)
+    const firstTen = result.current.results.slice(0, 10).map((r) => r.id)
+
+    act(() => result.current.submit(last))
+    // Its own act: nothing is opened, the same ten lead and ten more follow.
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(result.current.results.slice(0, 10).map((r) => r.id)).toEqual(firstTen)
+    expect(result.current.results.filter((r) => r.kind !== 'more').length).toBeGreaterThan(10)
+    expect(result.current.results.length).toBeLessThanOrEqual(21)
+    // The highlight stands on the first row added.
+    expect(result.current.selectedIndex).toBe(10)
+
+    // A new query starts from ten again.
+    await typeAndSettle(result, 'lase')
+    expect(result.current.results).toHaveLength(11)
   })
 
   test('moreRow: a list with room for every match has no such row', async () => {
@@ -119,12 +132,12 @@ describe('useSearchCombobox', () => {
     expect(picked).toHaveLength(2)
   })
 
-  test('results stay hidden and announcement reads loading while not ready', async () => {
+  test('results stay hidden and announcement reads Searching while not ready (r4 F2)', async () => {
     const { result } = renderHook(() => useSearchCombobox({ ready: false, onSubmit: () => {} }))
     await typeAndSettle(result, 'laser')
 
     expect(result.current.results).toEqual([])
-    expect(result.current.announcement).toBe('Loading reference data…')
+    expect(result.current.announcement).toBe('Searching…')
   })
 
   test('flipping ready re-runs the pending query', async () => {

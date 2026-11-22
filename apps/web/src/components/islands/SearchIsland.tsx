@@ -18,7 +18,6 @@ import { getEntitySlug, suggestSearchQuery } from 'salvageunion-reference'
 import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
-import { PARAM_NAME } from '../../lib/listingParams'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
 import { isSearchShortcut } from '../../lib/searchShortcut'
@@ -56,10 +55,10 @@ type SearchIslandProps = {
 const LISTBOX = {
   ...POPUP_SURFACE.paper,
   marginTop: space[4],
-  // Room for every row it can hold, a thumb's height each (ten, the last the
-  // "more" row): at 24rem a phone hid the tenth under a scroll with no cue
-  // (RR2-17). It scrolls only where the screen is shorter than its rows.
-  maxHeight: 'min(30rem, calc(100dvh - 7rem))',
+  // Room for its first rows, a thumb's height each (ten, then "Show more"):
+  // at 24rem a phone hid the tenth under a scroll with no cue (RR2-17). It
+  // scrolls where the screen is shorter than its rows, or the list lengthened.
+  maxHeight: 'min(33rem, calc(100dvh - 7rem))',
   overflowY: 'auto',
   position: 'absolute',
   top: '100%',
@@ -102,9 +101,8 @@ const RULES_HREF = '/rules/'
 /** Site URL for a combobox result: category listing or entity item page. */
 function resultUrl(result: SearchComboboxResult): string {
   if (result.kind === 'schema') return schemaHref(result.schemaId)
-  if (result.kind === 'more') {
-    return `${schemaHref(result.schemaId)}?${new URLSearchParams({ [PARAM_NAME]: result.query })}`
-  }
+  // "Show more" opens nothing: the combobox lengthens its list (`submit`).
+  if (result.kind === 'more') return ''
   return result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity))
 }
 
@@ -294,6 +292,11 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         optionId={optionId}
         modelOf={(result) => models.get(result.id)}
         target={{ href: resultUrl }}
+        onMore={(result) => {
+          submit(result)
+          // The press took the focus off the field; typing and the arrows go on.
+          inputRef.current?.focus()
+        }}
         style={home ? LISTBOX_HOME : hero ? LISTBOX_HERO : LISTBOX_BAR}
         none={
           suggestion ? (

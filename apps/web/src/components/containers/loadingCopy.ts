@@ -8,3 +8,9 @@
 export function loadingCopy(label?: string): string {
   return label === undefined ? 'Loading…' : `Loading ${label}…`
 }
+
+/**
+ * Search's own waiting line (K6): its index is still on the way, and the
+ * reader asked a question, so it says what it is doing with it.
+ */
+export const SEARCHING = 'Searching…'
