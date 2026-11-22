@@ -1,4 +1,4 @@
-import type { EntityModel, RefEntity } from 'salvageunion-reference'
+import type { EntityModel, EntityRef, RefEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 
 /**
@@ -28,6 +28,22 @@ export function entityTraitLabels(model: Pick<EntityModel, 'traits'>): string[] 
         .map((trait) => (trait.param ? `${trait.name} ${trait.param}` : trait.name))
     ),
   ]
+}
+
+/**
+ * `entityTraitLabels`, each with the trait it names, so a listing's cell
+ * Peeks each one (r6 G2). `ref` is absent where the glossary is not loaded.
+ */
+export function entityTraitTerms(
+  model: Pick<EntityModel, 'traits'>
+): { label: string; ref?: EntityRef | undefined }[] {
+  const terms = new Map<string, { label: string; ref?: EntityRef | undefined }>()
+  for (const trait of model.traits) {
+    if (trait.schemaName !== 'traits') continue
+    const label = trait.param ? `${trait.name} ${trait.param}` : trait.name
+    if (!terms.has(label)) terms.set(label, { label, ref: trait.ref })
+  }
+  return [...terms.values()]
 }
 
 /**

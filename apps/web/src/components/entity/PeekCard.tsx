@@ -62,6 +62,9 @@ function peekChassisAbilities(entity: RefEntity, down: Down) {
 /** A Peek lists no host's patterns (a chassis's, a Bio-Titan's): see `PeekCard`. */
 const PEEK_HIDE = { patterns: true }
 
+/** No stats in the card's head: the row it opened from prints them (r6 G7). */
+const ROW_STATS: never[] = []
+
 /**
  * The PEEK's card (E16): the entity read-only and terminal. It is
  * `ReferenceEntityCard` small and contentful, its band speckled as every
@@ -76,9 +79,22 @@ const PEEK_HIDE = { patterns: true }
  * shows its chassis ability instead (`peekChassisAbilities`), its
  * `[(CHASSIS)]` naming the chassis (`peekChassisName`), never the raw token. A
  * `down` Peek (its trigger damaged or destroyed) paints its band as the trigger does.
+ *
+ * A chassis Peeked from a list's row (`fromRow`) answers what the row cannot
+ * (r6 G7): no stats, which the row's columns print, and its ability first,
+ * under its name, with the lore after it.
  */
-export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: Down }) {
-  const chassis = isChassis(entity)
+export function PeekCard({
+  entity,
+  down = false,
+  fromRow = false,
+}: {
+  entity: RefEntity
+  down?: Down
+  fromRow?: boolean
+}) {
+  const abilities = isChassis(entity) ? peekChassisAbilities(entity, down) : undefined
+  const led = fromRow && !!abilities
   return (
     <InsidePeekContext.Provider value={true}>
       <ReferenceEntityCard
@@ -88,7 +104,8 @@ export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: D
         chassisName={peekChassisName(entity)}
         hostDown={down}
         hide={PEEK_HIDE}
-        afterExtraContent={chassis ? peekChassisAbilities(entity, down) : undefined}
+        {...(led ? { statsOverride: ROW_STATS, subtitleExtra: abilities } : {})}
+        afterExtraContent={led ? undefined : abilities}
       />
     </InsidePeekContext.Provider>
   )
@@ -159,12 +176,15 @@ export function PeekEntity({
   entity,
   down = false,
   size,
+  fromRow = false,
 }: {
   entity: RefEntity
   down?: Down
   size: PeekSize
+  /** Opened from a list's row, whose columns print its stats (`PeekCard`). */
+  fromRow?: boolean
 }) {
-  if (size !== 'mini') return <PeekCard entity={entity} down={down} />
+  if (size !== 'mini') return <PeekCard entity={entity} down={down} fromRow={fromRow} />
   if (!peekRepeatsRow(entity)) return <PeekMini entity={entity} down={down} />
   const rolls = peekTableOf(entity)
   return (

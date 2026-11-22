@@ -193,3 +193,33 @@ describe('a Peek prints every stat', () => {
     expect(text).toMatch(/Cargo/)
   })
 })
+
+// r6 G7: from a list's row, whose columns print the stats, a chassis's Peek
+// answers what the row cannot: its ability first, its lore after.
+describe("a chassis's Peek from a list's row", () => {
+  const mule = () => {
+    const chassis = SalvageUnionReference.Chassis.getByName('Mule')
+    if (!chassis) throw new Error('fixture missing: Mule')
+    return chassis as RefEntity
+  }
+
+  test('prints no stats, which the row has', () => {
+    const { container } = render(<PeekCard entity={mule()} fromRow />)
+    const text = container.querySelector('.su-ec-frame')?.textContent ?? ''
+    for (const short of ['SV', 'SP', 'EP', 'SYS', 'MODS']) expect(text).not.toContain(short)
+  })
+
+  test('leads with its ability, the lore after it', () => {
+    const { container } = render(<PeekCard entity={mule()} fromRow />)
+    const text = container.textContent ?? ''
+    const ability = text.indexOf('Integrated Cargo Bay')
+    const lore = text.indexOf('Opus Institute')
+    expect(ability).toBeGreaterThan(-1)
+    expect(lore).toBeGreaterThan(ability)
+  })
+
+  test('elsewhere it keeps its stats', () => {
+    const { container } = render(<PeekCard entity={mule()} />)
+    expect(container.textContent).toContain('SP')
+  })
+})

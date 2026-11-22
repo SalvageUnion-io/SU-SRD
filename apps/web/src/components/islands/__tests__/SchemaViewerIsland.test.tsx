@@ -147,7 +147,7 @@ describe('SchemaViewerIsland', () => {
     const clearBtn = screen.getByRole('button', { name: 'Clear filters' })
     fireEvent.click(clearBtn)
 
-    const links = document.querySelectorAll('.su-listing__groups tbody a')
+    const links = document.querySelectorAll('.su-listing__groups tbody th a')
     expect(links.length).toBe(entities.length)
     cleanup()
   })
@@ -190,7 +190,7 @@ describe('SchemaViewerIsland', () => {
     })
     fireEvent.change(nameInput, { target: { value: knownName } })
 
-    const links = document.querySelectorAll('.su-listing__groups tbody a')
+    const links = document.querySelectorAll('.su-listing__groups tbody th a')
     const matching = entities.filter((e) => e.name.toLowerCase().includes(knownName.toLowerCase()))
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
@@ -224,7 +224,7 @@ describe('SchemaViewerIsland', () => {
       const clearBtn = screen.getByRole('button', { name: 'Clear filters' })
       fireEvent.click(clearBtn)
 
-      const links = document.querySelectorAll('.su-listing__groups tbody a')
+      const links = document.querySelectorAll('.su-listing__groups tbody th a')
       expect(links.length).toBe(entities.length)
     },
     HEAVY
@@ -271,7 +271,7 @@ describe('SchemaViewerIsland', () => {
     expect(nameInput.value).toBe(knownName)
 
     // Only the matching card(s) render — the shared view was restored.
-    const links = document.querySelectorAll('.su-listing__groups tbody a')
+    const links = document.querySelectorAll('.su-listing__groups tbody th a')
     const matching = entities.filter((e) => e.name.toLowerCase().includes(knownName.toLowerCase()))
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
@@ -299,7 +299,7 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    const links = document.querySelectorAll('.su-listing__groups tbody a')
+    const links = document.querySelectorAll('.su-listing__groups tbody th a')
     const matching = entities.filter((e) => getTechLevel(e)?.toString() === String(level))
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
@@ -381,7 +381,7 @@ describe('SchemaViewerIsland', () => {
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Tree' }), { target: { value: tree } })
 
-    const links = document.querySelectorAll('.su-listing__groups tbody a')
+    const links = document.querySelectorAll('.su-listing__groups tbody th a')
     const matching = entities.filter((e) => getTree(e) === tree)
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
@@ -405,7 +405,7 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    const links = document.querySelectorAll('.su-listing__groups tbody a')
+    const links = document.querySelectorAll('.su-listing__groups tbody th a')
     const matching = entities.filter((e) => getTree(e) === tree)
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
@@ -667,7 +667,7 @@ describe('SchemaViewerIsland', () => {
 
     it('lists only the ids it is handed, with no book headings', () => {
       const { container } = renderTables()
-      const names = [...container.querySelectorAll('tbody a')].map((a) => a.textContent)
+      const names = [...container.querySelectorAll('tbody th a')].map((a) => a.textContent)
       expect(names.sort()).toEqual([...listed].sort())
       expect(container.querySelectorAll('.su-listing__group').length).toBe(1)
       // The rail counts what the listing lists.
