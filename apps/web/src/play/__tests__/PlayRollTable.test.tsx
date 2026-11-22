@@ -326,7 +326,7 @@ describe('the columns variant', () => {
 // MD6-08: an opened table stayed whole after a roll, pushing the encounter's notes off screen.
 describe('on Mediate (r6 B6, B10)', () => {
   test('rolled, the table folds to the row it landed on; Whole table opens it again', async () => {
-    const { FoldRolledTables } = await import('../privateRolls')
+    const { FoldRolledTables } = await import('../privateRolls.model')
     queued = [7, 15]
     render(
       <FoldRolledTables.Provider value={true}>
@@ -350,7 +350,7 @@ describe('on Mediate (r6 B6, B10)', () => {
   })
 
   test('with Private rolls on, the roll reads Roll privately', async () => {
-    const { PrivateRolls } = await import('../privateRolls')
+    const { PrivateRolls } = await import('../privateRolls.model')
     render(
       <PrivateRolls.Provider value={true}>
         <PlayRollTable table={RANGE_TABLE} name="Core Mechanic" />

@@ -17,9 +17,6 @@ import { z } from 'salvageunion-reference/zod'
 
 export const INITIATIVE_MODE: 'rounds' | 'acted' = 'rounds'
 
-/** The table New round offers, as the reference names it. */
-export const INITIATIVE_TABLE = 'Group Initiative'
-
 /** The Pilots' side: the player group is always one group (p.236). */
 export const PILOTS_SIDE = 'pilots'
 
@@ -106,7 +103,7 @@ export function nextSide(sides: readonly InitiativeSide[], current: string | und
   return sides[(at + 1) % sides.length]?.id ?? PILOTS_SIDE
 }
 
-/** A round begun: round 1, or the next, nobody acted and who goes first not yet said. */
+/** A new round: the first, or the one after `previous`; nobody acted, who goes first not yet said. */
 export function newRound(previous: Initiative | null): Initiative {
   return { round: previous === null ? 1 : previous.round + 1, acted: [] }
 }

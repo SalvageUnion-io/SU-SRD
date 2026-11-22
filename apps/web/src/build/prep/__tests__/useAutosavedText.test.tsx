@@ -6,7 +6,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import { TEXT_AUTOSAVE_MS, useAutosavedText } from '../useAutosavedText'
+import { useAutosavedText } from '../useAutosavedText'
 
 function harness(outcome: () => Promise<unknown> = async () => undefined) {
   const saved: string[] = []
@@ -47,7 +47,7 @@ describe('useAutosavedText', () => {
     act(() => hook.result.current.change('Ab'))
     expect(hook.result.current.value).toBe('Ab')
     expect(hook.result.current.state).toBe('saving')
-    expect(timers.at(-1)?.ms).toBe(TEXT_AUTOSAVE_MS)
+    expect(timers.at(-1)?.ms).toBe(800)
     expect(saved).toEqual([])
     await rest()
     expect(saved).toEqual(['Ab'])

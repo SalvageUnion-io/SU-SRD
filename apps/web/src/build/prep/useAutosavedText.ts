@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 /** How long typing rests before the draft is saved: the plan's pace. */
-export const TEXT_AUTOSAVE_MS = 800
+const TEXT_AUTOSAVE_MS = 800
 
 export type TextSaveState = 'saving' | 'saved' | 'failed'
 

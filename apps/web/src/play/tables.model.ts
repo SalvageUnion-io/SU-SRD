@@ -28,6 +28,9 @@ const COMBAT_TABLES = [
 /** The Core Mechanic, first of the combat tables: the table every check rolls on. */
 export const CORE_MECHANIC_TABLE = COMBAT_TABLES[0]
 
+/** The table New round on Mediate offers, to say who acts first (r6 B4). */
+export const INITIATIVE_TABLE = COMBAT_TABLES[4]
+
 /** The table a pilot at 0 HP rolls on. */
 export const CRITICAL_INJURY_TABLE = COMBAT_TABLES[3]
 

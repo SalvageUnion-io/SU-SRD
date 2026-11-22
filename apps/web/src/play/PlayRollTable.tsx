@@ -16,7 +16,7 @@ import {
 } from '../components/index'
 import { dieForTable } from '../lib/dice'
 import { playCopy } from '../messages/play'
-import { useFoldRolledTables, usePrivateRolls } from './privateRolls'
+import { useFoldRolledTables, usePrivateRolls } from './privateRolls.model'
 
 /** Where a roll landed, and the words it reads as (the toast, the log, Copy). */
 type Landed =

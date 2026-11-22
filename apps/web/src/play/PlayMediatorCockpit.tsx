@@ -62,7 +62,7 @@ import { mediatorTarget, PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
 import { rememberPrivateRolls, setPrivateRolls, storedPrivateRolls } from './playRolls.model'
-import { FoldRolledTables, PrivateRolls } from './privateRolls'
+import { FoldRolledTables, PrivateRolls } from './privateRolls.model'
 import { StopSignButton } from './StopSign'
 import { useGameSession } from './useGameSession'
 import { usePlayChannelBinding } from './usePlayChannel'
@@ -149,7 +149,8 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     const box = document.querySelector(
       `[aria-label="${playCopy('crawler', { name: crawlerName })}"]`
     )
-    box?.querySelector<HTMLElement>('.su-vital-gauge__value-button, button')?.focus()
+    const gauge = box?.querySelector<HTMLElement>('.su-vital-gauge__value-button')
+    ;(gauge ?? box?.querySelector<HTMLElement>('button'))?.focus()
     setToCrawler(false)
   }, [toCrawler, tab, wide, crawlerName])
 

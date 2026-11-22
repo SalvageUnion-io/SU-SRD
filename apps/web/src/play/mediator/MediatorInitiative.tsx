@@ -25,7 +25,6 @@ import {
 import {
   firstSideOf,
   INITIATIVE_MODE,
-  INITIATIVE_TABLE,
   newRound,
   nextSide,
   roundDone,
@@ -34,6 +33,7 @@ import {
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollTable } from '../PlayRollTable'
 import { recordPlayRoll } from '../playRolls.model'
+import { INITIATIVE_TABLE } from '../tables.model'
 import { mediatorSides } from './initiative.model'
 import { NOTE, NOTE_MUTED } from './mediatorStyles.model'
 import type { InitiativeTracker } from './useInitiative'

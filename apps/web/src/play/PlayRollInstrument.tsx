@@ -15,7 +15,7 @@ import type { RefObjectTable } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import { digestRollTable, RollTableInstrument, TraitProse } from '../components/index'
 import { playCopy } from '../messages/play'
-import { usePrivateRolls } from './privateRolls'
+import { usePrivateRolls } from './privateRolls.model'
 
 export type PlayRollInstrumentProps = {
   /** The table rolled on, by its name ("Core Mechanic"): its bands and its accessible name. */

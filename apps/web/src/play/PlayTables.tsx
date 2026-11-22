@@ -43,7 +43,7 @@ import { readRoster } from './mediator/encounterRoster.model'
 import { PlayChannelRow } from './PlayChannelRow'
 import { PlayRollTable } from './PlayRollTable'
 import { recordPlayRoll } from './playRolls.model'
-import { usePrivateRolls } from './privateRolls'
+import { usePrivateRolls } from './privateRolls.model'
 import { findTables, pinnedTables } from './tables.model'
 import { onPlayTableAsked } from './zeroVital.model'
 

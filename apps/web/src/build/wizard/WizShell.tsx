@@ -1,7 +1,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Check, ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { ConfirmDialog, NextLabel, TrackStep } from '../../components/app'
 import {
   Badge,
@@ -38,6 +38,7 @@ import {
 import '../../styles/build/wizard.css'
 import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import { useStepFocus } from './useStepFocus'
 
 /**
  * Sheet tone context — picks the `.su-sheet--{kind}` poster theming. The NPC
@@ -379,18 +380,7 @@ export function WizShell({
   focusId,
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
-  // Every step opens at the top with focus on its heading (WCAG 2.4.3), the
-  // first included: the page that led here (the chooser, a step's Next) may
-  // have been left scrolled.
-  const headingRef = useRef<HTMLHeadingElement | null>(null)
-  const shownStep = useRef<number | null>(null)
-  useEffect(() => {
-    if (shownStep.current === active) return
-    shownStep.current = active
-    window.scrollTo(0, 0)
-    const field = focusId === undefined ? null : document.getElementById(focusId)
-    ;(field ?? headingRef.current)?.focus({ preventScroll: true })
-  }, [active, focusId])
+  const headingRef = useStepFocus(active, focusId)
   const isLast = active >= steps.length - 1
   // From sm the Next names its step in words ("Next: Systems & modules").
   // A redesign saves from any step; its Next is a ghost beside Back.
