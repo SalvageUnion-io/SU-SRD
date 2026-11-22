@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { BookCite, ChoiceSelections, RefEquipment } from 'salvageunion-reference'
 import { formatProvenance, getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { Badge, EmptyState, ReferenceEntityCard, Stat } from '../../components/index'
+import { Badge, EmptyState, ReferenceEntityCard } from '../../components/index'
 import { isPartnerEquipment } from '../../lib/rules/partnerGrants'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
 import { isStartingEquipment } from '../../lib/rules/startingEquipment'
@@ -44,8 +44,9 @@ type EquipmentStepProps = {
  * Step 2 · Equipment (Workshop Manual p.19), as a picker in the Ledger form
  * (`PickList`, its count pick). The Tech 1 equipment is one framed list, a
  * line an item: its timing, range, damage and traits in fixed columns and its
- * count's stepper at the line's end. The two picks and the inventory they
- * fill are meters over the list. The line in focus opens as its card beside
+ * count's stepper at the line's end. Pressing a line picks it and shows its
+ * card; its `+` is for a second copy (r6 F4). The picks are counted on the
+ * action bar, the inventory they fill a meter over the list. The line in focus opens as its card beside
  * the list (under its line on a phone), and that card is where its options
  * are chosen: a Custom Sniper Rifle's weapon type and modification are picked
  * there, saved with the pilot (`Pilot.equipmentChoices`), each made choice a
@@ -118,8 +119,8 @@ export function EquipmentStep({
 
   return (
     <div className="su-wiz-step">
+      {/* The picks are counted once, on the action bar (r6 F4). */}
       <div className="su-wiz-budget">
-        <WizMeter label={buildWizardCopy('picks')} value={selectedEquipment.length} max={budget} />
         <WizMeter
           label={buildWizardCopy('inventorySlots')}
           value={pilotInventoryUsed({ equipment: selectedEquipment, genericInventory: [] })}
@@ -131,20 +132,19 @@ export function EquipmentStep({
           <div>
             <PickList
               title={buildWizardCopy('tech1Equipment')}
-              note={
-                <Stat
-                  label={buildWizardCopy('picks')}
-                  value={selectedEquipment.length}
-                  max={budget}
-                  size="mini"
-                />
-              }
               rows={equipment}
               rowKey={getEntitySlug}
               rowName={(item) => item.name}
               columns={columns}
-              selected={shown}
-              onSelect={setFocus}
+              // Only a row pressed is the radio's: the first card shown by
+              // default is not, so a press on it still picks it.
+              selected={focus}
+              onSelect={(slug) => {
+                setFocus(slug)
+                // A press picks the row (r6 F4): a first copy, while picks
+                // remain; its + is for a second.
+                if (remaining > 0 && !selectedEquipment.includes(slug)) onCountChange(slug, 1)
+              }}
               count={{
                 label: buildWizardCopy('qty'),
                 value: copies,

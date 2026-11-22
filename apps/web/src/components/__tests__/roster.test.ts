@@ -194,6 +194,7 @@ const ROSTER = {
     'useSearchCombobox',
     'StartHere',
     'StatMeanings', // a sheet's stat labels open what the number means (r4 E21)
+    'StatMeaning', // one such label alone: the mech wizard's chassis legend (r6 F3)
     'MarkdownSection',
     'InlineMarkdown',
     'TraitProse',
