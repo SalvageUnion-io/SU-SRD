@@ -110,6 +110,23 @@ export class GameLog {
   }
 
   /**
+   * Take an alert back (r4 B4): its row goes, so it leaves every player's
+   * strip and Feed, and the table's events say it was withdrawn
+   * (`events.ts`). The Mediator's; to correct one, withdraw it and send again.
+   */
+  withdrawAlert(actor: string, alertId: string): void {
+    this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      const found = this.store.rows(
+        "select 1 from change_log where id = ? and field = 'alert'",
+        alertId
+      )
+      if (found.length === 0) throw new RoomRefusal('That alert is no longer there')
+      this.store.rows("delete from change_log where id = ? and field = 'alert'", alertId)
+    })
+  }
+
+  /**
    * Show the table a roll whole (ADR-051 §9b): a veiled one with its names, a
    * private one at all (r3 A1). The Mediator's, and it stays shown.
    */

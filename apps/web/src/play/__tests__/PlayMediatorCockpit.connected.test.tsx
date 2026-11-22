@@ -728,7 +728,7 @@ describe('the Opposition', () => {
 
   test('Up now marks a seat for the table, and pressing it again clears it', async () => {
     await renderCockpit()
-    const first = screen.getAllByRole('button', { name: /^Mark up now: / })[0] as HTMLElement
+    const first = screen.getAllByRole('button', { name: /^Give the turn: / })[0] as HTMLElement
     expect(first.getAttribute('aria-pressed')).toBe('false')
     await click(first)
     expect(sent()).toHaveLength(1)
@@ -737,7 +737,7 @@ describe('the Opposition', () => {
     cleanup()
     acts.length = 0
     await renderCockpit({ 'scenes.current': { conditions: [], hours: 0, upNow: marked } })
-    const again = screen.getAllByRole('button', { name: /^Mark up now: / })[0] as HTMLElement
+    const again = screen.getAllByRole('button', { name: /^Give the turn: / })[0] as HTMLElement
     expect(again.getAttribute('aria-pressed')).toBe('true')
     await click(again)
     expect(sent()).toEqual([{ name: 'scenes.setUpNow', args: { pilotId: null } }])

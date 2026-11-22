@@ -120,6 +120,8 @@ export type PlayMediator = {
   /** Take back a proposal still awaiting its answer (r2 C7). */
   withdraw: (opId: string) => void
   broadcast: (message: string) => Promise<void>
+  /** Take an alert back off every player's strip and Feed (r4 B4); a refusal is said. */
+  withdrawAlert: (alertId: string) => void
   alerts: AlertLine[]
   rolls: RollLine[] | null
   /** The table's event stream (`changeLog.events`); null while it loads. */
@@ -227,6 +229,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const proposeMutation = useTableAct('ops.propose', gameId)
   const withdraw = useWithdrawProposal(gameId)
   const broadcastMutation = useTableAct('changeLog.broadcast', gameId)
+  const withdrawAlert = useTableAct('changeLog.withdrawAlert', gameId)
   const setConditions = useTableAct('scenes.setConditions', gameId)
   const passHour = useTableAct('scenes.passHour', gameId)
   const setUpNow = useTableAct('scenes.setUpNow', gameId)
@@ -500,6 +503,9 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     broadcast: said(async (message: string) => {
       await broadcastMutation({ message })
     }),
+    withdrawAlert: (alertId: string) => {
+      withdrawAlert({ alertId }).catch(onFailure)
+    },
     alerts: alerts ?? [],
     rolls: rolls ?? null,
     events: events ?? null,

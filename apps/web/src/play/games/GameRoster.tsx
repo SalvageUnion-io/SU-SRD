@@ -317,7 +317,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   // unit under the columns the table reads — who holds it, and the numbers
   // Play spends. Its ⋯ menu rides the row, as a Compact's does.
   const MANIFEST: readonly LedgerColumn[] = [
-    // A phone drops Member so HP and SP never clip.
+    // A phone drops Member so HP and SP never clip: there the holder's name
+    // rides the unit's quiet line (`su-open__phone-only`, r4 B8).
     { key: 'who', label: playGamesCopy('member'), kind: 'text' },
     { key: 'tl', label: playGamesCopy('tl'), title: playGamesCopy('techLevel') },
     { key: 'hp', label: 'HP', phone: true },
@@ -339,6 +340,12 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     const mech = linked?.readings ?? []
     const mechOf = (label: string) => mech.find((reading) => reading.label === label)?.value ?? ''
     const tl = readingOf(chips, 'TL') || mechOf('TL')
+    const wears = [classNameOf(row), linked?.name ? `in ${linked.name}` : '']
+      .filter(Boolean)
+      .join(' · ')
+    // Who holds it, kept beside the name where a phone drops the Member column (r4 B8).
+    const holder =
+      row.kind !== 'crawler' && row.owner != null && !row.owner.unassigned ? row.owner.label : null
     return {
       id: row.serverId,
       // A pilot's callsign, then their name (`pilotLabel`, in `ownableRows`).
@@ -346,8 +353,14 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       href: rosterSheetHref(row),
       // A pilot's line wears their Class, then the mech they are in.
       meta:
-        [classNameOf(row), linked?.name ? `in ${linked.name}` : ''].filter(Boolean).join(' · ') ||
-        undefined,
+        wears === '' && holder === null ? undefined : (
+          <>
+            {wears}
+            {holder !== null && (
+              <span className="su-open__phone-only">{wears === '' ? holder : ` · ${holder}`}</span>
+            )}
+          </>
+        ),
       stamp: (
         <>
           {row.primary && <Stat size="mini" label={playGamesCopy('primary')} />}

@@ -334,17 +334,18 @@ describe('the pinned notices', () => {
       '/games/g1/prep'
     )
     const strips = () => [...document.querySelectorAll('[data-table-notice]')]
-    // One strip, the newest of the three; the others wait behind the count.
-    expect(strips().map((el) => el.getAttribute('data-table-notice'))).toEqual(['role'])
-    const more = screen.getByRole('button', { name: 'Show 2 more notices' })
-    expect(more.textContent).toBe('2 more')
+    // The Mediator's alert is never folded away (r4 B2); under it one strip,
+    // the newer of the other two, and the last waits behind the count.
+    expect(strips().map((el) => el.getAttribute('data-table-notice'))).toEqual(['alert', 'role'])
+    const more = screen.getByRole('button', { name: 'Show 1 more notices' })
+    expect(more.textContent).toBe('1 more')
     expect(more.getAttribute('aria-expanded')).toBe('false')
     await act(async () => {
       fireEvent.click(more)
     })
     expect(strips().map((el) => el.getAttribute('data-table-notice'))).toEqual([
-      'role',
       'alert',
+      'role',
       'session',
     ])
     await act(async () => {
@@ -354,7 +355,7 @@ describe('the pinned notices', () => {
     expect(screen.getByRole('region', { name: 'Your Games' }).childElementCount).toBe(0)
   })
 
-  test('a proposal leads the strip, and Dismiss all leaves it waiting (r3 H1)', async () => {
+  test('a proposal leads the strip under the alert, and dismissing leaves it waiting (r3 H1)', async () => {
     const proposal = {
       _id: 'p-1',
       entityId: 'bonesaw',
@@ -377,13 +378,44 @@ describe('the pinned notices', () => {
       [...document.querySelectorAll('[data-table-notice]')].map((el) =>
         el.getAttribute('data-table-notice')
       )
-    expect(strips()).toEqual(['proposal'])
+    expect(strips()).toEqual(['alert', 'proposal'])
     expect(screen.getByRole('button', { name: 'Accept: Static AP → 2' })).toBeTruthy()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Dismiss all' }))
+      fireEvent.click(screen.getByRole('button', { name: /^Dismiss: From the Mediator/ }))
     })
     expect(strips()).toEqual(['proposal'])
-    expect(screen.queryByRole('button', { name: 'Dismiss all' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Dismiss/ })).toBeNull()
+  })
+
+  test('the player who is up reads the Mediator’s alert above "Your turn", and ends their own turn (r4 B1, B2)', async () => {
+    const { useUnits } = await import('../../replica/units')
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const { drop } = await import('../../replica/replica')
+    await act(async () => {
+      await useUnits
+        .getState()
+        .adopt('pilot', pilotFixture({ id: 'tn-end', gameId: 'g1', callsign: 'Tinhat' }))
+    })
+    const alert = {
+      _id: 'a-up',
+      ts: Date.now() - 1000,
+      kind: 'alert',
+      text: 'Mediator · Sandstorm rolling in',
+      actorId: 'gm',
+    }
+    await renderNotices({
+      'scenes.current': { conditions: [], hours: 0, upNow: 'tn-end' },
+      'changeLog.events': [alert],
+    })
+    const strips = [...document.querySelectorAll('[data-table-notice]')]
+    expect(strips.map((el) => el.getAttribute('data-table-notice'))).toEqual(['alert', 'turn'])
+    expect(strips[0]?.textContent).toContain('Sandstorm rolling in')
+    expect(screen.queryByRole('button', { name: /more notices/ })).toBeNull()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'End my turn' }))
+    })
+    expect(mutations).toEqual([{ name: 'scenes.endTurn', args: {} }])
+    act(() => drop('pilot', 'tn-end'))
   })
 
   test('"You now mediate" carries the door to the Mediate screen (r3 A4)', async () => {

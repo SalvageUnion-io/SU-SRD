@@ -115,6 +115,8 @@ export type PlayBarProps = {
   readOnly?: PlayReadOnly | null
   /** The Situation switch: On foot / Boarded / Downtime (from `lg`; below it, pinned under the bar). */
   situation?: ReactNode
+  /** A mark that jumps somewhere off screen ("New in the Feed", r4 B7), before the Stop Sign. */
+  mark?: ReactNode
   /** The Stop Sign's button (`StopSignButton`), in a Game. */
   stop?: ReactNode
   /** The Discord channel button: where this screen's rolls post. */
@@ -146,6 +148,7 @@ export function PlayBar({
   short = false,
   readOnly = null,
   situation,
+  mark,
   stop,
   channel,
   menu,
@@ -197,6 +200,7 @@ export function PlayBar({
           </Badge>
         )}
         <span style={SPACER} />
+        {mark}
         {stop}
         {channel}
         {menu}
@@ -248,6 +252,7 @@ export function PlayBar({
         </Badge>
       )}
       <span style={SPACER} />
+      {mark}
       {stop}
       {channel}
       {menu}

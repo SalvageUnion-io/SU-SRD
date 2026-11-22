@@ -10,8 +10,8 @@
 
 import { OctagonPause } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { useEffect, useRef } from 'react'
-import { Button, toast, tokens } from '../components/index'
+import { useEffect, useRef, useState } from 'react'
+import { Button, tokens } from '../components/index'
 import { playSafetyCopy } from '../messages/play-safety'
 import type { StopSign } from './useStopSign'
 
@@ -26,8 +26,6 @@ const WINDOW_TIMER: HoldTimer = {
   clear: (id) => window.clearTimeout(id),
 }
 
-const tellByToast = (message: string) => void toast(message, { id: 'stop-sign-hold' })
-
 /** The phone's label beside its octagon. */
 const LABELLED = {
   alignItems: 'center',
@@ -40,24 +38,30 @@ const LABELLED = {
  * the sign is up it does nothing more, so it says so by being disabled. On
  * the phone's bar, where the whole name would push ⋯ off the line, it is the
  * octagon and "Stop", and it fires on a hold (`STOP_HOLD_MS`), never on a
- * brushed tap, which is told to hold; a keyboard's or a screen reader's press,
- * which no finger brushes, fires it at once.
+ * brushed tap; a keyboard's or a screen reader's press, which no finger
+ * brushes, fires it at once.
+ *
+ * The hold explains itself (r4 B6): the first tap says "Hold to show the Stop
+ * Sign" right at the button (a toast at the page's foot left it looking
+ * dead), and a finger held down fills the button over the hold, so the wait
+ * is seen (`.su-play-stop`, `styles/play/bar.css`).
  */
 export function StopSignButton({
   sign,
   compact = false,
   timer = WINDOW_TIMER,
-  tell = tellByToast,
 }: {
   sign: StopSign | null
   compact?: boolean
   /** The hold's clock (a test's own). */
   timer?: HoldTimer
-  /** Says a tap must be held (a toast). */
-  tell?: (message: string) => void
 }) {
   // The running hold; `fired` once it ran out with the finger still down.
   const hold = useRef<{ id: number | null; fired: boolean } | null>(null)
+  // A finger is down and the hold is running: the button fills.
+  const [holding, setHolding] = useState(false)
+  // A tap came up short: the button says to hold, until the next press.
+  const [hinted, setHinted] = useState(false)
   useEffect(
     () => () => {
       if (hold.current?.id != null) timer.clear(hold.current.id)
@@ -82,42 +86,54 @@ export function StopSignButton({
   const letGo = () => {
     if (hold.current?.id != null) timer.clear(hold.current.id)
     if (hold.current) hold.current.id = null
+    setHolding(false)
   }
   return (
-    <Button
-      variant="primary"
-      size="compact"
-      aria-label={playSafetyCopy('showTheStopSign')}
-      title={playSafetyCopy('holdToShow')}
-      disabled={disabled}
-      onPointerDown={() => {
-        letGo()
-        const mine = { id: null as number | null, fired: false }
-        mine.id = timer.set(() => {
-          mine.id = null
-          mine.fired = true
-          sign.show()
-        }, STOP_HOLD_MS)
-        hold.current = mine
-      }}
-      onPointerUp={letGo}
-      onPointerLeave={letGo}
-      onPointerCancel={letGo}
-      // A long press is the hold, never the browser's menu.
-      onContextMenu={(event) => event.preventDefault()}
-      onClick={(event) => {
-        // A pointer's click ends a tap or a hold; any other press (a key, a
-        // screen reader) has no hold to make, so it fires.
-        const pressed = hold.current
-        hold.current = null
-        if (pressed === null && event.detail === 0) sign.show()
-        else if (pressed?.fired !== true) tell(playSafetyCopy('holdToShow'))
-      }}
-    >
-      <span style={LABELLED}>
-        <OctagonPause size={tokens.iconSize.mini} aria-hidden="true" />
-        {playSafetyCopy('stop')}
+    <span className="su-play-stop" data-holding={holding ? '' : undefined}>
+      <Button
+        variant="primary"
+        size="compact"
+        aria-label={playSafetyCopy('showTheStopSign')}
+        title={playSafetyCopy('holdToShow')}
+        disabled={disabled}
+        onBlur={() => setHinted(false)}
+        onPointerDown={() => {
+          letGo()
+          const mine = { id: null as number | null, fired: false }
+          mine.id = timer.set(() => {
+            mine.id = null
+            mine.fired = true
+            setHolding(false)
+            sign.show()
+          }, STOP_HOLD_MS)
+          hold.current = mine
+          setHinted(false)
+          setHolding(true)
+        }}
+        onPointerUp={letGo}
+        onPointerLeave={letGo}
+        onPointerCancel={letGo}
+        // A long press is the hold, never the browser's menu.
+        onContextMenu={(event) => event.preventDefault()}
+        onClick={(event) => {
+          // A pointer's click ends a tap or a hold; any other press (a key, a
+          // screen reader) has no hold to make, so it fires.
+          const pressed = hold.current
+          hold.current = null
+          if (pressed === null && event.detail === 0) sign.show()
+          else if (pressed?.fired !== true) setHinted(true)
+        }}
+      >
+        <span style={LABELLED}>
+          <OctagonPause size={tokens.iconSize.mini} aria-hidden="true" />
+          {playSafetyCopy('stop')}
+        </span>
+      </Button>
+      <span className="su-play-stop__fill" aria-hidden="true" />
+      {/* Always there, so it is announced as it fills; empty, it takes no room. */}
+      <span role="status" className="su-play-stop__hint">
+        {hinted && !sign.shown ? playSafetyCopy('holdToShow') : ''}
       </span>
-    </Button>
+    </span>
   )
 }

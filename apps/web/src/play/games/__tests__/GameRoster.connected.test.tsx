@@ -228,6 +228,9 @@ describe('what a row offers', () => {
     // (only an unassigned one does).
     const line = screen.getByRole('link', { name: 'Ash' }).closest('tr')
     expect(line?.querySelector('td')?.textContent).toBe('Mediator')
+    // A phone drops that column: the holder's name is kept under the Pilot's (r4 B8).
+    expect(line?.querySelector('th .su-open__phone-only')?.textContent).toContain('Mediator')
+    expect(document.querySelectorAll('th .su-open__phone-only')).toHaveLength(1)
     // Readable: a shared table whose crew you cannot look at is not shared.
     // The same address as your own rows; `SheetView` renders it read-only.
     const row = screen.getByRole('link', { name: 'Ash' })

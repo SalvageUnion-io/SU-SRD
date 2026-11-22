@@ -2,7 +2,9 @@
  * The Crew list's lines (play.md §7) and the Play bar's "N here", from the
  * server's crew read (`crew.vitals`): pure, no React and no I/O.
  *
- * One line per other seat in the Game: whether they are here (their player
+ * One line per other seat in the Game that somebody plays (r4 B8: a pilot
+ * assigned to nobody, a pre-gen nobody took, is no crewmate at the table, and
+ * read "Away"), with its player's name: whether they are here (their player
  * has the Game open, `useGamePresence`), their callsign, their mount ("Boarded
  * · Atlas", "On foot"), the one vital that flags them, and every number
  * with its maximum (HP, AP; aboard, the mech's SP, EP and Heat). Who needs looking at is `crewLines()`'s
@@ -44,6 +46,8 @@ type CrewVital = {
 
 /** One crewmate as the Crew list draws them: their crew line, and how the list reads it. */
 export type CrewSeatLine = CrewLine & {
+  /** Who plays them, by the name the Game holds; null when the roster has none. */
+  player: string | null
   /** Their player has the Game open. */
   present: boolean
   /** "Boarded · Atlas", or "On foot". */
@@ -113,12 +117,14 @@ export function crewSeatLines(
 
   return crewLines(crew, seats, selfPilotId).flatMap((line): CrewSeatLine[] => {
     const pilot = pilots.get(line.pilotId)
-    if (line.self || pilot === undefined) return []
+    // Only who is playing (r4 B8): an unassigned pilot is the Game page's to offer.
+    if (line.self || pilot === undefined || pilot.ownerId === null) return []
     const mech = pilot.mechId === null ? undefined : mechs.get(pilot.mechId)
     const boardedIn = pilot.boarded ? (mech?.name ?? 'a mech') : null
     return [
       {
         ...line,
+        player: pilot.ownerName,
         present: isHere(pilot, here),
         mount: boardedIn === null ? playCopy('onFoot') : `Boarded · ${boardedIn}`,
         boardedIn,
@@ -156,6 +162,7 @@ export function crewLineLabel(line: CrewSeatLine): string {
     line.vital.value === null ? line.vital.label : `${line.vital.label} ${line.vital.value}`
   return [
     line.name,
+    ...(line.player === null ? [] : [playCopy('playedBy', { name: line.player })]),
     line.present ? 'here' : 'away',
     line.mount,
     line.problem ?? (line.vital.attention ? vital : `${vital}, fine`),

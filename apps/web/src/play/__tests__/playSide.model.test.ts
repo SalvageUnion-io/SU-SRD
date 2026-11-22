@@ -35,6 +35,27 @@ describe('the Crew (play.md §7)', () => {
     expect(lines.map((l) => l.name)).toEqual(['Mags', 'Rook', 'Wren'])
   })
 
+  test('only who is playing: an unassigned pre-gen is no crewmate, and a line names its player (r4 B8)', () => {
+    const crew = crewAt()
+    const [, mags] = crew.pilots
+    if (mags === undefined) throw new Error('fixture')
+    crew.pilots[1] = { ...mags, ownerName: 'Ada' }
+    crew.pilots.push({
+      ...mags,
+      _id: 'r-pre',
+      appId: 'pre',
+      linkId: 'pre',
+      name: 'Driftwood',
+      ownerId: null,
+    })
+    const listed = crewSeatLines(crew, [], 'bonesaw', CREW_HERE)
+    expect(listed.map((l) => l.name)).toEqual(['Mags', 'Rook', 'Wren'])
+    expect(listed.map((l) => l.player)).toEqual(['Ada', null, null])
+    const [first] = listed
+    if (first === undefined) throw new Error('fixture')
+    expect(crewLineLabel(first)).toStartWith('Mags, Played by Ada, here, ')
+  })
+
   test('presence is the player having the Game open: Wren’s player has not', () => {
     expect(lines.map((l) => [l.name, l.present])).toEqual([
       ['Mags', true],
@@ -196,6 +217,37 @@ describe('the Feed (play.md §8)', () => {
     source: 'play',
   })
   const alert: AlertLine = { _id: 'a1', message: 'Storm incoming', ts: 250 }
+
+  test('a proposal awaiting my answer is one entry: the table’s line for it waits for the answer (r4 B5)', () => {
+    const asked = (ts: number, text: string): TableEvent => ({
+      _id: `e${ts}`,
+      ts,
+      kind: 'proposal',
+      text,
+      actorId: 'gm',
+      about: 'me',
+    })
+    const events = [
+      asked(100, 'Mediator proposes Bonesaw HP → 5'),
+      // One already answered, and its answer: both stay.
+      asked(50, 'Mediator proposes Bonesaw AP → 2'),
+      { ...asked(60, 'Ash accepted: Bonesaw AP → 2'), actorId: 'me' },
+    ]
+    const entries = playFeedEntries({
+      rolls: null,
+      alerts: [],
+      events,
+      proposals: [proposal],
+      mine: [],
+      rollerName: 'Bonesaw',
+      viewerId: 'me',
+    })
+    expect(entries.map((e) => [e.kind, e.text])).toEqual([
+      ['proposal', 'Mediator proposes Bonesaw HP → 5'],
+      ['event', 'You accepted: Bonesaw AP → 2'],
+      ['event', 'Mediator proposes Bonesaw AP → 2'],
+    ])
+  })
 
   test('proposals awaiting an answer first, then everything newest first', () => {
     const entries = playFeedEntries({

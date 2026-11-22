@@ -10,21 +10,26 @@
  * as `crewLines()` decides), else, while they are here, their SP aboard or HP
  * on foot.
  *
+ * Under the pilot's name, who plays them ("Played by Ada", r4 B8), and only
+ * pilots somebody plays are listed.
+ *
  * Tapping a line puts that crewmate's pilot sheet on the screen, read-only
  * (`useOpenSheet`, play.md §18). What they are resolving is the Mini's contentful body
  * while there is one (N3: plain words, no entity), announced politely as it
  * changes.
  *
- * Whose turn the Mediator marked (`scenes.current`'s `upNow`) reads above
- * the list, "Up now · You" for this screen's own pilot, and as a chip on that
- * crewmate's line.
+ * Whose turn the Mediator marked (`scenes.current`'s `upNow`) is a chip on
+ * that crewmate's own card, never a line above the first card, which read as
+ * that card's label (r4 B3). It is still said as it changes ("Up now · You"
+ * for this screen's own pilot, whose turn the pinned strip shows), to a
+ * screen reader alone.
  *
  * Presentational over `crewSeatLines`: the caller hands in the crew read
  * (`crew.vitals`, through `useGameFeed`) and the seats.
  */
 
 import type { CSSProperties } from 'react'
-import { EmptyState, Entity, MiniGrid, Stat, tokens } from '../components/index'
+import { EmptyState, Entity, MiniGrid, Stat, Text, tokens } from '../components/index'
 import { crewPair } from '../lib/units/crewPair'
 import { unitRowModel } from '../lib/units/unitModel'
 import { playCopy } from '../messages/play'
@@ -35,14 +40,6 @@ import type { CrewVitals } from './useGameFeed'
 import { useGamePresence } from './useGamePresence'
 import { useOpenSheet } from './useOpenSheet'
 import { useScene } from './useScene'
-
-const UP_NOW = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.chip,
-  fontWeight: tokens.weight.bold,
-  margin: 0,
-} satisfies CSSProperties
 
 const RESOLVING = {
   color: tokens.color.ink,
@@ -73,7 +70,7 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
 
   return (
     <>
-      <p role="status" style={UP_NOW} hidden={upNow === undefined || upName === undefined}>
+      <p role="status" className="su-sr-only">
         {upNow === undefined || upName === undefined
           ? ''
           : upNow === selfPilotId
@@ -157,6 +154,9 @@ function CrewLine({
         text: false,
         children: (
           <>
+            {line.player === null ? null : (
+              <Text variant="note">{playCopy('playedBy', { name: line.player })}</Text>
+            )}
             <div style={VITALS}>
               {line.vitals.map((v) => (
                 <Stat key={v.label} size="mini" surface="plain" label={v.label} value={v.value} />
