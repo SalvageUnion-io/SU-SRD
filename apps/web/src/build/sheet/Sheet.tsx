@@ -374,7 +374,11 @@ export function Sheet({
         : null
   const play =
     playPilot && status !== 'signedOut'
-      ? { name: playPilot.name, onPlay: () => go(cockpitPath(playPilot.id)) }
+      ? {
+          name: playPilot.name,
+          gameId: playPilot.gameId ?? null,
+          onPlay: () => go(cockpitPath(playPilot.id)),
+        }
       : undefined
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local
@@ -426,7 +430,7 @@ export function Sheet({
     for (const { key, label, unit } of counterparts) {
       const href = unit ? hrefFor(key, unit.id) : undefined
       if (unit && href !== undefined) {
-        segments.push({ key, label, name: unit.name, href, active: kind === key })
+        segments.push({ key, label, name: unit.name, id: unit.id, href, active: kind === key })
       }
     }
   }

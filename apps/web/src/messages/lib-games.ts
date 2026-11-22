@@ -59,7 +59,7 @@ export const libGamesCopy = messages({
   deleteFromGameBody:
     'This cannot be undone. {name} will be removed from this Game for everyone, and from this browser.',
   deleteFromGameInstead:
-    'Only leaving the table? “Offer to the crew” hands them back instead — they stay in the Game for somebody else to pick up.',
+    'Only leaving the table? “Unassign” hands them back instead: they stay in the Game for a crewmate to take with “Assign to me”.',
   deleteFailed: '{name} could not be deleted. Try again.',
   deleteBuildBody: 'This action cannot be undone. {name} will be permanently removed.',
   removeLeftoversOne: 'Remove {names}?',

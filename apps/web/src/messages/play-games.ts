@@ -99,7 +99,7 @@ export const playGamesCopy = messages({
   chooseThePilotToPlay: 'Choose the Pilot to play.',
   noneOfThisGamesPilots:
     'No Pilot in this Game is assigned to you. Add one of yours, or use Assign to me on a free one in the Crew list, then play.',
-  assignThisToYou: '{label} — assign this to you',
+  assignToMeNamed: 'Assign to me: {name}',
   awaitingYourAnswer: 'Awaiting your answer',
   lastSession: 'Last session',
   thisSession: 'This session',

@@ -83,3 +83,60 @@ test('an over-large amount says it will be capped, and tells the write so (r2 C6
   })
   expect(writes).toEqual([[0, 'Capped at 0']])
 })
+
+// r3 J4: a vital is one Tab stop; ← / → move between its number, slider, − and +.
+test('a live vital is one Tab stop, and the arrow keys move between its controls', () => {
+  const writes: number[] = []
+  render(<PlayVital label="HP" value={8} max={10} tone="pilot" onChange={(n) => writes.push(n)} />)
+  const number = screen.getByRole('button', { name: 'Change HP by an amount, now 8 of 10' })
+  const slider = screen.getByRole('slider')
+  const minus = screen.getByRole('button', { name: 'Decrease HP' })
+  const plus = screen.getByRole('button', { name: 'Increase HP' })
+  const stops = [number, slider, minus, plus]
+  expect(stops.map((el) => el.tabIndex)).toEqual([0, -1, -1, -1])
+  number.focus()
+  fireEvent.keyDown(number, { key: 'ArrowRight' })
+  expect(document.activeElement).toBe(slider)
+  // On the slider ← / → are the row's: they move on, and change nothing.
+  fireEvent.keyDown(slider, { key: 'ArrowRight' })
+  expect(document.activeElement).toBe(minus)
+  expect(writes).toEqual([])
+  // The row's one Tab stop is the control last used.
+  expect(stops.map((el) => el.tabIndex)).toEqual([-1, -1, 0, -1])
+  fireEvent.keyDown(minus, { key: 'ArrowLeft' })
+  expect(document.activeElement).toBe(slider)
+  // ↑ / ↓ still set the value there.
+  fireEvent.keyDown(slider, { key: 'ArrowDown' })
+  expect(writes).toEqual([7])
+})
+
+test('a step that empties the vital hands the focus on, never to the page (r3 J4)', () => {
+  const view = (value: number) => (
+    <PlayVital label="HP" value={value} max={10} tone="pilot" onChange={() => {}} />
+  )
+  const { rerender } = render(view(1))
+  const minus = screen.getByRole('button', { name: 'Decrease HP' })
+  minus.focus()
+  rerender(view(0))
+  expect((minus as HTMLButtonElement).disabled).toBe(true)
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Increase HP' }))
+})
+
+test('the amount form hands the focus back to the number it was opened from (r3 J4)', async () => {
+  render(<PlayVital label="HP" value={8} max={10} tone="pilot" onChange={() => {}} />)
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /Change HP by an amount/ }))
+  })
+  fireEvent.change(screen.getByRole('textbox', { name: 'HP amount' }), { target: { value: '3' } })
+  await act(async () => {
+    fireEvent.submit(screen.getByRole('form', { name: 'Change HP by an amount' }))
+  })
+  expect(document.activeElement).toBe(
+    screen.getByRole('button', { name: /Change HP by an amount/ })
+  )
+})
+
+test('a read-out vital has no Tab stop to manage', () => {
+  render(<PlayVital label="HP" value={8} max={10} tone="pilot" />)
+  expect(screen.queryByRole('slider')).toBeNull()
+})

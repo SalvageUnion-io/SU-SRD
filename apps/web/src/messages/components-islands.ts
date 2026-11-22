@@ -80,6 +80,7 @@ export const islandsCopy = messages({
   yourGames: 'Your Games',
   sessionLiveIn: 'Session live · {game}',
   joinSession: 'Join session',
+  mediate: 'Mediate',
   dismiss: 'Dismiss',
   dismissWhat: 'Dismiss: {what}',
 })

@@ -12,7 +12,6 @@ export const buildShelvesCopy = messages({
   youAreInNoGame:
     'You are in no Game to move it to. Start one with “+ New Game”, or join one from an invite link.',
   moreFor: 'More for {name}',
-  play: 'Play',
   addAMech: '+ Add a Mech',
   addAMechTo: 'Add a Mech to {name}',
   yourUnassignedMechs: 'Your unassigned Mechs',
@@ -22,7 +21,6 @@ export const buildShelvesCopy = messages({
   mechNotAssigned: '{mech} could not be assigned. Try again.',
   noUnassignedMechs: 'Every Mech of yours has its Pilot.',
   everyMechHasItsPilot: 'None. A Mech with a Pilot is on its Pilot’s row.',
-  playName: 'Play {name}',
   youMediate: 'You mediate',
   starterSet: 'Starter Set',
   quickstartCrew: 'Quickstart crew',

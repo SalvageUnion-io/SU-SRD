@@ -11,18 +11,23 @@
  * `restoresTo` reads after the gauge as "→ 20", the gauge still showing what
  * the mech has now, since the step has not been applied.
  *
+ * By keyboard a live vital is one Tab stop (`useVitalKeys`, r3 J4): ← / →
+ * move between its number, slider, − and +, and the amount form hands the
+ * focus back to the number it was opened from.
+ *
  * Presentational: `onChange` is the box's write, called with the next value
  * already clamped to 0…max.
  */
 
 import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { VitalGauge } from '../components/app'
 import type { CSSVarStyle } from '../components/index'
 import { tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayVitalAmount } from './PlayVitalAmount'
+import { useVitalKeys } from './useVitalKeys'
 
 type VitalTone = 'pilot' | 'mech' | 'crawler' | 'adversary'
 
@@ -85,6 +90,14 @@ export function PlayVital({
   const live = onChange !== undefined
   // "Take 3 damage" is one write: press the number, type the amount, − or +.
   const [asking, setAsking] = useState(false)
+  const keys = useVitalKeys()
+  // The amount form closed: the focus goes back to the number that opened it (r3 J4).
+  const back = useRef(false)
+  useEffect(() => {
+    if (asking || !back.current) return
+    back.current = false
+    keys.ref.current?.querySelector<HTMLElement>('.su-vital-gauge__value-button')?.focus()
+  }, [asking, keys.ref])
   if (live && asking) {
     return (
       <PlayVitalAmount
@@ -92,12 +105,15 @@ export function PlayVital({
         value={value}
         max={max}
         onChange={onChange}
-        onClose={() => setAsking(false)}
+        onClose={() => {
+          back.current = true
+          setAsking(false)
+        }}
       />
     )
   }
   return (
-    <div style={ROW}>
+    <div style={ROW} {...(live ? keys : {})}>
       <div style={GAUGE}>
         <VitalGauge
           size="compact"

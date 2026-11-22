@@ -73,6 +73,41 @@ export function eventsToToast(
   return { toast, heard: new Map([...heard, ...next]) }
 }
 
+/** What a Game's pinned strip is showing on this screen, as far as a toast would repeat it. */
+export type PinnedNow = {
+  /** The pinned alert's event id (`pinnedAlert`). */
+  alertId: string | null
+  /** The pinned hand over's event id (`pinnedRole`). */
+  roleId: string | null
+  /** "Session live" and its door are pinned: any screen but Play and the Game's own page. */
+  sessionLive: boolean
+  /** "Session ended" is pinned: on the Game's own pages (`onGamePages`). */
+  sessionEnded: boolean
+}
+
+/**
+ * Whether the pinned strip already says `event` to this viewer (r3 H2, chrome
+ * K5: a notice has one job): then it is not toasted too, where on a phone the
+ * toast landed over the strip with the same words. A proposal that is the
+ * viewer's to answer is always pinned, with Accept and Decline.
+ */
+export function pinnedSays(event: TableEvent, pinned: PinnedNow, viewerId: string | null): boolean {
+  switch (event.kind) {
+    case 'alert':
+      return event._id === pinned.alertId
+    case 'role':
+      return event._id === pinned.roleId
+    case 'proposal':
+      return viewerId !== null && event.about === viewerId
+    case 'session':
+      return event.session === 'start'
+        ? pinned.sessionLive
+        : event.session === 'end' && pinned.sessionEnded
+    default:
+      return false
+  }
+}
+
 /** When the newest group session the stream holds began; 0 with none. */
 function sessionStart(events: readonly TableEvent[]): number {
   return Math.max(0, ...events.filter((event) => event.session === 'start').map((e) => e.ts))

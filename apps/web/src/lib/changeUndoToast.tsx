@@ -4,9 +4,10 @@
  * document's one toaster (`ToasterMount`), as `destroyedUndoToast` does for a
  * destroyed item.
  *
- * Presses on the same number while its line is up are one change: the line
- * keeps the value the run started from, and Undo writes that value back. A run
- * that ends where it started takes its line down.
+ * Each change has its own Undo (r3 B2): a second change to the same number
+ * while its line is up replaces the line, and Undo writes back the value from
+ * just before that change, never one from further back. Undo hands the
+ * keyboard back to the control that made the change (r3 J4).
  */
 
 import { ArrowRight } from 'lucide-react'
@@ -14,11 +15,8 @@ import type { CSSProperties } from 'react'
 import { toast, tokens } from '../components/index'
 import { componentsCopy } from '../messages/components'
 
-/** One number a line moves: its name, the value its run started from, and now. */
+/** One number a line moves: its name, the value just before the change, and now. */
 export type UndoChange = { key: string; label: string; from: number; to: number }
-
-/** Each open line's numbers, by its key: each keeps the value its run started from. */
-const origins = new Map<string, Map<string, UndoChange>>()
 
 /** A value's change is a glyph at the line's Size (K11), never a text arrow. */
 const GLYPH = {
@@ -28,6 +26,26 @@ const GLYPH = {
 } satisfies CSSProperties
 
 const FIGURES = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
+
+/**
+ * The control last focused outside the toasts: what Undo hands the keyboard
+ * back to (r3 J4). Pressing Undo takes its toast, and the focus on it, away;
+ * without this the next Tab starts at the top of the page.
+ */
+let lastUsed: Element | null = null
+let watching = false
+
+function watchFocus(): void {
+  if (typeof document === 'undefined') return
+  const note = (el: Element | null) => {
+    if (el !== null && el !== document.body && el.closest('[data-sonner-toaster]') === null)
+      lastUsed = el
+  }
+  note(document.activeElement)
+  if (watching) return
+  watching = true
+  document.addEventListener('focusin', (event) => note(event.target as Element | null))
+}
 
 export function changeUndoToast({
   id,
@@ -43,7 +61,7 @@ export function changeUndoToast({
   label: string
   from: number
   to: number
-  /** Writes the value the run started from. */
+  /** Writes the value from just before the change. */
   undo: (value: number) => void
   /** What made the change, said first: "Used Squeeze It In". */
   did?: string
@@ -59,7 +77,7 @@ export function changeUndoToast({
 /**
  * One line for a change that moves several numbers at once (an activation's
  * EP, Heat and Uses): "Used Hover · EP 10 → 8 · Heat 0 → 2 · Undo". Undo is
- * handed each number's starting value, by its key, to write back together.
+ * handed each number's value from before the change, by its key, to write back together.
  */
 export function changesUndoToast({
   id,
@@ -70,22 +88,13 @@ export function changesUndoToast({
   id: string
   did?: string
   changes: UndoChange[]
-  /** Writes back each number the run started from, by its key. */
+  /** Writes back each number as it was before the change, by its key. */
   undo: (start: Record<string, number>) => void
 }) {
-  const run = new Map(origins.get(id) ?? [])
-  for (const change of changes) {
-    const open = run.get(change.key)
-    run.set(change.key, { ...change, from: open?.from ?? change.from })
-  }
-  const moved = [...run.values()].filter((c) => c.from !== c.to)
-  if (moved.length === 0) {
-    origins.delete(id)
-    toast.dismiss(id)
-    return
-  }
-  origins.set(id, run)
-  const start = Object.fromEntries([...run.values()].map((c) => [c.key, c.from]))
+  const moved = changes.filter((c) => c.from !== c.to)
+  if (moved.length === 0) return
+  const start = Object.fromEntries(changes.map((c) => [c.key, c.from]))
+  watchFocus()
   toast(
     <span style={FIGURES}>
       {did ? `${did} · ` : ''}
@@ -108,12 +117,10 @@ export function changesUndoToast({
       action: {
         label: componentsCopy('undo'),
         onClick: () => {
-          origins.delete(id)
           undo(start)
+          if (lastUsed instanceof HTMLElement && lastUsed.isConnected) lastUsed.focus()
         },
       },
-      onDismiss: () => origins.delete(id),
-      onAutoClose: () => origins.delete(id),
     }
   )
 }

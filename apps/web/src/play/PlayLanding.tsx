@@ -260,7 +260,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             <PlayGameItem
               key={game._id}
               game={game}
-              // A door names its pilot by callsign: "Play GHOST".
+              // The seat's door is told apart by callsign when there are several (`gameDoors`).
               pilots={gamePilots(pilots, game._id).map((p) => ({
                 id: p.id,
                 name: pilotCallsign(p),

@@ -423,6 +423,7 @@ export function MechWizard({
             onSelectChassis={selectChassis}
             onSelectPattern={selectPattern}
             onSelectCustom={selectCustom}
+            gameId={gameId}
           />
         </>
       )}

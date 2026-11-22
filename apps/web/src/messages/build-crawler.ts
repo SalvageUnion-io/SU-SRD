@@ -81,6 +81,7 @@ export const crawlerCopy = messages({
   typeChangedMountsMany:
     'Type changed — this type mounts {slots} Weapons Systems; removed {removed}.',
   youHaveSavedSoFar: '(You have {pilots} and {mechs} saved so far.)',
+  thisGameHasSoFar: '(This Game has {pilots} and {mechs} so far.)',
   pilotCountOne: '{count} Pilot',
   pilotCountMany: '{count} Pilots',
   mechCountOne: '{count} Mech',

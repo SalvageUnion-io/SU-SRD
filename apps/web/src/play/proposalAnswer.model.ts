@@ -15,7 +15,7 @@ import { fieldLabel } from 'game-domain/games/proposals'
 import { changeUndoToast } from '../lib/changeUndoToast'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../replica/provenance'
+import { PLAY_UNDO } from '../replica/provenance'
 import { useUnits } from '../replica/units'
 import type { ProposalRead } from '../rooms/game/proposals'
 
@@ -42,13 +42,13 @@ export function acceptedUndo(
   if (kind !== 'pilot' && kind !== 'mech') return
   if (typeof after !== 'number' || typeof current !== 'number') return
   changeUndoToast({
-    // The vital's own line (`PlayCockpit`'s key), so a step after it is the same run.
+    // The vital's own line (`PlayCockpit`'s key): a step after it replaces this one.
     id: `${kind}:${id}:${field}`,
     label: fieldLabel(field),
     from: current,
     to: after,
     did: playCopy('accepted'),
     undo: (value) =>
-      runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_TXN)),
+      runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO)),
   })
 }

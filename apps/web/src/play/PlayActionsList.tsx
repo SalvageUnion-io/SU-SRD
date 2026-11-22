@@ -14,7 +14,7 @@
  * the Downtime column, where the group is the Field actions.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   Button,
   Callout,
@@ -30,6 +30,7 @@ import { PlayActionEntry } from './PlayActionEntry'
 import type { ActionTypeKey, ListEntry } from './playActions.model'
 import { ACTION_TYPE_ORDER, TYPE_FILTERS } from './playActions.model'
 import type { Play } from './situation.model'
+import { useFindKey } from './useFindKey'
 import type { PlayActions } from './usePlayActions'
 
 /** A list of entries, one contentful Mini each, in the Mini grid. */
@@ -124,10 +125,14 @@ function OrphanNote({ text, onClear }: { text: string; onClear: () => void }) {
  * The type filter and, from `lg`, Find, for the "Actions" Slab's heading
  * line: they wrap under the heading when the column is too narrow for one
  * line (`.su-play-act-head`). Below `lg` the filter leads the pane alone.
+ * The slash key jumps to Find (`useFindKey`).
  */
 export function PlayActionsTools({ actions, find }: { actions: PlayActions; find: boolean }) {
+  // "/" jumps to Find, where there is one (r3 J4).
+  const tools = useRef<HTMLDivElement>(null)
+  useFindKey(tools)
   return (
-    <div className="su-play-act-tools">
+    <div className="su-play-act-tools" ref={tools}>
       <Segmented label={playCopy('filterActionsByType')} size="compact">
         {TYPE_FILTERS.map((type) => (
           <SegmentedOption
@@ -142,6 +147,7 @@ export function PlayActionsTools({ actions, find }: { actions: PlayActions; find
       {find && (
         <SearchField
           aria-label={playCopy('findAnAction')}
+          aria-keyshortcuts="/"
           placeholder={playCopy('find')}
           value={actions.find}
           onChange={(event) => actions.setFind(event.target.value)}

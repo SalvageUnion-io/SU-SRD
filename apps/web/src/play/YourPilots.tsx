@@ -12,7 +12,7 @@
  */
 
 import { cockpitPath } from 'game-domain/entityKinds'
-import { pilotCallsign, pilotLabel } from 'game-domain/pilotLabel'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { ShelfLedger } from '../build/shelves/ShelfLedger'
 import { inGame, paired } from '../build/shelves/shelfColumns'
 import { Button } from '../components/index'
@@ -61,8 +61,7 @@ export function YourPilots({ games }: { games: readonly ShelfGame[] | undefined 
         ],
         menu: [],
         play: cockpitPath(p.id),
-        // A pilot's door says who it plays (glossary §9).
-        playLabel: playCopy('playPilot', { name: pilotCallsign(p) }),
+        playGameId: p.gameId ?? null,
       }))}
     />
   )

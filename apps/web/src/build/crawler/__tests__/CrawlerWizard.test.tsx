@@ -14,10 +14,13 @@
  */
 
 import { describe, expect, it, mock } from 'bun:test'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
+import { mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { must } from '../../../components/__tests__/must'
+import { gameScope } from '../../../replica/replica'
+import { foldRoomMessage } from '../../../replica/roomSocket'
 import { useUnits } from '../../../replica/units'
 import {
   addOne,
@@ -88,6 +91,38 @@ function nonWeaponSystemAtTL(tl: number): { id: string; name: string } {
 // ---------------------------------------------------------------------------
 
 describe('CrawlerWizard — create mode', () => {
+  it('in a Game, step 1 counts the Game’s pilots and mechs, not your own (r3 L4)', async () => {
+    const view = render(<CrawlerWizard gameId="g1" onComplete={() => {}} onCancel={() => {}} />)
+    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
+    // Before the Game's room answers, no count at all: never your Training Bay's.
+    expect(view.container.textContent).not.toContain('so far')
+    const unit = (kind: 'pilot' | 'mech', body: { id: string }) => ({
+      kind,
+      appId: body.id,
+      gameId: 'g1',
+      owner: 'someone-else',
+      publicRead: false,
+      body,
+      headSeq: 1,
+      fieldSeqs: {},
+      updatedAt: 1,
+    })
+    await act(async () => {
+      foldRoomMessage(gameScope('g1'), {
+        type: 'snapshot',
+        units: [
+          unit('pilot', pilotFixture({ id: 'p1', gameId: 'g1' })),
+          unit('pilot', pilotFixture({ id: 'p2', gameId: 'g1' })),
+          unit('mech', mechFixture({ id: 'm1', gameId: 'g1' })),
+        ],
+        records: { game: [{ appId: 'game', body: { primaryCrawlerId: null }, updatedAt: 0 }] },
+        links: [],
+      })
+    })
+    expect(view.container.textContent).toContain('(This Game has 2 Pilots and 1 Mech so far.)')
+    expect(view.container.textContent).not.toContain('You have')
+  })
+
   it('step 1 renders the five types as radio entity cards with a mutations badge + detail', async () => {
     renderWizard()
 

@@ -9,6 +9,8 @@ import {
 import { seatOf } from '../seats'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
+import type { VitalChange } from './eventLines'
+import { crewedLabel, UNDO_SOURCE, vitalLine } from './eventLines'
 import { rollLineFor } from './log'
 import type { GameStore, StoredOp } from './store'
 import type { SubmitResult } from './units'
@@ -30,7 +32,10 @@ import { unitName } from './units'
  *   same vital of the same unit, or the same line again, inside `MERGE_MS`
  *   rewrites the line it follows ("HP 8 → 5", "×3") until the line is sealed
  *   (posted to Discord). A hit, any larger change to a vital, is a line of its
- *   own, so two hits are two lines (r2 I3).
+ *   own, so two hits are two lines (r2 I3). A change Undo wrote
+ *   (`eventLines.ts`) is a line of its own too, marked "· Undo" (r3 B2).
+ * - **A mech's line names its pilot:** "Reaper (GHOST) · Heat 2 → 3", whoever
+ *   is aboard, else whoever it is assigned to (r3 B2).
  * - **Private:** a row marked `private` (the Mediator's private roll) is
  *   served to Mediators only and is never mirrored (`isMirrored`).
  * - **Veiled:** an Opposition roll is served to a player as its veiled line,
@@ -75,7 +80,8 @@ export type TableEvent = {
   /**
    * The member the event is about. An assignment taken from them: their
    * screen says so itself (`assignmentNotices`). A `role` event: who mediates
-   * now, whose screen pins it.
+   * now, whose screen pins it. A proposal: whose it is to answer, whose
+   * screen pins it.
    */
   about?: string
 }
@@ -120,7 +126,7 @@ type Stored = {
   /** The key whose open line this one ends: a hit on a vital, which no nudge folds across. */
   ends?: string
   /** A vital's line, kept apart so a repeat can rewrite it. */
-  vital?: { who: string; label: string; from: number | null; to: number }
+  vital?: VitalChange
   /** How many times the line repeated. */
   n?: number
   /** The line before its count. */
@@ -311,7 +317,18 @@ export class GameEvents {
           : []
       case 'ops.propose': {
         const op = this.store.op(String(value))
-        return op === null ? [] : say('proposal', `Mediator proposes ${this.proposalLine(op)}`)
+        if (op === null) return []
+        // About whoever answers it: their screen pins it, so it toasts them nothing (r3 H2).
+        const text = `Mediator proposes ${this.proposalLine(op)}`
+        const about = this.store.unit(op.unitId)?.ownerId ?? null
+        return [
+          this.note(actor, at, {
+            kind: 'proposal',
+            text,
+            key: text,
+            ...(about === null ? {} : { about }),
+          }),
+        ]
       }
       case 'ops.accept':
       case 'ops.decline': {
@@ -368,7 +385,8 @@ export class GameEvents {
     for (const id of result.fresh) {
       const op = this.store.op(id)
       if (op === null || op.state !== 'applied') continue
-      const who = this.unitLabel(op.unitId)
+      const who = crewedLabel(this.store, op.unitId, this.unitLabel(op.unitId))
+      const undo = op.source === UNDO_SOURCE
       for (const [field, label] of Object.entries(VITALS)) {
         const to = op.patch[field]
         if (typeof to !== 'number') continue
@@ -379,13 +397,14 @@ export class GameEvents {
         // A − / + nudge folds into the line before it; a hit (any larger
         // change) is its own line, and ends the nudged line it follows (r2 I3).
         const key = `v:${op.unitId}:${field}`
-        const nudge = from === null || Math.abs(to - from) === 1
+        const nudge = !undo && (from === null || Math.abs(to - from) === 1)
+        const vital = { who, label, from, to, ...(undo ? { undo: true as const } : {}) }
         out.push(
           this.note(actor, at, {
             kind: 'vitals',
-            text: vitalLine({ who, label, from, to }),
+            text: vitalLine(vital),
             ...(nudge ? { key } : { ends: key }),
-            vital: { who, label, from, to },
+            vital,
           })
         )
       }
@@ -536,12 +555,6 @@ function effectName(ref: string): string {
 function lost(before: EventsBefore, to: string | null): { about?: string } {
   const holder = before.holder ?? null
   return holder === null || holder === to ? {} : { about: holder }
-}
-
-function vitalLine(v: NonNullable<Stored['vital']>): string {
-  return v.from === null
-    ? `${v.who} · ${v.label} → ${v.to}`
-    : `${v.who} · ${v.label} ${v.from} → ${v.to}`
 }
 
 /** A repeat folded into the line it follows: a vital keeps where it started, any other line counts. */
