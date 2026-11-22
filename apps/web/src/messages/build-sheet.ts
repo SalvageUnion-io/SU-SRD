@@ -113,6 +113,7 @@ export const buildSheetCopy = messages({
   bays: 'Bays',
   upkeep: 'Upkeep',
   tScrap: 'T{tl}+ Scrap',
+  upkeepWorking: '({base}, less {less})',
   tScrapShort: 'Cost · T{tl} Scrap',
   scrapToBuild: 'Tech {tl} Scrap in this build: the Salvage Value of its Tech {tl} parts',
   tScrapEachDowntime: 'T{tl}+ Scrap each Downtime',
