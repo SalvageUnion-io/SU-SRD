@@ -95,6 +95,13 @@ export function BlankCreateDialog({
   // A mech's name can wait for the sheet: it starts as its chassis's, or unnamed.
   const canSubmit =
     kind === 'mech' || (name.trim() !== '' && (kind !== 'pilot' || callsign.trim() !== ''))
+  // A disabled Create says what it waits for (MD4-22), the name before the callsign.
+  const missing =
+    canSubmit || kind === 'mech'
+      ? null
+      : name.trim() === ''
+        ? buildWizardCopy('addANameToCreate')
+        : buildWizardCopy('addACallsignToCreate')
   const mechName = () =>
     name.trim() ||
     (refPick !== '' ? SalvageUnionReference.Chassis.getBySlug(refPick)?.name : undefined) ||
@@ -233,7 +240,9 @@ export function BlankCreateDialog({
             onClick={() => void handleCreate()}
             disabled={pending || !canSubmit}
           >
-            {pending ? buildWizardCopy('creating') : buildWizardCopy('create', { label })}
+            {pending
+              ? buildWizardCopy('creating')
+              : (missing ?? buildWizardCopy('create', { label }))}
           </Button>
         </DialogActions>
       </div>

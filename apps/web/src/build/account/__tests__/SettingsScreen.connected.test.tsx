@@ -263,6 +263,19 @@ describe('a write the server does not take says so', () => {
     expect(screen.queryByText('Your account could not be deleted. Try again.')).toBeNull()
   })
 
+  test('a saved display name answers Saved, until the name is typed in again', async () => {
+    withQueries(profileQueries(ME))
+    wrap()
+
+    expect(screen.queryByText('Saved')).toBeNull()
+    await press('Save')
+    expect(screen.getByText('Saved').getAttribute('role')).toBe('status')
+    fireEvent.change(screen.getByRole('textbox', { name: 'Display name' }), {
+      target: { value: 'Beef' },
+    })
+    expect(screen.queryByText('Saved')).toBeNull()
+  })
+
   test('a failed display-name save says so in words, never its raw text', async () => {
     accountFailures.updateProfile = new Error('/__rooms/account/profile answered 500 Server Error')
     withQueries(profileQueries(ME))

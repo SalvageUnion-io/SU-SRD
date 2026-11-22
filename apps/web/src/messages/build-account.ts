@@ -48,6 +48,7 @@ export const buildAccountCopy = messages({
   yourDiscordName: 'Your Discord name',
   saving: 'Saving…',
   save: 'Save',
+  saved: 'Saved',
   yourData: 'Your data',
   everythingYouOwnCrewmatesCharacters:
     "Everything you own. Crewmates' characters and shared crawlers are theirs.",

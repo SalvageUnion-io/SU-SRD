@@ -26,6 +26,8 @@ export const buildWizardCopy = messages({
   cancel: 'Cancel',
   creating: 'Creating…',
   create: 'Create {label}',
+  addANameToCreate: 'Add a name to create',
+  addACallsignToCreate: 'Add a callsign to create',
   yourPilotsRealName: "Your Pilot's real name",
   yourPilotCallsign: 'Your Pilot callsign',
   pilotClass: 'Pilot Class',
