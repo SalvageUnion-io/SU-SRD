@@ -307,10 +307,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const patternMenu = (pattern: MechPattern) =>
     patternMenuOf(pattern, { go, confirm, canWrite, rename: setRenaming })
-  const patternBuild = (pattern: MechPattern) => {
-    const onSelect = buildFromPattern(pattern, { go, confirm, canWrite })
-    return onSelect ? { label: buildShelvesCopy('buildWithThis'), onSelect } : undefined
-  }
   const patternOver = (pattern: MechPattern) => {
     const figures = mechBuildFigures(pattern)
     return figures.over ? <RuleBreakMark what={figures.overWhat} /> : undefined
@@ -372,10 +368,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           ),
           String(patternReading(p)?.value ?? ''),
         ],
-        // Over its chassis's slots, it wears the mark the Mechs shelf does (r3 I2).
+        // Over its slots it wears the Mechs shelf's mark (r3 I2); its one act is on the row (r3 L5).
         under: patternOver(p),
-        // What a pattern is for is on its row, not a menu away (r3 L5).
-        act: patternBuild(p),
+        act: buildFromPattern(p, { go, confirm, canWrite }),
         menu: patternMenu(p),
       }))}
     />

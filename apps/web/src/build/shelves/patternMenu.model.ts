@@ -26,16 +26,15 @@ import type { RenameSubject } from './shelfMenu.model'
 import { deleteItem, renameItem } from './shelfMenu.model'
 
 /**
- * Build With This, as the row's button and its menu row run it: one confirm,
- * as wherever a pattern is built from, and you land on the mech. Undefined
- * where no write could land.
+ * Build With This, a pattern row's one act: one confirm, as wherever a pattern
+ * is built from, and you land on the mech. Undefined where no write could land.
  */
 export function buildFromPattern(
   pattern: MechPattern,
   { go, confirm, canWrite }: { go: (href: string) => void; confirm: Confirm; canWrite: boolean }
-): (() => void) | undefined {
+): { label: string; onSelect: () => void } | undefined {
   if (!canWrite) return undefined
-  return () =>
+  const onSelect = () =>
     confirm({
       title: buildShelvesCopy('buildAMechFrom', { name: pattern.name }),
       body: [buildConfirmBody({ book: false, past: pastStartingRules(pattern) })],
@@ -51,6 +50,7 @@ export function buildFromPattern(
         go(`/mechs/${mech.id}`)
       },
     })
+  return { label: buildShelvesCopy('buildWithThis'), onSelect }
 }
 
 /** The delete confirm, naming the mechs built from the pattern (r3 G3). */

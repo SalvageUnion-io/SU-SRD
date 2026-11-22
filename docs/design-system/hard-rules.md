@@ -45,7 +45,7 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pe
 
 ## Measures
 
-- **R12 One height per Size; 11px at render; one stepper** (§4.6, §4.7, §6.2, §6.3, C1a) — every button and chip; a line one Size. Hidden hit areas: a linked chip's, strip Mini control's 24px (WCAG); a phone step's, remove's 44px; a list's count steps draw 40px square on a phone. One stepper (`StepButton`): a count steps by `Stat` in edit, a vital by `VitalGauge`'s `steppers`.
+- **R12 One height per Size; 11px at render; one stepper** (§4.6, §4.7, §6.2, §6.3, C1a) — every button and chip; a line one Size. Hit areas: a linked chip's, strip Mini's 24px (WCAG); a phone step's, remove's 44px; a list step draws 40px. One stepper (`StepButton`): a count's `Stat` in edit, a vital's `VitalGauge`'s `steppers`.
 - **R17 A Page has one rhythm** (§1.7, §7.1) — the first block ≤24px under the band; 12px between level-1 blocks; every stat value framed 1px, every stat label 14px (a short one 12).
 - **R35 The form fits the place** (E2, E3, E11, E19, §1.3, §6.6) — a list item is a Compact, index Compact, Mini or Ledger row; every Live Sheet list item is or holds one (`syntheticItemModel` for a carried thing the reference lacks); a Play list's line is a Mini.
 - **R68 A grid fills its rows** — a grid of items is the one fill grid (`.su-grid`): flex rows that wrap, a short last row growing to its width, to a cap (`--su-grid-max`); no empty track, no orphan cell. Masonry never has more columns than items. A pip track or table is no item grid.

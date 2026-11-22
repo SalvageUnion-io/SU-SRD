@@ -42,7 +42,7 @@ export type LogChange = {
 }
 
 /** One field of a write: absent sides are undefined. */
-export type LogField = { field: string; before: unknown; after: unknown }
+type LogField = { field: string; before: unknown; after: unknown }
 
 /**
  * What an absent value stood for when the write was made: a pool nobody had
