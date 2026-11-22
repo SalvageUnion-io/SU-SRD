@@ -198,6 +198,21 @@ describe('/mechs/new', () => {
     expect(assignedPairs).toEqual(['new-id → p1'])
     expect(at(router).pathname).toBe('/pilots/p1')
   })
+
+  test('a lost Mech replaced from Play: assigned to the pilot, and back at the table (r5 B17)', async () => {
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const { useUnits } = await import('../../replica/units')
+    const { newMechForPilotHref } = await import('../../lib/wizard/fromGame')
+    await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1', name: 'Nia', gameId: 'g1' }))
+    const href = newMechForPilotHref('p1', 'g1', true)
+    expect(href).toBe('/mechs/new?game=g1&pilot=p1&back=play')
+    const router = await mountAt(href)
+    expect(await screen.findByText('blank lands in g1')).toBeTruthy()
+    assignedPairs.length = 0
+    await press('Created')
+    expect(assignedPairs).toEqual(['new-id → p1'])
+    expect(at(router).pathname).toBe('/pilots/p1/play')
+  })
 })
 
 describe('/pilots/new', () => {

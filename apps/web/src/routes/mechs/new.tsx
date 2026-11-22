@@ -14,6 +14,8 @@ export const Route = createFileRoute('/mechs/new')({
     ...newUnitSearch(search, 'chassis', 'pattern'),
     // A pilot's id is a UUID, as a Game's is: the same narrowing.
     pilot: parseGameParam(search.pilot),
+    // From Play, a Mech built for its Pilot returns there (r5 B17).
+    ...(search.back === 'play' ? { back: 'play' as const } : {}),
   }),
   component: NewMechRoute,
 })

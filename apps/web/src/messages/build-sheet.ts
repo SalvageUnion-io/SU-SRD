@@ -7,6 +7,8 @@ export const buildSheetCopy = messages({
   relatedUnits: 'Related units',
   game: 'Game',
   noMech: 'No Mech',
+  noWorkingMech: 'No working Mech',
+  buildANewMech: 'Build a new Mech',
   noPilot: 'No Pilot',
   noCrawler: 'No crawler',
   unassign: 'Unassign',

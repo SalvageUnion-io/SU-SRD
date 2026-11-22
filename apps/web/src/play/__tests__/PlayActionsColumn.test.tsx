@@ -274,6 +274,19 @@ describe('the list', () => {
     expect(keys.some((key) => key.startsWith('system:'))).toBe(false)
   })
 
+  test('on foot with no Mech to board, the Mount offers Build a new Mech, for this pilot in this Game (r5 B17)', () => {
+    const pilot = makePilot()
+    const { store } = stubStore(makeMech(), pilot)
+    render(
+      <Harness pilot={pilot} mech={null} situation="onFoot" gameId="g1" store={store} writes={[]} />
+    )
+    const mount = document.querySelector('[data-action-key="mount"]') as HTMLElement
+    expect(within(mount).getByText('No Mech to board')).toBeTruthy()
+    expect(within(mount).getByRole('link', { name: 'Build a new Mech' }).getAttribute('href')).toBe(
+      `/mechs/new?game=g1&pilot=${pilot.id}&back=play`
+    )
+  })
+
   test('on foot: the mech’s actions wait, collapsed, each saying it needs Boarded', async () => {
     const mech = makeMech()
     const pilot = makePilot()
