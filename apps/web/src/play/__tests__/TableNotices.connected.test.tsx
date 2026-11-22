@@ -418,6 +418,72 @@ describe('the pinned notices', () => {
     act(() => drop('pilot', 'tn-end'))
   })
 
+  test('Your turn is never behind "1 more": under a proposal it is its own line (r5 A5)', async () => {
+    const { useUnits } = await import('../../replica/units')
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const { drop } = await import('../../replica/replica')
+    await act(async () => {
+      await useUnits
+        .getState()
+        .adopt('pilot', pilotFixture({ id: 'tn-both', gameId: 'g1', callsign: 'Razor' }))
+    })
+    const proposal = {
+      _id: 'p-both',
+      entityId: 'tn-both',
+      entityType: 'pilot',
+      targetName: 'Razor',
+      field: 'currentHP',
+      after: 4,
+      reason: null,
+      ts: 5,
+    }
+    await renderNotices({
+      'ops.pending': [proposal],
+      'scenes.current': { conditions: [], hours: 0, upNow: 'tn-both' },
+    })
+    const strips = [...document.querySelectorAll('[data-table-notice]')]
+    expect(strips.map((el) => el.getAttribute('data-table-notice'))).toEqual(['proposal', 'turn'])
+    expect(screen.queryByRole('button', { name: /more notices/ })).toBeNull()
+    // One line: its title and End my turn, not the body.
+    expect(strips[1]?.textContent).toContain('Your turn · Razor')
+    expect(strips[1]?.textContent).not.toContain('gave you the turn')
+    act(() => drop('pilot', 'tn-both'))
+  })
+
+  test('off the Game’s pages Your turn opens its table; a skip link leads to it, and ending it moves focus on (r5 A4, A17)', async () => {
+    const { useUnits } = await import('../../replica/units')
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const { drop } = await import('../../replica/replica')
+    await act(async () => {
+      await useUnits
+        .getState()
+        .adopt('pilot', pilotFixture({ id: 'tn-door', gameId: 'g1', callsign: 'Razor' }))
+    })
+    const content = document.createElement('div')
+    content.id = 'main-content'
+    content.tabIndex = -1
+    document.body.append(content)
+    await renderNotices(
+      { 'scenes.current': { conditions: [], hours: 0, upNow: 'tn-door' } },
+      '/games'
+    )
+    const door = screen.getByRole('link', { name: 'Open table' })
+    expect(door.getAttribute('href')).toContain('tn-door')
+    const region = screen.getByRole('region', { name: 'Your Games' })
+    const skip = region.querySelector('a')
+    expect(skip?.textContent).toBe('Skip to your turn')
+    await act(async () => {
+      fireEvent.click(skip as Element)
+    })
+    expect(document.activeElement?.textContent).toBe('End my turn')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'End my turn' }))
+    })
+    expect(document.activeElement).toBe(content)
+    content.remove()
+    act(() => drop('pilot', 'tn-door'))
+  })
+
   test('"You now mediate" carries the door to the Mediate screen (r3 A4)', async () => {
     const made = {
       _id: 'r-2',

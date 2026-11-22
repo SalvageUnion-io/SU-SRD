@@ -79,8 +79,10 @@ export type CrewLine = {
   mechAttention: boolean
   /** What needs looking at, in words ("Injured", "Overheating"). */
   problems: string[]
-  /** The ▲ and red outline: the server's verdict on the pilot or their mech. */
+  /** The ▲ and red outline: the server's verdict on the pilot or their mech, or Down. */
   attention: boolean
+  /** At 0 HP, or aboard a mech at 0 SP (r5 A1). */
+  down: boolean
   /** What they are resolving, in words, or null. */
   resolving: string | null
 }
@@ -196,7 +198,8 @@ function parkedProblems(status: CrewMech['status']): string[] {
  * with it; a pilot on foot gets one line naming the mech assigned to them,
  * parked, and what is wrong with it when that is what draws the
  * outline. The ▲ and red outline are the server's `attention`, so every
- * client flags the same crewmates.
+ * client flags the same crewmates, and a pilot at 0 HP or aboard a mech at
+ * 0 SP is Down (r5 A1): its first problem, flagged on every screen.
  *
  * Pilots, mechs and seats are keyed by the server's `linkId`, never `appId`:
  * a template pre-gen (Starter Set) has no app id, only its body id, and the
@@ -225,6 +228,8 @@ export function crewLines(
         : [`${mech.name} parked`, ...parkedProblems(mech.status)].join(', ')
     }
     const resolving = resolvingOf.get(id) ?? null
+    // Down (r5 A1, `isDown`): at 0 HP, or aboard a mech at 0 SP; an unset vital reads full.
+    const down = p.currentHP === 0 || (p.boarded && mech?.currentSP === 0)
     const hp = vitalText('pool', p.currentHP, p.maxHP)
     const ap = vitalText('pool', p.currentAP, p.maxAP)
     const unit =
@@ -254,11 +259,13 @@ export function crewLines(
       mech: mechLine,
       mechAttention: !p.boarded && (mech?.attention ?? false),
       problems: [
+        ...(down ? [playCopy('down')] : []),
         ...(p.status.dead ? ['Dead'] : p.status.injured ? ['Injured'] : []),
         ...(p.status.ejected ? ['Ejected'] : []),
         ...(p.boarded && mech !== undefined ? mechProblems(mech.status) : []),
       ],
-      attention: p.attention || (mech?.attention ?? false),
+      attention: down || p.attention || (mech?.attention ?? false),
+      down,
       resolving: resolving ? describeResolve(p.name, resolving) : null,
     })
   }

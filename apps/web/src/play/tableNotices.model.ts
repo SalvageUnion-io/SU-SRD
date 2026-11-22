@@ -16,6 +16,9 @@ import type { TableEvent } from '../rooms/game/events'
  */
 export const NOTICES_RESIZED = 'su-table-notices-resized'
 
+/** The first "Your turn" strip's id: where "Skip to your turn" lands (r5 A17). */
+export const YOUR_TURN_ID = 'su-your-turn'
+
 /** How long the Mediator's alert stays pinned unless dismissed. */
 const ALERT_PINNED_MS = 10 * 60_000
 
@@ -253,14 +256,20 @@ export function stackNotices<N extends StackedNotice>(notices: readonly N[]): N[
  * What the pinned notices show and what waits behind the count (r4 B2): every
  * alert, each a strip of its own above the rest and never counted, for the
  * player who is up as for anyone; then the first of the others, which is the
- * one strip (r3 H1), with the rest behind its button.
+ * one strip (r3 H1), with the rest behind its button. "Your turn" is never
+ * behind the count (r5 A5): under a proposal it is a line of its own (`turns`).
  */
 export function shownNotices<N extends StackedNotice>(
   notices: readonly N[]
-): { alerts: N[]; top: N | null; rest: N[] } {
+): { alerts: N[]; top: N | null; turns: N[]; rest: N[] } {
   const ordered = stackNotices(notices)
-  const [top = null, ...rest] = ordered.filter((notice) => notice.rank !== 'alert')
-  return { alerts: ordered.filter((notice) => notice.rank === 'alert'), top, rest }
+  const [top = null, ...others] = ordered.filter((notice) => notice.rank !== 'alert')
+  return {
+    alerts: ordered.filter((notice) => notice.rank === 'alert'),
+    top,
+    turns: others.filter((notice) => notice.rank === 'turn'),
+    rest: others.filter((notice) => notice.rank !== 'turn'),
+  }
 }
 
 /**

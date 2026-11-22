@@ -64,7 +64,7 @@ import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.mode
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
 import { headedVital, vitalNow, vitalSettled } from './vitalWrites.model'
-import { zeroUnit, zeroVitalNotice } from './zeroVital.model'
+import { useDownResult, zeroUnit, zeroVitalNotice } from './zeroVital.model'
 
 /** The store a box writes through; the app's own unless a test hands one in. */
 type UnitStore = UnitsStore
@@ -181,6 +181,9 @@ export function PlayPilotUnit({
   const [hp, ap] = pilotVitals(pilot, crawler).gauges
   const vital = writer(store, 'pilot', pilot.id)
   const injuries = injuryLines(pilot)
+  // At 0 HP the pilot is Down (r5 A1), with its Critical Injury roll's result once rolled.
+  const down = hp?.value === 0
+  const result = useDownResult(down ? pilot.id : null)
   return (
     <TitledBox
       as="section"
@@ -216,6 +219,7 @@ export function PlayPilotUnit({
         />
       ) : null}
       <div style={CHIPS}>
+        {down ? <Stat label={playCopy('down')} size="mini" state="critical" /> : null}
         {pilot.classRef ? <Stat label={resolveClassName(pilot.classRef)} size="mini" /> : null}
         <Stat label={playCopy('tp')} value={pilot.trainingPoints ?? 0} size="mini" />
         {injuries.length === 0 ? (
@@ -224,6 +228,7 @@ export function PlayPilotUnit({
           injuries.map((line) => <Stat key={line} label={line} size="mini" state="critical" />)
         )}
       </div>
+      {result === null ? null : <Text variant="note">{result}</Text>}
     </TitledBox>
   )
 }
@@ -289,6 +294,10 @@ export function PlayMechUnit({
     ? relation('chassis', 'Chassis', s.chassis.name, { ref: toEntityModel(s.chassis).ref })
     : null
   const showHeat = place !== 'parked'
+  // At 0 SP the mech is Down (r5 A1), with its Critical Damage roll's result once rolled.
+  const destroyed = mechHasCondition(mech, 'Destroyed')
+  const down = !destroyed && s.sp === 0
+  const result = useDownResult(down ? mech.id : null)
   // What the mech and its pilot can switch on (ADR-029 §4): the table keeps
   // time, so an effect stays on until the player ends it.
   const effects = place === 'boarded' ? activatableEffects(mech, pilotAbilities) : []
@@ -303,7 +312,7 @@ export function PlayMechUnit({
       chips={chassis ? <Relations items={[chassis]} /> : undefined}
       controls={
         <>
-          {stamp(mechHasCondition(mech, 'Destroyed') ? 'Destroyed' : MECH_STAMP[place])}
+          {stamp(destroyed ? 'Destroyed' : down ? playCopy('down') : MECH_STAMP[place])}
           {place === 'boarded' && onOpenSheet ? (
             <SheetButton name={mech.name} onOpen={onOpenSheet} />
           ) : null}
@@ -389,6 +398,7 @@ export function PlayMechUnit({
           </Segmented>
         </div>
       ) : null}
+      {result === null ? null : <Text variant="note">{result}</Text>}
       {place === 'parked' ? <Text variant="note">{playCopy('readOnlyUntilBoarded')}</Text> : null}
     </TitledBox>
   )

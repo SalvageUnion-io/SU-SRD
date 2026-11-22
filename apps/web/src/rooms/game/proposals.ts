@@ -7,6 +7,7 @@ import {
 import type { OpState } from '../ops'
 import { RoomRefusal } from '../refusal'
 import { unsetVital } from '../vitals'
+import { isUndoSource } from './eventLines'
 import type { GameStore, StoredOp, UnitRow } from './store'
 import type { GameUnits, SubmitResult } from './units'
 import { BatchRefused, PROPOSAL_SOURCE, unitName } from './units'
@@ -250,11 +251,13 @@ function heldBefore(store: GameStore, op: StoredOp, field: string): number | nul
 /**
  * The applied proposal `op` writes back, when it does (r3 A5): the change to
  * the same field of the same unit just before it was a Mediator's proposal,
- * and `op` puts back what the sheet held before that. It is how the player's
- * Undo lands (`acceptedUndo`), read off the op log, so nothing more is stored.
+ * and `op`, an Undo's write (`isUndoSource`), puts back what the sheet held
+ * before that. It is how the player's Undo lands (`acceptedUndo`), read off
+ * the op log, so nothing more is stored. A repair, a heal or Downtime's
+ * Restore that reaches the old value is an ordinary change (r5 A2).
  */
 export function undoes(store: GameStore, op: StoredOp, field: string): StoredOp | null {
-  if (op.state !== 'applied' || op.seq === null) return null
+  if (op.state !== 'applied' || op.seq === null || !isUndoSource(op.source)) return null
   const earlier = store
     .opsOf(op.unitId)
     .filter(

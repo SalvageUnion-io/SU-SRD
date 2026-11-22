@@ -166,6 +166,7 @@ export function PlayMediatorOpposition({
               size="compact"
               disabled={!canWrite}
               aria-label={mediatorCopy('addOppositionFromTheReference')}
+              data-opposition-add=""
               onClick={() => setPicking(true)}
             >
               {mediatorCopy('add')}

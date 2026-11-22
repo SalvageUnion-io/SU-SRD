@@ -389,7 +389,14 @@ describe('Discord (play.md §9)', () => {
     await act(async () => {
       recordPlayChange('Vent · Heat 6→0, Vulnerable')
     })
-    expect(feedLines()).toContain('You · Vent · Heat 6→0, Vulnerable')
+    // My own line carries its time, as the table's do (r5 A9).
+    expect(feedLines().some((line) => line.startsWith('You · Vent · Heat 6→0, Vulnerable'))).toBe(
+      true
+    )
+    const vent = feed()
+      .getAllByRole('listitem')
+      .find((li) => li.textContent?.startsWith('You · Vent'))
+    expect(vent?.querySelector('time')).not.toBeNull()
     expect(postRoll).not.toHaveBeenCalled()
   })
 
@@ -513,7 +520,7 @@ describe('the Tables (play.md §8)', () => {
 })
 
 describe('read-only (play.md §7)', () => {
-  test('offline: Accept is withdrawn and a roll says it was not posted', async () => {
+  test('offline: Accept is withdrawn and a roll is held, Not sent yet (r5 A6)', async () => {
     answers()
     await renderSide({}, 'offline')
     expect(
@@ -525,8 +532,41 @@ describe('read-only (play.md §7)', () => {
     ).toBe(true)
     await roll([14])
     expect(postRoll).not.toHaveBeenCalled()
-    expect(feed().getByRole('alert').textContent).toBe(
-      'Not posted to Discord: Not posted: Play is read-only for now.'
+    expect(feed().getByText('Not sent yet')).toBeTruthy()
+    // Nothing failed, and Discord is not what it waits on.
+    expect(feed().queryByRole('alert')).toBeNull()
+    const retry = feed().getByRole('button', {
+      name: 'Try again: send Core Mechanic to the table',
+    }) as HTMLButtonElement
+    expect(retry.disabled).toBe(true)
+  })
+
+  test('a held roll is sent when the connection returns (r5 A6)', async () => {
+    answers()
+    const target: PlayTarget = {
+      pilotId: 'bonesaw',
+      gameId: GAME,
+      gameName: 'Rust Belt Run',
+      mediator: false,
+    }
+    const tree = (live: boolean) => (
+      <SyncContext.Provider
+        value={{ status: live ? 'live' : 'offline', canWrite: live, outdated: false }}
+      >
+        <SideColumn target={target} play={playFor(target, live)} />
+      </SyncContext.Provider>
     )
+    let view: ReturnType<typeof render> | null = null
+    await act(async () => {
+      view = render(tree(false))
+    })
+    await roll([14])
+    expect(feed().getByText('Not sent yet')).toBeTruthy()
+    await act(async () => {
+      view?.rerender(tree(true))
+    })
+    expect(postRoll).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(feed().getByText('Posted')).toBeTruthy())
+    expect(feed().queryByText('Not sent yet')).toBeNull()
   })
 })

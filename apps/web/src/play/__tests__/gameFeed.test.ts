@@ -136,6 +136,7 @@ describe('crewLines', () => {
         mechAttention: true,
         problems: [],
         attention: true,
+        down: false,
         resolving: null,
       },
       {
@@ -151,6 +152,7 @@ describe('crewLines', () => {
         mechAttention: false,
         problems: ['Injured', 'Overheating', 'Heat Sink destroyed'],
         attention: true,
+        down: false,
         resolving: 'Vex is resolving Crush',
       },
       {
@@ -165,9 +167,31 @@ describe('crewLines', () => {
         mechAttention: false,
         problems: ['Ejected'],
         attention: true,
+        down: false,
         resolving: null,
       },
     ])
+  })
+
+  test('at 0 HP, or aboard a mech at 0 SP, a crewmate is Down: flagged, its first problem (r5 A1)', () => {
+    const [vex, rook] = crew.pilots
+    const [magpie] = crew.mechs
+    if (vex === undefined || rook === undefined || magpie === undefined) throw new Error('fixture')
+    const down: CrewVitals = {
+      pilots: [
+        { ...vex, currentHP: 10, status: calm, attention: false },
+        { ...rook, currentHP: 0, attention: false },
+      ],
+      mechs: [{ ...magpie, currentSP: 0, status: sound, attention: false }],
+    }
+    const lines = crewLines(down, [], null)
+    expect(lines.map((l) => [l.name, l.down, l.attention, l.problems[0]])).toEqual([
+      ['Vex', true, true, 'Down'],
+      ['Rook', true, true, 'Down'],
+    ])
+    // An unset vital reads full: not Down.
+    const unset = crewLines({ ...down, pilots: [{ ...rook, currentHP: null }] }, [], null)
+    expect(unset[0]?.down).toBe(false)
   })
 
   test('an unreadable maximum shows the stored number, or a dash', () => {

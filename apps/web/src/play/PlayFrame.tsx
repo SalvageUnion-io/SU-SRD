@@ -21,7 +21,8 @@
  *
  * A screen with a long way to its panes gives `jumps` (r4 D6, the Mediator's):
  * skip links ahead of the bar, off screen until focused, each opening its
- * pane (its tab below `lg`) and moving focus into it.
+ * pane (its tab below `lg`) and moving focus into it, onto its `first` where
+ * it names one (r5 A17: a unit's vitals, Add).
  *
  * The arrangement is CSS (`styles/play/frame.css`); `wide` (`usePlayWide`,
  * the same rung) decides only what a reader is told, so crossing it re-lays
@@ -132,7 +133,7 @@ type PlayFrameProps<Value extends string> = {
    */
   skip?: { pane: Value; label: string; first: string }
   /** Skip links ahead of the bar: each opens its pane and moves focus into it. */
-  jumps?: readonly { pane: Value; label: string }[]
+  jumps?: readonly { pane: Value; label: string; first?: string }[]
 }
 
 export function PlayFrame<Value extends string>({
@@ -152,7 +153,7 @@ export function PlayFrame<Value extends string>({
 }: PlayFrameProps<Value>) {
   const id = useId()
   // A skip link was pressed: focus its pane once it is showing.
-  const [jump, setJump] = useState<Value | null>(null)
+  const [jump, setJump] = useState<{ pane: Value; first?: string | undefined } | null>(null)
   const hostRef = useRef<HTMLElement>(null)
   const hostH = useHostHeight(hostRef)
   // Below `lg` the controls are at thumb height, where a toast at the foot
@@ -168,7 +169,9 @@ export function PlayFrame<Value extends string>({
   const paneId = (value: string) => `${id}-pane-${value}`
   useEffect(() => {
     if (jump === null) return
-    document.getElementById(`${id}-pane-${jump}`)?.focus()
+    const pane = document.getElementById(`${id}-pane-${jump.pane}`)
+    const first = jump.first ? pane?.querySelector<HTMLElement>(jump.first) : null
+    ;(first ?? pane)?.focus()
     setJump(null)
   }, [jump, id])
 
@@ -228,11 +231,11 @@ export function PlayFrame<Value extends string>({
                   <nav aria-label={playCopy('jumpTo')}>
                     {jumps.map((j) => (
                       <SkipLink
-                        key={j.pane}
+                        key={j.label}
                         to={paneId(j.pane)}
                         onFollow={() => {
                           onTab(j.pane)
-                          setJump(j.pane)
+                          setJump({ pane: j.pane, first: j.first })
                         }}
                       >
                         {playCopy('skipTo', { name: j.label })}

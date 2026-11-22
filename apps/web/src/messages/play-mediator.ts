@@ -81,6 +81,8 @@ export const mediatorCopy = messages({
   couldNotWithdraw: 'That proposal was not withdrawn. Try again.',
   playedBy: 'Played by {name}',
   upNow: 'Up now',
+  vitalsOf: '{name}’s vitals',
+  addOpposition: 'Add opposition',
   markUpNow: 'Give the turn',
   upNowFor: 'Give the turn: {name}',
   inTheMechBay: 'In the Mech Bay · {mech}',

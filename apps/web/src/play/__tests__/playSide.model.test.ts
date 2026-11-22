@@ -251,6 +251,54 @@ describe('the Feed (play.md §8)', () => {
     ])
   })
 
+  test('one action is one entry: its use and cost fold into its roll; my own change is said once (r5 A9)', () => {
+    const ev = (
+      id: string,
+      ts: number,
+      kind: TableEvent['kind'],
+      text: string,
+      actorId = 'razor'
+    ): TableEvent => ({ _id: id, ts, kind, text, actorId })
+    const events = [
+      ev('e5', 9000, 'vitals', 'Thresher (Razor) · SP 5 → 2', 'gm'),
+      ev('e4', 1300, 'roll', 'Razor · Red Laser · 18 · Success'),
+      ev('e3', 1200, 'vitals', 'Thresher (Razor) · Heat 0 → 1'),
+      ev('e2', 1000, 'action', 'Razor uses Red Laser'),
+      ev('e1', 500, 'action', 'Razor uses Provoke'),
+      ev('e0', 600, 'vitals', 'Razor · AP 3 → 2'),
+      // My own vital, which this screen said with what is due.
+      ev('m-v', 2000, 'vitals', 'Hotdog · HP 10 → 0', 'me'),
+    ]
+    const entries = playFeedEntries({
+      rolls: null,
+      alerts: [],
+      events,
+      proposals: [],
+      mine: [
+        {
+          id: 'm-z',
+          at: 2001,
+          tableName: '',
+          label: 'Hotdog · HP 10→0 · roll on Critical Injury',
+          rolls: [],
+        },
+      ],
+      rollerName: 'Hotdog',
+      viewerId: 'me',
+    })
+    expect(entries.map((e) => [e.text, e.lead, e.detail])).toEqual([
+      ['Thresher (Razor) · SP 5 → 2', undefined, undefined],
+      ['You · Hotdog · HP 10→0 · roll on Critical Injury', undefined, undefined],
+      [
+        'Razor · Red Laser · 18 · Success',
+        'Razor uses Red Laser',
+        ['Thresher (Razor) · Heat 0 → 1'],
+      ],
+      // Nothing rolled: the use is the entry, its cost under it.
+      ['Razor uses Provoke', undefined, ['Razor · AP 3 → 2']],
+    ])
+  })
+
   test('proposals awaiting an answer first, then everything newest first', () => {
     const entries = playFeedEntries({
       rolls: [crewRoll('r2', 300, 'Mags · Core Mechanic · 20'), crewRoll('r1', 200, 'Rook · 9')],

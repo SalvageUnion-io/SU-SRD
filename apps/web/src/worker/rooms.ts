@@ -22,7 +22,7 @@ import type {
 } from '../rooms/game/acts'
 import { GAME_READ_ACTS, runAct } from '../rooms/game/acts'
 import type { TableEvent } from '../rooms/game/events'
-import { isMirrored } from '../rooms/game/events'
+import { isMirrored, isUndone } from '../rooms/game/events'
 import {
   appliedMessages,
   batchAnswer,
@@ -340,8 +340,8 @@ export class GameRoom extends Room {
       else if (result.ok) {
         const ids = result.applied.map((op) => op.id)
         this.broadcast(appliedMessages(this.logic.store, ids, this.gameId))
-        // A Downtime step is read back off its op (`downtime` record's `doneSteps`).
-        if (ids.some(isDowntimeStepOp)) this.broadcastSnapshots()
+        // A Downtime step is read back off its op (`doneSteps`); a proposal's Undo off its row.
+        if (ids.some(isDowntimeStepOp) || events.some(isUndone)) this.broadcastSnapshots()
         else {
           this.broadcast([
             { type: 'record', table: 'crew', record: crewRecord(this.logic) },

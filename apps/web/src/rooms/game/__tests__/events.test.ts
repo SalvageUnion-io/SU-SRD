@@ -216,6 +216,8 @@ describe('the table’s events', () => {
     act(STRANGER, 'redeem', { code, profile: { displayName: 'Nell', avatarUrl: null } }, AT + 8)
     expect(texts()).toEqual([
       'Nell joined the Game',
+      // Left resolving when the session ended (r5 A7).
+      'p1 · Pilot p1 · Patch: not applied',
       'Mediator ended the group session',
       'Player accepted: p1 · Pilot p1 AP → 2',
       'Mediator proposes p1 · Pilot p1 AP → 2',
@@ -499,7 +501,9 @@ describe('the table’s events', () => {
     const [undone] = act(
       PLAYER,
       'submit',
-      { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2 })] },
+      {
+        ops: [op('p1', { currentHP: 8 }, { baseSeq: 2, kind: 'transaction', source: 'play-undo' })],
+      },
       AT + 4
     )
     expect(undone).toMatchObject({
@@ -522,6 +526,36 @@ describe('the table’s events', () => {
     )
     expect(later).toMatchObject({ kind: 'vitals' })
     expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('undone')
+  })
+
+  test('a heal back to the old value is a heal, never the proposal undone (r5 A2)', () => {
+    const { act, room } = seated()
+    act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 8 })] }, AT + 1)
+    act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 3 }, AT + 2)
+    act(PLAYER, 'ops.accept', { opId: room.proposals.pending(PLAYER)[0]?._id as string }, AT + 3)
+    // Change by amount, a repair or Downtime's Restore: Play's own write, back to 8.
+    const [healed] = act(
+      PLAYER,
+      'submit',
+      { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2, kind: 'transaction', source: 'play' })] },
+      AT + 4
+    )
+    expect(healed).toMatchObject({ kind: 'vitals', text: 'p1 · Pilot p1 · HP 3 → 8' })
+    expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('applied')
+    // A sheet's own Undo of the accepted change is an Undo too.
+    const other = seated()
+    other.act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 8 })] }, AT + 1)
+    other.act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 3 }, AT + 2)
+    const sent = other.room.proposals.pending(PLAYER)[0]?._id as string
+    other.act(PLAYER, 'ops.accept', { opId: sent }, AT + 3)
+    const [undone] = other.act(
+      PLAYER,
+      'submit',
+      { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2, source: `live-sheet-undo:${sent}` })] },
+      AT + 4
+    )
+    expect(undone).toMatchObject({ kind: 'proposal', answer: 'undone' })
+    expect(other.room.proposals.sent(MEDIATOR)[0]?.state).toBe('undone')
   })
 
   test('an accepted proposal changed to anything but what it replaced still stands', () => {
@@ -558,6 +592,63 @@ describe('the table’s events', () => {
     act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 3)
     act(MEDIATOR, 'downtime.begin', undefined as never, AT + 4)
     expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
+  })
+
+  test('giving the turn is a line for the whole table, once per pilot given it (r5 A4)', () => {
+    const { act, texts } = seated()
+    const [given] = act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    expect(given).toMatchObject({ kind: 'turn', actorId: MEDIATOR })
+    expect(given?.text).toStartWith('The Mediator gave ')
+    expect(given?.text).toEndWith(' the turn')
+    expect(isMirrored(given as never)).toBe(true)
+    expect(texts(PLAYER)[0]).toBe(given?.text as string)
+    // The same pilot again, or nobody, says nothing more.
+    expect(act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 2)).toEqual([])
+    expect(act(MEDIATOR, 'scenes.setUpNow', { pilotId: null }, AT + 3)).toEqual([])
+  })
+
+  test('a resolve nobody applied is closed, not applied, when its turn or the session ends (r5 A7)', () => {
+    const { act, room, texts } = seated()
+    const open = (name: string) =>
+      act(PLAYER, 'seats.setResolving', {
+        pilotId: 'p1',
+        resolving: {
+          ref: 'k',
+          name,
+          activated: true,
+          roll: { roll: 12, band: 'success' },
+          applied: false,
+        },
+      })
+    act(MEDIATOR, 'session.start', undefined as never, AT)
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    open('Chainsaw Arm')
+    const ended = act(PLAYER, 'scenes.endTurn', undefined as never, AT + 2)
+    expect(ended.map((e) => e.text)).toEqual([
+      expect.stringContaining('ended their turn'),
+      expect.stringContaining(' · Chainsaw Arm: not applied'),
+    ])
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+    // The turn moved on by the Mediator's hand closes it too.
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 3)
+    open('Provoke')
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: null }, AT + 4)
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+    expect(texts(MEDIATOR)[0]).toContain(' · Provoke: not applied')
+    // Downtime beginning ends the turn too.
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 4)
+    open('Patch')
+    act(MEDIATOR, 'downtime.begin', undefined as never, AT + 4)
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+    act(MEDIATOR, 'downtime.end', undefined as never, AT + 4)
+    // And the session ending closes every seat's.
+    open('Red Laser')
+    const left = act(MEDIATOR, 'session.end', undefined as never, AT + 5)
+    expect(left.map((e) => e.text)).toEqual([
+      expect.stringContaining(' · Red Laser: not applied'),
+      expect.stringContaining('ended the group session'),
+    ])
+    expect(room.play.seat('p1')?.resolving).toBeNull()
   })
 
   test('the player who is up ends their own turn: the marker clears and the table is told (r4 B1)', () => {
