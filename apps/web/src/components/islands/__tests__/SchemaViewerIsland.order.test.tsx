@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from 'bun:test'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
 import { getModel, getUniqueSources, getUniqueTechLevels } from 'salvageunion-reference'
+import { listingFieldFacets } from '../../../lib/listingFacets'
 import { listingTraits } from '../../../lib/listingTraits'
 import { formatSort, parseSort } from '../../../lib/useListingFilters'
 import { IndexLedger } from '../IndexLedger'
@@ -358,4 +359,65 @@ describe("a kind's one stat, for a chapter's index (RR-18)", () => {
     const keywords = all('keywords')
     expect(indexLeadStat('keywords', keywords)(keywords[0] as RefEntity)).toBeUndefined()
   })
+})
+
+describe('Systems by Range, Action and Weapons only (r4 F6)', () => {
+  const column = (container: HTMLElement, label: string) => {
+    const at = heads(container).indexOf(label)
+    return Array.from(container.querySelectorAll('.su-listing__groups tbody tr')).map((row) =>
+      (row.children[at]?.textContent ?? '').replace('—', '').trim()
+    )
+  }
+
+  it('the facets come from what the List prints: the bands in the book’s order, the action types', () => {
+    const fields = listingFieldFacets('systems', all('systems'))
+    expect(fields?.ranges).toEqual(['Close', 'Medium', 'Long', 'Far'])
+    expect(fields?.actions).toContain('Turn')
+    expect(fields?.actions).toContain('Reaction')
+    expect(fields?.weapons).toBe(true)
+    // Systems alone: no other listing grew a filter.
+    expect(listingFieldFacets('modules', all('modules'))).toBeUndefined()
+    expect(listingFieldFacets('chassis', all('chassis'))).toBeUndefined()
+  })
+
+  it(
+    '?range=Long&action=Turn&weapons=1 lists the Turn weapons that reach Long, each filter a token',
+    () => {
+      window.location.href = 'http://localhost/systems/?range=Long&action=Turn&weapons=1'
+      const entities = all('systems')
+      const { container } = render(
+        <SchemaViewerIsland
+          schemaId="systems"
+          techLevels={getUniqueTechLevels(entities)}
+          sources={getUniqueSources(entities)}
+          traits={listingTraits(entities)}
+          fields={listingFieldFacets('systems', entities)}
+        />
+      )
+      const shown = names()
+      expect(shown.length).toBeGreaterThan(2)
+      expect(shown.length).toBeLessThan(entities.length)
+      expect(shown).toContain('Railgun')
+      expect(column(container, 'RNG').every((cell) => cell.split(' / ').includes('Long'))).toBe(
+        true
+      )
+      expect(column(container, 'Action').every((cell) => cell === 'Turn')).toBe(true)
+      expect(column(container, 'DMG').every((cell) => cell !== '')).toBe(true)
+      const rail = container.querySelector<HTMLElement>('.su-rail') as HTMLElement
+      expect(
+        (within(rail).getByRole('combobox', { name: 'Range' }) as HTMLSelectElement).value
+      ).toBe('Long')
+      expect(
+        within(rail).getByRole('button', { name: 'Weapons only' }).getAttribute('aria-pressed')
+      ).toBe('true')
+      // Each comes off by its token, and the address follows.
+      fireEvent.click(screen.getByRole('button', { name: 'Remove range Long' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Remove action Turn' }))
+      expect(window.location.search).toBe('?weapons=1')
+      fireEvent.click(screen.getByRole('button', { name: 'Remove weapons only' }))
+      expect(window.location.search).toBe('')
+      expect(names().length).toBe(entities.length)
+    },
+    HEAVY
+  )
 })
