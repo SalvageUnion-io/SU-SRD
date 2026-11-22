@@ -53,7 +53,7 @@ describe('the Stop Sign button', () => {
     const h = hold()
     render(<StopSignButton sign={s.value} compact timer={h.timer} />)
     const button = screen.getByRole('button', { name: 'Show the Stop Sign' })
-    expect(button.textContent).toBe('Stop')
+    expect(button.textContent).toBe('Stop · hold')
     // The hint is at the button itself (r4 B6), and says nothing until a tap comes up short.
     const hint = screen.getByRole('status')
     expect(hint.parentElement === button.parentElement).toBe(true)

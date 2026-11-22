@@ -7,9 +7,10 @@ export const playSafetyCopy = messages({
   stopSign: 'Stop Sign',
   showTheStopSign: 'Show the Stop Sign',
   stop: 'Stop',
+  stopHold: 'Stop · hold',
   holdToShow: 'Hold to show the Stop Sign',
   stopSignMeans:
-    'Anyone can show the Stop Sign at any time, from here or from Play, with no reason needed. It asks the table to pause, on every screen and without saying who; sheets stay usable. It posts to the Discord channel while one is bound.',
+    'Anyone can show the Stop Sign at any time, from here or from Play, with no reason needed. On a phone, hold it to show it. It asks the table to pause, on every screen and without saying who; sheets stay usable. It posts to the Discord channel while one is bound.',
   pausedBody:
     'Someone has shown the Stop Sign: the table is asked to pause, step out of character and talk it through. Nobody needs to justify it. Sheets stay usable.',
   pausedYours: 'You showed the Stop Sign. The table sees it without your name.',
