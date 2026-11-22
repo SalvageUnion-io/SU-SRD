@@ -187,14 +187,19 @@ function withoutSentenceMarks(word: string): string {
   return word.slice(0, end)
 }
 
+/** "x (3)" as "x 3". The spaces before a bracket go by `trimEnd`, not `\s*`: a pattern backtracks on a long run of spaces. */
+function unbracketNumbers(text: string): string {
+  const parts = text.split(/\((\d+)\)/)
+  let out = parts[0] as string
+  for (let i = 1; i < parts.length; i += 2) out = `${out.trimEnd()} ${parts[i]}${parts[i + 1]}`
+  return out
+}
+
 /** Normalise a raw query, or `null` when it is blank (a blank query matches nothing). */
 export function tokenizeSearchQuery(query: string): SearchQuery | null {
   // A value in brackets is the value as the books print it: "Hot (3)" and
   // "hot(3)" are "hot 3". Only a number: a name's own brackets stay.
-  const rawQuery = query
-    .toLowerCase()
-    .replace(/\s*\((\d+)\)/g, ' $1')
-    .trim()
+  const rawQuery = unbracketNumbers(query.toLowerCase()).trim()
   if (!rawQuery) return null
   const words = rawQuery.split(/\s+/)
   // A whole question is cut back to the words that name something.
