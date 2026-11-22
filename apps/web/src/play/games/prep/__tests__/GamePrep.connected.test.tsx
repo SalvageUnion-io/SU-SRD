@@ -8,8 +8,8 @@
  * Rendered without a router, so `useGo` falls back to `location.assign`.
  */
 
-import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterAll, afterEach, beforeEach, describe, expect, jest, spyOn, test } from 'bun:test'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Encounter } from 'game-domain/schemas/encounter'
 import type { GamePlan } from 'game-domain/schemas/gamePlan'
 import { npcFixture } from '../../../../components/__tests__/fixtures'
@@ -37,6 +37,7 @@ const { useUnits } = await import('../../../../replica/units')
 const { hydrateStores } = await import('../../../../components/__tests__/hydrateStores')
 const { useSheetModeStore } = await import('../../../../build/sheet/sheetMode.model')
 const { GamePrep } = await import('../GamePrep')
+const { PLAN_AUTOSAVE_MS } = await import('../usePlanDraft')
 
 withSignedInBackend()
 
@@ -325,7 +326,38 @@ describe('the plan', () => {
     expect(screen.getByText(/No sessions yet/)).toBeTruthy()
   })
 
-  test('typing saves nothing until the field is left', async () => {
+  // MD4-01: a note typed and not clicked out of was lost to a refresh.
+  test('typing saves a moment after it stops, and says Saved by the field', async () => {
+    await renderPrep()
+    const notes = screen.getByLabelText('Notes')
+    jest.useFakeTimers()
+    try {
+      await act(async () => {
+        fireEvent.change(notes, { target: { value: 'The bridge' } })
+      })
+      await act(async () => {
+        jest.advanceTimersByTime(PLAN_AUTOSAVE_MS - 1)
+      })
+      await act(async () => {
+        fireEvent.change(notes, { target: { value: 'The bridge holds.' } })
+      })
+      await act(async () => {
+        jest.advanceTimersByTime(PLAN_AUTOSAVE_MS - 1)
+      })
+      expect(saves).toEqual([])
+      expect(screen.getByText('Saving…')).toBeTruthy()
+      await act(async () => {
+        jest.advanceTimersByTime(1)
+      })
+    } finally {
+      jest.useRealTimers()
+    }
+    await settle(() => screen.queryByText('Saved') !== null)
+    expect(saves).toEqual([{ ...PLAN, notes: 'The bridge holds.' }])
+    expect(screen.getByText('Saved').getAttribute('role')).toBe('status')
+  })
+
+  test('leaving the field saves at once, and only once', async () => {
     await renderPrep()
     const notes = screen.getByLabelText('Notes')
     await act(async () => {
@@ -336,7 +368,52 @@ describe('the plan', () => {
       fireEvent.blur(notes)
     })
     await settle(() => saves.length > 0)
+    await act(async () => {
+      fireEvent(window, new Event('pagehide'))
+    })
     expect(saves).toEqual([{ ...PLAN, notes: 'The bridge holds.' }])
+  })
+
+  test('a page hidden or left saves what is typed', async () => {
+    await renderPrep()
+    const notes = screen.getByLabelText('Notes')
+    await act(async () => {
+      fireEvent.change(notes, { target: { value: 'Locked the phone.' } })
+      fireEvent(window, new Event('pagehide'))
+    })
+    await settle(() => saves.length > 0)
+    expect(saves).toEqual([{ ...PLAN, notes: 'Locked the phone.' }])
+  })
+
+  test('leaving for another page of the app saves what is typed', async () => {
+    await renderPrep()
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'On my way.' } })
+    })
+    await act(async () => {
+      cleanup()
+    })
+    expect(saves).toEqual([{ ...PLAN, notes: 'On my way.' }])
+  })
+
+  test('a save that fails says Not saved, and the next leave tries again', async () => {
+    saveError = new Error('socket closed')
+    const errors = spyOn(console, 'error').mockImplementation(() => {})
+    await renderPrep()
+    const notes = screen.getByLabelText('Notes')
+    await act(async () => {
+      fireEvent.change(notes, { target: { value: 'Kept?' } })
+      fireEvent.blur(notes)
+    })
+    await settle(() => screen.queryByText('Not saved') !== null)
+    expect(screen.getByText('Not saved')).toBeTruthy()
+    saveError = null
+    await act(async () => {
+      fireEvent.blur(notes)
+    })
+    await settle(() => saves.length > 0)
+    expect(saves).toEqual([{ ...PLAN, notes: 'Kept?' }])
+    errors.mockRestore()
   })
 
   test('leaving a field untouched saves nothing', async () => {

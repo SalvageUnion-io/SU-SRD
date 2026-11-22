@@ -3,8 +3,10 @@
  * Game, and its sessions as a dated list, each with a private note. Nothing
  * here reaches a player: the plan is the table runner's alone (`plan.get`).
  *
- * Typing edits a draft; leaving a field saves it. Adding or removing a
- * session saves at once, and removing asks first (ADR-007). The sessions are
+ * Typing edits a draft that saves itself a moment after typing stops, when a
+ * field is left and when the page is hidden or left (`usePlanDraft`), with a
+ * 'Saved' sign by the field. Adding or removing a session saves at once, and
+ * removing asks first (ADR-007). The sessions are
  * numbered and listed by day, and a session whose day changes takes its new
  * place only once its form is left, never under the cursor. A new session is
  * dated after the last, so it is added below it and numbered next.
@@ -32,9 +34,8 @@ import {
 } from '../../../components/index'
 import type { Confirm } from '../../../components/shared/useConfirm'
 import { todayDay } from '../../../lib/formatDate'
-import { runWrite } from '../../../lib/runWrite'
 import { playGamesCopy } from '../../../messages/play-games'
-import { useGamesCall, useGamesQuery } from '../../../replica/roomCalls'
+import { useGamesQuery } from '../../../replica/roomCalls'
 import {
   addSession,
   heldSessions,
@@ -43,6 +44,8 @@ import {
   removeSession,
   sessionName,
 } from './gamePrep.model'
+import type { PlanSaveSign } from './usePlanDraft'
+import { usePlanDraft } from './usePlanDraft'
 
 const { space } = tokens
 
@@ -70,7 +73,29 @@ const SESSION = {
 const SESSION_HEAD = { display: 'flex', flexWrap: 'wrap', gap: space[12] } satisfies CSSProperties
 const DAY = { flex: '0 1 11rem' } satisfies CSSProperties
 const TITLE = { flex: '1 1 14rem' } satisfies CSSProperties
-const ROW_END = { display: 'flex', justifyContent: 'flex-end' } satisfies CSSProperties
+const ROW_END = {
+  alignItems: 'center',
+  display: 'flex',
+  gap: space[12],
+  justifyContent: 'flex-end',
+} satisfies CSSProperties
+/** The saved sign sits at the row's start, away from the button. */
+const SIGN = { margin: 0, marginRight: 'auto' } satisfies CSSProperties
+
+const SIGN_COPY = {
+  saving: 'planSaving',
+  saved: 'planSaved',
+  failed: 'planNotSaved',
+} as const
+
+/** Whether what was last typed here is kept; said to a screen reader as it changes. */
+function SaveSign({ sign, at }: { sign: PlanSaveSign | null; at: string }) {
+  return (
+    <p role="status" className={CAPS} style={SIGN}>
+      {sign?.at === at ? playGamesCopy(SIGN_COPY[sign.state]) : ''}
+    </p>
+  )
+}
 const ADD = { display: 'flex' } satisfies CSSProperties
 /** A session's number, a caps label over its form. */
 const NUMBER = { margin: 0 } satisfies CSSProperties
@@ -86,21 +111,10 @@ export function GamePlanSections({
 }) {
   const id = useId()
   const kept = useGamesQuery('plan.get', { gameId })
-  const save = useGamesCall('plan.set', { gameId })
-  // What the Mediator has typed since the plan arrived; it wins over the kept copy.
-  const [draft, setDraft] = useState<GamePlan | null>(null)
-  const plan = draft ?? kept ?? EMPTY_GAME_PLAN
+  const { draft, sign, edit, write, replace, flush, save } = usePlanDraft(gameId)
+  const plan: GamePlan = draft ?? kept ?? EMPTY_GAME_PLAN
   const loading = kept === undefined && draft === null
-
-  /** Save what is typed, when a field is left. */
-  const flush = () => {
-    if (draft !== null) runWrite(() => save({ plan: draft }))
-  }
-  /** A change that is whole at once: kept at once. */
-  const write = (next: GamePlan) => {
-    setDraft(next)
-    runWrite(() => save({ plan: next }))
-  }
+  const leave = () => flush()
   // The order the list last settled in: a new day waits for the form to be left.
   const [held, setHeld] = useState<string[] | null>(null)
   const sessions = heldSessions(plan, held)
@@ -124,10 +138,11 @@ export function GamePlanSections({
             value={plan.notes}
             maxLength={GAME_PLAN_MAX_NOTES}
             disabled={!canWrite || loading}
-            onChange={(e) => setDraft({ ...plan, notes: e.target.value })}
-            onBlur={flush}
+            onChange={(e) => edit({ ...plan, notes: e.target.value }, 'notes')}
+            onBlur={leave}
           />
         </Field>
+        <SaveSign sign={sign} at="notes" />
         <Text variant="hint">{playGamesCopy('onlyYouSeeThis')}</Text>
       </SlabSection>
       <SlabSection
@@ -163,9 +178,9 @@ export function GamePlanSections({
                       value={session.date ?? ''}
                       disabled={!canWrite}
                       onChange={(e) =>
-                        setDraft(patchSession(plan, session.id, { date: e.target.value }))
+                        edit(patchSession(plan, session.id, { date: e.target.value }), session.id)
                       }
-                      onBlur={flush}
+                      onBlur={leave}
                     />
                   </Field>
                 </div>
@@ -181,9 +196,9 @@ export function GamePlanSections({
                       autoComplete="off"
                       disabled={!canWrite}
                       onChange={(e) =>
-                        setDraft(patchSession(plan, session.id, { title: e.target.value }))
+                        edit(patchSession(plan, session.id, { title: e.target.value }), session.id)
                       }
-                      onBlur={flush}
+                      onBlur={leave}
                     />
                   </Field>
                 </div>
@@ -199,12 +214,13 @@ export function GamePlanSections({
                   maxLength={GAME_PLAN_MAX_SESSION_NOTE}
                   disabled={!canWrite}
                   onChange={(e) =>
-                    setDraft(patchSession(plan, session.id, { note: e.target.value }))
+                    edit(patchSession(plan, session.id, { note: e.target.value }), session.id)
                   }
-                  onBlur={flush}
+                  onBlur={leave}
                 />
               </Field>
               <div style={ROW_END}>
+                <SaveSign sign={sign} at={session.id} />
                 <Button
                   variant="ghost"
                   size="mini"
@@ -220,7 +236,7 @@ export function GamePlanSections({
                       tone: 'danger',
                       onConfirm: async () => {
                         const next = removeSession(plan, session.id)
-                        setDraft(next)
+                        replace(next)
                         await save({ plan: next })
                       },
                     })
