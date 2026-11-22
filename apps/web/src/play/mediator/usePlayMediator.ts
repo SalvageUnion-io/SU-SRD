@@ -265,7 +265,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
    * once "Raider 2" is out, r4 D5). `out` is who is on the field, kept in step.
    */
   const fieldNpc = async (
-    body: Parameters<typeof addNpc>[0]['body'],
+    body: ReturnType<typeof newTrayNpc>,
     out: { id: string; name: string }[] = (tray ?? []).map(({ id, name }) => ({ id, name }))
   ) => {
     const id = await addNpc({ body })

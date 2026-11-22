@@ -56,7 +56,7 @@ export function trayNpcsFor(
   groups?: readonly EncounterGroup[]
 ): TrayNpcBody[] {
   const names = [...taken]
-  const fielded = opposition.map(({ id: _id, groupId, ...opponent }) => {
+  const fielded = opposition.map(({ id: _id, groupId, ...opponent }): TrayNpcBody => {
     const name = instanceName(opponent.name, names)
     names.push(name)
     const group = groups?.find((g) => g.id === groupId)
@@ -72,10 +72,9 @@ export function trayNpcsFor(
     }
   })
   // Copies fielded together are numbered from 1; a name already out is left as it is.
-  return fielded.reduce<readonly TrayNpcBody[]>(
-    (list, body) => numberFirst(list, body.name),
-    fielded
-  ) as TrayNpcBody[]
+  let out: readonly TrayNpcBody[] = fielded
+  for (const body of fielded) out = numberFirst(out, body.name)
+  return [...out]
 }
 
 /** The wave an opponent arrives in: its group's, or 1 when it fights alone. */

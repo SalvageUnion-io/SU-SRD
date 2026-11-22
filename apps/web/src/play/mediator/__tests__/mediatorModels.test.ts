@@ -306,11 +306,9 @@ describe('the Opposition tray', () => {
   })
 
   test('a second on the field numbers the first: the one called Raider is to read Raider 1 (r4 D5)', () => {
-    const field = [
-      { id: 'a', name: 'Scylla' },
-      { id: 'b', name: 'Raider' },
-    ]
-    expect(firstToNumber(field, 'Raider 2')).toEqual({ npc: field[1], name: 'Raider 1' })
+    const raider = { id: 'b', name: 'Raider' }
+    const field = [{ id: 'a', name: 'Scylla' }, raider]
+    expect(firstToNumber(field, 'Raider 2')).toEqual({ npc: raider, name: 'Raider 1' })
     // Nothing to number: a first of its kind, or a first already numbered.
     expect(firstToNumber(field, 'Rifle Squad')).toBeNull()
     expect(firstToNumber([{ id: 'b', name: 'Raider 1' }], 'Raider 2')).toBeNull()
