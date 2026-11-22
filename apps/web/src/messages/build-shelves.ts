@@ -21,10 +21,9 @@ export const buildShelvesCopy = messages({
   mechNotAssigned: '{mech} could not be assigned. Try again.',
   noUnassignedMechs: 'Every Mech of yours has its Pilot.',
   youMediate: 'You mediate',
-  starterSet: 'Starter Set',
-  quickstartCrew: 'Quickstart crew',
-  quickstartCredit:
-    'The premade crew of the {book}, by {publisher}. Open any sheet to read it, then make a copy to play it.',
+  starterCrews: 'Starter crews',
+  starterCrewsLead:
+    'New to the game? Try the Quickstart crew of the {book} first; the Starter Set crew plays {adventure}. Both by {publisher}: open any sheet to read it, then make a copy to play it.',
   game: 'Game',
   class: 'Class',
   mech: 'Mech',
@@ -107,9 +106,6 @@ export const buildShelvesCopy = messages({
   actOnName: '{act}: {name}',
   mechNotBuilt: 'The Mech could not be built. Try again.',
   noPatternsYet: 'No patterns yet. Save one from a Mech.',
-  thePreGeneratedCrewOf: 'The pre-generated crew of',
-  byPublisherOpenAnySheet:
-    ', by {publisher}. Open any sheet to read it, then make a copy to play it.',
 
   sharedByLink: 'Shared by link',
   inTheReference: 'In the Reference',

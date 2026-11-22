@@ -250,10 +250,10 @@ describe('Training Bay — the band', () => {
 })
 
 describe('Training Bay — one shelf per kind', () => {
-  test('Pilots, Mechs, Crawlers and Patterns, then the Starter Set; NPCs are the Games front kit', async () => {
+  test('Pilots, Mechs, Crawlers and Patterns, then the Starter crews; NPCs are the Games front kit', async () => {
     await renderShelves()
 
-    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Patterns', 'Starter Set']) {
+    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Patterns', 'Starter crews']) {
       expect(screen.getByRole('region', { name })).toBeTruthy()
     }
     // The Mediator's Kit is on the Games front (ADR-066), never the Training Bay.
@@ -325,26 +325,31 @@ describe('Training Bay — one shelf per kind', () => {
     expect(within(npcs).getByRole('button', { name: 'More for Doc Marrow' })).toBeTruthy()
   })
 
-  test('the Starter Set is folded under your builds, and opens to the front door’s Ledger', async () => {
+  test('the Starter crews are one shelf folded under your builds, and open to the front door’s Ledgers (r6 E12)', async () => {
     await renderShelves()
-    const starter = screen.getByRole('region', { name: 'Starter Set' })
-    expect(within(starter).getByText('read-only')).toBeTruthy()
-    const toggle = within(starter).getByRole('button', { name: 'Expand Starter Set' })
+    expect(screen.queryByRole('region', { name: 'Quickstart crew' })).toBeNull()
+    const shelf = screen.getByRole('region', { name: 'Starter crews' })
+    expect(within(shelf).getByText('read-only')).toBeTruthy()
+    const toggle = within(shelf).getByRole('button', { name: 'Expand Starter crews' })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    expect(within(starter).queryByRole('link', { name: 'Bonesaw' })).toBeNull()
+    expect(within(shelf).queryByRole('link', { name: 'Bonesaw' })).toBeNull()
 
     fireEvent.click(toggle)
+    // One line says which to try first.
+    expect(within(shelf).getByText(/Try the Quickstart crew/)).toBeTruthy()
+    expect(within(shelf).getByRole('region', { name: 'Quickstart crew' })).toBeTruthy()
+    const starter = within(shelf).getByRole('region', { name: 'Starter Set' })
 
     expect(
-      within(starter)
-        .getByRole('button', { name: 'Collapse Starter Set' })
+      within(shelf)
+        .getByRole('button', { name: 'Collapse Starter crews' })
         .getAttribute('aria-expanded')
     ).toBe('true')
     const crew = within(starter).getByRole('table', { name: 'Pilots & their Mechs' })
     expect(within(crew).getByRole('link', { name: 'Bonesaw' }).getAttribute('href')).toBe(
       '/starter/pilot/starter-pilot-bonesaw'
     )
-    expect(within(starter).getAllByText(/Leyline Press/, { selector: 'p' })).toHaveLength(1)
+    expect(within(shelf).getAllByText(/Leyline Press/, { selector: 'p' })).toHaveLength(1)
   })
 })
 

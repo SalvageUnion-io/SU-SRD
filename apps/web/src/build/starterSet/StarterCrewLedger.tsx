@@ -141,7 +141,7 @@ type StarterCrewLedgerProps = {
   roster?: StarterRosterId
   confirm?: Confirm
   /** Its ledgers' heading: `h2` where no section heading stands over them. */
-  as?: 'h2' | 'h3'
+  as?: 'h2' | 'h3' | 'h4'
 }
 
 export function StarterCrewLedger({
