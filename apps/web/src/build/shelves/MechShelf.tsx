@@ -26,6 +26,7 @@ import {
 } from './mechShelf.model'
 import { findMatches, useShelfFind } from './ShelfFind'
 import { ShelfLedger } from './ShelfLedger'
+import { useShelfSelect } from './ShelfSelect'
 import { inGame, MECH_COLUMNS, read, scrapCell } from './shelfColumns'
 
 type MechLine = {
@@ -42,6 +43,7 @@ export function MechShelf({
   line,
   action,
   empty,
+  remove,
 }: {
   mechs: readonly Mech[]
   readings: ReadonlyMap<string, readonly UnitReading[]>
@@ -49,6 +51,8 @@ export function MechShelf({
   line: (mech: Mech) => MechLine
   action?: ReactNode
   empty: string
+  /** Select's `Delete N` (r6 E3): the Training Bay's Mechs, one notice for all. */
+  remove?: ((mechs: Mech[]) => void) | undefined
 }) {
   // The sort is kept for the next visit (this browser's storage, a convenience).
   const [sort, setSort] = useState<LedgerSort | undefined>(storedSort)
@@ -84,6 +88,17 @@ export function MechShelf({
   const found = rows.filter((row) =>
     findMatches(find.query, [row.name, row.values.chassis, row.values.pattern])
   )
+  const sorted = sortShelfRows(found, sort, (row, key) =>
+    // Scrap sorts by its highest Tech Level, then its amount (r6 E4).
+    key === buildShelvesCopy('cost') ? row.scrapSort : row.values[key]
+  )
+  // A Mech in a Game is not Select's: its delete asks first.
+  const select = useShelfSelect(
+    sorted.map((row) => row.mech.id),
+    mechs.map((m) => m.id),
+    (id) => typeof mechs.find((m) => m.id === id)?.gameId !== 'string',
+    remove && ((ids) => remove(mechs.filter((m) => ids.includes(m.id))))
+  )
   return (
     <ShelfLedger
       id="shelf-mechs"
@@ -101,10 +116,8 @@ export function MechShelf({
         rememberSort(next)
         setSort(next)
       }}
-      // Scrap sorts by its highest Tech Level, then its amount (r6 E4).
-      rows={sortShelfRows(found, sort, (row, key) =>
-        key === buildShelvesCopy('cost') ? row.scrapSort : row.values[key]
-      ).map(({ mech, own, values, over, what }) => ({
+      select={select}
+      rows={sorted.map(({ mech, own, values, over, what }) => ({
         id: mech.id,
         name: mech.name,
         href: `/mechs/${mech.id}`,

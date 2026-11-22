@@ -386,6 +386,7 @@ export const buildSheetCopy = messages({
   moveToAGame: 'Move to a Game…',
   makeACopy: 'Make a copy',
   delete: 'Delete…',
+  deleteNow: 'Delete',
   notFound: '{name} not found',
   thisMayHaveBeenDeleted: 'This {name} may have been deleted, or the link may be stale.',
   unavailableOffline: '{name} unavailable offline',

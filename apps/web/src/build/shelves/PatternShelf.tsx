@@ -12,10 +12,12 @@ import type { HeaderMenuItem, LedgerSort } from '../../components/index'
 import { savedPatternHref } from '../../lib/patterns/patterns'
 import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import { buildShelvesCopy } from '../../messages/build-shelves'
+import { useHeldDeletes } from './heldDeletes.model'
 import { nextSort, sortShelfRows } from './mechShelf.model'
 import { patternLine } from './patternShelf.model'
 import { findMatches, useShelfFind } from './ShelfFind'
 import { ShelfLedger } from './ShelfLedger'
+import { useShelfSelect } from './ShelfSelect'
 import { PATTERN_COLUMNS, scrapCell } from './shelfColumns'
 
 export function PatternShelf({
@@ -24,6 +26,7 @@ export function PatternShelf({
   games,
   action,
   line,
+  remove,
 }: {
   patterns: readonly MechPattern[]
   /** Who can see each; undefined while it loads, or with no server to ask. */
@@ -39,13 +42,27 @@ export function PatternShelf({
     act?: { label: string; onSelect: () => void } | undefined
     menu: HeaderMenuItem[][]
   }
+  /** Select's `Delete N` (r6 E3), one notice for all. */
+  remove?: ((patterns: MechPattern[]) => void) | undefined
 }) {
   const [sort, setSort] = useState<LedgerSort | undefined>(undefined)
-  const find = useShelfFind(buildShelvesCopy('findAPattern'), patterns.length)
-  const rows = patterns
+  // A delete held under its notice's Undo is gone from the shelf (r6 E3).
+  const held = useHeldDeletes((s) => s.held)
+  const kept = patterns.filter((p) => !held.has(p.id))
+  const find = useShelfFind(buildShelvesCopy('findAPattern'), kept.length)
+  const rows = kept
     .map((pattern) => ({ pattern, name: pattern.name, ...patternLine(pattern, sharing, games) }))
     // Its find box keeps the lines whose name, chassis or description match (r5 D4).
     .filter((row) => findMatches(find.query, [row.name, row.values.chassis, row.pattern.notes]))
+  const sorted = sortShelfRows(rows, sort, (row, key) =>
+    key === buildShelvesCopy('cost') ? row.values.scrapSort : row.values[key]
+  )
+  const select = useShelfSelect(
+    sorted.map((row) => row.pattern.id),
+    kept.map((p) => p.id),
+    () => true,
+    remove && ((ids) => remove(kept.filter((p) => ids.includes(p.id))))
+  )
   return (
     <ShelfLedger
       id="shelf-patterns"
@@ -62,9 +79,8 @@ export function PatternShelf({
       find={find.field}
       sort={sort}
       onSort={(key) => setSort(nextSort(sort, key))}
-      rows={sortShelfRows(rows, sort, (row, key) =>
-        key === buildShelvesCopy('cost') ? row.values.scrapSort : row.values[key]
-      ).map(({ pattern, values, saved, over, about }) => {
+      select={select}
+      rows={sorted.map(({ pattern, values, saved, over, about }) => {
         const { under, ...rest } = line(pattern, over)
         return {
           id: pattern.id,

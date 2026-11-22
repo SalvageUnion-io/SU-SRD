@@ -504,7 +504,7 @@ describe('Patterns', () => {
     )
     const menu = await openMenu('Brawler')
     expect(within(menu).queryByRole('menuitem', { name: 'Build With This' })).toBeNull()
-    expect(within(menu).getByRole('menuitem', { name: 'Delete…' })).toBeTruthy()
+    expect(within(menu).getByRole('menuitem', { name: 'Delete' })).toBeTruthy()
     await act(async () => {
       fireEvent.keyDown(menu, { key: 'Escape' })
     })
@@ -576,12 +576,34 @@ describe('Patterns', () => {
     expect(await screen.findByText('Exported Brawler.')).toBeTruthy()
   })
 
-  test('Delete… asks, then removes it', async () => {
+  test('Delete asks nothing: the row goes, and the pattern is deleted once its Undo notice goes (r6 E3)', async () => {
     await renderShelves()
-    await choose(await openMenu('Brawler'), 'Delete…')
-    await confirmDialog('Delete')
+    await choose(await openMenu('Brawler'), 'Delete')
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    const shelf = screen.getByRole('region', { name: 'Patterns' })
+    expect(within(shelf).queryByRole('link', { name: 'Brawler' })).toBeNull()
+    // Held while the notice shows, so its shared links still work.
+    expect(usePatterns.getState().mechPatterns).toHaveLength(1)
+    expect(await screen.findByText('Deleted Brawler.')).toBeTruthy()
+    await act(async () => {
+      toast.dismiss()
+    })
     await settle(() => usePatterns.getState().mechPatterns.length === 0)
     expect(usePatterns.getState().mechPatterns).toHaveLength(0)
+  })
+
+  test('its Undo keeps the pattern, and writes nothing', async () => {
+    await renderShelves()
+    await choose(await openMenu('Brawler'), 'Delete')
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
+    })
+    const shelf = screen.getByRole('region', { name: 'Patterns' })
+    expect(within(shelf).getByRole('link', { name: 'Brawler' })).toBeTruthy()
+    await act(async () => {
+      toast.dismiss()
+    })
+    expect(usePatterns.getState().mechPatterns).toHaveLength(1)
   })
 })
 

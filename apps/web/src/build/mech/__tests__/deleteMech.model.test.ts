@@ -10,7 +10,7 @@ import { ROW_ACTION_COPY } from '../../../lib/games/rowActionCopy'
 import { resetStores } from '../../../replica/__tests__/resetStores'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import { useUnits } from '../../../replica/units'
-import { deleteMech, putBack } from '../deleteMech.model'
+import { deleteMech, deleteMechs, putBack } from '../deleteMech.model'
 
 withSignedInBackend()
 
@@ -67,5 +67,17 @@ describe('deleteMech', () => {
         .some((l) => l.from.id === mech.id && l.to.id === pilot.id)
     ).toBe(true)
     expect(open().some((t) => t.title === 'Digger is back.')).toBe(true)
+  })
+
+  test('several at once share one notice, whose Undo brings them all back (r6 E3)', async () => {
+    const units = useUnits.getState()
+    await Promise.all(['mech', 'softLink'].map((t) => units.hydrate(t as never)))
+    const a = await units.create('mech', mechFixture({ id: 'm-a', name: 'Alpha', gameId: null }))
+    const b = await units.create('mech', mechFixture({ id: 'm-b', name: 'Bravo', gameId: null }))
+    await deleteMechs([a.id, b.id])
+    expect(useUnits.getState().get('mech', a.id)).toBeNull()
+    expect(useUnits.getState().get('mech', b.id)).toBeNull()
+    const lines = open().filter((t) => t.action)
+    expect(lines.map((t) => t.title)).toEqual(['Deleted 2 Mechs.'])
   })
 })

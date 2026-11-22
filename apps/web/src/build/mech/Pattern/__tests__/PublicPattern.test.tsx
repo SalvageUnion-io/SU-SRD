@@ -259,7 +259,7 @@ describe('signed in', () => {
     expect(usePatterns.getState().mechPatterns[0]?.notes).toBe('Tow, then weld.')
   })
 
-  test('its maker deletes it from its page: it asks first, then leaves for Patterns (r4 E13)', async () => {
+  test('its maker deletes it from its page: it asks nothing, leaves for Patterns, and is deleted once its Undo is gone (r6 E3)', async () => {
     answerRoutes({
       [STATUS]: NOT_LISTED,
       [PAGE]: answer({ mine: true, visibility: 'private' }),
@@ -267,16 +267,16 @@ describe('signed in', () => {
     usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
     renderAs(CONNECTED)
     await fromMenu('Delete')
-    const ask = await screen.findByRole('alertdialog')
-    expect(ask.textContent).toContain('Delete Tow Rig?')
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    await settle(() => serverMocks.navigations.length > 0)
+    expect(JSON.stringify(serverMocks.navigations)).toContain('/patterns')
+    // Held under its notice: leaving the page writes it.
     expect(usePatterns.getState().mechPatterns).toHaveLength(1)
     await act(async () => {
-      fireEvent.click(within(ask).getByRole('button', { name: 'Delete' }))
+      window.dispatchEvent(new Event('pagehide'))
     })
     await settle(() => usePatterns.getState().mechPatterns.length === 0)
     expect(usePatterns.getState().mechPatterns).toHaveLength(0)
-    await settle(() => serverMocks.navigations.length > 0)
-    expect(JSON.stringify(serverMocks.navigations)).toContain('/patterns')
   })
 
   test('a reader who did not make it gets no edit', () => {

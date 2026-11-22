@@ -73,6 +73,8 @@ export const mechCopy = messages({
   buildNotUndone: '{name} could not be removed. Delete it from its sheet.',
   mechDeleted: 'Deleted {name}.',
   mechPutBack: '{name} is back.',
+  mechsDeleted: 'Deleted {count} Mechs.',
+  mechsPutBack: '{count} Mechs are back.',
   mechNotPutBack: '{name} could not be put back. Try again.',
   noPatternsYet: 'No Patterns yet',
   useSaveAsPatternFrom:

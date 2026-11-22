@@ -613,6 +613,19 @@
   min-width: 0;
 }
 
+/* A shelf's find bar: the find box, then its Select (r6 E3). */
+.su-shelf-find,
+.su-shelf-select {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.su-shelf-find > .su-search-field {
+  flex: 1 1 12rem;
+}
+
 /* A shelf's names and its link cells wrap, never cut (R56: a Game's name is
    whole), so the list never runs wider than its frame and the make stays
    whole: the link cells share the room left (`max-width: 0` lets each

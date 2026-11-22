@@ -412,7 +412,7 @@ describe('Training Bay — items', () => {
       'Rename…',
       'Save as pattern',
       'Export',
-      'Delete…',
+      'Delete',
     ])
   })
 
@@ -429,6 +429,26 @@ describe('Training Bay — items', () => {
     await waitFor(() => expect(useUnits.getState().get('mech', mech)?.name).toBe('Iron Jaw Mk II'))
   })
 
+  test('Select checks Mechs, shift-click a range, and Delete N deletes them under one notice (r6 E3)', async () => {
+    await seedEntity('mech', 'Alpha')
+    await seedEntity('mech', 'Bravo')
+    await seedEntity('mech', 'Charlie')
+    await renderShelves()
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    fireEvent.click(within(mechs).getByRole('button', { name: 'Select' }))
+    const check = (name: string) => within(mechs).getByRole('checkbox', { name: `Select ${name}` })
+    const [first, , last] = within(mechs)
+      .getAllByRole('checkbox')
+      .map((box) => box.getAttribute('aria-label')?.replace('Select ', '') ?? '')
+    fireEvent.click(check(first ?? ''))
+    fireEvent.click(check(last ?? ''), { shiftKey: true })
+    await act(async () => {
+      fireEvent.click(within(mechs).getByRole('button', { name: 'Delete 3' }))
+    })
+    await settle(() => useUnits.getState().list('mech').length === 0)
+    expect(useUnits.getState().list('mech')).toHaveLength(0)
+  })
+
   test('the Mechs shelf says a build’s slots and Scrap, and a column sorts it', async () => {
     await seedEntity('mech', 'Bravo')
     await useUnits
@@ -441,7 +461,7 @@ describe('Training Bay — items', () => {
         .getAllByRole('link')
         .map((a) => a.textContent)
         .filter((text) => text === 'Alpha' || text === 'Bravo')
-    expect(within(mechs).getByRole('button', { name: /sort by cost/i })).toBeTruthy()
+    expect(within(mechs).getByRole('button', { name: /sort by scrap/i })).toBeTruthy()
     const byName = () => within(mechs).getByRole('button', { name: /sort by mechs/i })
     fireEvent.click(byName())
     expect(names()).toEqual(['Alpha', 'Bravo'])

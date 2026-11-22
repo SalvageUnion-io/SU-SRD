@@ -18,6 +18,8 @@ import { buildShelvesCopy } from '../../messages/build-shelves'
 import { usePatterns } from '../../replica/collections'
 import { useUnits } from '../../replica/units'
 import { builtToast, deletePatternLines, mechNamesTaken } from '../mech/Pattern/buildConfirm.model'
+import { PATTERN_DELETE_SKIPS_CONFIRM } from '../rulings'
+import { holdDelete } from './heldDeletes.model'
 import type { RenameSubject } from './shelfMenu.model'
 import { deleteItem, renameItem } from './shelfMenu.model'
 
@@ -58,6 +60,23 @@ export async function deletePattern(id: string): Promise<void> {
   void refreshWorkerReads(sharedPaths.sheet('pattern', id))
 }
 
+/**
+ * Delete patterns with Undo (r6 E3): held while the notice shows, written
+ * once it goes, so an Undo leaves their shared links working.
+ */
+export function deletePatternsHeld(patterns: readonly MechPattern[]): void {
+  if (patterns.length === 0) return
+  const names = new Map(patterns.map((p) => [p.id, p.name]))
+  holdDelete(
+    patterns.map((p) => p.id),
+    patterns.length === 1
+      ? buildShelvesCopy('deletedName', { name: patterns[0]?.name ?? '' })
+      : buildShelvesCopy('deletedCount', { count: String(patterns.length) }),
+    deletePattern,
+    (id) => buildShelvesCopy('patternNotDeleted', { name: names.get(id) ?? '' })
+  )
+}
+
 export function patternMenuOf(
   pattern: MechPattern,
   host: {
@@ -96,10 +115,17 @@ export function patternMenuOf(
       },
     ],
     [
+      // With Undo it asks nothing (r6 E3, `PATTERN_DELETE_SKIPS_CONFIRM`).
       deleteItem(
         writable(() =>
-          confirm({ ...deletePatternCopy(pattern), onConfirm: () => deletePattern(pattern.id) })
-        )
+          PATTERN_DELETE_SKIPS_CONFIRM
+            ? deletePatternsHeld([pattern])
+            : confirm({
+                ...deletePatternCopy(pattern),
+                onConfirm: () => deletePatternsHeld([pattern]),
+              })
+        ),
+        PATTERN_DELETE_SKIPS_CONFIRM
       ),
     ],
   ]

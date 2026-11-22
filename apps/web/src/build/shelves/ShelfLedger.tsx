@@ -13,6 +13,7 @@ import { Button, HeaderMenu, HomebrewStamp, InlineRef, Ledger, Text } from '../.
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { sessionDoor, sessionDoorAs } from '../../play/sessionDoor.model'
 import { useSessionLive } from '../../play/useSessionLive'
+import type { ShelfSelect } from './ShelfSelect'
 
 type ShelfLedgerRow = {
   id: string
@@ -57,6 +58,8 @@ type ShelfLedgerProps = {
   foot?: ReactNode
   /** Its find box, atop the list (r5 D4). */
   find?: ReactNode
+  /** Its Select (r6 E3): in the find bar, and while on a check on each line. */
+  select?: ShelfSelect
   /** With `onSort`, a column's label sorts the shelf by it. */
   sort?: LedgerSort | undefined
   onSort?: (key: string) => void
@@ -137,16 +140,25 @@ export function ShelfLedger({
   note,
   foot,
   find,
+  select,
   sort,
   onSort,
 }: ShelfLedgerProps) {
+  const check = select?.check
   // A list drops a column no row fills (ledger.md L5): the rest keep their order.
   const kept = columns.flatMap((column, index) =>
     rows.some((row) => filled(row.cells[index])) ? [{ column, index }] : []
   )
   return (
     <section id={id} aria-label={title} className="su-shelf-ledger">
-      {find}
+      {select?.bar ? (
+        <div className="su-shelf-find">
+          {find}
+          {select.bar}
+        </div>
+      ) : (
+        find
+      )}
       <Ledger
         label={title}
         tone={tone}
@@ -162,7 +174,8 @@ export function ShelfLedger({
           ...(row.href ? { href: row.href } : {}),
           cells: kept.map(({ index }) => row.cells[index]),
           ...(row.under ? { under: row.under } : {}),
-          trailing: trailingOf(row),
+          // While selecting, a line's check stands in for its acts.
+          trailing: check ? check(row.id, row.name) : trailingOf(row),
         }))}
         action={action}
         empty={empty}

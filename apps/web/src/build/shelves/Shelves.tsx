@@ -20,10 +20,12 @@
  *    folded, the read-only Starter Set, as the front door shows it (`StarterShelf`).
  *
  * Each item is a library Compact (`UnitRow`) with its chips and a ⋯ menu: Open, Move
- * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete…. A verb
- * that takes something away asks first, through the page's one confirm, which
- * has to outlive the menu that asked; Make a copy only adds, so it runs at once
- * and its notice opens the copy (`makeACopy`).
+ * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete
+ * (`unitMenuOf`). A verb that takes something away asks first, through the
+ * page's one confirm, which has to outlive the menu that asked, unless its
+ * notice undoes it (a Mech, a pattern: r6 E3, which the Mechs and Patterns
+ * shelves' Select also deletes in bulk); Make a copy only adds, so it runs at
+ * once and its notice opens the copy (`makeACopy`).
  *
  * ## Modes
  *
@@ -54,7 +56,6 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { Tagline } from '../../components/Tagline'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { copyAsking, keptMech } from '../../lib/copiedToast'
 import {
   useCrawlers,
   useHydrateEntities,
@@ -86,14 +87,11 @@ import { VITAL } from '../../lib/units/readings'
 import { buildExportCopy } from '../../messages/build-export'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { useEncounters, usePatterns, useTray } from '../../replica/collections'
-import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { BackupMenu } from '../export/BackupMenu'
-import { deleteMech } from '../mech/deleteMech.model'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
-import { npcDeleteConfirm } from '../npc/redesign.model'
 import { ShelfLead } from '../roster/FrontDoor'
 import { RailActs } from '../sheet/RailActs'
 import { crewReadings } from '../sheet/railStats.model'
@@ -104,7 +102,7 @@ import { MechShelf } from './MechShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
 import { PatternShelf } from './PatternShelf'
-import { buildFromPattern, patternMenuOf } from './patternMenu.model'
+import { buildFromPattern, deletePatternsHeld, patternMenuOf } from './patternMenu.model'
 import { RenameDialog } from './RenameDialog'
 import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
@@ -119,10 +117,10 @@ import {
   who,
 } from './shelfColumns'
 import type { RenameSubject } from './shelfMenu.model'
-import { deleteItem, renameItem } from './shelfMenu.model'
-import { showShelfRow } from './shelfRow.model'
+import { deleteItem } from './shelfMenu.model'
 import { ShelvesPart } from './shelvesPart.model'
 import { TrayLeftovers } from './TrayLeftovers'
+import { deleteMechsNow, unitMenuOf } from './unitMenu.model'
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
@@ -224,109 +222,23 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
       )
   }
 
-  function unitMenu(
+  const unitMenu = (
     type: EntityKind,
     unit: { id: string; name: string; gameId?: string | null },
     copyBody: Record<string, unknown>
-  ): HeaderMenuItem[][] {
-    const inGame = typeof unit.gameId === 'string'
-    return [
-      [
-        { id: 'open', label: 'Open', onSelect: () => go(`/${type}s/${unit.id}`) },
-        {
-          id: 'move',
-          label: buildShelvesCopy('moveToAGame'),
-          // Moves need the server's list of Games.
-          onSelect:
-            canWrite && status === 'live'
-              ? () => setMoving({ type, id: unit.id, entity: unit })
-              : undefined,
-        },
-        {
-          id: 'copy',
-          label: buildShelvesCopy('makeACopy'),
-          // A copy only adds: it runs at once (a pilot with a mech is asked
-          // whether the mech comes too), its notice opens it, and its new
-          // line is brought into view.
-          onSelect: writable(
-            () =>
-              void copyAsking(confirm, type, unit.name, copyBody, go, {
-                landed: (id) => showShelfRow(type, id),
-              })
-          ),
-        },
-        ...(type === 'pilot' ? pilots.filter((p) => p.id === unit.id).map(renamePilot) : []),
-        ...(type === 'mech'
-          ? [
-              renameItem(
-                {
-                  name: unit.name,
-                  label: buildShelvesCopy('mechName'),
-                  save: (name) =>
-                    useUnits.getState().update('mech', unit.id, { name }, LIVE_SHEET_MANUAL),
-                },
-                canWrite ? setRenaming : undefined
-              ),
-              {
-                id: 'pattern',
-                label: buildShelvesCopy('saveAsPattern'),
-                onSelect: writable(() => setSavingPattern(unit.id)),
-              },
-            ]
-          : []),
-        exportItem(type, unit),
-      ],
-      [
-        deleteItem(
-          writable(() =>
-            type === 'npc'
-              ? // An NPC is its maker's alone: the confirm names the encounters it leaves (MD3-08).
-                confirm(npcDeleteConfirm(unit, encounters))
-              : type === 'mech' && !inGame
-                ? // Its notice's Undo brings it back (r5 D9).
-                  confirm({
-                    ...ROW_ACTION_COPY.deleteMech(unit.name),
-                    onConfirm: () => deleteMech(unit.id),
-                  })
-                : confirm({
-                    ...(inGame
-                      ? ROW_ACTION_COPY.deleteFromGame(unit.name, keptMech(type, unit.id))
-                      : ROW_ACTION_COPY.deleteBuild(unit.name, keptMech(type, unit.id))),
-                    onConfirm: () => useUnits.getState().delete(type, unit.id),
-                  })
-          )
-        ),
-      ],
-    ]
-  }
-
-  /** Export; a pilot's takes the Mech they fly, and says so (r6 E17). */
-  const exportItem = (type: EntityKind, unit: { id: string; name: string }): HeaderMenuItem => {
-    const mech = keptMech(type, unit.id)
-    return {
-      id: 'export',
-      label: mech
-        ? buildExportCopy('exportWith', { name: unit.name, mech })
-        : buildExportCopy('export'),
-      onSelect: () => void exportUnit(type, unit.id, unit.name, mech),
-    }
-  }
-
-  /** A pilot's Rename…: its callsign and its name, the two it goes by (r4 E20). */
-  const renamePilot = (pilot: (typeof pilots)[number]): HeaderMenuItem =>
-    renameItem(
-      {
-        title: pilotLabel(pilot),
-        name: pilot.callsign,
-        label: buildShelvesCopy('callsign'),
-        also: { name: pilot.name, label: buildShelvesCopy('pilotName') },
-        save: (callsign, name) =>
-          useUnits
-            .getState()
-            .update('pilot', pilot.id, { callsign, name: name ?? pilot.name }, LIVE_SHEET_MANUAL),
-      },
-      canWrite ? setRenaming : undefined
-    )
+  ): HeaderMenuItem[][] =>
+    unitMenuOf(type, unit, copyBody, {
+      go,
+      confirm,
+      canWrite,
+      live: status === 'live',
+      pilots,
+      encounters,
+      move: setMoving,
+      rename: setRenaming,
+      savePattern: setSavingPattern,
+      exportUnit: (...args) => void exportUnit(...args),
+    })
 
   function trayMenu(npc: { id: string; name: string }): HeaderMenuItem[][] {
     return [
@@ -391,6 +303,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         act: buildFromPattern(p, { go, canWrite }),
         menu: patternMenu(p),
       })}
+      remove={canWrite ? deletePatternsHeld : undefined}
     />
   )
   const patternDialogs = (
@@ -576,6 +489,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   game: gameRelation(m, games),
                   menu: unitMenu('mech', m, m),
                 })}
+                remove={canWrite ? deleteMechsNow : undefined}
               />
               <CrawlerShelf
                 crawlers={crawlers}
