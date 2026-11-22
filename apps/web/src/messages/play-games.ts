@@ -146,6 +146,7 @@ export const playGamesCopy = messages({
   sessionStartsWithPlay: 'The session starts when you play',
   noSessionYet: 'No session yet',
   // The band's title, renamed in place (r6 C9).
+  rename: 'Rename',
   renameGame: 'Rename {name}',
   gameNameField: 'Game name',
   renameNotSaved: 'The new name could not be saved. Try again.',

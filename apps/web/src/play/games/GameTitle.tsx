@@ -1,31 +1,18 @@
 /**
  * GameTitle — the Game's name on its band (r6 C9, MD6-13), renamed in place by
- * its Organiser: the name itself is the control, so a first-time Mediator
- * never has to find "⋯ > Game settings… > edit > Save". Pressing it turns the
- * title into its field; Enter or leaving the field saves, Escape keeps the old
+ * its Organiser, right where the name is, so a first-time Mediator
+ * never has to find "⋯ > Game settings… > edit > Save". The pencil beside the
+ * name turns the title into its field; Enter or leaving the field saves, Escape keeps the old
  * name. Anyone else reads the name alone. Never cut (R56): it wraps.
  */
 
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { Input, toast } from '../../components/index'
+import { Button, Input, toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
-
-/** The name as a press: the title's own type, nothing of a button's dress. */
-const AS_TITLE = {
-  background: 'none',
-  border: 0,
-  color: 'inherit',
-  cursor: 'text',
-  font: 'inherit',
-  letterSpacing: 'inherit',
-  padding: 0,
-  textAlign: 'inherit',
-  textTransform: 'inherit',
-} satisfies CSSProperties
 
 /** The field in the title's place, at the title's type. */
 const FIELD = {
@@ -62,15 +49,17 @@ export function GameTitle({
   if (!editable || !canWrite) return <>{name}</>
   if (draft === null) {
     return (
-      <button
-        type="button"
-        className="su-focus-ring"
-        style={AS_TITLE}
-        aria-label={playGamesCopy('renameGame', { name })}
-        onClick={() => setDraft(name)}
-      >
-        {name}
-      </button>
+      <>
+        {name}{' '}
+        <Button
+          variant="pencil"
+          size="mini"
+          aria-label={playGamesCopy('renameGame', { name })}
+          onClick={() => setDraft(name)}
+        >
+          {playGamesCopy('rename')}
+        </Button>
+      </>
     )
   }
   const save = () => {
