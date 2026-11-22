@@ -348,5 +348,19 @@ describe('Sheet — Change Log menu wiring', () => {
     })
     field.remove()
     expect(batches.length).toBe(before)
+
+    // A picker's empty search box has nothing of its own to undo: the sheet's (r5 C5).
+    const box = document.createElement('div')
+    box.className = 'su-searcher__search'
+    const search = document.createElement('input')
+    box.append(search)
+    document.body.append(box)
+    await act(async () => {
+      fireEvent.keyDown(search, { key: 'z', ctrlKey: true })
+    })
+    box.remove()
+    await waitFor(() =>
+      expect(sources().filter((source) => source === `live-sheet-undo:${op2}`)).toHaveLength(2)
+    )
   })
 })

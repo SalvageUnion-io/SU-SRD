@@ -35,10 +35,19 @@ type SheetUndoInput = {
   blocked: boolean
 }
 
-/** A key press that belongs to a text field's own undo, never the sheet's. */
+/**
+ * A key press that belongs to a text field's own undo, never the sheet's. A
+ * picker's search box with nothing in it has nothing of its own to undo, so
+ * there Ctrl+Z takes back the part just added (r5 C1, C5).
+ */
 const typing = (target: EventTarget | null): boolean =>
   target instanceof HTMLElement &&
-  (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+  (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) &&
+  !(
+    target instanceof HTMLInputElement &&
+    target.value === '' &&
+    target.closest('.su-searcher__search') !== null
+  )
 
 /** What a key press asks of the sheet: Ctrl+Z undo, Ctrl+Shift+Z or Ctrl+Y redo. */
 export function sheetKey(

@@ -41,9 +41,18 @@ describe('EntitySearcher: arrows, names and filters', () => {
       expect(onAdd).toHaveBeenCalledTimes(1)
       const third = rows[2]?.querySelector('[data-searcher-open]') as HTMLElement
       expect(onAdd.mock.calls[0]?.[0]).toBe(third.dataset.searcherOpen ?? '')
-      // A new search starts with no highlight.
+      // The highlight clears with the add, and a second Enter waits for a row (r5 C5).
+      expect(cursors()).toHaveLength(0)
+      fireEvent.keyDown(search, { key: 'Enter' })
+      expect(onAdd).toHaveBeenCalledTimes(1)
+      fireEvent.keyDown(search, { key: 'ArrowDown' })
+      fireEvent.keyDown(search, { key: 'Enter' })
+      expect(onAdd).toHaveBeenCalledTimes(2)
+      // A new search starts with no highlight, and Enter adds again.
       fireEvent.change(search, { target: { value: 'ballisti' } })
       expect(cursors()).toHaveLength(0)
+      fireEvent.keyDown(search, { key: 'Enter' })
+      expect(onAdd).toHaveBeenCalledTimes(3)
     },
     POOL_RENDER_MS
   )

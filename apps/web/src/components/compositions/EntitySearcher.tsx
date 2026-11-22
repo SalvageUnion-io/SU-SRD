@@ -229,11 +229,12 @@ export function EntitySearcher({
     }
   })
 
-  // ---- The keyboard's highlight (r4 E4): Down and Up in the search move it
-  // through the rows, the named ones in other Tech Levels after the rest, and
-  // Enter acts on it. One row wears it; it clears when the search changes. ----
+  // ---- The keyboard's highlight (r4 E4): Down and Up move it through the rows
+  // (other Tech Levels' named ones last), Enter acts on it. It clears when the
+  // search changes, and after Enter adds: a second Enter waits for a row (r5 C5). ----
   const rows = useMemo(() => [...visible, ...outside], [visible, outside])
   const [cursorId, setCursorId] = useState<string | null>(null)
+  const entered = useRef(false)
   const cursor = cursorId === null ? undefined : rows.find((item) => idOf(item) === cursorId)
   const rowId = useId()
   const domId = (item: PoolEntity) => `${rowId}-${item.id}`
@@ -243,6 +244,7 @@ export function EntitySearcher({
     const next = at === -1 ? (step === 1 ? 0 : rows.length - 1) : at + step
     const item = rows[Math.max(0, Math.min(rows.length - 1, next))]
     if (!item) return
+    entered.current = false
     setCursorId(idOf(item))
     document.getElementById(domId(item))?.scrollIntoView?.({ block: 'nearest' })
   }
@@ -253,13 +255,11 @@ export function EntitySearcher({
     else onToggle?.(ref)
   }
 
-  // The one picker convention: the search field has focus when a picker
-  // opens beside its detail pane, and Enter adds the first match. The picker
-  // stays open, the match's line and the sidebar counting what was added. A
+  // The one picker convention: the search has focus when a picker opens beside
+  // its detail pane, and Enter adds the first match; the picker stays open. A
   // phone keeps its keyboard down until the field is pressed.
   const searchRef = useRef<HTMLInputElement>(null)
-  // A picker's Done is at its foot, where a toast lands: while it is open the
-  // toasts stand at the top, so a "Saved" line never covers Done (r4 E12).
+  // Its Done is at the foot, where a toast lands: toasts stand at the top (r4 E12).
   useEffect(() => (browse ? undefined : holdToastsOnTop()), [browse])
   useEffect(() => {
     if (browse || !window.matchMedia(WIDE_QUERY).matches) return
@@ -267,21 +267,20 @@ export function EntitySearcher({
     return () => cancelAnimationFrame(frame)
   }, [browse])
   function addFirstMatch() {
-    // The highlighted row; else, with something typed, the first row the search
-    // NAMES (r4 E5: never one matched only on its rules text while a name
-    // matches, even a name in a Tech Level that is switched off), else the top.
+    // The highlighted row; else, typed, the first row the search NAMES (r4 E5:
+    // never one matched only on rules text while a name matches), else the top.
     const q = query.trim()
     const first = cursor ?? (q ? (rows.find((item) => namedBy(item, q)) ?? visible[0]) : undefined)
-    if (browse || !first) return
+    if (browse || !first || (entered.current && !cursor)) return
     const ref = idOf(first)
-    // A single pick applies on Choose, so Enter only opens the match to read.
-    if (mode === 'single') return open(ref)
-    // Enter never removes: a toggle or single pick already made stays made.
-    // It pays the cost where the sheet can, as the action bar's lead button does.
+    if (mode === 'single') return open(ref) // A single pick applies on Choose: Enter reads.
+    // Enter never removes, and pays the cost where it can, as the bar's lead button does.
     if (mode === 'count' || !selected.includes(ref)) {
       const price = cost?.(first)
       if (price?.canPay) price.onPay()
       else add(ref)
+      entered.current = true
+      setCursorId(null)
     }
     if (wide) setFocusId(ref)
   }
@@ -298,6 +297,7 @@ export function EntitySearcher({
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
+            entered.current = false
             setCursorId(null)
             onQueryChange?.(e.target.value)
           }}
