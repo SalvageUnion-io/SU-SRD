@@ -19,6 +19,8 @@ export type SyncState = {
   canEditOwn?: boolean
   /** Below the backend's build floor: read-only until the tab reloads. */
   outdated: boolean
+  /** A signed-out Play trial (r6 F1): it reads as live, but nothing reaches the server. */
+  trial?: true
 }
 
 /**

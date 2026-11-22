@@ -125,9 +125,11 @@ type PlayCockpitProps = {
   target: PlayTarget
   /** The Act pane's store and dice (a test injects its own). */
   actions?: PlayActionsDeps
+  /** A signed-out trial of a book pilot (r6 F1): "‹ Sheet" goes back to its book page. */
+  trial?: boolean
 }
 
-export function PlayCockpit({ target, actions }: PlayCockpitProps) {
+export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
   useBoardOnArrival(play)
@@ -296,7 +298,9 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               tone={PHASE_TONE[play.situation]}
               paused={sign?.shown === true}
               // Back to the pilot's own page (ADR-066); its Game is in ⋯.
-              backHref={sheetPath('pilot', target.pilotId)}
+              backHref={
+                trial ? `/starter/pilot/${target.pilotId}` : sheetPath('pilot', target.pilotId)
+              }
               backLabel={playCopy('sheet')}
               live={status === 'live' && !solo}
               here={crew == null || here === null ? null : hereCount(crew.pilots, here)}

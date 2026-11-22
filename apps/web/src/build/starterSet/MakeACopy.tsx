@@ -13,7 +13,11 @@
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
+import { cockpitPath } from 'game-domain/entityKinds'
+import { Button } from '../../components/index'
+import { appPath } from '../../lib/appBase'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { playTrialCopy } from '../../messages/play-trial'
 import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
 import { CopyStarterMenu } from './CopyStarterMenu'
@@ -29,12 +33,20 @@ export function MakeACopy({ kind, templateId, name }: MakeACopyProps) {
 
   if (status === 'signedOut') {
     return (
-      <SignInControl
-        label={buildStarterSetCopy('signInToMakeA')}
-        redirectTo={`/starter/${kind}/${templateId}`}
-        size="full"
-        className="su-page-action"
-      />
+      <>
+        {/* A book pilot plays a round signed out, saved nowhere (r6 F1, `PlayTrial`). */}
+        {kind === 'pilot' && (
+          <Button href={appPath(cockpitPath(templateId))} size="full" className="su-page-action">
+            {playTrialCopy('tryARound')}
+          </Button>
+        )}
+        <SignInControl
+          label={buildStarterSetCopy('signInToMakeA')}
+          redirectTo={`/starter/${kind}/${templateId}`}
+          size="full"
+          className="su-page-action"
+        />
+      </>
     )
   }
   return (

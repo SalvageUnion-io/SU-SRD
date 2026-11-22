@@ -49,10 +49,11 @@ export type PlayPostState = { kind: 'posting' } | { kind: 'held' } | PostRollRes
 export function usePlayChannelBinding(
   target: Pick<PlayTarget, 'gameId'>
 ): PlayBinding | null | undefined {
-  const { status } = useSync()
+  const { status, trial } = useSync()
   return useGamesQuery(
     'channelBindings.current',
-    status !== 'live' ? 'skip' : target.gameId === null ? {} : { gameId: target.gameId }
+    // A signed-out trial (r6 F1) has no channel to ask about.
+    status !== 'live' || trial ? 'skip' : target.gameId === null ? {} : { gameId: target.gameId }
   ) as PlayBinding | null | undefined
 }
 
