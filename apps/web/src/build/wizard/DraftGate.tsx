@@ -1,5 +1,5 @@
 /**
- * DraftGate — the question a "Build with this" link asks when this tab keeps
+ * DraftGate — the question a "Build with this" link asks when the browser keeps
  * a draft built on another pick ("Resume your Hacker pilot draft, or start a
  * new Scout pilot?"). A link never reopens an old draft silently and never
  * discards one: Resume opens the draft and drops the link's pick from the
@@ -40,7 +40,7 @@ export function DraftGate({
   /** The wizard, mounted once there is nothing left to ask. */
   children: ReactNode
 }) {
-  // Read once, as the wizard would open: the draft is this tab's session's.
+  // Read once, as the wizard would open: the draft is the browser's.
   const [asking, setAsking] = useState(() => draftConflict(kind, picks))
   // Resume holds the wizard back until the link's pick has left the address:
   // mounted with it, the wizard would lay the pick over the draft it restores.

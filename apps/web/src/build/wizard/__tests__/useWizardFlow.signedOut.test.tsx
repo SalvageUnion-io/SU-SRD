@@ -9,7 +9,7 @@ import { act, renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { toast } from '../../../components/index'
 import { EMPTY_MECH_FORM_STATE } from '../../../lib/wizard/mechFormState'
-import { readWizardDraft, wizardDraftKey } from '../../../lib/wizard/wizardDraft'
+import { draftStorage, readWizardDraft, wizardDraftKey } from '../../../lib/wizard/wizardDraft'
 import { resetStores } from '../../../replica/__tests__/resetStores'
 import type { SyncState } from '../../../replica/syncContext'
 import { SyncContext } from '../../../replica/syncContext'
@@ -20,11 +20,11 @@ const SIGNED_OUT: SyncState = { status: 'signedOut', canWrite: false, outdated: 
 const DRAFT_KEY = 'test:wizard-draft'
 
 beforeEach(() => {
-  sessionStorage.clear()
+  draftStorage().clear()
   resetStores()
 })
 afterEach(() => {
-  sessionStorage.clear()
+  draftStorage().clear()
   resetStores()
 })
 
@@ -35,7 +35,7 @@ function wrapper({ children }: { children: ReactNode }) {
 describe('useWizardFlow — signed out', () => {
   test('Save asks for the account and keeps the draft; nothing is created', async () => {
     const form = { name: 'Bullseye' }
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form))
+    draftStorage().setItem(DRAFT_KEY, JSON.stringify(form))
     const completed: string[] = []
     const { result } = renderHook(
       () =>
@@ -80,7 +80,7 @@ describe('useWizardFlow — signed out', () => {
 
   test('back from the sign-in Save asked for, the submit step says Save is still to press (r5 C14)', async () => {
     const form = { name: 'Bullseye' }
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form))
+    draftStorage().setItem(DRAFT_KEY, JSON.stringify(form))
     const options = {
       entityType: 'mech' as const,
       noun: 'Mech',
@@ -114,7 +114,7 @@ describe('useWizardFlow — signed out', () => {
     expect(back.result.current.shell.signedInBack).toBe(true)
     back.unmount()
     // A wizard that never asked says nothing.
-    sessionStorage.clear()
+    draftStorage().clear()
     const fresh = renderHook(() => useWizardFlow(options), {
       wrapper: ({ children }: { children: ReactNode }) => (
         <SyncContext.Provider value={LIVE}>{children}</SyncContext.Provider>
@@ -195,7 +195,7 @@ describe('useWizardFlow — signed out', () => {
   test('leaving with a build in progress says the draft is kept (r2 D1)', async () => {
     const said = spyOn(toast, 'info').mockImplementation(() => 'id')
     try {
-      sessionStorage.setItem(
+      draftStorage().setItem(
         wizardDraftKey('mech'),
         JSON.stringify({ ...EMPTY_MECH_FORM_STATE, chassisName: 'mule' })
       )
@@ -204,7 +204,7 @@ describe('useWizardFlow — signed out', () => {
       await Promise.resolve()
       expect(said).toHaveBeenCalledTimes(1)
       expect(said.mock.calls[0]?.[0]).toBe(
-        'Your Mule mech draft is kept in this tab. Resume it from the Training Bay.'
+        'Your Mule mech draft is kept in this browser. Resume it from the Training Bay.'
       )
     } finally {
       said.mockRestore()
@@ -214,7 +214,7 @@ describe('useWizardFlow — signed out', () => {
   test('Cancel, or a wizard nothing was done in, says nothing on the way out', async () => {
     const said = spyOn(toast, 'info').mockImplementation(() => 'id')
     try {
-      sessionStorage.setItem(wizardDraftKey('mech'), JSON.stringify(EMPTY_MECH_FORM_STATE))
+      draftStorage().setItem(wizardDraftKey('mech'), JSON.stringify(EMPTY_MECH_FORM_STATE))
       const cancelled = leavable(true)
       await act(async () => {
         cancelled.result.current.shell.onCancel()

@@ -33,6 +33,7 @@ import type { StepGateResult } from '../../lib/rules/creation'
 import { wizardDraftSummary } from '../../lib/wizard/draftSummary'
 import {
   clearWizardDraft,
+  DRAFT_SCOPE,
   markWizardSignIn,
   readWizardReached,
   readWizardSignIn,
@@ -186,7 +187,7 @@ export function useWizardFlow<
   // The form's own words for what it is missing; a failed write is `save.error`.
   const [invalid, setInvalid] = useState<string | null>(null)
   // A wizard runs signed out; Save is where an account is asked for. The form
-  // is already this tab's session draft, so signing in comes back to it.
+  // is already the browser's draft, so signing in comes back to it.
   const { status, canWrite } = useSync()
   const [askSignIn, setAskSignIn] = useState(false)
   // Save asked for the sign-in this draft has come back from (r5 C14).
@@ -206,7 +207,12 @@ export function useWizardFlow<
       queueMicrotask(() => {
         if (state.mounted || state.settled || !state.dirty || entityType === 'npc') return
         const draft = wizardDraftSummary(entityType)
-        if (draft) toast.info(buildWizardCopy('draftKept', { label: draft.label }))
+        if (draft)
+          toast.info(
+            buildWizardCopy(DRAFT_SCOPE === 'tab' ? 'draftKept' : 'draftKeptBrowser', {
+              label: draft.label,
+            })
+          )
       })
     }
   }, [entityType])
@@ -371,7 +377,10 @@ export function useWizardFlow<
       nextDisabled: !gate.ok,
       busy: save.pending,
       signIn: { open: askSignIn, onClose: () => setAskSignIn(false) },
-      tryNote: signedOut && currentIndex === 0 ? buildWizardCopy('tryItNow') : undefined,
+      tryNote:
+        signedOut && currentIndex === 0
+          ? buildWizardCopy(DRAFT_SCOPE === 'tab' ? 'tryItNowTab' : 'tryItNow')
+          : undefined,
       signedInBack: askedSignIn && canWrite && step === submitStep && existing === undefined,
       keepAsFile:
         signedOut && step === submitStep && entityType !== 'npc'

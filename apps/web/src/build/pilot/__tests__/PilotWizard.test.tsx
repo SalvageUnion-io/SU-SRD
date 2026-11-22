@@ -18,6 +18,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../../components/__tests__/must'
 import { isStartingEquipment } from '../../../lib/rules/startingEquipment'
+import { draftStorage } from '../../../lib/wizard/wizardDraft'
 import { useUnits } from '../../../replica/units'
 import {
   clickButton,
@@ -254,7 +255,7 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
     const a2 = nameToSlug('Jury Rig')
     const a3 = nameToSlug('Mass Field Maintenance')
     const item = firstTech1Equipment()
-    sessionStorage.setItem(
+    draftStorage().setItem(
       'app-wizard-draft:pilot:new',
       JSON.stringify({
         name: 'Legacy',
@@ -294,7 +295,7 @@ describe('PilotWizard — session drafts', () => {
     await act(async () => {
       unmount()
     })
-    expect(sessionStorage.getItem('app-wizard-draft:pilot:new')).not.toBeNull()
+    expect(draftStorage().getItem('app-wizard-draft:pilot:new')).not.toBeNull()
 
     const onCancel = mock(() => {})
     render(<PilotWizard onComplete={() => {}} onCancel={onCancel} />)
@@ -305,7 +306,7 @@ describe('PilotWizard — session drafts', () => {
     await clickButton('Cancel')
     await clickButton('Discard')
     expect(onCancel).toHaveBeenCalledTimes(1)
-    expect(sessionStorage.getItem('app-wizard-draft:pilot:new')).toBeNull()
+    expect(draftStorage().getItem('app-wizard-draft:pilot:new')).toBeNull()
   })
 
   it('a reload reopens at the furthest step reached, and every step up to it is open', async () => {

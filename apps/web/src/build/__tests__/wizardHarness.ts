@@ -5,6 +5,7 @@
 
 import { afterEach, beforeEach } from 'bun:test'
 import { act, cleanup, fireEvent, screen } from '@testing-library/react'
+import { draftStorage } from '../../lib/wizard/wizardDraft'
 import { resetStores } from '../../replica/__tests__/resetStores'
 import { withSignedInBackend } from '../../replica/__tests__/signedInBackend'
 import type { EntityType } from '../../replica/types'
@@ -17,7 +18,7 @@ import { useUnits } from '../../replica/units'
 export function withWizardStore(kind: EntityType): void {
   withSignedInBackend()
   beforeEach(async () => {
-    sessionStorage.clear()
+    draftStorage().clear()
     resetStores()
     await useUnits.getState().hydrate(kind)
   })
@@ -25,7 +26,7 @@ export function withWizardStore(kind: EntityType): void {
     await act(async () => {
       cleanup()
     })
-    sessionStorage.clear()
+    draftStorage().clear()
     resetStores()
   })
 }

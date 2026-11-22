@@ -96,7 +96,7 @@ export function CreateModeChooser({
 }: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]
   const guided = GUIDED_COPY[kind]
-  // Read as the chooser draws: the draft is this tab's session's.
+  // Read as the chooser draws: the draft is the browser's.
   const hasDraft = readWizardDraft(wizardDraftKey(kind)) !== null
   const signedOut = useSync().status === 'signedOut'
   const patterns = kind === 'mech' && (

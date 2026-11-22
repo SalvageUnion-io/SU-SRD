@@ -65,13 +65,17 @@ export const buildWizardCopy = messages({
   draftLine: 'Draft: {label}',
   resume: 'Resume',
   draftsInThisTab: 'Drafts in this tab',
+  draftsInThisBrowser: 'Drafts in this browser',
   resumeOrStartNew: 'Resume your {draft} draft, or start a new {fresh}?',
   resumeOrStartNewNote:
     'You have a build in progress. Resuming keeps it; starting new discards it.',
   resumeDraft: 'Resume {draft} draft',
   startNew: 'Start new {fresh}',
   draftKept: 'Your {label} draft is kept in this tab. Resume it from the Training Bay.',
+  draftKeptBrowser: 'Your {label} draft is kept in this browser. Resume it from the Training Bay.',
   tryItNow: 'Try it now. Saving needs a free sign-in.',
+  tryItNowTab:
+    'Try it now. Saving needs a free sign-in; until then the draft is kept in this tab only.',
   signInToBuildThis:
     'Building from a pattern saves the Mech at once, which needs an account. Sign in with Discord and your choice is here when you come back.',
   notNow: 'Not now',
@@ -114,6 +118,8 @@ export const buildWizardCopy = messages({
   signedInPressSave: 'Signed in. Press {label} to save it.',
   yourBuildIsKeptAsADraft:
     'Saving needs an account. Your build is kept as a draft in this tab: sign in with Discord, and it is here when you come back, ready to save.',
+  yourBuildIsKeptInThisBrowser:
+    'Saving needs an account. Your build is kept as a draft in this browser, in any tab, until you save or discard it: sign in with Discord, and it is here when you come back, ready to save.',
   signInToBuildAn: 'Sign in to build an NPC',
   signInToBuildA: 'Sign in to build a {kind}',
   theRule: 'The rule',

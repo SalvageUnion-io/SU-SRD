@@ -5,7 +5,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { draftConflict, wizardDraftSummary, wizardDrafts } from '../draftSummary'
 import { EMPTY_MECH_FORM_STATE } from '../mechFormState'
 import { EMPTY_PILOT_FORM_STATE } from '../pilotFormState'
-import { wizardDraftKey } from '../wizardDraft'
+import { draftStorage, wizardDraftKey } from '../wizardDraft'
 
 const classId = (name: string) => {
   const cls = SalvageUnionReference.Classes.getByName(name)
@@ -13,9 +13,9 @@ const classId = (name: string) => {
   return cls.id
 }
 const keep = (kind: 'pilot' | 'mech' | 'crawler', form: unknown) =>
-  sessionStorage.setItem(wizardDraftKey(kind), JSON.stringify(form))
+  draftStorage().setItem(wizardDraftKey(kind), JSON.stringify(form))
 
-afterEach(() => sessionStorage.clear())
+afterEach(() => draftStorage().clear())
 
 describe('wizardDraftSummary', () => {
   test('no draft, no line', () => {

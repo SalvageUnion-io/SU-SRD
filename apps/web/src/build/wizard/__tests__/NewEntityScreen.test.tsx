@@ -22,7 +22,7 @@ import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { installServerMocks } from '../../../components/__tests__/serverMock'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
-import { wizardDraftKey } from '../../../lib/wizard/wizardDraft'
+import { draftStorage, wizardDraftKey } from '../../../lib/wizard/wizardDraft'
 import type { SyncState } from '../../../replica/syncContext'
 
 // Module scope, before the imports below — see `serverMock.ts`. The signed-out
@@ -484,7 +484,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
   })
 
   test('a draft left mid-build is offered: Resume your draft, or Start over (which clears it)', () => {
-    sessionStorage.setItem(wizardDraftKey('mech'), JSON.stringify({ name: 'Half built' }))
+    draftStorage().setItem(wizardDraftKey('mech'), JSON.stringify({ name: 'Half built' }))
     const modes: unknown[] = []
     render(
       <NewEntityScreen
@@ -498,7 +498,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(screen.queryByRole('button', { name: 'Start guided' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Resume your draft' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Start over' }))
-    expect(sessionStorage.getItem(wizardDraftKey('mech'))).toBeNull()
+    expect(draftStorage().getItem(wizardDraftKey('mech'))).toBeNull()
     expect(modes).toEqual(['guided'])
   })
 
