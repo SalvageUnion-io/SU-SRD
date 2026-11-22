@@ -8,10 +8,10 @@
  * read is a Card; `hide.patterns` drops the one section a picker has no use
  * for (patterns are chosen in the next step).
  *
- * The loadout goes with the mech where it fits the new chassis
- * (`loadoutOnChassis`); the chassis being read says, beside its Choose, what
- * will not fit, and offers to keep everything instead, over the slots (r5
- * C10). Choose is the one confirming press (r2 G3: a picker that holds
+ * The chassis being read says, beside its Choose, what will not fit
+ * (`loadoutOnChassis`). Choose keeps it, over the slots and marked rule
+ * breaking, and "Leave them off" is the second button (r6 E7,
+ * `CHASSIS_SWAP_KEEPS_OVERFLOW`; the other ruling swaps the two). Choose is the one confirming press (r2 G3: a picker that holds
  * exactly one thing has no Apply step); the caller offers Undo.
  */
 
@@ -19,6 +19,7 @@ import { nameToSlug } from 'salvageunion-reference'
 import { Button, EntitySearcher, ModalShell, Text } from '../../components/index'
 import { droppedNames, loadoutOnChassis } from '../../lib/rules/chassisSwap'
 import { mechCopy } from '../../messages/build-mech'
+import { CHASSIS_SWAP_KEEPS_OVERFLOW } from '../rulings'
 import '../../styles/build/wizard.css'
 
 type MechChassisPickerModalProps = {
@@ -63,7 +64,8 @@ export function MechChassisPickerModal({
         // Choose applies: the searcher only ever emits a chassis that is not
         // the current one, and never an empty ref (a mech keeps a chassis).
         onToggle={(ref) => {
-          if (ref !== '' && ref !== currentChassisRef) onConfirm(ref)
+          // Choose keeps what will not fit, over the slots (r6 E7, the ruling).
+          if (ref !== '' && ref !== currentChassisRef) onConfirm(ref, CHASSIS_SWAP_KEEPS_OVERFLOW)
           onOpenChange(false)
         }}
         idOf={(item) => nameToSlug(item.name)}
@@ -77,7 +79,9 @@ export function MechChassisPickerModal({
         facets={{ status: false }}
         chosenLabel={mechCopy('chosen')}
         title={mechCopy('changeChassis')}
-        subtitle={mechCopy('yourLoadoutStaysWhereItFits')}
+        subtitle={mechCopy(
+          CHASSIS_SWAP_KEEPS_OVERFLOW ? 'yourLoadoutComesAlong' : 'yourLoadoutStaysWhereItFits'
+        )}
         emptyMessage={mechCopy('noMatchingChassis')}
         onClose={() => onOpenChange(false)}
         focusExtra={(item) => {
@@ -85,17 +89,21 @@ export function MechChassisPickerModal({
           const left = leftOff(ref)
           return left.length === 0 ? undefined : (
             <>
-              <Text variant="hint">{mechCopy('willNotFit', { names: left.join(', ') })}</Text>
-              {/* The sheet lets a build go over its slots everywhere else (r5 C10). */}
+              <Text variant="hint">
+                {mechCopy(CHASSIS_SWAP_KEEPS_OVERFLOW ? 'overTheSlots' : 'willNotFit', {
+                  names: left.join(', '),
+                })}
+              </Text>
+              {/* The other way, second (r5 C10, r6 E7). */}
               <Button
                 variant="ghost"
                 size="compact"
                 onClick={() => {
-                  onConfirm(ref, true)
+                  onConfirm(ref, !CHASSIS_SWAP_KEEPS_OVERFLOW)
                   onOpenChange(false)
                 }}
               >
-                {mechCopy('keepEverything')}
+                {mechCopy(CHASSIS_SWAP_KEEPS_OVERFLOW ? 'leaveThemOff' : 'keepEverything')}
               </Button>
             </>
           )

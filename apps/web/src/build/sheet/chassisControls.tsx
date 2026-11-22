@@ -1,12 +1,13 @@
 /**
- * A mech's chassis controls in Edit, in its Chassis Ability group's head (C8):
+ * A mech's chassis controls in Edit:
  *
- *   - `ChangeChassis`: the chassis swap. The loadout stays where it fits the
- *     new chassis; what does not is named in the picker and in the toast that
- *     follows, whose Undo puts the old chassis and loadout back. The picker
- *     can keep everything instead, over the slots, and a mech still named for
- *     its chassis takes the new one's name (r5 C10).
- *   - `ChassisModderControl`: the seated pilot's Chassis Modder pick, the one
+ *   - `ChangeChassis`: the chassis swap, the sheet header's one button (r6 E7).
+ *     The picker names what will not fit; Choose keeps it, over the slots, or
+ *     "Leave them off" drops it (`CHASSIS_SWAP_KEEPS_OVERFLOW`), and the toast
+ *     that follows says which, its Undo putting the old chassis and loadout
+ *     back. A mech still named for its chassis takes the new one's name (r5 C10).
+ *   - `ChassisModderControl`: in the Chassis Ability group's head (C8), the
+ *     seated pilot's Chassis Modder pick, the one
  *     Chassis Ability it adds (or changes, or removes).
  */
 

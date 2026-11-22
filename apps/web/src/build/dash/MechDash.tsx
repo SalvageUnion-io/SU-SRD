@@ -61,7 +61,7 @@ import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
 import { CargoCatTag } from '../sheet/CargoCatTag'
 import { CargoLotControls } from '../sheet/CargoLotItem'
-import { ChangeChassis, ChassisModderControl } from '../sheet/chassisControls'
+import { ChassisModderControl } from '../sheet/chassisControls'
 import { HoldAdder } from '../sheet/HoldAdder'
 import { MechConditionsEditor } from '../sheet/MechConditionsEditor'
 import { MechAppearanceField, MechDescriptionField, MechIdentityPanel } from '../sheet/MechIdentity'
@@ -320,16 +320,12 @@ export function MechDash({
   const modder = model.chassisModder
     ? SalvageUnionReference.Abilities.getBySlug(CHASSIS_MODDER)
     : undefined
-  const chassisControls = edit && (
-    <>
-      <ChangeChassis mech={mech} patch={actions.patchMech} />
-      {model.chassisModder && (
-        <ChassisModderControl
-          chassisModder={model.chassisModder}
-          onModChassis={(slug) => actions.patchMech({ moddedChassisAbility: slug ?? undefined })}
-        />
-      )}
-    </>
+  // Change Chassis is the header's alone (r6 E7): here, only the Chassis Modder's pick.
+  const chassisControls = edit && model.chassisModder && (
+    <ChassisModderControl
+      chassisModder={model.chassisModder}
+      onModChassis={(slug) => actions.patchMech({ moddedChassisAbility: slug ?? undefined })}
+    />
   )
   const manage = (kind: ItemKind, label: string) =>
     edit && onManage ? (
