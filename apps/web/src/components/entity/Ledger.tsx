@@ -10,8 +10,8 @@
 // foot, and its sources on the card foot's cut-out (`EntityCardIdentityFooter`
 // on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react'
-import type { CSSProperties, ElementType, MouseEvent, ReactNode } from 'react'
-import { Fragment, useContext, useId } from 'react'
+import type { CSSProperties, ElementType, KeyboardEvent, MouseEvent, ReactNode } from 'react'
+import { Fragment, useContext, useId, useState } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
@@ -338,6 +338,7 @@ function LedgerList({
   presentation = false,
 }: LedgerListProps) {
   const group = useId()
+  const [roving, setRoving] = useState<string | undefined>(undefined)
   const surface = useEntitySurface()
   const meaning = useContext(StatMeaningContext)
   const paint = paintProp ?? paintFor(tone, { texture: surface.texture })
@@ -352,6 +353,40 @@ function LedgerList({
   const roomy = columns.some((column) => column.kind === 'quiet' || column.kind === 'line')
   const hasFill = !roomy && !hasTrailing
   const span = columns.length + 1 + (hasTrailing || hasFill ? 1 : 0)
+  // The sorting labels are one Tab stop, the arrows moving between them (r6
+  // E13), so a row's own buttons are a few Tabs away, not one a column.
+  const sortKeys = onSort
+    ? [
+        ...(sortTab ? ['name'] : []),
+        ...(rank ? [rank.key] : []),
+        ...columns.map((column) => column.key),
+        ...(trailingLabel !== undefined && !action ? ['trailing'] : []),
+      ]
+    : []
+  const stop =
+    [roving, sort?.key].find((key) => key !== undefined && sortKeys.includes(key)) ?? sortKeys[0]
+  const rove = (key: string) => ({
+    tabIndex: key === stop ? 0 : -1,
+    onFocus: () => setRoving(key),
+  })
+  const onSortKey = (event: KeyboardEvent<HTMLTableRowElement>) => {
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -1, ArrowDown: 1 }[event.key]
+    const edge = event.key === 'Home' ? 0 : event.key === 'End' ? -1 : undefined
+    if (step === undefined && edge === undefined) return
+    const buttons = [
+      ...event.currentTarget.querySelectorAll<HTMLButtonElement>('button.su-ledger__sort'),
+    ]
+    const at = buttons.indexOf(event.target as HTMLButtonElement)
+    if (at < 0) return
+    event.preventDefault()
+    const next =
+      edge === 0
+        ? buttons[0]
+        : edge === -1
+          ? buttons[buttons.length - 1]
+          : buttons[(at + (step ?? 0) + buttons.length) % buttons.length]
+    next?.focus()
+  }
   const stamp = (key: string, text: string, title?: string, statKey?: string) => {
     const mark = (
       <Badge shape="stamp" size="mini" surface="solid">
@@ -364,6 +399,7 @@ function LedgerList({
       <button
         type="button"
         className="su-ledger__sort"
+        {...rove(key)}
         title={title}
         // The name holds the visible label (SC 2.5.3): "Sort by SP (Structure Points)".
         aria-label={
@@ -402,6 +438,7 @@ function LedgerList({
             className={cn('su-ledger__head', grainClass(paint.grain))}
             data-grain={paint.grain}
             style={{ backgroundColor: paint.background, color: paint.color }}
+            onKeyDown={onSort ? onSortKey : undefined}
           >
             <th scope="col" aria-sort={ariaSort('name') ?? (rank && ariaSort(rank.key))}>
               {/* The title's cut-out: the Compact head's paper tab. */}
@@ -411,6 +448,7 @@ function LedgerList({
                     <button
                       type="button"
                       className="su-ledger__sort su-entity-compact__title"
+                      {...rove('name')}
                       aria-label={entityCopy('sortBy', { column: nameLabel })}
                       onClick={() => onSort('name')}
                     >
