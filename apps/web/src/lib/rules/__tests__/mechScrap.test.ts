@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import { mechScrap } from '../mechScrap'
+import { mechScrap, scrapSortKey } from '../mechScrap'
 
 const chassis = SalvageUnionReference.Chassis.all()
 const systems = SalvageUnionReference.Systems.all()
@@ -39,5 +39,29 @@ describe('mechScrap', () => {
       total: 0,
       byTechLevel: [],
     })
+  })
+})
+
+describe('Scrap sorts by its highest Tech Level, then its amount (r6 E4)', () => {
+  const scrap = (byTechLevel: { techLevel: number | string; scrap: number }[]) => ({
+    total: byTechLevel.reduce((sum, level) => sum + level.scrap, 0),
+    byTechLevel,
+  })
+  test('a TL2 build ranks above any TL1 build, however much TL1 Scrap', () => {
+    const big = scrapSortKey(scrap([{ techLevel: 1, scrap: 40 }]))
+    const t2 = scrapSortKey(
+      scrap([
+        { techLevel: 1, scrap: 18 },
+        { techLevel: 2, scrap: 5 },
+      ])
+    )
+    const t2more = scrapSortKey(
+      scrap([
+        { techLevel: 1, scrap: 2 },
+        { techLevel: 2, scrap: 7 },
+      ])
+    )
+    expect(t2).toBeGreaterThan(big)
+    expect(t2more).toBeGreaterThan(t2)
   })
 })

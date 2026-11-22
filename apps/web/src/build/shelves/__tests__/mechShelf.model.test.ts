@@ -14,7 +14,9 @@ describe('mechBuildFigures', () => {
     expect(figures.techLevel).toBe(1)
     expect(figures.systems).toMatch(/^0\/\d+$/)
     expect(figures.modules).toMatch(/^0\/\d+$/)
-    expect(figures.scrap).toBeGreaterThan(0)
+    // By Tech Level, and its sort reads the highest level first (r6 E4).
+    expect(figures.scrap).toMatch(/^TL1 \d+$/)
+    expect(figures.scrapSort).toBeGreaterThan(0)
   })
 
   test('no chassis: nothing to say but the Scrap, which is none', () => {
@@ -22,7 +24,8 @@ describe('mechBuildFigures', () => {
       techLevel: undefined,
       systems: '',
       modules: '',
-      scrap: 0,
+      scrap: '',
+      scrapSort: 0,
       over: false,
     })
   })
@@ -97,11 +100,11 @@ describe('the Mechs shelf columns', () => {
       'EP',
       'Heat',
     ])
-    // A phone keeps the chassis and the build's cost: Cost, never a bare
-    // Scrap that reads as what the hold carries (r3 F2).
+    // A phone keeps the chassis and the build's Scrap, by Tech Level: one
+    // name for it wherever a build is costed (r6 E4).
     expect(MECH_COLUMNS.filter((column) => column.phone).map((column) => column.key)).toEqual([
       'chassis',
-      'Cost',
+      'Scrap',
     ])
   })
 })

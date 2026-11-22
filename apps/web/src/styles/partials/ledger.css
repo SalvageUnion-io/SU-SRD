@@ -440,9 +440,37 @@
   }
 }
 
+/* A build's Scrap breaks between its Tech Levels, never inside one (r6 E4). */
+.su-ledger__table td .su-scrap-split {
+  white-space: normal;
+}
+
+.su-scrap-split > span {
+  white-space: nowrap;
+}
+
+/* A chassis's pattern row folds open to its loadout on a phone (r6 E5); wider,
+   its Loadout column says it and the fold is not drawn. */
+.su-pattern-fold {
+  display: none;
+}
+
+.su-pattern-fold > summary {
+  cursor: pointer;
+  font-size: var(--text-caption);
+  min-block-size: var(--space-24);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
 /* On a phone a row keeps its name, its stamp and the columns marked for it;
    a quiet line drops under the name when it is the row's only column. */
 @media not (width >= 40rem) {
+  .su-pattern-fold {
+    display: block;
+    flex: 1 1 100%;
+  }
+
   .su-ledger__table :is(th, td):not(:first-child, [data-phone]) {
     display: none;
   }

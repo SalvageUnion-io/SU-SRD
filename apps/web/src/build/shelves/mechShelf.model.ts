@@ -7,7 +7,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
 import type { LedgerSort } from '../../components/index'
 import { readReference } from '../../lib/readReference'
-import { mechScrap } from '../../lib/rules/mechScrap'
+import { mechScrap, scrapSortKey, scrapSplit } from '../../lib/rules/mechScrap'
 import { localStore } from '../../lib/safeLocalStorage'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 
@@ -17,8 +17,10 @@ export type MechBuildFigures = {
   /** Slots filled of the chassis's (`12/12`); `''` without a chassis. */
   systems: string
   modules: string
-  /** Chassis and loadout, in Scrap. */
-  scrap: number
+  /** Chassis and loadout, in Scrap by Tech Level (`TL1 18 · TL2 5`, r6 E4); `''` for none. */
+  scrap: string
+  /** What the Scrap column sorts by: the highest Tech Level, then its amount (`scrapSortKey`). */
+  scrapSort: number
   /** A slot count is over its chassis's (the book's own printed loadout never is). */
   over: boolean
   /** Which counts are over, in words: "System Slots 13/12" (r3 L5). */
@@ -29,8 +31,15 @@ const NONE: MechBuildFigures = {
   techLevel: undefined,
   systems: '',
   modules: '',
-  scrap: 0,
+  scrap: '',
+  scrapSort: 0,
   over: false,
+}
+
+/** The Scrap figures of a build: its words and its sort. */
+const scrapOf = (mech: Pick<Mech, 'chassisRef' | 'systems' | 'modules'>) => {
+  const scrap = mechScrap(mech)
+  return { scrap: scrapSplit(scrap), scrapSort: scrapSortKey(scrap) }
 }
 
 export function mechBuildFigures(
@@ -40,7 +49,7 @@ export function mechBuildFigures(
     'mechShelf.figures',
     () => {
       const chassis = mech.chassisRef ? resolveChassisRef(mech.chassisRef) : undefined
-      if (!chassis) return { ...NONE, scrap: mechScrap(mech).total }
+      if (!chassis) return { ...NONE, ...scrapOf(mech) }
       const capacity = computeMechCapacity({
         chassisRef: mech.chassisRef,
         systems: mech.systems.map((ref) => ({ ref })),
@@ -61,7 +70,7 @@ export function mechBuildFigures(
         techLevel: chassis.techLevel,
         systems,
         modules,
-        scrap: mechScrap(mech).total,
+        ...scrapOf(mech),
         over: broken.length > 0,
         ...(broken.length > 0 ? { overWhat: broken.join(' · ') } : {}),
       }

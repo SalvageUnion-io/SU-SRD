@@ -23,8 +23,10 @@ describe('PatternLedger', () => {
     )
     const hauler = container.querySelector('tbody tr')
     if (!hauler) throw new Error('no rows')
-    const hatch = within(hauler as HTMLElement).getByRole('link', { name: 'Escape Hatch' })
-    expect(hatch.getAttribute('href')).toBe('/systems/escape-hatch/')
+    // The Loadout column's link, and the same in the phone's fold under the name (r6 E5).
+    const hatches = within(hauler as HTMLElement).getAllByRole('link', { name: 'Escape Hatch' })
+    for (const hatch of hatches) expect(hatch.getAttribute('href')).toBe('/systems/escape-hatch/')
+    expect(hauler.querySelector('details.su-pattern-fold summary')?.textContent).toBe('Loadout')
     expect(container.querySelector('[data-foot-band]')).toBeNull()
   })
 
@@ -44,7 +46,8 @@ describe('PatternLedger', () => {
     // The loadout line, then System Slots and Module Slots of the Mule's, then its Scrap.
     expect(cells[1]).toMatch(/^\d+\/\d+$/)
     expect(cells[2]).toMatch(/^\d+\/\d+$/)
-    expect(Number(cells[3])).toBeGreaterThan(0)
+    // By Tech Level, never one sum across them (r6 E4).
+    expect(cells[3]).toMatch(/^TL\d+ \d+( · TL\S+ \d+)*$/)
     // A phone keeps the figures; the packed loadout line gives way to the name.
     const phone = [...container.querySelectorAll('thead th[data-phone]')].map(
       (th) => th.textContent

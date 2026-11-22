@@ -26,7 +26,7 @@ import {
 } from './mechShelf.model'
 import { findMatches, useShelfFind } from './ShelfFind'
 import { ShelfLedger } from './ShelfLedger'
-import { inGame, MECH_COLUMNS, read } from './shelfColumns'
+import { inGame, MECH_COLUMNS, read, scrapCell } from './shelfColumns'
 
 type MechLine = {
   /** Its own labels (`Shared by link`), under its name. */
@@ -66,12 +66,20 @@ export function MechShelf({
       [buildShelvesCopy('tl')]: figures.techLevel ?? '',
       [buildShelvesCopy('sys')]: figures.systems,
       [buildShelvesCopy('mod')]: figures.modules,
-      [buildShelvesCopy('cost')]: figures.scrap > 0 ? figures.scrap : '',
+      [buildShelvesCopy('cost')]: figures.scrap,
       [VITAL.sp]: read(r, VITAL.sp),
       [VITAL.ep]: read(r, VITAL.ep),
       [VITAL.heat]: read(r, VITAL.heat),
     }
-    return { mech, name: mech.name, own, values, over: figures.over, what: figures.overWhat }
+    return {
+      mech,
+      name: mech.name,
+      own,
+      values,
+      scrapSort: figures.scrapSort,
+      over: figures.over,
+      what: figures.overWhat,
+    }
   })
   const found = rows.filter((row) =>
     findMatches(find.query, [row.name, row.values.chassis, row.values.pattern])
@@ -93,27 +101,32 @@ export function MechShelf({
         rememberSort(next)
         setSort(next)
       }}
-      rows={sortShelfRows(found, sort, (row, key) => row.values[key]).map(
-        ({ mech, own, values, over, what }) => ({
-          id: mech.id,
-          name: mech.name,
-          href: `/mechs/${mech.id}`,
-          // A build over its chassis's slots says so in words, and which limit
-          // it is over, under its name (R71, r3 L5).
-          under: over ? (
-            <>
-              {own.under}
-              <RuleBreakMark what={what} />
-            </>
-          ) : (
-            own.under
-          ),
-          cells: MECH_COLUMNS.map((column) =>
-            column.key === 'game' ? inGame(own.game) : (values[column.key] ?? '')
-          ),
-          menu: own.menu,
-        })
-      )}
+      // Scrap sorts by its highest Tech Level, then its amount (r6 E4).
+      rows={sortShelfRows(found, sort, (row, key) =>
+        key === buildShelvesCopy('cost') ? row.scrapSort : row.values[key]
+      ).map(({ mech, own, values, over, what }) => ({
+        id: mech.id,
+        name: mech.name,
+        href: `/mechs/${mech.id}`,
+        // A build over its chassis's slots says so in words, and which limit
+        // it is over, under its name (R71, r3 L5).
+        under: over ? (
+          <>
+            {own.under}
+            <RuleBreakMark what={what} />
+          </>
+        ) : (
+          own.under
+        ),
+        cells: MECH_COLUMNS.map((column) =>
+          column.key === 'game'
+            ? inGame(own.game)
+            : column.key === buildShelvesCopy('cost')
+              ? scrapCell(values[column.key])
+              : (values[column.key] ?? '')
+        ),
+        menu: own.menu,
+      }))}
     />
   )
 }

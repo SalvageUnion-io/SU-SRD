@@ -13,7 +13,7 @@ import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
-import { CONDITION_LABELS, STAT_LABELS } from 'salvageunion-reference'
+import { CONDITION_LABELS } from 'salvageunion-reference'
 import {
   mechMaxCargo,
   mechMaxEP,
@@ -24,7 +24,7 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
-import { mechScrap } from '../../lib/rules/mechScrap'
+import { mechScrap, scrapSplit } from '../../lib/rules/mechScrap'
 import { usePatternElsewhere, usePatternGone } from '../../lib/sharing/reads'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
@@ -172,9 +172,10 @@ export function MechLiveSheet({
 }
 
 /**
- * The chassis's Tech Level and the build's Salvage Value on the band (C2's
- * rank), as a crawler's TL rides its band. The Salvage Value is the whole
- * mech's, chassis and loadout: a variant is compared on what it costs.
+ * The chassis's Tech Level and the build's Scrap on the band (C2's rank), as
+ * a crawler's TL rides its band. The Scrap is the whole mech's, chassis and
+ * loadout, by Tech Level (`TL1 18 · TL2 5`, r6 E4): a variant is compared on
+ * what it costs, and Scrap of two levels is never one number.
  */
 function MechBandRank({ mech }: { mech: Mech }) {
   const chassis = resolveChassisRef(mech.chassisRef)
@@ -184,7 +185,7 @@ function MechBandRank({ mech }: { mech: Mech }) {
       {typeof chassis.techLevel === 'number' && (
         <Stat label={buildSheetCopy('tl')} value={chassis.techLevel} />
       )}
-      <Stat label={STAT_LABELS.salvageValue.short} value={mechScrap(mech).total} />
+      <Stat label={buildSheetCopy('scrap')} value={scrapSplit(mechScrap(mech))} />
     </>
   )
 }

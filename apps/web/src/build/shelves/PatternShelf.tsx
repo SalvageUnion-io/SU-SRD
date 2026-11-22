@@ -16,7 +16,7 @@ import { nextSort, sortShelfRows } from './mechShelf.model'
 import { patternLine } from './patternShelf.model'
 import { findMatches, useShelfFind } from './ShelfFind'
 import { ShelfLedger } from './ShelfLedger'
-import { PATTERN_COLUMNS } from './shelfColumns'
+import { PATTERN_COLUMNS, scrapCell } from './shelfColumns'
 
 export function PatternShelf({
   patterns,
@@ -62,30 +62,34 @@ export function PatternShelf({
       find={find.field}
       sort={sort}
       onSort={(key) => setSort(nextSort(sort, key))}
-      rows={sortShelfRows(rows, sort, (row, key) => row.values[key]).map(
-        ({ pattern, values, saved, over, about }) => {
-          const { under, ...rest } = line(pattern, over)
-          return {
-            id: pattern.id,
-            name: pattern.name,
-            href: savedPatternHref(pattern.id),
-            cells: PATTERN_COLUMNS.map((column) =>
-              column.key === 'saved' ? saved : (values[column.key] ?? '')
+      rows={sortShelfRows(rows, sort, (row, key) =>
+        key === buildShelvesCopy('cost') ? row.values.scrapSort : row.values[key]
+      ).map(({ pattern, values, saved, over, about }) => {
+        const { under, ...rest } = line(pattern, over)
+        return {
+          id: pattern.id,
+          name: pattern.name,
+          href: savedPatternHref(pattern.id),
+          cells: PATTERN_COLUMNS.map((column) =>
+            column.key === 'saved'
+              ? saved
+              : column.key === buildShelvesCopy('cost')
+                ? scrapCell(values[column.key])
+                : (values[column.key] ?? '')
+          ),
+          // Its description's first line, then any mark (r5 D3).
+          under:
+            about === undefined ? (
+              under
+            ) : (
+              <>
+                <span>{about}</span>
+                {under}
+              </>
             ),
-            // Its description's first line, then any mark (r5 D3).
-            under:
-              about === undefined ? (
-                under
-              ) : (
-                <>
-                  <span>{about}</span>
-                  {under}
-                </>
-              ),
-            ...rest,
-          }
+          ...rest,
         }
-      )}
+      })}
     />
   )
 }
