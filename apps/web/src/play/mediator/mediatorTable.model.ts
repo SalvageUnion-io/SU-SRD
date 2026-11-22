@@ -33,8 +33,13 @@ type SeatVital = {
 export type MediatorSeat = {
   /** The pilot's link id (`/pilots/<id>`). */
   pilotId: string
-  /** The pilot's row id: what a tap aims Propose at. */
+  /** The pilot's row id. */
   rowId: string
+  /**
+   * What a tap aims Propose at (r5 B7): the Mech of a Pilot boarded in one
+   * (its row id), where the hits land; the Pilot's row id otherwise.
+   */
+  aimId: string
   /** The player's account: whether they are done with the Downtime step. */
   ownerId: string | null
   name: string
@@ -117,6 +122,7 @@ export function mediatorSeats(
     const seat: MediatorSeat = {
       pilotId: line.pilotId,
       rowId: pilot._id,
+      aimId: pilot.boarded && mech !== undefined && mech.ownerId !== null ? mech._id : pilot._id,
       ownerId: pilot.ownerId,
       name: line.name,
       player: line.player,

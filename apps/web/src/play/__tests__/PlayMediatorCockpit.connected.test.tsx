@@ -488,6 +488,27 @@ describe('the table', () => {
     ])
   })
 
+  test('a boarded pilot’s seat aims at the Mech, the pilot one press away; Enter sends (r5 B7)', async () => {
+    await renderCockpit()
+    await click(screen.getByRole('button', { name: /^Bonesaw \(Pilot\), here/ }))
+    const dock = region('Propose')
+    expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-buzzard')
+    await click(dock.getByRole('button', { name: 'Aim at Bonesaw' }))
+    expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-bonesaw')
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('Amount'), { target: { value: '2' } })
+    })
+    await act(async () => {
+      fireEvent.submit(dock.getByLabelText('Amount').closest('form') as HTMLFormElement)
+    })
+    expect(sent()).toEqual([
+      {
+        name: 'ops.propose',
+        args: { entityId: 'row-bonesaw', entityType: 'pilot', field: 'currentHP', after: 5 },
+      },
+    ])
+  })
+
   test('Set to still proposes the value itself', async () => {
     await renderCockpit()
     await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))

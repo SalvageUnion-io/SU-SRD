@@ -149,7 +149,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             mediator={mediator}
             picked={picked}
             onPick={(seat) => {
-              setPicked(seat.rowId)
+              setPicked(seat.aimId)
               setTab('propose')
               setFocusTo(true)
             }}

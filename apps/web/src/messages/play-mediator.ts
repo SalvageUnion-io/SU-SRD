@@ -218,6 +218,7 @@ export const mediatorCopy = messages({
   atMost: ' (at most {max})',
   newestProposals: 'Newest proposals',
   newestProposal: 'Newest proposal: {value}',
+  aimAtPilot: 'Aim at {name}',
   searchTheReferenceChassisSystems: 'Search the Reference — chassis, Systems, abilities, tables…',
   searchTheReference: 'Search the Reference',
   searchResults: 'Search results',
