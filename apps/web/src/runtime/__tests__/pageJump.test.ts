@@ -15,6 +15,7 @@ import {
 
 const JUMP = `
   <div ${PAGE_JUMP_ATTRIBUTE} hidden>
+    <a href="/reference/" class="glass" data-search-open>Search the Reference</a>
     <button popovertarget="${PAGE_JUMP_SHEET_ID}">On this page</button>
     <div id="${PAGE_JUMP_SHEET_ID}" popover="auto">
       <a href="/reference/" data-search-open>Search the Reference</a>
@@ -82,9 +83,46 @@ describe('pageSections', () => {
 })
 
 describe('watchPageJump', () => {
-  test('a long page is two screens or more: a chassis page counts (r3 C2)', () => {
-    expect(isLongPage(1600, 844)).toBe(false)
+  test('a page long enough to scroll its header away is long: a trait page counts (r4 F10)', () => {
+    // /traits/hot/ is 1,400px on an 844px screen.
+    expect(isLongPage(1400, 844)).toBe(true)
     expect(isLongPage(1775, 844)).toBe(true)
+    // One the screen holds, or nearly: its header never leaves.
+    expect(isLongPage(844, 844)).toBe(false)
+    expect(isLongPage(1000, 844)).toBe(false)
+  })
+
+  test('the search glass floats beside the contents: one press opens search (r4 F10)', () => {
+    const { root } = page('<h2>One</h2><h2>Two</h2>')
+    const trigger = document.createElement('button')
+    trigger.className = 'su-mobile-search__trigger'
+    document.body.append(trigger)
+    let opened = 0
+    trigger.addEventListener('click', () => opened++)
+    watchPageJump(document, fakeWindow(844).win)
+    const press = new MouseEvent('click', { bubbles: true, cancelable: true })
+    root.querySelector('.glass')?.dispatchEvent(press)
+    expect(opened).toBe(1)
+    expect(press.defaultPrevented).toBe(true)
+  })
+
+  test('a page with no sections floats the glass alone: its contents button has nothing to open (r4 F10)', () => {
+    const { root } = page('<p>One long rule.</p>')
+    tall(1400)
+    const { win, scrollTo } = fakeWindow(844)
+    watchPageJump(document, win)
+    scrollTo(400)
+    expect(root.hidden).toBe(false)
+    expect(root.hasAttribute('data-sections')).toBe(false)
+  })
+
+  test('a page with sections says so as the button shows, before its sheet opens', () => {
+    const { root } = page('<h2>One</h2><h2>Two</h2>')
+    tall(1400)
+    const { win, scrollTo } = fakeWindow(844)
+    watchPageJump(document, win)
+    scrollTo(400)
+    expect(root.hasAttribute('data-sections')).toBe(true)
   })
 
   test('the button shows once a long page has scrolled past its header', () => {
@@ -101,7 +139,7 @@ describe('watchPageJump', () => {
 
   test('a short page never shows it', () => {
     const { root } = page('<h2>One</h2><h2>Two</h2>')
-    tall(1200)
+    tall(1000)
     const { win, scrollTo } = fakeWindow(844)
     watchPageJump(document, win)
     scrollTo(900)
