@@ -260,11 +260,87 @@ export function logChanges(rows: readonly EntityLogRow[], defaults: LogDefaults 
   const reversed = new Set<string>()
   for (const { reverses } of [...all].reverse()) {
     if (!reverses) continue
-    if (reverses.again) reversed.delete(reverses.id)
-    else reversed.add(reverses.id)
+    // A merged line's Set back names each change it merged (`logStory`).
+    for (const each of reverses.id.split(MERGED)) {
+      if (reverses.again) reversed.delete(each)
+      else reversed.add(each)
+    }
   }
   for (const change of all) if (reversed.has(change.id)) change.reversed = true
   return all
+}
+
+/** How the ids of the changes a merged line stands for are joined in its id. */
+const MERGED = ','
+
+/** Taps on one value this close together read as one change (r6 E14). */
+export const MERGE_WINDOW_MS = 60_000
+
+/** A change of one value, alone: what the log merges with its neighbours. */
+function oneValue(change: LogChange): LogField | undefined {
+  const [only] = change.fields
+  const [line] = change.lines
+  if (change.fields.length !== 1 || change.lines.length !== 1 || !only || !line) return undefined
+  if (!('label' in line) || change.state !== 'applied' || change.reverses) return undefined
+  return Array.isArray(only.before) || Array.isArray(only.after) ? undefined : only
+}
+
+const mergeable = (newer: LogChange, older: LogChange): boolean => {
+  const [a, b] = [oneValue(newer), oneValue(older)]
+  return (
+    a !== undefined &&
+    b !== undefined &&
+    a.field === b.field &&
+    newer.kind === older.kind &&
+    newer.from === older.from &&
+    newer.did === older.did &&
+    newer.ts - older.ts <= MERGE_WINDOW_MS
+  )
+}
+
+/** A run of taps on one value (newest first) as one line: `SP 10 → 6` (r6 E14). */
+function mergeRun(run: readonly LogChange[]): LogChange | undefined {
+  const newest = run[0]
+  const oldest = run[run.length - 1]
+  if (!newest || !oldest) return undefined
+  if (run.length === 1) return newest
+  const [first] = oldest.fields
+  const [last] = newest.fields
+  const [from] = oldest.lines
+  const [to] = newest.lines
+  if (!first || !last || !from || !to || !('label' in from) || !('label' in to)) return newest
+  // Back where it started: the run told nothing.
+  if (from.before === to.after) return undefined
+  return {
+    ...newest,
+    id: run.map((change) => change.id).join(MERGED),
+    fields: [{ field: last.field, before: first.before, after: last.after }],
+    lines: [{ ...to, before: from.before }],
+  }
+}
+
+/**
+ * The log as the sheet's story (r6 E14): what an Undo took back is gone from
+ * it and a Redo puts it back (the undo and redo writes are never lines of
+ * their own), and taps on one value in quick succession read as one line,
+ * `SP 10 → 6`, whose Set back takes the whole run back.
+ */
+export function logStory(changes: readonly LogChange[]): LogChange[] {
+  const standing = changes.filter((change) => !change.reverses && !change.reversed)
+  const story: LogChange[] = []
+  let run: LogChange[] = []
+  const close = () => {
+    const merged = mergeRun(run)
+    if (merged) story.push(merged)
+    run = []
+  }
+  for (const change of standing) {
+    const last = run[run.length - 1]
+    if (last && !mergeable(last, change)) close()
+    run.push(change)
+  }
+  close()
+  return story
 }
 
 /**
@@ -315,11 +391,50 @@ function without(from: readonly unknown[], to: readonly unknown[]): unknown[] {
   })
 }
 
+/** What `from` holds that `to` does not, by value, counting repeats, each with its place in `from`. */
+function withoutAt(
+  from: readonly unknown[],
+  to: readonly unknown[]
+): { item: unknown; at: number }[] {
+  const left = [...to]
+  return from.flatMap((item, at) => {
+    const found = left.findIndex((other) => same(item, other))
+    if (found === -1) return [{ item, at }]
+    left.splice(found, 1)
+    return []
+  })
+}
+
+/** Where in `result` the thing at `before[at]` goes back (r6 E15). */
+function placeOf(result: readonly unknown[], before: readonly unknown[], at: number): number {
+  // After the nearest thing that stood before it and is still there…
+  for (let earlier = at - 1; earlier >= 0; earlier--) {
+    const found = result.findIndex((other) => same(other, before[earlier]))
+    if (found !== -1) return found + 1
+  }
+  // …else ahead of the nearest that stood after it, else at the end.
+  for (let later = at + 1; later < before.length; later++) {
+    const found = result.findIndex((other) => same(other, before[later]))
+    if (found !== -1) return found
+  }
+  return result.length
+}
+
+/** Put each of `back` into `result` where it stood in `before` (r6 E15). */
+function putBackInPlace(
+  result: unknown[],
+  before: readonly unknown[],
+  back: readonly { item: unknown; at: number }[]
+): unknown[] {
+  for (const { item, at } of back) result.splice(placeOf(result, before, at), 0, item)
+  return result
+}
+
 /**
  * A list as it is now with one write's move taken back: what the write took
- * off goes back on the end, what it put on comes off (one of each, where it
- * is still there), and a thing it altered (same id) reads as it did before.
- * Everything else in the list stays as it is.
+ * off goes back where it stood (r6 E15), what it put on comes off (one of
+ * each, where it is still there), and a thing it altered (same id) reads as
+ * it did before. Everything else in the list stays as it is.
  */
 function reverseList(
   now: readonly unknown[],
@@ -327,7 +442,8 @@ function reverseList(
   after: readonly unknown[]
 ): unknown[] {
   const result = [...now]
-  const removed = without(before, after)
+  const removedAt = withoutAt(before, after)
+  const removed = removedAt.map(({ item }) => item)
   for (const item of without(after, before)) {
     const id = idOf(item)
     const was = id === undefined ? -1 : removed.findIndex((old) => idOf(old) === id)
@@ -339,9 +455,10 @@ function reverseList(
       // Altered, and still on the sheet: back to how it read. Gone since: left gone.
       if (at !== -1) result[at] = removed[was]
       removed.splice(was, 1)
+      removedAt.splice(was, 1)
     } else if (at !== -1) result.splice(at, 1)
   }
-  return [...result, ...removed]
+  return putBackInPlace(result, before, removedAt)
 }
 
 type Keyed = Record<string, unknown>
@@ -477,6 +594,29 @@ export function reversal(change: LogChange, defaults: LogDefaults = {}): Reversa
     done: buildSheetCopy('logUndoChangeDone'),
     was: buildSheetCopy('logUndone'),
   }
+}
+
+/**
+ * What a change did, as the ⋯ menu's Undo names it (r6 E15): "remove
+ * Chainsaw Arm", "add Red Laser", or its one value's line; a change of
+ * several things has no short name (undefined).
+ */
+export function changeWhat(change: Pick<LogChange, 'fields' | 'lines'>): string | undefined {
+  const only = change.fields.length === 1 ? change.fields[0] : undefined
+  const nameOf = only ? LISTS[only.field] : undefined
+  const before = only ? slugs(only.before) : null
+  const after = only ? slugs(only.after) : null
+  if (only && nameOf && before && after) {
+    const names = (items: string[]) => items.map((slug) => nameOf(slug) ?? slug).join(', ')
+    const removed = missing(before, after)
+    const added = missing(after, before)
+    if (removed.length > 0 && added.length === 0)
+      return buildSheetCopy('undoWhatRemoved', { names: names(removed) })
+    if (added.length > 0 && removed.length === 0)
+      return buildSheetCopy('undoWhatAdded', { names: names(added) })
+  }
+  const [line] = change.lines
+  return change.lines.length === 1 && line && 'label' in line ? lineText(line) : undefined
 }
 
 /** The longest value a button names; a longer one reads "Set back". */

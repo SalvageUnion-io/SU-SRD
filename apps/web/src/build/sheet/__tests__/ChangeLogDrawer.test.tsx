@@ -154,7 +154,7 @@ describe('ChangeLogDrawer', () => {
     expect(restored).toEqual([['name'], ['chassisRef', 'systems']])
   })
 
-  test('a change taken back says so and has no button; its undo has none either (r4 E2)', async () => {
+  test('a change taken back leaves the log, and its undo is no line of its own (r6 E14)', async () => {
     await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1' }))
     openRooms(null)
     const entries = [
@@ -181,11 +181,13 @@ describe('ChangeLogDrawer', () => {
       />
     )
 
-    await waitFor(() => expect(screen.getByText(/^Removed /)).toBeTruthy())
-    expect(screen.getByText('Put back')).toBeTruthy()
+    await waitFor(() =>
+      expect(screen.getAllByRole('button', { name: /^Set back to A/ })).toHaveLength(1)
+    )
+    expect(screen.queryByText(/^Removed /)).toBeNull()
+    expect(screen.queryByText(/^Added /)).toBeNull()
     expect(screen.queryByRole('button', { name: /^Put back/ })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Remove:/ })).toBeNull()
-    expect(screen.getAllByRole('button', { name: /^Set back to A/ })).toHaveLength(1)
     // To the second: ten quick edits read apart.
     expect(document.querySelector('time')?.textContent).toMatch(/\d{1,2}:\d{2}:\d{2}/)
   })

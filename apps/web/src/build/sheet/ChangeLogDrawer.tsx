@@ -6,10 +6,11 @@
  * history of _how_ that state got there lives one tap away. Entries are the
  * server's (`changeLog.forEntity`), newest first: edits from every device,
  * ownership changes, and the Mediator's proposals, applied or still pending.
- * The log itself is never mutated from the UI: a change's button (the newest
- * ten changes) is a new write that reverses that one change on the sheet as
- * it is now, and is logged as one (r3 B1). It works once (r4 E2): the write
- * names the change it took back, and that line then says so instead.
+ * The log itself is never mutated from the UI: a change's button (every
+ * line's) is a new write that reverses that one change on the sheet as it is
+ * now (r3 B1). The log reads as the sheet's story (r6 E14, `logStory`): a
+ * change taken back leaves it and a redo puts it back, and quick taps on one
+ * value read as one line.
  */
 
 import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
@@ -33,7 +34,14 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { useSync } from '../../replica/syncContext'
 import { useEntityLog } from '../../replica/useEntityLog'
 import type { LogChange, LogDefaults, LogLine, Reversal } from './changeLog.model'
-import { lineText, logChanges, reversal, reversible, splitJustNow } from './changeLog.model'
+import {
+  lineText,
+  logChanges,
+  logStory,
+  reversal,
+  reversible,
+  splitJustNow,
+} from './changeLog.model'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -42,8 +50,8 @@ type ChangeLogDrawerProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   /**
-   * Reverse one change, and only it: each of the newest ten changes offers
-   * it, in the words of what it does. Absent where the viewer may not write.
+   * Reverse one change, and only it: every line offers it, in the words of
+   * what it does. Absent where the viewer may not write.
    */
   onRestore?: ((change: LogChange, did: Reversal) => void) | undefined
   /** What an absent value stood for, by field: a full pool, an empty tally. */
@@ -94,9 +102,6 @@ const AFTER = { fontWeight: tokens.weight.medium, color: tokens.color.ink } sati
 
 /** The drawer body's fill; its padding steps up at `sm` (`.su-sheet-changelog-body`). */
 const BODY = { backgroundColor: tokens.color.paper } satisfies CSSProperties
-
-/** How many of the newest changes offer Restore. */
-const RESTORABLE = 10
 
 /** The log's two runs ("Just now", then what the dialog opened with), and each run. */
 const RUNS = { display: 'grid', gap: tokens.space[16] } satisfies CSSProperties
@@ -164,7 +169,8 @@ function ChangeLogEntries({
       />
     )
   }
-  const changes = logChanges(entries, defaults)
+  // The story, not the tap stream (r6 E14): undone changes leave it, runs merge.
+  const changes = logStory(logChanges(entries, defaults))
   seen.current ??= new Set(changes.map((change) => change.id))
   const { justNow, earlier } = splitJustNow(changes, seen.current)
   const line = (change: LogChange) => {
@@ -186,11 +192,9 @@ function ChangeLogEntries({
           </>
         }
         end={
-          // A change taken back says so and offers nothing more (r4 E2): a
-          // second press of "Put back" put a second copy on the sheet.
-          change.reversed ? (
-            <KindChip label={did.was} />
-          ) : onRestore && changes.indexOf(change) < RESTORABLE && reversible(change) ? (
+          // Every line offers its way back (r6 E14); a change taken back has
+          // left the story, so a second press can never put a second copy on.
+          onRestore && reversible(change) ? (
             <Button
               size="compact"
               // Each button names its own change: ten "Put back" read apart.

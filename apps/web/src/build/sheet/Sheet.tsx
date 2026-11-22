@@ -308,15 +308,24 @@ export function Sheet({
               pilotAbilities: pilotAbilities ?? composition.pilot?.abilities,
             })
         : undefined
+  const exportFlown = resolved.kind === 'pilot' ? composition.mech?.name : undefined
   const menu: HeaderMenuItem[][] = [
     [
       { id: 'print', label: buildSheetCopy('print'), onSelect: () => window.print() },
       {
         id: 'export',
-        label: buildExportCopy('export'),
+        // A pilot's export takes the Mech they fly, and says so (r6 E17).
+        label: exportFlown
+          ? buildExportCopy('exportWith', { name: entity.name, mech: exportFlown })
+          : buildExportCopy('export'),
         onSelect: () => {
           void exportOne.run(entity.name).then((result) => {
-            if (result.ok) toast.success(buildExportCopy('exported', { name: entity.name }))
+            if (result.ok)
+              toast.success(
+                exportFlown
+                  ? buildExportCopy('exportedWith', { name: entity.name, mech: exportFlown })
+                  : buildExportCopy('exported', { name: entity.name })
+              )
           })
         },
       },
@@ -333,7 +342,10 @@ export function Sheet({
       // One change back at a time, as Ctrl+Z does (r4 E3).
       {
         id: 'undo',
-        label: buildSheetCopy('undoLastChange'),
+        // It names what it takes back once the log has said (r6 E15).
+        label: undo.next
+          ? buildSheetCopy('undoNamed', { what: undo.next })
+          : buildSheetCopy('undoLastChange'),
         onSelect: writesBlocked || status !== 'live' ? undefined : () => void undo.undoLast(),
       },
     ],
@@ -438,6 +450,9 @@ export function Sheet({
         trigger={null}
         label={buildSheetCopy('moreActions')}
         sections={menu}
+        onOpenChange={(open) => {
+          if (open && !writesBlocked && status === 'live') void undo.look()
+        }}
       />
     </div>
   ) : undefined
