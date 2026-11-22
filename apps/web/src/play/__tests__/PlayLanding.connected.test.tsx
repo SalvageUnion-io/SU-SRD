@@ -211,6 +211,24 @@ describe('the Play landing', () => {
     }
   })
 
+  // MD3-04: a paste on arrival lands in the dialog's only field.
+  test('Join a Game opens with the cursor in Invite link', async () => {
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
+    window.location.hash = '#join'
+    try {
+      answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
+      await renderAs('live')
+      await act(async () => undefined)
+      expect(document.activeElement === screen.getByLabelText('Invite link')).toBe(true)
+    } finally {
+      window.location.hash = ''
+      frame.mockRestore()
+    }
+  })
+
   // MD-03 again: a router link sets the hash with no `hashchange`, and a
   // second press changes nothing, so the dialog never opened from the sub-nav.
   test('pressing the sub-nav’s Join with a link opens Join a Game, with no hash change heard', async () => {

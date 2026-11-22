@@ -15,7 +15,7 @@
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { DialogActions, FieldError } from '../../components/app'
@@ -137,6 +137,11 @@ export function BlankCreateDialog({
     onCreated(result.value)
   }
 
+  /** Enter in a text field is Create, once the dialog can be created (MD3-04). */
+  function createOnEnter(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter' && !pending && canSubmit) void handleCreate()
+  }
+
   return (
     <ModalShell
       open={open}
@@ -162,6 +167,7 @@ export function BlankCreateDialog({
             id={`blank-${kind}-name`}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onKeyDown={createOnEnter}
             placeholder={
               kind === 'mech' ? buildWizardCopy('nameItLaterOnTheSheet') : `${label} name`
             }
@@ -175,6 +181,7 @@ export function BlankCreateDialog({
               id="blank-pilot-callsign"
               value={callsign}
               onChange={(e) => setCallsign(e.target.value)}
+              onKeyDown={createOnEnter}
               placeholder={buildWizardCopy('callsign')}
               autoComplete="off"
             />

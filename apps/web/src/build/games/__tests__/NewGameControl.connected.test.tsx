@@ -149,6 +149,25 @@ describe('starting a game', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
+  // LG3-10, MD3-04: the cursor is in the name, so Enter there is Create.
+  test('Enter in the name creates the Game, and does nothing while it is empty', async () => {
+    await renderOpen()
+    const name = screen.getByLabelText('New Game name')
+    await act(async () => {
+      fireEvent.keyDown(name, { key: 'Enter' })
+    })
+    expect(mutations).toEqual([])
+
+    fireEvent.change(name, { target: { value: 'Rust Coast' } })
+    await act(async () => {
+      fireEvent.keyDown(name, { key: 'Enter' })
+    })
+    expect(mutations).toEqual([
+      { name: 'games.create', args: { name: 'Rust Coast', mediator: true } },
+    ])
+    expect(assigned).toEqual(['/games/g-new'])
+  })
+
   test('from a template, the new game is shown too', async () => {
     await renderOpen()
     // Somebody who only organises says so, and is told what an Organiser is.

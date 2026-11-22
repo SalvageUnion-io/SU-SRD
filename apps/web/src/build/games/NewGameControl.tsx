@@ -147,6 +147,12 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
                   // The room's cap on a Game's name (`rooms/game/roster.ts`).
                   maxLength={80}
                   onChange={(e) => setName(e.target.value)}
+                  // The cursor starts here, so Enter is Create (LG3-10).
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !busy && name.trim().length > 0) {
+                      void startGame({ name })
+                    }
+                  }}
                 />
               </Field>
             </div>

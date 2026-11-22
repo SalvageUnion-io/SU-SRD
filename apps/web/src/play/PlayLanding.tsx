@@ -40,7 +40,7 @@ import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
 import { gamePath, invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties, FormEvent } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { FrontDoor } from '../build/roster/FrontDoor'
@@ -305,6 +305,8 @@ function JoinGame() {
   const [open, setOpen] = useState(false)
   const [pasted, setPasted] = useState('')
   const [wrong, setWrong] = useState(false)
+  // A paste on arrival lands in the only field, never on Close (MD3-04).
+  const linkField = useRef<HTMLInputElement | null>(null)
   // The sub-nav's "Join with a link" (`/games/#join`) lands here and opens it.
   // A router link changes the hash with no `hashchange`, and a second press
   // changes nothing at all, so the press itself is heard too (MD-03).
@@ -343,11 +345,17 @@ function JoinGame() {
       <Button id="join" variant="default" size="compact" onClick={() => setOpen(true)}>
         {playCopy('joinWithALink')}
       </Button>
-      <ModalShell open={open} onOpenChange={setOpen} title={playCopy('joinAGame')}>
+      <ModalShell
+        open={open}
+        onOpenChange={setOpen}
+        title={playCopy('joinAGame')}
+        initialFocus={linkField}
+      >
         <form style={JOIN} onSubmit={join} aria-label={playCopy('joinAGame')}>
           <div style={JOIN_ROW}>
             <div style={JOIN_FIELD}>
               <Input
+                ref={linkField}
                 aria-label={playCopy('inviteLink')}
                 placeholder={playCopy('pasteAnInviteLink')}
                 value={pasted}

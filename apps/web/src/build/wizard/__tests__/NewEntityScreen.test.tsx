@@ -350,6 +350,44 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(pilot?.classRef).toBe('')
   })
 
+  // MD3-04: Enter in a blank dialog's field is its Create.
+  test('Enter in the name creates a blank crawler; a pilot waits for its callsign', async () => {
+    const created: string[] = []
+    const first = render(
+      <NewEntityScreen
+        kind="crawler"
+        mode="blank"
+        wizard={null}
+        onModeChange={noop}
+        onCreated={(id) => created.push(id)}
+      />
+    )
+    const crawlerName = screen.getByLabelText(/^name/i)
+    fireEvent.keyDown(crawlerName, { key: 'Enter' })
+    fireEvent.change(crawlerName, { target: { value: 'Old Faithful' } })
+    fireEvent.keyDown(crawlerName, { key: 'Enter' })
+    await waitFor(() => expect(created.length).toBe(1))
+    expect(useUnits.getState().get('crawler', created[0] as string)?.name).toBe('Old Faithful')
+    first.unmount()
+
+    render(
+      <NewEntityScreen
+        kind="pilot"
+        mode="blank"
+        wizard={null}
+        onModeChange={noop}
+        onCreated={(id) => created.push(id)}
+      />
+    )
+    const pilotName = screen.getByLabelText(/^name/i)
+    fireEvent.change(pilotName, { target: { value: 'Juno Vale' } })
+    fireEvent.keyDown(pilotName, { key: 'Enter' })
+    fireEvent.change(screen.getByLabelText(/callsign/i), { target: { value: 'Nomad' } })
+    fireEvent.keyDown(pilotName, { key: 'Enter' })
+    await waitFor(() => expect(created.length).toBe(2))
+    expect(useUnits.getState().get('pilot', created[1] as string)?.callsign).toBe('Nomad')
+  })
+
   test('class pick is UNFILTERED — every class incl. specialisations is offered', () => {
     render(
       <NewEntityScreen
