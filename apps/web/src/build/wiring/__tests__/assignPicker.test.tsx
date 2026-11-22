@@ -119,8 +119,10 @@ function inMode(state: SyncState, ui: ReactElement) {
   return render(<SyncContext.Provider value={state}>{ui}</SyncContext.Provider>)
 }
 
-function open(name: RegExp) {
+/** Open the picker: its dialog is a lazy chunk, so wait for it to draw. */
+async function open(name: RegExp) {
   fireEvent.click(screen.getByRole('button', { name }))
+  await screen.findByRole('dialog')
 }
 
 async function confirm(name: RegExp) {
@@ -133,7 +135,7 @@ async function confirm(name: RegExp) {
 const offered = () => screen.queryAllByRole('radio').map((r) => r.getAttribute('aria-label'))
 
 describe('AssignPicker — candidates share the subject’s container', () => {
-  test('signed in, a pilot in a Game is offered only that Game’s crawlers', () => {
+  test('signed in, a pilot in a Game is offered only that Game’s crawlers', async () => {
     inMode(
       CONNECTED,
       <AssignPicker
@@ -143,11 +145,11 @@ describe('AssignPicker — candidates share the subject’s container', () => {
         store={makeStore({ crawlers })}
       />
     )
-    open(/assign crawler to pilot/i)
+    await open(/assign crawler to pilot/i)
     expect(offered()).toEqual(['Game Crawler'])
   })
 
-  test('signed in, a pilot in your shelves is offered only the Training Bay’s crawlers', () => {
+  test('signed in, a pilot in your shelves is offered only the Training Bay’s crawlers', async () => {
     inMode(
       CONNECTED,
       <AssignPicker
@@ -157,11 +159,11 @@ describe('AssignPicker — candidates share the subject’s container', () => {
         store={makeStore({ crawlers })}
       />
     )
-    open(/assign crawler to pilot/i)
+    await open(/assign crawler to pilot/i)
     expect(offered()).toEqual(['Shelf Crawler'])
   })
 
-  test('signed out there is one pile, so nothing is filtered', () => {
+  test('signed out there is one pile, so nothing is filtered', async () => {
     inMode(
       SIGNED_OUT,
       <AssignPicker
@@ -171,11 +173,11 @@ describe('AssignPicker — candidates share the subject’s container', () => {
         store={makeStore({ crawlers })}
       />
     )
-    open(/assign crawler to pilot/i)
+    await open(/assign crawler to pilot/i)
     expect(offered()).toEqual(['Game Crawler', 'Other Game Crawler', 'Shelf Crawler'])
   })
 
-  test('each candidate is its unit Compact in select mode, its readings as chips', () => {
+  test('each candidate is its unit Compact in select mode, its readings as chips', async () => {
     inMode(
       CONNECTED,
       <AssignPicker
@@ -185,7 +187,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
         store={makeStore({ crawlers })}
       />
     )
-    open(/assign crawler to pilot/i)
+    await open(/assign crawler to pilot/i)
     const group = screen.getByRole('radiogroup', { name: 'Assign Pilot to Crawler' })
     const row = within(group).getByRole('radio', { name: 'Game Crawler' })
     expect(row.getAttribute('aria-checked')).toBe('false')
@@ -196,7 +198,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
     expect(row.getAttribute('aria-checked')).toBe('true')
   })
 
-  test('mechs and pilots are scoped the same way', () => {
+  test('mechs and pilots are scoped the same way', async () => {
     const store = makeStore({
       pilots: [pilot('p-game', 'Yara', 'g1'), pilot('p-shelf', 'Dag', null)],
       mechs: [mech('m-game', 'Iron Fist', 'g1'), mech('m-shelf', 'Rust Bucket', null)],
@@ -210,7 +212,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
         store={store}
       />
     )
-    open(/assign mech to pilot/i)
+    await open(/assign mech to pilot/i)
     // In a Game, your own Training Bay mech is offered too, to move in first.
     expect(offered()).toEqual(['Iron Fist', 'Rust Bucket'])
     expect(screen.getByText('From your Training Bay')).toBeTruthy()
@@ -229,11 +231,11 @@ describe('AssignPicker — candidates share the subject’s container', () => {
         store={store}
       />
     )
-    open(/assign pilot to mech/i)
+    await open(/assign pilot to mech/i)
     expect(offered()).toEqual(['p-shelf-callsign · Dag'])
   })
 
-  test('a Mech in a Game is offered only the Pilots it may take, and its note says so (r5 B16)', () => {
+  test('a Mech in a Game is offered only the Pilots it may take, and its note says so (r5 B16)', async () => {
     const held: Record<string, string | null> = {
       'p-razor': 'u-other', // a crewmate's
       'p-free': null, // nobody's, no mech
@@ -268,12 +270,12 @@ describe('AssignPicker — candidates share the subject’s container', () => {
         store={store}
       />
     )
-    open(/assign pilot to mech/i)
+    await open(/assign pilot to mech/i)
     expect(offered()).toEqual(['p-free-callsign · Free', 'p-mine-callsign · Hotdog'])
     expect(screen.getByText(/^Your Pilots and this Game’s unassigned ones\./)).toBeTruthy()
   })
 
-  test('says where it looked when nothing qualifies', () => {
+  test('says where it looked when nothing qualifies', async () => {
     const empty = makeStore({ crawlers: [crawler('c-other', 'Elsewhere', 'g2')] })
     const { unmount } = inMode(
       CONNECTED,
@@ -284,7 +286,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
         store={empty}
       />
     )
-    open(/assign crawler to pilot/i)
+    await open(/assign crawler to pilot/i)
     expect(screen.getByText('No crawlers in this Game yet.')).toBeTruthy()
     expect(
       (screen.getByRole('button', { name: /confirm crawler assignment/i }) as HTMLButtonElement)
@@ -301,12 +303,12 @@ describe('AssignPicker — candidates share the subject’s container', () => {
         store={empty}
       />
     )
-    open(/assign crawler to mech/i)
+    await open(/assign crawler to mech/i)
     // "your shelf", never "My Stuff", in anything a player reads.
     expect(screen.getByText('No crawlers in your Training Bay.')).toBeTruthy()
   })
 
-  test('the slot’s occupant is not offered back, and the trigger says Change', () => {
+  test('the slot’s occupant is not offered back, and the trigger says Change', async () => {
     inMode(
       CONNECTED,
       <AssignPicker
@@ -319,13 +321,13 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     expect(screen.queryByRole('button', { name: /assign crawler/i })).toBeNull()
-    open(/change crawler for this pilot/i)
+    await open(/change crawler for this pilot/i)
     // The only crawler here is already this pilot's: "other", not "none".
     expect(offered()).toEqual([])
     expect(screen.getByText('No other crawlers in this Game.')).toBeTruthy()
   })
 
-  test('Add Crew leaves out pilots already aboard', () => {
+  test('Add Crew leaves out pilots already aboard', async () => {
     inMode(
       CONNECTED,
       <AssignPicker
@@ -338,7 +340,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
         })}
       />
     )
-    open(/add crew/i)
+    await open(/add crew/i)
     expect(offered()).toEqual(['p-new-callsign · Dag'])
   })
 })
@@ -421,7 +423,7 @@ describe('AssignPicker — the link points the way the schema says', () => {
           onAssigned={onAssigned}
         />
       )
-      open(c.trigger)
+      await open(c.trigger)
       fireEvent.click(screen.getByRole('radio'))
       await confirm(c.confirmName)
 
@@ -442,7 +444,7 @@ describe('AssignPicker — the link points the way the schema says', () => {
         store={store}
       />
     )
-    open(/assign crawler to pilot/i)
+    await open(/assign crawler to pilot/i)
     const button = () =>
       screen.getByRole('button', { name: /confirm crawler assignment/i }) as HTMLButtonElement
     expect(button().disabled).toBe(true)
@@ -463,7 +465,7 @@ describe('AssignPicker — the link points the way the schema says', () => {
         store={store}
       />
     )
-    open(/assign crawler to pilot/i)
+    await open(/assign crawler to pilot/i)
     fireEvent.click(screen.getByRole('radio'))
     await confirm(/^cancel$/i)
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -483,7 +485,7 @@ describe('AssignPicker — a refusal is shown in the dialog', () => {
         store={store}
       />
     )
-    open(/assign crawler to pilot/i)
+    await open(/assign crawler to pilot/i)
     fireEvent.click(screen.getByRole('radio'))
     await confirm(/confirm crawler assignment/i)
   }

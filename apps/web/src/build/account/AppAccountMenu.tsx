@@ -1,11 +1,16 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { AccountMenu as SharedAccountMenu } from '../../components/index'
 import { useMe } from '../../lib/account/accountApi'
 import { DOC_PAGES } from '../../lib/docPages'
+import { useOpenedOnce } from '../../lib/useOpenedOnce'
 import { useSync } from '../../replica/syncContext'
-import { FeedbackDialog } from './FeedbackDialog'
 import { useSignOut } from './useSignOut'
+
+/** Suggest or report, a chunk of its own: fetched when it first opens. */
+const FeedbackDialog = lazy(() =>
+  import('./FeedbackDialog').then((m) => ({ default: m.FeedbackDialog }))
+)
 
 /**
  * The app's account menu: the UI library's `AccountMenu`, the one the SRD's
@@ -34,6 +39,7 @@ function SignedInAccountMenu({ compact = false }: AppAccountMenuProps) {
   const signOut = useSignOut()
   const navigate = useNavigate()
   const [feedback, setFeedback] = useState(false)
+  const feedbackMounted = useOpenedOnce(feedback)
 
   return (
     <>
@@ -49,7 +55,11 @@ function SignedInAccountMenu({ compact = false }: AppAccountMenuProps) {
         changelogHref={DOC_PAGES.changelog.href}
         onFeedback={() => setFeedback(true)}
       />
-      <FeedbackDialog open={feedback} onOpenChange={setFeedback} />
+      {feedbackMounted && (
+        <Suspense fallback={null}>
+          <FeedbackDialog open={feedback} onOpenChange={setFeedback} />
+        </Suspense>
+      )}
     </>
   )
 }

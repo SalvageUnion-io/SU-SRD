@@ -5,15 +5,17 @@
  */
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Button } from '../../components/index'
 import { loadableQty } from '../../lib/cargo/cargoTransfer'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { CargoLotLine } from './CargoLotLine'
-import { UnloadDialog } from './UnloadDialog'
 import { undoToast } from './undoToast.model'
+
+/** How many to take out: fetched when a stack's Unload first asks. */
+const UnloadDialog = lazy(() => import('./UnloadDialog').then((m) => ({ default: m.UnloadDialog })))
 
 export type StorageManifestSide = 'mech' | 'crawler'
 
@@ -166,14 +168,16 @@ export function CargoLotControls({
         </Button>
       )}
       {onRemove && stack && asking && (
-        <UnloadDialog
-          lot={lot}
-          onClose={() => setAsking(false)}
-          onUnload={(qty) => {
-            setAsking(false)
-            onRemove(qty)
-          }}
-        />
+        <Suspense fallback={null}>
+          <UnloadDialog
+            lot={lot}
+            onClose={() => setAsking(false)}
+            onUnload={(qty) => {
+              setAsking(false)
+              onRemove(qty)
+            }}
+          />
+        </Suspense>
       )}
     </>
   )

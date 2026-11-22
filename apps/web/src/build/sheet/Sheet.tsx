@@ -24,7 +24,7 @@ import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { HeaderMenuItem } from '../../components/index'
 import { Button, HeaderMenu, toast, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
@@ -33,23 +33,18 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyAsking, keptMech } from '../../lib/copiedToast'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
-import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { runWrite } from '../../lib/runWrite'
+import { useOpenedOnce } from '../../lib/useOpenedOnce'
 import { buildExportCopy } from '../../messages/build-export'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
-import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { exportToFoundry } from '../export/exportToFoundry.model'
-import { deleteMech } from '../mech/deleteMech.model'
-import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import type { MoveSubject } from '../shelves/MoveToGameDialog'
-import { MoveToGameDialog } from '../shelves/MoveToGameDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
-import { ChangeLogDrawer } from './ChangeLogDrawer'
 import { CrawlerLiveSheet } from './CrawlerLiveSheet'
 import { logDefaults } from './changeLog.model'
 import type { EntityLookup } from './composition.model'
@@ -65,6 +60,16 @@ import { useSheetUndo } from './sheetUndo.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
 import { leaveSheet } from './undoToast.model'
 import type { OwnerOf } from './unitOwners.model'
+
+// Each opens from the ⋯ menu, so each is a chunk of its own, fetched on the
+// first opening (`useOpenedOnce`): a sheet nobody opens them on never carries them.
+const ChangeLogDrawer = lazy(() =>
+  import('./ChangeLogDrawer').then((m) => ({ default: m.ChangeLogDrawer }))
+)
+const SavePatternDialog = lazy(() =>
+  import('../mech/Pattern/SavePatternDialog').then((m) => ({ default: m.SavePatternDialog }))
+)
+const SheetMove = lazy(() => import('./SheetMove').then((m) => ({ default: m.SheetMove })))
 
 /**
  * The sheet's own entity, resolved with its kind as a discriminant so the
@@ -158,24 +163,6 @@ type SheetProps = {
 
 const NONE_WITHHELD: readonly WithheldUnit[] = []
 
-/**
- * "Move to a Game…" over a sheet: the Bay's dialog, with the server's list of
- * your Games. Mounted only while it is open and the session is live, so the
- * Games call has a server to ask.
- */
-function SheetMove({
-  subject,
-  onClose,
-  confirm,
-}: {
-  subject: MoveSubject
-  onClose: () => void
-  confirm: ReturnType<typeof useConfirm>['confirm']
-}) {
-  const games = useGamesQuery('games.listMine', {}) as readonly MoveTargetGame[] | undefined
-  return <MoveToGameDialog subject={subject} onClose={onClose} games={games} confirm={confirm} />
-}
-
 /** The bar's trailing cluster: Play, Share (while this sheet can write) and ⋯. */
 const ACTIONS = {
   alignItems: 'center',
@@ -205,6 +192,8 @@ export function Sheet({
   const [shareOpen, setShareOpen] = useState(false)
   const [savePatternOpen, setSavePatternOpen] = useState(false)
   const [moving, setMoving] = useState<MoveSubject | null>(null)
+  const changeLogMounted = useOpenedOnce(changeLogOpen)
+  const savePatternMounted = useOpenedOnce(savePatternOpen)
   const go = useGo()
   // An Undo stays with its sheet (r3 B3): leaving takes the sheet's lines down.
   // A read-only rendering (Play's sheet pane, a public sheet) raised none, and
@@ -392,7 +381,9 @@ export function Sheet({
                 : ROW_ACTION_COPY.deleteBuild(entity.name, keptMech(kind, id, storeState))),
             onConfirm: async () => {
               // A Training Bay Mech's notice undoes it (r5 D9).
-              await (kind === 'mech' && !inGame ? deleteMech(id) : storeState.delete(kind, id))
+              await (kind === 'mech' && !inGame
+                ? import('../mech/deleteMech.model').then((m) => m.deleteMech(id))
+                : storeState.delete(kind, id))
               go(back.href)
             },
           })
@@ -552,15 +543,21 @@ export function Sheet({
       {sheetView}
       {!readOnlyProp && (
         <>
-          <ChangeLogDrawer
-            entityType={kind}
-            entityId={id}
-            entityName={entity.name}
-            open={changeLogOpen}
-            onOpenChange={setChangeLogOpen}
-            defaults={defaults}
-            onRestore={writesBlocked ? undefined : (change, did) => void undo.reverse(change, did)}
-          />
+          {changeLogMounted && (
+            <Suspense fallback={null}>
+              <ChangeLogDrawer
+                entityType={kind}
+                entityId={id}
+                entityName={entity.name}
+                open={changeLogOpen}
+                onOpenChange={setChangeLogOpen}
+                defaults={defaults}
+                onRestore={
+                  writesBlocked ? undefined : (change, did) => void undo.reverse(change, did)
+                }
+              />
+            </Suspense>
+          )}
           {/*
             Mounted here, beside the Change Log, for the same reason: the dialog
             must outlive the control that opens it. Its contents (and the
@@ -575,15 +572,19 @@ export function Sheet({
             open={shareOpen}
             onOpenChange={setShareOpen}
           />
-          {resolved.kind === 'mech' && (
-            <SavePatternDialog
-              source={resolved.entity}
-              open={savePatternOpen}
-              onOpenChange={setSavePatternOpen}
-            />
+          {resolved.kind === 'mech' && savePatternMounted && (
+            <Suspense fallback={null}>
+              <SavePatternDialog
+                source={resolved.entity}
+                open={savePatternOpen}
+                onOpenChange={setSavePatternOpen}
+              />
+            </Suspense>
           )}
           {moving && status === 'live' && (
-            <SheetMove subject={moving} onClose={() => setMoving(null)} confirm={confirm} />
+            <Suspense fallback={null}>
+              <SheetMove subject={moving} onClose={() => setMoving(null)} confirm={confirm} />
+            </Suspense>
           )}
           {confirmDialog}
         </>

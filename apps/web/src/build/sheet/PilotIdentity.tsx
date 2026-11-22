@@ -30,12 +30,11 @@
 
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Badge, Button, Field, Toggle, tokens } from '../../components/index'
 import { resolveClassName } from '../../lib/classRef'
 import { classChangePatch } from '../../lib/rules/classPath'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { selectableClasses } from '../wizard/classOptions.model'
 import { PhotoBeside } from './PhotoBeside'
 import { SheetPickerModal } from './SheetPickerModal'
@@ -43,6 +42,11 @@ import type { SheetPatch } from './sheetViewProps.model'
 import { UsedPip } from './UsedPip'
 
 export type UsedTraitKey = 'background' | 'motto' | 'keepsake'
+
+/** The Class picker's body, a chunk of its own: fetched when Change Class first opens. */
+const ClassPathPicker = lazy(() =>
+  import('../pilot/ClassPathPicker').then((m) => ({ default: m.ClassPathPicker }))
+)
 
 const USED_CHIP = { gap: tokens.space[6] } satisfies CSSProperties
 
@@ -390,28 +394,30 @@ export function PilotIdentityPanel({
         onClose={() => setClassPickerOpen(false)}
         title={buildSheetCopy('changeClass')}
       >
-        <ClassPathPicker
-          allClasses={allClasses}
-          currentClassRef={pilot.classRef}
-          pendingClassRef={pendingClass}
-          abilities={pilot.abilities}
-          onSelect={setPendingClass}
-          answeredOrigin={answeredOrigin}
-          onAnswerOrigin={setAnsweredOrigin}
-        />
-        <div style={PICKER_ACTIONS}>
-          <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
-            {buildSheetCopy('cancel')}
-          </Button>
-          <Button
-            variant="primary"
-            size="compact"
-            disabled={!pendingClass || pendingClass === pilot.classRef}
-            onClick={confirmClass}
-          >
-            {buildSheetCopy('changeClass')}
-          </Button>
-        </div>
+        <Suspense fallback={null}>
+          <ClassPathPicker
+            allClasses={allClasses}
+            currentClassRef={pilot.classRef}
+            pendingClassRef={pendingClass}
+            abilities={pilot.abilities}
+            onSelect={setPendingClass}
+            answeredOrigin={answeredOrigin}
+            onAnswerOrigin={setAnsweredOrigin}
+          />
+          <div style={PICKER_ACTIONS}>
+            <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
+              {buildSheetCopy('cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              size="compact"
+              disabled={!pendingClass || pendingClass === pilot.classRef}
+              onClick={confirmClass}
+            >
+              {buildSheetCopy('changeClass')}
+            </Button>
+          </div>
+        </Suspense>
       </SheetPickerModal>
     </div>
   )

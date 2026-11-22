@@ -31,13 +31,18 @@
  */
 
 import type { CSSProperties } from 'react'
+import { lazy, Suspense } from 'react'
 import { ModalShell, Text, tokens } from '../../components/index'
 import type { ShareKind } from '../../lib/sharing/visibility'
 import { buildSharingCopy } from '../../messages/build-sharing'
 import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
-import { SharedSeparately } from './SharedSeparately'
 import { ShareSettings } from './ShareSettings'
+
+/** A pilot's note on its mech and crawler: fetched once a pilot's dialog opens. */
+const SharedSeparately = lazy(() =>
+  import('./SharedSeparately').then((m) => ({ default: m.SharedSeparately }))
+)
 
 type ShareStatusDialogProps = {
   kind: ShareKind
@@ -116,7 +121,11 @@ export function ShareStatusDialog({
           <Text variant="note">{buildSharingCopy('sharingSettingsNeedALive')}</Text>
         )}
         {/* A pilot's share is the pilot's alone: its mech and crawler have their own (r4 E18). */}
-        {open && kind === 'pilot' && <SharedSeparately pilotId={id} gameId={gameId ?? null} />}
+        {open && kind === 'pilot' && (
+          <Suspense fallback={null}>
+            <SharedSeparately pilotId={id} gameId={gameId ?? null} />
+          </Suspense>
+        )}
       </div>
     </ModalShell>
   )
