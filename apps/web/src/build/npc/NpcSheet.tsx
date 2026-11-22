@@ -39,7 +39,7 @@ import {
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { copyForShelf } from '../../lib/copyEntity'
+import { copyBeside, namesOn } from '../../lib/copyEntity'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import {
   isNpcDown,
@@ -149,11 +149,14 @@ export function NpcSheet({
     runWrite(() => useUnits.getState().update('npc', npc.id, fields, LIVE_SHEET_MANUAL))
   }
 
-  /** Make a copy: a new, separate NPC in the maker's Kit, in no Game (glossary 5). */
+  /** Make a copy: a new, separate NPC (glossary 5), in the Game this one is in (MD3-12). */
   function copy() {
     runWrite(async () => {
-      const created = await useUnits.getState().create('npc', copyForShelf(npc, npc.name) as never)
-      toast.success(npcCopy('madeACopy', { name: created.name }), {
+      const taken = namesOn(useUnits.getState().list('npc'))
+      const created = await useUnits
+        .getState()
+        .create('npc', copyBeside(npc, npc.name, taken) as never)
+      toast.success(npcCopy('madeACopy', { name: npc.name }), {
         duration: COPY_TOAST_MS,
         ...(onOpenCopy
           ? { action: { label: npcCopy('openTheCopy'), onClick: () => onOpenCopy(created.id) } }

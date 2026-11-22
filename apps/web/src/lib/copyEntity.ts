@@ -121,3 +121,18 @@ export function copyForShelf(
 
   return copy
 }
+
+/**
+ * A copy that stays where its original is (MD3-12): an NPC kept in a Game is
+ * prepared for that Game, so its copy is too, on the Game's Prep at once.
+ * Still a new, separate record of its maker's; one in no Game is copied into
+ * none. Pilots, mechs and crawlers copy to the shelf (`copyForShelf`).
+ */
+export function copyBeside(
+  source: CopyableBody,
+  fallbackName: string,
+  taken: readonly string[] = []
+): CopyableBody {
+  const copy = copyForShelf(source, fallbackName, taken)
+  return typeof source.gameId === 'string' ? { ...copy, gameId: source.gameId } : copy
+}
