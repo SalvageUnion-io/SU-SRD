@@ -138,7 +138,11 @@ describe('WizShell', () => {
         tryNote={signedOut && active === 0 ? 'Try it now. Saving needs a free sign-in.' : undefined}
         keepAsFile={
           signedOut && active === 1
-            ? { onDownload: () => kept.push('file'), onPrint: () => kept.push('paper') }
+            ? {
+                fileName: 'salvageunion-mech-diva.json',
+                onDownload: () => kept.push('file') > 0,
+                onPrint: () => kept.push('paper'),
+              }
             : undefined
         }
       >
@@ -150,9 +154,20 @@ describe('WizShell', () => {
     expect(screen.queryByRole('button', { name: 'Download' })).toBeNull()
     view.rerender(shell(1, true))
     expect(screen.queryByText('Try it now. Saving needs a free sign-in.')).toBeNull()
+    // Download says what it gives before it is pressed, and that it came (r3 E2).
+    expect(screen.getByText(/salvageunion-mech-diva\.json: the build as a data file/)).toBeTruthy()
+    expect(screen.getByText(/Backups in the Training Bay loads it/)).toBeTruthy()
+    expect(screen.queryByText('Downloaded salvageunion-mech-diva.json.')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Download' }))
+    expect(screen.getByRole('status').textContent).toBe('Downloaded salvageunion-mech-diva.json.')
     fireEvent.click(screen.getByRole('button', { name: 'Print' }))
     expect(kept).toEqual(['file', 'paper'])
+    // It stands before the build, where it is seen with Create.
+    const keep = screen.getByText('Keep it without an account')
+    expect(
+      keep.compareDocumentPosition(screen.getByText('Step content')) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
     view.rerender(shell(1, false))
     expect(screen.queryByRole('button', { name: 'Download' })).toBeNull()
   })

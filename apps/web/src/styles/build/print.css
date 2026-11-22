@@ -160,13 +160,39 @@
    * `:not([data-print='keep'])` on buttons is the escape hatch: a control that
    * carries printed STATE (a ticked box, a filled pip button) opts back in.
    * A chip that Peeks its entry (`.su-chip-link`, a button: `CLASS | Engineer`)
-   * is read content, so it prints as its words.
+   * and a name that does (`.su-inline-ref`: a table's ability or equipment
+   * name, a linked word in an entry's text) are read content, so each prints
+   * as its words.
    * ------------------------------------------------------------------------- */
   header:not(#\#),
   [role='dialog']:not(#\#),
   [data-sonner-toaster]:not(#\#),
-  button:not([data-print='keep'], .su-chip-link):not(#\#) {
+  button:not([data-print='keep'], .su-chip-link, .su-inline-ref):not(#\#) {
     display: none;
+  }
+
+  /* -------------------------------------------------------------------------
+   * A wizard's Review on paper (r3 E1): the build, from the top of the first
+   * sheet. On screen the shell is a flex column a viewport tall with its
+   * action bar pinned; paginated, that left the step a page down and the
+   * site's footer across it. On paper every level is a plain block, the step
+   * may break where a page ends, and the action bar is not drawn.
+   * ------------------------------------------------------------------------- */
+  .su-wiz-shell:not(#\#),
+  .su-wiz-body:not(#\#),
+  .su-wiz-main:not(#\#),
+  .su-wiz-step-frame:not(#\#) {
+    display: block;
+    padding: 0;
+  }
+
+  .su-wiz-footer:not(#\#) {
+    display: none;
+  }
+
+  .su-wiz-step-frame article:not(#\#) {
+    break-inside: auto;
+    page-break-inside: auto;
   }
 
   /* -------------------------------------------------------------------------
@@ -267,10 +293,12 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Links — print the URL after the text (informational)
-   * Exclude nav links (already hidden).
+   * Links — print the URL after the text (informational), where it is an
+   * address a reader could type: a link out of the site. A link within the
+   * site reads as its words (a bare `/classes/engineer/` is no address on
+   * paper). Nav links are already hidden.
    * ------------------------------------------------------------------------- */
-  a[href]:not([href^='#']):not(#\#)::after {
+  a[href^='http']:not(#\#)::after {
     content: ' (' attr(href) ')';
     font-size: 9pt;
     color: #444;

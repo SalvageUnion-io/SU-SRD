@@ -34,15 +34,13 @@ export function PilotAbilityTrainer({
     crawlerTechLevel: model.effectiveCrawlerLevel,
   })
   return (
-    <>
-      <PilotSheetPickers
-        picker="abilities"
-        onClose={onClose}
-        pilot={fresh}
-        model={model}
-        actions={actions}
-        store={store}
-      />
-    </>
+    <PilotSheetPickers
+      picker="abilities"
+      onClose={onClose}
+      pilot={fresh}
+      model={model}
+      actions={actions}
+      store={store}
+    />
   )
 }

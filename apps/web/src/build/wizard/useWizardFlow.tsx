@@ -39,6 +39,7 @@ import { buildWizardCopy } from '../../messages/build-wizard'
 import { useSync } from '../../replica/syncContext'
 import type { CreateInput } from '../../replica/types'
 import { useUnits } from '../../replica/units'
+import type { KeepAsFileActs } from './KeepAsFile'
 
 /**
  * The slice of a Zod object schema this hook uses.
@@ -121,7 +122,7 @@ type WizardShellProps = {
   /** Signed out, the first step says up front that saving needs a sign-in. */
   tryNote: string | undefined
   /** Signed out on the submit step: keep the build as a file, or print it. */
-  keepAsFile: { onDownload: () => void; onPrint: () => void } | undefined
+  keepAsFile: KeepAsFileActs | undefined
 }
 
 export type WizardFlow<TStep extends string> = {
@@ -239,8 +240,9 @@ export function useWizardFlow<
    * The build as a file, for a reader with no account (`draftExportBundle`):
    * validated as Save validates it, and the Training Bay's Import… reads it.
    */
-  function download() {
-    if (entityType === 'npc') return
+  const fileName = exportFileName(entityType, form.name.trim() || noun)
+  function download(): boolean {
+    if (entityType === 'npc') return false
     setInvalid(null)
     const now = new Date().toISOString()
     const input = toCreateInput(form)
@@ -253,12 +255,10 @@ export function useWizardFlow<
     if (!validation.success) {
       const messages = (validation.error?.issues ?? []).map((e) => e.message).join('; ')
       setInvalid(buildWizardCopy('validationError', { messages }))
-      return
+      return false
     }
-    downloadJson(
-      exportFileName(entityType, form.name.trim() || noun),
-      draftExportBundle(entityType, input, now)
-    )
+    downloadJson(fileName, draftExportBundle(entityType, input, now))
+    return true
   }
 
   async function handleSubmit() {
@@ -355,7 +355,7 @@ export function useWizardFlow<
       tryNote: signedOut && currentIndex === 0 ? buildWizardCopy('tryItNow') : undefined,
       keepAsFile:
         signedOut && step === submitStep && entityType !== 'npc'
-          ? { onDownload: download, onPrint: () => window.print() }
+          ? { fileName, onDownload: download, onPrint: () => window.print() }
           : undefined,
     },
   }

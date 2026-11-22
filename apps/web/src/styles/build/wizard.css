@@ -60,8 +60,17 @@
 
 /* — WizShell — */
 
+/* The shell's column. Its layout is classes, not style objects: paper lays
+   the step out as a plain block (`print.css`). */
+.su-wiz-shell {
+  display: flex;
+  flex-direction: column;
+}
+
 /* Rail and main pane: stacked, then side by side at lg. */
 .su-wiz-body {
+  display: flex;
+  flex: 1 1 0%;
   flex-direction: column;
 }
 
@@ -178,7 +187,18 @@
 }
 
 .su-wiz-main {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-width: 0;
   padding: var(--space-20);
+}
+
+/* The step's frame, over the action bar's strip: a block gap under it. */
+.su-wiz-step-frame {
+  flex: 1 1 0%;
+  min-height: 0;
+  padding-bottom: var(--space-24);
 }
 
 /* The step's paper body: on a phone its lists keep the width, so a count's
@@ -205,9 +225,14 @@
    the Scrap budget, the ⋯ menu (Back, Cancel, the escape) and the Next; from
    sm it is the flat ink card at the pane's corner. */
 .su-wiz-footer {
+  align-items: flex-end;
   background-color: var(--color-wk-bg);
   border-top: var(--bw-chrome) solid var(--color-ink);
   bottom: 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  z-index: var(--z-sticky);
   margin-block-end: calc(-1 * var(--space-20));
   margin-inline: calc(-1 * var(--space-20));
 }
