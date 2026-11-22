@@ -6,6 +6,8 @@
  * `publicRead`, each pattern's `sharing` record, and the acts that set them.
  */
 
+import type { MechPattern } from 'game-domain/schemas/pattern'
+import { parseMechPattern } from 'game-domain/schemas/pattern'
 import { useCallback, useSyncExternalStore } from 'react'
 import type { PublicPatternAnswer } from '../../build/mech/Pattern/PublicPattern'
 import type { PublicSheetAnswer } from '../../build/sheet/readOnlySheetStore.model'
@@ -98,6 +100,24 @@ export function usePatternGone(appId: string | undefined, ask: boolean): boolean
   const crew = useCrewPatterns(asked)
   if (!asked || byLink !== null || crew === undefined) return false
   return !crew.some((pattern) => pattern.appId === appId)
+}
+
+/**
+ * A pattern the reader does not hold, as its link or a crew of theirs answers
+ * for it (r5 D3): a Mech built from someone else's pattern names it. Undefined
+ * while out, not asked, or answered by neither.
+ */
+export function usePatternElsewhere(
+  appId: string | undefined,
+  ask: boolean
+): MechPattern | undefined {
+  const asked = ask && appId !== undefined
+  const byLink = usePatternByLink(asked ? appId : undefined)
+  const crew = useCrewPatterns(asked)
+  if (!asked) return undefined
+  const body = byLink?.body ?? crew?.find((pattern) => pattern.appId === appId)?.body
+  const parsed = body === undefined ? undefined : parseMechPattern(body)
+  return parsed?.success ? parsed.data : undefined
 }
 
 function usePatternByLink(appId: string | undefined): PublicPatternPage | null | undefined {

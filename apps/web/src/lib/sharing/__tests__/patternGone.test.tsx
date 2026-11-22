@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import { renderHook } from '@testing-library/react'
 import { holdWorkerRead } from '../../connection/workerRead'
 import { sharedPaths } from '../paths'
-import { usePatternGone } from '../reads'
+import { usePatternElsewhere, usePatternGone } from '../reads'
 
 const crew = (appIds: string[]) =>
   holdWorkerRead(
@@ -31,5 +31,47 @@ describe('usePatternGone', () => {
     crew([])
     expect(renderHook(() => usePatternGone('gone-2', false)).result.current).toBe(false)
     expect(renderHook(() => usePatternGone(undefined, true)).result.current).toBe(false)
+  })
+})
+
+describe('usePatternElsewhere (r5 D3)', () => {
+  const body = (id: string, name: string) => ({
+    id,
+    schemaVersion: 1,
+    name,
+    chassisRef: 'mule',
+    systems: [],
+    modules: [],
+    createdAt: '2026-11-01T10:00:00.000Z',
+  })
+
+  test('names a pattern read by its link, or shared by a crew', () => {
+    holdWorkerRead(sharedPaths.sheet('pattern', 'link-9'), {
+      appId: 'link-9',
+      body: body('link-9', 'Digger'),
+    })
+    holdWorkerRead(sharedPaths.sheet('pattern', 'crew-9'), null)
+    holdWorkerRead(sharedPaths.crewPatterns(), [
+      {
+        appId: 'crew-9',
+        body: body('crew-9', 'Hauler'),
+        madeBy: 'Sam',
+        gameId: 'g1',
+        gameName: 'The Run',
+      },
+    ])
+    expect(renderHook(() => usePatternElsewhere('link-9', true)).result.current?.name).toBe(
+      'Digger'
+    )
+    expect(renderHook(() => usePatternElsewhere('crew-9', true)).result.current?.name).toBe(
+      'Hauler'
+    )
+  })
+
+  test('not asked, or answered by neither: nothing', () => {
+    holdWorkerRead(sharedPaths.sheet('pattern', 'none-9'), null)
+    crew([])
+    expect(renderHook(() => usePatternElsewhere('none-9', true)).result.current).toBeUndefined()
+    expect(renderHook(() => usePatternElsewhere('link-9', false)).result.current).toBeUndefined()
   })
 })

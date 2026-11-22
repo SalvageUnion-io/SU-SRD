@@ -1,7 +1,8 @@
 /**
  * The Patterns shelf: the Training Bay's panel, and the Patterns page whole.
  * Each line says what tells two patterns of one name apart (its chassis, who
- * sees it, Tech Level, slots filled, the day it was saved), and any column
+ * sees it, Tech Level, slots filled, Scrap, when it was saved, its description's
+ * first line), and any column
  * sorts it (r4 E13). A narrow panel spares all but its chassis and Systems.
  */
 import type { MechPattern } from 'game-domain/schemas/pattern'
@@ -56,15 +57,28 @@ export function PatternShelf({
       sort={sort}
       onSort={(key) => setSort(nextSort(sort, key))}
       rows={sortShelfRows(rows, sort, (row, key) => row.values[key]).map(
-        ({ pattern, values, saved, over }) => ({
-          id: pattern.id,
-          name: pattern.name,
-          href: savedPatternHref(pattern.id),
-          cells: PATTERN_COLUMNS.map((column) =>
-            column.key === 'saved' ? saved : (values[column.key] ?? '')
-          ),
-          ...line(pattern, over),
-        })
+        ({ pattern, values, saved, over, about }) => {
+          const { under, ...rest } = line(pattern, over)
+          return {
+            id: pattern.id,
+            name: pattern.name,
+            href: savedPatternHref(pattern.id),
+            cells: PATTERN_COLUMNS.map((column) =>
+              column.key === 'saved' ? saved : (values[column.key] ?? '')
+            ),
+            // Its description's first line, then any mark (r5 D3).
+            under:
+              about === undefined ? (
+                under
+              ) : (
+                <>
+                  <span>{about}</span>
+                  {under}
+                </>
+              ),
+            ...rest,
+          }
+        }
       )}
     />
   )

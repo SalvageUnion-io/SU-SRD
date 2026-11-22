@@ -25,7 +25,7 @@ import {
 } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
 import { mechScrap } from '../../lib/rules/mechScrap'
-import { usePatternGone } from '../../lib/sharing/reads'
+import { usePatternElsewhere, usePatternGone } from '../../lib/sharing/reads'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
 import { useSync } from '../../replica/syncContext'
@@ -100,10 +100,10 @@ export function MechLiveSheet({
   const notHeld =
     mech.sourcePattern !== undefined && !savedPatterns.some((p) => p.id === mech.sourcePattern)
   const { status } = useSync()
-  const patternGone = usePatternGone(
-    mech.sourcePattern,
-    liveInRead && patternsIn && notHeld && status === 'live'
-  )
+  const askElsewhere = liveInRead && patternsIn && notHeld && status === 'live'
+  const patternGone = usePatternGone(mech.sourcePattern, askElsewhere)
+  // Someone else's pattern, by its link or a crew's: named, not "A saved pattern" (r5 D3).
+  const elsewhere = usePatternElsewhere(mech.sourcePattern, askElsewhere)
   const rail = assignedRail(
     { kind: 'mech', entity: mech },
     { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead }
@@ -125,7 +125,9 @@ export function MechLiveSheet({
       }
       fromPattern={mechPatternStamp(
         mech,
-        (id) => savedPatterns.find((p) => p.id === id),
+        (id) =>
+          savedPatterns.find((p) => p.id === id) ??
+          (id === mech.sourcePattern ? elsewhere : undefined),
         patternGone
       )}
       // Read's header strip carries TL and

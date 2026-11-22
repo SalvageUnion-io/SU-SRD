@@ -62,7 +62,7 @@ export const NPC_COLUMNS = [
   // An NPC's track is HP or SP (`SP 39/39`), so the head says both (MD3-15).
   { ...fig(VITAL.hp, buildShelvesCopy('hitOrStructurePoints'), true), label: HP_OR_SP },
 ]
-// What tells two patterns of one name apart (r4 E13). Beside the other column
+// What tells two patterns of one name apart (r4 E13, r5 D3). Beside the other column
 // the panel is narrow: it spares all but the chassis and Systems (the Patterns
 // page and a pattern's own page say the rest), so its make and each line's
 // menu stay inside the frame.
@@ -72,6 +72,8 @@ export const PATTERN_COLUMNS = [
   spare(fig(buildShelvesCopy('tl'), buildShelvesCopy('techLevel'))),
   fig(buildShelvesCopy('sys'), buildShelvesCopy('systemSlotsUsed')),
   spare(fig(buildShelvesCopy('mod'), buildShelvesCopy('moduleSlotsUsed'))),
+  // Its Scrap and the moment it was saved tell two of one name apart (r5 D3).
+  spare(fig(buildShelvesCopy('cost'), buildShelvesCopy('scrapChassisAndLoadout'))),
   spare(word('saved', buildShelvesCopy('saved'))),
 ]
 
