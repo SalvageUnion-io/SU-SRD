@@ -11,6 +11,8 @@ import type { ReactNode } from 'react'
 import type { HeaderMenuItem, LedgerColumn, LedgerSort } from '../../components/index'
 import { Button, HeaderMenu, HomebrewStamp, InlineRef, Ledger, Text } from '../../components/index'
 import { buildShelvesCopy } from '../../messages/build-shelves'
+import { sessionDoor, sessionDoorAs } from '../../play/sessionDoor.model'
+import { useSessionLive } from '../../play/useSessionLive'
 
 type ShelfLedgerRow = {
   id: string
@@ -25,8 +27,8 @@ type ShelfLedgerRow = {
   menu: HeaderMenuItem[][]
   /** Its Play door (a pilot's Cockpit), before the ⋯ menu. */
   play?: string
-  /** The door's words where the line has room to name who it plays ("Play GHOST"); "Play" otherwise. */
-  playLabel?: string
+  /** The pilot's Game, or null solo: its door reads Join session while that Game's session is live (r3 H3). */
+  playGameId?: string | null
 }
 
 type ShelfLedgerProps = {
@@ -57,22 +59,31 @@ export function ShelfLink({ href, children }: { href: string | undefined; childr
   return <InlineRef href={href}>{children}</InlineRef>
 }
 
+/** A pilot's door into Play, under the door's one name (glossary §9, r3 H3): Join session while its Game's is live, else Open table. */
+function PlayDoor({
+  href,
+  name,
+  gameId,
+}: {
+  href: string
+  name: string
+  gameId: string | null | undefined
+}) {
+  const live = useSessionLive(gameId)
+  return (
+    <Button href={href} variant="primary" size="mini" aria-label={sessionDoorAs(live, name)}>
+      {sessionDoor(live)}
+    </Button>
+  )
+}
+
 /** A line's end: its Play door, then its ⋯ menu; neither draws nothing. */
 function trailingOf(row: ShelfLedgerRow): ReactNode {
   const menu = row.menu.some((section) => section.length > 0)
   if (!row.play && !menu) return undefined
   return (
     <span className="su-ledger__trailing-line">
-      {row.play && (
-        <Button
-          href={row.play}
-          variant="primary"
-          size="mini"
-          aria-label={buildShelvesCopy('playName', { name: row.name })}
-        >
-          {row.playLabel ?? buildShelvesCopy('play')}
-        </Button>
-      )}
+      {row.play && <PlayDoor href={row.play} name={row.name} gameId={row.playGameId} />}
       {menu && (
         <HeaderMenu
           variant="overflow"

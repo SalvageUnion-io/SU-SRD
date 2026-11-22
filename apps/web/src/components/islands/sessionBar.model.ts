@@ -4,8 +4,32 @@
  * and which bars this tab has put away.
  */
 
+import { appPath } from 'game-domain/appAddress'
+import { cockpitPath, gamePath, mediatePath } from 'game-domain/entityKinds'
+
 /** One Game with a session running. */
-export type LiveSession = { gameId: string; name: string; startedAt: number | null }
+export type LiveSession = {
+  gameId: string
+  name: string
+  startedAt: number | null
+  /** The reader mediates it: their door is Mediate. */
+  mediator?: boolean
+  /** The reader's one pilot in it, whose seat Join session opens; absent with none, or several. */
+  pilotId?: string
+}
+
+/**
+ * Where a session's door goes (r3 H3): the Mediator's screen, else the
+ * reader's seat, Play as their pilot; the Game's page only when they have no
+ * one pilot to seat (none yet, or several to choose from).
+ */
+export function sessionDoorHref(session: LiveSession): string {
+  // A Reference page is outside the app's router: the route's path on the site.
+  if (session.mediator === true) return appPath(mediatePath(session.gameId))
+  return appPath(
+    session.pilotId === undefined ? gamePath(session.gameId) : cockpitPath(session.pilotId)
+  )
+}
 
 /** Where a put-away bar is remembered: this tab's, one key per session. */
 const DISMISSED_PREFIX = 'su:session-bar:'
@@ -47,8 +71,16 @@ export function liveSessionsOf(answer: unknown): LiveSession[] {
   if (ok !== true || !Array.isArray(value)) return []
   return value.flatMap((game: unknown) => {
     if (typeof game !== 'object' || game === null) return []
-    const { gameId, name, startedAt } = game as Record<string, unknown>
+    const { gameId, name, startedAt, mediator, pilotId } = game as Record<string, unknown>
     if (typeof gameId !== 'string' || typeof name !== 'string') return []
-    return [{ gameId, name, startedAt: typeof startedAt === 'number' ? startedAt : null }]
+    return [
+      {
+        gameId,
+        name,
+        startedAt: typeof startedAt === 'number' ? startedAt : null,
+        ...(mediator === true ? { mediator: true } : {}),
+        ...(typeof pilotId === 'string' ? { pilotId } : {}),
+      },
+    ]
   })
 }

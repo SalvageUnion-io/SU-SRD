@@ -249,13 +249,13 @@ describe('Play, one press from the shelf', () => {
   test('each pilot line carries its Play door, to that pilot’s Play mode', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    expect(within(pilots).getByRole('link', { name: 'Play Nia Vale' }).getAttribute('href')).toBe(
-      '/pilots/p-nia/play'
-    )
-    expect(within(pilots).getByRole('link', { name: 'Play Rook' })).toBeTruthy()
+    expect(
+      within(pilots).getByRole('link', { name: 'Open table as Nia Vale' }).getAttribute('href')
+    ).toBe('/pilots/p-nia/play')
+    expect(within(pilots).getByRole('link', { name: 'Open table as Rook' })).toBeTruthy()
     // Mechs play through their pilot: no door of their own.
     const mechs = screen.getByRole('region', { name: 'Mechs' })
-    expect(within(mechs).queryByRole('link', { name: /^Play / })).toBeNull()
+    expect(within(mechs).queryByRole('link', { name: /^Open table/ })).toBeNull()
   })
 
   test('the Training Bay lists no Games: they are the Games tab’s (ADR-066)', async () => {

@@ -309,11 +309,14 @@ export const playCopy = messages({
   couldNotEndSession: 'Could not end the session.',
   joinSession: 'Join session',
   startGroupSessionOf: 'Start a group session of {game}',
-  // One meaning per door (glossary §9): a Game's door joins or opens its table,
-  // a pilot's door plays that pilot.
+  // One name per door (glossary §9, r3 H3): Join session while the Game's
+  // session is live, else Open table, on a Game's page, its row, a pilot's
+  // line and a sheet's band; the "as" forms are the accessible names.
   openTable: 'Open table',
-  playPilot: 'Play {name}',
-  playPilotIn: 'Play {name} in {game}',
+  joinSessionAs: 'Join session as {name}',
+  openTableAs: 'Open table as {name}',
+  joinSessionAsIn: 'Join session as {name} in {game}',
+  openTableAsIn: 'Open table as {name} in {game}',
   noGamesYet:
     'You’re in no Games yet. Start one with + New Game, or join one with its invite link. Play works solo too: your Pilots are below.',
   yourPilots: 'Your Pilots',

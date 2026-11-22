@@ -522,7 +522,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     ],
                     menu: unitMenu('pilot', { id: p.id, name, gameId: p.gameId }, p),
                     // Play runs a pilot (ADR-066): one press from the Training Bay.
-                    ...(status === 'signedOut' ? {} : { play: cockpitPath(p.id) }),
+                    ...(status === 'signedOut'
+                      ? {}
+                      : { play: cockpitPath(p.id), playGameId: p.gameId ?? null }),
                   }
                 })}
               />

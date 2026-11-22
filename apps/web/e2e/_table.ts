@@ -61,7 +61,7 @@ async function assignToMe(page: Page, name: string): Promise<void> {
 /**
  * Start a Starter Set Game, mediate it, take Bonesaw and, with him, his Scrapper. Leaves
  * the page on the Game's own page; resolves to the Game's id and name, which
- * the Play landing's doors are named by ("Play Bonesaw in <name>").
+ * the Play landing's doors are named by ("Open table as Bonesaw in <name>").
  *
  * The Mediator is waited for by the band's Mediate door: it alone says who
  * mediates, with no stamp beside it.

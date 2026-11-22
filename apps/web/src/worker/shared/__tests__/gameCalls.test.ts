@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { BOT_RELAY_POST_ROLL_PATH, relayUrl } from 'game-domain/botWire'
 import { applyOp } from 'game-domain/ops/applyOp'
+import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { bunSql } from '../../../rooms/__tests__/bunSql'
 import type { GameActName } from '../../../rooms/game/acts'
 import { runAct } from '../../../rooms/game/acts'
@@ -112,9 +113,24 @@ describe('the Games calls', () => {
     expect(await call('games.liveSessions', {})).toEqual([
       { gameId: live, name: 'Rust Choir', startedAt: expect.any(Number) },
     ])
-    expect(quiet).not.toBe(live)
     // Somebody who is in neither Game hears of none.
     expect(await call('games.liveSessions', {}, PLAYER)).toEqual([])
+    // Whose door it is (r3 H3): a player's one pilot there is their seat; a Mediator's is Mediate.
+    const code = (await call('invites.link', { gameId: live })) as string
+    await call('invites.redeem', { code }, PLAYER)
+    await game(live).act(PLAYER.discordId, 'createUnit', {
+      id: 'p1',
+      kind: 'pilot',
+      body: pilotFixture({ id: 'p1', name: 'Brick' }),
+    } as never)
+    expect(await call('games.liveSessions', {}, PLAYER)).toEqual([
+      { gameId: live, name: 'Rust Choir', startedAt: expect.any(Number), pilotId: 'p1' },
+    ])
+    await call('games.setMediator', { gameId: live, userId: ORG.discordId, mediator: true })
+    expect(await call('games.liveSessions', {})).toEqual([
+      { gameId: live, name: 'Rust Choir', startedAt: expect.any(Number), mediator: true },
+    ])
+    expect(quiet).not.toBe(live)
   })
 
   test('a new Game is listed, its invite joins a player, and its roster names them', async () => {

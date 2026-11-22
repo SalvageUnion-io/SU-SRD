@@ -782,7 +782,7 @@ describe('Play from the Game page', () => {
     const dialog = await openPicker()
     expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)MineSelected', 'Mira (Pilot)Mine'])
     await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Play Vex Arlo' }))
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Open table as Vex Arlo' }))
     })
     expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-mine' } }])
   })
@@ -808,7 +808,7 @@ describe('Play from the Game page', () => {
     expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])
 
     await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Play Vex Arlo' }))
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Open table as Vex Arlo' }))
     })
     expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-mine' } }])
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -878,7 +878,9 @@ describe('Play from the Game page', () => {
 
     expect(offered(dialog)).toEqual([])
     expect(within(dialog).getByText(/No Pilot in this Game is assigned to you/)).toBeTruthy()
-    expect(within(dialog).getByRole('button', { name: 'Play' }).hasAttribute('disabled')).toBe(true)
+    expect(
+      within(dialog).getByRole('button', { name: 'Open table' }).hasAttribute('disabled')
+    ).toBe(true)
   })
 
   test('every pilot it offers opens Play at the gate, not "Pilot not found"', async () => {
@@ -893,7 +895,7 @@ describe('Play from the Game page', () => {
       fireEvent.click(within(dialog).getAllByRole('radio')[i] as HTMLElement)
       navigations.length = 0
       await act(async () => {
-        fireEvent.click(within(dialog).getByRole('button', { name: /^Play / }))
+        fireEvent.click(within(dialog).getByRole('button', { name: /^Open table as / }))
       })
       ids.push((navigations[0] as { params: { id: string } }).params.id)
       dialog = await openPicker()

@@ -30,7 +30,7 @@ import { expect, test } from './fixtures'
  * A Game started from the Starter Set template, with the signed-in account as
  * its Mediator (ADR-038 §1). It picks up Bonesaw and his Scrapper, so the
  * pilot is in this browser and the Scrapper is his to board. Bonesaw is opened
- * from the Play landing's door, "Play Bonesaw in <Game>".
+ * from the Play landing's door, "Open table as Bonesaw in <Game>".
  *
  * ## The dice
  *

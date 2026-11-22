@@ -374,7 +374,11 @@ export function Sheet({
         : null
   const play =
     playPilot && status !== 'signedOut'
-      ? { name: playPilot.name, onPlay: () => go(cockpitPath(playPilot.id)) }
+      ? {
+          name: playPilot.name,
+          gameId: playPilot.gameId ?? null,
+          onPlay: () => go(cockpitPath(playPilot.id)),
+        }
       : undefined
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local

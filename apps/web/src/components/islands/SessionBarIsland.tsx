@@ -1,4 +1,3 @@
-import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { layer, space, weight } from '../../design/tokens'
@@ -8,7 +7,7 @@ import { clientSwap } from '../../runtime/clientSwap'
 import { Button, Callout, Text } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { LiveSession } from './sessionBar.model'
-import { dismissSession, liveSessionsOf, sessionsToShow } from './sessionBar.model'
+import { dismissSession, liveSessionsOf, sessionDoorHref, sessionsToShow } from './sessionBar.model'
 
 /**
  * "Session live · <Game>" with its door, on a Reference page (r2 I1): a
@@ -16,12 +15,14 @@ import { dismissSession, liveSessionsOf, sessionsToShow } from './sessionBar.mod
  * notices tell them on its pages (`play/TableNotices.tsx`). Mounted only while
  * somebody is signed in (`client:signedIn`); it asks the Worker which of the
  * reader's Games have a session running (`games.liveSessions`) when it mounts,
- * when the tab comes back into view, and each minute the tab is in view. A
- * Reference page holds no room socket, so this is the whole of what it hears.
+ * when the tab or its window is looked at again, and every twenty seconds the
+ * tab is in view. A Reference page holds no room socket, so this is the whole
+ * of what it hears. Its door opens the reader's seat (`sessionDoorHref`), as
+ * the app's own strip does, under the same name (glossary §9, r3 H3).
  */
 
-/** How often a tab in view asks again. */
-const ASK_EVERY_MS = 60_000
+/** How often a tab in view asks again: an open page hears of a session within seconds (r3 H3). */
+const ASK_EVERY_MS = 20_000
 
 /**
  * Along the window's foot, over the page: a Reference page's band starts
@@ -88,10 +89,13 @@ export function SessionBar({ ask = askWorker }: { ask?: () => Promise<LiveSessio
     read()
     const every = window.setInterval(read, ASK_EVERY_MS)
     document.addEventListener('visibilitychange', read)
+    // A window brought back to the front without its tab ever being hidden.
+    window.addEventListener('focus', read)
     return () => {
       over = true
       window.clearInterval(every)
       document.removeEventListener('visibilitychange', read)
+      window.removeEventListener('focus', read)
     }
   }, [ask])
   const shown = sessionsToShow(live, tabStorage())
@@ -106,8 +110,10 @@ export function SessionBar({ ask = askWorker }: { ask?: () => Promise<LiveSessio
               <div style={BAR}>
                 <Text style={STRONG}>{what}</Text>
                 <span style={ACTIONS}>
-                  <Button variant="primary" size="compact" href={gamePath(session.gameId)}>
-                    {islandsCopy('joinSession')}
+                  <Button variant="primary" size="compact" href={sessionDoorHref(session)}>
+                    {session.mediator === true
+                      ? islandsCopy('mediate')
+                      : islandsCopy('joinSession')}
                   </Button>
                   <Button
                     size="compact"

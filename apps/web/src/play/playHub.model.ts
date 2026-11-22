@@ -14,6 +14,7 @@ import type { PairSide } from '../lib/units/crewPair'
 import { crewPair, gauge, pool } from '../lib/units/crewPair'
 import { techLevelReading, VITAL } from '../lib/units/readings'
 import { playCopy } from '../messages/play'
+import { sessionDoor, sessionDoorAs } from './sessionDoor.model'
 import type { CrewVitals } from './useGameFeed'
 
 /** A label-first chip on a Game's Compact: `Mediator`, `3 here`, `DOWNTIME | Step 4`. */
@@ -61,7 +62,8 @@ export function gameChips(args: {
 /**
  * A Game's doors, in order: the table runner's first (Start group session
  * until one is live, then Mediate; Mediate while the session is unknown), then one for each pilot of yours in it
- * (Play <pilot>, by their callsign), so a Mediator
+ * (Join session while one is live, else Open table: `sessionDoor`; with
+ * several pilots each door adds its callsign), so a Mediator
  * who also plays and a player with two pilots reach every one of them. None
  * when you neither mediate nor have a pilot there (its page is where you add one).
  */
@@ -87,12 +89,15 @@ export function gameDoors(
         ]
   return [
     ...runner,
-    // A pilot's door says Play and the pilot, live or not (glossary §9): Join
-    // session is the Game's own door, on its page.
+    // The seat's door has the Game's two names, as on its page (glossary §9,
+    // r3 H3); two pilots' doors are told apart by callsign.
     ...pilots.map((pilot) => ({
-      label: playCopy('playPilot', { name: pilot.name }),
+      label:
+        pilots.length === 1
+          ? sessionDoor(live === true)
+          : `${sessionDoor(live === true)} · ${pilot.name}`,
       href: cockpitPath(pilot.id),
-      ariaLabel: playCopy('playPilotIn', { name: pilot.name, game: game.name }),
+      ariaLabel: sessionDoorAs(live === true, pilot.name, game.name),
     })),
   ]
 }

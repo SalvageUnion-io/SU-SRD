@@ -112,7 +112,7 @@ export async function forgetSheetMode(page: Page): Promise<void> {
 }
 
 /**
- * A door's path on Your Games, read off its link: "Play Bonesaw in <Game>" or,
+ * A door's path on Your Games, read off its link: "Open table as Bonesaw in <Game>" or,
  * once a group session is live, "Mediate <Game>" (`PlayLanding`), so Play is
  * reached the way a player reaches it. The browser path, the app's base included.
  */
