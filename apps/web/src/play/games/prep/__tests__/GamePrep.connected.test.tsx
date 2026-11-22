@@ -273,7 +273,10 @@ describe('a Game’s encounters', () => {
       expect(menu.getByRole('menuitem', { name }).getAttribute('aria-disabled')).toBe('true')
     }
     expect((screen.getByLabelText('Notes') as HTMLTextAreaElement).disabled).toBe(true)
-    expect(screen.getByRole('button', { name: '+ Add a session' })).toHaveProperty('disabled', true)
+    expect(screen.getByRole('button', { name: '+ Add a session plan' })).toHaveProperty(
+      'disabled',
+      true
+    )
   })
 })
 
@@ -300,7 +303,7 @@ describe('a Game’s NPCs', () => {
 
 describe('the plan', () => {
   const sessionDays = () =>
-    within(screen.getByRole('list', { name: 'Sessions' }))
+    within(screen.getByRole('list', { name: 'Session plans' }))
       .getAllByLabelText('Day')
       .map((input) => (input as HTMLInputElement).value)
 
@@ -316,14 +319,22 @@ describe('the plan', () => {
     setQueryAnswers({ 'games.get': GAME, 'plan.get': undefined })
     await renderPrep()
     expect((screen.getByLabelText('Notes') as HTMLTextAreaElement).disabled).toBe(true)
-    expect(screen.getByRole('button', { name: '+ Add a session' })).toHaveProperty('disabled', true)
-    expect(screen.queryByText(/No sessions yet/)).toBeNull()
+    expect(screen.getByRole('button', { name: '+ Add a session plan' })).toHaveProperty(
+      'disabled',
+      true
+    )
   })
 
-  test('a Game with no plan yet says there are no sessions', async () => {
+  // MD4-03, LG4-17: the list is hand-kept, and says a group session never adds to it.
+  test('the list is Session plans, and says a group session does not add one', async () => {
     setQueryAnswers({ 'games.get': GAME, 'plan.get': null })
     await renderPrep()
-    expect(screen.getByText(/No sessions yet/)).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /Session plans/ })).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Notes for each time the table meets. Starting a group session does not add one.'
+      )
+    ).toBeTruthy()
   })
 
   // MD4-01: a note typed and not clicked out of was lost to a refresh.
@@ -427,7 +438,7 @@ describe('the plan', () => {
   test('a session’s day, title and note are each saved on leaving the field', async () => {
     await renderPrep()
     const early = within(
-      within(screen.getByRole('list', { name: 'Sessions' })).getAllByRole(
+      within(screen.getByRole('list', { name: 'Session plans' })).getAllByRole(
         'listitem'
       )[0] as HTMLElement
     )
@@ -456,7 +467,7 @@ describe('the plan', () => {
   test('a new day does not move a session until its form is left, and each form is numbered', async () => {
     await renderPrep()
     const items = () =>
-      within(screen.getByRole('list', { name: 'Sessions' })).getAllByRole('listitem')
+      within(screen.getByRole('list', { name: 'Session plans' })).getAllByRole('listitem')
     expect(items().map((li) => within(li).getByRole('heading').textContent)).toEqual([
       'Session 1',
       'Session 2',
@@ -481,7 +492,7 @@ describe('the plan', () => {
   })
 
   // MD3-07: it took today's day, so it jumped above the planned ones as "Session 1".
-  test('+ Add a session saves a new one after the last, numbered next and in view', async () => {
+  test('+ Add a session plan saves a new one after the last, numbered next and in view', async () => {
     const shown: Element[] = []
     const scroll = spyOn(Element.prototype, 'scrollIntoView').mockImplementation(function (
       this: Element
@@ -490,7 +501,7 @@ describe('the plan', () => {
     })
     try {
       await renderPrep()
-      await click(screen.getByRole('button', { name: '+ Add a session' }))
+      await click(screen.getByRole('button', { name: '+ Add a session plan' }))
       await settle(() => saves.length > 0)
       const now = new Date()
       const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
@@ -499,7 +510,9 @@ describe('the plan', () => {
       expect(saves[0]?.sessions).toHaveLength(3)
       expect(saves[0]?.sessions[2]).toMatchObject({ date: day, note: '' })
       expect(sessionDays()).toEqual(['2026-11-28', '2026-12-05', day])
-      const rows = within(screen.getByRole('list', { name: 'Sessions' })).getAllByRole('listitem')
+      const rows = within(screen.getByRole('list', { name: 'Session plans' })).getAllByRole(
+        'listitem'
+      )
       expect(
         within(rows[2] as HTMLElement).getByRole('heading', { name: 'Session 3' })
       ).toBeTruthy()

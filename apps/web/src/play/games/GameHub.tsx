@@ -117,7 +117,7 @@ function GameSections({ game }: { game: Game }) {
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
-          {/* The session's record, outside Play: nothing until the Game has had one. */}
+          {/* The table's record, outside Play: nothing until the Game has been played. */}
           <LastSession gameId={gameId} />
         </div>
         <aside aria-labelledby="the-game-heading" style={HUB_SIDEBAR}>

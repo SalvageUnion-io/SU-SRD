@@ -1,8 +1,10 @@
 /**
- * LastSession — "Last session" on a Game's own page (play.md §16): what the
- * table did in its newest group session, with times, read off the table's
- * event stream (`lastSession.model.ts`). While one runs it reads "This
- * session". Nothing until the Game has had one.
+ * LastSession — "Last time at the table" on a Game's own page (play.md §16):
+ * what the table did when it last played, with times, read off the table's
+ * event stream (`lastSession.model.ts`), whether or not a group session was
+ * started for it. While one runs it reads "This session". Its Mediator is
+ * also told when an encounter is still running (MD4-04). Nothing until the
+ * Game has been played.
  */
 
 import { useState } from 'react'
@@ -21,10 +23,27 @@ const SHOWN = 12
 
 export function LastSession({ gameId }: { gameId: string }) {
   const events = useTableRead('changeLog.events', { gameId })
+  // The Mediator's alone: nobody else is served it, so nobody else is told.
+  const running = useTableRead('mediator.running', { gameId }) ?? null
   const viewerId = useViewerId()
   const [all, setAll] = useState(false)
   const record = events === undefined ? null : lastSession(events)
-  if (record === null) return null
+  if (record === null && running === null) return null
+  const stillRunning = running !== null && (
+    <Text variant="note">{playGamesCopy('encounterStillRunning', { name: running.name })}</Text>
+  )
+  if (record === null) {
+    return (
+      <SlabSection
+        as="h2"
+        bodyStyle={HUB_BODY}
+        id="last-session-heading"
+        title={playGamesCopy('lastSession')}
+      >
+        {stillRunning}
+      </SlabSection>
+    )
+  }
   const lines = all ? record.lines : record.lines.slice(0, SHOWN)
   return (
     <SlabSection
@@ -33,6 +52,7 @@ export function LastSession({ gameId }: { gameId: string }) {
       id="last-session-heading"
       title={record.endedAt === null ? playGamesCopy('thisSession') : playGamesCopy('lastSession')}
     >
+      {stillRunning}
       <Text variant="note">
         {record.endedAt === null
           ? playGamesCopy('sessionSince', { start: formatDateTime(record.startedAt) })

@@ -305,6 +305,7 @@ export const playCopy = messages({
   unitVitals: '{name}’s vitals',
   sessionLive: 'Session live',
   startGroupSession: 'Start group session',
+  startGroupSessionHint: 'Tells the table play has started and keeps a log for the Game page.',
   startSession: 'Start session',
   endGroupSession: 'End group session',
   couldNotStartSession: 'Could not start the session.',

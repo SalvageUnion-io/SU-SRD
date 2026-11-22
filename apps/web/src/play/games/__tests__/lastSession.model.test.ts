@@ -11,8 +11,54 @@ const e = (ts: number, over: Partial<TableEvent> = {}): TableEvent => ({
   ...over,
 })
 
-test('no session in the stream, no record', () => {
-  expect(lastSession([e(1), e(2)])).toBeNull()
+test('nothing played, no record: a member joining is not play', () => {
+  expect(lastSession([])).toBeNull()
+  expect(lastSession([e(1, { kind: 'join' }), e(2, { kind: 'role' })])).toBeNull()
+})
+
+// MD4-04: an encounter run before Start group session read "Rolls: 0".
+test('play counts whether or not a session was started for it', () => {
+  const record = lastSession([e(1, { kind: 'roll' }), e(2), e(5, { kind: 'roll' })])
+  expect(record).toMatchObject({ startedAt: 1, endedAt: 5, rolls: 2, changes: 1 })
+})
+
+test('play before Start group session belongs to the session that follows', () => {
+  const record = lastSession([
+    e(1, { kind: 'session', session: 'start' }),
+    e(2, { kind: 'session', session: 'end' }),
+    e(3, { kind: 'roll' }),
+    e(4),
+    e(5, { kind: 'session', session: 'start' }),
+    e(6, { kind: 'roll' }),
+    e(9, { kind: 'session', session: 'end' }),
+  ])
+  expect(record).toMatchObject({ startedAt: 3, endedAt: 9, rolls: 2, changes: 1 })
+  expect(record?.lines.map((l) => l.ts)).toEqual([6, 4, 3])
+})
+
+test('a session with nothing in it does not replace a real one', () => {
+  const real = [
+    e(1, { kind: 'session', session: 'start' }),
+    e(2, { kind: 'roll' }),
+    e(3, { kind: 'session', session: 'end' }),
+  ]
+  const ended = lastSession([
+    ...real,
+    e(10, { kind: 'session', session: 'start' }),
+    e(11, { kind: 'session', session: 'end' }),
+  ])
+  expect(ended).toMatchObject({ startedAt: 1, endedAt: 3, rolls: 1 })
+  // Nor while the empty one still runs.
+  const live = lastSession([...real, e(10, { kind: 'session', session: 'start' })])
+  expect(live).toMatchObject({ startedAt: 1, endedAt: 3, rolls: 1 })
+})
+
+test('with no play anywhere, the newest session shows, empty as it is', () => {
+  const record = lastSession([
+    e(1, { kind: 'session', session: 'start' }),
+    e(4, { kind: 'session', session: 'end' }),
+  ])
+  expect(record).toMatchObject({ startedAt: 1, endedAt: 4, rolls: 0, lines: [] })
 })
 
 test('the newest session: what happened between its start and its end, newest first', () => {
@@ -26,11 +72,11 @@ test('the newest session: what happened between its start and its end, newest fi
     e(12),
     e(13),
     e(20, { kind: 'session', session: 'end' }),
-    e(21),
   ]
   const record = lastSession([...events].reverse())
-  expect(record).toMatchObject({ startedAt: 10, endedAt: 20, rolls: 1, changes: 2 })
-  expect(record?.lines.map((l) => l.ts)).toEqual([13, 12, 11])
+  // What was played between the two sessions counts with the second.
+  expect(record).toMatchObject({ startedAt: 4, endedAt: 20, rolls: 1, changes: 3 })
+  expect(record?.lines.map((l) => l.ts)).toEqual([13, 12, 11, 4])
 })
 
 test('a session still running has no end', () => {

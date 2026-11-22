@@ -101,7 +101,8 @@ export const playGamesCopy = messages({
     'No Pilot in this Game is assigned to you. Add one of yours, or use Assign to me on a free one in the Crew list, then play.',
   assignToMeNamed: 'Assign to me: {name}',
   awaitingYourAnswer: 'Awaiting your answer',
-  lastSession: 'Last session',
+  lastSession: 'Last time at the table',
+  encounterStillRunning: 'An encounter is still running: {name}. Mediate opens it.',
   thisSession: 'This session',
   sessionSince: 'Started {start}.',
   sessionFromTo: '{start} to {end}.',
@@ -152,7 +153,7 @@ export const playGamesCopy = messages({
   handTheTableOver: 'Hand the table over?',
   whoeverMediatesNowStandsDown: ' Whoever mediates now stands down.',
   handOverGoes:
-    'Goes across: the table, the opposition on its field, the private rolls on the Feed, and the session list with its days and titles.',
+    'Goes across: the table, the opposition on its field, the private rolls on the Feed, and the session plans with their days and titles.',
   handOverStays:
     'Stays with you: your Game notes and private session notes, and the encounters and NPCs in your Mediator’s Kit. The new Mediator starts with empty notes.',
   whoMediates: 'Who mediates',
@@ -164,7 +165,7 @@ export const playGamesCopy = messages({
   npcs: 'NPCs',
   openPrep: 'Open this Game’s Prep',
   prepLede:
-    'What you prepare for this Game: its encounters in order, its NPCs, your notes and sessions.',
+    'What you prepare for this Game: its encounters in order, its NPCs, your notes and session plans.',
   prep: 'Prep',
   prepFor: '{name} · Prep',
   game: 'Game',
@@ -191,19 +192,21 @@ export const playGamesCopy = messages({
   planSaving: 'Saving…',
   planSaved: 'Saved',
   planNotSaved: 'Not saved',
-  sessions: 'Sessions',
-  noSessionsYet: 'No sessions yet. Add one for each time the table meets.',
+  // Prep's hand-kept list is 'Session plans' (glossary 10): a 'session' alone is the group session.
+  sessions: 'Session plans',
+  sessionPlansNote:
+    'Notes for each time the table meets. Starting a group session does not add one.',
   nextSession: 'Next session',
   sessionNumber: 'Session {n}',
   sessionDay: 'Day',
   sessionTitle: 'Title',
   sessionPrivateNote: 'Private note',
-  addSession: '+ Add a session',
+  addSession: '+ Add a session plan',
   removeSession: 'Remove',
   removeSessionNamed: 'Remove {name}',
   removeSessionTitle: 'Remove {name}?',
   removing: 'Removing…',
-  removeSessionBody: 'The session and its private note are removed for good.',
+  removeSessionBody: 'The session plan and its private note are removed for good.',
   // The Game page's crew manifest.
   mechsGroup: 'Mechs with no Pilot',
   crawlerGroup: 'Union Crawler',

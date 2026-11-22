@@ -91,6 +91,8 @@ Scene    { id, title, note?, encounterId? }
 ```
 
 Layer 1 builds the notes and the dated session list with a private note each.
+The page calls the list **Session plans** (glossary 10): a "session" alone is the
+group session, and starting one never adds a plan.
 `scenes` is in the schema and unbuilt: the next layer adds its editor without
 a migration. A scene names an encounter by id and never copies it. The plan
 is replaced whole on save; one Mediator writes it, so there is no merge.

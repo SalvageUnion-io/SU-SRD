@@ -1,6 +1,6 @@
 /**
  * The plan half of a Game's Prep (ADR-067 §4): the Mediator's notes for the
- * Game, and its sessions as a dated list, each with a private note. Nothing
+ * Game, and its session plans as a dated list, each with a private note. Nothing
  * here reaches a player: the plan is the table runner's alone (`plan.get`).
  *
  * Typing edits a draft that saves itself a moment after typing stops, when a
@@ -151,9 +151,7 @@ export function GamePlanSections({
         title={playGamesCopy('sessions')}
         count={sessions.length}
       >
-        {sessions.length === 0 && !loading && (
-          <Text variant="note">{playGamesCopy('noSessionsYet')}</Text>
-        )}
+        <Text variant="note">{playGamesCopy('sessionPlansNote')}</Text>
         <ul style={SESSIONS} aria-label={playGamesCopy('sessions')}>
           {sessions.map((session, at) => (
             <li
