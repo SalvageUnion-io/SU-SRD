@@ -79,7 +79,8 @@ export type TableEvent = {
   /**
    * The member the event is about. An assignment taken from them: their
    * screen says so itself (`assignmentNotices`). A `role` event: who mediates
-   * now, whose screen pins it.
+   * now, whose screen pins it. A proposal: whose it is to answer, whose
+   * screen pins it.
    */
   about?: string
 }
@@ -322,7 +323,18 @@ export class GameEvents {
           : []
       case 'ops.propose': {
         const op = this.store.op(String(value))
-        return op === null ? [] : say('proposal', `Mediator proposes ${this.proposalLine(op)}`)
+        if (op === null) return []
+        // About whoever answers it: their screen pins it, so it toasts them nothing (r3 H2).
+        const text = `Mediator proposes ${this.proposalLine(op)}`
+        const about = this.store.unit(op.unitId)?.ownerId ?? null
+        return [
+          this.note(actor, at, {
+            kind: 'proposal',
+            text,
+            key: text,
+            ...(about === null ? {} : { about }),
+          }),
+        ]
       }
       case 'ops.accept':
       case 'ops.decline': {

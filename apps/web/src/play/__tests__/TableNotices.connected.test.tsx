@@ -350,9 +350,12 @@ describe('toasts', () => {
         text: 'Bonesaw boards Mazona',
         actorId: 'u1',
       }
+      // An alert just sent is pinned, so it is not toasted too (r3 H2).
+      const pinned = { ...told, _id: 'e-4', ts: Date.now(), text: 'Mediator · Take cover' }
       await act(async () => {
-        serveAll(answers({ 'changeLog.events': [told, mine, theirs, old] }))
+        serveAll(answers({ 'changeLog.events': [pinned, told, mine, theirs, old] }))
       })
+      expect(notice('alert')?.textContent).toContain('Take cover')
       expect(toasts).toEqual([{ text: 'Mediator · Raiders close in', id: 'table-event-e-3' }])
     } finally {
       mock.module('../../components/index', () => ({ ...components, toast: real }))

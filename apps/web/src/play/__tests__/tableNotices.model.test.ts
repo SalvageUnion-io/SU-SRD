@@ -10,6 +10,7 @@ import {
   pausedTitle,
   pinnedAlert,
   pinnedRole,
+  pinnedSays,
   resumedTitle,
 } from '../tableNotices.model'
 
@@ -79,6 +80,38 @@ describe('eventsToToast', () => {
       alert({ _id: 'theirs', ts: 2 }),
     ]
     expect(eventsToToast(events, heard, 'me').toast.map((e) => e._id)).toEqual(['theirs'])
+  })
+})
+
+describe('pinnedSays (r3 H2): no toast for what the pinned strip is saying', () => {
+  const none = { alertId: null, roleId: null, sessionLive: false, sessionEnded: false }
+  const alert = event({ _id: 'al', kind: 'alert', text: 'Mediator · Raiders close in' })
+
+  test('the pinned alert and the pinned hand over, by id', () => {
+    expect(pinnedSays(alert, { ...none, alertId: 'al' }, 'me')).toBe(true)
+    expect(pinnedSays(alert, { ...none, alertId: 'other' }, 'me')).toBe(false)
+    const role = event({ _id: 'r', kind: 'role', text: 'Me now mediates this Game', about: 'me' })
+    expect(pinnedSays(role, { ...none, roleId: 'r' }, 'me')).toBe(true)
+    expect(pinnedSays(role, none, 'me')).toBe(false)
+  })
+
+  test('a proposal that is mine to answer is pinned; a crewmate’s still toasts', () => {
+    const mine = event({ _id: 'p', kind: 'proposal', text: 'Mediator proposes X', about: 'me' })
+    expect(pinnedSays(mine, none, 'me')).toBe(true)
+    expect(pinnedSays({ ...mine, about: 'nell' }, none, 'me')).toBe(false)
+    // A proposal accepted or declined is about nobody: the table hears it.
+    const answered = event({ _id: 'a', kind: 'proposal', text: 'Nell accepted: X' })
+    expect(pinnedSays(answered, none, 'me')).toBe(false)
+  })
+
+  test('the session starting and ending, where the strip says it', () => {
+    const start = event({ _id: 's', kind: 'session', session: 'start', text: 'started' })
+    const end = event({ _id: 'e', kind: 'session', session: 'end', text: 'ended' })
+    expect(pinnedSays(start, { ...none, sessionLive: true }, 'me')).toBe(true)
+    expect(pinnedSays(start, { ...none, sessionEnded: true }, 'me')).toBe(false)
+    expect(pinnedSays(end, { ...none, sessionEnded: true }, 'me')).toBe(true)
+    expect(pinnedSays(end, none, 'me')).toBe(false)
+    expect(pinnedSays(event({ _id: 'v' }), { ...none, sessionLive: true }, 'me')).toBe(false)
   })
 })
 

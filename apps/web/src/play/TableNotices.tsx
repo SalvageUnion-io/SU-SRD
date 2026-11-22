@@ -14,13 +14,14 @@
  *    otherwise just vanish.
  *  - **Toasts**: what needs a look, off the table's event stream
  *    (`tableNotices.model.ts`, the Feed's own source): a proposal, an alert,
- *    the session and Downtime starting and ending, the Mediator's roll, and
- *    "Your turn". A crewmate's vitals and acts are the Feed's alone.
+ *    the session and Downtime starting and ending and the Mediator's roll.
+ *    A crewmate's vitals and acts are the Feed's alone, and nothing the
+ *    pinned strip is already saying is toasted too (`pinnedSays`, r3 H2).
  */
 
 import { cockpitPath, gamePath, mediatePath, sheetPath } from 'game-domain/entityKinds'
 import { pilotLabel } from 'game-domain/pilotLabel'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Callout, Text, toast, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { useOwnUnits } from '../lib/entities'
@@ -43,6 +44,7 @@ import {
   pausedTitle,
   pinnedAlert,
   pinnedRole,
+  pinnedSays,
   resumedTitle,
 } from './tableNotices.model'
 import { useGameSession } from './useGameSession'
@@ -198,6 +200,12 @@ function GameNotices({
   })
   // The viewer's own: the replica holds every crewmate's pilot too (LG-02).
   const pilots = gamePilots(useOwnUnits('pilot'), gameId)
+  // The viewer's pilots' pages, as one value: an effect below reads them.
+  const pilotRootsKey = pilots.map((pilot) => sheetPath('pilot', pilot.id)).join('\n')
+  const pilotRoots = useMemo(
+    () => (pilotRootsKey === '' ? [] : pilotRootsKey.split('\n')),
+    [pilotRootsKey]
+  )
   const [, redraw] = useState(0)
   const dismiss = (key: string) => {
     dismissed.add(key)
@@ -210,7 +218,18 @@ function GameNotices({
     if (events === undefined) return
     const next = eventsToToast(events, heard.current, viewerId)
     heard.current = next.heard
+    // What the pinned strip is saying is not toasted too (r3 H2).
+    const now = Date.now()
+    const pinned = {
+      alertId: pinnedAlert(events, dismissed, viewerId, now)?._id ?? null,
+      roleId: mediator
+        ? (pinnedRole(events, new Set([...dismissed, ...seenRoles()]), viewerId, now)?._id ?? null)
+        : null,
+      sessionLive: !inPlay && !ownPage && !dismissed.has(`session:${gameId}:live`),
+      sessionEnded: onGamePages(pathname, gamePath(gameId), pilotRoots),
+    }
     for (const event of next.toast) {
+      if (pinnedSays(event, pinned, viewerId)) continue
       // A hand over to the viewer is said to them, not about them.
       const mine = event.kind === 'role' && event.about === viewerId
       toast(mine ? playCopy('youNowMediate') : event.text, {
@@ -218,26 +237,14 @@ function GameNotices({
         description: gameName,
       })
     }
-  }, [events, viewerId, gameName])
+  }, [events, viewerId, gameName, mediator, inPlay, ownPage, pathname, gameId, pilotRoots])
 
   // Whose turn the Mediator marked (r2 E1): mine is pinned on every screen
-  // (every Play tab, my sheet), and said once as it becomes mine.
+  // (every Play tab, my sheet). The strip is a live region and says it as it
+  // becomes mine, so no toast repeats it (r3 H2).
   const scene = useTableRead('scenes.current', { gameId })
   const turn = myTurn(scene?.upNow, pilots)
-  const turnId = turn?.id ?? null
   const turnName = turn === null ? null : pilotLabel(turn)
-  const toldTurn = useRef<string | null | undefined>(undefined)
-  useEffect(() => {
-    // The first reading is history: a screen opened mid-turn has the strip, no toast.
-    if (scene === undefined) return
-    const before = toldTurn.current
-    toldTurn.current = turnId
-    if (before === undefined || turnId === null || turnId === before) return
-    toast(playCopy('yourTurnNamed', { name: turnName ?? '' }), {
-      id: `table-turn-${gameId}`,
-      description: gameName,
-    })
-  }, [scene, turnId, turnName, gameId, gameName])
 
   // The Stop Sign names the tab, whatever screen set its title.
   const paused = sign?.shown === true
@@ -263,11 +270,7 @@ function GameNotices({
   // A session that just ended says so (the events' own record), until dismissed.
   const live = session?.live === true
   // Said to the other members, on this Game's pages alone (r2 C5).
-  const here = onGamePages(
-    pathname,
-    gamePath(gameId),
-    pilots.map((pilot) => sheetPath('pilot', pilot.id))
-  )
+  const here = onGamePages(pathname, gamePath(gameId), pilotRoots)
   const endedAt = here ? endedSession(events ?? [], Date.now(), viewerId) : null
 
   const alert = pinnedAlert(events ?? [], dismissed, viewerId, Date.now())

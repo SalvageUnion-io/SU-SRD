@@ -20,8 +20,8 @@ const TOAST = {
 /**
  * A phone's toast stands clear of a tab row at the screen's foot and of the
  * home indicator: `--su-toast-bottom` (`styles/partials/atoms-leaves.css`).
- * Held at the top (`toastPlacement.ts`), it stands under the status bar:
- * `--su-toast-top`.
+ * Held at the top (`toastPlacement.ts`), it stands under the status bar and
+ * Play's bar: `--su-toast-top`.
  */
 const MOBILE_OFFSET = {
   bottom: 'var(--su-toast-bottom)',
@@ -35,7 +35,7 @@ const MOBILE_OFFSET = {
  * until one draws.
  */
 export function Toaster() {
-  // A phone's Play screen holds its toasts over the bar, off its controls (r2 C4).
+  // A phone's Play screen holds its toasts at the top, under its bar, off its controls (r2 C4, r3 H2).
   const onTop = useToastsOnTop()
   return (
     <SonnerToaster
