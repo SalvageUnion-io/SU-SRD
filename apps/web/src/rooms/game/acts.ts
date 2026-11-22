@@ -107,9 +107,11 @@ const GAME_ACTS = {
 
   'downtime.state': (c: ActContext) => c.room.play.downtime(c.actor),
   'downtime.begin': (c: ActContext) => {
+    const was = c.room.scene.scene(c.actor).upNow
     const began = c.room.play.beginDowntime(c.actor, c.at)
-    // A turn is a Scene's: nobody is up in Downtime (r2 E1).
+    // A turn is a Scene's: nobody is up in Downtime (r2 E1), and the turn's resolve is closed (r5 A7).
     if (began) c.room.scene.clearUpNow(c.at)
+    if (began && was !== undefined) c.room.play.closeUnapplied([was], c.at)
     return began
   },
   'downtime.advance': (c: ActContext) => c.room.play.advanceDowntime(c.actor),
@@ -160,9 +162,17 @@ const GAME_ACTS = {
   'scenes.setConditions': (c: ActContext, a: { conditions: string[] }) =>
     c.room.scene.setConditions(c.actor, a.conditions, c.at),
   'scenes.passHour': (c: ActContext) => c.room.scene.passHour(c.actor, c.at),
-  'scenes.setUpNow': (c: ActContext, a: { pilotId: string | null }) =>
-    c.room.scene.setUpNow(c.actor, a.pilotId, c.at),
-  'scenes.endTurn': (c: ActContext) => c.room.scene.endTurn(c.actor, c.at),
+  'scenes.setUpNow': (c: ActContext, a: { pilotId: string | null }) => {
+    const was = c.room.scene.scene(c.actor).upNow
+    c.room.scene.setUpNow(c.actor, a.pilotId, c.at)
+    // The turn moved on: what its pilot left unapplied is closed (r5 A7).
+    if (was !== undefined && was !== a.pilotId) c.room.play.closeUnapplied([was], c.at)
+  },
+  'scenes.endTurn': (c: ActContext) => {
+    const pilotId = c.room.scene.endTurn(c.actor, c.at)
+    c.room.play.closeUnapplied([pilotId], c.at)
+    return pilotId
+  },
   'salvageAreas.here': (c: ActContext) => c.room.scene.salvageArea(c.actor),
   'salvageAreas.set': (c: ActContext, a: { area: SalvageArea | null }) =>
     c.room.scene.setSalvageArea(c.actor, a.area, c.at),
@@ -177,8 +187,9 @@ const GAME_ACTS = {
   'session.start': (c: ActContext) => c.room.session.start(c.actor, c.at),
   'session.end': (c: ActContext) => {
     c.room.session.end(c.actor)
-    // The table got up: nobody is up now (r2 E1).
+    // The table got up: nobody is up now (r2 E1), and nothing is left resolving (r5 A7).
     c.room.scene.clearUpNow(c.at)
+    c.room.play.closeUnapplied(null, c.at)
   },
   'safety.showStop': (c: ActContext) => c.room.safety.showStop(c.actor, c.at),
   'safety.liftStop': (c: ActContext) => c.room.safety.liftStop(c.actor, c.at),

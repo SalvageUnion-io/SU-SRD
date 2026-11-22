@@ -116,6 +116,19 @@ export abstract class SeatTable {
     this.write(actor, pilotId, at, () => ({ resolving: null }))
   }
 
+  /**
+   * Close every resolve nobody applied, on these pilots' seats or, with null,
+   * on every seat (r5 A7): the room's own act when a turn or the session
+   * ends, so a roll never sits "resolving" across turns and weeks.
+   */
+  closeUnapplied(pilotIds: readonly string[] | null, at: number): void {
+    for (const seat of this.pilotSeats()) {
+      if (pilotIds !== null && !pilotIds.includes(seat.pilotId)) continue
+      if (seat.resolving === null || seat.resolving.applied) continue
+      this.putSeat({ ...seat, resolving: null, updatedAt: at })
+    }
+  }
+
   /** Write part of a pilot's seat, as whoever may write the pilot; the row is made on first use. */
   private write(
     actor: string,

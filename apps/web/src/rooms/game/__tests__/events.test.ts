@@ -216,6 +216,8 @@ describe('the table’s events', () => {
     act(STRANGER, 'redeem', { code, profile: { displayName: 'Nell', avatarUrl: null } }, AT + 8)
     expect(texts()).toEqual([
       'Nell joined the Game',
+      // Left resolving when the session ended (r5 A7).
+      'p1 · Pilot p1 · Patch: not applied',
       'Mediator ended the group session',
       'Player accepted: p1 · Pilot p1 AP → 2',
       'Mediator proposes p1 · Pilot p1 AP → 2',
@@ -571,6 +573,50 @@ describe('the table’s events', () => {
     // The same pilot again, or nobody, says nothing more.
     expect(act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 2)).toEqual([])
     expect(act(MEDIATOR, 'scenes.setUpNow', { pilotId: null }, AT + 3)).toEqual([])
+  })
+
+  test('a resolve nobody applied is closed, not applied, when its turn or the session ends (r5 A7)', () => {
+    const { act, room, texts } = seated()
+    const open = (name: string) =>
+      act(PLAYER, 'seats.setResolving', {
+        pilotId: 'p1',
+        resolving: {
+          ref: 'k',
+          name,
+          activated: true,
+          roll: { roll: 12, band: 'success' },
+          applied: false,
+        },
+      })
+    act(MEDIATOR, 'session.start', undefined as never, AT)
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    open('Chainsaw Arm')
+    const ended = act(PLAYER, 'scenes.endTurn', undefined as never, AT + 2)
+    expect(ended.map((e) => e.text)).toEqual([
+      expect.stringContaining('ended their turn'),
+      expect.stringContaining(' · Chainsaw Arm: not applied'),
+    ])
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+    // The turn moved on by the Mediator's hand closes it too.
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 3)
+    open('Provoke')
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: null }, AT + 4)
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+    expect(texts(MEDIATOR)[0]).toContain(' · Provoke: not applied')
+    // Downtime beginning ends the turn too.
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 4)
+    open('Patch')
+    act(MEDIATOR, 'downtime.begin', undefined as never, AT + 4)
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+    act(MEDIATOR, 'downtime.end', undefined as never, AT + 4)
+    // And the session ending closes every seat's.
+    open('Red Laser')
+    const left = act(MEDIATOR, 'session.end', undefined as never, AT + 5)
+    expect(left.map((e) => e.text)).toEqual([
+      expect.stringContaining(' · Red Laser: not applied'),
+      expect.stringContaining('ended the group session'),
+    ])
+    expect(room.play.seat('p1')?.resolving).toBeNull()
   })
 
   test('the player who is up ends their own turn: the marker clears and the table is told (r4 B1)', () => {

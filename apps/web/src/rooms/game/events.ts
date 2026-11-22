@@ -137,6 +137,8 @@ export type EventsBefore = {
   revealed?: boolean
   /** Who was up: giving the same pilot the turn again tells nobody. */
   upNow?: string | null
+  /** The resolves nobody applied that the act may close (r5 A7). */
+  unapplied?: { pilotId: string; name: string }[]
 }
 
 /** A proposal's Undo: its Mediator's row changes with it, so every list is served again (r5 A2). */
@@ -201,13 +203,20 @@ export class GameEvents {
       case 'ops.withdraw':
         return { proposal: this.store.op(String(a.opId)) }
       case 'session.start':
-      case 'session.end':
         return { session: this.store.rows('select 1 from session where id = 1').length > 0 }
+      case 'session.end':
+        return {
+          session: this.store.rows('select 1 from session where id = 1').length > 0,
+          unapplied: this.unapplied(null),
+        }
       case 'downtime.begin':
-      case 'downtime.end':
+      case 'downtime.end': {
+        const was = name === 'downtime.begin' ? this.upNow() : null
         return {
           downtime: this.store.rows('select 1 from downtime_run where id = 1').length > 0,
+          unapplied: was === null ? [] : this.unapplied([was]),
         }
+      }
       case 'changeLog.reveal': {
         const row = this.store.rows(
           'select after from change_log where id = ?',
@@ -219,12 +228,12 @@ export class GameEvents {
         }
       }
       case 'scenes.setUpNow': {
-        const row = this.store.rows("select after from change_log where field = 'upNow'")[0]
-        const was =
-          typeof row?.after === 'string'
-            ? (JSON.parse(row.after) as { pilotId?: string | null }).pilotId
-            : null
-        return { upNow: was ?? null }
+        const was = this.upNow()
+        return { upNow: was, unapplied: was === null ? [] : this.unapplied([was]) }
+      }
+      case 'scenes.endTurn': {
+        const was = this.upNow()
+        return { unapplied: was === null ? [] : this.unapplied([was]) }
       }
       case 'safety.showStop':
       case 'safety.liftStop':
@@ -256,6 +265,16 @@ export class GameEvents {
     const say = (kind: TableEventKind, text: string, key = text) => [
       this.note(actor, at, { kind, text, key }),
     ]
+    // What the act closed unapplied, a line each (r5 A7).
+    const closed = () =>
+      (before.unapplied ?? [])
+        .filter((u) => this.unapplied([u.pilotId]).length === 0)
+        .map((u) =>
+          this.note(actor, at, {
+            kind: 'action',
+            text: `${unit(u.pilotId)} · ${u.name}: not applied`,
+          })
+        )
     switch (name) {
       case 'submit':
         return this.vitals(actor, value as SubmitResult, at)
@@ -311,6 +330,7 @@ export class GameEvents {
       case 'session.end':
         return before.session === true
           ? [
+              ...closed(),
               this.note(actor, at, {
                 kind: 'session',
                 text: `${this.runnerName(actor)} ended the group session`,
@@ -322,6 +342,7 @@ export class GameEvents {
       case 'downtime.begin':
         return value === true
           ? [
+              ...closed(),
               this.note(actor, at, {
                 kind: 'downtime',
                 text: `${this.runnerName(actor)} began Downtime`,
@@ -384,12 +405,23 @@ export class GameEvents {
       case 'scenes.setUpNow': {
         // Giving the turn is said to the whole table (r5 A4), as ending it is.
         const pilotId = a.pilotId
-        if (typeof pilotId !== 'string' || pilotId === before.upNow) return []
-        const text = `The Mediator gave ${unit(pilotId)} the turn`
-        return [this.note(actor, at, { kind: 'turn', text })]
+        if (pilotId === before.upNow) return []
+        const given =
+          typeof pilotId === 'string'
+            ? [
+                this.note(actor, at, {
+                  kind: 'turn',
+                  text: `The Mediator gave ${unit(pilotId)} the turn`,
+                }),
+              ]
+            : []
+        return [...closed(), ...given]
       }
       case 'scenes.endTurn':
-        return [this.note(actor, at, { kind: 'turn', text: `${unit(value)} ended their turn` })]
+        return [
+          this.note(actor, at, { kind: 'turn', text: `${unit(value)} ended their turn` }),
+          ...closed(),
+        ]
       case 'safety.showStop':
         // Nobody is named: who showed it stays in the room.
         return before.stop === true
@@ -491,6 +523,27 @@ export class GameEvents {
   }
 
   /** Write one line, or rewrite the open line it repeats. */
+  /** Who the Mediator has up, or null. */
+  private upNow(): string | null {
+    const row = this.store.rows("select after from change_log where field = 'upNow'")[0]
+    if (typeof row?.after !== 'string') return null
+    return (JSON.parse(row.after) as { pilotId?: string | null }).pilotId ?? null
+  }
+
+  /** The resolves nobody applied on these pilots' seats, or every seat's with null. */
+  private unapplied(pilotIds: readonly string[] | null): { pilotId: string; name: string }[] {
+    return this.store
+      .rows('select pilot_id, resolving from seats where resolving is not null')
+      .map((row) => ({
+        pilotId: String(row.pilot_id),
+        resolving: JSON.parse(String(row.resolving)) as { name?: string; applied?: boolean },
+      }))
+      .filter(
+        (s) => (pilotIds === null || pilotIds.includes(s.pilotId)) && s.resolving.applied !== true
+      )
+      .map((s) => ({ pilotId: s.pilotId, name: s.resolving.name ?? '' }))
+  }
+
   private note(actor: string | null, at: number, next: Stored): TableEvent {
     const open = next.key === undefined ? undefined : this.open(actor, next.key, at)
     if (open !== undefined) {
