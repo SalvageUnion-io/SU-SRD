@@ -67,7 +67,8 @@ import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.mode
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
 import { headedVital, vitalNow, vitalSettled } from './vitalWrites.model'
-import { useDownResult, zeroUnit, zeroVitalNotice } from './zeroVital.model'
+import type { DownResult } from './zeroVital.model'
+import { askPlayTable, useDownResult, zeroUnit, zeroVitalNotice } from './zeroVital.model'
 
 /** The store a box writes through; the app's own unless a test hands one in. */
 type UnitStore = UnitsStore
@@ -231,7 +232,7 @@ export function PlayPilotUnit({
           injuries.map((line) => <Stat key={line} label={line} size="mini" state="critical" />)
         )}
       </div>
-      {result === null ? null : <Text variant="note">{result}</Text>}
+      {result === null ? null : <DownResultLine result={result} />}
     </TitledBox>
   )
 }
@@ -404,9 +405,20 @@ export function PlayMechUnit({
           </Segmented>
         </div>
       ) : null}
-      {result === null ? null : <Text variant="note">{result}</Text>}
+      {result === null ? null : <DownResultLine result={result} />}
       {place === 'parked' ? <Text variant="note">{playCopy('readOnlyUntilBoarded')}</Text> : null}
     </TitledBox>
+  )
+}
+
+/** A Down unit's Critical result, named once: a press opens its row (r6 A4). */
+function DownResultLine({ result }: { result: DownResult }) {
+  return (
+    <Text variant="note">
+      <Button variant="ghost" size="compact" onClick={() => askPlayTable(result.table)}>
+        {result.text}
+      </Button>
+    </Text>
   )
 }
 
