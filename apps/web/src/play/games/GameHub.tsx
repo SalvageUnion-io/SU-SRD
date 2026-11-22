@@ -49,6 +49,7 @@ import { routesCopy } from '../../messages/routes'
 import type { GameCallResult } from '../../replica/roomCalls'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { useGameSession } from '../useGameSession'
+import { sceneConditionNames, useScene } from '../useScene'
 import { useStopSign } from '../useStopSign'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
@@ -170,6 +171,7 @@ export function GameHub({ gameId }: GameHubProps) {
   // loading" from "not a member" without fetching every table you are in.
   const game = useGamesQuery('games.get', { gameId: gameId })
   const session = useGameSession(gameId)
+  const scene = useScene(gameId)
   useTabTitle(game ? areaTitle(PRODUCT.play, `${game.name} · ${routesCopy('game')}`) : null)
   // The home's welcome-back strip names the Game last opened (`accountHint`).
   const gameName = game?.name
@@ -198,6 +200,7 @@ export function GameHub({ gameId }: GameHubProps) {
             ) : undefined
           }
           session={session}
+          scene={sceneConditionNames(scene.conditions)}
         />
       }
     >

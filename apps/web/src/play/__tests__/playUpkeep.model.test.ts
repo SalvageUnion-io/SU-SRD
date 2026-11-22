@@ -4,7 +4,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
-import { payDowntimeUpkeep } from '../playUpkeep.model'
+import { payDowntimeUpkeep, upkeepShort } from '../playUpkeep.model'
 
 const crawler = crawlerFixture({
   id: 'c',
@@ -31,14 +31,24 @@ describe('payDowntimeUpkeep', () => {
     expect(said).toBe('Paid the Upkeep. Upgrade Pool now 5.')
   })
 
-  test('a short pool pays what it has, and says by how much', async () => {
+  // r4 A7 (LG4-12): an empty pool was marked Paid.
+  test('a pool too small pays nothing, claims nothing, and says by how much with the book’s page', async () => {
     const poor = crawlerFixture({ ...crawler, scrapPool: { tl2: 2 } })
+    const sent: unknown[] = []
     const said = await payDowntimeUpkeep({
       crawler: poor,
       store: { get: () => poor } as never,
-      claim: async () => true,
+      claim: async (...args) => {
+        sent.push(args)
+        return true
+      },
     })
-    expect(said).toContain('3 short of 5 Scrap of Tech 2')
+    expect(sent).toEqual([])
+    expect(said).toBe(
+      'Not paid: the pool is 3 short of 5 Scrap of Tech 2 or higher. Unpaid Upkeep: Core Book p.218.'
+    )
+    expect(upkeepShort(poor)).toBe(3)
+    expect(upkeepShort(crawler)).toBe(0)
   })
 
   test('an Upkeep already paid says so', async () => {

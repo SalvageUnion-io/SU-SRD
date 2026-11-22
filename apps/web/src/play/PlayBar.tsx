@@ -104,6 +104,8 @@ export type PlayBarProps = {
   of?: number | null
   /** A stamp after the title naming the viewer's role: "Mediator". */
   stamp?: string
+  /** The Scene conditions that are on, as one stamp ("Scene · Radiation Storm"); absent with none. */
+  scene?: string | undefined
   /** A phone's bar, kept to one line: the ONLINE stamp says its count alone (`liveLabel`). */
   short?: boolean
   /**
@@ -140,6 +142,7 @@ export function PlayBar({
   here = null,
   of = null,
   stamp,
+  scene,
   short = false,
   readOnly = null,
   situation,
@@ -238,6 +241,12 @@ export function PlayBar({
         )
       )}
       {situation && <div style={SLOT}>{situation}</div>}
+      {/* A condition left on is never unseen (r4 A11). */}
+      {scene && (
+        <Badge shape="stamp" size="compact" surface="inverse" className={STAMP} style={ONLINE}>
+          {scene}
+        </Badge>
+      )}
       <span style={SPACER} />
       {stop}
       {channel}

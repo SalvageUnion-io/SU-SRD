@@ -234,8 +234,10 @@ export const playCopy = messages({
     'Cascade Failure: a severe consequence. Take the damage on the unit’s gauge in Units; nothing was applied for you.',
   copyResultToClipboard: 'Copy result to clipboard',
   copyFailed: 'The result could not be copied.',
-  upkeepShort:
-    'Paid the Upkeep, but the pool was {short} short of {scrap} Scrap of Tech {tl} or higher. Upgrade Pool now {pool}.',
+  upkeepShort: 'Not paid: the pool is {short} short of {scrap} Scrap of Tech {tl} or higher.',
+  unpaidUpkeepCite: 'Unpaid Upkeep: Core Book p.218.',
+  shortBy: 'Short by {short}',
+  payScrap: 'Pay {scrap} Scrap',
   rollFailed: 'The dice could not be rolled. Try again.',
   situation: 'Situation',
   downtime: 'Downtime, {setByMediatorPhrase}',

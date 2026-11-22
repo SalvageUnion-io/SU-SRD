@@ -8,7 +8,8 @@
  *
  * An hour passes asks first, listing each seat the hour asks something of
  * (`hourSteps`: aboard its Mech, on foot its Pilot), each ticked and
- * untickable for a unit sheltered from it. On confirm it counts the hour,
+ * untickable for a unit sheltered from it, and saying how its cost reaches
+ * its player (`hourDelivery`: a proposal, or a notice to apply by hand). On confirm it counts the hour,
  * rolls each exposed Mech's table (Freezing) and the Scene's own (the
  * Anomalous Zone) on the Mediator's private log, proposes each unit's SP,
  * Heat or HP (ADR-030 §4), and tells the table what is the players' to do: a
@@ -32,7 +33,7 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { SceneConditionMini } from '../PlayScene'
 import { recordPlayRoll } from '../playRolls.model'
 import type { HourStep } from './sceneHour.model'
-import { hourProposals, hourSteps } from './sceneHour.model'
+import { hourDelivery, hourProposals, hourSteps } from './sceneHour.model'
 import type { PlayMediator } from './usePlayMediator'
 
 /** Why An hour passes is off, said on the page: a phone has no hover title. */
@@ -40,6 +41,13 @@ const NOTE = {
   fontSize: tokens.fontSize.caption,
   margin: 0,
 } satisfies CSSProperties
+
+/** How a unit's cost reaches its player, in the dialog's words. */
+const DELIVERY = {
+  proposed: 'exposedProposed',
+  notice: 'exposedNotice',
+  both: 'exposedBoth',
+} as const
 
 const LIST = {
   display: 'flex',
@@ -135,7 +143,12 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
     for (const table of tables)
       await roll(table, mediatorCopy('hourSceneRollLabel', { table, hour }))
     await mediator.broadcast(
-      [mediatorCopy('hourAlert', { hour, conditions: names }), ...lines].join(' ')
+      [
+        mediatorCopy('hourAlert', { hour, conditions: names }),
+        ...lines,
+        // What is said is the player's to do by hand: the notice says so (r4 A9).
+        ...(lines.length > 0 ? [mediatorCopy('hourApplyByHand')] : []),
+      ].join(' ')
     )
   }
 
@@ -221,6 +234,8 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
                         from: step.cost.from.join(', '),
                       })}
                     </span>
+                    {/* How its cost reaches its player: a proposal, or a notice (r4 A9). */}
+                    <span style={NOTE}>{mediatorCopy(DELIVERY[hourDelivery(step)])}</span>
                   </li>
                 ))}
               </ul>

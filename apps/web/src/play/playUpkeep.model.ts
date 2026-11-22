@@ -4,17 +4,25 @@
  * The draw from the crawler's pool and the credit to its Upgrade Pool
  * (`payUpkeepPatch`, the Live Sheet's patch too) go as this Downtime's one
  * Upkeep op (`claim`), so the payment and its once-per-Downtime mark land
- * together, and a second press changes nothing. A short pool is advisory:
- * it spends what it has, the Upkeep still counts as paid, and the words say
- * by how much it was short.
+ * together, and a second press changes nothing.
+ *
+ * Upkeep is paid in full or not at all (Core Book p.218), so a pool too small
+ * pays nothing and marks nothing Paid (r4 A7): the rows read "Short by N"
+ * (`upkeepShort`), Pay stands off saying what it will take, and one line cites
+ * where the book covers unpaid Upkeep. Nothing is rolled for the table.
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { crawlerUpkeepCost } from 'salvageunion-reference/rules'
-import { payUpkeepPatch } from '../lib/rules/crawlerEconomy'
+import { payUpkeepPatch, upkeepShortfall } from '../lib/rules/crawlerEconomy'
 import { playCopy } from '../messages/play'
 import type { PlayStore } from './play.model'
 import type { PlayDowntime } from './situation.model'
+
+/** How much Scrap the crawler's pool is short of this Downtime's Upkeep; 0 when it covers it. */
+export function upkeepShort(crawler: Pick<Crawler, 'scrapPool' | 'techLevel' | 'type'>): number {
+  return upkeepShortfall(crawler.scrapPool ?? {}, crawler.techLevel, crawler.type)
+}
 
 /** What happened, in words, or null with no crawler to pay for. */
 export async function payDowntimeUpkeep({
@@ -29,11 +37,12 @@ export async function payDowntimeUpkeep({
   if (crawler === null) return null
   const tl = crawler.techLevel
   const paid = payUpkeepPatch(store.get('crawler', crawler.id) ?? crawler, tl)
-  if (!(await claim('upkeep', crawler.id, paid.patch))) return playCopy('upkeepAlreadyPaid')
+  // Short: nothing is drawn and nothing is claimed, so it is never marked Paid.
   const { short } = paid.payment
   if (short > 0) {
     const scrap = crawlerUpkeepCost(tl, crawler.type)
-    return playCopy('upkeepShort', { scrap, tl, short, pool: paid.patch.upgradePool })
+    return `${playCopy('upkeepShort', { scrap, tl, short })} ${playCopy('unpaidUpkeepCite')}`
   }
+  if (!(await claim('upkeep', crawler.id, paid.patch))) return playCopy('upkeepAlreadyPaid')
   return playCopy('paidTheUpkeep', { pool: paid.patch.upgradePool })
 }

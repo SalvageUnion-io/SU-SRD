@@ -33,10 +33,11 @@ import { PRODUCT } from 'game-domain/product'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { rollForTable } from '../components/index'
-import { Toggle } from '../components/index'
+import { Stat, Toggle } from '../components/index'
 import { areaTitle } from '../lib/pageTitle'
 import { useTabTitle } from '../lib/useTabTitle'
 import { playCopy } from '../messages/play'
+import { mediatorCopy } from '../messages/play-mediator'
 import { routesCopy } from '../messages/routes'
 import { useSync } from '../replica/syncContext'
 import { hereOf } from './mediator/mediatorTable.model'
@@ -62,6 +63,7 @@ import { usePlayChannelBinding } from './usePlayChannel'
 import { usePlayChannelControls } from './usePlayChannelControls'
 import { useSideFeed } from './usePlaySide'
 import { usePlayWide } from './usePlayWide'
+import { sceneConditionNames } from './useScene'
 import { useStopSign } from './useStopSign'
 
 /** The foot's reminder: what the players can see of the Opposition. */
@@ -118,6 +120,10 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   const running = mediator.downtime.downtime.running
   const sign = useStopSign(gameId)
   const session = useGameSession(gameId)
+  // The Scene's conditions that are on, on the header whatever the pane (r4 A11).
+  const sceneNames = sceneConditionNames(mediator.scene.conditions)
+  const sceneOn =
+    sceneNames === '' ? undefined : mediatorCopy('sceneUnderStamp', { scene: sceneNames })
 
   useEffect(() => {
     if (!focusTo || (!wide && tab !== 'propose')) return
@@ -196,6 +202,8 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             // A phone's bar is one line (U3): its tabs (Table, Opposition,
             // Propose) say whose screen it is, so the role stamp is the canvas's.
             stamp={wide ? 'Mediator' : undefined}
+            // A phone's bar is one line: its pinned row carries the Scene.
+            scene={wide ? sceneOn : undefined}
             short={!wide}
             tone={PHASE_TONE[running ? 'downtime' : 'scene']}
             paused={sign?.shown === true}
@@ -216,7 +224,10 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
         </>
       }
       pinned={
-        <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} fill />
+        <>
+          <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} fill />
+          {sceneOn && <Stat size="mini" label={mediatorCopy('scene')} value={sceneNames} />}
+        </>
       }
       panes={mediatorPanes(running, wide).map((p) => ({ ...p, node: nodes[p.value] }))}
       tab={tab}

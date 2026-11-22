@@ -340,6 +340,7 @@ function PlanLineItem({
           ))}
         </span>
       )}
+      {line.note && <span className="su-play-act__need">{line.note}</span>}
     </li>
   )
 }

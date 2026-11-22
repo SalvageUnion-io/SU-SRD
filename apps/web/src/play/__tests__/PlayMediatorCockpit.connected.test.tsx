@@ -384,6 +384,13 @@ describe('the Scene', () => {
     await click(named('An hour passes'))
     const dialog = within(screen.getByRole('alertdialog'))
     expect(screen.getByRole('alertdialog', { name: 'Pass hour 3?' })).toBeTruthy()
+    // r4 A9: the dialog says how each cost reaches its player.
+    expect(dialog.getByText(/reaches its player as a notice to apply by hand/)).toBeTruthy()
+    const rows = dialog.getAllByRole('listitem').map((li) => li.textContent)
+    expect(rows).toContain(
+      'Bonesaw’s Buzzard · Radiation Stormproposed its change, and a notice to apply by hand'
+    )
+    expect(rows).toContain('Rook · Radiation Storma notice to apply by hand')
     // Wren sheltered in the crawler: untick them.
     await click(dialog.getByLabelText('Wren’s Mule · Radiation Storm'))
     await click(dialog.getByRole('button', { name: 'An hour passes' }))
@@ -410,7 +417,7 @@ describe('the Scene', () => {
     expect(proposals.some((p) => p.entityId === 'row-mule')).toBe(false)
     const alert = sent().find((s) => s.name === 'changeLog.broadcast')?.args.message
     expect(alert).toBe(
-      'Hour 3 under Radiation Storm. Bonesaw’s Buzzard: make a Heat Check. Mags’s Atlas: make a Heat Check. Rook: suffer a Major Injury.'
+      'Hour 3 under Radiation Storm. Bonesaw’s Buzzard: make a Heat Check. Mags’s Atlas: make a Heat Check. Rook: suffer a Major Injury. Apply this on your sheet.'
     )
   })
 
@@ -856,6 +863,29 @@ describe('the Opposition', () => {
     expect(sent()).toContainEqual({ name: 'mediator.endEncounter', args: {} })
   })
 
+  // r4 A11 (MD4-20): a condition stayed on, unseen, through the end of the encounter.
+  test('with a Scene condition on, the bar names it and End asks whether to clear it', async () => {
+    await renderCockpit({
+      'scenes.current': { conditions: ['radiation-storm'], hours: 1 },
+      'mediator.npcs': [],
+      'mediator.running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: [],
+        notes: '',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    expect(within(screen.getByRole('banner')).getByText('Scene · Radiation Storm')).toBeTruthy()
+    await click(named('End Ambush'))
+    const dialog = within(screen.getByRole('alertdialog'))
+    expect(dialog.getByLabelText('Keep the Scene under Radiation Storm')).toBeTruthy()
+    await click(dialog.getByLabelText('Clear Radiation Storm'))
+    await click(dialog.getByRole('button', { name: 'End' }))
+    expect(sent()).toContainEqual({ name: 'mediator.endEncounter', args: {} })
+    expect(sent()).toContainEqual({ name: 'scenes.setConditions', args: { conditions: [] } })
+  })
+
   test('a briefing stays behind its flag, off in a production build', async () => {
     await renderCockpit({
       'mediator.running': {
@@ -915,12 +945,12 @@ describe('Downtime', () => {
 
   test('Upkeep waits for Upkeep & Upgrade: Pay is off in any other step', async () => {
     await renderCockpit(downtimeAt(0))
-    expect((named('Pay') as HTMLButtonElement).disabled).toBe(true)
+    expect((named('Pay 5 Scrap') as HTMLButtonElement).disabled).toBe(true)
   })
 
   test('in Upkeep & Upgrade, Pay sends the Scrap as the run’s one Upkeep op', async () => {
     await renderCockpit(downtimeAt(UPKEEP_STEP))
-    await click(named('Pay'))
+    await click(named('Pay 5 Scrap'))
     await waitFor(() => expect(screen.getByText(/^Paid the Upkeep/)).toBeTruthy())
     expect(sent()).toMatchObject([
       {
@@ -935,8 +965,25 @@ describe('Downtime', () => {
 
   test('paid, it says so', async () => {
     await renderCockpit(downtimeAt(UPKEEP_STEP, true))
-    expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Pay / })).toBeNull()
     expect(screen.getByText('Paid')).toBeTruthy()
+  })
+
+  // r4 A7 (LG4-12): an empty pool was marked Paid.
+  test('a pool too small reads Short by N, Pay says what it takes and is off, and the book is cited', async () => {
+    await act(async () => {
+      await useUnits.getState().update('crawler', tenacity.id, { scrapPool: {} }, PLAY_TXN)
+    })
+    try {
+      await renderCockpit(downtimeAt(UPKEEP_STEP))
+      expect((named('Pay 5 Scrap') as HTMLButtonElement).disabled).toBe(true)
+      expect(screen.getByText('Short by 5')).toBeTruthy()
+      expect(screen.getByText('Unpaid Upkeep: Core Book p.218.')).toBeTruthy()
+      expect(screen.queryByText('Paid')).toBeNull()
+      expect(names()).toEqual([])
+    } finally {
+      await restoreCrawler()
+    }
   })
 
   test('with a Nanite Processing Bay, Process Nanites runs in the Craft step', async () => {

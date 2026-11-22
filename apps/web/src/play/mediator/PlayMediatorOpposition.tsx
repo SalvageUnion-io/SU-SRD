@@ -32,6 +32,7 @@ import { flagOn } from '../../lib/flags'
 import { moraleDue } from '../../lib/rules/opposition'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { SalvageAreaDialog } from '../SalvageAreaDialog'
+import { sceneConditionNames } from '../useScene'
 import { ClearFieldDialog, EndEncounterDialog } from './ClearFieldDialogs'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
@@ -68,6 +69,8 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
   const [clearing, setClearing] = useState(false)
   const [ending, setEnding] = useState(false)
   const { area } = mediator
+  // The Scene's conditions that are on: End asks whether to clear them (r4 A11).
+  const sceneOn = sceneConditionNames(mediator.scene.conditions)
   const chosen =
     npcs?.find((n) => n.id === chosenId) ?? npcs?.find((n) => !n.down) ?? npcs?.[0] ?? null
   const fail = (write: Promise<unknown>) => void write.catch(onFailure)
@@ -145,7 +148,9 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
             disabled={!canWrite}
             aria-label={mediatorCopy('endEncounter', { name: prep.running.name })}
             // With the field empty there is nothing to ask about.
-            onClick={() => ((npcs?.length ?? 0) > 0 ? setEnding(true) : fail(prep.end()))}
+            onClick={() =>
+              (npcs?.length ?? 0) > 0 || sceneOn !== '' ? setEnding(true) : fail(prep.end())
+            }
           >
             {mediatorCopy('end')}
           </Button>
@@ -281,7 +286,11 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
         name={ending ? (prep.running?.name ?? null) : null}
         onClose={() => setEnding(false)}
         onTray={npcs?.length ?? 0}
-        onEnd={(clear) => prep.end(clear)}
+        scene={sceneOn}
+        onEnd={async (clear, clearScene) => {
+          await prep.end(clear)
+          if (clearScene) await mediator.scene.set([])
+        }}
       />
       <SalvageAreaDialog
         key={settingArea ? 'open' : 'closed'}
