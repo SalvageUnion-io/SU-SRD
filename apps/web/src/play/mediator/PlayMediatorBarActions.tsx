@@ -85,6 +85,7 @@ export function PlayMediatorBarActions({
                   label: session?.live
                     ? playCopy('endGroupSession')
                     : playCopy('startGroupSession'),
+                  ...(session?.live ? {} : { hint: playCopy('startGroupSessionHint') }),
                   ...(mayRun
                     ? {
                         onSelect: () => {

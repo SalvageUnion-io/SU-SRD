@@ -61,6 +61,7 @@ import { AccountTotalsWriter } from './shared/signals'
 import type { StopSignEnv } from './shared/stopSign'
 import { postStopSign, postTableAlert, postTableEvents } from './shared/stopSign'
 import { isShelfAct, runShelfAct } from './shelfActs'
+import { shelved, unshelved } from './shelving'
 
 /**
  * @public A player's shelf, named by their Discord id; loaded by workerd
@@ -448,14 +449,14 @@ export class GameRoom extends Room {
 
   /**
    * A member leaves, or the Organiser removes them (ADR-067 §3): each pilot
-   * and mech of theirs is handed back to their Training Bay first, by the
-   * same handoff a player's own move makes, so nothing is ever deleted; then
-   * the roster forgets them and their room drops the Game from its list. A
-   * retry after a failed handoff moves only what had not landed.
+   * and mech they brought (one the Game came with stays, unassigned: `leaving`,
+   * LG4-03) is handed back to their Training Bay first, by a player's own
+   * handoff, so nothing is ever deleted; then the roster forgets them and their
+   * room drops the Game. A retry moves only what had not landed.
    */
   async dismiss(actor: string, userId: string): Promise<GameActAnswer<null>> {
     const at = Date.now()
-    const leaving = answerOrRefuse(() => this.logic.roster.leaving(actor, userId))
+    const leaving = answerOrRefuse(() => this.logic.roster.leaving(actor, userId, at))
     if (!leaving.ok) return leaving
     const to = { kind: 'account', userId } as const
     // Together, so a pilot and their mech arrive still assigned to each other.
@@ -477,6 +478,15 @@ export class GameRoom extends Room {
     this.dropStrangers()
     this.mirror(told)
     return { ok: true, value: null }
+  }
+
+  /** An unused pre-gen leaves the roster, and its Undo (`shelving.ts`, LG4-20). */
+  async shelve(actor: string, pilotId: string): Promise<GameActAnswer<string[]>> {
+    return shelved(this.logic, actor, pilotId, () => this.broadcastSnapshots())
+  }
+
+  async unshelve(actor: string, unitIds: readonly string[]): Promise<GameActAnswer<null>> {
+    return unshelved(this.logic, this.gameId, actor, unitIds, () => this.broadcastSnapshots())
   }
 
   /** A member deleted their account; a Game left with nobody is wiped. */

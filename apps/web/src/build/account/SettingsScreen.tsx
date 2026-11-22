@@ -85,6 +85,8 @@ function SignedInAccount() {
   })
 
   const [name, setName] = useState<string | null>(null)
+  // The answer to Save: said once it is kept, taken back when the name is typed in again.
+  const [saved, setSaved] = useState(false)
   const [confirming, setConfirming] = useState(false)
   // The words a failed deletion was given (`useServerAction`), for the dialog,
   // which holds the failure on itself (ruleset §3.1: destruction behind
@@ -109,19 +111,28 @@ function SignedInAccount() {
             placeholder={buildAccountCopy('yourDiscordName')}
             style={GROW}
             value={value}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setSaved(false)
+              setName(e.target.value)
+            }}
           />
           <Button
             variant="primary"
             size="full"
             className={ACTION}
             disabled={save.pending}
-            onClick={() => void save.run({ displayName: value })}
+            onClick={() => {
+              setSaved(false)
+              void save.run({ displayName: value }).then((answer) => setSaved(answer.ok))
+            }}
           >
             {save.pending ? buildAccountCopy('saving') : buildAccountCopy('save')}
           </Button>
         </Cluster>
         <FieldError>{save.error}</FieldError>
+        <Text as="p" variant="hint" role="status" style={NOTE}>
+          {saved ? buildAccountCopy('saved') : ''}
+        </Text>
       </Section>
 
       <Section id="settings-data" title={buildAccountCopy('yourData')}>

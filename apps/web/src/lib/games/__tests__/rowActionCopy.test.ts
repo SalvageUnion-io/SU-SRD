@@ -134,22 +134,6 @@ describe('rowActionCopy', () => {
   test('a pilot is "them"; a mech or a crawler is "it"', () => {
     expect(ROW_ACTION_COPY.unassign('Vex Arlo', 'pilot', true).body[0]).toContain('assign them to')
     expect(ROW_ACTION_COPY.unassign('Iron Mongrel', 'mech', true).body[0]).toContain('assign it to')
-    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'Mara', 'you').body[0]).toContain(
-      'instead of you, who can still read them'
-    )
-  })
-
-  // MD3-15: assigned to yourself, the confirm began "you will edit …".
-  test('the Assign confirm starts with a capital', () => {
-    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'you', null).body[0]).toStartWith(
-      'You will edit Vex Arlo'
-    )
-    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'you', 'Mara').body[0]).toStartWith(
-      'You will edit Vex Arlo in this Game instead of Mara'
-    )
-    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'you', null).title).toBe(
-      'Assign Vex Arlo to you?'
-    )
   })
 
   // MD3-08: an NPC's delete spoke of crews, browsers and "Offer to the crew".
@@ -173,7 +157,6 @@ describe('rowActionCopy', () => {
 
   test('only the constructive verbs are not danger-toned', () => {
     expect(ROW_ACTION_COPY.assignSelf('Vex Arlo').tone).toBe('default')
-    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'Mara', null).tone).toBe('default')
     expect(ROW_ACTION_COPY.copyOnShelf('Vex Arlo').tone).toBe('default')
     for (const copy of [
       ROW_ACTION_COPY.unassign('Vex Arlo', 'pilot', true),

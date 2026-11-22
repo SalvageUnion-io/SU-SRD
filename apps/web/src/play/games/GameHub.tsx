@@ -53,6 +53,7 @@ import { sceneConditionNames, useScene } from '../useScene'
 import { useStopSign } from '../useStopSign'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
+import { FormerNotes } from './FormerNotes'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
@@ -113,12 +114,16 @@ function GameSections({ game }: { game: Game }) {
               page — what the table is made of — and everything that runs the
               table (its people, the prep, the invite, safety) is the column
               beside it. */}
-          <GameRoster gameId={gameId} gameName={game.name} />
+          <GameRoster
+            gameId={gameId}
+            gameName={game.name}
+            pregens={game.organizer ? game.templateUnitIds : undefined}
+          />
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
-          {/* The session's record, outside Play: nothing until the Game has had one. */}
+          {/* The table's record, outside Play: nothing until the Game has been played. */}
           <LastSession gameId={gameId} />
         </div>
         <aside aria-labelledby="the-game-heading" style={HUB_SIDEBAR}>
@@ -134,6 +139,8 @@ function GameSections({ game }: { game: Game }) {
           />
           {/* The table runner's door to this Game's Prep (ADR-067 §3). */}
           {game.tableRunner && <MediatorPrep gameId={gameId} />}
+          {/* A former Mediator's own notes, read-only; nothing for anyone who wrote none. */}
+          {!game.tableRunner && <FormerNotes gameId={gameId} />}
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (

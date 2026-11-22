@@ -1,7 +1,9 @@
 /**
- * "Last session" on a Game's page (play.md §16): nothing until the Game has
- * had a group session; the newest one's span, counts and lines, newest first;
- * "This session" while one runs; and a long one folded behind "Show all".
+ * "Last time at the table" on a Game's page (play.md §16): nothing until the
+ * Game has been played; the newest play's span, counts and lines, newest
+ * first, with or without a group session; "This session" while one runs; the
+ * Mediator's word that an encounter is still running; and a long one folded
+ * behind "Show all".
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
@@ -24,13 +26,47 @@ function renderWith(events: TableEvent[] | null) {
   return render(<LastSession gameId="g1" />)
 }
 
-describe('Last session', () => {
-  test('shows nothing before the events arrive, or when the Game has had no session', () => {
+describe('Last time at the table', () => {
+  test('shows nothing before the events arrive, or when nothing has been played', () => {
     const before = renderWith(null)
     expect(before.container.innerHTML).toBe('')
     before.unmount()
-    const none = renderWith([event(1, 'Roach rolled 14', { kind: 'roll' })])
+    const none = renderWith([event(1, 'Vex joined', { kind: 'join' })])
     expect(none.container.innerHTML).toBe('')
+  })
+
+  // MD4-04: play outside a started session left "Rolls: 0", or nothing at all.
+  test('play with no session started is still the last time at the table', () => {
+    renderWith([
+      event(1, 'Roach rolled 14', { kind: 'roll' }),
+      event(4, 'Roach took 2 SP', { kind: 'vitals' }),
+    ])
+    expect(screen.getByRole('heading', { level: 2, name: 'Last time at the table' })).toBeTruthy()
+    const start = formatDateTime(T0 + 60_000)
+    const end = formatDateTime(T0 + 4 * 60_000)
+    expect(screen.getByText(`${start} to ${end}. Rolls: 1. Vitals changes: 1.`)).toBeTruthy()
+  })
+
+  test('its Mediator is told an encounter is still running; nobody else is', () => {
+    serve('g1', {
+      events: [event(1, 'Roach rolled 14', { kind: 'roll' })] as never,
+      mediator: { running: { name: 'Toll Gate' } },
+    })
+    const mediators = render(<LastSession gameId="g1" />)
+    expect(
+      screen.getByText('An encounter is still running: Toll Gate. Mediate opens it.')
+    ).toBeTruthy()
+    mediators.unmount()
+    closeRooms()
+    renderWith([event(1, 'Roach rolled 14', { kind: 'roll' })])
+    expect(screen.queryByText(/still running/)).toBeNull()
+  })
+
+  test('an encounter running before anything is played is said on its own', () => {
+    serve('g1', { events: [] as never, mediator: { running: { name: 'Toll Gate' } } })
+    render(<LastSession gameId="g1" />)
+    expect(screen.getByRole('heading', { level: 2, name: 'Last time at the table' })).toBeTruthy()
+    expect(screen.getByText(/still running: Toll Gate/)).toBeTruthy()
   })
 
   test('an ended session reads its span, its counts and its lines, newest first', () => {
@@ -43,19 +79,19 @@ describe('Last session', () => {
       event(12, 'Roach took 2 SP', { kind: 'vitals' }),
       event(13, 'Vex rolled 3', { kind: 'roll' }),
       event(20, 'Session ended', { kind: 'session', session: 'end' }),
-      event(25, 'After the session', { kind: 'roll' }),
+      event(25, 'Vex left', { kind: 'leave' }),
     ])
-    expect(screen.getByRole('heading', { level: 2, name: 'Last session' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 2, name: 'Last time at the table' })).toBeTruthy()
     const start = formatDateTime(T0 + 10 * 60_000)
     const end = formatDateTime(T0 + 20 * 60_000)
     expect(screen.getByText(`${start} to ${end}. Rolls: 2. Vitals changes: 1.`)).toBeTruthy()
-    const lines = within(screen.getByRole('list', { name: 'Last session' }))
+    const lines = within(screen.getByRole('list', { name: 'Last time at the table' }))
       .getAllByRole('listitem')
       .map((li) => li.textContent)
     expect(lines).toHaveLength(3)
     expect(lines[0]).toContain('Vex rolled 3')
     expect(lines[2]).toContain('Roach rolled 14')
-    expect(screen.queryByText(/Old roll|After the session/)).toBeNull()
+    expect(screen.queryByText(/Old roll|Vex left/)).toBeNull()
   })
 
   test('while one runs it is "This session", since its start', () => {
@@ -81,7 +117,7 @@ describe('Last session', () => {
       ...Array.from({ length: 15 }, (_, i) => event(i + 1, `Roll ${i + 1}`, { kind: 'roll' })),
     ])
     const list = () =>
-      within(screen.getByRole('list', { name: 'Last session' })).getAllByRole('listitem')
+      within(screen.getByRole('list', { name: 'Last time at the table' })).getAllByRole('listitem')
     expect(list()).toHaveLength(12)
     expect(list()[0]?.textContent).toContain('Roll 15')
     expect(screen.queryByText(/Roll 3$/)).toBeNull()

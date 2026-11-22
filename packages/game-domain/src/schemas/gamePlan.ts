@@ -103,6 +103,24 @@ export function planFor(stored: StoredGamePlan, author: string): GamePlan {
   }
 }
 
+/** What a member wrote while they ran the table: their notes, each session's with its day. */
+export type OwnPlanNotes = { notes: string; sessions: { date?: string; note: string }[] }
+
+/**
+ * The notes `author` wrote, for reading back once they no longer run the
+ * table (ADR-067 §4): theirs alone, each session's with its day, which every
+ * member is told, and never its title. Null when they wrote none.
+ */
+export function ownNotesFor(stored: StoredGamePlan, author: string): OwnPlanNotes | null {
+  // Notes with no author yet are whoever runs the table's, never a caller's by default.
+  if (stored.byAuthor?.[author] === undefined && stored.author !== author) return null
+  const mine = planFor(stored, author)
+  const sessions = mine.sessions
+    .filter((session) => session.note !== '')
+    .map(({ date, note }) => (date === undefined ? { note } : { date, note }))
+  return mine.notes === '' && sessions.length === 0 ? null : { notes: mine.notes, sessions }
+}
+
 /**
  * The stored plan after `author` saves `plan`: the sessions become the ones
  * saved, the notes are filed under their author, and nobody else's are touched

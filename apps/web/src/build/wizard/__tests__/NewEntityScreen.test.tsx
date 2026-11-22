@@ -333,11 +333,15 @@ describe('BlankCreateDialog — blank pilot create', () => {
       />
     )
 
-    const submit = screen.getByRole('button', { name: 'Create Pilot' })
+    // The disabled Create says what it waits for (MD4-22): the name, then the callsign.
+    const submit = screen.getByRole('button', { name: 'Add a name to create' })
     expect((submit as HTMLButtonElement).disabled).toBe(true)
 
     fireEvent.change(screen.getByLabelText(/^name/i), { target: { value: 'Juno Vale' } })
+    expect(submit.textContent).toBe('Add a callsign to create')
+    expect((submit as HTMLButtonElement).disabled).toBe(true)
     fireEvent.change(screen.getByLabelText(/callsign/i), { target: { value: 'Nomad' } })
+    expect(submit.textContent).toBe('Create Pilot')
     expect((submit as HTMLButtonElement).disabled).toBe(false)
 
     fireEvent.click(submit)

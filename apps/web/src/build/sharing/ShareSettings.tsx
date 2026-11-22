@@ -30,9 +30,16 @@ import { useState } from 'react'
 import { CopiedIcon, CopiedStatus, FieldError, Switch, useCopied } from '../../components/app'
 import { Button, Field, Select, Stack, tokens } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { useSoftLinkList } from '../../lib/entities'
+import { crewLinkOf } from '../../lib/npcs/npcModel'
 import { usePatternSharing, useSharingAct, useSheetIsPublic } from '../../lib/sharing/reads'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
-import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
+import {
+  mediatorOnly,
+  patternChoices,
+  sheetChoices,
+  sheetVisibility,
+} from '../../lib/sharing/visibility'
 import { appUrl } from '../../lib/site'
 import { buildSharingCopy } from '../../messages/build-sharing'
 import { useGamesQuery } from '../../replica/roomCalls'
@@ -121,13 +128,19 @@ function SheetShareSettings({
   const inGame = typeof gameId === 'string'
   const gameName = games?.find((g) => g._id === gameId)?.name ?? null
   // `undefined` is still loading; `null` is a real "not published".
-  const value = published === undefined ? null : sheetVisibility({ isPublic: published, inGame })
+  // An NPC in a Game is its Mediator's alone, unless it crews the crawler (MD4-02).
+  const softLinks = useSoftLinkList()
+  const withheld = mediatorOnly(kind, inGame, crewLinkOf(softLinks, appId) !== undefined)
+  const value =
+    published === undefined
+      ? null
+      : sheetVisibility({ isPublic: published, inGame, mediatorOnly: withheld })
 
   return (
     <Stack gap={12}>
       <WhoCanSee
         name={`share-${kind}-${appId}`}
-        choices={sheetChoices({ inGame, gameName })}
+        choices={sheetChoices({ inGame, gameName, mediatorOnly: withheld })}
         value={busy && asked !== null ? asked : value}
         onChange={(next) => {
           setAsked(next)

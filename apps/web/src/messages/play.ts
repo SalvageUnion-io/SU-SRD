@@ -40,7 +40,8 @@ export const playCopy = messages({
   addTheBot: 'Add the bot to your server',
   addTheBotFirst: 'The SalvageUnion.io bot has to be in the Discord server first.',
   copySuBind: 'Copy /su bind',
-  noDiscordChannelIsBound: 'No Discord channel is bound to {whose} yet, so its rolls stay in Play.',
+  noDiscordChannelIsBound:
+    'No Discord channel is bound to {whose} yet, so its rolls stay at the table.',
   rollsFromPostToIts:
     'Rolls from {whose} post to its bound Discord channel, as the bot’s roll card. Bound {dateTime}.',
   yourRollsPostToYourOwn:
@@ -169,10 +170,11 @@ export const playCopy = messages({
   thatIsNotAnInvite: 'That is not an invite link.',
   join: 'Join',
   signInToRunYour: 'Sign in to run your Game',
-  theMediatorRunsAGame: 'The Mediator runs a Game from Play. Sign in to open this one.',
+  theMediatorRunsAGame:
+    'The Mediator runs a Game from its page, under Games. Sign in to open this one.',
   onlyThisGamesMediatorRuns: "Only this Game's Mediator runs this screen",
   mediateIsForWhoeverMediates:
-    'Mediate is for whoever mediates the Game. Its players play their Pilots from Play.',
+    'Mediate is for whoever mediates the Game. Its players play their Pilots from the Game’s page.',
   dismount: 'Dismount',
   eject: 'Eject',
   board: 'Board',
@@ -258,7 +260,7 @@ export const playCopy = messages({
   notAnNpc: 'not an NPC: run it yourself',
   pinnedTables: 'Pinned tables',
   thisEncountersTables: "This encounter's tables",
-  channelNoneBound: 'None bound: rolls stay in Play',
+  channelNoneBound: 'None bound: rolls stay at the table',
   channelNoneBoundPlayer: 'None bound: the Mediator or Organiser connects one',
   channelSetUp: 'Set up',
   channelSetUpLabel: 'Set up a Discord channel',
@@ -294,6 +296,7 @@ export const playCopy = messages({
   hangar: 'Hangar',
   restoresTo: '{label} restores to {restoresTo}',
   tableMode: 'Table mode',
+  tableModeHint: 'One big roll and your vitals',
   leaveTableMode: 'Leave table mode',
   rules: 'Rules',
   rolls: 'Rolls',
@@ -323,6 +326,7 @@ export const playCopy = messages({
   unitVitals: '{name}’s vitals',
   sessionLive: 'Session live',
   startGroupSession: 'Start group session',
+  startGroupSessionHint: 'Tells the table play has started and keeps a log for the Game page.',
   startSession: 'Start session',
   endGroupSession: 'End group session',
   couldNotStartSession: 'Could not start the session.',
@@ -330,10 +334,16 @@ export const playCopy = messages({
   couldNotEndSession: 'Could not end the session.',
   joinSession: 'Join session',
   startGroupSessionOf: 'Start a group session of {game}',
+  // The Mediator's quiet doors on a Game's row (MD4-13): neither starts a session.
+  prep: 'Prep',
+  prepOf: 'Prep for {game}',
   // One name per door (glossary §9, r3 H3): Join session while the Game's
   // session is live, else Open table, on a Game's page, its row, a pilot's
   // line and a sheet's band; the "as" forms are the accessible names.
   openTable: 'Open table',
+  // A pilot in no Game (r4 C7): there is no table to open, so the door says play.
+  playSolo: 'Play solo',
+  playSoloAs: 'Play solo as {name}',
   joinSessionAs: 'Join session as {name}',
   openTableAs: 'Open table as {name}',
   joinSessionAsIn: 'Join session as {name} in {game}',

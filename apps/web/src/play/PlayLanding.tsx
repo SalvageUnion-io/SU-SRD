@@ -456,7 +456,7 @@ function PlayGameItem({
                 door.start ? (
                   // Start the session, then open the Mediator's screen.
                   <Button
-                    key={door.href}
+                    key={door.ariaLabel}
                     aria-label={door.ariaLabel}
                     variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
@@ -472,7 +472,7 @@ function PlayGameItem({
                   </Button>
                 ) : (
                   <Button
-                    key={door.href}
+                    key={door.ariaLabel}
                     href={door.href}
                     aria-label={door.ariaLabel}
                     variant={index === 0 ? 'primary' : 'default'}

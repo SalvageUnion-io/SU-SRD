@@ -96,7 +96,7 @@ export type TableEvent = {
   revealed?: true
   /** A roll a Mediator made: the one roll a screen toasts (`tableNotices.model.ts`). */
   mediator?: true
-  /** The group session began or ended here: what "Last session" is cut by. */
+  /** The group session began or ended here: an end is what "Last time at the table" is cut by. */
   session?: 'start' | 'end'
   /**
    * A proposal's line that changed a sheet: its player accepted it, or undid

@@ -49,6 +49,19 @@ describe('roomCall', () => {
     expect(sent).toEqual([{ url: ROOMS_CALL_PATH, name: 'invites.link', args: { gameId: 'g1' } }])
   })
 
+  // MD4-01: a save sent as the page is hidden must outlive it.
+  test('a leaving call is sent keepalive, unless its body is too large for one', async () => {
+    const inits: RequestInit[] = []
+    globalThis.fetch = (async (_url: string, init: RequestInit) => {
+      inits.push(init)
+      return new Response(JSON.stringify({ ok: true, value: null }), { status: 200 })
+    }) as typeof fetch
+    await roomCall('invites.link', { gameId: 'g1' })
+    await roomCall('invites.link', { gameId: 'g1' }, { keepalive: true })
+    await roomCall('invites.link', { gameId: 'g'.repeat(20_000) }, { keepalive: true })
+    expect(inits.map((init) => init.keepalive)).toEqual([undefined, true, undefined])
+  })
+
   test('a refusal is a RoomDeclined with the player-facing words', async () => {
     answer = () => ({ body: { ok: false, refusal: 'Sign in first' } })
     const call = roomCall('games.listMine', {})

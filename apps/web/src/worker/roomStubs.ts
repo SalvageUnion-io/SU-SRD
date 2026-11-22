@@ -31,9 +31,15 @@ export function rooms() {
  * plain JSON, so each method answers its own result.
  */
 export type GameRoomStub = {
-  [K in 'unitsFor' | 'unit' | 'disband' | 'dismiss' | 'forget' | 'republish']: (
-    ...args: Parameters<GameRoom[K]>
-  ) => Promise<Awaited<ReturnType<GameRoom[K]>>>
+  [K in
+    | 'unitsFor'
+    | 'unit'
+    | 'disband'
+    | 'dismiss'
+    | 'shelve'
+    | 'unshelve'
+    | 'forget'
+    | 'republish']: (...args: Parameters<GameRoom[K]>) => Promise<Awaited<ReturnType<GameRoom[K]>>>
 } & {
   act<N extends GameActName>(
     actor: string,

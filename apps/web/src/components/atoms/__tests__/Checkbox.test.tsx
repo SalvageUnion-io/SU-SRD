@@ -13,6 +13,15 @@ describe('Checkbox', () => {
     expect(box.style.accentColor).toBe('var(--color-ink)')
   })
 
+  // MD4-11: only the 24px box toggled; the words beside it did nothing.
+  test('with words beside it, they name it and pressing them toggles it', () => {
+    const onChange = mock(() => {})
+    render(<Checkbox words="Reset the invite link too" checked={false} onChange={onChange} />)
+    expect(screen.getByRole('checkbox', { name: 'Reset the invite link too' })).toBeTruthy()
+    fireEvent.click(screen.getByText('Reset the invite link too'))
+    expect(onChange).toHaveBeenCalledTimes(1)
+  })
+
   test('paints its tick in the given accent and reports a change', () => {
     const onChange = mock(() => {})
     render(<Checkbox aria-label="Pick" accent="red" checked={false} onChange={onChange} />)

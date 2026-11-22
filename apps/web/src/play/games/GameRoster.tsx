@@ -24,10 +24,12 @@
  *
  * The verbs about a unit's place at this table, in a row's ⋯ menu: Unassign
  * (its holder's, or the table runner's), Assign to each member (the table
- * runner's), Make primary (the table runner's crawler), Move to your Training
- * Bay and Delete… (your own, or the table runner's crawler).
- * Each asks first through one shared confirm (`useConfirm`); their words live
- * in `useRowActions` and `lib/games/rowActionCopy.ts`.
+ * runner's), Take off the roster (the Organiser's, an unused pre-gen), Make
+ * primary (the table runner's crawler), Move to your Training Bay and Delete…
+ * (your own, or the table runner's crawler). Assign to … and Take off the
+ * roster land at once with Undo in the toast; the rest ask first through one
+ * shared confirm (`useConfirm`). Their words live in `useRowActions` and
+ * `lib/games/rowActionCopy.ts`.
  */
 
 import { PRODUCT } from 'game-domain/product'
@@ -85,9 +87,14 @@ type GameRosterProps = {
   gameId: string
   /** The Game's name, for the confirms that name it; null while unknown. */
   gameName: string | null
+  /**
+   * The pilots a template Game came with, where the viewer organises it: an
+   * unassigned one's menu offers Take off the roster (LG4-20).
+   */
+  pregens?: readonly string[] | undefined
 }
 
-export function GameRoster({ gameId, gameName }: GameRosterProps) {
+export function GameRoster({ gameId, gameName, pregens }: GameRosterProps) {
   // One confirm for every row verb; see `useRowActions`.
   const { confirm, dialog: confirmDialog } = useConfirm()
   const rowActions = useRowActions(confirm, gameId)
@@ -277,6 +284,23 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
               crawlerId: row.serverId,
             })
         ),
+      })
+    }
+    // An unused pre-gen leaves the roster for the Organiser's Training Bay,
+    // its mech with it (LG4-20): at once, with Undo in the toast.
+    if (row.kind === 'pilot' && row.owner?.unassigned && pregens?.includes(row.serverId)) {
+      const pilotId = row.appId ?? bodyIdOf(row.body) ?? row.serverId
+      const flown = (listing?.mechs ?? []).find(
+        (m) => pilotOf.get(idOf(m)) === pilotId && m.ownerId === null
+      )
+      const mech =
+        flown === undefined
+          ? null
+          : { id: flown._id, name: String((flown.body as { name?: unknown }).name ?? '') }
+      verbs.push({
+        id: 'off-roster',
+        label: playGamesCopy('takeOffRoster'),
+        onSelect: act(() => rowActions.takeOffRoster(row, mech)),
       })
     }
     // The move out (ADR-037): your own pilot or mech, or (for the table

@@ -372,7 +372,10 @@ describe('the Situation, in the bar’s ⋯', () => {
     // The row that is so now says so.
     expect(screen.getByRole('menuitem', { name: /Board Buzzard.*Now/ })).toBeTruthy()
     expect(screen.getByRole('menuitem', { name: /^Downtime/ })).toBeTruthy()
-    expect(screen.getByRole('menuitem', { name: 'Table mode' })).toBeTruthy()
+    // Table mode says what it is (SB4-08).
+    expect(
+      screen.getByRole('menuitem', { name: /^Table mode.*One big roll and your vitals/ })
+    ).toBeTruthy()
   })
 
   test('solo, the Downtime row starts Downtime', async () => {

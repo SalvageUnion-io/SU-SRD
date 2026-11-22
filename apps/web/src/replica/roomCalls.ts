@@ -30,16 +30,26 @@ export type { GameCallArgs, GameCallResult } from '../worker/shared/gameCalls'
  */
 export class RoomUnreachable extends Error {}
 
+/** `keepalive`: the page is being hidden or left, and the request must outlive it. */
+export type RoomCallOptions = { keepalive?: boolean }
+
+/** Under the 64 KiB a keepalive request may carry, with room for multi-byte text. */
+const KEEPALIVE_MAX_CHARS = 16_000
+
 /** One call to the Worker: its value, or a `RoomDeclined` with the player's words. */
 export async function roomCall<N extends GameCallName>(
   name: N,
-  args: GameCallArgs<N>
+  args: GameCallArgs<N>,
+  options?: RoomCallOptions
 ): Promise<GameCallResult<N>> {
+  const body = JSON.stringify({ name, args })
   const res = await fetch(ROOMS_CALL_PATH, {
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ name, args }),
+    body,
+    // A browser refuses a keepalive body over 64 KiB: a larger one goes as an ordinary request.
+    ...(options?.keepalive && body.length < KEEPALIVE_MAX_CHARS ? { keepalive: true } : {}),
   }).catch((cause: unknown) => {
     throw new RoomUnreachable(`${name} did not reach the server`, { cause })
   })
@@ -106,11 +116,14 @@ export function useGamesQuery<N extends GameCallName>(
 export function useGamesCall<
   N extends GameCallName,
   S extends Partial<GameCallArgs<N>> = Record<never, never>,
->(name: N, scope?: S): (args: Omit<GameCallArgs<N>, keyof S>) => Promise<GameCallResult<N>> {
+>(
+  name: N,
+  scope?: S
+): (args: Omit<GameCallArgs<N>, keyof S>, options?: RoomCallOptions) => Promise<GameCallResult<N>> {
   const scopeText = JSON.stringify(scope ?? {})
   return useCallback(
-    (args) =>
-      roomCall(name, { ...JSON.parse(scopeText), ...args } as GameCallArgs<N>).finally(
+    (args, options) =>
+      roomCall(name, { ...JSON.parse(scopeText), ...args } as GameCallArgs<N>, options).finally(
         noteRoomChange
       ),
     [name, scopeText]

@@ -5,18 +5,26 @@
  * list, a pilot's line and a sheet's band all read it from here, and every
  * one of them opens the seat itself, the pilot's Play.
  *
- * A solo pilot has no session to join, so its door reads Open table.
+ * A pilot in no Game has no table to open and no session to join: its door
+ * reads **Play solo** (r4 C7), on its sheet and on its line.
  */
 
 import { playCopy } from '../messages/play'
 
 /** The door's words. */
-export function sessionDoor(live: boolean): string {
+export function sessionDoor(live: boolean, solo = false): string {
+  if (solo) return playCopy('playSolo')
   return live ? playCopy('joinSession') : playCopy('openTable')
 }
 
 /** The door's accessible name where several stand together: who it seats, and in which Game. */
-export function sessionDoorAs(live: boolean, pilot: string, game?: string | null): string {
+export function sessionDoorAs(
+  live: boolean,
+  pilot: string,
+  game?: string | null,
+  solo = false
+): string {
+  if (solo) return playCopy('playSoloAs', { name: pilot })
   if (game == null) return playCopy(live ? 'joinSessionAs' : 'openTableAs', { name: pilot })
   return playCopy(live ? 'joinSessionAsIn' : 'openTableAsIn', { name: pilot, game })
 }
