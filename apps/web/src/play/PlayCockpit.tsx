@@ -17,7 +17,8 @@
  * From `lg` the Situation switch (`PlaySituationSwitch`) fills the bar's
  * `situation` slot; below it, the Situation and Table mode are rows of the
  * bar's ⋯ (`situationRows`) and the live vitals for the Situation are pinned
- * above every pane (`pinnedUnits`). In table mode (`useTableMode`)
+ * above every pane (`pinnedUnits`); in Downtime the switch is pinned under
+ * them too, with the numbers its steps restore (r4 A10). In table mode (`useTableMode`)
  * the panes give way to `PlayTableMode`, which draws those vitals itself at
  * the Full Size, and the screen stays awake (`useWakeLock`).
  *
@@ -162,7 +163,9 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     crawler: units.crawler?.crawler ?? null,
     boardedMech: play.boardedMech,
     activeEffects: play.seat.seat.activeEffects,
+    downtimeMech: units.mech?.mech ?? null,
   })
+  const inDowntime = play.situation === 'downtime'
   const pilotId = play.pilot?.id ?? null
   const mechId = play.boardedMech?.id ?? null
   const writeVital = (
@@ -304,11 +307,15 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
         }
         pinned={
           table ? null : (
-            <PlayPinnedVitals
-              units={pinned}
-              live={{ pilot: units.live.pilot, mech: units.live.mech }}
-              onWrite={writeVital}
-            />
+            <>
+              <PlayPinnedVitals
+                units={pinned}
+                live={{ pilot: units.live.pilot, mech: units.live.mech }}
+                onWrite={writeVital}
+              />
+              {/* In Downtime the way out of it stays on screen, with the numbers (r4 A10). */}
+              {inDowntime && <PlaySituationSwitch play={play} fill />}
+            </>
           )
         }
         panes={(wide
@@ -333,7 +340,8 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
         focus={
           table ? (
             <PlayTableMode
-              units={tableUnits(pinned)}
+              // Table mode tracks a fight: in Downtime the tabs hold the step.
+              units={tableUnits(inDowntime ? [] : pinned)}
               live={{ pilot: units.live.pilot, mech: units.live.mech }}
               onWrite={writeVital}
             />

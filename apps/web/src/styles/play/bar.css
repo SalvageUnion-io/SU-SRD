@@ -119,8 +119,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* The title gives way before a control wraps (r4 A10): it starts from
+   nothing, so the line never breaks for it, and grows to its own width. */
 .su-play-bar--line > .su-play-bar__notch {
-  flex: 0 1 auto;
+  flex: 1 1 0;
+  max-width: max-content;
+  min-width: 0;
   line-height: calc(var(--size-compact) + var(--space-4));
   order: 0;
   padding: 0 var(--space-12);

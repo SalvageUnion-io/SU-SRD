@@ -124,6 +124,8 @@ type PinnedArgs = {
   boardedMech: Mech | null
   /** The seat's switched-on effects (ADR-029 §4), which move the mech's maxima. */
   activeEffects: readonly string[]
+  /** In Downtime, the mech its steps restore (the pilot's assigned one); read, never boarded. */
+  downtimeMech?: Mech | null
 }
 
 /** What is pinned above every tab, for the Situation: the live vitals a spend reads. */
@@ -133,8 +135,11 @@ export function pinnedUnits({
   crawler,
   boardedMech,
   activeEffects,
+  downtimeMech = null,
 }: PinnedArgs): PinnedUnit[] {
-  if (situation === 'downtime' || pilot === null) return []
+  if (pilot === null) return []
+  // In Downtime the numbers a step restores stay on screen too (r4 A10).
+  const mech = situation === 'downtime' ? downtimeMech : boardedMech
   const units: PinnedUnit[] = [
     {
       kind: 'pilot',
@@ -142,11 +147,11 @@ export function pinnedUnits({
       vitals: pilotVitals(pilot, crawler).gauges,
     },
   ]
-  if (situation === 'boarded' && boardedMech !== null) {
-    const s = mechStats(boardedMech, pilot.abilities, activeEffects)
+  if (situation !== 'onFoot' && mech !== null) {
+    const s = mechStats(mech, pilot.abilities, activeEffects)
     units.push({
       kind: 'mech',
-      name: boardedMech.name,
+      name: mech.name,
       vitals: [
         { label: 'SP', value: s.sp, max: s.maxSP },
         { label: 'EP', value: s.ep, max: s.maxEP },
