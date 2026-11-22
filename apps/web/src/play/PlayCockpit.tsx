@@ -44,9 +44,9 @@ import { mayBindChannel } from 'game-domain/games/discord'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { HeaderMenuItem } from '../components/index'
-import { HeaderMenu, tokens } from '../components/index'
+import { Button, HeaderMenu, tokens } from '../components/index'
 import { changeUndoToast } from '../lib/changeUndoToast'
 import { areaTitle } from '../lib/pageTitle'
 import { runWrite } from '../lib/runWrite'
@@ -75,6 +75,7 @@ import type { PlayerPane } from './playPanes.model'
 import { PLAYER_TABS, pinnedUnits, playerPanes, playerPhonePanes } from './playPanes.model'
 import { StopSignButton } from './StopSign'
 import { tableUnits } from './tableMode.model'
+import { useFeedMark } from './useFeedMark'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
 import { ShowSheetContext } from './useOpenSheet'
@@ -98,6 +99,9 @@ const RULES = { margin: `calc(-1 * ${tokens.space[8]})` } satisfies CSSPropertie
 
 /** From `lg` the Reference closes the end column, under the Tables. */
 const RULES_PANE = { value: 'rules', label: playCopy('rules'), column: 'end' } as const
+
+/** The Feed section's id (`PlayFeedSection`, `idPrefix` "play"): where the bar's mark jumps. */
+const FEED_ID = 'play-feed'
 
 /** The phases as the phone's band says them. */
 const PHASE_WORDS = {
@@ -229,6 +233,18 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
       : pilotWord
   // A proposal awaiting this player's answer sits in the Feed, the Rolls tab's on a phone.
   const waiting = side.entries.some((entry) => entry.kind === 'proposal')
+  // Somebody else's line landed while the Feed was out of sight (r4 B7): the
+  // bar says so, and its press goes there (on a phone, by way of the Rolls tab).
+  const feedMark = useFeedMark(side.entries, FEED_ID)
+  const [toFeed, setToFeed] = useState(0)
+  useEffect(() => {
+    if (toFeed > 0) document.getElementById(FEED_ID)?.scrollIntoView({ block: 'start' })
+  }, [toFeed])
+  const jumpToFeed = () => {
+    feedMark.clear()
+    if (!wide) openTab('tables')
+    setToFeed((n) => n + 1)
+  }
 
   return (
     <ShowSheetContext.Provider value={onScreen.show}>
@@ -261,6 +277,19 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               readOnly={play.readOnly}
               situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
               channel={channel.button}
+              mark={
+                feedMark.shown ? (
+                  <Button
+                    surface="instrument"
+                    size="compact"
+                    aria-label={playCopy('newInTheFeed')}
+                    onClick={jumpToFeed}
+                  >
+                    {wide ? playCopy('newInTheFeed') : playCopy('feed')}
+                    {!wide && <span className="su-play-tab-dot" aria-hidden="true" />}
+                  </Button>
+                ) : undefined
+              }
               stop={<StopSignButton sign={sign} compact={!wide} />}
               menu={
                 <CockpitMenu
