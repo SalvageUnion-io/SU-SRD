@@ -50,13 +50,14 @@ describe('an NPC in a Game', () => {
     }
   })
 
-  test('says only the Mediator can see it until it is put on the field, as the Kit lists it', () => {
+  test('says only the Mediator can see it, on the field too, and when the crew would (r5 B12)', () => {
     const choices = sheetChoices({ inGame: true, gameName: 'Rust Coast', mediatorOnly: true })
     expect(labels(choices)).toEqual(['Only the Mediator', 'My Game’s crew', 'Public'])
     expect(open(choices)).toEqual(['private', 'link'])
     expect(choices[0]?.description).toBe(
-      'It is in Rust Coast. Only its Mediator can see it, until it is put on the field.'
+      'It is in Rust Coast. Only its Mediator can see it, on the field too: players never see the Opposition.'
     )
+    expect(choices[1]?.description).toBe('The crew sees an NPC once it crews the Game’s crawler.')
     expect(choices.map((c) => c.description).join(' ')).not.toMatch(
       /crew can see it|Everyone in Rust Coast/
     )
