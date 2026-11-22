@@ -37,7 +37,13 @@ import {
 import { npcAsReferenceEntity } from '../../lib/npcs/npcModel'
 import { mediatorCopy } from '../../messages/play-mediator'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from './opposition.model'
-import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
+import {
+  OPPOSITION_SCHEMAS,
+  patternLabel,
+  patternSlugOf,
+  patternsOf,
+  slugOf,
+} from './opposition.model'
 
 const { space } = tokens
 
@@ -264,6 +270,9 @@ export function OppositionPicker({
         const book = patternsOf(entity)
         const own = savedFor(schema, entity, saved)
         if (book.length === 0 && own.length === 0) return null
+        // A chassis's pattern is listed as it will stand on the field (r4 D5).
+        const listed = (pattern: string) =>
+          schema === 'chassis' ? patternLabel(item.name, pattern) : pattern
         return (
           <Select
             aria-label={mediatorCopy('pattern', { name: item.name })}
@@ -275,7 +284,7 @@ export function OppositionPicker({
               <optgroup label={mediatorCopy('savedPatterns')}>
                 {own.map((p) => (
                   <option key={p.id} value={savedValue(p)}>
-                    {p.name} · {p.madeBy}
+                    {listed(p.name)} · {p.madeBy}
                   </option>
                 ))}
               </optgroup>
@@ -284,7 +293,7 @@ export function OppositionPicker({
               <optgroup label={mediatorCopy('fromTheBook')}>
                 {book.map((p) => (
                   <option key={p.name} value={bookValue(p)}>
-                    {p.name}
+                    {listed(p.name)}
                   </option>
                 ))}
               </optgroup>

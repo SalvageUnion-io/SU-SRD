@@ -339,7 +339,7 @@ describe('+ From the reference', () => {
 
     // Saved patterns built on this chassis are offered by maker; others are not.
     const options = [...(picker.getByLabelText('Mule pattern') as HTMLSelectElement).options]
-    expect(options.map((o) => o.text)).toContain('Red Leader · Player')
+    expect(options.map((o) => o.text)).toContain('Mule · Red Leader · Player')
     expect(options.map((o) => o.text)).not.toContain('Elsewhere · Player')
     await choose('book:crusher')
     await add('Mule')

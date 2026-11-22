@@ -18,6 +18,7 @@ import {
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { mediatorSeats } from '../mediatorTable.model'
 import {
+  firstToNumber,
   groupRoll,
   newTrayNpc,
   readSavedPattern,
@@ -219,7 +220,8 @@ describe('the Opposition tray', () => {
       refSchema: 'chassis',
       refSlug: 'mule',
       refPattern: 'hauler',
-      name: 'Hauler',
+      // The chassis first, so the field names the Mech that was picked (r4 D5).
+      name: 'Mule · Hauler',
       maxHp: mule.structurePoints,
       statKind: 'sp',
     })
@@ -279,7 +281,7 @@ describe('the Opposition tray', () => {
     const body = newTrayNpc('chassis', mule, [], NOW, { saved })
     expect(body).toMatchObject({
       refSlug: 'mule',
-      name: 'Red Leader',
+      name: 'Mule · Red Leader',
       userPattern: { name: 'Red Leader', systems: [], modules: [] },
       maxHp: mule.structurePoints,
     })
@@ -301,6 +303,25 @@ describe('the Opposition tray', () => {
   test('numbered names skip the ones taken', () => {
     expect(instanceName('Raider Band', [])).toBe('Raider Band')
     expect(instanceName('Raider Band', ['Raider Band', 'Raider Band 2'])).toBe('Raider Band 3')
+  })
+
+  test('a second on the field numbers the first: the one called Raider is to read Raider 1 (r4 D5)', () => {
+    const field = [
+      { id: 'a', name: 'Scylla' },
+      { id: 'b', name: 'Raider' },
+    ]
+    expect(firstToNumber(field, 'Raider 2')).toEqual({ npc: field[1], name: 'Raider 1' })
+    // Nothing to number: a first of its kind, or a first already numbered.
+    expect(firstToNumber(field, 'Rifle Squad')).toBeNull()
+    expect(firstToNumber([{ id: 'b', name: 'Raider 1' }], 'Raider 2')).toBeNull()
+    expect(firstToNumber([{ id: 'b', name: 'Raider' }], 'Raider')).toBeNull()
+  })
+
+  test('a named pattern on any other host keeps the pattern’s own name', () => {
+    const typhon = SalvageUnionReference.BioTitans.all().find((t) => (t.patterns?.length ?? 0) > 0)
+    const pattern = typhon?.patterns?.[0]
+    if (typhon === undefined || pattern === undefined) return
+    expect(newTrayNpc('bio-titans', typhon, [], NOW, { pattern }).name).toBe(pattern.name)
   })
 
   test('at 0 an NPC is down; a row from before the tray took instances reads by its name', () => {
