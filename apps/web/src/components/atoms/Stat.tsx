@@ -371,7 +371,14 @@ function HorizontalValue({
       <StepButton
         fit="cell"
         aria-label={atomsCopy('increase', { stepName })}
-        onClick={press(Math.min(top, numericValue + step))}
+        onClick={(event) => {
+          const next = Math.min(top, numericValue + step)
+          press(next)(event)
+          // At the ceiling the + turns off: the focus steps to its − rather
+          // than dropping to the page (r5 C6).
+          const minus = event.currentTarget.previousElementSibling
+          if (next >= top && minus instanceof HTMLElement) minus.focus()
+        }}
         disabled={atMax}
         style={stepStyle}
       >

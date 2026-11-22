@@ -765,6 +765,41 @@
   }
 }
 
+/* A shared page's masthead on a phone (r5 C18): nothing to step, so the
+   vitals share one short row under the build, at the title rung. */
+@media not (width >= 40rem) {
+  .su-mast[data-compact] .su-strip__vitals {
+    flex-direction: row;
+  }
+
+  .su-mast[data-compact] .su-strip__vitals > .su-strip__cell {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: var(--space-8) var(--space-8) var(--space-8) 0;
+  }
+
+  .su-mast[data-compact] .su-strip__vitals .su-strip__label,
+  .su-mast[data-compact] .su-strip__vitals .su-strip__label > .su-chip-link {
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+    white-space: normal;
+  }
+
+  .su-mast[data-compact] .su-strip__vitals > .su-strip__cell + .su-strip__cell {
+    border-left: var(--bw-hairline) solid var(--color-ink-20);
+    border-top: 0;
+    padding-inline-start: var(--space-8);
+  }
+
+  .su-mast[data-compact] .su-strip__vitals .su-strip__num > b {
+    font-size: var(--text-title);
+  }
+
+  .su-mast[data-compact] .su-strip__vitals .su-strip__num > i {
+    font-size: var(--text-body);
+  }
+}
+
 .su-mast .su-strip__label {
   font-size: var(--text-lede);
   margin-block: 0;

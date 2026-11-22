@@ -30,7 +30,7 @@ import { cycleCondition, resolveModule, resolveSystem } from '../../lib/rules/me
 import { mechRuleBreaks, ruleBreaksMade } from '../../lib/rules/ruleBreaks'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE, liveSheetFor } from '../../replica/provenance'
 import type { ChangeMeta, UnitsState } from '../../replica/units'
 import { takeBack } from './changeLog.model'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
@@ -54,6 +54,8 @@ type MechSheetActionsOptions = {
 
 export type MechSheetActions = {
   patchMech: SheetPatch
+  /** A play-state write made for one of the mech's items, which the Change Log names (r5 C9). */
+  patchFor: (fields: Partial<Mech>, did: string) => void
   overrideMechMax: (fields: Partial<Mech>) => void
   addItem: (kind: ItemKind, slug: string) => void
   removeItem: (kind: ItemKind, index: number) => void
@@ -270,6 +272,7 @@ export function useMechSheetActions({
 
   return {
     patchMech,
+    patchFor: (fields, did) => write(fields, liveSheetFor(did)),
     overrideMechMax,
     addItem,
     removeItem,

@@ -125,14 +125,17 @@ export function useSearcherPool({
     const items: PoolEntity[] = entities
       ? entities.filter((item) => (filter ? filter(item) : true))
       : SalvageUnionReference.findAllIn(schema, (item) => (filter ? filter(item) : true))
-    return [...items].sort((a, b) => {
-      const ta = a.techLevel
-      const tb = b.techLevel
-      if (ta !== undefined && tb !== undefined && ta !== tb)
-        return techLevelRank(ta) - techLevelRank(tb)
-      return a.name.localeCompare(b.name)
-    })
-  }, [schema, filter, entities])
+    return [...items].sort(
+      facets?.order ??
+        ((a, b) => {
+          const ta = a.techLevel
+          const tb = b.techLevel
+          if (ta !== undefined && tb !== undefined && ta !== tb)
+            return techLevelRank(ta) - techLevelRank(tb)
+          return a.name.localeCompare(b.name)
+        })
+    )
+  }, [schema, filter, entities, facets?.order])
 
   // Available facet options, derived from the pool. A facet with <2 options is
   // useless, so it hides itself (also hides TL/traits on schemas that lack them).

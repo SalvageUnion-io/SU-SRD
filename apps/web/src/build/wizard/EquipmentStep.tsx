@@ -9,6 +9,7 @@ import { buildWizardCopy } from '../../messages/build-wizard'
 import { PickList } from './PickList'
 import { chosenChips, equipmentColumns, openChoices } from './pickColumns'
 import { RecapMinis } from './ReviewRecap'
+import { SkipToNext } from './SkipToNext'
 import { WizMeter } from './WizBudget'
 
 type SUREquipmentAccessor = {
@@ -178,6 +179,8 @@ export function EquipmentStep({
             />
           </div>
         </div>
+        {/* Past the card's links to Next (r5 C6). */}
+        <SkipToNext />
         <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky su-wiz-compare-detail--scroll su-wiz-compare-detail--desk">
           {focused && card(focused)}
           <RecapMinis

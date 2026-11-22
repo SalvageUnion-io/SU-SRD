@@ -201,11 +201,18 @@ function opOf(
     patch: changed,
     ...(unset.length === 0 ? {} : { unset }),
   }
+  madeHere.add(op.id)
   // Under the rooms every container change is a handoff between rooms (`sendOp`).
   if (!('gameId' in patch)) return { op }
   delete changed.gameId
   return { op, move: (patch as { gameId?: string | null }).gameId ?? null }
 }
+
+/** The ops this tab made, by id: what its sheets' Ctrl+Z may take back (r5 C2). */
+const madeHere = new Set<string>()
+
+/** Whether this tab made the op (a Change Log change's id). */
+export const madeInThisTab = (opId: string): boolean => madeHere.has(opId)
 
 /** Each unit's last write, settled or not: the next one to it waits behind this. */
 const writing = new Map<string, Promise<unknown>>()

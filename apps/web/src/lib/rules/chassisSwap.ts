@@ -7,6 +7,7 @@
 
 import {
   computeMechCapacity,
+  resolveChassisRef,
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
@@ -55,4 +56,10 @@ export function droppedNames(dropped: readonly string[]): string[] {
     counts.set(name, (counts.get(name) ?? 0) + 1)
   }
   return [...counts.entries()].map(([name, count]) => (count > 1 ? `${name} ×${count}` : name))
+}
+
+/** Whether the mech still wears its chassis's name, as a blank one starts (r5 C10). */
+export function namedForChassis(mech: { name: string; chassisRef: string }): boolean {
+  const chassis = mech.chassisRef === '' ? undefined : resolveChassisRef(mech.chassisRef)?.name
+  return chassis !== undefined && mech.name.trim().toLowerCase() === chassis.toLowerCase()
 }

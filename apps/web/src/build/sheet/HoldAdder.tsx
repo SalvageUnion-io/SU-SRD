@@ -5,7 +5,7 @@
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot } from 'game-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { AdderBox, AdderField } from '../../components/app'
 import { Button, Input, Segmented, SegmentedOption, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -63,6 +63,9 @@ export function HoldAdder({
   const [amount, setAmount] = useState(1)
   const [tl, setTl] = useState(1)
 
+  const nameRef = useRef<HTMLInputElement>(null)
+  const amountRef = useRef<HTMLInputElement>(null)
+
   const canCommit = kind === 'scrap' ? amount > 0 : name.trim().length > 0
 
   function commit() {
@@ -74,6 +77,16 @@ export function HoldAdder({
     }
     setName('')
     setAmount(1)
+    // The next lot starts where this one did (r5 C4).
+    const first = kind === 'scrap' ? amountRef : nameRef
+    first.current?.focus()
+  }
+
+  // Enter in any of the form's fields loads, as Load does (r5 C4).
+  const onEnter = (e: { key: string; preventDefault: () => void }) => {
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+    commit()
   }
 
   return (
@@ -94,10 +107,9 @@ export function HoldAdder({
           value={name}
           aria-label={buildSheetCopy('newCargoName')}
           placeholder={buildSheetCopy('cargoName')}
+          ref={nameRef}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') commit()
-          }}
+          onKeyDown={onEnter}
           style={NAME_INPUT}
         />
       ) : (
@@ -113,6 +125,7 @@ export function HoldAdder({
             value={tl}
             aria-label={buildSheetCopy('scrapTechLevel')}
             onChange={(e) => setTl(coerceTl(e.target.value))}
+            onKeyDown={onEnter}
             style={NUMBER_INPUT}
           />
         </AdderField>
@@ -137,7 +150,9 @@ export function HoldAdder({
           // accepts a typed "1.5". Without truncating here the lot fails its Zod
           // parse on commit — and since the form clears itself immediately, the
           // cargo would just vanish. Coerce at the edge instead.
+          ref={amountRef}
           onChange={(e) => setAmount(coerceSlots(e.target.value))}
+          onKeyDown={onEnter}
           style={NUMBER_INPUT}
         />
       </AdderField>

@@ -42,14 +42,12 @@ const buildToastId = (unitId: string) => `rule-break:${unitId}:build`
 /**
  * A build edit that saved against the book's advice (an ability out of its
  * tree's order, one added with too few Training Points): one line says what
- * it breaks, and Undo takes the edit back (r3 B5). It stands until answered,
- * as a removal's Undo does, and leaves with its sheet.
+ * it breaks, and Undo takes the edit back (r3 B5). It stays as a removal's
+ * Undo does (chrome K5), and leaves with its sheet.
  */
 export function buildBreakToast(unitId: string, broken: readonly string[], undo: () => void) {
   toast.warning(buildSheetCopy('savedBreaking', { rules: broken.join(' ') }), {
     id: buildToastId(unitId),
-    duration: Number.POSITIVE_INFINITY,
-    closeButton: true,
     action: { label: componentsCopy('undo'), onClick: undo },
   })
 }

@@ -123,6 +123,7 @@ export const buildWizardCopy = messages({
   noWeaponsSystemsAvailable: 'No Weapons Systems available.',
   armamentBayFullMounted: 'Armament Bay full · {installedWeaponCount} mounted',
   back: 'Back',
+  skipToNext: 'Skip to Next',
   discardThisDraft: 'Discard this draft?',
   yourUnsavedChangesWillBe: 'Your unsaved changes will be lost.',
   discard: 'Discard',

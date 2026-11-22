@@ -15,6 +15,7 @@ export const buildExportCopy = messages({
   importCompleteOne: 'Import complete: {count} sheet added.',
   importCompleteMany: 'Import complete: {count} sheets added.',
   importAlreadyHere: 'Nothing to import: every sheet in that backup is already here.',
+  openImported: 'Open {name}',
   backups: 'Backups: import and export',
   backupsMenu: 'Backups',
 })

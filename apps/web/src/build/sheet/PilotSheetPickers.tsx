@@ -6,7 +6,7 @@
  */
 
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { EntitySearcher } from '../../components/index'
@@ -21,6 +21,16 @@ import { EquipmentChoiceDialog } from './rowControls'
 import { SheetPickerModal } from './SheetPickerModal'
 
 export type PilotPicker = 'abilities' | 'equipment'
+
+/** Abilities by tree, then up each tree by level, as the book lays them out (r5 C1). */
+const levelOf = (item: unknown) => {
+  const level = Number((item as RefAbility).level)
+  return Number.isFinite(level) ? level : Number.POSITIVE_INFINITY
+}
+const BY_TREE = (a: { name: string }, b: { name: string }) =>
+  ((a as RefAbility).tree ?? '').localeCompare((b as RefAbility).tree ?? '') ||
+  levelOf(a) - levelOf(b) ||
+  a.name.localeCompare(b.name)
 
 export function PilotSheetPickers({
   picker,
@@ -44,6 +54,21 @@ export function PilotSheetPickers({
   // share the focus trap), and closing it returns to the picker.
   const [asking, setAsking] = useState<string | null>(null)
   const askingEntity = asking ? resolveEquipment(asking) : undefined
+  // What this visit to Manage Abilities bought, at its price: taking one
+  // back here gives its Training Points back (r5 C1).
+  const bought = useRef(new Map<string, number>())
+  useEffect(() => {
+    if (picker === 'abilities') bought.current = new Map()
+  }, [picker])
+  function toggleAbility(slug: string) {
+    const price = bought.current.get(slug)
+    if (price !== undefined && pilot.abilities.includes(slug)) {
+      bought.current.delete(slug)
+      actions.untrainAbility(slug, price)
+      return
+    }
+    actions.toggleAbility(slug)
+  }
   function toggleEquipment(slug: string) {
     const adding = !pilot.equipment.includes(slug)
     actions.toggleEquipment(slug)
@@ -60,7 +85,7 @@ export function PilotSheetPickers({
         <EntitySearcher
           schema="abilities"
           selected={pilot.abilities}
-          onToggle={actions.toggleAbility}
+          onToggle={toggleAbility}
           idOf={(item) => nameToSlug(item.name)}
           cost={(item) => {
             const slug = nameToSlug(item.name)
@@ -71,8 +96,12 @@ export function PilotSheetPickers({
             return {
               label: buildSheetCopy('costsTp', { cost: price, left }),
               payLabel: buildSheetCopy('spendTpAndAdd', { cost: price }),
-              canPay: left >= price,
-              onPay: () => actions.trainAbility(slug),
+              // Out of the tree's order, only "Add anyway" adds it (r5 C1).
+              canPay: left >= price && unmet.length === 0,
+              onPay: () => {
+                bought.current.set(slug, price)
+                actions.trainAbility(slug)
+              },
               unmet,
               // Out of order or unaffordable: the plain add says so first (r4 E12).
               breaks: unmet.length > 0 || price > left,
@@ -86,6 +115,7 @@ export function PilotSheetPickers({
           }
           facets={{
             category: { label: buildSheetCopy('tree'), of: (item) => (item as RefAbility).tree },
+            order: BY_TREE,
           }}
           railName={pilot.name}
           chosenLabel={buildSheetCopy('learned')}

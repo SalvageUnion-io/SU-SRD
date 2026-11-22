@@ -197,7 +197,8 @@ export function EntityDetailDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={title}
-      description={referenceEntityCopy('entityDisplayDetails')}
+      // Described by its kind, never a generic line (r5 C11): the band names it.
+      description={resolveEntityPageMeta(entity, pattern).typeLabel || title}
       ownTitle
       width="page"
       bare

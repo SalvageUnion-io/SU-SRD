@@ -151,8 +151,12 @@ function SavePatternBody({
     if (!result.ok) return
     onClose()
     const { id } = result.value
+    const saved = result.value.name
+    // The line names the pattern as it is called now (r5 C3).
+    const nameNow = () =>
+      usePatterns.getState().mechPatterns.find((held) => held.id === id)?.name ?? saved
     madeToast(
-      mechCopy('savedPattern', { name: result.value.name }),
+      () => mechCopy('savedPattern', { name: nameNow() }),
       mechCopy('openThePattern'),
       {
         href: savedPatternHref(id),

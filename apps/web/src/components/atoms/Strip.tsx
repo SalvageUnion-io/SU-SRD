@@ -289,6 +289,7 @@ export function Strip({
   identity,
   traits,
   edit = false,
+  compact = false,
 }: {
   /** Names the strip: "Mazona vitals". */
   label: string
@@ -302,11 +303,19 @@ export function Strip({
   traits?: ReactNode
   /** Edit: the identity is its fields, laid under the board at its width. */
   edit?: boolean
+  /** A shared page's: on a phone the vitals sit in one short row (r5 C18). */
+  compact?: boolean
 }) {
   return (
     <div className="su-dash-top" data-print-keep="">
       {/* biome-ignore lint/a11y/useSemanticElements: a labelled group, not a landmark */}
-      <div role="group" aria-label={label} className="su-mast" data-edit={edit ? '' : undefined}>
+      <div
+        role="group"
+        aria-label={label}
+        className="su-mast"
+        data-edit={edit ? '' : undefined}
+        data-compact={compact ? '' : undefined}
+      >
         {art && <div className="su-mast__art">{art}</div>}
         <div className="su-mast__board">
           {vitals.length > 0 && (

@@ -87,6 +87,19 @@ describe('logChanges', () => {
     expect(changes[0] && reversal(changes[0], { currentSP: 5 }).label).toBe('Set back to 5')
   })
 
+  test('a sheet write made for an item names it, and no surface (r5 C9)', () => {
+    const [change] = logChanges([
+      row({
+        _id: 'a:currentEP',
+        field: 'currentEP',
+        before: 4,
+        after: 3,
+        source: 'live-sheet:Zoom Optics',
+      }),
+    ])
+    expect([change?.from, change?.did]).toEqual([undefined, 'Zoom Optics'])
+  })
+
   test('a write from Play or Downtime says so, and what it was for (r3 B4)', () => {
     const changes = logChanges([
       row({ _id: 'a:currentAP', field: 'currentAP', before: 5, after: 4, source: 'play:Spotter' }),
@@ -195,8 +208,28 @@ describe('reversing one change (r3 B1)', () => {
     expect(reversal(set)).toEqual({
       label: 'Set back to 5',
       done: 'Current SP set back to 5.',
-      was: 'Set back',
+      was: 'Set back to 5',
     })
+  })
+
+  test('an absent number reads as what it stands for on either side, and its Set back names it (r5 C7)', () => {
+    const rows = [
+      row({ _id: 'a:currentHeat', field: 'currentHeat', before: 1, after: null }),
+      row({ _id: 'b:currentSP', field: 'currentSP', before: 9, after: null }),
+      row({ _id: 'c:currentSP', field: 'currentSP', before: null, after: 9 }),
+    ]
+    const defaults = { currentHeat: 0, currentSP: 10 }
+    const changes = logChanges(rows, defaults)
+    expect(changes.map((c) => c.lines.map(lineText))).toEqual([
+      ['Current heat: 1 to 0'],
+      ['Current SP: 9 to 10'],
+      ['Current SP: 10 to 9'],
+    ])
+    expect(changes.map((c) => reversal(c, defaults).label)).toEqual([
+      'Set back to 1',
+      'Set back to 9',
+      'Set back to 10',
+    ])
   })
 
   test('a lot altered in a list reads as it did, and the other lots stay', () => {

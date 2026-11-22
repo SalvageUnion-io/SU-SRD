@@ -19,7 +19,7 @@ import { resolveClass } from '../../lib/classRef'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { SHEET_REDO_SOURCE, SHEET_UNDO_SOURCE } from '../../replica/provenance'
+import { LIVE_SHEET_MANUAL, SHEET_REDO_SOURCE, SHEET_UNDO_SOURCE } from '../../replica/provenance'
 import type { EntityLogRow } from '../../rooms/ops'
 
 /** One line of a change: a sentence, or a named value's before and after. */
@@ -192,17 +192,16 @@ function rowLines(row: EntityLogRow, defaults: LogDefaults): LogLine[] {
   const ref = REFS[row.field]
   const text = (value: unknown) =>
     ref && typeof value === 'string' && value !== '' ? (ref.name(value) ?? value) : valueText(value)
-  // A number written over nothing started from what nothing stood for.
-  const start =
-    (row.before === null || row.before === undefined) && typeof row.after === 'number'
-      ? defaults[row.field]
-      : undefined
+  // An absent number reads as what it stands for, on either side: a full
+  // pool, 0 Heat (r3 B4, r5 C7), never "None".
+  const filled = (value: unknown) =>
+    value === null || value === undefined ? (defaults[row.field] ?? value) : value
   return [
     {
       key: row._id,
       label: fieldLabel(row.field),
-      before: text(start ?? row.before),
-      after: text(row.after),
+      before: text(filled(row.before)),
+      after: text(filled(row.after)),
     },
   ]
 }
@@ -222,8 +221,10 @@ function origin(source: string): Pick<LogChange, 'from' | 'did' | 'reverses'> {
   if ((surface === SHEET_UNDO_SOURCE || surface === SHEET_REDO_SOURCE) && at !== -1) {
     return { reverses: { id: source.slice(at + 1), again: surface === SHEET_REDO_SOURCE } }
   }
-  if (surface !== 'play' && surface !== 'downtime') return {}
   const did = at === -1 ? '' : source.slice(at + 1).trim()
+  // A sheet edit for something it names (`liveSheetFor`): what, not where (r5 C9).
+  if (surface === LIVE_SHEET_MANUAL.source) return did === '' ? {} : { did }
+  if (surface !== 'play' && surface !== 'downtime') return {}
   return did === '' ? { from: surface } : { from: surface, did }
 }
 
@@ -466,7 +467,9 @@ export function reversal(change: LogChange, defaults: LogDefaults = {}): Reversa
       done: short
         ? buildSheetCopy('logSetBackDone', { label: value.label, value: value.before })
         : buildSheetCopy('logSetBackDonePlain', { label: value.label }),
-      was: buildSheetCopy('logSetBackWas'),
+      was: short
+        ? buildSheetCopy('logSetBackWasTo', { value: value.before })
+        : buildSheetCopy('logSetBackWas'),
     }
   }
   return {
