@@ -61,6 +61,8 @@ export type PlanLine = {
   blocked?: string
   /** A line under its chips: where the book covers what the chips say (unpaid Upkeep). */
   note?: string
+  /** What the line lacks is a Union Crawler: solo, the step links to making one (r5 A12). */
+  needsCrawler?: boolean
 }
 
 export type StepPlanInput = {
@@ -174,8 +176,75 @@ function pilotLine(pilot: Pilot, crawler: Crawler | null, tl: number): PlanLine 
     const healed = (pilot.injuries ?? []).length - patch.injuries.length
     chips.push({ label: playCopy('injuriesHealed'), value: String(healed) })
   }
-  if (chips.length === 0) return null
-  return { key: 'pilot', title: pilotLabel(pilot), chips, steps, skippable: true }
+  // HP heals at a Med Bay alone (Core Book p.223): with none, or a damaged
+  // one, the line says the HP stays, never leaves it out in silence (r5 A12).
+  const unhealed = unhealedNote(pilot, crawler, tl)
+  const title = pilotLabel(pilot)
+  if (chips.length === 0)
+    return unhealed === null
+      ? null
+      : { key: 'pilot', title, chips, steps, skippable: false, ...unhealed }
+  return {
+    key: 'pilot',
+    title,
+    chips,
+    steps,
+    skippable: true,
+    ...(unhealed === null ? {} : { note: unhealed.blocked, needsCrawler: unhealed.needsCrawler }),
+  }
+}
+
+/** Why a hurt pilot's HP stays where it is this Downtime; null when it heals, or is full. */
+function unhealedNote(
+  pilot: Pilot,
+  crawler: Crawler | null,
+  tl: number
+): { blocked: string; needsCrawler: boolean } | null {
+  const medBay = medBayOf(crawler)
+  if (medBay.operational) return null
+  const maxHP = pilotMaxHP({ ...pilot, crawlerTechLevel: tl })
+  const hp = resolvePool(pilot.currentHP, maxHP)
+  if (hp >= maxHP) return null
+  return {
+    blocked: playCopy(medBay.damaged ? 'hpStaysMedBayDamaged' : 'hpStaysNeedsMedBay', { hp }),
+    needsCrawler: crawler === null,
+  }
+}
+
+/** The steps a second Restore runs: the Med Bay's healing, and nothing else. */
+const HEAL_STEPS: DowntimeStepKey[] = ['healPilots', 'healInjuries']
+
+/**
+ * Restore, once taken: what a Med Bay that has arrived since would heal (a
+ * second run, `healAgain`), or why the HP still stays. Null on any other
+ * step, and once the pilot is healed (r5 A12).
+ */
+export function restoreAgainLine(input: StepPlanInput): PlanLine | null {
+  const { stepName, pilot, crawler, pilotCrawlerTl: tl } = input
+  if (stepName !== RESTORE_STEP_NAME || pilot === null) return null
+  const line = pilotLine(pilot, crawler, tl)
+  if (line === null) return null
+  if (!medBayOf(crawler).operational) {
+    const blocked = line.blocked ?? line.note
+    if (blocked === undefined) return null
+    const needsCrawler = line.needsCrawler ?? false
+    return {
+      key: 'pilot',
+      title: line.title,
+      chips: [],
+      steps: [],
+      skippable: false,
+      blocked,
+      needsCrawler,
+    }
+  }
+  const chips = line.chips.filter((chip) => chip.label !== 'AP')
+  return chips.length === 0 ? null : { ...line, chips }
+}
+
+/** What the second Restore applies to the pilot: the healing alone. */
+export function healAgainPatch(pilot: Pilot, crawler: Crawler | null, tl: number): Partial<Pilot> {
+  return downtimePilotPatch(pilot, medBayOf(crawler), onlySteps(HEAL_STEPS), tl)
 }
 
 function usesLine(pilot: Pilot | null, mech: Mech | null, crawler: Crawler | null, tl: number) {

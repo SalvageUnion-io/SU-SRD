@@ -117,3 +117,8 @@ export function hangarMechs(options: readonly BoardOption[], shownId: string | n
       (option.state === 'yours' || option.state === 'destroyed')
   )
 }
+
+/** Solo, where a Downtime line that needs a Union Crawler sends the player to make one. */
+export function makeCrawlerHref(): string {
+  return '/crawlers/new'
+}

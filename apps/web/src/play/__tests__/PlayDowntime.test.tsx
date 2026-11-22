@@ -480,6 +480,44 @@ describe('Downtime’s dead ends say why', () => {
     )
   })
 
+  // r5 A12 (SB5-02): Restore with no crawler left the pilot at 0 HP without a word.
+  test('solo Restore with no Med Bay says the HP stays, then heals once a crawler has one', async () => {
+    const { pilot, mech, crawler } = units()
+    const restore = STEPS.indexOf('Restore your Mech & Pilot')
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(pilot, mech).store}
+        writes={[]}
+        downtime={{ stepIndex: restore, doneSteps: [restore] }}
+      />
+    )
+    expect(within(stepBox()).getByText('HP stays 3: healing needs a Med Bay')).toBeTruthy()
+    expect(
+      within(stepBox()).getByRole('link', { name: 'Make a Union Crawler' }).getAttribute('href')
+    ).toBe('/crawlers/new')
+    expect(within(stepBox()).queryByRole('button', { name: 'Heal at the Med Bay' })).toBeNull()
+
+    cleanup()
+    const writes: Write[] = []
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(pilot, mech, crawler).store}
+        writes={writes}
+        downtime={{ stepIndex: restore, doneSteps: [restore] }}
+      />
+    )
+    await click(button('Heal at the Med Bay'))
+    const heal = writes.find((w) => w.name === 'downtime.healAgain')
+    expect(heal?.args).toMatchObject({ stepIndex: restore, patch: { currentHP: 12 } })
+    expect(within(stepBox()).queryByRole('button', { name: 'Heal at the Med Bay' })).toBeNull()
+  })
+
   test('in a Game the rumour is the Mediator’s to answer, and a missing crawler offers no wizard', async () => {
     const { pilot, mech } = units()
     const { store } = stubStore(pilot, mech)

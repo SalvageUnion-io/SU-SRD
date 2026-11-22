@@ -54,8 +54,10 @@ import { playCopy } from '../messages/play'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
 import {
+  healAgainPatch,
   mechBayOf,
   medBayOf,
+  restoreAgainLine,
   skippedSteps,
   stepNames,
   stepPlan,
@@ -65,6 +67,7 @@ import { processDowntimeNanites } from './playNanites.model'
 import { recordPlayChange } from './playRolls.model'
 import { payDowntimeUpkeep } from './playUpkeep.model'
 import type { Play } from './situation.model'
+import { makeCrawlerHref } from './units.model'
 import type { PlayActions } from './usePlayActions'
 
 /** A line's title is a caps label; its weight is the `strong`'s. */
@@ -98,14 +101,15 @@ export function PlayDowntimeStep({
   // The changes this step made, as they read when it applied them.
   const [applied, setApplied] = useState<readonly PlanLine[]>([])
 
-  const plan = stepPlan({
+  const planInput = {
     stepName: step.name,
     pilot,
     mech,
     crawler,
     pilotCrawlerTl: actions.crawlerTechLevel,
     upkeep: { spent: downtime.downtime.upkeepSpent, canPay },
-  })
+  }
+  const plan = stepPlan(planInput)
   const applicable = plan.filter((line) => line.skippable)
   const members = downtime.downtime.members
   const doneCount = downtime.downtime.completedBy.filter((m) =>
@@ -115,7 +119,18 @@ export function PlayDowntimeStep({
   const claimed = claimedHere || (downtime.doneSteps?.includes(stepIndex) ?? false)
   // Taken, a line that states a change (`steps`) is the one made; a line that
   // reads a state (Upkeep, Nanites) stays live.
-  const shown = claimed ? [...plan.filter((line) => line.steps.length === 0), ...applied] : plan
+  // Restore taken with no Med Bay: why the HP stays, and solo, once a crawler
+  // has one, the healing as a second run of the same step (r5 A12).
+  const [healedAgain, setHealedAgain] = useState(false)
+  const again = claimed && !healedAgain ? restoreAgainLine(planInput) : null
+  const canHealAgain = again?.skippable === true && !inGame && downtime.healAgain !== null
+  const shown = claimed
+    ? [
+        ...plan.filter((line) => line.steps.length === 0),
+        ...applied.filter((line) => again === null || line.key !== 'pilot'),
+        ...(again !== null && (canHealAgain || !again.skippable) ? [again] : []),
+      ]
+    : plan
   const off = !play.canWrite
   // End Downtime with steps walked past unapplied asks first (r4 A6), as
   // leaving mid-way does (`useSituationMoves`).
@@ -163,6 +178,17 @@ export function PlayDowntimeStep({
   /** Skip the step, or mark one with nothing to apply done: the step op, applying nothing. */
   async function skip() {
     await take({})
+  }
+
+  /** The Med Bay's healing, for a Restore taken before there was one: its own op, once. */
+  async function healAgain() {
+    if (pilot === null || downtime.healAgain === null) return
+    const fresh = store.get('pilot', pilot.id) ?? pilot
+    const patch = healAgainPatch(fresh, crawler, actions.crawlerTechLevel)
+    const ok = await downtime.healAgain(stepIndex, patch)
+    setHealedAgain(true)
+    if (ok) recordPlayChange(`${step.name} · ${fresh.name}`)
+    setNote(playCopy(ok ? 'appliedTo' : 'stepAlreadyDone', { what: fresh.name }))
   }
 
   /** Pay this Downtime's Upkeep (`payDowntimeUpkeep`). */
@@ -243,6 +269,7 @@ export function PlayDowntimeStep({
                 ticked={!unticked.has(line.key)}
                 onToggle={() => toggle(line.key)}
                 disabled={claimed}
+                crawlerHref={inGame ? null : makeCrawlerHref()}
               />
             ))}
           </ul>
@@ -257,7 +284,14 @@ export function PlayDowntimeStep({
       )}
       <div className="su-play-dt-controls">
         {claimed ? (
-          <span className="su-play-act__state">{playCopy('done')}</span>
+          <>
+            <span className="su-play-act__state">{playCopy('done')}</span>
+            {canHealAgain && (
+              <Button size="compact" onClick={() => void healAgain()} disabled={off}>
+                {playCopy('healAtTheMedBay')}
+              </Button>
+            )}
+          </>
         ) : applicable.length > 0 ? (
           <>
             <Button size="compact" onClick={() => void skip()} disabled={off}>
@@ -305,11 +339,14 @@ function PlanLineItem({
   ticked,
   onToggle,
   disabled,
+  crawlerHref,
 }: {
   line: PlanLine
   ticked: boolean
   onToggle: () => void
   disabled: boolean
+  /** Solo, where a line that needs a Union Crawler links to making one. */
+  crawlerHref: string | null
 }) {
   const id = useId()
   return (
@@ -341,6 +378,11 @@ function PlanLineItem({
         </span>
       )}
       {line.note && <span className="su-play-act__need">{line.note}</span>}
+      {line.needsCrawler && crawlerHref !== null && (
+        <Button size="mini" href={crawlerHref}>
+          {playCopy('makeAUnionCrawler')}
+        </Button>
+      )}
     </li>
   )
 }

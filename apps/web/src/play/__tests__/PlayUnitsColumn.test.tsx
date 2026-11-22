@@ -158,6 +158,7 @@ function playFor({
       end: () => {},
       doneSteps: gameId === null ? [] : null,
       markStepDone: gameId === null ? async () => true : null,
+      healAgain: null,
       claim: async () => true,
     },
     canWrite: true,

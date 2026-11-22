@@ -8,7 +8,13 @@ import { describe, expect, test } from 'bun:test'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import type { StepPlanInput } from '../playDowntime.model'
-import { mechBayOf, stepPlan, stepsFor } from '../playDowntime.model'
+import {
+  healAgainPatch,
+  mechBayOf,
+  restoreAgainLine,
+  stepPlan,
+  stepsFor,
+} from '../playDowntime.model'
 
 const RESTORE = 'Restore your Mech & Pilot'
 
@@ -91,6 +97,54 @@ describe('the restore step', () => {
 
   test('with nothing spent, the step plans nothing', () => {
     expect(plan({ mech: mechFixture({ id: 'm' }), pilot: pilotFixture({ id: 'p' }) })).toEqual([])
+  })
+})
+
+describe('a hurt pilot with no Med Bay (r5 A12)', () => {
+  const hurt = () => pilotFixture({ id: 'p', name: 'Tessa', currentHP: 0 })
+  const input = (over: Partial<StepPlanInput>): StepPlanInput => ({
+    stepName: RESTORE,
+    pilot: null,
+    mech: null,
+    crawler: null,
+    pilotCrawlerTl: 1,
+    upkeep: { spent: false, canPay: true },
+    ...over,
+  })
+
+  test('with no crawler the restore step says the HP stays, and links to making one', () => {
+    const line = plan({ pilot: hurt() }).find((l) => l.key === 'pilot')
+    expect(line).toMatchObject({
+      key: 'pilot',
+      skippable: false,
+      blocked: 'HP stays 0: healing needs a Med Bay',
+      needsCrawler: true,
+    })
+  })
+
+  test('a damaged Med Bay says so, with no link to a crawler', () => {
+    const site = crawlerFixture({
+      id: 'c',
+      techLevel: 1,
+      crawlerBays: [{ bayRef: 'med-bay', condition: 'damaged' }],
+    })
+    const line = plan({ pilot: hurt(), crawler: site }).find((l) => l.key === 'pilot')
+    expect(line?.blocked).toBe('HP stays 0: the Med Bay is damaged')
+    expect(line?.needsCrawler).toBe(false)
+  })
+
+  test('once taken, the step keeps saying why until a crawler with a Med Bay arrives', () => {
+    const pilot = hurt()
+    expect(restoreAgainLine(input({ pilot }))?.blocked).toBe('HP stays 0: healing needs a Med Bay')
+    const again = restoreAgainLine(input({ pilot, crawler: crawler(1) }))
+    expect(again?.skippable).toBe(true)
+    expect(again?.chips.map((c) => c.label)).toEqual(['HP'])
+    expect(healAgainPatch(pilot, crawler(1), 1).currentHP).toBe(10)
+  })
+
+  test('a full pilot, or another step, has nothing to run again', () => {
+    expect(restoreAgainLine(input({ pilot: pilotFixture({ id: 'p' }) }))).toBeNull()
+    expect(restoreAgainLine(input({ pilot: hurt(), stepName: 'Train your Pilot' }))).toBeNull()
   })
 })
 

@@ -25,7 +25,7 @@
  * §1), and a server refusal is said in its own words.
  */
 
-import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import { downtimeClaimOpId, downtimeHealOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { sendStep } from '../replica/outbox'
 import { DOWNTIME_TXN } from '../replica/provenance'
@@ -110,6 +110,21 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
                 mech ? [stepOp(mech.id, mech.patch)] : []
               )
             }),
+    // Solo only: a Game's Restore is its Mediator's to run again.
+    healAgain:
+      pilotId === null || !solo
+        ? null
+        : (stepIndex, patch) =>
+            guarded.ask(async () =>
+              sendStep(gameId, {
+                id: downtimeHealOpId(run, pilotId, stepIndex),
+                unitId: pilotId,
+                baseSeq: null,
+                at: Date.now(),
+                ...DOWNTIME_TXN,
+                patch,
+              })
+            ),
     claim: (kind, crawlerId, patch) =>
       guarded.ask(async () => {
         const op = {
