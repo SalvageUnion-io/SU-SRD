@@ -102,7 +102,12 @@ import { MechShelf } from './MechShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
 import { PatternShelf } from './PatternShelf'
-import { buildFromPattern, deletePatternsHeld, patternMenuOf } from './patternMenu.model'
+import {
+  buildFromPattern,
+  copyPatternNow,
+  deletePatternsHeld,
+  patternMenuOf,
+} from './patternMenu.model'
 import { RenameDialog } from './RenameDialog'
 import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
@@ -120,7 +125,7 @@ import type { RenameSubject } from './shelfMenu.model'
 import { deleteItem } from './shelfMenu.model'
 import { ShelvesPart } from './shelvesPart.model'
 import { TrayLeftovers } from './TrayLeftovers'
-import { deleteMechsNow, unitMenuOf } from './unitMenu.model'
+import { copyNow, deleteMechsNow, unitMenuOf } from './unitMenu.model'
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
@@ -222,12 +227,19 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
       )
   }
 
+  // A row's Copy, one press (r6 E9).
+  const unitCopy = (
+    type: EntityKind,
+    unit: { id: string; name: string },
+    body: Record<string, unknown>
+  ): (() => void) | undefined =>
+    writable(() => copyNow(type, unit, body, { confirm, go, rename: setRenaming }))
+
   const unitMenu = (
     type: EntityKind,
-    unit: { id: string; name: string; gameId?: string | null },
-    copyBody: Record<string, unknown>
+    unit: { id: string; name: string; gameId?: string | null }
   ): HeaderMenuItem[][] =>
-    unitMenuOf(type, unit, copyBody, {
+    unitMenuOf(type, unit, {
       go,
       confirm,
       canWrite,
@@ -302,6 +314,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         under: over === undefined ? undefined : <RuleBreakMark what={over} />,
         act: buildFromPattern(p, { go, canWrite }),
         menu: patternMenu(p),
+        copy: writable(() => void copyPatternNow(p, go, setRenaming)),
       })}
       remove={canWrite ? deletePatternsHeld : undefined}
     />
@@ -362,7 +375,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   inGame(gameRelation(n, games)),
                   hpColumnCell(npcReading(n)),
                 ],
-                menu: unitMenu('npc', n, n),
+                menu: unitMenu('npc', n),
+                copy: unitCopy('npc', n, n),
               })),
               ...tray.map((n) => ({
                 id: n.id,
@@ -466,7 +480,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                       read(r, VITAL.hp),
                       read(r, VITAL.ap),
                     ],
-                    menu: unitMenu('pilot', { id: p.id, name, gameId: p.gameId }, p),
+                    menu: unitMenu('pilot', { id: p.id, name, gameId: p.gameId }),
+                    copy: unitCopy('pilot', { id: p.id, name }, p),
                     // Play runs a pilot (ADR-066): one press from the Training Bay.
                     ...(status === 'signedOut'
                       ? {}
@@ -487,7 +502,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     crewLinked({ kind: 'mech', id: m.id, softLinks, names: pilotNames })
                   ),
                   game: gameRelation(m, games),
-                  menu: unitMenu('mech', m, m),
+                  menu: unitMenu('mech', m),
+                  copy: unitCopy('mech', m, m),
                 })}
                 remove={canWrite ? deleteMechsNow : undefined}
               />
@@ -496,7 +512,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 games={games}
                 sharedByLink={sharedByLink}
                 action={newLink('/crawlers/new', buildShelvesCopy('newCrawler'))}
-                menu={(c) => unitMenu('crawler', c, c)}
+                menu={(c) => unitMenu('crawler', c)}
+                copy={(c) => unitCopy('crawler', c, c)}
               />
             </div>
             <div className="su-shelf-ledgers__col">

@@ -7,9 +7,11 @@
 // links, and its ⋯ menu at the line's end. A shelf of things a player made
 // that could pass for canon (patterns, NPCs) wears the one dashed HOMEBREW
 // stamp beside its tab (ruleset §3.9, ledger.md L9).
+import { Copy } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { HeaderMenuItem, LedgerColumn, LedgerSort } from '../../components/index'
 import { Button, HeaderMenu, HomebrewStamp, InlineRef, Ledger, Text } from '../../components/index'
+import { iconSize } from '../../design/tokens'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { sessionDoor, sessionDoorAs } from '../../play/sessionDoor.model'
 import { useSessionLive } from '../../play/useSessionLive'
@@ -31,6 +33,8 @@ type ShelfLedgerRow = {
    * This, r3 L5): what the row is for, never a menu row away.
    */
   act?: { label: string; onSelect: () => void } | undefined
+  /** Its Copy, a button beside its name (r6 E9); without it, none. */
+  copy?: (() => void) | undefined
   /** Its Play door (a pilot's Cockpit), before the ⋯ menu. */
   play?: string
   /** The pilot's Game, or null solo: its door reads Join session while that Game's session is live (r3 H3). */
@@ -124,6 +128,21 @@ function trailingOf(row: ShelfLedgerRow): ReactNode {
   )
 }
 
+/** A row's Copy beside its name (r6 E9): one press, its notice opens the copy. */
+function CopyButton({ name, onCopy }: { name: string; onCopy: () => void }) {
+  return (
+    <Button
+      variant="ghost"
+      size="iconOnly"
+      aria-label={buildShelvesCopy('copyName', { name })}
+      title={buildShelvesCopy('copyName', { name })}
+      onClick={onCopy}
+    >
+      <Copy aria-hidden="true" size={iconSize.mini} />
+    </Button>
+  )
+}
+
 /** A cell with something to say; a `0` is a value. */
 const filled = (cell: ReactNode) =>
   cell !== '' && cell !== null && cell !== undefined && cell !== false
@@ -174,6 +193,9 @@ export function ShelfLedger({
           ...(row.href ? { href: row.href } : {}),
           cells: kept.map(({ index }) => row.cells[index]),
           ...(row.under ? { under: row.under } : {}),
+          ...(row.copy && !check
+            ? { stamp: <CopyButton name={row.name} onCopy={row.copy} /> }
+            : {}),
           // While selecting, a line's check stands in for its acts.
           trailing: check ? check(row.id, row.name) : trailingOf(row),
         }))}

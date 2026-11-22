@@ -41,6 +41,8 @@ export function PatternShelf({
     under?: ReactNode
     act?: { label: string; onSelect: () => void } | undefined
     menu: HeaderMenuItem[][]
+    /** The row's Copy (r6 E9). */
+    copy?: (() => void) | undefined
   }
   /** Select's `Delete N` (r6 E3), one notice for all. */
   remove?: ((patterns: MechPattern[]) => void) | undefined

@@ -396,7 +396,7 @@ describe('Training Bay — items', () => {
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 
-  test('the ⋯ menu offers Open, Move, Make a copy, Rename and Save as pattern (mechs), Export and Delete', async () => {
+  test('the ⋯ menu offers Open, Move, Rename and Save as pattern (mechs), Export and Delete; Copy is on the row (r6 E9)', async () => {
     await seedEntity('mech', 'Iron Jaw')
     await renderShelves()
 
@@ -405,15 +405,7 @@ describe('Training Bay — items', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map((item) => item.textContent)
-    ).toEqual([
-      'Open',
-      'Move to a Game…',
-      'Make a copy',
-      'Rename…',
-      'Save as pattern',
-      'Export',
-      'Delete',
-    ])
+    ).toEqual(['Open', 'Move to a Game…', 'Rename…', 'Save as pattern', 'Export', 'Delete'])
   })
 
   test('Rename… changes a mech’s name from the list', async () => {
@@ -479,16 +471,13 @@ describe('Training Bay — items', () => {
 })
 
 describe('Training Bay — Make a copy', () => {
-  test('copies at once, with no confirm, and puts a separate copy on the shelf', async () => {
+  test('the row’s Copy copies at once, with no confirm, and puts a separate copy on the shelf', async () => {
     await seedEntity('pilot', 'Fen Oya')
     await renderShelves()
 
-    const menu = await openMenu('Ghost · Fen Oya')
     await act(async () => {
-      fireEvent.click(within(menu).getByRole('menuitem', { name: 'Make a copy' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Make a copy of Ghost · Fen Oya' }))
     })
-    // A copy only adds, so nothing asks first.
-    expect(screen.queryByRole('alertdialog')).toBeNull()
     await settle(() => screen.queryByText('Ghost 2 · Fen Oya 2') !== null)
 
     expect(screen.getByText('Ghost 2 · Fen Oya 2')).toBeTruthy()

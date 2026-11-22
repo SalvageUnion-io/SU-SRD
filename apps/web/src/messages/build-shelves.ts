@@ -58,6 +58,7 @@ export const buildShelvesCopy = messages({
   renameMenu: 'Rename…',
   deleteMenu: 'Delete…',
   deleteNow: 'Delete',
+  copyName: 'Make a copy of {name}',
   undo: 'Undo',
   deletedName: 'Deleted {name}.',
   deletedCount: 'Deleted {count}.',

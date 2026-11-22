@@ -35,6 +35,8 @@ type MechLine = {
   /** The Game it is in. */
   game: readonly { value: string; href: string }[]
   menu: HeaderMenuItem[][]
+  /** The row's Copy (r6 E9). */
+  copy?: (() => void) | undefined
 }
 
 export function MechShelf({
@@ -139,6 +141,7 @@ export function MechShelf({
               : (values[column.key] ?? '')
         ),
         menu: own.menu,
+        copy: own.copy,
       }))}
     />
   )

@@ -1,6 +1,7 @@
 /**
  * A unit row's ⋯ menu on the Training Bay (pilot, mech, crawler, NPC): Open,
- * Move to a Game…, Make a copy, Rename…, Save as pattern, Export and Delete.
+ * Move to a Game…, Rename…, Save as pattern, Export and Delete; its Copy is
+ * the row's own button (`copyNow`, r6 E9).
  * A verb that takes something away asks first through the page's one confirm,
  * except a Training Bay Mech's delete, whose notice undoes it (r6 E3).
  */
@@ -100,12 +101,31 @@ function deleteOf(type: EntityKind, unit: Unit, host: UnitMenuHost): HeaderMenuI
   return deleteItem(host.canWrite ? run : undefined, undoable)
 }
 
-export function unitMenuOf(
+/**
+ * The row's Copy (r6 E9): one press makes it (a pilot with a Mech is asked
+ * whether the Mech comes too), its line is brought into view, and a pilot's or
+ * a Mech's copy opens in Rename with its name selected (`Crusher 2`), so
+ * typing names it and Escape keeps it.
+ */
+export function copyNow(
   type: EntityKind,
   unit: Unit,
   copyBody: Record<string, unknown>,
-  host: UnitMenuHost
-): HeaderMenuItem[][] {
+  host: Pick<UnitMenuHost, 'confirm' | 'go' | 'rename'>
+): void {
+  void copyAsking(host.confirm, type, unit.name, copyBody, host.go, {
+    landed: (id) => {
+      showShelfRow(type, id)
+      const units = useUnits.getState()
+      const mech = type === 'mech' ? units.get('mech', id) : null
+      const pilot = type === 'pilot' ? units.get('pilot', id) : null
+      if (mech) host.rename(mechRename(mech))
+      if (pilot) host.rename(pilotRename(pilot))
+    },
+  })
+}
+
+export function unitMenuOf(type: EntityKind, unit: Unit, host: UnitMenuHost): HeaderMenuItem[][] {
   const { canWrite, go } = host
   const writable = (run: () => void): (() => void) | undefined => (canWrite ? run : undefined)
   return [
@@ -116,19 +136,6 @@ export function unitMenuOf(
         label: buildShelvesCopy('moveToAGame'),
         onSelect:
           canWrite && host.live ? () => host.move({ type, id: unit.id, entity: unit }) : undefined,
-      },
-      {
-        id: 'copy',
-        label: buildShelvesCopy('makeACopy'),
-        // A copy only adds: it runs at once (a pilot with a mech is asked
-        // whether the mech comes too), its notice opens it, and its new
-        // line is brought into view.
-        onSelect: writable(
-          () =>
-            void copyAsking(host.confirm, type, unit.name, copyBody, go, {
-              landed: (id) => showShelfRow(type, id),
-            })
-        ),
       },
       ...(type === 'pilot'
         ? host.pilots

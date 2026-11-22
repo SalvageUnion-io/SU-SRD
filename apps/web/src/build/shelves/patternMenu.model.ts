@@ -1,6 +1,6 @@
 /**
- * A saved pattern's ⋯ menu on its shelf: open, rename, copy, export, and its
- * delete. Build With This is the row's own button (`buildFromPattern`, r3 L5).
+ * A saved pattern's ⋯ menu on its shelf: open, rename, export, and its
+ * delete; Copy is the row's own button (r6 E9). Build With This is the row's own button (`buildFromPattern`, r3 L5).
  */
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { HeaderMenuItem } from '../../components/index'
@@ -77,6 +77,23 @@ export function deletePatternsHeld(patterns: readonly MechPattern[]): void {
   )
 }
 
+/** A pattern's Rename…: its one name. */
+const patternRename = (pattern: MechPattern): RenameSubject => ({
+  name: pattern.name,
+  label: buildShelvesCopy('patternName'),
+  save: (name) => usePatterns.getState().update(pattern.id, { name }),
+})
+
+/**
+ * The row's Copy (r6 E9): one press, and the copy (`Brawler 2`) opens in
+ * Rename with its name selected, so typing names it and Escape keeps it.
+ */
+export const copyPatternNow = (
+  pattern: MechPattern,
+  go: (href: string) => void,
+  rename: (subject: RenameSubject) => void
+): Promise<void> => copyPattern(pattern, go, (copy) => rename(patternRename(copy)))
+
 export function patternMenuOf(
   pattern: MechPattern,
   host: {
@@ -92,19 +109,7 @@ export function patternMenuOf(
   return [
     [
       { id: 'open', label: 'Open', onSelect: () => go(savedPatternHref(pattern.id)) },
-      renameItem(
-        {
-          name: pattern.name,
-          label: buildShelvesCopy('patternName'),
-          save: (name) => usePatterns.getState().update(pattern.id, { name }),
-        },
-        canWrite ? host.rename : undefined
-      ),
-      {
-        id: 'copy',
-        label: buildShelvesCopy('makeACopy'),
-        onSelect: writable(() => void copyPattern(pattern, go)),
-      },
+      renameItem(patternRename(pattern), canWrite ? host.rename : undefined),
       {
         id: 'export',
         label: 'Export',

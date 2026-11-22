@@ -417,7 +417,9 @@ describe('Disconnected', () => {
     expect(screen.queryByRole('button', { name: '+ From a Mech' })).toBeNull()
 
     const menu = await openMenu('Nia Vale')
-    for (const verb of ['Move to a Game…', 'Make a copy', 'Delete…']) {
+    // No row offers a Copy it could not write (r6 E9).
+    expect(screen.queryByRole('button', { name: /^Make a copy of/ })).toBeNull()
+    for (const verb of ['Move to a Game…', 'Delete…']) {
       expect(within(menu).getByRole('menuitem', { name: verb }).hasAttribute('data-disabled')).toBe(
         true
       )
@@ -548,11 +550,12 @@ describe('Patterns', () => {
     expect(assigned).toEqual(['/p/pattern/pat-1'])
   })
 
-  test('Make a copy copies at once, and its notice opens the copy', async () => {
+  test('Copy copies at once, opens Rename on the copy, and its notice opens the copy (r6 E9)', async () => {
     await renderShelves()
-    await choose(await openMenu('Brawler'), 'Make a copy')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Make a copy of Brawler' }))
+    })
     // A copy only adds: nothing asks first.
-    expect(screen.queryByRole('alertdialog')).toBeNull()
     await settle(() => usePatterns.getState().mechPatterns.length === 2)
     expect(
       usePatterns
@@ -561,6 +564,13 @@ describe('Patterns', () => {
         .sort()
     ).toEqual(['Brawler', 'Brawler 2'])
     expect(await screen.findByText('Copied Brawler.')).toBeTruthy()
+    // The copy waits in Rename, its name selected: Escape keeps `Brawler 2`.
+    const field = (await screen.findByRole('textbox', { name: 'Pattern name' })) as HTMLInputElement
+    expect(field.value).toBe('Brawler 2')
+    await act(async () => {
+      fireEvent.keyDown(field, { key: 'Escape' })
+    })
+    await settle(() => screen.queryByRole('textbox', { name: 'Pattern name' }) === null)
     const copy = usePatterns.getState().mechPatterns.find((p) => p.name === 'Brawler 2')
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Open the copy' }))

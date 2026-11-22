@@ -27,9 +27,18 @@ type CrawlerShelfProps = {
   /** The shelf's + New, where a write could land. */
   action: ReactNode
   menu: (crawler: Crawler) => HeaderMenuItem[][]
+  /** The row's Copy (r6 E9). */
+  copy?: ((crawler: Crawler) => (() => void) | undefined) | undefined
 }
 
-export function CrawlerShelf({ crawlers, games, sharedByLink, action, menu }: CrawlerShelfProps) {
+export function CrawlerShelf({
+  crawlers,
+  games,
+  sharedByLink,
+  action,
+  menu,
+  copy,
+}: CrawlerShelfProps) {
   return (
     <ShelfLedger
       id="shelf-crawlers"
@@ -52,6 +61,7 @@ export function CrawlerShelf({ crawlers, games, sharedByLink, action, menu }: Cr
             read(r, VITAL.sp),
           ],
           menu: menu(c),
+          copy: copy?.(c),
         }
       })}
     />
