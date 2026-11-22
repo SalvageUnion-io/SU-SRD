@@ -116,7 +116,7 @@ export function ShareStatusDialog({
           <Text variant="note">{buildSharingCopy('sharingSettingsNeedALive')}</Text>
         )}
         {/* A pilot's share is the pilot's alone: its mech and crawler have their own (r4 E18). */}
-        {open && kind === 'pilot' && <SharedSeparately pilotId={id} />}
+        {open && kind === 'pilot' && <SharedSeparately pilotId={id} gameId={gameId ?? null} />}
       </div>
     </ModalShell>
   )

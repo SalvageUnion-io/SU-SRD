@@ -243,7 +243,7 @@ export const playGamesCopy = messages({
   tl: 'TL',
   techLevel: 'Tech Level',
 
-  inviteLinkCopyFailed: 'The invite link could not be copied. Try again.',
+  inviteLinkCopyFailed: 'The invite link could not be copied. Try again, or select it and copy it.',
   copyInviteLink: 'Copy invite link',
   gameDeleteFailed: 'That Game could not be deleted. Try again.',
   goBackToWhoeverOwnsThem: '{who} go back to whoever owns them, in their {bay}.',

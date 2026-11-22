@@ -122,6 +122,48 @@ describe('ShareStatusDialog — a sheet on the shelf, not shared', () => {
   })
 })
 
+describe('ShareStatusDialog — a Public pilot shares their crew in the same dialog (r5 C15)', () => {
+  test('Also share makes the mech and crawler not yet shared Public, one write each', async () => {
+    const { crawlerFixture, mechFixture, softLinkFixture } = await import(
+      '../../../components/__tests__/fixtures'
+    )
+    const { useUnits } = await import('../../../replica/units')
+    useUnits.setState({
+      mechs: [mechFixture({ id: 'm1', name: 'Old Dobbin' })],
+      crawlers: [crawlerFixture({ id: 'c1', name: 'Tenacity' })],
+      softLinks: [
+        softLinkFixture('mech-to-pilot', 'm1', 'pilot-1'),
+        softLinkFixture('pilot-to-crawler', 'pilot-1', 'c1'),
+      ],
+    })
+    holdSharedByLink('account', [
+      { appId: 'pilot-1', publicRead: false },
+      { appId: 'm1', publicRead: false },
+      { appId: 'c1', publicRead: false },
+    ])
+    await act(async () => {
+      renderDialog()
+    })
+    // Not offered until the pilot itself is Public.
+    expect(screen.queryByRole('button', { name: /^Also share/ })).toBeNull()
+    await act(async () => {
+      holdSharedByLink('account', [
+        { appId: 'pilot-1', publicRead: true },
+        { appId: 'm1', publicRead: false },
+        { appId: 'c1', publicRead: false },
+      ])
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Also share Old Dobbin and Tenacity' }))
+    })
+    expect(mutations()).toEqual([
+      { kind: 'mech', appId: 'm1', isPublic: true },
+      { kind: 'crawler', appId: 'c1', isPublic: true },
+    ])
+    act(() => useUnits.setState({ mechs: [], crawlers: [], softLinks: [] }))
+  })
+})
+
 describe('ShareStatusDialog — a sheet shared by link', () => {
   test('the link is the name and a short id, not the whole app id', async () => {
     sheetShared('0a1b2c3d-4e5f-4789-abcd-ef0123456789', true)

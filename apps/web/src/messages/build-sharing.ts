@@ -24,6 +24,8 @@ export const buildSharingCopy = messages({
   crawlerSeparate:
     'This shares the Pilot alone. Their crawler is shared separately, from its own sheet, and reads “Not shared” on the Pilot’s page until it is.',
   shareThe: 'Open {name} to share it',
+  alsoShare: 'Also share {names}',
+  andName: '{first} and {second}',
   shareOnReference: 'Share on the Reference',
   shareOnReferenceHint:
     'Shows it on its chassis’s page, in a Homebrew section beneath the book’s patterns, and on the Homebrew page, credited to you.',
