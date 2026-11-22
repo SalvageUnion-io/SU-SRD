@@ -73,6 +73,7 @@ import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/refe
 import { SearcherToolbar } from './EntitySearcherFilters'
 import { FocusPane } from './EntitySearcherFocus'
 import { SelectionRail, SelectionStatus } from './EntitySearcherRail'
+import { RowAdd, RowFacts } from './EntitySearcherRow'
 import {
   BODY_STYLE,
   HOSTED_STYLE,
@@ -87,7 +88,7 @@ import {
 } from './entitySearcherStyles.model'
 import type { EntityLike, EntitySearcherProps, PoolEntity } from './entitySearcherTypes'
 import { NO_RESULTS } from './searchCopy'
-import { namedBy, rowFacts } from './searcherFacts'
+import { namedBy } from './searcherFacts'
 import { aboveTechLevel, TECH_LEVEL_ROW, useSearcherPool } from './useSearcherPool'
 
 /** The "In other Tech Levels" head: the summary line's caps, set off the list above. */
@@ -95,19 +96,6 @@ const OUTSIDE_HEAD_STYLE = {
   ...SUMMARY_STYLE,
   margin: `${space[12]} 0 ${space[6]}`,
 } satisfies CSSProperties
-
-/** A wide row's facts beside its Mini (r4 E6): each a `Stat`, in running text. */
-function RowFacts({ entity, wide }: { entity: PoolEntity; wide: boolean }) {
-  const facts = rowFacts(entity).filter((each) => wide || each.always)
-  if (facts.length === 0) return null
-  return (
-    <span className="su-searcher__facts">
-      {facts.map((each) => (
-        <Stat key={each.key} surface="plain" size="mini" label={each.label} value={each.value} />
-      ))}
-    </span>
-  )
-}
 
 /** The default `idOf`: module-level, so it is one function across renders. */
 const nameOf = (item: EntityLike) => item.name
@@ -266,6 +254,13 @@ export function EntitySearcher({
     const frame = requestAnimationFrame(() => searchRef.current?.focus())
     return () => cancelAnimationFrame(frame)
   }, [browse])
+  // Enter and a row's + (r6 E8) never remove, and pay the cost where they
+  // can, as the bar's lead button does.
+  function addNow(item: PoolEntity) {
+    const price = cost?.(item)
+    if (price?.canPay) price.onPay()
+    else add(idOf(item))
+  }
   function addFirstMatch() {
     // The highlighted row; else, typed, the first row the search NAMES (r4 E5:
     // never one matched only on rules text while a name matches), else the top.
@@ -274,11 +269,8 @@ export function EntitySearcher({
     if (browse || !first || (entered.current && !cursor)) return
     const ref = idOf(first)
     if (mode === 'single') return open(ref) // A single pick applies on Choose: Enter reads.
-    // Enter never removes, and pays the cost where it can, as the bar's lead button does.
     if (mode === 'count' || !selected.includes(ref)) {
-      const price = cost?.(first)
-      if (price?.canPay) price.onPay()
-      else add(ref)
+      addNow(first)
       entered.current = true
       setCursorId(null)
     }
@@ -373,6 +365,9 @@ export function EntitySearcher({
           <Stat size="mini" label={price.row.label} value={price.row.value} />
         )}
         {count > 0 && <SelectedSeal word={count > 1 ? `${count} ${chosenLabel}` : chosenLabel} />}
+        {!single && (mode === 'count' || count === 0) && (
+          <RowAdd name={item.name} onAdd={() => addNow(item)} />
+        )}
         <RowFacts entity={item} wide={wide} />
       </div>
     )

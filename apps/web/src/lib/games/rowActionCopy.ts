@@ -208,12 +208,14 @@ export const ROW_ACTION_COPY = {
     }
   },
 
-  /** Deleting a Mech of the Training Bay (r5 D9): one confirm, and the notice after it undoes. */
+  /**
+   * Deleting a Mech of the Training Bay (r5 D9), where a confirm is still
+   * asked: its own notice undoes it, so the confirm says no `done` of its own
+   * (one notice, r6 E3).
+   */
   deleteMech(name: string): ConfirmCopy {
-    return {
-      ...ROW_ACTION_COPY.deleteBuild(name),
-      body: [libGamesCopy('deleteMechBody', { name })],
-    }
+    const { done: _done, ...build } = ROW_ACTION_COPY.deleteBuild(name)
+    return { ...build, body: [libGamesCopy('deleteMechBody', { name })] }
   },
 
   /**

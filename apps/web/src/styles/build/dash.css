@@ -263,7 +263,8 @@
 }
 
 .su-vital-max__button,
-.su-vital-max__revert {
+.su-vital-max__revert,
+.su-numeral-field__button {
   background: none;
   border: 0;
   color: inherit;
@@ -280,7 +281,8 @@
   color: var(--tone-deep, var(--color-ink));
 }
 
-.su-vital-max__input {
+.su-vital-max__input,
+.su-numeral-field__input {
   font: inherit;
   inline-size: 3.5ch;
 }

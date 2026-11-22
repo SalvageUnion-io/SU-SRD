@@ -208,8 +208,12 @@ export function copyAsking(
   return Promise.resolve()
 }
 
-/** Copy a saved pattern beside the original. */
-export function copyPattern(pattern: MechPattern, go: Go): Promise<void> {
+/** Copy a saved pattern beside the original; `landed` is told the copy. */
+export function copyPattern(
+  pattern: MechPattern,
+  go: Go,
+  landed?: (copy: MechPattern) => void
+): Promise<void> {
   return makeACopy({
     name: pattern.name,
     make: async () => {
@@ -218,6 +222,7 @@ export function copyPattern(pattern: MechPattern, go: Go): Promise<void> {
         ...patternCopy(pattern),
         name: copyName(pattern.name, namesOn(patterns.mechPatterns)),
       })
+      landed?.(created)
       return {
         name: created.name,
         href: savedPatternHref(created.id),

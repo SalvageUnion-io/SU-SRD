@@ -53,6 +53,7 @@ export const referenceEntityCopy = messages({
   bioTitanBody: '{name} Bio-Titan',
   chassisBody: '{name} chassis',
   madeBy: 'Made by {name}',
+  madeByLabel: 'Made by',
   aPlayer: 'a player',
   madeByAPlayerNotFrom: 'Made by a player, not from the Workshop Manual',
   legalStartingPattern: 'Legal Starting Pattern',

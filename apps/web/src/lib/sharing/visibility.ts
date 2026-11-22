@@ -21,6 +21,7 @@
  * connected settings (`ShareSettings.tsx`) decide which write each one makes.
  */
 import type { PublicKind } from 'game-domain/entityKinds'
+import { CREDIT_EVERY_PUBLIC_PATTERN } from '../../build/rulings.model'
 import { libSharingCopy } from '../../messages/lib-sharing'
 import type { PatternVisibility } from '../patterns/patterns'
 
@@ -42,7 +43,8 @@ export type VisibilityChoice = {
 const LABEL: Record<Visibility, string> = {
   private: libSharingCopy('onlyMe'),
   game: libSharingCopy('myGamesCrew'),
-  link: 'Public',
+  // One word for public, in Share and on the shelves (r6 E11).
+  link: libSharingCopy('publicLink'),
 }
 
 /**
@@ -127,7 +129,10 @@ export function patternChoices(args: { gameName: string | null }): VisibilityCho
     {
       value: 'link',
       label: LABEL.link,
-      description: libSharingCopy('patternLink'),
+      // Public credits its maker by display name (r6 E11, `CREDIT_EVERY_PUBLIC_PATTERN`).
+      description: libSharingCopy(
+        CREDIT_EVERY_PUBLIC_PATTERN ? 'patternLinkCredited' : 'patternLink'
+      ),
       disabled: false,
     },
   ]

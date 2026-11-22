@@ -298,7 +298,7 @@ describe('an encounter page', () => {
     const picker = screen.getByRole('dialog', { name: 'Add opposition from the reference' })
     const raider = picker.querySelector('[data-searcher-open="raider"]') as HTMLElement
     await click(raider)
-    await click(within(picker).getAllByRole('button', { name: /^Add/ })[0] as HTMLElement)
+    await click(within(picker).getAllByRole('button', { name: /^Add.*Raider/ })[0] as HTMLElement)
     await settle(() => current()?.opposition.length === 2)
     // The first reads "Raider 1" once a second is added (r4 D5).
     expect(current()?.opposition.map((o) => o.name)).toEqual(['Raider 1', 'Raider 2'])

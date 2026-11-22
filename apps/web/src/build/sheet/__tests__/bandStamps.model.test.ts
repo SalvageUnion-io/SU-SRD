@@ -69,7 +69,7 @@ describe('mechPatternStamp', () => {
       expect(stamp?.changed).toBeUndefined()
     })
 
-    test('a changed loadout reads "Based on"', () => {
+    test('a changed loadout is changed (its band then says "differs", r6 E1)', () => {
       const stamp = mechPatternStamp(
         {
           chassisRef: 'mule',
@@ -90,7 +90,7 @@ describe('mechPatternStamp', () => {
       expect(other).toBeUndefined()
     })
 
-    test('a saved pattern held here: changed loadout is "Based on", another chassis nothing', () => {
+    test('a saved pattern held here: a changed loadout is changed, another chassis nothing', () => {
       const saved = { name: 'Nimble Hauler', chassisRef: 'mule', systems: ['a'], modules: ['b'] }
       const held = (id: string) => (id === 'p1' ? saved : undefined)
       const mech = { chassisRef: 'mule', sourcePattern: 'p1', systems: ['a'], modules: ['b'] }
@@ -116,7 +116,8 @@ describe('mechPatternStamp', () => {
         () => saved
       )
       expect(stamp?.loadout).toEqual({ systems: ['chainsaw-arm', 'red-laser'], modules: [] })
-      expect(stamp?.differs).toMatch(/^pattern adds Chainsaw Arm · pattern has no Red Laser$/i)
+      // From the mech's side (r6 E2).
+      expect(stamp?.differs).toBe('Removed Chainsaw Arm · added Red Laser')
     })
   })
 

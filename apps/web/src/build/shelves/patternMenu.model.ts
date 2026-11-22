@@ -1,6 +1,6 @@
 /**
- * A saved pattern's ⋯ menu on its shelf: open, rename, copy, export, and its
- * delete. Build With This is the row's own button (`buildFromPattern`, r3 L5).
+ * A saved pattern's ⋯ menu on its shelf: open, rename, export, and its
+ * delete; Copy is the row's own button (r6 E9). Build With This is the row's own button (`buildFromPattern`, r3 L5).
  */
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { HeaderMenuItem } from '../../components/index'
@@ -18,6 +18,8 @@ import { buildShelvesCopy } from '../../messages/build-shelves'
 import { usePatterns } from '../../replica/collections'
 import { useUnits } from '../../replica/units'
 import { builtToast, deletePatternLines, mechNamesTaken } from '../mech/Pattern/buildConfirm.model'
+import { PATTERN_DELETE_SKIPS_CONFIRM } from '../rulings.model'
+import { holdDelete } from './heldDeletes.model'
 import type { RenameSubject } from './shelfMenu.model'
 import { deleteItem, renameItem } from './shelfMenu.model'
 
@@ -53,10 +55,44 @@ export function deletePatternCopy(pattern: MechPattern) {
 }
 
 /** Delete a saved pattern: its page answers nothing after, and a mech's chip reads so at once. */
-export async function deletePattern(id: string): Promise<void> {
+async function deletePattern(id: string): Promise<void> {
   await usePatterns.getState().delete(id)
   void refreshWorkerReads(sharedPaths.sheet('pattern', id))
 }
+
+/**
+ * Delete patterns with Undo (r6 E3): held while the notice shows, written
+ * once it goes, so an Undo leaves their shared links working.
+ */
+export function deletePatternsHeld(patterns: readonly MechPattern[]): void {
+  if (patterns.length === 0) return
+  const names = new Map(patterns.map((p) => [p.id, p.name]))
+  holdDelete(
+    patterns.map((p) => p.id),
+    patterns.length === 1
+      ? buildShelvesCopy('deletedName', { name: patterns[0]?.name ?? '' })
+      : buildShelvesCopy('deletedCount', { count: String(patterns.length) }),
+    deletePattern,
+    (id) => buildShelvesCopy('patternNotDeleted', { name: names.get(id) ?? '' })
+  )
+}
+
+/** A pattern's Rename…: its one name. */
+const patternRename = (pattern: MechPattern): RenameSubject => ({
+  name: pattern.name,
+  label: buildShelvesCopy('patternName'),
+  save: (name) => usePatterns.getState().update(pattern.id, { name }),
+})
+
+/**
+ * The row's Copy (r6 E9): one press, and the copy (`Brawler 2`) opens in
+ * Rename with its name selected, so typing names it and Escape keeps it.
+ */
+export const copyPatternNow = (
+  pattern: MechPattern,
+  go: (href: string) => void,
+  rename: (subject: RenameSubject) => void
+): Promise<void> => copyPattern(pattern, go, (copy) => rename(patternRename(copy)))
 
 export function patternMenuOf(
   pattern: MechPattern,
@@ -73,19 +109,7 @@ export function patternMenuOf(
   return [
     [
       { id: 'open', label: 'Open', onSelect: () => go(savedPatternHref(pattern.id)) },
-      renameItem(
-        {
-          name: pattern.name,
-          label: buildShelvesCopy('patternName'),
-          save: (name) => usePatterns.getState().update(pattern.id, { name }),
-        },
-        canWrite ? host.rename : undefined
-      ),
-      {
-        id: 'copy',
-        label: buildShelvesCopy('makeACopy'),
-        onSelect: writable(() => void copyPattern(pattern, go)),
-      },
+      renameItem(patternRename(pattern), canWrite ? host.rename : undefined),
       {
         id: 'export',
         label: 'Export',
@@ -96,10 +120,17 @@ export function patternMenuOf(
       },
     ],
     [
+      // With Undo it asks nothing (r6 E3, `PATTERN_DELETE_SKIPS_CONFIRM`).
       deleteItem(
         writable(() =>
-          confirm({ ...deletePatternCopy(pattern), onConfirm: () => deletePattern(pattern.id) })
-        )
+          PATTERN_DELETE_SKIPS_CONFIRM
+            ? deletePatternsHeld([pattern])
+            : confirm({
+                ...deletePatternCopy(pattern),
+                onConfirm: () => deletePatternsHeld([pattern]),
+              })
+        ),
+        PATTERN_DELETE_SKIPS_CONFIRM
       ),
     ],
   ]

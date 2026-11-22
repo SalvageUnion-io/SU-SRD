@@ -176,6 +176,14 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     ])
   })
 
+  test('a public pattern names its maker in its band: MADE BY | their display name (r6 E11)', () => {
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    const { container } = renderAs(SIGNED_OUT)
+    const band = container.querySelector('.su-entity-stamps')
+    expect(band?.textContent).toContain('Made by')
+    expect(band?.textContent).toContain('alxjrvs')
+  })
+
   test('signed out, it offers sign-in rather than a build that would be refused', () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(SIGNED_OUT)
@@ -202,6 +210,26 @@ async function fromMenu(item: string) {
 }
 
 describe('signed in', () => {
+  test('its maker’s own page leads back to Training Bay // Patterns, and private it credits no one in its band (r6 E11)', () => {
+    answerRoutes({
+      [STATUS]: NOT_LISTED,
+      [PAGE]: answer({ mine: true, visibility: 'private' }),
+    })
+    usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
+    const { container } = renderAs(CONNECTED)
+    const trail = container.querySelector('.su-crumbs--band')
+    expect(
+      [...(trail?.querySelectorAll('a[href]') ?? [])].map((a) => [
+        a.textContent,
+        a.getAttribute('href'),
+      ])
+    ).toEqual([
+      ['Training Bay', '/'],
+      ['Patterns', '/patterns'],
+    ])
+    expect(container.querySelector('.su-entity-stamps')?.textContent).not.toContain('Made by')
+  })
+
   test('its maker renames it on its page, and the tab is named for it (U11)', async () => {
     answerRoutes({
       [STATUS]: NOT_LISTED,
@@ -259,7 +287,7 @@ describe('signed in', () => {
     expect(usePatterns.getState().mechPatterns[0]?.notes).toBe('Tow, then weld.')
   })
 
-  test('its maker deletes it from its page: it asks first, then leaves for Patterns (r4 E13)', async () => {
+  test('its maker deletes it from its page: it asks nothing, leaves for Patterns, and is deleted once its Undo is gone (r6 E3)', async () => {
     answerRoutes({
       [STATUS]: NOT_LISTED,
       [PAGE]: answer({ mine: true, visibility: 'private' }),
@@ -267,16 +295,16 @@ describe('signed in', () => {
     usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
     renderAs(CONNECTED)
     await fromMenu('Delete')
-    const ask = await screen.findByRole('alertdialog')
-    expect(ask.textContent).toContain('Delete Tow Rig?')
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    await settle(() => serverMocks.navigations.length > 0)
+    expect(JSON.stringify(serverMocks.navigations)).toContain('/patterns')
+    // Held under its notice: leaving the page writes it.
     expect(usePatterns.getState().mechPatterns).toHaveLength(1)
     await act(async () => {
-      fireEvent.click(within(ask).getByRole('button', { name: 'Delete' }))
+      window.dispatchEvent(new Event('pagehide'))
     })
     await settle(() => usePatterns.getState().mechPatterns.length === 0)
     expect(usePatterns.getState().mechPatterns).toHaveLength(0)
-    await settle(() => serverMocks.navigations.length > 0)
-    expect(JSON.stringify(serverMocks.navigations)).toContain('/patterns')
   })
 
   test('a reader who did not make it gets no edit', () => {

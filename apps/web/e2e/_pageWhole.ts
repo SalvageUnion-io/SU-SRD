@@ -11,7 +11,9 @@ import { fromFaults } from './_findings'
  *
  * R43's one fold (`ONE_FOLD`): on a class page, an Ability on its track may
  * unfold its own rules in place, a `<details>` straight after its Compact in
- * its tier. The same fold anywhere else, or any other fold there, fails.
+ * its tier. On a chassis page, a pattern row's loadout may unfold under its
+ * name (`PATTERN_FOLD`, r6 E5), drawn only on a phone. The same folds
+ * anywhere else, or any other fold there, fail.
  */
 
 /** The one fold R43 allows: where it may stand, and what it must follow. */
@@ -24,13 +26,21 @@ export const ONE_FOLD = {
   after: '.su-ability-track__tier > a.su-entity-compact[href^="/abilities/"]:first-child',
 }
 
+/** R43's pattern fold: a chassis's pattern row, opening to its loadout on a phone (r6 E5). */
+export const PATTERN_FOLD = {
+  page: '^/chassis/[a-z0-9-]+/$',
+  fold: '.su-ledger__under > details.su-pattern-fold',
+}
+
 /** Runs in the page; returns plain data. */
 export function scanPageWhole({
   path = location.pathname,
   one,
+  pattern,
 }: {
   path?: string
   one: typeof ONE_FOLD
+  pattern: typeof PATTERN_FOLD
 }): string[] {
   const faults: string[] = []
   const root = document.scrollingElement ?? document.documentElement
@@ -41,8 +51,10 @@ export function scanPageWhole({
   if (main.matches('[data-variant]')) return faults
   const classPage = new RegExp(one.page).test(path)
   // An Ability's own rules, unfolding under its Compact on a class page (R43).
+  const chassisPage = new RegExp(pattern.page).test(path)
   const allowed = (el: Element) =>
-    classPage && el.matches(one.fold) && !!el.previousElementSibling?.matches(one.after)
+    (classPage && el.matches(one.fold) && !!el.previousElementSibling?.matches(one.after)) ||
+    (chassisPage && el.matches(pattern.fold))
   const folds = main.querySelectorAll(
     'details, [aria-expanded][aria-controls]:not([aria-haspopup]):not([role="combobox"])'
   )
@@ -63,5 +75,5 @@ export function scanPageWhole({
 
 /** A fold in a reference page's content, and a page wider than its window. */
 export async function findPageWhole(page: Page): Promise<Finding[]> {
-  return fromFaults(await page.evaluate(scanPageWhole, { one: ONE_FOLD }))
+  return fromFaults(await page.evaluate(scanPageWhole, { one: ONE_FOLD, pattern: PATTERN_FOLD }))
 }

@@ -61,7 +61,7 @@ import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
 import { CargoCatTag } from '../sheet/CargoCatTag'
 import { CargoLotControls } from '../sheet/CargoLotItem'
-import { ChangeChassis, ChassisModderControl } from '../sheet/chassisControls'
+import { ChassisModderControl } from '../sheet/chassisControls'
 import { HoldAdder } from '../sheet/HoldAdder'
 import { MechConditionsEditor } from '../sheet/MechConditionsEditor'
 import { MechAppearanceField, MechDescriptionField, MechIdentityPanel } from '../sheet/MechIdentity'
@@ -70,6 +70,7 @@ import type { MechSheetModel } from '../sheet/mechSheet.model'
 import type { ItemKind, MechSheetActions } from '../sheet/mechSheetActions.model'
 import { overSlots, slotCount } from '../sheet/mechSlots.model'
 import { usePrinting } from '../sheet/printing.model'
+import { FoldEmptyRelated } from '../sheet/relatedUnitsFold.model'
 import { cargoBreakToast } from '../sheet/ruleBreakToast.model'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { useShownSheet } from '../sheet/useShownSheet'
@@ -320,16 +321,12 @@ export function MechDash({
   const modder = model.chassisModder
     ? SalvageUnionReference.Abilities.getBySlug(CHASSIS_MODDER)
     : undefined
-  const chassisControls = edit && (
-    <>
-      <ChangeChassis mech={mech} patch={actions.patchMech} />
-      {model.chassisModder && (
-        <ChassisModderControl
-          chassisModder={model.chassisModder}
-          onModChassis={(slug) => actions.patchMech({ moddedChassisAbility: slug ?? undefined })}
-        />
-      )}
-    </>
+  // Change Chassis is the header's alone (r6 E7): here, only the Chassis Modder's pick.
+  const chassisControls = edit && model.chassisModder && (
+    <ChassisModderControl
+      chassisModder={model.chassisModder}
+      onModChassis={(slug) => actions.patchMech({ moddedChassisAbility: slug ?? undefined })}
+    />
   )
   const manage = (kind: ItemKind, label: string) =>
     edit && onManage ? (
@@ -472,7 +469,6 @@ export function MechDash({
         traits={traitLines}
         edit={edit}
       />
-      {phone && linkedUnits}
       <Dash>
         {!lead && build}
         <DashColumn label={buildSheetCopy('whatCarries', { name: mech.name })}>
@@ -584,6 +580,9 @@ export function MechDash({
         </DashColumn>
       </Dash>
       {partners}
+      {/* A phone leads with the loadout: Related units comes last, and with
+          none linked it is one line (r6 E10). */}
+      {phone && <FoldEmptyRelated.Provider value>{linkedUnits}</FoldEmptyRelated.Provider>}
     </>
   )
 }

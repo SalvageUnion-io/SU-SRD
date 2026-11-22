@@ -125,8 +125,9 @@ const PICKER_ACTIONS = {
 /**
  * A trait's once-per-Downtime flag: Mark used, a quiet `Toggle` led by the
  * used pip (the pip is the box; no dashed plate around it), while editable (live play, not gated behind the section edit), at
- * the Mini Size beside the field's label; its words stay "Used", its press
- * and pip carry the state, and its name says the act. Read-only, a static "Used" stamp shows only when set (an
+ * the Mini Size beside the field's label; it reads "Use" while free and
+ * "Used" once used (r6 E20: a free one is an act, not a state), its pip
+ * carries the state too, and its name says the act. Read-only, a static "Used" stamp shows only when set (an
  * unset one would be a control that isn't).
  */
 export function UsedChip({
@@ -158,7 +159,7 @@ export function UsedChip({
         used ? buildSheetCopy('resetUsed', { label }) : buildSheetCopy('markUsed', { label })
       }
     >
-      {buildSheetCopy('used')}
+      {used ? buildSheetCopy('used') : buildSheetCopy('use')}
     </Toggle>
   )
 }

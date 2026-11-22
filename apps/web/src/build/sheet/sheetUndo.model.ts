@@ -11,7 +11,7 @@
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/index'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -21,7 +21,7 @@ import type { UnitsState } from '../../replica/units'
 import { madeInThisTab, onUnitWrite } from '../../replica/units'
 import type { EntityLogRow } from '../../rooms/ops'
 import type { LogChange, LogDefaults, Reversal } from './changeLog.model'
-import { lastUndoable, logChanges, reversal, reverseChange } from './changeLog.model'
+import { changeWhat, lastUndoable, logChanges, reversal, reverseChange } from './changeLog.model'
 import { undoToast } from './undoToast.model'
 
 type SheetUndoInput = {
@@ -123,6 +123,20 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     else toast(buildSheetCopy('nothingToRedo'), { id: `undo-none:${id}` })
   }
 
+  // What the next Undo takes back, in words, once asked (`look`): the ⋯ menu names it (r6 E15).
+  const [next, setNext] = useState<string | undefined>(undefined)
+  const look = async (): Promise<void> => {
+    const room = blocked ? null : roomOf(gameId)
+    if (room === null) return
+    try {
+      const rows = (await room.act('changeLog.forEntity', { entityId: id })) as EntityLogRow[]
+      const change = lastUndoableHere(logChanges(rows, defaults), taken.current)
+      setNext(change ? changeWhat(change) : undefined)
+    } catch {
+      setNext(undefined)
+    }
+  }
+
   const undoLast = async (): Promise<void> => {
     if (blocked || busy.current) return
     const room = roomOf(gameId)
@@ -160,5 +174,5 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     return () => document.removeEventListener('keydown', onKey)
   }, [blocked])
 
-  return { reverse, undoLast, redoLast }
+  return { reverse, undoLast, redoLast, next, look }
 }

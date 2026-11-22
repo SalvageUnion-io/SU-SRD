@@ -433,7 +433,7 @@ describe('a pattern page names and links its base chassis', () => {
     // The band's mark: a chip of its strip, at the strip's Size (`labelChips`).
     expect(html).toMatch(/data-chip-class="mark"[^>]*>(?:<[^>]*>)*Legal Starting Pattern<\/span>/)
     expect(html).toMatch(
-      /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard"[^>]*>Build With This<\/a>/
+      /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard&amp;build=now"[^>]*>Build With This<\/a>/
     )
   })
 
@@ -441,7 +441,7 @@ describe('a pattern page names and links its base chassis', () => {
     const untagged = page('/chassis/jackhammer/pattern/auger')
     expect(untagged).not.toContain('Legal Starting Pattern')
     expect(untagged).toContain('Build With This')
-    expect(untagged).toContain('mechs/new?chassis=jackhammer&amp;pattern=auger')
+    expect(untagged).toContain('mechs/new?chassis=jackhammer&amp;pattern=auger&amp;build=now')
     expect(untagged).not.toContain('mode=guided')
   })
 

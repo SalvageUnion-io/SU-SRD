@@ -5,9 +5,9 @@
  * a deep link to a higher one shows them all. One past the starting
  * budget says so beside its totals and in the notice (a Blank-family shortcut,
  * as a saved pattern's Build With This). One press builds, and the notice has
- * Undo (r4 E23). A Reference pattern page's Build With This lands here with
- * its pattern picked (`?chassis=&pattern=`) and this button focused: nothing
- * is built by opening a link, so there is one more press to make, in sight.
+ * Undo (r4 E23). Signed in, a Reference pattern page's Build With This builds
+ * at once (`useBuildNow`, r6 E6); signed out it lands here with its pattern
+ * picked (`?chassis=&pattern=`) and this button focused, to sign in from.
  * The new mech's name is numbered past the names in the bay.
  */
 

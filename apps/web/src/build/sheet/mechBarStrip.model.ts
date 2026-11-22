@@ -1,15 +1,13 @@
 /**
  * What a mech sheet's sticky bar reads (r2 G7). In Edit it reads the build,
- * since that is what is being changed under it: slots filled and what the
- * build costs in Scrap. Otherwise the table's numbers; on phones the bar
+ * since that is what is being changed under it: slots filled. Its Scrap is
+ * by Tech Level on the band, never one summed number here (r6 E4). Otherwise the table's numbers; on phones the bar
  * leads with Heat + SP, and EP and Cargo fold until the sm breakpoint.
  * Either way what it carries is Cargo, the vitals' own word.
  */
 import type { Mech } from 'game-domain/schemas/mech'
 import { STAT_LABELS } from 'salvageunion-reference'
 import { loadoutSlots } from '../../lib/patterns/patterns'
-import { mechScrap } from '../../lib/rules/mechScrap'
-import { buildSheetCopy } from '../../messages/build-sheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 
 export function mechBarStrip(args: {
@@ -41,8 +39,6 @@ export function mechBarStrip(args: {
       value: slots.moduleSlotsUsed,
       max: slots.moduleSlotsMax,
     },
-    // The build's cost, never a bare Scrap beside Cargo: the hold carries Scrap too (r3 F2).
-    { key: 'scrap', label: buildSheetCopy('cost'), value: mechScrap(args.mech).total },
     cargo,
   ]
 }

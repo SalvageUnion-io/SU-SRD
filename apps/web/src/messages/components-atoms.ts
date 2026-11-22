@@ -27,6 +27,8 @@ export const atomsCopy = messages({
   changeValueOfMax: '{name} {value} of {max}. Change',
   changeByAmount: 'Change {label} by an amount, now {value} of {max}',
   setMax: 'Set {label} max',
+  setCount: 'Set {label}',
+  setCountNow: 'Set {label} (now {value})',
   overrideMaxCurrently: 'Override {label} max (currently {max})',
   max: 'Max {label}',
   overriddenFrom: 'Overridden from {overriddenFrom}',

@@ -1,4 +1,5 @@
 import type { EntityRef } from 'salvageunion-reference'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Chips, relation, Tag } from '../../entity'
 import { relationChips } from './abilityTreeRelations'
 import type { EntityPageMeta } from './entityPage'
@@ -40,6 +41,8 @@ type EntityPageStampsProps = {
    * mark where a book pattern may wear Legal Starting Pattern (ruleset §3.9).
    */
   homebrew?: boolean
+  /** A public player-made page's maker, by display name: `MADE BY | Ash` (r6 E11). */
+  madeBy?: string | undefined
 }
 
 export function EntityPageStamps({
@@ -47,6 +50,7 @@ export function EntityPageStamps({
   legalStartingPattern = false,
   parent,
   homebrew = false,
+  madeBy,
 }: EntityPageStampsProps) {
   const cost = meta.cost
     ? meta.cost.currency
@@ -75,6 +79,14 @@ export function EntityPageStamps({
                 href: parent.href,
               })}
               linkable
+              size="compact"
+              wrap
+            />
+          ),
+          madeBy && (
+            <Tag
+              key="made-by"
+              tag={relation('made-by', referenceEntityCopy('madeByLabel'), madeBy)}
               size="compact"
               wrap
             />

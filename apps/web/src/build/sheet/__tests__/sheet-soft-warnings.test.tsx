@@ -202,15 +202,17 @@ describe('PilotSheet — advancing says what it breaks (r2 E4, r3 B5)', () => {
     expect(captured[0]?.patch).not.toHaveProperty('trainingPoints')
   })
 
-  test('enough TP: the free Add stays, unasked, beside the bold Spend', async () => {
+  test('enough TP: Spend is the one add; adding free is a small Free Edit override (r6 E19)', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot({ abilities: [ABILITY_L1_SLUG], trainingPoints: 1 })
     render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
 
     const bar = await focusAbility(ABILITY_L2)
     expect(bar.getByRole('button', { name: 'Spend 1 TP and add' }).className).toContain('primary')
-    const free = bar.getByRole('button', { name: 'Add to Yara Voss' })
+    expect(bar.queryByRole('button', { name: 'Add to Yara Voss' })).toBeNull()
+    const free = bar.getByRole('button', { name: 'Add without spending' })
     expect(free.className).not.toContain('primary')
+    expect(free.getAttribute('title')).toBe('Free Edit override')
     await act(async () => {
       fireEvent.click(free)
     })

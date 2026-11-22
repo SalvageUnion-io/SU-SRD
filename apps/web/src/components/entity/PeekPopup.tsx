@@ -301,7 +301,13 @@ export function PeekPopup({
       <PreviewCard.Portal>
         <PreviewCard.Positioner
           anchor={at}
-          side={how === 'focus' && !row ? 'top' : 'bottom'}
+          // A trigger whose controls sit below it asks for the room above (r6 E20);
+          // a Peek opened by focus sits above its line, a row's below the row (r6 G8).
+          side={
+            anchor.getAttribute('data-peek-side') === 'top' || (how === 'focus' && !row)
+              ? 'top'
+              : 'bottom'
+          }
           align="start"
           sideOffset={5}
           collisionPadding={8}

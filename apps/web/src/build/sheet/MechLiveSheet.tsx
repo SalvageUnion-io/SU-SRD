@@ -13,7 +13,7 @@ import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
-import { CONDITION_LABELS, STAT_LABELS } from 'salvageunion-reference'
+import { CONDITION_LABELS } from 'salvageunion-reference'
 import {
   mechMaxCargo,
   mechMaxEP,
@@ -24,7 +24,7 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
-import { mechScrap } from '../../lib/rules/mechScrap'
+import { mechScrap, scrapSplit } from '../../lib/rules/mechScrap'
 import { usePatternElsewhere, usePatternGone } from '../../lib/sharing/reads'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
@@ -105,12 +105,15 @@ export function MechLiveSheet({
   const patternGone = usePatternGone(mech.sourcePattern, askElsewhere)
   // Someone else's pattern, by its link or a crew's: named, not "A saved pattern" (r5 D3).
   const elsewhere = usePatternElsewhere(mech.sourcePattern, askElsewhere)
-  const fromPattern = mechPatternStamp(
+  const stamped = mechPatternStamp(
     mech,
     (id) =>
       savedPatterns.find((p) => p.id === id) ?? (id === mech.sourcePattern ? elsewhere : undefined),
     patternGone
   )
+  // A pattern of the viewer's own: the drift line may write the mech's build over it (r6 E2).
+  const own = !notHeld && mech.sourcePattern !== undefined
+  const fromPattern = stamped && own && stamped.href ? { ...stamped, own: true as const } : stamped
   const rail = assignedRail(
     { kind: 'mech', entity: mech },
     { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead }
@@ -127,22 +130,20 @@ export function MechLiveSheet({
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
       // Change Chassis sits where the chassis is named (r4 E17).
-      // Bring up to date beside it once the loadout is no longer the pattern's (r5 D2).
       kindAction={
-        editable && mech.chassisRef !== '' ? (
-          <>
-            <ChangeChassis mech={mech} patch={patch} />
-            {fromPattern?.loadout && (
-              <PatternCatchUp
-                mech={mech}
-                stamp={{ ...fromPattern, loadout: fromPattern.loadout }}
-                patch={patch}
-              />
-            )}
-          </>
-        ) : undefined
+        editable && mech.chassisRef !== '' ? <ChangeChassis mech={mech} patch={patch} /> : undefined
       }
       fromPattern={fromPattern}
+      // How it differs from its pattern, and what to do about it, in Read and Edit (r6 E2).
+      lead={
+        fromPattern?.loadout ? (
+          <PatternCatchUp
+            mech={mech}
+            stamp={{ ...fromPattern, loadout: fromPattern.loadout }}
+            patch={(editable && !readOnly) || liveInRead ? patch : undefined}
+          />
+        ) : undefined
+      }
       // Read's header strip carries TL and
       // SV with the chassis's other figures, so the band leaves them out (R59).
       rank={readOnly ? undefined : <MechBandRank mech={mech} />}
@@ -172,9 +173,10 @@ export function MechLiveSheet({
 }
 
 /**
- * The chassis's Tech Level and the build's Salvage Value on the band (C2's
- * rank), as a crawler's TL rides its band. The Salvage Value is the whole
- * mech's, chassis and loadout: a variant is compared on what it costs.
+ * The chassis's Tech Level and the build's Scrap on the band (C2's rank), as
+ * a crawler's TL rides its band. The Scrap is the whole mech's, chassis and
+ * loadout, by Tech Level (`TL1 18 · TL2 5`, r6 E4): a variant is compared on
+ * what it costs, and Scrap of two levels is never one number.
  */
 function MechBandRank({ mech }: { mech: Mech }) {
   const chassis = resolveChassisRef(mech.chassisRef)
@@ -184,7 +186,7 @@ function MechBandRank({ mech }: { mech: Mech }) {
       {typeof chassis.techLevel === 'number' && (
         <Stat label={buildSheetCopy('tl')} value={chassis.techLevel} />
       )}
-      <Stat label={STAT_LABELS.salvageValue.short} value={mechScrap(mech).total} />
+      <Stat label={buildSheetCopy('scrap')} value={scrapSplit(mechScrap(mech))} />
     </>
   )
 }

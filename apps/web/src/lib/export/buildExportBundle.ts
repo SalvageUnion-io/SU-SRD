@@ -89,17 +89,21 @@ export async function buildExportBundle(
  * Only the entity and links whose `from.id` or `to.id` matches the entity id
  * are included.
  *
- * Design note: we do NOT pull in the referenced endpoints (e.g. the mech
- * that a pilot-to-mech link points to). A single-entity export is intended
- * for "send this pilot to a friend" use-cases — the friend builds their own
- * mechs. Including deep transitive closure would make the export ambiguous.
+ * A pilot is the whole character (r6 E17): the Mech assigned to them comes
+ * with them, so a backup of "my character" holds what they fly. Nothing
+ * further is pulled in (a crawler, the Mech's own links): a deep closure
+ * would make the export ambiguous.
  */
 export async function buildEntityExport(
   type: EntityKind,
   id: string,
   entityStore: ExportStore
 ): Promise<ExportBundle> {
-  await Promise.all([entityStore.hydrate(type), entityStore.hydrate('softLink')])
+  await Promise.all([
+    entityStore.hydrate(type),
+    entityStore.hydrate('softLink'),
+    ...(type === 'pilot' ? [entityStore.hydrate('mech')] : []),
+  ])
 
   const allSoftLinks = entityStore.list('softLink')
   const attachedLinks = allSoftLinks.filter((l) => l.from.id === id || l.to.id === id)
@@ -109,10 +113,15 @@ export async function buildEntityExport(
   switch (type) {
     case 'pilot': {
       const pilot = entityStore.list('pilot').find((p) => p.id === id)
+      // The Mech they fly: the far end of their mech-to-pilot link.
+      const flown = new Set(
+        attachedLinks.filter((l) => l.type === 'mech-to-pilot').map((l) => l.from.id)
+      )
+      const mechs = pilot ? entityStore.list('mech').filter((m) => flown.has(m.id)) : []
       return {
         schemaVersion: 2,
         exportedAt: new Date().toISOString(),
-        entities: { ...emptyEntities, pilots: pilot ? [pilot] : [] },
+        entities: { ...emptyEntities, pilots: pilot ? [pilot] : [], mechs },
         softLinks: attachedLinks,
         mechPatterns: [],
         encounterNpcs: [],

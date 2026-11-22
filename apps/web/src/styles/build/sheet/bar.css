@@ -142,6 +142,19 @@
   color: var(--color-status-bad);
 }
 
+/* The linked units: beside the acts, or on a phone a row of their own,
+   so the bar never clips them (r6 E10). */
+.su-sheet-bar__linked {
+  display: flex;
+  flex: none;
+}
+
+@media not (width >= 40rem) {
+  .su-sheet-bar__linked {
+    flex-basis: 100%;
+  }
+}
+
 /* The acts, compact, as the rail draws them. */
 .su-sheet-bar__acts {
   align-items: center;

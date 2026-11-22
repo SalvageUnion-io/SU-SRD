@@ -8,12 +8,9 @@ const vitals = [{ key: 'sp', label: 'SP', value: 5, max: 5 }]
 const cargo = { value: 0, max: 6 }
 
 describe('mechBarStrip', () => {
-  test('in Edit it reads slots and Scrap, then Cargo', () => {
+  test('in Edit it reads slots, then Cargo; never Scrap summed across Tech Levels (r6 E4)', () => {
     const strip = mechBarStrip({ building: true, mech, vitals, cargo })
-    expect(strip.map((item) => item.key)).toEqual(['systemSlots', 'moduleSlots', 'scrap', 'cargo'])
-    expect(strip[2]?.value).toBeGreaterThan(0)
-    // Cost, so it cannot be read as the Scrap in the hold beside it (r3 F2).
-    expect(strip[2]?.label).toBe('Cost')
+    expect(strip.map((item) => item.key)).toEqual(['systemSlots', 'moduleSlots', 'cargo'])
     expect(strip[0]?.max).toBeGreaterThan(0)
   })
 

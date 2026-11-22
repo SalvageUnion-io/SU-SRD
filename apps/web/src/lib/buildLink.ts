@@ -135,11 +135,12 @@ export function mediatorLinksFor(schemaId: string, item: RefEntity): MediatorLin
 }
 
 /**
- * A pattern page's "Build With This", on every mech pattern. A `legalStarting`
- * pattern of a Tech 1 chassis opens the guided wizard with its loadout
- * prefilled (`/mechs/new?mode=guided&chassis=mule&pattern=hauler`); any other
- * opens New Mech on its book patterns with this one picked
- * (`/mechs/new?chassis=magpie&pattern=stefanus`), built as printed. A
+ * A pattern page's "Build With This", on every mech pattern. Signed in, its
+ * press builds the Mech as printed and opens its sheet (`build=now`, r6 E6).
+ * Signed out, a `legalStarting` pattern of a Tech 1 chassis opens the guided
+ * wizard at its review, its loadout prefilled
+ * (`/mechs/new?mode=guided&chassis=mule&pattern=hauler&build=now`); any other
+ * opens New Mech on its book patterns with this one picked. A
  * Bio-Titan's pattern is no mech, so it has none.
  */
 export function patternBuildLinkFor(
@@ -148,7 +149,12 @@ export function patternBuildLinkFor(
   pattern: RefObjectAnyPattern
 ): BuildLink | null {
   if (schemaId !== 'chassis' || !('techLevel' in host) || host.techLevel === undefined) return null
-  const pick = { chassis: getEntitySlug(host), pattern: nameToSlug(pattern.name) }
+  // `build`: signed in, the press builds the Mech and opens its sheet (r6 E6).
+  const pick = {
+    chassis: getEntitySlug(host),
+    pattern: nameToSlug(pattern.name),
+    build: 'now',
+  }
   const starting =
     isLegalCreationChassis(host.techLevel) &&
     'legalStarting' in pattern &&

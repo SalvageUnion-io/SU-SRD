@@ -58,7 +58,14 @@ export function StatMeaning({ statKey, children }: { statKey: string; children: 
     )
   }
   const term = statTerm({ key: TERMS[statKey] ?? statKey })
-  return term ? <TermChip term={term}>{children}</TermChip> : children
+  // Its controls (the TP − and +) sit below the label: the Peek opens above (r6 E20).
+  return term ? (
+    <TermChip term={term} above>
+      {children}
+    </TermChip>
+  ) : (
+    children
+  )
 }
 
 const meaning = (key: string, label: ReactNode): ReactNode => (

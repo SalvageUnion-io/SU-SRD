@@ -178,6 +178,14 @@ export function OppositionPicker({
     ...OPPOSITION_SCHEMAS.map((s) => ({ kind: s.schema as Kind, label: s.label })),
     ...(onAddBuilt ? [{ kind: YOURS as Kind, label: mediatorCopy('yours') }] : []),
   ]
+  // The search moves to the first kind that finds something when this one
+  // finds nothing (r6 E8): a match never sits behind another tab.
+  const findIn = (next: string) => {
+    setQuery(next)
+    if (matches(kind, next, yours) !== 0) return
+    const first = kinds.find((k) => (matches(k.kind, next, yours) ?? 0) > 0)
+    if (first) setKind(first.kind)
+  }
   const lead = (
     <div style={LEAD}>
       <Segmented label={mediatorCopy('drawFrom')} size="compact" wrap>
@@ -212,7 +220,7 @@ export function OppositionPicker({
     onClose,
     lead,
     initialQuery: query,
-    onQueryChange: setQuery,
+    onQueryChange: findIn,
     railEntities,
     emptyMessage: mediatorCopy('nothingOfThisKind'),
     // What it can do is what it is picked by (r4 D4): its Page lists its

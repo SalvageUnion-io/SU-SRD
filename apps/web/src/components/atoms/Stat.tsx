@@ -5,6 +5,7 @@ import { atomsCopy } from '../../messages/components-atoms'
 import type { Size } from '../../styles/sizing'
 import { Badge } from './Badge'
 import type { EntityStatus } from './entityStatus'
+import { NumeralField } from './NumeralField'
 import { StepButton } from './SmallButtons'
 import { Tooltip } from './Tooltip'
 
@@ -164,6 +165,11 @@ type HorizontalValueProps = {
    * name from the caller; this keeps that contract when they fold onto Stat.
    */
   stepperLabel?: string
+  /**
+   * In edit, its value is a field a press away too (r6 E18): a count you
+   * might add 8 to at once (the Storage Bay's Scrap) is typed, not tapped.
+   */
+  typeable?: boolean
   /** Plain-text hover explanation (the stat's glossary line). Same contract as
    * the value box's `hoverText` — a compact header cell states the SAME stat as
    * the full box, so it must be able to explain itself too. */
@@ -206,6 +212,7 @@ function HorizontalValue({
   ceiling,
   step = 1,
   stepperLabel,
+  typeable = false,
   hoverText,
   wrap = false,
   className,
@@ -244,6 +251,18 @@ function HorizontalValue({
   }
 
   const reserve = readingReserve(value, max)
+  const typedValue =
+    typeable && mode === 'edit' && onChange !== undefined && typeof value === 'number' ? (
+      <NumeralField
+        label={stepperLabel ?? String(label)}
+        value={value}
+        onSet={onChange}
+        min={min}
+        max={max ?? ceiling}
+      />
+    ) : (
+      value
+    )
   // The cell and both plate halves are classes, not style objects: a listing
   // repeats the cell on every row (ADR-046, repeated elements). Callers also
   // override the cell's `display` and `flex-shrink` by className (the sheet's
@@ -310,14 +329,14 @@ function HorizontalValue({
         >
           {reserve === undefined ? (
             <>
-              {value}
+              {typedValue}
               {max !== undefined && <span style={MAX_SUFFIX}>/{max}</span>}
             </>
           ) : (
             // A live reading reserves its maximum's width, in tabular figures
             // (C6): `9/13` takes the room `13/13` does, so it never shifts.
             <span className="su-stat-reading" style={{ minWidth: `${reserve}ch` }}>
-              {value}
+              {typedValue}
               {max !== undefined && <span style={MAX_SUFFIX}>/{max}</span>}
             </span>
           )}

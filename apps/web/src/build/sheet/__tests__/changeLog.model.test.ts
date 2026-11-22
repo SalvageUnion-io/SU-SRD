@@ -3,6 +3,7 @@
 import { describe, expect, test } from 'bun:test'
 import type { EntityLogRow } from '../../../rooms/ops'
 import {
+  changeWhat,
   fieldLabel,
   lastUndoable,
   lineText,
@@ -13,6 +14,7 @@ import {
   splitJustNow,
   takeBack,
 } from '../changeLog.model'
+import { logStory } from '../changeStory.model'
 
 const row = (over: Partial<EntityLogRow>): EntityLogRow => ({
   _id: 'op1:name',
@@ -175,6 +177,39 @@ describe('reversing one change (r3 B1)', () => {
     })
   })
 
+  test('a removal goes back to the row it came from, not the end (r6 E15)', () => {
+    const removed = one({
+      _id: 'o:systems',
+      field: 'systems',
+      before: ['locomotion-system', 'escape-hatch', 'chainsaw-arm', 'red-laser'],
+      after: ['locomotion-system', 'escape-hatch', 'red-laser'],
+    })
+    expect(
+      reverseChange(removed, { systems: ['locomotion-system', 'escape-hatch', 'red-laser'] })
+    ).toEqual({ systems: ['locomotion-system', 'escape-hatch', 'chainsaw-arm', 'red-laser'] })
+    const first = one({
+      _id: 'p:systems',
+      field: 'systems',
+      before: ['chainsaw-arm', 'red-laser'],
+      after: ['red-laser'],
+    })
+    expect(reverseChange(first, { systems: ['red-laser'] })).toEqual({
+      systems: ['chainsaw-arm', 'red-laser'],
+    })
+  })
+
+  test('the menu names what Undo takes back (r6 E15)', () => {
+    const removed = one({
+      _id: 'o:systems',
+      field: 'systems',
+      before: ['red-laser', 'mini-mortar'],
+      after: ['red-laser'],
+    })
+    expect(changeWhat(removed)).toBe('remove Mini Mortar')
+    const set = one({ _id: 'o:currentSP', field: 'currentSP', before: 5, after: 3 })
+    expect(changeWhat(set)).toBe('Current SP: 5 to 3')
+  })
+
   test('an addition takes off only what it added, and keeps what came after', () => {
     const added = one({
       _id: 'o:systems',
@@ -261,7 +296,8 @@ describe('reversing one change (r3 B1)', () => {
       reverseChange(swap, { chassisRef: 'mazona', systems: ['red-laser', 'cargo-pod'] })
     ).toEqual({
       chassisRef: 'scrapper',
-      systems: ['red-laser', 'cargo-pod', 'rigging-arm'],
+      // Back where it stood, after the Red Laser (r6 E15).
+      systems: ['red-laser', 'rigging-arm', 'cargo-pod'],
     })
     expect(reversal(swap).label).toBe('Undo this change')
   })
@@ -317,9 +353,9 @@ describe('takeBack: a removal put back on the sheet as it is now (r4 E3)', () =>
     const start = { systems: ['a', 'b', 'c'] }
     const first = { systems: ['b', 'c'] }
     const second = { systems: ['c'] }
-    // Undo the FIRST removal after the second: b stays off.
-    expect(takeBack(second, start, first)).toEqual({ systems: ['c', 'a'] })
-    expect(takeBack({ systems: ['c', 'a'] }, first, second)).toEqual({ systems: ['c', 'a', 'b'] })
+    // Undo the FIRST removal after the second: b stays off. Each goes back where it stood (r6 E15).
+    expect(takeBack(second, start, first)).toEqual({ systems: ['a', 'c'] })
+    expect(takeBack({ systems: ['a', 'c'] }, first, second)).toEqual({ systems: ['a', 'b', 'c'] })
   })
 
   test('a keyed record gets back only the keys the edit dropped', () => {
@@ -331,5 +367,69 @@ describe('takeBack: a removal put back on the sheet as it is now (r4 E3)', () =>
       systems: ['z', 'a'],
       itemChoices: { a: { x: 'one' }, b: { y: 'three' } },
     })
+  })
+})
+
+describe("the log as the sheet's story (r6 E14)", () => {
+  const sp = (id: string, ts: number, before: number, after: number, source = 'live-sheet') =>
+    row({ _id: `${id}:currentSP`, field: 'currentSP', ts, before, after, source })
+
+  test('quick taps on one value read as one line, and its Set back takes the run back', () => {
+    const story = logStory(
+      logChanges([sp('c', 3000, 8, 6), sp('b', 2000, 9, 8), sp('a', 1000, 10, 9)])
+    )
+    expect(story).toHaveLength(1)
+    const [line] = story
+    if (!line) throw new Error('no line')
+    expect(line.lines.map(lineText)).toEqual(['Current SP: 10 to 6'])
+    expect(reversal(line).label).toBe('Set back to 10')
+    expect(reverseChange(line, { currentSP: 6 })).toEqual({ currentSP: 10 })
+    // Taking the merged line back marks each tap it stood for taken back.
+    const undo = sp('u', 4000, 6, 10, `live-sheet-undo:${line.id}`)
+    expect(
+      logStory(logChanges([undo, sp('c', 3000, 8, 6), sp('b', 2000, 9, 8), sp('a', 1000, 10, 9)]))
+    ).toEqual([])
+  })
+
+  test('taps far apart, or on another value, stay apart', () => {
+    const later = 1000 + 61_000
+    const story = logStory(
+      logChanges([
+        sp('b', later, 9, 8),
+        row({ _id: 'h:currentHeat', field: 'currentHeat', ts: 1500, before: 0, after: 2 }),
+        sp('a', 1000, 10, 9),
+      ])
+    )
+    expect(story.map((c) => c.lines.map(lineText))).toEqual([
+      ['Current SP: 9 to 8'],
+      ['Current heat: 0 to 2'],
+      ['Current SP: 10 to 9'],
+    ])
+  })
+
+  test('an undo takes its change out of the story and a redo puts it back, with no rows of their own', () => {
+    const add = row({ _id: 'a:systems', field: 'systems', ts: 1, before: [], after: ['red-laser'] })
+    const undo = row({
+      _id: 'u:systems',
+      field: 'systems',
+      ts: 2,
+      before: ['red-laser'],
+      after: [],
+      source: 'live-sheet-undo:a',
+    })
+    expect(logStory(logChanges([undo, add]))).toEqual([])
+    const redo = row({
+      _id: 'r:systems',
+      field: 'systems',
+      ts: 3,
+      before: [],
+      after: ['red-laser'],
+      source: 'live-sheet-redo:a',
+    })
+    expect(logStory(logChanges([redo, undo, add])).map((c) => c.id)).toEqual(['a'])
+  })
+
+  test('a run that ends where it started says nothing', () => {
+    expect(logStory(logChanges([sp('b', 2000, 9, 10), sp('a', 1000, 10, 9)]))).toEqual([])
   })
 })

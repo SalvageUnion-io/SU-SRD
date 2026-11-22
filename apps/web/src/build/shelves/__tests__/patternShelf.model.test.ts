@@ -33,7 +33,7 @@ describe('a pattern’s line on its shelf (r4 E13)', () => {
 
   test('Seen by reads In the Reference once it is switched on there, whatever its link says', () => {
     expect(patternLine(pattern({}), sharing({ visibility: 'link' }), []).values.who).toBe(
-      'Shared by link'
+      'Public (anyone with the link)'
     )
     expect(
       patternLine(pattern({}), sharing({ visibility: 'link', homebrew: true }), []).values.who
@@ -62,8 +62,7 @@ describe('two patterns of one name can be told apart (r5 D3)', () => {
       undefined,
       undefined
     )
-    expect(typeof line.values.Cost).toBe('number')
-    expect(line.values.Cost).toBeGreaterThan(0)
+    expect(line.values.Scrap).toMatch(/^TL\d+ \d+/)
     expect(line.saved).toMatch(/\d{1,2}:\d{2}/)
     expect(line.about).toBe('Digs fast.')
     expect(patternLine(pattern({}), undefined, undefined).about).toBeUndefined()

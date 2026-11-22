@@ -110,6 +110,8 @@ type HeaderMenuProps = {
   pressed?: boolean
   /** The trigger opens nothing (a `segment` with nothing to choose). */
   disabled?: boolean
+  /** Told when the menu opens or closes: a row that names what it will do asks then (a sheet's Undo). */
+  onOpenChange?: (open: boolean) => void
 }
 
 const TRIGGER = {
@@ -186,6 +188,7 @@ export function HeaderMenu({
   size = 'mini',
   pressed,
   disabled,
+  onOpenChange,
 }: HeaderMenuProps) {
   const filled = sections.filter((section) => section.length > 0)
   const overflow = variant === 'overflow'
@@ -203,7 +206,7 @@ export function HeaderMenu({
   const triggerStyle = variant === 'masthead' ? TRIGGER : undefined
 
   return (
-    <Menu.Root>
+    <Menu.Root {...(onOpenChange ? { onOpenChange: (open: boolean) => onOpenChange(open) } : {})}>
       <Menu.Trigger
         className={variant === 'masthead' ? cn(triggerClass, TRIGGER_CAPS) : triggerClass}
         style={triggerStyle}

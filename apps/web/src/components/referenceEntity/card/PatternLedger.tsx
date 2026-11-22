@@ -17,8 +17,9 @@ import {
   toEntityModel,
 } from 'salvageunion-reference'
 import { computeMechCapacity } from 'salvageunion-reference/rules'
-import { mechScrap } from '../../../lib/rules/mechScrap'
+import { mechScrap, scrapParts } from '../../../lib/rules/mechScrap'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
+import { ScrapSplit } from '../../atoms/ScrapSplit'
 import { Stat } from '../../atoms/Stat'
 import { paintFor } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
@@ -32,8 +33,8 @@ import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 /**
  * A mech pattern's line: its loadout, then what it uses and costs (slots
  * filled of the chassis's, Scrap), so a chassis's patterns compare without
- * opening each. A phone keeps the three figures: the loadout's links are the
- * pattern's Page's there, never a packed line of small targets.
+ * opening each. A phone keeps the three figures, and each row opens in place
+ * to its loadout (`LoadoutFold`, r6 E5): comparing needs no page loads.
  */
 const LOADOUT: readonly LedgerColumn[] = [
   { key: 'loadout', label: referenceEntityCopy('loadout'), kind: 'line' },
@@ -138,8 +139,24 @@ function figuresOf(chassisName: string, pattern: RefObjectAnyPattern): ReactNode
   return [
     `${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`,
     `${capacity.moduleSlotsUsed}/${capacity.moduleSlotsMax}`,
-    mechScrap(build).total,
+    // By Tech Level, never summed across them (r6 E4, Core Book p.223).
+    <ScrapSplit key="scrap" parts={scrapParts(mechScrap(build))} />,
   ]
+}
+
+/**
+ * On a phone, where the Loadout column gives way, a row's loadout opens in
+ * place under its name (r6 E5): a native disclosure, no script on the page.
+ * Wider, the column says it and the fold is not drawn (`.su-pattern-fold`).
+ */
+function LoadoutFold({ changes }: { changes: ReactNode }) {
+  if (changes === '') return undefined
+  return (
+    <details className="su-pattern-fold">
+      <summary>{referenceEntityCopy('loadout')}</summary>
+      <span>{changes}</span>
+    </details>
+  )
 }
 
 export function PatternLedger({
@@ -178,12 +195,20 @@ export function PatternLedger({
         cells: [changesOf(pattern), ...(titans ? [] : figuresOf(model.title, pattern))],
         // A total the book prints over its limit is the book's own: the note
         // sits on the row it describes (r4 E16), since the figure wears no
-        // mark (R71) and a note at the list's foot belonged to no row.
-        ...(printedOver(model.title, pattern)
-          ? {
-              under: `${referenceEntityCopy('overItsLimit')} ${referenceEntityCopy('asPrintedInTheBook')}`,
-            }
-          : {}),
+        // mark (R71) and a note at the list's foot belonged to no row. A
+        // phone's fold to the loadout rides there too (r6 E5).
+        ...(titans && !printedOver(model.title, pattern)
+          ? {}
+          : {
+              under: (
+                <>
+                  {printedOver(model.title, pattern) && (
+                    <span>{`${referenceEntityCopy('overItsLimit')} ${referenceEntityCopy('asPrintedInTheBook')}`}</span>
+                  )}
+                  {!titans && <LoadoutFold changes={changesOf(pattern)} />}
+                </>
+              ),
+            }),
       }))}
     />
   )
