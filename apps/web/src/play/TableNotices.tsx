@@ -404,6 +404,8 @@ function GameNotices({
       <Button
         variant="primary"
         size="compact"
+        // E presses it, from anywhere on a Play screen (r6 A13).
+        data-end-turn=""
         disabled={!canWrite || endTurn.pending}
         onClick={() =>
           void endTurn.run({}).then((result) => {

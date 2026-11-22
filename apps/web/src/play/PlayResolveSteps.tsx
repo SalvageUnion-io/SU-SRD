@@ -193,6 +193,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         {!view.nothingToApply && (
           <Button
             ref={applyRef}
+            data-play-key="apply"
             size="compact"
             style={GROW}
             onClick={controls.onApply}

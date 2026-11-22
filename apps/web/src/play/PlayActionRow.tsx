@@ -144,15 +144,26 @@ export function PlayActionRow({
   const companion = entry.action.companion
   const open = resolve !== null
   // Closing takes the pressed control (Apply, Done) away with the resolve:
-  // the keyboard goes back to this row's Use, never to the page's top (r4 A3).
+  // the keyboard goes back to this row's Use, or End my turn while it is the
+  // player's turn, never to the page's top (r4 A3, r6 A13).
   const rowRef = useRef<HTMLLIElement>(null)
   const wasOpen = useRef(open)
   useEffect(() => {
+    const opened = !wasOpen.current && open
     const closed = wasOpen.current && !open
     wasOpen.current = open
+    const row = rowRef.current
     const active = document.activeElement
-    if (closed && (active === null || active === document.body || !active.isConnected))
-      rowRef.current?.querySelector<HTMLElement>('.su-play-act__use')?.focus()
+    // Use pressed from the keyboard: on to Roll, never left on Cancel (r6 A13).
+    if (opened && row !== null && active !== null && row.contains(active)) {
+      row.querySelector<HTMLElement>('.su-play-resolve button[aria-label^="Roll the die"]')?.focus()
+      return
+    }
+    if (closed && (active === null || active === document.body || !active.isConnected)) {
+      // The player who is up goes on to End my turn, one Tab from the strip (r6 A13).
+      const end = document.querySelector<HTMLButtonElement>('[data-end-turn]:not([disabled])')
+      ;(end ?? row?.querySelector<HTMLElement>('.su-play-act__use'))?.focus()
+    }
   }, [open])
   const away = entry.need !== null
   const size = wide ? 'mini' : 'compact'

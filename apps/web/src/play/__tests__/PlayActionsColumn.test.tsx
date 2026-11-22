@@ -570,6 +570,26 @@ describe('Use: the resolve, in the Compact', () => {
     expect(document.activeElement).toBe(use(primary().name))
   })
 
+  test('a keyboard turn: Use goes on to Roll, R rolls, A finishes, "?" lists the keys (r6 A13)', async () => {
+    renderBoarded()
+    const useButton = use(primary().name)
+    useButton.focus()
+    await click(useButton)
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Roll the die on Core Mechanic')
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'r' })
+    })
+    expect(rowFor(primary().name).querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'a' })
+    })
+    expect(rowFor(primary().name).getAttribute('data-done')).toBe('true')
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: '?' })
+    })
+    expect(await screen.findByRole('dialog', { name: 'Keys' })).toBeTruthy()
+  })
+
   test('Apply is gated on a roll, the roll pays the cost once, and Start over keeps it paid', async () => {
     const { calls } = renderBoarded()
     await click(use(primary().name))
