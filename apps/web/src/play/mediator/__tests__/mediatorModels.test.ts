@@ -45,7 +45,8 @@ describe('the seats, in one layer over the crew lines', () => {
     expect(bonesaw).toMatchObject({ problem: null, attention: false })
     expect(bonesaw?.label).toContain('HP 8 of 10, AP 3 of 5, On foot, Scrapper parked')
     expect(pickle).toMatchObject({ problem: 'Overheating' })
-    expect(judge).toMatchObject({ mount: 'On foot', problem: 'Ejected', attention: true })
+    // Ejected is the head's chip: the problem line does not say it again (r6 A4).
+    expect(judge).toMatchObject({ mount: 'On foot', problem: null, attention: true })
     expect(driftwood?.label).toContain('In Mazona, SP 9 of 9')
   })
 
