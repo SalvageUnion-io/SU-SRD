@@ -130,7 +130,6 @@ export function changesUndoToast({
     </span>,
     {
       id,
-      duration: 8000,
       action: {
         label: componentsCopy('undo'),
         onClick: () => {

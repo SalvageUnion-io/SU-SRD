@@ -1,17 +1,18 @@
 /**
- * The copy notice is the one way to the copy, so it stays until it is
- * dismissed, with a close of its own (r4 E19, over r2 C3's timer), and it
+ * The copy notice opens the copy and stays as any toast with an action does
+ * (chrome K5: 20 seconds with a close of its own; r5 C3, over r4 E19), and it
  * closes at once when its copy is gone (deleted, or the account signed out).
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { mechFixture, npcFixture, pilotFixture } from '../../components/__tests__/fixtures'
-import { toast } from '../../components/index'
+import { ACTION_TOAST_MS, MOST_ACTION_TOASTS, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { resetStores } from '../../replica/__tests__/resetStores'
 import { withSignedInBackend } from '../../replica/__tests__/signedInBackend'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useUnits } from '../../replica/units'
-import { copyAsking, keptMech, makeACopy } from '../copiedToast'
+import { copyAsking, keptMech, madeToast, makeACopy } from '../copiedToast'
 import { ROW_ACTION_COPY } from '../games/rowActionCopy'
 
 withSignedInBackend()
@@ -42,12 +43,12 @@ async function copied() {
 }
 
 describe('makeACopy', () => {
-  test('its notice stays until dismissed, and carries its own close (r4 E19)', async () => {
+  test('its notice stays 20 seconds, and carries its own close (r5 C3)', async () => {
     await copied()
     const [line] = open()
     // It says what was copied, by the original's name (MD3-15).
     expect((line as { title?: unknown }).title).toBe('Copied Leaky.')
-    expect((line as { duration?: number }).duration).toBe(Number.POSITIVE_INFINITY)
+    expect((line as { duration?: number }).duration).toBe(ACTION_TOAST_MS)
     expect((line as { closeButton?: boolean }).closeButton).toBe(true)
   })
 
@@ -56,6 +57,35 @@ describe('makeACopy', () => {
     expect(open()).toHaveLength(1)
     await useUnits.getState().forget('mech', 'copy-1')
     expect(open()).toHaveLength(0)
+  })
+})
+
+describe('madeToast (r5 C3)', () => {
+  test('its words follow a rename of what it made', async () => {
+    const units = useUnits.getState()
+    await units.adopt('mech', mechFixture({ id: 'made-1', name: 'Digger' }))
+    const name = () => useUnits.getState().get('mech', 'made-1')?.name ?? ''
+    const title = () => (open()[0] as { title?: unknown } | undefined)?.title
+    madeToast(
+      () => `Saved ${name()}.`,
+      'Open',
+      { href: '/x' },
+      () => {}
+    )
+    expect(title()).toBe('Saved Digger.')
+    await units.update('mech', 'made-1', { name: 'Shovel' }, LIVE_SHEET_MANUAL)
+    expect(open()).toHaveLength(1)
+    expect(title()).toBe('Saved Shovel.')
+  })
+
+  test('at most three toasts with an action stand at once, the newest', () => {
+    for (const n of [1, 2, 3, 4, 5]) madeToast(`Made ${n}.`, 'Open', { href: '/x' }, () => {})
+    expect(open().map((t) => (t as { title?: unknown }).title)).toEqual([
+      'Made 3.',
+      'Made 4.',
+      'Made 5.',
+    ])
+    expect(open()).toHaveLength(MOST_ACTION_TOASTS)
   })
 })
 

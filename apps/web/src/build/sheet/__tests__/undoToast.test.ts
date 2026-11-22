@@ -1,10 +1,11 @@
 /**
- * The Undo for something taken off a sheet waits for the player (r2 C1): it
- * stands until answered, dismissed, or the sheet's next write.
+ * The Undo for something taken off a sheet stays as any toast with an action
+ * does (chrome K5: 20 seconds; r5 C3, over r2 C1's standing line), and leaves
+ * sooner when answered, dismissed, or on the sheet's next write.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { toast } from '../../../components/index'
+import { ACTION_TOAST_MS, toast } from '../../../components/index'
 import { changeUndoToast } from '../../../lib/changeUndoToast'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { units } from '../../../replica/units'
@@ -22,12 +23,13 @@ afterEach(() => {
 })
 
 describe('undoToast', () => {
-  test('stands with no timer, one line a sheet', () => {
+  test('stays 20 seconds with a close of its own, one line a sheet (r5 C3)', () => {
     undoToast('Removed Red Laser', () => {}, 'm1')
     undoToast('Chassis changed to Mazona', () => {}, 'm1')
     const lines = toast.getToasts().filter((t) => t.id === 'undo:m1')
     expect(lines).toHaveLength(1)
-    expect((lines[0] as { duration?: number }).duration).toBe(Number.POSITIVE_INFINITY)
+    expect((lines[0] as { duration?: number }).duration).toBe(ACTION_TOAST_MS)
+    expect((lines[0] as { closeButton?: boolean }).closeButton).toBe(true)
   })
 
   test("leaves on that sheet's next write, and on no other sheet's", async () => {
@@ -65,7 +67,7 @@ describe('undoToast', () => {
     expect(open.sort()).toEqual(['mech:m2:currentEP', 'rule-break:m2:systemSlots', 'undo:m2'])
   })
 
-  test("each quick removal keeps its own Undo, through the sheet's later writes, the newest four (r4 E3)", async () => {
+  test("each quick removal keeps its own Undo, through the sheet's later writes, the newest three (r4 E3, r5 C3)", async () => {
     const undone: string[] = []
     for (const name of ['a', 'b', 'c']) {
       undoToast(`Removed ${name}`, () => undone.push(name), 'm1', { stack: true })
@@ -87,7 +89,13 @@ describe('undoToast', () => {
     for (const name of ['d', 'e', 'f', 'g']) {
       undoToast(`Removed ${name}`, () => {}, 'm1', { stack: true })
     }
-    expect(lines()).toHaveLength(4)
+    expect(lines()).toHaveLength(3)
+    // The newest stay; the oldest left.
+    expect(lines().map((t) => (t as { title?: unknown }).title)).toEqual([
+      'Removed e',
+      'Removed f',
+      'Removed g',
+    ])
     leaveSheet('m1')
     expect(lines()).toHaveLength(0)
   })
