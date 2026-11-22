@@ -53,6 +53,16 @@ const SPECULATION_RULES = JSON.stringify({
   prefetch: [{ source: 'document', where: SPECULATED_LINKS, eagerness: 'moderate' }],
 })
 
+/**
+ * The cross-document view-transition opt-in (`base.css` has the same rule and
+ * says why), inline: the browser reads the opt-in when it inserts `<body>`,
+ * which can be before the linked stylesheet has arrived. A page that has not
+ * opted in by then aborts the transition the previous page started, and the
+ * browser logs `ViewTransition opt-in disabled` as a page error.
+ */
+const VIEW_TRANSITION_OPT_IN =
+  '@media (prefers-reduced-motion:no-preference){@view-transition{navigation:auto}}'
+
 /** The page column: the bar, the content, the footer, at least a screen tall. */
 const PAGE = {
   backgroundColor: color.paper,
@@ -119,6 +129,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         {/* Before the stylesheet: the site is light-only (`reset.css`). */}
         <meta name="color-scheme" content="light" />
         <meta name="text-scale" content="scale" />
+        <style>{VIEW_TRANSITION_OPT_IN}</style>
         <title>{title}</title>
         {/* The link-preview block every document carries (`metaTags`). The OG
             images the site renders are 1200×630; an entity's art is its own
