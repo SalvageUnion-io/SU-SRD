@@ -26,11 +26,13 @@ import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Photo } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { RefObjectPattern } from 'salvageunion-reference'
-import { getAssetUrl, toEntityModel } from 'salvageunion-reference'
+import type { RefChassis, RefObjectPattern } from 'salvageunion-reference'
+import { getAssetUrl, getEntitySlug, toEntityModel } from 'salvageunion-reference'
 import {
+  BreadcrumbTrail,
   Button,
   ChapterBand,
+  ChapterBandTrail,
   EntityPageStamps,
   KindLabel,
   quotePatternName,
@@ -43,6 +45,7 @@ import {
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { chapterForSchema } from '../../../lib/chapters'
 import { playerMessage } from '../../../lib/connection/useServerAction'
+import { SITE_URL, SRD_CRUMB } from '../../../lib/constants'
 import { hereInApp } from '../../../lib/hereInApp'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import { areaTitle } from '../../../lib/pageTitle'
@@ -122,6 +125,20 @@ function pagePattern(pattern: MechPattern): RefObjectPattern {
 }
 
 /**
+ * The way back to the Reference (r5 E11): the trail its chassis's own page
+ * keeps, Reference // Chassis // the chassis. Absolute, as the page head's
+ * trail is: an SRD path inside the app would land under its base.
+ */
+function referenceTrail(chassis: RefChassis, pattern: string) {
+  return [
+    SRD_CRUMB,
+    { name: mechCopy('chassis'), url: `${SITE_URL}/chassis/` },
+    { name: chassis.name, url: `${SITE_URL}/chassis/${getEntitySlug(chassis)}/` },
+    { name: pattern, url: '' },
+  ]
+}
+
+/**
  * Write the maker's photo onto their own pattern. The page reads the pattern
  * from the public query, so the shelf's copy may not have arrived yet: wait
  * for it before the store patches it, and the query hears the write back.
@@ -187,75 +204,86 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   return (
     <main style={PAGE}>
       <article className="su-entity">
-        <ChapterBand
-          tone={chapterForSchema('chassis').tone}
-          measure={PAGE_MEASURE}
-          asideAt="notch"
-          aside={
-            meta && chassis ? (
-              <EntityPageStamps
-                meta={meta}
-                homebrew
-                parent={{
-                  label: mechCopy('patternOf'),
-                  ref: toEntityModel(chassis).ref,
-                }}
+        <ChapterBandTrail.Provider
+          value={
+            chassis ? (
+              <BreadcrumbTrail
+                breadcrumbs={referenceTrail(chassis, pattern.name)}
+                placement="band"
               />
-            ) : undefined
-          }
-          // The page's actions are its head's: Build With This (or Sign in,
-          // signed out) is the band's one action; Make a copy and the maker's
-          // Share sit in its corner, as on a sheet.
-          action={
-            writable ? (
-              <Button
-                variant="primary"
-                size="compact"
-                className="su-page-action"
-                // One press: the mech it makes is ordinary, and its notice has Undo (r4 E23).
-                onClick={() => void build()}
-                disabled={busy !== null}
-                aria-label={mechCopy('buildWithThisAMech', { name: pattern.name })}
-              >
-                {busy === 'build' ? mechCopy('building') : mechCopy('buildWithThis')}
-              </Button>
-            ) : signedOut ? (
-              <SignInControl
-                className="su-page-action"
-                label={mechCopy('signInToBuildFromThis')}
-                redirectTo={hereInApp()}
-              />
-            ) : undefined
-          }
-          corner={
-            writable ? (
-              // The acts ride the area rail.
-              <RailActs>
-                <Button
-                  className="su-page-action"
-                  onClick={() => void copy()}
-                  disabled={busy !== null}
-                >
-                  {busy === 'copy' ? mechCopy('copying') : mechCopy('makeACopy')}
-                </Button>
-                {mine && visibility && (
-                  <Button
-                    className="su-page-action"
-                    onClick={() => setShareOpen(true)}
-                    aria-label={mechCopy('share2', { name: pattern.name })}
-                  >
-                    {mechCopy('share')}
-                  </Button>
-                )}
-                {editable && <PatternEditControls pattern={pattern} />}
-                <HomebrewControls appId={pattern.id} name={pattern.name} />
-              </RailActs>
-            ) : undefined
+            ) : null
           }
         >
-          {quotePatternName(pattern.name)}
-          <KindLabel kind="Pattern" />
-        </ChapterBand>
+          <ChapterBand
+            tone={chapterForSchema('chassis').tone}
+            measure={PAGE_MEASURE}
+            asideAt="notch"
+            aside={
+              meta && chassis ? (
+                <EntityPageStamps
+                  meta={meta}
+                  homebrew
+                  parent={{
+                    label: mechCopy('patternOf'),
+                    ref: toEntityModel(chassis).ref,
+                  }}
+                />
+              ) : undefined
+            }
+            // The page's actions are its head's: Build With This (or Sign in,
+            // signed out) is the band's one action; Make a copy and the maker's
+            // Share sit in its corner, as on a sheet.
+            action={
+              writable ? (
+                <Button
+                  variant="primary"
+                  size="compact"
+                  className="su-page-action"
+                  // One press: the mech it makes is ordinary, and its notice has Undo (r4 E23).
+                  onClick={() => void build()}
+                  disabled={busy !== null}
+                  aria-label={mechCopy('buildWithThisAMech', { name: pattern.name })}
+                >
+                  {busy === 'build' ? mechCopy('building') : mechCopy('buildWithThis')}
+                </Button>
+              ) : signedOut ? (
+                <SignInControl
+                  className="su-page-action"
+                  label={mechCopy('signInToBuildFromThis')}
+                  redirectTo={hereInApp()}
+                />
+              ) : undefined
+            }
+            corner={
+              writable ? (
+                // The acts ride the area rail.
+                <RailActs>
+                  <Button
+                    className="su-page-action"
+                    onClick={() => void copy()}
+                    disabled={busy !== null}
+                  >
+                    {busy === 'copy' ? mechCopy('copying') : mechCopy('makeACopy')}
+                  </Button>
+                  {mine && visibility && (
+                    <Button
+                      className="su-page-action"
+                      onClick={() => setShareOpen(true)}
+                      aria-label={mechCopy('share2', { name: pattern.name })}
+                    >
+                      {mechCopy('share')}
+                    </Button>
+                  )}
+                  {editable && <PatternEditControls pattern={pattern} />}
+                  <HomebrewControls appId={pattern.id} name={pattern.name} />
+                </RailActs>
+              ) : undefined
+            }
+          >
+            {quotePatternName(pattern.name)}
+            <KindLabel kind="Pattern" />
+          </ChapterBand>
+        </ChapterBandTrail.Provider>
 
         <div className="su-entity__body su-page-body">
           {/* Its loadout at a glance, with what it uses and costs, as a book

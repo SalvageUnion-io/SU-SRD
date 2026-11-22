@@ -74,7 +74,7 @@ describe('on a chassis page', () => {
     expect(screen.queryByRole('link', { name: /show all/i })).toBeNull()
   })
 
-  test('remembered on with none shared, it says so and the switch hides: nothing to show or hide (r3 C5)', async () => {
+  test('remembered on with none shared, it says so and the switch stays, so it can be turned off here (r5 E11)', async () => {
     localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
     answer(() => new Response('[]'))
     render(<HomebrewIsland chassisRef="mule" />)
@@ -84,7 +84,9 @@ describe('on a chassis page', () => {
     expect(
       screen.getByRole('link', { name: 'Every chassis’s Homebrew' }).getAttribute('href')
     ).toBe('/homebrew/')
-    expect(screen.queryByRole('button', { name: /Homebrew/ })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Hide Homebrew' }).getAttribute('aria-pressed')).toBe(
+      'true'
+    )
     // The reader's choice is kept for the next chassis.
     expect(localStorage.getItem(SHOW_HOMEBREW_KEY)).toBe('on')
   })

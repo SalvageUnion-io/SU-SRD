@@ -160,6 +160,22 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     expect(hrefs.filter((href) => href?.startsWith('/chassis/'))).toEqual([])
   })
 
+  test('its band keeps the Reference trail, the way back to its chassis page (r5 E11)', () => {
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    const { container } = renderAs(SIGNED_OUT)
+
+    const trail = container.querySelector('.su-crumbs--band')
+    const links = [...(trail?.querySelectorAll('a[href]') ?? [])].map((a) => [
+      a.textContent,
+      new URL(a.getAttribute('href') ?? '').pathname,
+    ])
+    expect(links).toEqual([
+      ['Reference', '/reference/'],
+      ['Chassis', '/chassis/'],
+      ['Scrapper', '/chassis/scrapper/'],
+    ])
+  })
+
   test('signed out, it offers sign-in rather than a build that would be refused', () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(SIGNED_OUT)
