@@ -276,6 +276,16 @@ describe('a write the server does not take says so', () => {
     expect(screen.queryByText('Saved')).toBeNull()
   })
 
+  test('Enter in the display name saves it, as Save does (r5 C4)', async () => {
+    withQueries(profileQueries(ME))
+    wrap()
+
+    await act(async () => {
+      fireEvent.keyDown(screen.getByRole('textbox', { name: 'Display name' }), { key: 'Enter' })
+    })
+    expect(screen.getByText('Saved').getAttribute('role')).toBe('status')
+  })
+
   test('a failed display-name save says so in words, never its raw text', async () => {
     accountFailures.updateProfile = new Error('/__rooms/account/profile answered 500 Server Error')
     withQueries(profileQueries(ME))
