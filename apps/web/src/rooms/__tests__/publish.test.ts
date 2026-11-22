@@ -128,9 +128,16 @@ describe('what a Game room publishes', () => {
     expect(gamePublished(room.store, 'g1').roster?.game?.invite).toBe(next)
   })
 
-  test('a Mediator with no name is not named: the invite reads whole without "the Mediator" (r5 B14)', () => {
+  test('a Mediator with no name goes by their joining order, as the Members list says (r6 C11)', () => {
     const { room } = table('g1')
     room.store.sql.exec('update members set display_name = null where mediator = 1')
+    const place = room.store.members().findIndex((m) => m.mediator)
+    expect(gamePublished(room.store, 'g1').roster?.game?.mediatedBy).toBe(`Player ${place + 1}`)
+  })
+
+  test('a Game nobody mediates names no Mediator', () => {
+    const { room } = table('g1')
+    room.store.sql.exec('update members set mediator = 0')
     expect(gamePublished(room.store, 'g1').roster?.game?.mediatedBy).toBeNull()
   })
 })

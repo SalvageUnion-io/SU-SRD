@@ -369,6 +369,14 @@ export const playCopy = messages({
   unitVitals: '{name}’s vitals',
   sessionLive: 'Session live',
   startGroupSession: 'Start group session',
+  // A Downtime step waiting, off the Play screen (r6 C5).
+  downtimeHasBegunIn: 'Downtime has begun · {game}',
+  yourStep: 'Your step',
+  // The one tidy step between phases (r6 C2).
+  tidyEndEncounter: 'End {name}',
+  tidyClearTheDowned: 'Clear the downed',
+  tidyClearTheField: 'Clear the field ({count} still standing)',
+  tidyEndConditions: 'End {names}',
   startGroupSessionHint: 'Tells the table play has started and keeps a log for the Game page.',
   startSession: 'Start session',
   endGroupSession: 'End group session',

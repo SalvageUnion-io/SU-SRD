@@ -34,6 +34,8 @@ export type Notice = StackedNotice & {
     | 'session-ended'
     | 'event'
     | 'quiet'
+    // A Downtime step waiting on the viewer, off the Play screen (r6 C5).
+    | 'downtime'
   tone: 'ink' | 'pilot' | 'crawler' | 'bad'
   title: string
   body?: string

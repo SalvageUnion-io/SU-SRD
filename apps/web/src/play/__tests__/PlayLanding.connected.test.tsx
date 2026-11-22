@@ -314,6 +314,8 @@ describe('the Play landing', () => {
     const play = tenacity.getByRole('link', { name: 'Join session as CASTLE in Tenacity' })
     expect(play.getAttribute('href')).toBe('/pilots/land-rook/play')
     expect(play.textContent).toBe('Join session')
+    // One Join on the page (r6 C4): the card's; Your Pilots gives way while it is live.
+    expect(screen.getAllByRole('link', { name: /^Join session/ })).toHaveLength(1)
   })
 
   test('a Game between Downtimes shows no Downtime chip; one with none of your pilots has no door', async () => {

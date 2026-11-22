@@ -239,6 +239,28 @@ describe('the pinned notices', () => {
     expect(notice('session-ended')).toBeNull()
   })
 
+  test('Session ended is said once: a later visit does not pin it again (r6 C1)', async () => {
+    const at = Date.now() - 60_000
+    localStorage.setItem('su-session-ended-seen', JSON.stringify([`session:g1:ended:${at}`]))
+    await renderNotices(
+      {
+        'changeLog.events': [
+          {
+            _id: 'e-end-seen',
+            ts: at,
+            kind: 'session',
+            text: 'Ash ended the group session',
+            actorId: 'gm',
+            session: 'end',
+          },
+        ],
+      },
+      '/games/g1'
+    )
+    expect(notice('session-ended')).toBeNull()
+    localStorage.removeItem('su-session-ended-seen')
+  })
+
   test('Your turn pins on every screen while the Mediator has my pilot up (r2 E1)', async () => {
     const { useUnits } = await import('../../replica/units')
     const { pilotFixture } = await import('../../components/__tests__/fixtures')
@@ -256,6 +278,35 @@ describe('the pinned notices', () => {
     })
     expect(notice('turn')).toBeNull()
     act(() => drop('pilot', 'tn-up'))
+  })
+
+  // r6 C5 (LG6-19): what waits for a player reaches them off the Play screen.
+  test('a Downtime step waiting on my pilot pins its door off Play, and none on Play', async () => {
+    const { useUnits } = await import('../../replica/units')
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const { drop } = await import('../../replica/replica')
+    await act(async () => {
+      await useUnits.getState().adopt('pilot', pilotFixture({ id: 'tn-dt', gameId: 'g1' }))
+    })
+    const running = {
+      'downtime.state': {
+        running: true,
+        runId: 'r1',
+        stepIndex: 0,
+        startedAt: 5,
+        completedBy: [],
+        upkeepSpent: false,
+        doneSteps: [],
+      },
+    }
+    await renderNotices(running, '/games/')
+    expect(notice('downtime')?.textContent).toContain('Downtime has begun · Tenacity')
+    const door = screen.getByRole('link', { name: 'Your step' }) as HTMLAnchorElement
+    expect(door.getAttribute('href')).toBe('/pilots/tn-dt/play')
+    cleanup()
+    await renderNotices(running, '/pilots/tn-dt/play')
+    expect(notice('downtime')).toBeNull()
+    act(() => drop('pilot', 'tn-dt'))
   })
 
   // LG-02: the replica holds every crewmate's pilot too; the door is for the
@@ -520,6 +571,11 @@ describe('the pinned notices', () => {
 
   test('on a Play screen the session needs no door', async () => {
     await renderNotices({ 'session.state': { live: true, startedAt: 7 } }, '/pilots/p1/play')
+    expect(notice('session')).toBeNull()
+  })
+
+  test('on the Games page the Game’s card is the one Join: no strip repeats it (r6 C4)', async () => {
+    await renderNotices({ 'session.state': { live: true, startedAt: 7 } }, '/games/')
     expect(notice('session')).toBeNull()
   })
 })

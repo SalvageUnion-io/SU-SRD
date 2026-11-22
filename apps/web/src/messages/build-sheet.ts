@@ -195,7 +195,7 @@ export const buildSheetCopy = messages({
   itemDetails: '{name} details',
   readOnlyCrewSheet: 'Read-only crew sheet',
   readOnlyUnassignedSheet:
-    'This sheet is assigned to nobody, so nobody can change it. Use Assign to me on the Game’s page, or ask whoever runs the table to assign it.',
+    'This sheet is assigned to nobody, so nobody can change it. Assign it to yourself to play it, or ask whoever runs the table to assign it.',
   cargoKind: 'Cargo kind',
   cargo: 'Cargo',
   newCargoName: 'New cargo name',
@@ -386,7 +386,6 @@ export const buildSheetCopy = messages({
   uses2: '{name} uses: {remaining}',
   remove: 'Remove {name}',
   readOrEditThis: 'Read or edit this {kind}',
-  soloIsNowTable: 'Solo play is now {game}’s table: Open table plays here.',
   read: 'Sheet',
   edit: 'Edit',
   theSheet: 'the sheet',

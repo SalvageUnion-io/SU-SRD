@@ -3,7 +3,7 @@ import type { LinkShape } from 'game-domain/links/linkRules'
 import { downtimeStepNames } from 'game-domain/rules/downtime'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
-import type { NamesNow, Stored } from './eventLines'
+import type { NamesNow, Stored, VitalChange } from './eventLines'
 import {
   CONDITION_WORDS,
   CONDITIONS,
@@ -117,6 +117,7 @@ export type TableEvent = {
    * screen pins it.
    */
   about?: string
+  vital?: VitalChange // A vitals line's change: what a session's recap adds up (r6 C1).
 }
 
 /** How long a line stays open to a repeat. */
@@ -195,6 +196,11 @@ export class GameEvents {
             text: `${unit(u.pilotId)} · ${u.name}: not applied`,
           })
         )
+    // A table act that started the group session says so first (r6 C3, `startWithPlay`).
+    const started = () =>
+      before.session === false && this.store.rows('select 1 from session where id = 1').length > 0
+        ? this.after(actor, 'session.start', undefined, true, {}, at)
+        : []
     switch (name) {
       case 'submit':
         return this.vitals(actor, value as SubmitResult, at)
@@ -354,7 +360,7 @@ export class GameEvents {
                 }),
               ]
             : []
-        return [...closed(), ...given]
+        return [...started(), ...closed(), ...given]
       }
       case 'scenes.endTurn':
         return [
@@ -379,7 +385,7 @@ export class GameEvents {
             ]
           : [this.note(null, at, { kind: 'stop', text: 'The Stop Sign is lifted. Play resumes.' })]
       default:
-        return []
+        return started()
     }
   }
 

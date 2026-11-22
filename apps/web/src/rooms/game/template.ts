@@ -22,6 +22,9 @@ import { parseUnitBody } from './units'
 const GAME_TEMPLATES = {
   'starter-set': {
     name: "Reclamation of the Wastes — Union Crawler #430 'Tenacity'",
+    // The name a Game started from it is given unless its starter types another (r6 C9).
+    shortName: 'Reclamation of the Wastes',
+    crawler: "Union Crawler #430 'Tenacity'",
     description:
       'The six Pilots of the Salvage Union Starter Set, their Mechs, and their crawler. Everyone arrives unassigned for you to hand out.',
   },
@@ -34,6 +37,8 @@ export function templateList() {
   return Object.entries(GAME_TEMPLATES).map(([id, t]) => ({
     id: id as GameTemplateId,
     name: t.name,
+    shortName: t.shortName,
+    crawler: t.crawler,
     description: t.description,
   }))
 }
@@ -65,7 +70,7 @@ export function seedTemplate(
     if (store.game() !== null) return
     room.roster.create(actor, {
       gameId: args.gameId,
-      name: args.name?.trim() || template.name,
+      name: args.name?.trim() || template.shortName,
       templateOrigin: args.templateId,
       profile: args.profile,
       at: args.at,

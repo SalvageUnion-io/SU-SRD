@@ -115,11 +115,11 @@ export function TheGame({
   // Who is going: the viewer (Leave) or a member the Organiser removes.
   const [going, setGoing] = useState<{ userId: string; name: string } | null>(null)
 
-  // The viewer is "You" when their account has no name (never "Crewmate (you)").
-  const name = (m: { userId: string; displayName: string }) =>
+  // The viewer is "You" when their account has no name (never "Player 2 (you)").
+  const name = (m: { userId: string; displayName: string; unnamed?: true }) =>
     m.userId !== viewerId
       ? m.displayName
-      : m.displayName === CREWMATE
+      : m.unnamed
         ? playGamesCopy('you')
         : playGamesCopy('nameYou', { name: m.displayName })
   const mediators = members?.filter((m) => m.mediator) ?? []

@@ -72,6 +72,8 @@ export const playGamesCopy = messages({
   starterSet: 'Starter Set',
   starterHere: 'Or make a copy of a Starter Set Pilot, their Mech assigned, right here:',
   starterHereCopy: 'Make a copy of {name} in this Game',
+  // Each button says what it does (r6 C10); the glossary's one copy label.
+  starterHereButton: 'Make a copy of {name}',
   bringNote:
     'The same unit moves into this Game; nothing is copied. A Pilot brings their Mech, still assigned. You can move them back later.',
   moveIn: 'Move in',
@@ -116,6 +118,13 @@ export const playGamesCopy = messages({
   sessionCounts: ' Rolls: {rolls}. Vitals changes: {changes}.',
   sessionPrivateRolls: ' Private rolls: {count}.',
   showAllLines: 'Show all {count}',
+  // An ended session's recap (r6 C1).
+  recapHurt: 'Hurt and Down',
+  recapVital: '{who} · {label} {from} → {to}',
+  recapChangedHands: 'Changed hands',
+  recapDowntime: 'A Downtime was held.',
+  recapNext: 'Next session: {next}',
+  fullLog: 'Full log',
   proposalsAwaitingYourAnswer: 'Proposals awaiting your answer',
   apply: 'Apply',
   apply2: 'Apply {what}',
@@ -133,6 +142,14 @@ export const playGamesCopy = messages({
   gameSettingsMenu: 'Game settings…',
   gameSettings: 'Game settings',
   gameName: 'Name',
+  // Under the band's Mediate (r6 C3).
+  sessionStartsWithPlay: 'The session starts when you play',
+  noSessionYet: 'No session yet',
+  // The band's title, renamed in place (r6 C9).
+  rename: 'Rename',
+  renameGame: 'Rename {name}',
+  gameNameField: 'Game name',
+  renameNotSaved: 'The new name could not be saved. Try again.',
   gameDescription: 'Description',
   gameDescriptionHint: 'A line or two for your players. It is shown on the invite.',
   saveSettings: 'Save',

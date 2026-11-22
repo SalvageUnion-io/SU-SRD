@@ -34,6 +34,8 @@ type ShelfLedgerRow = {
   play?: string
   /** The pilot's Game, or null solo: its door reads Join session while that Game's session is live (r3 H3). */
   playGameId?: string | null
+  /** Its door gives way while that Game's session is live: the Game's own Join is the one on the page (r6 C4). */
+  playYieldsWhileLive?: boolean
 }
 
 type ShelfLedgerProps = {
@@ -73,13 +75,16 @@ function PlayDoor({
   href,
   name,
   gameId,
+  yields = false,
 }: {
   href: string
   name: string
   gameId: string | null | undefined
+  yields?: boolean
 }) {
   const live = useSessionLive(gameId)
   const solo = gameId == null
+  if (yields && live) return null
   return (
     <Button
       href={href}
@@ -108,7 +113,14 @@ function trailingOf(row: ShelfLedgerRow): ReactNode {
           {row.act.label}
         </Button>
       )}
-      {row.play && <PlayDoor href={row.play} name={row.name} gameId={row.playGameId} />}
+      {row.play && (
+        <PlayDoor
+          href={row.play}
+          name={row.name}
+          gameId={row.playGameId}
+          yields={row.playYieldsWhileLive === true}
+        />
+      )}
       {menu && (
         <HeaderMenu
           variant="overflow"

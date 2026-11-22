@@ -216,7 +216,8 @@ export function AddFromTrainingBay({
         onSelect={(id) =>
           setSelected((now) => (now.includes(id) ? now.filter((x) => x !== id) : [...now, id]))
         }
-        note={playGamesCopy('bringNote')}
+        // Said of the units that move, so never under the Starter Set's copies (r6 C10).
+        note={all.length > 0 ? playGamesCopy('bringNote') : undefined}
         confirmLabel={playGamesCopy('moveIn')}
         confirm={picked.length === 0 ? undefined : () => bring(picked)}
       />

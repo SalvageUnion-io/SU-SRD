@@ -39,6 +39,7 @@ import { useTableAct, useTableRead } from '../replica/useTable'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { gamePilots } from './play.model'
 import { acceptedUndo, proposalChange } from './proposalAnswer.model'
+import { downtimeWaits, firstSight, onHub } from './sessionNotices.model'
 import type { Notice } from './TableNoticeStack'
 import { NoticeStack } from './TableNoticeStack'
 import type { Heard, KnownGame } from './tableNotices.model'
@@ -268,7 +269,8 @@ function GameNotices({
       roleId: mediator
         ? (pinnedRole(events, new Set([...dismissed, ...seenRoles()]), viewerId, now)?._id ?? null)
         : null,
-      sessionLive: !inPlay && !ownPage && !dismissed.has(`session:${gameId}:live`),
+      sessionLive:
+        !inPlay && !ownPage && !onHub(pathname) && !dismissed.has(`session:${gameId}:live`),
       sessionEnded: onGamePages(pathname, gamePath(gameId), pilotRoots),
     }
     const told = next.tell.filter(
@@ -345,6 +347,12 @@ function GameNotices({
     : null
   const sessionKey = `session:${gameId}`
   const onePilot = pilots.length === 1 ? pilots[0] : undefined
+  // Off Play, the Downtime's step this pilot has still to take (r6 C5).
+  const downtime =
+    useTableRead(
+      'downtime.state',
+      onePilot === undefined ? 'skip' : { gameId, pilotId: onePilot.id }
+    ) ?? null
   // One name a door (glossary §9): the Mediator's is Mediate, wherever it is.
   const door = mediator
     ? { href: mediatePath(gameId), label: playCopy('mediate') }
@@ -532,7 +540,7 @@ function GameNotices({
       sig: `role:${role._id}:${there}`,
     })
   }
-  if (live && !inPlay && !ownPage && !dismissed.has(`${sessionKey}:live`)) {
+  if (live && !inPlay && !ownPage && !onHub(pathname) && !dismissed.has(`${sessionKey}:live`)) {
     notices.push({
       key: `${sessionKey}:live`,
       kind: 'session',
@@ -550,7 +558,28 @@ function GameNotices({
       sig: `${sessionKey}:live:${door.href}:${gameName}`,
     })
   }
-  if (!live && endedAt !== null && !dismissed.has(`${sessionKey}:ended:${endedAt}`)) {
+  // A Downtime step waiting on the viewer reaches them off the Play screen (r6 C5).
+  if (!mediator && !inPlay && onePilot !== undefined && downtimeWaits(downtime)) {
+    const title = playCopy('downtimeHasBegunIn', { game: gameName })
+    notices.push({
+      key: `downtime:${gameId}:${downtime?.runId ?? ''}:${downtime?.stepIndex ?? 0}`,
+      kind: 'downtime',
+      rank: 'answer',
+      ts: downtime?.startedAt ?? 0,
+      dismissible: false,
+      tone: 'pilot',
+      title,
+      actions: (
+        <Button variant="primary" size="compact" href={cockpitPath(onePilot.id)}>
+          {playCopy('yourStep')}
+        </Button>
+      ),
+      sig: `downtime:${gameId}:${downtime?.stepIndex ?? 0}:${onePilot.id}:${title}`,
+    })
+  }
+  // Said once (r6 C1): the Game's page leads with the recap, so the strip never pins it for days.
+  const endedKey = `${sessionKey}:ended:${endedAt}`
+  if (!live && endedAt !== null && !dismissed.has(endedKey) && firstSight(endedKey)) {
     notices.push({
       key: `${sessionKey}:ended:${endedAt}`,
       kind: 'session-ended',
@@ -559,7 +588,7 @@ function GameNotices({
       dismissible: true,
       tone: 'ink',
       title: playCopy('sessionEndedIn', { game: gameName }),
-      dismiss: () => dismiss(`${sessionKey}:ended:${endedAt}`),
+      dismiss: () => dismiss(endedKey),
       sig: `${sessionKey}:ended:${endedAt}:${gameName}`,
     })
   }

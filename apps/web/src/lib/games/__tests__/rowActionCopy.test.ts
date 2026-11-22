@@ -156,7 +156,6 @@ describe('rowActionCopy', () => {
   })
 
   test('only the constructive verbs are not danger-toned', () => {
-    expect(ROW_ACTION_COPY.assignSelf('Vex Arlo').tone).toBe('default')
     expect(ROW_ACTION_COPY.copyOnShelf('Vex Arlo').tone).toBe('default')
     for (const copy of [
       ROW_ACTION_COPY.unassign('Vex Arlo', 'pilot', true),

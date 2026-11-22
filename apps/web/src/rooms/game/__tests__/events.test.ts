@@ -645,8 +645,33 @@ describe('the table’s events', () => {
     expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
   })
 
+  // r6 C3 (MD6-07): the first table act is the table sitting down.
+  test('giving the turn with no session live starts one, and the Feed says so first', () => {
+    const { act, room, texts } = seated()
+    const told = act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    expect(told.map((e) => e.text)).toEqual([
+      'Mediator started the group session',
+      expect.stringContaining(' the turn'),
+    ])
+    expect(told[0]).toMatchObject({ kind: 'session', session: 'start' })
+    expect(room.session.session(PLAYER)).toEqual({ live: true, startedAt: AT + 1 })
+    // Once it is live, the next act starts nothing more.
+    expect(act(MEDIATOR, 'changeLog.broadcast', { message: 'Hold' }, AT + 2)).not.toContainEqual(
+      expect.objectContaining({ kind: 'session' })
+    )
+    expect(texts(PLAYER).filter((t) => t.includes('started the group session'))).toHaveLength(1)
+  })
+
+  test('taking the turn back, or a player’s own act, starts no session', () => {
+    const { act, room } = seated()
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: null }, AT + 1)
+    act(PLAYER, 'seats.board', { pilotId: 'p1', mechId: 'm1' } as never, AT + 2)
+    expect(room.session.session(PLAYER).live).toBe(false)
+  })
+
   test('giving the turn is a line for the whole table, once per pilot given it (r5 A4)', () => {
     const { act, texts } = seated()
+    act(MEDIATOR, 'session.start', undefined as never, AT)
     const [given] = act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
     expect(given).toMatchObject({ kind: 'turn', actorId: MEDIATOR })
     expect(given?.text).toStartWith('The Mediator gave ')
@@ -728,7 +753,8 @@ describe('the table’s events', () => {
     const [told] = act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 2)
     expect(told).toMatchObject({ kind: 'withdrawn', text: 'Mediator withdrew an alert' })
     expect(room.log.alerts(PLAYER)).toEqual([])
-    expect(texts()).toEqual(['Mediator withdrew an alert'])
+    // The first alert started the session (r6 C3); its own line is withdrawn.
+    expect(texts()).toEqual(['Mediator withdrew an alert', 'Mediator started the group session'])
     expect(() => act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 3)).toThrow(
       'That alert is no longer there'
     )
