@@ -14,7 +14,7 @@
  */
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getEntitySlug } from 'salvageunion-reference'
+import { getEntitySlug, suggestSearchQuery } from 'salvageunion-reference'
 import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
@@ -25,6 +25,7 @@ import { isSearchShortcut } from '../../lib/searchShortcut'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
 import { clientSwap } from '../../runtime/clientSwap'
+import { InlineRef } from '../atoms/InlineRef'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
 import { SearchListbox } from '../compositions/SearchListbox'
 import { HeroSearchForm } from '../HeroSearch'
@@ -90,6 +91,13 @@ const LISTBOX_BAR = {
 } satisfies CSSProperties
 
 const RELATIVE = { position: 'relative' } satisfies CSSProperties
+
+/** An empty result's next step, under its line. */
+const NEXT = { margin: 0 } satisfies CSSProperties
+
+/** Where an empty result leads when nothing is close: the book's Contents, and its rules. */
+const LISTINGS_HREF = '/reference/'
+const RULES_HREF = '/rules/'
 
 /** Site URL for a combobox result: category listing or entity item page. */
 function resultUrl(result: SearchComboboxResult): string {
@@ -162,6 +170,16 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   )
 
   const isOpen = hasSearched && dismissedResults !== results
+
+  // An empty result's next step: the query with its slipped words put right,
+  // where that finds something ("Did you mean").
+  const names = useMemo(() => index.map((entry) => entry.name), [index])
+  const empty = ready && hasSearched && results.length === 0
+  const suggestion = useMemo(() => {
+    if (!empty) return null
+    const guess = suggestSearchQuery(query, names)
+    return guess && searchFn({ query: guess, limit: 1 }).length > 0 ? guess : null
+  }, [empty, query, names, searchFn])
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -277,6 +295,22 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         modelOf={(result) => models.get(result.id)}
         target={{ href: resultUrl }}
         style={home ? LISTBOX_HOME : hero ? LISTBOX_HERO : LISTBOX_BAR}
+        none={
+          suggestion ? (
+            <p style={NEXT}>
+              {islandsCopy('didYouMean')}{' '}
+              <InlineRef onOpen={() => onInput(suggestion)}>{suggestion}</InlineRef>?
+            </p>
+          ) : (
+            // Nothing close: the ways on are the book's Contents and its rules.
+            <p style={NEXT}>
+              {islandsCopy('searchNoneBrowse')}{' '}
+              <InlineRef href={LISTINGS_HREF}>{islandsCopy('searchNoneListings')}</InlineRef>{' '}
+              {islandsCopy('searchNoneOr')}{' '}
+              <InlineRef href={RULES_HREF}>{islandsCopy('searchNoneRules')}</InlineRef>.
+            </p>
+          )
+        }
       />
     </DocumentLinks>
   )
@@ -292,6 +326,8 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         submit(first)
         return
       }
+      // Nothing found, something close: Search takes the offer.
+      if (suggestion) onInput(suggestion)
       setDismissedResults(null)
       inputRef.current?.focus()
     }
