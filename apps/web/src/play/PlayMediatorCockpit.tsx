@@ -32,7 +32,7 @@ import { gamePath } from 'game-domain/entityKinds'
 import { proposalTargets } from 'game-domain/games/proposals'
 import { PRODUCT } from 'game-domain/product'
 import type { ReactNode } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import type { rollForTable } from '../components/index'
 import { Stat, Toggle } from '../components/index'
 import { areaTitle } from '../lib/pageTitle'
@@ -71,6 +71,11 @@ import { useSideFeed } from './usePlaySide'
 import { usePlayWide } from './usePlayWide'
 import { sceneConditionNames } from './useScene'
 import { useStopSign } from './useStopSign'
+
+/** Only needed once it shows: its own file (the app's bundle budget). */
+const MediatorPlan = lazy(() =>
+  import('./mediator/MediatorPlan').then((m) => ({ default: m.MediatorPlan }))
+)
 
 /** The foot's reminder: what the players can see of the Opposition. */
 type PlayMediatorCockpitProps = {
@@ -200,6 +205,12 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     // without covering the seats; a phone opens it from the ⋯. Shut until
     // asked for, so Propose is on the first screen (r2 I2).
     rules: <SrdExplorer fold="closed" />,
+    // The session plan and Game notes from Prep, beside the board (r6 B7); a phone opens them from the ⋯.
+    plan: (
+      <Suspense fallback={null}>
+        <MediatorPlan gameId={mediator.gameId} canWrite={mediator.canWrite} />
+      </Suspense>
+    ),
     propose: (
       <PlayMediatorProposeSection
         mediator={mediator}

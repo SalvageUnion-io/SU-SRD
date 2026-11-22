@@ -226,6 +226,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'games.listMine': [],
     'safety.stopSign': null,
     'account.me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
+    'plan.get': null,
     ...over,
   }
 }
@@ -1486,6 +1487,20 @@ describe('below `lg`, on a phone (play.md §11)', () => {
 })
 
 describe('from `lg`: the Mediator’s jumps and notes', () => {
+  // MD6-09: the session plan was in Prep only, a trip away from the table.
+  test('the end column holds the Plan from Prep, under the Rolls (r6 B7)', async () => {
+    await renderCockpit({
+      'plan.get': {
+        schemaVersion: 1,
+        notes: 'The bridge is out.',
+        sessions: [{ id: 's1', date: '2999-01-01', title: 'The Pylon', note: 'Kessler turns.' }],
+      },
+    })
+    const plan = await screen.findByRole('region', { name: 'Plan' })
+    expect(within(plan).getByLabelText('Session plan · The Pylon')).toBeTruthy()
+    expect(within(plan).getByLabelText('Game notes')).toBeTruthy()
+  })
+
   test('the skip links come before everything else on the screen, and Notes head the end column', async () => {
     await renderCockpit({
       'mediator.running': {

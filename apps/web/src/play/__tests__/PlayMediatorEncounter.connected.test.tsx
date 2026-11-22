@@ -160,6 +160,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'games.listMine': [],
     'safety.stopSign': null,
     'account.me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
+    'plan.get': null,
     ...over,
   }
 }

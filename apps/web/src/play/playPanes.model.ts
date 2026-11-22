@@ -23,6 +23,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { playCopy } from '../messages/play'
+import { mediatorCopy } from '../messages/play-mediator'
 import type { Situation } from './situation.model'
 import type { UnitGauge } from './unitStats.model'
 import { mechStats, pilotVitals } from './unitStats.model'
@@ -48,7 +49,7 @@ export type PaneSpec<Value extends string> = {
 export type PlayerPane = 'act' | 'units' | 'tables' | 'crew' | 'rules'
 
 /** `rules` is the Reference beside the board from `lg`; below it, the Mediator's ⋯ opens it. */
-export type MediatorPane = 'table' | 'opposition' | 'tables' | 'rules' | 'propose'
+export type MediatorPane = 'table' | 'opposition' | 'tables' | 'plan' | 'rules' | 'propose'
 
 /** In reading order: Units | Act | Crew, then Tables, as the columns stand from `lg`. */
 const PLAYER_PANES: readonly PaneSpec<PlayerPane>[] = [
@@ -93,6 +94,13 @@ const MEDIATOR_PANES: readonly PaneSpec<MediatorPane>[] = [
   { value: 'propose', label: 'Propose', column: 'end', dock: true },
 ]
 
+/** The session plan and Game notes from Prep (r6 B7): a phone opens them from the ⋯. */
+const MEDIATOR_PLAN: PaneSpec<MediatorPane> = {
+  value: 'plan',
+  label: mediatorCopy('plan'),
+  column: 'end',
+}
+
 const MEDIATOR_RULES: PaneSpec<MediatorPane> = {
   value: 'rules',
   label: playCopy('rules'),
@@ -104,9 +112,12 @@ const MEDIATOR_RULES: PaneSpec<MediatorPane> = {
  * in the Opposition's place and says so; its place in the row never moves.
  */
 export function mediatorPanes(downtime: boolean, wide = false): readonly PaneSpec<MediatorPane>[] {
-  // From `lg` the Rules stand in the end column, under the Rolls and above the Propose dock.
+  // From `lg` the Plan and the Rules stand in the end column, under the Rolls
+  // and above the Propose dock.
   const panes = wide
-    ? MEDIATOR_PANES.flatMap((p) => (p.value === 'propose' ? [MEDIATOR_RULES, p] : [p]))
+    ? MEDIATOR_PANES.flatMap((p) =>
+        p.value === 'propose' ? [MEDIATOR_PLAN, MEDIATOR_RULES, p] : [p]
+      )
     : MEDIATOR_PANES
   if (!downtime) return panes
   return panes.map((p) => (p.value === 'opposition' ? { ...p, label: 'Downtime' } : p))
