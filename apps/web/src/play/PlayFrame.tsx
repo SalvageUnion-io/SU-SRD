@@ -56,7 +56,7 @@
 
 import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { SkipLink, Tab, TabList, Tabs } from '../components/app'
 import {
   capsLabel,
@@ -172,6 +172,14 @@ export function PlayFrame<Value extends string>({
   const open = panes.some((p) => p.value === tab) ? tab : tabbed[0]?.value
   const tabId = (value: string) => `${id}-tab-${value}`
   const paneId = (value: string) => `${id}-pane-${value}`
+  // A hidden pane forgets where it was scrolled; each tab keeps its own (r6 A10).
+  const scrolled = useRef(new Map<string, number>())
+  useLayoutEffect(() => {
+    if (wide || focused || sheetOn || open === undefined) return
+    const shown = document.getElementById(`${id}-pane-${open}`)
+    const top = scrolled.current.get(open)
+    if (shown !== null && top !== undefined) shown.scrollTop = top
+  }, [open, wide, focused, sheetOn, id])
   useEffect(() => {
     if (jump === null) return
     const pane = document.getElementById(`${id}-pane-${jump.pane}`)
@@ -195,6 +203,10 @@ export function PlayFrame<Value extends string>({
       aria-labelledby={wide ? undefined : tabId(p.value)}
       // A skip link's target: focusable by script alone.
       tabIndex={skip?.pane === p.value || jumps?.some((j) => j.pane === p.value) ? -1 : undefined}
+      onScroll={(event) => {
+        if (!event.currentTarget.hidden)
+          scrolled.current.set(p.value, event.currentTarget.scrollTop)
+      }}
     >
       {p.node}
     </section>

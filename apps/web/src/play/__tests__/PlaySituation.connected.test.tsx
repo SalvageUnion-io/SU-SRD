@@ -346,6 +346,21 @@ describe('solo: the solo seat and its own Downtime', () => {
     expect(pressed()).toEqual(['On foot'])
   })
 
+  test('Play solo from a Mech’s sheet opens boarded in that Mech (r6 A10)', async () => {
+    const { askToBoard } = await import('../boardIntent')
+    askToBoard('ps-bonesaw', 'ps-faithful')
+    await renderPlay({ pilotId: 'ps-bonesaw', gameId: null })
+    expect(writes('seats.board')).toEqual([
+      { name: 'seats.board', args: { pilotId: 'ps-bonesaw', mechId: 'ps-faithful' } },
+    ])
+    expect(pressed()).toEqual(['Boarded · Old Faithful'])
+    // The ask is spent: Play opened again stays where the seat is.
+    cleanup()
+    acts.length = 0
+    await renderPlay({ pilotId: 'ps-bonesaw', gameId: null })
+    expect(writes('seats.board')).toEqual([])
+  })
+
   test('the player starts Downtime; leaving it ends it, behind a confirm', async () => {
     await renderPlay({ pilotId: 'ps-bonesaw', gameId: null })
     const downtime = situationGroup().getByRole('button', { name: 'Downtime' })

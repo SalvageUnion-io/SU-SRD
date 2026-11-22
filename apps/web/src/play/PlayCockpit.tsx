@@ -59,6 +59,7 @@ import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
 import { useTableRead } from '../replica/useTable'
+import { useBoardOnArrival } from './boardIntent'
 import { hereCount } from './crew.model'
 import { SrdExplorer } from './mediator/SrdExplorer'
 import { PlayActionsColumn } from './PlayActionsColumn'
@@ -129,6 +130,7 @@ type PlayCockpitProps = {
 export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
+  useBoardOnArrival(play)
   // Callsign first, then the name, as everywhere a pilot is named.
   const pilotName = play.pilot ? pilotLabel(play.pilot) : undefined
   // A pilot in a Game is that Game's: its tab says so (glossary §9); a solo
