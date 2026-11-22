@@ -12,11 +12,11 @@
  * `'never'` — left unticked, so nothing changes unless the Mediator ticks it.
  * The one place the ruling is kept.
  */
-export const TIDY_DEFAULT: 'whenOver' | 'never' = 'whenOver'
+const TIDY_DEFAULT: 'whenOver' | 'never' = 'whenOver'
 
 export type TidyKey = 'encounter' | 'field' | 'scene'
 
-export type TidyChoice = { key: TidyKey; label: string }
+type TidyChoice = { key: TidyKey; label: string }
 
 export type TidyWords = {
   endEncounter: (name: string) => string
