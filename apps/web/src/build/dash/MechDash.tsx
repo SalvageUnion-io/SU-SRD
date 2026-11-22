@@ -70,6 +70,7 @@ import type { MechSheetModel } from '../sheet/mechSheet.model'
 import type { ItemKind, MechSheetActions } from '../sheet/mechSheetActions.model'
 import { overSlots, slotCount } from '../sheet/mechSlots.model'
 import { usePrinting } from '../sheet/printing.model'
+import { FoldEmptyRelated } from '../sheet/relatedUnitsFold.model'
 import { cargoBreakToast } from '../sheet/ruleBreakToast.model'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { useShownSheet } from '../sheet/useShownSheet'
@@ -468,7 +469,6 @@ export function MechDash({
         traits={traitLines}
         edit={edit}
       />
-      {phone && linkedUnits}
       <Dash>
         {!lead && build}
         <DashColumn label={buildSheetCopy('whatCarries', { name: mech.name })}>
@@ -580,6 +580,9 @@ export function MechDash({
         </DashColumn>
       </Dash>
       {partners}
+      {/* A phone leads with the loadout: Related units comes last, and with
+          none linked it is one line (r6 E10). */}
+      {phone && <FoldEmptyRelated.Provider value>{linkedUnits}</FoldEmptyRelated.Provider>}
     </>
   )
 }

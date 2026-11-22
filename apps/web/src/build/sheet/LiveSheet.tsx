@@ -354,7 +354,11 @@ export function LiveSheet({
                 {actions}
               </div>
             )}
-            {condensed && segments?.some((segment) => !segment.active) && (
+          </div>
+          {/* Its own row on a phone, under the name and the acts, so the bar
+              never clips it (r6 E10); beside the acts from `sm`. */}
+          {condensed && segments?.some((segment) => !segment.active) && (
+            <div className="su-sheet-bar__linked">
               <LinkedUnits
                 linked={segments
                   .filter((segment) => !segment.active)
@@ -365,8 +369,8 @@ export function LiveSheet({
                     href: segment.href,
                   }))}
               />
-            )}
-          </div>
+            </div>
+          )}
         </section>
       </div>
 
