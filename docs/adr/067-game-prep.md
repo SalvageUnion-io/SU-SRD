@@ -39,8 +39,21 @@ Amended 2026-11-21 (second persona review):
   Saving rewrites the snapshot on every encounter of its maker's that fields
   it: the stat block, HP or SP, and the name where the opponent still went by
   the design's. A fight already on a Game's field keeps the snapshot it was
-  run with, and deleting a design still changes nothing prepared. A crawler's
-  crew are not redesigned there: their slot sets their stats (ADR-044).
+  run with. A crawler's crew are not redesigned there: their slot sets their
+  stats (ADR-044).
+
+Amended 2026-11-22 (third persona review):
+
+- **Prep follows a delete.** Deleting a designed NPC asks once, naming the
+  encounters of its maker's that field it, and takes it out of them on
+  confirm. A fight already on a Game's field keeps its copy.
+- **A copy stays beside its original.** Make a copy of an NPC kept in a Game
+  makes the new NPC in that Game, so it is on the Game's Prep at once; pilots,
+  mechs and crawlers still copy to the Training Bay (ADR-030 §2).
+- **A redesign is not a walk.** A saved NPC's designer opens with every step
+  reached, and each step saves.
+- **An encounter is fielded as its page lists it**: those alone first, then
+  each group by wave, each in the order it was made.
 
 ### 2. Any denizen is a template
 

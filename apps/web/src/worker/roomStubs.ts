@@ -11,9 +11,8 @@ import type { HomeAddress, UnitHome } from '../rooms/handoff'
 import type { AccountRoom, GameRoom } from './rooms'
 import type { BackupRooms, RoomKind } from './shared/backups'
 
-/** What the Game room asks of a player's account room: the handoff, and at a Game's end the Opposition tray and its list of Games. */
+/** What the Game room asks of a player's account room: the handoff, and at a Game's end its list of Games. */
 type AccountHome = UnitHome & {
-  fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): Promise<void>
   countBuild(patternId: string, builder: string): Promise<boolean>
   leftGame(gameId: string): Promise<void>
 }

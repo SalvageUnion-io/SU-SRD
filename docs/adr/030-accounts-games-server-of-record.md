@@ -166,8 +166,17 @@ Game's newest open standing invite row (`convex/model/invites.ts#currentInvite`)
 | every **crawler**                | the deleting Organizer's shelf |
 
 A shelved crawler takes an owner (`null`/`null` stays invalid). What goes is
-the table: memberships, invites, the opposition tray and the soft links, so
-shelved entities land unwired.
+the table: memberships, invites, the Opposition on the field and the soft
+links, so shelved entities land unwired.
+
+**The field goes with the Game** (amended 2026-11-22, third persona review).
+The Game room used to file its Opposition in the Organiser's account room as
+loose tray NPCs, so a delete left second copies of designed NPCs in the
+Mediator's Kit. A fielded unit is a copy made for a fight: it ends with the
+room, as the dialog says and the Organiser confirms. The NPC it was drawn from
+is a unit and lands with its holder, once. Rows an earlier delete filed stay
+where they are until their owner removes them: the Kit says what they are in
+one line with a Remove act behind a confirm. Nothing is migrated.
 
 **A template's untouched units are the one exception, and only when asked.**
 A Game made from a template arrives with units nobody built. The delete

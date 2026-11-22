@@ -152,6 +152,25 @@ describe('rowActionCopy', () => {
     )
   })
 
+  // MD3-08: an NPC's delete spoke of crews, browsers and "Offer to the crew".
+  test('deleting an NPC names the encounters it leaves, and nothing of crews or browsers', () => {
+    const alone = ROW_ACTION_COPY.deleteNpc('Warlord Vex', [])
+    expect(alone.title).toBe('Delete Warlord Vex?')
+    expect(alone.tone).toBe('danger')
+    expect(alone.body).toEqual([
+      'This cannot be undone. Warlord Vex will be removed from your Mediator’s Kit.',
+    ])
+    const one = ROW_ACTION_COPY.deleteNpc('Warlord Vex', ['The Relay'])
+    expect(one.body[1]).toBe('Warlord Vex is in The Relay, and will be removed from it.')
+    const two = ROW_ACTION_COPY.deleteNpc('Warlord Vex', ['The Relay', 'The Gap', 'Ambush'])
+    expect(two.body[1]).toBe(
+      'Warlord Vex is in The Relay, The Gap and Ambush, and will be removed from them.'
+    )
+    for (const copy of [alone, one, two]) {
+      expect(copy.body.join(' ')).not.toMatch(/crew|browser|for everyone/i)
+    }
+  })
+
   test('only the constructive verbs are not danger-toned', () => {
     expect(ROW_ACTION_COPY.assignSelf('Vex Arlo').tone).toBe('default')
     expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'Mara', null).tone).toBe('default')

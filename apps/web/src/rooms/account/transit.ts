@@ -132,33 +132,4 @@ export class AccountTransit {
       at
     )
   }
-
-  /**
-   * File a disbanded Game's Opposition in this player's NPC tray. Idempotent
-   * by lease: a retried disband files nothing twice. An NPC without an id is
-   * a defect of the sender's.
-   */
-  fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): void {
-    this.store.sql.transaction(() => {
-      if (this.leases.get(leaseId) !== null) return
-      for (const npc of npcs) {
-        if (typeof npc.id !== 'string') throw new Error('A tray NPC carries its id')
-        this.store.rows(
-          `insert into records (tbl, app_id, body, extra, updated_at) values ('npcTray', ?, ?, '{}', ?)
-           on conflict(tbl, app_id) do nothing`,
-          npc.id,
-          JSON.stringify(npc),
-          at
-        )
-      }
-      this.leases.put(
-        leaseId,
-        '',
-        'in',
-        'accepted',
-        { kind: 'account', userId: this.shelf.owner() ?? '' },
-        at
-      )
-    })
-  }
 }

@@ -316,17 +316,6 @@ describe('a unit handed to the Shelf', () => {
   })
 })
 
-describe('a disbanded Game’s Opposition', () => {
-  test('files in the tray once per lease', () => {
-    const { room } = shelf()
-    const npc = { id: 'n1', name: 'Raider' }
-    room.transit.fileTray('disband-tray:g1', [npc], AT)
-    room.transit.fileTray('disband-tray:g1', [{ id: 'n2' }], AT)
-    expect(room.shelf.records(PLAYER, 'npcTray')).toEqual([{ appId: 'n1', body: npc }])
-    expect(() => room.transit.fileTray('other', [{ name: 'no id' }], AT)).toThrow(/carries its id/)
-  })
-})
-
 describe('the solo table’s salvage area', () => {
   const yard = { name: 'Scrapyard', techLevel: 2, supply: 2 }
 

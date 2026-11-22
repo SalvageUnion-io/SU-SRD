@@ -18,6 +18,7 @@ import {
   crawlerFixture,
   FIXTURE_NOW,
   mechFixture,
+  npcFixture,
   pilotFixture,
   softLinkFixture,
 } from '../../../components/__tests__/fixtures'
@@ -36,7 +37,7 @@ afterAll(() => serverMocks.restore())
 const { ToasterMount, toast } = await import('../../../components/index')
 const { SyncContext } = await import('../../../replica/syncContext')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
-const { useTray } = await import('../../../replica/collections')
+const { useEncounters, useTray } = await import('../../../replica/collections')
 const { useUnits } = await import('../../../replica/units')
 const { usePatterns } = await import('../../../replica/collections')
 const { Shelves } = await import('../Shelves')
@@ -538,6 +539,104 @@ describe('the encounter tray on the NPC shelf', () => {
     await confirmDialog('Delete')
     await settle(() => useTray.getState().encounterNpcs.length === 0)
     expect(useTray.getState().encounterNpcs).toHaveLength(0)
+  })
+})
+
+// MD3-03: an earlier Game delete left its field in the Kit as loose Tray rows.
+describe('rows left over from a deleted Game’s field', () => {
+  const SECOND: EncounterNpc = { ...GRUNT, id: 'enc-2', name: 'Tray Mauler' }
+
+  test('the Kit says what they are in one line, and Remove them asks first', async () => {
+    useTray.setState({ encounterNpcs: [GRUNT, SECOND], hydrated: true })
+    await renderShelves('live', 'kit')
+    const npcs = screen.getByRole('region', { name: 'NPCs' })
+    expect(
+      within(npcs).getByText('The 2 units marked Tray were on the field of a Game deleted earlier.')
+    ).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(within(npcs).getByRole('button', { name: 'Remove them' }))
+    })
+    // Nothing is destroyed without the Mediator: the rows stand until confirmed.
+    expect(useTray.getState().encounterNpcs).toHaveLength(2)
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('Tray Grunt and Tray Mauler')
+    await confirmDialog('Remove')
+    await settle(() => useTray.getState().encounterNpcs.length === 0)
+    expect(useTray.getState().encounterNpcs).toHaveLength(0)
+    await settle(() => screen.queryByRole('button', { name: 'Remove them' }) === null)
+    expect(screen.queryByText(/marked Tray/)).toBeNull()
+  })
+
+  test('one row reads in the singular; with none, there is no notice', async () => {
+    await renderShelves('live', 'kit')
+    expect(
+      screen.getByText('The 1 unit marked Tray was on the field of a Game deleted earlier.')
+    ).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Remove it' })).toBeTruthy()
+    cleanup()
+    useTray.setState({ encounterNpcs: [], hydrated: true })
+    await renderShelves('live', 'kit')
+    expect(screen.queryByText(/marked Tray/)).toBeNull()
+  })
+
+  test('where nothing can be written the line stands, with no button', async () => {
+    await renderShelves('offline', 'kit')
+    expect(screen.getByText(/marked Tray/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Remove it' })).toBeNull()
+  })
+})
+
+// MD3-08: an NPC's delete spoke of crews and browsers, and left it in its encounters.
+describe('deleting an NPC from the Kit', () => {
+  test('the confirm names the encounters that use it, and it leaves them', async () => {
+    const now = FIXTURE_NOW
+    const vex = npcFixture({ id: 'n-vex', name: 'Warlord Vex', gameId: 'g1' })
+    await act(async () => {
+      await useUnits.getState().adopt('npc', vex)
+    })
+    const fielded = {
+      id: 'o-vex',
+      refSchema: 'npcs' as const,
+      refSlug: '',
+      name: 'Warlord Vex',
+      maxHp: 6,
+      statKind: 'hp' as const,
+      built: { npcId: 'n-vex', name: 'Warlord Vex', actions: [], traits: [] },
+    }
+    const raider = { ...fielded, id: 'o-raider', refSlug: 'raider', name: 'Raider' }
+    const { built: _built, ...bookRaider } = raider
+    const encounter = (id: string, name: string, opposition: unknown[]) => ({
+      id,
+      schemaVersion: 1,
+      name,
+      opposition,
+      tables: [],
+      notes: '',
+      createdAt: now,
+      updatedAt: now,
+    })
+    useEncounters.setState({
+      encounters: [
+        encounter('e1', 'The Relay', [fielded, bookRaider]),
+        encounter('e2', 'The Gap', [fielded]),
+        encounter('e3', 'Elsewhere', [bookRaider]),
+      ],
+      hydrated: true,
+    } as never)
+    await renderShelves('live', 'kit')
+    await choose(await openMenu('Warlord Vex'), 'Delete…')
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain(
+      'Warlord Vex is in The Relay and The Gap, and will be removed from them.'
+    )
+    expect(dialog.textContent).not.toMatch(/crew|browser|for everyone/i)
+    await confirmDialog('Delete')
+    await settle(() => useUnits.getState().npcs.length === 0)
+    await settle(() => useEncounters.getState().get('e2')?.opposition.length === 0)
+    expect(useUnits.getState().npcs).toHaveLength(0)
+    expect(useEncounters.getState().encounters.map((e) => e.opposition.map((o) => o.name))).toEqual(
+      [['Raider'], [], ['Raider']]
+    )
   })
 })
 

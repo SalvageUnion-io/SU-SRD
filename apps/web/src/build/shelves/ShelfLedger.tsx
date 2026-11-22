@@ -46,6 +46,8 @@ type ShelfLedgerProps = {
   empty: string
   /** What the shelf is for, under it. */
   note?: string
+  /** A line under the shelf with an act of its own (the Kit's leftover rows). */
+  foot?: ReactNode
   /** With `onSort`, a column's label sorts the shelf by it. */
   sort?: LedgerSort | undefined
   onSort?: (key: string) => void
@@ -99,6 +101,7 @@ export function ShelfLedger({
   action,
   empty,
   note,
+  foot,
   sort,
   onSort,
 }: ShelfLedgerProps) {
@@ -129,6 +132,7 @@ export function ShelfLedger({
         {...(onSort ? { onSort, ...(sort ? { sort } : {}) } : {})}
       />
       {note && <Text variant="note">{note}</Text>}
+      {foot}
     </section>
   )
 }

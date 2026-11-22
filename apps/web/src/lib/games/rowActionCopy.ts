@@ -241,6 +241,50 @@ export const ROW_ACTION_COPY = {
     }
   },
 
+  /**
+   * Deleting an NPC the Mediator designed (MD3-08): theirs alone, so nothing
+   * of crews, browsers or handing back. `encounters` are the names of those
+   * that field it, which it leaves on confirm.
+   */
+  deleteNpc(name: string, encounters: readonly string[]): ConfirmCopy {
+    return {
+      title: `Delete ${name}?`,
+      body: [
+        libGamesCopy('deleteNpcBody', { name }),
+        ...(encounters.length === 0
+          ? []
+          : [
+              libGamesCopy(encounters.length === 1 ? 'deleteNpcFromOne' : 'deleteNpcFromMany', {
+                name,
+                encounters: listOf(encounters),
+              }),
+            ]),
+      ],
+      confirmLabel: 'Delete',
+      pendingLabel: 'Deleting…',
+      tone: 'danger',
+      failure: libGamesCopy('deleteFailed', { name }),
+    }
+  },
+
+  /**
+   * Removing the rows an earlier Game delete left in the Kit (MD3-03): fielded
+   * copies, named, so the Mediator sees what goes before anything does.
+   */
+  removeLeftovers(names: readonly string[]): ConfirmCopy {
+    return {
+      title:
+        names.length === 1
+          ? libGamesCopy('removeLeftoversOne', { names: listOf(names) })
+          : libGamesCopy('removeLeftoversMany', { count: names.length }),
+      body: [libGamesCopy('removeLeftoversBody', { names: listOf(names) })],
+      confirmLabel: 'Remove',
+      pendingLabel: 'Removing…',
+      tone: 'danger',
+      failure: libGamesCopy('removeLeftoversFailed'),
+    }
+  },
+
   /** Deleting the crew's crawler — the table runner's act, so it says it is for everyone. */
   scrap(name: string): ConfirmCopy {
     return {

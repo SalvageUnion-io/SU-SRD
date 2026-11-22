@@ -224,7 +224,8 @@ describe('ending a Game', () => {
       ['p2', ORGANIZER],
     ])
     expect(first.deliveries[0]?.parcel.links).toEqual([])
-    expect(first.tray.npcs.map((n) => n.name)).toEqual(['Raider'])
+    // MD3-03: what is on the field goes with the Game, handed to nobody.
+    expect(first).toEqual({ deliveries: first.deliveries })
     expect(() => room.units.submit(PLAYER, [])).not.toThrow()
     expect(() =>
       room.units.create(PLAYER, { id: 'p3', kind: 'pilot', body: bodies.pilot('p3'), at: AT })

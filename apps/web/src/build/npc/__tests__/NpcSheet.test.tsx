@@ -17,6 +17,7 @@ afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
 const { useUnits } = await import('../../../replica/units')
+const { useEncounters } = await import('../../../replica/collections')
 const { NpcSheet } = await import('../NpcSheet')
 
 withSignedInBackend()
@@ -133,6 +134,55 @@ describe('the sheet', () => {
     await openMenu()
     expect(screen.getByRole('button', { name: 'Delete Sergeant Kessler' })).toBeTruthy()
     expect(screen.getByLabelText(/Move to a Game or your Training Bay/)).toBeTruthy()
+  })
+
+  // MD3-08: the confirm spoke of nothing the NPC was in, and its encounters kept it.
+  test('Delete names the encounters that use it, and it leaves them', async () => {
+    const now = '2026-11-21T00:00:00.000Z'
+    useEncounters.setState({
+      encounters: [
+        {
+          id: 'e1',
+          schemaVersion: 1,
+          name: 'The Relay',
+          opposition: [
+            {
+              id: 'o1',
+              refSchema: 'npcs',
+              refSlug: '',
+              name: 'Sergeant Kessler',
+              maxHp: 4,
+              statKind: 'hp',
+              built: { npcId: 'n1', name: 'Sergeant Kessler', actions: [], traits: [] },
+            },
+          ],
+          tables: [],
+          notes: '',
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+      hydrated: true,
+    } as never)
+    const asked: Parameters<NonNullable<Parameters<typeof NpcSheet>[0]['confirm']>>[0][] = []
+    let deleted = 0
+    await renderSheet({ confirm: (request) => asked.push(request), onDeleted: () => deleted++ })
+    await openMenu()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete Sergeant Kessler' }))
+    })
+    await waitFor(() => expect(asked).toHaveLength(1))
+    expect(asked[0]?.title).toBe('Delete Sergeant Kessler?')
+    expect(asked[0]?.body).toEqual([
+      'This cannot be undone. Sergeant Kessler will be removed from your Mediator’s Kit.',
+      'Sergeant Kessler is in The Relay, and will be removed from it.',
+    ])
+    await act(async () => {
+      await asked[0]?.onConfirm()
+    })
+    expect(useUnits.getState().npcs).toHaveLength(0)
+    expect(useEncounters.getState().get('e1')?.opposition).toEqual([])
+    expect(deleted).toBe(1)
   })
 
   test('its owner shares it with the Share button every player thing carries', async () => {

@@ -393,6 +393,12 @@ describe('the sections under the roster', () => {
     expect(dialog.textContent).toContain(
       'Hamlet and anything unassigned come to you, in your Training Bay'
     )
+    // MD3-03: what goes is the field, said so; what was prepared stays, said so.
+    expect(dialog.textContent).toContain('the Opposition on the field')
+    expect(dialog.textContent).not.toContain('tray')
+    expect(dialog.textContent).toContain(
+      'The NPCs and encounters prepared for it stay in the Mediator’s Kit of whoever made them.'
+    )
     expect(mutations).toHaveLength(0)
 
     await act(async () => {

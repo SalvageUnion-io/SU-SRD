@@ -3,7 +3,7 @@ import type { UnitParcel } from '../handoff'
 import { parcelUnit } from '../leases'
 import { RoomRefusal } from '../refusal'
 import type { GameRow, GameStore, Member, UnitRow } from './store'
-import { bit, fromJson } from './store'
+import { bit } from './store'
 import type { GameUnits } from './units'
 import { unitName } from './units'
 
@@ -60,9 +60,6 @@ const GAME_NAME_MAX = 80
  * one once.
  */
 export type Delivery = { to: string; parcel: UnitParcel }
-
-/** The Opposition tray, handed to the Organizer's shelf tray when the Game ends. */
-export type TrayDelivery = { to: string; npcs: Record<string, unknown>[] }
 
 /**
  * Crockford base32: 0-9 and A-Z minus I, L, O and U. Sixteen characters, 80
@@ -316,14 +313,16 @@ export class GameRoster {
    * End the Game. Organizer only, whether or not it has a Mediator (ADR-030
    * §3: it is about the table's existence). Nothing anybody built is
    * destroyed: a held pilot, mech or NPC goes to its holder's Training Bay;
-   * an unassigned one, every crawler and the Opposition tray go to the
-   * Organizer's. Links, invites, seats, Downtime and the running encounter go
-   * with the Game.
+   * an unassigned one and every crawler go to the Organizer's. Links, invites,
+   * seats, Downtime, the running encounter and the Opposition on the field go
+   * with the Game (ADR-030, MD3-03): a fielded unit is a copy made for the
+   * fight, the dialog says it goes, and the Organiser confirms. The NPC it was
+   * drawn from is a unit like any other and is delivered, once.
    *
    * From the first call the Game refuses every other act, so what it hands
    * back cannot change under the delivery; calling it again answers the same
    * deliveries. The Worker hands each to its account room (an accept per
-   * lease, so a retry delivers once), files the tray, then wipes this room.
+   * lease, so a retry delivers once), then wipes this room.
    *
    * `dropTemplateUnits` (MD2-02): a template Game's untouched units are not
    * delivered, so they end with the room. One somebody was handed or changed
@@ -333,7 +332,7 @@ export class GameRoster {
     actor: string,
     at: number,
     opts: { dropTemplateUnits?: boolean } = {}
-  ): { deliveries: Delivery[]; tray: TrayDelivery } {
+  ): { deliveries: Delivery[] } {
     return this.store.sql.transaction(() => {
       const game = this.store.requireGame()
       const organizer = this.store.member(actor)
@@ -360,10 +359,7 @@ export class GameRoster {
         }
         return { to, parcel }
       })
-      const npcs = this.store
-        .rows('select body from tray order by added_at, rowid')
-        .map((row) => fromJson<Record<string, unknown>>(row.body))
-      return { deliveries, tray: { to: actor, npcs } }
+      return { deliveries }
     })
   }
 

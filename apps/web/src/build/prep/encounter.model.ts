@@ -149,6 +149,27 @@ export function redesignedOpposition(
   return changed ? next : null
 }
 
+/** The encounters that field the saved NPC `npcId`, in the order given (MD3-08). */
+export function encountersFielding<E extends Pick<Encounter, 'opposition'>>(
+  encounters: readonly E[],
+  npcId: string
+): E[] {
+  return encounters.filter((e) => e.opposition.some((o) => o.built?.npcId === npcId))
+}
+
+/**
+ * The opposition without the saved NPC `npcId`, whatever name each copy went
+ * by: deleting a design takes it out of what was prepared with it. Null when
+ * it fields none, so the encounter is not written.
+ */
+export function withoutDesign(
+  opposition: readonly EncounterOpponent[],
+  npcId: string
+): EncounterOpponent[] | null {
+  const next = opposition.filter((o) => o.built?.npcId !== npcId)
+  return next.length === opposition.length ? null : next
+}
+
 /** Whether another opponent fits. */
 export function hasRoomFor(encounter: Pick<Encounter, 'opposition'>): boolean {
   return encounter.opposition.length < ENCOUNTER_MAX_OPPOSITION
