@@ -183,7 +183,12 @@ export function cargoTransfer(
  */
 function addCarrierLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferResult {
   // Part of a stack coming back (an Unload's Undo) rejoins the lot it left.
-  const held = state.carrierLots.find((l) => l.id === lot.id)
+  // So does Scrap of a Tech Level the hold already carries: one row a Tech Level (r5 B3).
+  const held =
+    state.carrierLots.find((l) => l.id === lot.id) ??
+    (lot.cat === 'SCRAP' && lot.kind === 'bulk'
+      ? state.carrierLots.find((l) => l.cat === 'SCRAP' && l.kind === 'bulk' && l.tl === lot.tl)
+      : undefined)
   if (held && isSplittable(held) && isSplittable(lot)) {
     return {
       ok: true,
@@ -238,8 +243,18 @@ function removeCarrierLot(
 /**
  * Add a lot directly to the crawler's Storage Bay (no mech boundary). The bay is
  * unlimited, so there is no cap check. Prepended, mirroring stow/load ordering.
+ * Scrap goes into the pool, as a stowed lot's does (r5 B3): the crawler has
+ * one Scrap, the one Upkeep, Trade and upgrades read.
  */
 function addDepotLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferResult {
+  if (lot.cat === 'SCRAP' && lot.tl !== undefined) {
+    return {
+      ok: true,
+      state: { ...state, scrapPool: addToScrapPool(state.scrapPool, lot.tl, scrapQtyOf(lot)) },
+      changed: { carrier: false, depot: true },
+      moved: scrapQtyOf(lot),
+    }
+  }
   return {
     ok: true,
     state: { ...state, depotLots: [lot, ...state.depotLots] },

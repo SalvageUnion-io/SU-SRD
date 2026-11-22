@@ -237,7 +237,7 @@ export function useCargo({
 
   // Crawler-bay-local edits: the Storage Bay is its own container, so add/discard
   // require only a linked crawler — no docked mech. Persists the crawler side
-  // alone, and only `cargoLots` (these actions never touch the scrap pool).
+  // alone: its lots, and the pool, which Scrap added here goes into (r5 B3).
   async function dispatchCrawlerLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
     if (readOnly) return { ok: false, reason: libCargoCopy('sheetIsReadOnly') }
     if (!crawler) {
@@ -248,14 +248,12 @@ export function useCargo({
     // Fresh read before reducing — see `dispatchMechLocal`. The Storage Bay's
     // per-lot Unstow has the same double-click hazard.
     const freshCrawler = storeState.get('crawler', crawler.id) ?? crawler
-    const result = cargoTransfer(
-      {
-        ...state,
-        depotLots: freshCrawler.cargoLots ?? [],
-        scrapPool: freshCrawler.scrapPool ?? {},
-      },
-      action
-    )
+    const from = {
+      ...state,
+      depotLots: freshCrawler.cargoLots ?? [],
+      scrapPool: freshCrawler.scrapPool ?? {},
+    }
+    const result = cargoTransfer(from, action)
     if (!result.ok) return result
 
     if (!result.changed.depot) return result
@@ -264,7 +262,14 @@ export function useCargo({
         storeState.transfer(
           {
             updates: [
-              { type: 'crawler', id: crawler.id, patch: { cargoLots: result.state.depotLots } },
+              {
+                type: 'crawler',
+                id: crawler.id,
+                patch:
+                  result.state.scrapPool === from.scrapPool
+                    ? { cargoLots: result.state.depotLots }
+                    : { cargoLots: result.state.depotLots, scrapPool: result.state.scrapPool },
+              },
             ],
           },
           meta
