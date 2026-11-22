@@ -250,7 +250,7 @@ describe('the contentful Mini (N3)', () => {
       Array.from(chips?.querySelectorAll(':scope > .su-chip-lane > *') ?? []).map((chip) =>
         (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
       )
-    ).toEqual(['Reaction', 'RNGC', 'Shield', '2 EP'])
+    ).toEqual(['Reaction', 'RNGClose', 'Shield', '2 EP'])
     // Header-only keeps its budget: the range and traits are the Compact's.
     expect(chipsOf('actions', 'Electro-Magnetic Shield Projector', 'play')).toEqual([
       'Reaction',
