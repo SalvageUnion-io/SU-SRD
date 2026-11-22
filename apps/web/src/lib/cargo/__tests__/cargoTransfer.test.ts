@@ -558,6 +558,23 @@ describe('remove-depot-lot', () => {
     expect(result.changed).toEqual({ carrier: false, depot: true })
   })
 
+  test('part of a stack leaves the lot lighter, and its Undo rejoins it (r5 B4)', () => {
+    const bolts = bulkLot({ id: 'lot-bolts', cat: 'SEALED', qty: 6, units: 6 })
+    const result = cargoTransfer(state({ depotLots: [bolts] }), {
+      type: 'remove-depot-lot',
+      lotId: 'lot-bolts',
+      qty: 2,
+    })
+    if (!result.ok) throw new Error(result.reason)
+    expect(result.state.depotLots).toEqual([{ ...bolts, qty: 4, units: 4 }])
+    const back = cargoTransfer(result.state, {
+      type: 'add-depot-lot',
+      lot: { ...bolts, qty: 2, units: 2 },
+    })
+    if (!back.ok) throw new Error(back.reason)
+    expect(back.state.depotLots).toEqual([bolts])
+  })
+
   test('refuses a lot that is not in the Storage Bay', () => {
     const result = cargoTransfer(state({ depotLots: [unitLot()] }), {
       type: 'remove-depot-lot',

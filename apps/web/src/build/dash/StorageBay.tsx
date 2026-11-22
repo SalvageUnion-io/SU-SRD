@@ -7,17 +7,24 @@
  * Edit adds its controls in place: Adjust turns the board's counts into
  * steppers (so the bay is not eighteen controls at rest; each step a Free
  * Edit of the pool, ADR-021), each lot's Load onto the docked mech and its
- * Unstow, and the Stow intake under the rows.
+ * Unstow, and the Stow intake under the rows. Unstow asks how many and where
+ * they go (`UnstowDialog`), and its toast carries Undo (r5 B4).
  */
 
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 import { Facts } from '../../components/app'
 import type { CSSVarStyle, LedgerColumn } from '../../components/index'
 import { Button, Ledger, Stat, TechLevel } from '../../components/index'
-import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
+import {
+  addToScrapPool,
+  loadableQty,
+  perUnitCost,
+  scrapPoolBucket,
+} from '../../lib/cargo/cargoTransfer'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { ExoticKey } from '../../lib/rules/exoticSalvage'
@@ -31,10 +38,61 @@ import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
+import { CargoCatTag } from '../sheet/CargoCatTag'
 import { CargoLotControls } from '../sheet/CargoLotItem'
 import { EXOTIC_NAME } from '../sheet/exoticNames.model'
 import { HoldAdder } from '../sheet/HoldAdder'
+import { undoToast } from '../sheet/undoToast.model'
 import { DashGroup } from './Dash'
+import type { UnstowTo } from './UnstowDialog'
+
+/** Fetched when Unstow is pressed: the sheet's page load carries none of it. */
+const UnstowDialog = lazy(() => import('./UnstowDialog').then((m) => ({ default: m.UnstowDialog })))
+
+/**
+ * Unstow `qty` of a lot (r5 B4): onto the docked Mech, or out of the bay, and
+ * say so with the way back.
+ */
+function unstow(
+  cargo: UseCargoResult,
+  crawlerId: string,
+  lot: CargoLot,
+  qty: number,
+  to: UnstowTo
+) {
+  const part = lot.kind === 'bulk' && lot.qty !== undefined && qty < lot.qty
+  if (to === 'mech') {
+    const done = cargo.load(lot.id, qty)
+    reportCargo(done)
+    void done.then((result) => {
+      if (!result.ok) return
+      // A Load prepends what it moved: Undo stows that lot back.
+      const moved = result.state.carrierLots[0]
+      if (moved === undefined) return
+      undoToast(
+        buildSheetCopy('loadedName', { name: lot.name }),
+        () => reportCargo(cargo.stow(moved.id)),
+        crawlerId,
+        { stack: true }
+      )
+    })
+    return
+  }
+  const done = cargo.removeCrawlerLot(lot.id, part ? qty : undefined)
+  reportCargo(done)
+  void done.then((result) => {
+    if (!result.ok) return
+    const back: CargoLot = part ? { ...lot, qty, units: qty * perUnitCost(lot) } : lot
+    undoToast(
+      part
+        ? buildSheetCopy('unstowedCount', { count: qty, name: lot.name })
+        : buildSheetCopy('unstowedName', { name: lot.name }),
+      () => reportCargo(cargo.addCrawlerLot(back)),
+      crawlerId,
+      { stack: true }
+    )
+  })
+}
 
 const STORED_COLUMNS: readonly LedgerColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
@@ -57,6 +115,7 @@ export function StorageBay({
 }) {
   const storeState = store()
   const [adjusting, setAdjusting] = useState(false)
+  const [unstowing, setUnstowing] = useState<CargoLot | null>(null)
   const stepping = edit && adjusting
   const pool = crawler.scrapPool ?? {}
   const lots = cargo.state.depotLots
@@ -92,7 +151,7 @@ export function StorageBay({
     >
       <div data-storage-side="crawler">
         <Facts
-          className="su-scrap"
+          className={stepping ? 'su-scrap su-scrap--stepping' : 'su-scrap'}
           itemClassName="su-scrap__cell"
           label={buildSheetCopy('scrapByTechLevel')}
           facts={NUMERIC_TECH_LEVELS.map((level) => {
@@ -146,14 +205,14 @@ export function StorageBay({
               rows: lots.map((lot) => ({
                 id: lot.id,
                 name: lot.name,
-                meta: lot.cat === 'SCRAP' ? undefined : lot.cat,
+                meta: lot.cat === 'SCRAP' ? undefined : <CargoCatTag cat={lot.cat} />,
                 controls: edit ? (
                   <CargoLotControls
                     lot={lot}
                     side="crawler"
                     cargo={cargo}
                     linked={mech !== null}
-                    onRemove={() => reportCargo(cargo.removeCrawlerLot(lot.id))}
+                    onRemove={() => setUnstowing(lot)}
                   />
                 ) : undefined,
                 cells: [
@@ -166,6 +225,21 @@ export function StorageBay({
           empty={buildSheetCopy('nothingStored')}
           className="su-open--sub"
         />
+        {unstowing !== null && (
+          <Suspense fallback={null}>
+            <UnstowDialog
+              lot={unstowing}
+              mechName={mech?.name ?? null}
+              fits={mech === null ? 0 : loadableQty(unstowing, cargo.usage.free)}
+              onClose={() => setUnstowing(null)}
+              onUnstow={(qty, to) => {
+                const lot = unstowing
+                setUnstowing(null)
+                unstow(cargo, crawler.id, lot, qty, to)
+              }}
+            />
+          </Suspense>
+        )}
         {edit && (
           <HoldAdder
             verb="Stow"

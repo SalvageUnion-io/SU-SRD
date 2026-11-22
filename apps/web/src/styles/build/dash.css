@@ -1104,6 +1104,20 @@
   background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
 }
 
+/* Adjust (r5 B5): each Tech Level's stepper under its chip, the cells
+   wrapping into rows inside the panel, so no stepper covers a label. */
+.su-scrap--stepping {
+  grid-template-columns: /* design-tokens-ignore(item-grid): stepper cells wrap to the panel */ repeat(
+      auto-fill,
+      minmax(7.5rem, 1fr)
+    );
+}
+
+.su-scrap--stepping .su-scrap__cell {
+  flex-direction: column;
+  min-width: 0;
+}
+
 /* On the measure a chassis plate is narrower: its six figures sit three a
    line, as on a phone, so no two labels touch. */
 .su-chassis-gallery .su-chassis-plate__figures {

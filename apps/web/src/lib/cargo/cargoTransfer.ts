@@ -68,7 +68,8 @@ export type CargoTransferAction =
   // own container too, so cargo can be added to / discarded from it whether or
   // not a mech is docked.
   | { type: 'add-depot-lot'; lot: CargoLot }
-  | { type: 'remove-depot-lot'; lotId: string }
+  // `qty`: part of a stack (r5 B4); absent, the whole lot.
+  | { type: 'remove-depot-lot'; lotId: string; qty?: number | undefined }
 
 type CargoTransferOk = {
   ok: true
@@ -171,7 +172,7 @@ export function cargoTransfer(
     case 'add-depot-lot':
       return addDepotLot(state, action.lot)
     case 'remove-depot-lot':
-      return removeDepotLot(state, action.lotId)
+      return removeDepotLot(state, action.lotId, action.qty)
   }
 }
 
@@ -255,6 +256,20 @@ function addDepotLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferRes
       moved: scrapQtyOf(lot),
     }
   }
+  // Part of a stack coming back (an Unstow's Undo) rejoins the lot it left.
+  const held = state.depotLots.find((l) => l.id === lot.id)
+  if (held && isSplittable(held) && isSplittable(lot)) {
+    return {
+      ok: true,
+      state: {
+        ...state,
+        depotLots: state.depotLots.map((l) =>
+          l === held ? { ...held, qty: held.qty + lot.qty, units: held.units + lot.units } : l
+        ),
+      },
+      changed: { carrier: false, depot: true },
+    }
+  }
   return {
     ok: true,
     state: { ...state, depotLots: [lot, ...state.depotLots] },
@@ -263,9 +278,28 @@ function addDepotLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferRes
 }
 
 /** Remove (discard) a lot from the crawler's Storage Bay — no mech required. */
-function removeDepotLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
-  if (!state.depotLots.some((l) => l.id === lotId)) {
+function removeDepotLot(
+  state: CargoBoundaryState,
+  lotId: string,
+  qty?: number
+): CargoTransferResult {
+  const lot = state.depotLots.find((l) => l.id === lotId)
+  if (!lot) {
     return { ok: false, reason: libCargoCopy('lotNotInStorageBay', { id: lotId }) }
+  }
+  if (qty !== undefined && isSplittable(lot) && qty > 0 && qty < lot.qty) {
+    const gone = qty * perUnitCost(lot)
+    return {
+      ok: true,
+      state: {
+        ...state,
+        depotLots: state.depotLots.map((l) =>
+          l === lot ? { ...lot, qty: lot.qty - qty, units: Math.max(0, lot.units - gone) } : l
+        ),
+      },
+      changed: { carrier: false, depot: true },
+      moved: qty,
+    }
   }
   return {
     ok: true,
