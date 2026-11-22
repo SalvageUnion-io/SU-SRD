@@ -854,6 +854,14 @@ html[data-listing-pending] .su-listing__groups {
   padding: var(--space-8) var(--space-12);
 }
 
+/* The page column is a screen tall, so a short page's foot reaches the
+   screen's bottom (`BaseLayout`); paper's sheet is no screen. */
+@media screen {
+  .su-page-column {
+    min-height: 100dvh;
+  }
+}
+
 /* A jump to a section stops short of the screen's top edge, so its heading
    (and a stamp's notch over it) reads whole, never clipped (RR6-19). */
 main [id] {

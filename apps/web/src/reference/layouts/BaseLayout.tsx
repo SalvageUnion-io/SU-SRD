@@ -63,12 +63,15 @@ const SPECULATION_RULES = JSON.stringify({
 const VIEW_TRANSITION_OPT_IN =
   '@media (prefers-reduced-motion:no-preference){@view-transition{navigation:auto}}'
 
-/** The page column: the bar, the content, the footer, at least a screen tall. */
+/**
+ * The page column: the bar, the content, the footer, at least a screen tall
+ * (`.su-page-column`, the screen's alone: on paper a page a sheet tall pushed
+ * a table's citation onto a sheet of its own, RR6-08).
+ */
 const PAGE = {
   backgroundColor: color.paper,
   display: 'flex',
   flexDirection: 'column',
-  minHeight: '100dvh',
   position: 'relative',
 } satisfies CSSProperties
 
@@ -229,7 +232,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         />
       </head>
       <body>
-        <div style={PAGE}>
+        <div className="su-page-column" style={PAGE}>
           {/*
             Skip link — WCAG 2.4.1. Must be the FIRST focusable thing in the
             document, so it sits above TopNavigation rather than inside it.

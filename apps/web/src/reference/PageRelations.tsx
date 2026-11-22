@@ -10,6 +10,9 @@ import { ReferenceSurface } from '../components/ReferenceSurface'
 import { space } from '../design/tokens'
 import type { Relation } from '../lib/pageRelations'
 
+/** The key of a Page's Related rules list (`relationsFor`). */
+const RELATED_RULES = 'guides'
+
 /** Level-1 blocks on a Page sit 12px apart (ruleset §1.7). */
 const STACK = {
   display: 'grid',
@@ -32,21 +35,31 @@ export function PageRelations({ relations }: { relations: readonly Relation[] })
   return (
     <ReferenceSurface>
       <div style={STACK}>
-        {relations.map((relation) => (
-          <Ledger
-            key={relation.key}
-            label={relation.label}
-            nameLabel={relation.label}
-            tone={toneOf(relation)}
-            columns={relation.columns}
-            rows={relation.rows.map((row, index) => ({
-              id: `${row.ref.id}:${row.ref.pattern ?? ''}:${index}`,
-              name: row.name,
-              entityRef: row.ref,
-              cells: row.cells,
-            }))}
-          />
-        ))}
+        {relations.map((relation) => {
+          const list = (
+            <Ledger
+              key={relation.key}
+              label={relation.label}
+              nameLabel={relation.label}
+              tone={toneOf(relation)}
+              columns={relation.columns}
+              rows={relation.rows.map((row, index) => ({
+                id: `${row.ref.id}:${row.ref.pattern ?? ''}:${index}`,
+                name: row.name,
+                entityRef: row.ref,
+                cells: row.cells,
+              }))}
+            />
+          )
+          // Related rules are the screen's way on: paper prints the entry (RR6-08).
+          return relation.key === RELATED_RULES ? (
+            <div key={relation.key} data-print="hide">
+              {list}
+            </div>
+          ) : (
+            list
+          )
+        })}
       </div>
     </ReferenceSurface>
   )
