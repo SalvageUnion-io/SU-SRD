@@ -5,11 +5,11 @@ import { messages } from './define'
 export const npcCopy = messages({
   theNpcCouldNotBe: 'The NPC could not be saved. Try again.',
   denizensNewNpc: 'Denizens · New NPC',
-  denizensEditDesign: 'Denizens · Edit design',
+  denizensEditDesign: 'Denizens · Redesign',
   saveNpc: 'Save NPC',
   saveChanges: 'Save changes',
-  editDesign: 'Edit design',
-  editDesignOf: 'Edit the design of {name}',
+  editDesign: 'Redesign from a template',
+  editDesignOf: 'Redesign {name} from a template',
   redesign: 'Redesign {name}',
   backToTheSheet: 'Sheet',
   crewDesignIsTheSlots:

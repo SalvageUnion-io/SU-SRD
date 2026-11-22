@@ -23,9 +23,12 @@ import { LIST, NPC_NAME_ID, PENCIL } from './npcStyles.model'
 export function NpcStatsFields({
   form,
   onChange,
+  onLeave,
 }: {
   form: NpcFormState
   onChange: (patch: Partial<NpcFormState>) => void
+  /** A typed number is left: the sheet saves it then, not per key (r6 B12). */
+  onLeave?: () => void
 }) {
   return (
     <Grid min="9rem" gap={12}>
@@ -35,6 +38,7 @@ export function NpcStatsFields({
           inputMode="numeric"
           value={form.hitPoints}
           onChange={(e) => onChange({ hitPoints: e.target.value.replace(/[^0-9]/g, '') })}
+          onBlur={onLeave}
           style={PENCIL}
         />
       </Field>
@@ -56,6 +60,7 @@ export function NpcStatsFields({
           placeholder="–"
           value={form.bioSalvageValue}
           onChange={(e) => onChange({ bioSalvageValue: e.target.value.replace(/[^0-9]/g, '') })}
+          onBlur={onLeave}
           style={PENCIL}
         />
       </Field>
