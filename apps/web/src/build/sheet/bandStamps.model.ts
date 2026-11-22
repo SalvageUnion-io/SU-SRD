@@ -81,7 +81,8 @@ export function npcStamp(templateRef: NpcTemplateRef | undefined): BandStamp | u
  * The pattern a mech was built from: its name, and its page when it has one —
  * a saved pattern's an app route (`href`), a book pattern's a Reference page
  * (`page`), which the app's router must never take. `changed` once the mech's
- * loadout is no longer the pattern's: the band then reads "Based on".
+ * loadout is no longer the pattern's: the band then reads "Pattern: X ·
+ * differs" (r6 E1), one name for the link either way.
  */
 export type PatternStamp = {
   name: string
@@ -90,8 +91,10 @@ export type PatternStamp = {
   changed?: true
   /** Once `changed`: the pattern's loadout, what Bring up to date writes (r5 D2). */
   loadout?: Loadout
-  /** Once `changed`: what differs, in words (`pattern adds Chainsaw Arm`). */
+  /** Once `changed`: what differs, from the mech's side (`Removed Chainsaw Arm`, r6 E2). */
   differs?: string
+  /** The saved pattern is this account's own: the mech may write its build over it (r6 E2). */
+  own?: true
 }
 
 type Loadout = { systems: string[]; modules: string[] }
@@ -108,22 +111,23 @@ function more(want: readonly string[], have: readonly string[]): string[] {
 }
 
 /**
- * What a pattern's loadout has that the mech's does not, and the other way
- * (r5 D2), by name: `pattern adds Chainsaw Arm · pattern has no Red Laser`.
+ * How the mech differs from its pattern, from the mech's side (r6 E2), by
+ * name: `Removed Hydraulic Crusher · added Red Laser, Blue Mining Laser`.
  */
 function loadoutDiffers(mech: Loadout, pattern: Loadout): string {
-  const adds = droppedNames([
+  const removed = droppedNames([
     ...more(pattern.systems, mech.systems),
     ...more(pattern.modules, mech.modules),
   ])
-  const lacks = droppedNames([
+  const added = droppedNames([
     ...more(mech.systems, pattern.systems),
     ...more(mech.modules, pattern.modules),
   ])
-  return [
-    ...(adds.length ? [buildSheetCopy('patternAdds', { names: adds.join(', ') })] : []),
-    ...(lacks.length ? [buildSheetCopy('patternHasNo', { names: lacks.join(', ') })] : []),
+  const said = [
+    ...(removed.length ? [buildSheetCopy('driftRemoved', { names: removed.join(', ') })] : []),
+    ...(added.length ? [buildSheetCopy('driftAdded', { names: added.join(', ') })] : []),
   ].join(' · ')
+  return said.charAt(0).toUpperCase() + said.slice(1)
 }
 
 /** A saved pattern as this browser holds it: its name, or with its build to compare the mech against. */

@@ -45,6 +45,8 @@ import {
 } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
+import { useUnits } from '../../../replica/units'
 import { patternNameTaken, patternToReplace, replacePattern } from './buildConfirm.model'
 import { PatternTotals } from './PatternTotals'
 
@@ -52,6 +54,22 @@ import { PatternTotals } from './PatternTotals'
 export type PatternSource = Pick<Mech, 'name' | 'chassisRef' | 'systems' | 'modules'> & {
   /** The saved pattern the mech was built from: the one a Replace under its name means. */
   sourcePattern?: string | undefined
+  /**
+   * The mech's own id, where it is one already (its sheet, a shelf row): the
+   * pattern saved from it becomes the pattern it is linked to (r6 E1), so its
+   * band names it at once and its drift reads against it.
+   */
+  id?: string | undefined
+}
+
+/** Link the mech the pattern was cut from to it (r6 E1); a failed write leaves the pattern saved. */
+function linkSource(source: PatternSource, patternId: string) {
+  const mechId = source.id
+  if (mechId === undefined || source.sourcePattern === patternId) return
+  void useUnits
+    .getState()
+    .update('mech', mechId, { sourcePattern: patternId }, LIVE_SHEET_MANUAL)
+    .catch(() => undefined)
 }
 
 type SavePatternDialogProps = {
@@ -164,6 +182,7 @@ function SavePatternBody({
       },
       go
     )
+    linkSource(source, id)
     onSaved?.(id)
   }
   const asking = asked !== null && asked === name.trim()
@@ -174,6 +193,7 @@ function SavePatternBody({
     const result = await replace.run(id)
     if (!result.ok) return
     onClose()
+    linkSource(source, id)
     onSaved?.(id)
   }
 

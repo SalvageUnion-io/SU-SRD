@@ -105,12 +105,15 @@ export function MechLiveSheet({
   const patternGone = usePatternGone(mech.sourcePattern, askElsewhere)
   // Someone else's pattern, by its link or a crew's: named, not "A saved pattern" (r5 D3).
   const elsewhere = usePatternElsewhere(mech.sourcePattern, askElsewhere)
-  const fromPattern = mechPatternStamp(
+  const stamped = mechPatternStamp(
     mech,
     (id) =>
       savedPatterns.find((p) => p.id === id) ?? (id === mech.sourcePattern ? elsewhere : undefined),
     patternGone
   )
+  // A pattern of the viewer's own: the drift line may write the mech's build over it (r6 E2).
+  const own = !notHeld && mech.sourcePattern !== undefined
+  const fromPattern = stamped && own && stamped.href ? { ...stamped, own: true as const } : stamped
   const rail = assignedRail(
     { kind: 'mech', entity: mech },
     { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead }
@@ -127,22 +130,20 @@ export function MechLiveSheet({
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
       // Change Chassis sits where the chassis is named (r4 E17).
-      // Bring up to date beside it once the loadout is no longer the pattern's (r5 D2).
       kindAction={
-        editable && mech.chassisRef !== '' ? (
-          <>
-            <ChangeChassis mech={mech} patch={patch} />
-            {fromPattern?.loadout && (
-              <PatternCatchUp
-                mech={mech}
-                stamp={{ ...fromPattern, loadout: fromPattern.loadout }}
-                patch={patch}
-              />
-            )}
-          </>
-        ) : undefined
+        editable && mech.chassisRef !== '' ? <ChangeChassis mech={mech} patch={patch} /> : undefined
       }
       fromPattern={fromPattern}
+      // How it differs from its pattern, and what to do about it, in Read and Edit (r6 E2).
+      lead={
+        fromPattern?.loadout ? (
+          <PatternCatchUp
+            mech={mech}
+            stamp={{ ...fromPattern, loadout: fromPattern.loadout }}
+            patch={(editable && !readOnly) || liveInRead ? patch : undefined}
+          />
+        ) : undefined
+      }
       // Read's header strip carries TL and
       // SV with the chassis's other figures, so the band leaves them out (R59).
       rank={readOnly ? undefined : <MechBandRank mech={mech} />}

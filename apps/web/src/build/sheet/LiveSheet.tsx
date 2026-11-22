@@ -58,9 +58,9 @@ import type { SheetBand } from './sheetViewProps.model'
 /** The band's strip draws only the host's stamps: the unit's own chips are its body's. */
 const NO_CHIPS = { durations: [], facts: [], tags: [] }
 
-/** The pattern relation's label: PATTERN while the mech is the pattern, BASED ON once its loadout changed. */
-const patternLabel = (stamp: PatternStamp) =>
-  stamp.changed ? buildSheetCopy('basedOn') : buildSheetCopy('pattern')
+/** The pattern relation has one label (r6 E1), PATTERN: its name says "differs" once the loadout drifts. */
+const patternName = (stamp: PatternStamp) =>
+  stamp.changed ? buildSheetCopy('patternDiffers', { name: stamp.name }) : stamp.name
 
 /** No "View in the Reference" in a sheet's body (the surface's `externalLink`, E13). */
 const NO_REFERENCE_LINK: Partial<EntitySurfaceValue> = { externalLink: null }
@@ -151,6 +151,11 @@ type LiveSheetProps = {
   kindAction?: ReactNode
   /** A mech's pattern (`PATTERN | Nimble Hauler`), linked to its page. */
   fromPattern?: PatternStamp | undefined
+  /**
+   * The body's first line, over its regions: a mech's drift from its pattern,
+   * with what to do about it (r6 E2), in Read and Edit alike.
+   */
+  lead?: ReactNode
   /**
    * Where it came from, when not a blank build (R49): the
    * Starter Set (`seedRef`) is a STARTER SET chip, a saved pattern
@@ -255,6 +260,7 @@ export function LiveSheet({
   kindDetail: stamp,
   kindAction,
   fromPattern,
+  lead,
   source,
   rank,
   out,
@@ -423,18 +429,26 @@ export function LiveSheet({
                     {fromPattern &&
                       (fromPattern.href || fromPattern.page ? (
                         <Tag
-                          tag={relation('pattern', patternLabel(fromPattern), fromPattern.name, {
-                            href: fromPattern.href,
-                            page: fromPattern.page,
-                          })}
+                          tag={relation(
+                            'pattern',
+                            buildSheetCopy('pattern'),
+                            patternName(fromPattern),
+                            {
+                              href: fromPattern.href,
+                              page: fromPattern.page,
+                            }
+                          )}
                           linkable
                           wrap
                         />
                       ) : (
-                        <Stat label={patternLabel(fromPattern)} value={fromPattern.name} wrap />
+                        <Stat
+                          label={buildSheetCopy('pattern')}
+                          value={patternName(fromPattern)}
+                          wrap
+                        />
                       ))}
-                    {/* What differs from the pattern now (r5 D2). */}
-                    {fromPattern?.differs && <Stat label={fromPattern.differs} wrap />}
+                    {/* What differs is the body's first line, with what to do about it (r6 E2). */}
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />
                     )}
@@ -529,6 +543,7 @@ export function LiveSheet({
                 {out.note}
               </p>
             )}
+            {lead}
             {/* A stat's label opens what the number means (r4 E21). */}
             <StatMeanings>{renderBody()}</StatMeanings>
           </EntitySurfaceProvider>
