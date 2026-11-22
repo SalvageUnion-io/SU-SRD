@@ -127,9 +127,10 @@ export async function playDoor(page: Page, name: string | RegExp, base = ''): Pr
 
 /**
  * Copy a Starter Set build (`pilot/starter-pilot-bonesaw`) to the Training Bay
- * from its sheet's "Make a copy". A pilot brings their mech, assigned, and the
- * page lands on the copy. An account already in a Game picks the Training Bay
- * from the control's menu first.
+ * from its sheet's "Make a copy", which copies at once, its notice carrying
+ * the Undo (r5 B18). A pilot brings their mech, assigned, and the page lands
+ * on the copy. An account already in a Game picks the Training Bay from the
+ * control's menu first.
  */
 export async function copyStarter(
   page: Page,
@@ -139,14 +140,10 @@ export async function copyStarter(
 ): Promise<void> {
   await openApp(page, `/starter/${sheet}`, base)
   await page.getByRole('button', { name: 'Make a copy', exact: true }).first().click()
-  const confirm = page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' })
-  const toBay = page.getByRole('menuitem', { name: 'Training Bay', exact: true })
-  await confirm.or(toBay).first().waitFor({ timeout: 20_000 })
-  if (await toBay.isVisible()) await toBay.click()
-  await confirm.click()
   // A crawler's name is its number and name ("Crawler #430 'Tenacity'").
-  await page
-    .getByText(new RegExp(`^Copied .*${name}.* to your Training Bay`))
-    .first()
-    .waitFor({ timeout: 20_000 })
+  const copied = page.getByText(new RegExp(`^Copied .*${name}.* to your Training Bay`)).first()
+  const toBay = page.getByRole('menuitem', { name: 'Training Bay', exact: true })
+  await copied.or(toBay).first().waitFor({ timeout: 20_000 })
+  if (await toBay.isVisible()) await toBay.click()
+  await copied.waitFor({ timeout: 20_000 })
 }
