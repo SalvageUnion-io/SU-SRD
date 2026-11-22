@@ -67,7 +67,7 @@ export function setSyncStatus(next: SyncStatus, nextOutdated = false): void {
 
 /**
  * Open or close the tab's Play trial (r6 F1): signed out, its writes go to the
- * stand-in room `play/trial/trialRoom.ts` holds, kept in memory and sent nowhere.
+ * stand-in room `play/trial/trialRoom.model.ts` holds, kept in memory and sent nowhere.
  */
 export function setTrialWrites(on: boolean): void {
   trial = on

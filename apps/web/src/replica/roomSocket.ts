@@ -245,7 +245,7 @@ export function standInRooms(rooms: ((gameId: string | null) => Room | null) | n
 
 /**
  * Hold `room` as the open account room, or let it go (null): a signed-out Play
- * trial's room in the tab (`play/trial/trialRoom.ts`), which no socket backs.
+ * trial's room in the tab (`play/trial/trialRoom.model.ts`), which no socket backs.
  */
 export function holdTabRoom(room: Room | null): void {
   if (room === null) open.delete(ACCOUNT)

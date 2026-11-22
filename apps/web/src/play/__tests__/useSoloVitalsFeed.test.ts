@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { lineLabel, soloVitalsStep } from '../soloVitalsFeed'
+import { lineLabel, soloVitalsStep } from '../useSoloVitalsFeed'
 
 /** The solo Feed's vitals lines (r6 A8): one line per unit for what an act moved. */
 

@@ -23,12 +23,12 @@ import { playFeedEntries } from './feed.model'
 import type { PlayScreen } from './play.model'
 import { usePlayRollLog, useRollScreen } from './playRolls.model'
 import type { PlayColumnProps } from './situation.model'
-import { mechNumbers, pilotNumbers, useSoloVitalsFeed } from './soloVitalsFeed'
 import { useGameBoardSources } from './useBoardSources'
 import type { GameFeed } from './useGameFeed'
 import { useGameFeed } from './useGameFeed'
 import type { PlayRollDispatch } from './usePlayChannel'
 import { usePlayChannelBinding, usePlayRollDispatch } from './usePlayChannel'
+import { mechNumbers, pilotNumbers, useSoloVitalsFeed } from './useSoloVitalsFeed'
 
 /** What a screen's Tables and Feed share, the player's or the Mediator's. */
 export type SideFeed = {

@@ -4,7 +4,7 @@ import { roomOf } from '../../../replica/roomSocket'
 import { resetSync, writable } from '../../../replica/sync'
 import { readTableState } from '../../../replica/tableState'
 import { useUnits } from '../../../replica/units'
-import { openTrial, trialChanged, trialCrew } from '../trialRoom'
+import { openTrial, trialChanged, trialCrew } from '../trialRoom.model'
 
 /**
  * The signed-out trial's room (r6 F1): a book pilot and their mech held in the

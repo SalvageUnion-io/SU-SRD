@@ -5,7 +5,7 @@
  * pilot's Play; `TRIAL_PLAY` switches it off, and the gate then asks for
  * sign-in as before.
  *
- * The tab's room (`trialRoom.ts`) stands in for the account room, and the
+ * The tab's room (`trialRoom.model.ts`) stands in for the account room, and the
  * Cockpit's tree reads the sync status as live (`trial` set), so every pane
  * runs as it does solo: actions, rolls, Heat and the Feed. After the first
  * change the strip says once, as a line, that nothing is kept, with Sign in
@@ -20,8 +20,8 @@ import type { SyncState } from '../../replica/syncContext'
 import { SyncContext } from '../../replica/syncContext'
 import { PlayCockpit } from '../PlayCockpit'
 import { setScreenNotices } from '../tableStripSlot.model'
-import type { TrialCrew } from './trialRoom'
-import { openTrial, subscribeTrial, trialChanged, trialCrew } from './trialRoom'
+import type { TrialCrew } from './trialRoom.model'
+import { openTrial, subscribeTrial, trialChanged, trialCrew } from './trialRoom.model'
 
 /** The Cockpit's view of the connection during a trial: it writes, to the tab's room. */
 const TRIAL_SYNC: SyncState = {
