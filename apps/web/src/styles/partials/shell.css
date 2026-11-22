@@ -146,9 +146,11 @@
 
 /* Each tab's name on one line: centred from the bar's middle, the switcher
    is offered only half the row, which broke "Training Bay" in two on a 320px
-   phone. Under that (a phone zoomed to 200%) the names wrap, as they must. */
-@media (width >= 20rem) and (not (width >= 40rem)) {
+   phone. It stops short of the logo and the menu button either side, so
+   under that (a phone zoomed to 200%) the names wrap, as they must. */
+@media not (width >= 40rem) {
   .su-union-bar__switch {
+    max-width: calc(100% - 2 * (var(--su-union-bar-control) + var(--space-16)));
     width: max-content;
   }
 }

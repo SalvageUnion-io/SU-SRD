@@ -25,6 +25,12 @@ export const EXEMPTIONS: readonly Exemption[] = [
     reason:
       "A thrown programming error lists the supported pairings by their type ids (`mech→pilot`), the same ids it interpolates beside them; they are identifiers, not the game's nouns.",
   },
+  {
+    file: 'packages/salvageunion-reference/lib/searchRanking.ts',
+    rules: ['lowercase-term'],
+    reason:
+      'Its `ALIASES_AS_PRINTED` phrases are search keys matched lower-cased against what a reader types ("long range", "my mech hits 0 SP"), never shown as copy, and its keys are entity names as the dataset spells them (the keyword "Turn action").',
+  },
 ]
 
 /** The `lowercase-term` findings outside the exempt files. */
