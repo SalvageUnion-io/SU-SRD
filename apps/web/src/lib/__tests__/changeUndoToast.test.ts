@@ -34,4 +34,20 @@ describe('one line a number', () => {
     changeUndoToast({ id: 'n:c', label: 'EP', from: 8, to: 8, undo: () => {} })
     expect(open('n:c')).toHaveLength(0)
   })
+
+  test('Undo hands the keyboard back to the control that was used (r3 J4)', () => {
+    const minus = document.createElement('button')
+    document.body.append(minus)
+    try {
+      minus.focus()
+      changeUndoToast({ id: 'n:d', label: 'HP', from: 8, to: 7, undo: () => {} })
+      // The player moves to the toast; its Undo then goes away with it.
+      minus.blur()
+      const action = (open('n:d')[0] as { action?: { onClick: (e: never) => void } }).action
+      action?.onClick(undefined as never)
+      expect(document.activeElement).toBe(minus)
+    } finally {
+      minus.remove()
+    }
+  })
 })

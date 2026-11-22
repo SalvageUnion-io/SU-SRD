@@ -115,10 +115,11 @@ describe('a live pilot', () => {
     expect(updates.map((u) => u.patch)).toEqual([{ currentAP: 0 }, { currentAP: 0 }])
   })
 
+  // In Play ← / → move between a vital's controls (r3 J4): ↑ / ↓ set the slider.
   test('the gauge is a slider too: an arrow key is the same write', () => {
     const { store, updates } = recordingStore()
     render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
-    fireEvent.keyDown(screen.getByRole('slider', { name: 'HP' }), { key: 'ArrowRight' })
+    fireEvent.keyDown(screen.getByRole('slider', { name: 'HP' }), { key: 'ArrowUp' })
     expect(updates.map((u) => u.patch)).toEqual([{ currentHP: 8 }])
   })
 

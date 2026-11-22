@@ -27,6 +27,26 @@ const GLYPH = {
 
 const FIGURES = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
 
+/**
+ * The control last focused outside the toasts: what Undo hands the keyboard
+ * back to (r3 J4). Pressing Undo takes its toast, and the focus on it, away;
+ * without this the next Tab starts at the top of the page.
+ */
+let lastUsed: Element | null = null
+let watching = false
+
+function watchFocus(): void {
+  if (typeof document === 'undefined') return
+  const note = (el: Element | null) => {
+    if (el !== null && el !== document.body && el.closest('[data-sonner-toaster]') === null)
+      lastUsed = el
+  }
+  note(document.activeElement)
+  if (watching) return
+  watching = true
+  document.addEventListener('focusin', (event) => note(event.target as Element | null))
+}
+
 export function changeUndoToast({
   id,
   label,
@@ -74,8 +94,7 @@ export function changesUndoToast({
   const moved = changes.filter((c) => c.from !== c.to)
   if (moved.length === 0) return
   const start = Object.fromEntries(changes.map((c) => [c.key, c.from]))
-  // The control that made the change: Undo takes the toast, and the focus on it, away.
-  const used = typeof document === 'undefined' ? null : document.activeElement
+  watchFocus()
   toast(
     <span style={FIGURES}>
       {did ? `${did} · ` : ''}
@@ -99,7 +118,7 @@ export function changesUndoToast({
         label: componentsCopy('undo'),
         onClick: () => {
           undo(start)
-          if (used instanceof HTMLElement && used.isConnected) used.focus()
+          if (lastUsed instanceof HTMLElement && lastUsed.isConnected) lastUsed.focus()
         },
       },
     }
