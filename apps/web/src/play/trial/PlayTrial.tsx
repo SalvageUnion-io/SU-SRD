@@ -9,20 +9,17 @@
  * Cockpit's tree reads the sync status as live (`trial` set), so every pane
  * runs as it does solo: actions, rolls, Heat and the Feed. After the first
  * change the strip says once, as a line, that nothing is kept, with Sign in
- * beside it; it is drawn outside the live status so its Sign in is the real
- * one.
+ * beside it.
  */
 
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
-import { createPortal } from 'react-dom'
 import { SignInControl } from '../../build/account/SignInControl'
 import { playTrialCopy } from '../../messages/play-trial'
 import type { SyncState } from '../../replica/syncContext'
 import { SyncContext } from '../../replica/syncContext'
 import { PlayCockpit } from '../PlayCockpit'
-import { NoticeStack } from '../TableNoticeStack'
-import { useTableStripSlot } from '../tableStripSlot.model'
+import { setScreenNotices } from '../tableStripSlot.model'
 import type { TrialCrew } from './trialRoom'
 import { openTrial, subscribeTrial, trialChanged, trialCrew } from './trialRoom'
 
@@ -65,39 +62,41 @@ function TrialCockpit({ crew }: { crew: TrialCrew }) {
   )
 }
 
-/** "Sign in to keep this", once the first change is made, in the strip under the bar. */
+/**
+ * "Sign in to keep this", once the first change is made: a line of the strip
+ * under the bar (`setScreenNotices`), which the root draws signed out, so its
+ * Sign in is the real one.
+ */
 function KeepThisLine({ pilotId }: { pilotId: string }) {
   const changed = useSyncExternalStore(subscribeTrial, trialChanged, () => false)
   const [dismissed, setDismissed] = useState(false)
-  const slot = useTableStripSlot()
-  if (!changed || dismissed || slot === null) return null
-  const title = playTrialCopy('keepThis')
-  return createPortal(
-    <section className="su-table-notices" data-in-play="" aria-label={title}>
-      <NoticeStack
-        fixed
-        notices={[
-          {
-            key: 'trial',
-            kind: 'quiet',
-            rank: 'quiet',
-            ts: 0,
-            dismissible: true,
-            tone: 'pilot',
-            title,
-            body: playTrialCopy('keepThisBody'),
-            actions: (
-              <SignInControl
-                label={playTrialCopy('keepThis')}
-                redirectTo={`/starter/pilot/${pilotId}`}
-              />
-            ),
-            dismiss: () => setDismissed(true),
-            sig: title,
-          },
-        ]}
-      />
-    </section>,
-    slot
-  )
+  useEffect(() => {
+    if (!changed || dismissed) {
+      setScreenNotices('trial', [])
+      return
+    }
+    const title = playTrialCopy('keepThis')
+    setScreenNotices('trial', [
+      {
+        key: 'trial',
+        kind: 'quiet',
+        rank: 'quiet',
+        ts: 0,
+        dismissible: true,
+        tone: 'pilot',
+        title,
+        body: playTrialCopy('keepThisBody'),
+        actions: (
+          <SignInControl
+            label={playTrialCopy('keepThis')}
+            redirectTo={`/starter/pilot/${pilotId}`}
+          />
+        ),
+        dismiss: () => setDismissed(true),
+        sig: title,
+      },
+    ])
+  }, [changed, dismissed, pilotId])
+  useEffect(() => () => setScreenNotices('trial', []), [])
+  return null
 }

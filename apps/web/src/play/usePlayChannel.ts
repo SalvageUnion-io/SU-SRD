@@ -77,13 +77,13 @@ export function usePlayRollDispatch({
   rollerName,
   binding,
 }: DispatchArgs): PlayRollDispatch {
-  const { canWrite } = useSync()
+  const { canWrite, trial } = useSync()
   const postRoll = useGamesCall('channelBindings.postRoll')
   const [posts, setPosts] = useState<ReadonlyMap<string, PlayPostState>>(() => new Map())
 
   // The listener reads the latest of these, so it subscribes once.
-  const latest = useRef({ target, rollerName, binding, canWrite, postRoll })
-  latest.current = { target, rollerName, binding, canWrite, postRoll }
+  const latest = useRef({ target, rollerName, binding, canWrite, postRoll, trial })
+  latest.current = { target, rollerName, binding, canWrite, postRoll, trial }
 
   const settle = useCallback((id: string, state: PlayPostState) => {
     setPosts((prev) => new Map(prev).set(id, state))
@@ -101,6 +101,8 @@ export function usePlayRollDispatch({
   const send = useCallback(
     (roll: PlayRoll) => {
       const { target: t, binding: b, canWrite: writable, postRoll: action } = latest.current
+      // A signed-out trial (r6 F1) posts nowhere, and its Feed says nothing of Discord.
+      if (latest.current.trial === true) return
       if (!writable) {
         settle(roll.id, { kind: 'held' })
         return
