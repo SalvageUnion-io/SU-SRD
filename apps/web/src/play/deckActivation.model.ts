@@ -35,7 +35,7 @@ import type { MechItemEconomy } from '../lib/rules/mechItems'
 import { partnerDerivedStats, partnerTechLevel } from '../lib/rules/partnerStats'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../replica/provenance'
+import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import type { PlayStore } from './play.model'
 
 /** Whose numbers an activation reads and writes. */
@@ -121,7 +121,7 @@ function payPilot(
       from: before,
       to: patch.currentAP,
       undo: (value) =>
-        runWrite(() => store.update('pilot', pilot.id, { currentAP: value }, PLAY_TXN)),
+        runWrite(() => store.update('pilot', pilot.id, { currentAP: value }, PLAY_UNDO)),
     })
 }
 
@@ -286,7 +286,7 @@ function payMech(
         'mech',
         mech.id,
         fields(store.get('mech', mech.id)?.itemUses ?? fresh.itemUses),
-        PLAY_TXN
+        PLAY_UNDO
       ),
   })
 }

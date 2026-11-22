@@ -56,14 +56,14 @@ import { activatableEffects } from '../lib/rules/activatableEffects'
 import { runWrite } from '../lib/runWrite'
 import { unitRowModel } from '../lib/units/unitModel'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../replica/provenance'
+import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import type { EntityForType } from '../replica/types'
 import { useUnits } from '../replica/units'
 import { PlayVital } from './PlayVital'
 import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.model'
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
-import { headedVital, vitalSettled } from './vitalWrites.model'
+import { headedVital, vitalNow, vitalSettled } from './vitalWrites.model'
 
 /** The store a box writes through; the app's own unless a test hands one in. */
 type UnitStore = UnitsStore
@@ -119,20 +119,22 @@ function Relations({ items }: { items: readonly TagItem[] }) {
  * (`PlayCockpit`'s key), with the amount entry's note when it was capped.
  */
 function writer<K extends 'pilot' | 'mech' | 'crawler'>(store: UnitStore, kind: K, id: string) {
-  const write = (field: string, value: number) =>
-    store.getState().update(kind, id, { [field]: value } as Partial<EntityForType<K>>, PLAY_TXN)
+  const write = (field: string, value: number, meta = PLAY_TXN) =>
+    store.getState().update(kind, id, { [field]: value } as Partial<EntityForType<K>>, meta)
   return (field: keyof EntityForType<K> & string, shown: number, max: number, label: string) =>
     (next: number, note?: string) => {
       const key = `${id}:${field}`
+      // Undo takes back this change alone (r3 B2).
+      const from = vitalNow(key, shown)
       const to = headedVital(key, shown, next, max)
       runWrite(() => write(field, to).finally(() => vitalSettled(key)))
       changeUndoToast({
         id: `${kind}:${id}:${field}`,
         label,
-        from: shown,
+        from,
         to,
         ...(note === undefined ? {} : { did: note }),
-        undo: (value) => runWrite(() => write(field, value)),
+        undo: (value) => runWrite(() => write(field, value, PLAY_UNDO)),
       })
     }
 }

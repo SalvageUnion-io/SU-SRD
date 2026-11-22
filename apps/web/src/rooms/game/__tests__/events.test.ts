@@ -111,6 +111,44 @@ describe('the table’s events', () => {
     ])
   })
 
+  test('a change Undo wrote says so, and no nudge folds into it (r3 B2)', () => {
+    const { act, texts } = seated()
+    const hp = (to: number, baseSeq: number, at: number, source = 'play') =>
+      act(PLAYER, 'submit', { ops: [op('p1', { currentHP: to }, { baseSeq, source })] }, at)
+    hp(7, 0, AT)
+    hp(0, 1, AT + 1_000)
+    // Undo writes the value before the last change, and its line is marked.
+    const [undone] = hp(7, 2, AT + 2_000, 'play-undo')
+    expect(undone?.text).toBe('p1 · Pilot p1 · HP 0 → 7 · Undo')
+    // A nudge taken back is a line of its own too, never folded into the nudge.
+    hp(6, 3, AT + 3_000)
+    hp(7, 4, AT + 4_000, 'play-undo')
+    hp(6, 5, AT + 5_000)
+    expect(texts().slice(0, 4)).toEqual([
+      'p1 · Pilot p1 · HP 7 → 6',
+      'p1 · Pilot p1 · HP 6 → 7 · Undo',
+      'p1 · Pilot p1 · HP 7 → 6',
+      'p1 · Pilot p1 · HP 0 → 7 · Undo',
+    ])
+  })
+
+  test('a mech’s line names its pilot: whoever is aboard, else whoever it is assigned to (r3 B2)', () => {
+    const { act, texts, room } = seated()
+    act(PLAYER, 'submit', { ops: [op('m1', { currentHeat: 1 })] }, AT)
+    expect(texts()[0]).toBe('Mech m1 · Heat 0 → 1')
+    room.units.drawLink(PLAYER, {
+      type: 'mech-to-pilot',
+      from: { type: 'mech', id: 'm1' },
+      to: { type: 'pilot', id: 'p1' },
+    })
+    act(PLAYER, 'submit', { ops: [op('m1', { currentHeat: 3 }, { baseSeq: 1 })] }, AT + 1)
+    expect(texts()[0]).toBe('Mech m1 (p1) · Heat 1 → 3')
+    room.units.create(PLAYER, { id: 'p2', kind: 'pilot', body: bodies.pilot('p2'), at: AT })
+    act(PLAYER, 'seats.board', { pilotId: 'p2', mechId: 'm1' }, AT + 2)
+    act(PLAYER, 'submit', { ops: [op('m1', { currentHeat: 5 }, { baseSeq: 2 })] }, AT + 3)
+    expect(texts()[0]).toBe('Mech m1 (p2) · Heat 3 → 5')
+  })
+
   test('a vital never written reads its start: a pool its maximum, Heat 0 (L10)', () => {
     const { act, texts } = seated()
     act(PLAYER, 'submit', { ops: [op('m1', { currentHeat: 2 })] })
@@ -147,8 +185,8 @@ describe('the table’s events', () => {
     )
     expect(repaired).toMatchObject({ kind: 'vitals', actorId: PLAYER })
     expect(texts().slice(0, 4)).toEqual([
-      'Mech m1 · .50 Cal Machine Gun is repaired',
-      'Mech m1 · .50 Cal Machine Gun is damaged',
+      'Mech m1 (p1) · .50 Cal Machine Gun is repaired',
+      'Mech m1 (p1) · .50 Cal Machine Gun is damaged',
       'p1 · Pilot p1 switches Hull Magnetiser off',
       'p1 · Pilot p1 switches Hull Magnetiser on',
     ])
