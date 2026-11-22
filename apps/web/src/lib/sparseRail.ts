@@ -99,12 +99,16 @@ export function sparseRailFor(schema: RefEnumSchemaName, entity: RefEntity): Spa
   const name = entity.name.toLowerCase()
   const isTrait = schema === 'traits'
   const term = new RegExp(`(^|[^a-z])${escapeRegExp(name)}([^a-z]|$)`)
+  // A range's users fire at it: its band in an action's range, never the word
+  // in flavour text ("for as long as anyone remembers", RR6-11).
+  const ranged = new RegExp(`"range":\\[[^\\]]*"${escapeRegExp(name)}"`)
   const users = all.filter(({ entity: other, words }) => {
     if (other.id === entity.id) return false
     if (isTrait)
       return (
         words.includes(`"type":"${name}"`) || words.includes(`"type":"${getEntitySlug(entity)}"`)
       )
+    if (schema === 'distances') return ranged.test(words)
     return term.test(words)
   })
   const rules = all
