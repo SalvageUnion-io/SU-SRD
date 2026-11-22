@@ -9,10 +9,10 @@
  *
  * Enforcement regime: NONE, deliberately —
  * instantiate is a Blank-family shortcut and its write path is untouched.
- * It adds PRESENTATION only: the one confirm says what is built, and warns
- * where the loadout is past the starting rules (`pastStartingRules`, counted
- * from the loadout: a saved pattern stores no `legalStarting` tag). A name
- * already in the bay is numbered, and the build says what it made.
+ * It adds PRESENTATION only: one press builds (r4 E23), and the notice says
+ * what was built, offers Undo, and warns where the loadout is past the
+ * starting rules (`pastStartingRules`, counted from the loadout: a saved
+ * pattern stores no `legalStarting` tag). A name already in the bay is numbered.
  *
  * Drawn as a Mini action chip in the pattern Compact's last slot (C8, hard rule
  * C8); a failure is the act's toast, never a line under the Compact.
@@ -20,14 +20,12 @@
 
 import { moveTo } from 'game-domain/container'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { useState } from 'react'
-import { ConfirmDialog } from '../../../components/app'
 import { Button } from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern, pastStartingRules } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
 import { useUnits } from '../../../replica/units'
-import { buildConfirmBody, builtToast, mechNamesTaken } from './buildConfirm.model'
+import { builtToast, mechNamesTaken } from './buildConfirm.model'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -42,7 +40,6 @@ export function InstantiateFromPattern({
   onSuccess,
   gameId,
 }: InstantiateFromPatternProps) {
-  const [confirming, setConfirming] = useState(false)
   const build = useServerAction(
     () =>
       useUnits.getState().create('mech', {
@@ -59,31 +56,21 @@ export function InstantiateFromPattern({
   async function handleInstantiate() {
     const result = await build.run()
     if (!result.ok) return
-    builtToast(result.value.name)
+    builtToast(result.value, pastStartingRules(pattern))
     onSuccess(result.value.id)
   }
 
   return (
-    <>
-      <Button
-        type="button"
-        size="mini"
-        onClick={() => setConfirming(true)}
-        disabled={isInstantiating}
-        // "Build With This", as every build action reads; the accessible name
-        // starts with it and says what it builds.
-        aria-label={mechCopy('buildWithThisAMech', { name: pattern.name })}
-      >
-        {isInstantiating ? mechCopy('building') : mechCopy('buildWithThis')}
-      </Button>
-      <ConfirmDialog
-        open={confirming}
-        onOpenChange={setConfirming}
-        title={mechCopy('buildAMechFrom', { name: pattern.name })}
-        body={buildConfirmBody({ book: false, past: pastStartingRules(pattern) })}
-        confirmLabel={mechCopy('build')}
-        onConfirm={() => void handleInstantiate()}
-      />
-    </>
+    <Button
+      type="button"
+      size="mini"
+      onClick={() => void handleInstantiate()}
+      disabled={isInstantiating}
+      // "Build With This", as every build action reads; the accessible name
+      // starts with it and says what it builds.
+      aria-label={mechCopy('buildWithThisAMech', { name: pattern.name })}
+    >
+      {isInstantiating ? mechCopy('building') : mechCopy('buildWithThis')}
+    </Button>
   )
 }

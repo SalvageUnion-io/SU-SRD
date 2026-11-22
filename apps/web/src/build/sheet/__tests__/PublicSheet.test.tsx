@@ -93,6 +93,16 @@ describe('a public sheet’s assignments', () => {
     expect(screen.queryByRole('link', { name: 'View Iron Mongrel' })).toBeNull()
   })
 
+  test('a shared mech offers the way to a build of your own; a pilot does not (r4 E18)', () => {
+    const mech = mechFixture({ id: 'm1', name: 'Iron Mongrel' })
+    const shown = render(<PublicSheet appId="m1" answer={answer({ kind: 'mech', body: mech })} />)
+    // No provider is the signed-out visitor: signing in is how you build from it.
+    expect(screen.getByRole('button', { name: 'Sign in to build from this' })).toBeTruthy()
+    shown.unmount()
+    render(<PublicSheet appId="p1" answer={answer()} />)
+    expect(screen.queryByRole('button', { name: 'Sign in to build from this' })).toBeNull()
+  })
+
   test('is read-only', () => {
     render(<PublicSheet appId="p1" answer={answer()} />)
     expect(screen.getByRole('note', { name: 'Read-only sheet' })).toBeTruthy()

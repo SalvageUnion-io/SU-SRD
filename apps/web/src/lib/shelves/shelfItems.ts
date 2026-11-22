@@ -44,6 +44,8 @@ export type PatternSharing = {
   visibility: PatternVisibility
   gameId: string | null
   builtCount: number
+  /** Listed on the Reference (Homebrew, ADR-061). */
+  homebrew?: boolean
 }
 
 /** One of an item's own chips: label-only (`Only me`), or split when it has a value. */
@@ -170,8 +172,9 @@ export function crawlerChips(args: {
 }
 
 /**
- * Who can see a pattern. A crew share names its Game from the player's own
- * Games; one they are no longer in reaches nobody, so it reads as theirs alone.
+ * Who can see a pattern. On the Reference says so first; a crew share names
+ * its Game from the player's own Games; one they are no longer in reaches
+ * nobody, so it reads as theirs alone.
  */
 export function patternChips(
   sharing: PatternSharing | undefined,
@@ -182,6 +185,8 @@ export function patternChips(
 }
 
 function patternWho(sharing: PatternSharing, games: readonly ShelfGame[] | undefined): string {
+  // Switched on for the Reference it is read by everyone there (r4 E13).
+  if (sharing.homebrew) return buildShelvesCopy('inTheReference')
   if (sharing.visibility === 'link') return WHO.link
   if (sharing.visibility !== 'game') return WHO.me
   if (games === undefined) return buildShelvesCopy('sharedWithACrew')

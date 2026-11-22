@@ -17,13 +17,19 @@
  * not, the server sends its kind and nothing else, and its slot says "Not
  * shared" — publishing your pilot never names, let alone
  * republishes, your crewmate's.
+ *
+ * A shared mech's banner ends with the way to a build of your own
+ * (`PublicMechBuild`, r4 E18), as a shared pattern's page has.
  */
 
 import { publicPath } from 'game-domain/entityKinds'
 import type { EntityRef } from 'game-domain/schemas/entity'
+import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
+import { tokens } from '../../components/index'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { PublicMechBuild } from './PublicMechBuild'
 import { READ_ONLY_BANNER } from './readOnlyBanner.model'
 import type { PublicSheetAnswer } from './readOnlySheetStore.model'
 import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore.model'
@@ -46,6 +52,15 @@ type PublicSheetProps = {
   }
 }
 
+/** The banner's line: what the page is, then its one act, wrapping under it on a phone. */
+const BANNER_LINE = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: `${tokens.space[8]} ${tokens.space[16]}`,
+  justifyContent: 'space-between',
+} satisfies CSSProperties
+
 export function PublicSheet({ appId, answer }: PublicSheetProps) {
   const { data, withheld, published } = useMemo(
     () => sheetDataFromPublic(answer, appId),
@@ -59,6 +74,7 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
     [published]
   )
   const kind = answer.kind
+  const mech = kind === 'mech' ? store.getState().get('mech', appId) : null
 
   if (
     (kind !== 'pilot' && kind !== 'mech' && kind !== 'crawler') ||
@@ -85,7 +101,10 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
         // Its side padding widens at `sm` (`.su-sheet-public-banner`).
         style={READ_ONLY_BANNER}
       >
-        {buildSheetCopy('thisSheetIsSharedRead')}
+        <div style={BANNER_LINE}>
+          <span>{buildSheetCopy('thisSheetIsSharedRead')}</span>
+          {mech && <PublicMechBuild mech={mech} />}
+        </div>
       </div>
 
       <Sheet

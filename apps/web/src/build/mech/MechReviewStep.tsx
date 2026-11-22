@@ -36,6 +36,8 @@ type MechReviewStepProps = {
   }
   /** The name's part (its field over its rule), leading the review. */
   namePart: ReactNode
+  /** Signed out: the wizard's "Sign in to save", which Save as pattern opens too (r4 E15). */
+  askSignIn: (() => void) | undefined
 }
 
 /**
@@ -52,6 +54,7 @@ export function MechReviewStep({
   leftoverScrap,
   capacity,
   namePart,
+  askSignIn,
 }: MechReviewStepProps) {
   const chosenSystems = form.systems.flatMap((ref) => {
     const found = resolveSystemRef(ref)
@@ -140,6 +143,7 @@ export function MechReviewStep({
         {form.chassisName && (
           <div>
             <SavePatternButton
+              askSignIn={askSignIn}
               source={{
                 name: form.name.trim() || mechCopy('unnamedMech'),
                 chassisRef: form.chassisName,

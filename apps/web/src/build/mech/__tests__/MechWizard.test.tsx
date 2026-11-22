@@ -217,6 +217,24 @@ describe('MechWizard — hard creation enforcement', () => {
 // Starting-pattern strip: stored-flag filter + prefill arithmetic
 // ---------------------------------------------------------------------------
 
+describe('MechWizard — a dimmed row says which limit it is (r4 E22)', () => {
+  it('marks every row that no longer fits with Slots or Scrap, on the row', async () => {
+    renderWizard()
+    await walkToLoadout()
+    // Spend until something no longer fits.
+    for (let i = 0; i < 12 && document.querySelector('tr[data-blocked]') === null; i++)
+      await addOne('Cargo Pod')
+    const dimmed = [...document.querySelectorAll('tr[data-blocked]')]
+    expect(dimmed.length).toBeGreaterThan(0)
+    for (const row of dimmed) {
+      const why = row.querySelector('.su-ledger__why')?.textContent
+      expect(['Too few Slots', 'Too little Scrap']).toContain(why as string)
+      // The mark agrees with the fuller reason a pointer reads.
+      expect(row.getAttribute('title')).toContain(why === 'Too few Slots' ? 'Slots' : 'Scrap')
+    }
+  })
+})
+
 describe('MechWizard — legalStarting pattern strip', () => {
   it('picks ONLY legalStarting patterns, lists the rest dimmed, and prefills the loadout + name from the pick', async () => {
     const chassis = mule()
@@ -235,6 +253,10 @@ describe('MechWizard — legalStarting pattern strip', () => {
     const beyond = screen.getByRole('radio', { name: must(unflagged).name })
     expect(beyond.closest('[data-blocked]')?.getAttribute('title')).toMatch(
       /Not a starting Pattern/
+    )
+    // The reason is on the row itself, not only a line under the table (r4 E22).
+    expect(beyond.closest('tr')?.querySelector('.su-ledger__why')?.textContent).toBe(
+      'Not a starting build'
     )
     await pickRadio(must(unflagged).name)
     expect((beyond as HTMLInputElement).checked).toBe(false)

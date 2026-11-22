@@ -19,7 +19,7 @@ export const crawlerCopy = messages({
   whatTheCrawlerIsIts: 'What the crawler is, its build and history.',
   scrapPool: 'Scrap Pool',
   theGroupsBankedScrapBucketed:
-    'The group’s banked Scrap, bucketed by Tech Level. Add only Scrap that is not already in a Mech’s hold: what a Mech’s review said is for the Union Crawler.',
+    'The group’s banked Scrap, bucketed by Tech Level. It starts empty. Add only Scrap that is not already in a Mech’s hold, so none is counted twice.',
   scrapT: 'Scrap T{value}',
   t: 'T{slice}',
   sp: 'SP',

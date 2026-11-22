@@ -70,9 +70,11 @@ const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 type NewGameDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Made for something already on screen (a move's "where to"): stay there, the new Game listed. */
+  stay?: boolean
 }
 
-function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
+function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDialogProps) {
   // Read only while the dialog is open: the list is for choosing from, and a
   // subscription held for every visit to the hub would serve nobody.
   const templates = useGamesQuery('templates.list', open ? {} : 'skip')
@@ -103,7 +105,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
 
   /** Open the new Game's own page; the dialog has done its job. */
   function enter(gameId: string) {
-    go(gamePath(gameId))
+    if (!stay) go(gamePath(gameId))
     setName('')
     onOpenChange(false)
   }
@@ -200,7 +202,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   )
 }
 
-function ConnectedNewGameControl() {
+function ConnectedNewGameControl({ stay }: { stay: boolean }) {
   const [open, setOpen] = useState(false)
   return (
     <>
@@ -208,14 +210,18 @@ function ConnectedNewGameControl() {
       <Button variant="default" size="compact" onClick={() => setOpen(true)}>
         {buildGamesCopy('newGame2')}
       </Button>
-      <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />
+      <ConnectedNewGameDialog open={open} onOpenChange={setOpen} stay={stay} />
     </>
   )
 }
 
-/** "+ New Game" and its dialog; nothing at all outside Connected mode. */
-export function NewGameControl() {
+/**
+ * "+ New Game" and its dialog; nothing at all outside Connected mode. With
+ * `stay` the new Game does not open: whoever asked (Move to a Game… with no
+ * Game to move to, r4 E15) lists it and carries on.
+ */
+export function NewGameControl({ stay = false }: { stay?: boolean }) {
   const { status } = useSync()
   if (status !== 'live') return null
-  return <ConnectedNewGameControl />
+  return <ConnectedNewGameControl stay={stay} />
 }

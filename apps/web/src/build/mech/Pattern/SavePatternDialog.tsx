@@ -8,6 +8,10 @@
  * things a player writes in Edit: the name, in its cut-out, and the
  * description, where a book pattern's prose goes. Saving keeps it to its
  * maker; they share it from its page or their Hangar, as every player thing.
+ * It leaves the player where they asked (the mech they are tuning, the
+ * builder), with a notice that opens the pattern (r4 E19), and a name a
+ * pattern of theirs already has is asked about once before a second is saved
+ * under it (r4 E13).
  *
  * Under the two fields, above the loadout's rules cards, it says what the
  * pattern uses and costs (`PatternTotals`): its chassis, slots filled of the
@@ -17,7 +21,7 @@
 
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DialogActions, FieldError } from '../../../components/app'
 import {
   Button,
@@ -26,11 +30,11 @@ import {
   PatternListing,
   Text,
   Textarea,
-  toast,
   tokens,
 } from '../../../components/index'
 import { useGo } from '../../../components/shared/useGo'
 import { useServerAction } from '../../../lib/connection/useServerAction'
+import { madeToast } from '../../../lib/copiedToast'
 import {
   asReferencePattern,
   patternChassis,
@@ -39,6 +43,7 @@ import {
 } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
+import { patternNameTaken } from './buildConfirm.model'
 import { PatternTotals } from './PatternTotals'
 
 /** What a pattern is cut from: a mech's name, chassis and loadout. */
@@ -48,13 +53,8 @@ type SavePatternDialogProps = {
   source: PatternSource
   open: boolean
   onOpenChange: (open: boolean) => void
-  /**
-   * After the write lands. Absent, the player is taken to the pattern's page,
-   * where they can share it.
-   */
+  /** After the write lands. */
   onSaved?: ((patternId: string) => void) | undefined
-  /** Stay where the dialog was opened once it lands: the builder, mid-build. */
-  stay?: boolean
 }
 
 const BODY = {
@@ -73,13 +73,7 @@ const NAME_FIELD = {
 
 const DESCRIPTION_FIELD = { width: '100%' } satisfies CSSProperties
 
-export function SavePatternDialog({
-  source,
-  open,
-  onOpenChange,
-  onSaved,
-  stay = false,
-}: SavePatternDialogProps) {
+export function SavePatternDialog({ source, open, onOpenChange, onSaved }: SavePatternDialogProps) {
   return (
     <ModalShell
       open={open}
@@ -89,12 +83,7 @@ export function SavePatternDialog({
     >
       {/* Mounted only while open, so every opening starts from the mech's name. */}
       {open && (
-        <SavePatternBody
-          source={source}
-          onClose={() => onOpenChange(false)}
-          onSaved={onSaved}
-          stay={stay}
-        />
+        <SavePatternBody source={source} onClose={() => onOpenChange(false)} onSaved={onSaved} />
       )}
     </ModalShell>
   )
@@ -104,17 +93,19 @@ function SavePatternBody({
   source,
   onClose,
   onSaved,
-  stay,
 }: {
   source: PatternSource
   onClose: () => void
   onSaved: SavePatternDialogProps['onSaved']
-  stay: boolean
 }) {
   const go = useGo()
   const [name, setName] = useState(source.name)
   const [description, setDescription] = useState('')
   const [invalid, setInvalid] = useState<string | null>(null)
+  // The name a second pattern was asked about: Save under it again is the yes.
+  const [asked, setAsked] = useState<string | null>(null)
+  // The names already saved, for the ask; a no-op where they have arrived.
+  useEffect(() => void usePatterns.getState().hydrate(), [])
   const save = useServerAction(
     (patternName: string) =>
       usePatterns
@@ -131,13 +122,27 @@ function SavePatternBody({
       return
     }
     setInvalid(null)
+    const wanted = name.trim()
+    if (asked !== wanted && patternNameTaken(wanted, usePatterns.getState().mechPatterns)) {
+      setAsked(wanted)
+      return
+    }
     const result = await save.run(name)
     if (!result.ok) return
     onClose()
-    toast.success(mechCopy('savedPattern', { name: result.value.name }))
-    onSaved?.(result.value.id)
-    if (!stay) go(savedPatternHref(result.value.id))
+    const { id } = result.value
+    madeToast(
+      mechCopy('savedPattern', { name: result.value.name }),
+      mechCopy('openThePattern'),
+      {
+        href: savedPatternHref(id),
+        exists: () => usePatterns.getState().mechPatterns.some((held) => held.id === id),
+      },
+      go
+    )
+    onSaved?.(id)
   }
+  const asking = asked !== null && asked === name.trim()
 
   const nameField = (
     <Input
@@ -169,6 +174,11 @@ function SavePatternBody({
       <PatternTotals unit={source} />
       <Text variant="hint">{mechCopy('damageHeatAndCargoStay')}</Text>
       {error && <FieldError>{error}</FieldError>}
+      {asking && (
+        <Text variant="body" role="status">
+          {mechCopy('saveAsASecondPattern', { name: asked })}
+        </Text>
+      )}
       <DialogActions>
         <Button variant="ghost" size="compact" onClick={onClose} disabled={save.pending}>
           {mechCopy('cancel')}
@@ -179,7 +189,11 @@ function SavePatternBody({
           onClick={() => void confirm()}
           disabled={save.pending || !name.trim()}
         >
-          {save.pending ? mechCopy('saving') : mechCopy('savePattern')}
+          {save.pending
+            ? mechCopy('saving')
+            : asking
+              ? mechCopy('saveASecond')
+              : mechCopy('savePattern')}
         </Button>
       </DialogActions>
     </div>

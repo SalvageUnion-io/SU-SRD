@@ -36,6 +36,7 @@ import type { ShareKind } from '../../lib/sharing/visibility'
 import { buildSharingCopy } from '../../messages/build-sharing'
 import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
+import { SharedSeparately } from './SharedSeparately'
 import { ShareSettings } from './ShareSettings'
 
 type ShareStatusDialogProps = {
@@ -114,6 +115,8 @@ export function ShareStatusDialog({
         ) : (
           <Text variant="note">{buildSharingCopy('sharingSettingsNeedALive')}</Text>
         )}
+        {/* A pilot's share is the pilot's alone: its mech and crawler have their own (r4 E18). */}
+        {open && kind === 'pilot' && <SharedSeparately pilotId={id} />}
       </div>
     </ModalShell>
   )

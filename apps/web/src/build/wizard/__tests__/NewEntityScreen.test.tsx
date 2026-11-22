@@ -288,10 +288,10 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
     expect(screen.getByText(/For Nia Vale/)).toBeTruthy()
   })
 
-  test('with none saved, its empty pattern door waits under Guided and Blank', () => {
+  test('with none saved, the order is the same: From a pattern, then Guided and Blank (r4 E23)', () => {
     usePatterns.setState({ mechPatterns: [], hydrated: true })
     chooser()
-    expect(order()).toMatchObject({ guidedFirst: true, patternLast: true })
+    expect(order()).toMatchObject({ patternFirst: true, guidedFirst: true })
   })
 
   test('pilot and crawler choosers do NOT show the pattern door', () => {
@@ -455,7 +455,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(modes).toEqual(['guided'])
   })
 
-  test('a book pattern above Tech 1 builds from the chooser, as printed, after it asks', async () => {
+  test('a book pattern above Tech 1 builds from the chooser, as printed, in one press (r4 E23)', async () => {
     const created: string[] = []
     render(
       <NewEntityScreen
@@ -467,16 +467,14 @@ describe('BlankCreateDialog — blank pilot create', () => {
         book={{ chassis: 'magpie', pattern: 'stefanus' }}
       />
     )
-    // Behind the open confirm, so read through it.
     const books = screen.getByLabelText('Book Patterns')
     expect(within(books).getByText('Not a starting build')).toBeTruthy()
-    // The pattern page's press was the choice: its one confirm is already up (r2 D4),
-    // worded for the book and warning, since Stefanus is past the starting rules.
-    const dialog = await screen.findByRole('alertdialog')
-    expect(within(dialog).getByText(/past the starting rules/)).toBeTruthy()
-    expect(within(dialog).getByText(/as the book prints it/)).toBeTruthy()
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Build' }))
+    // A link builds nothing and asks nothing: the pick is made and the press is the player's.
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(created).toEqual([])
+    fireEvent.click(within(books).getByRole('button', { name: /^Build With This/ }))
     await waitFor(() => expect(created.length).toBe(1))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     const mech = useUnits.getState().get('mech', created[0] as string)
     expect(mech?.chassisRef).toBe('magpie')
     expect(mech?.name).toBe('Stefanus')

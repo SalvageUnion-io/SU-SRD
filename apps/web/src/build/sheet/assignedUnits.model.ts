@@ -105,16 +105,17 @@ const NEW_PATH = {
  * The wizard that makes a `kind` in the subject's container (ADR-052 §3). A
  * pilot's mech is made for that pilot (`?pilot=`, as the Training Bay's
  * "+ Add a Mech" is) and a mech's pilot for that mech (`?mech=`): the wizard
- * assigns the pair and comes back here.
+ * assigns the pair and comes back here. A crawler names the pilot or mech it
+ * was made from the same way, and takes that unit and its pair (r4 E19).
  */
 function createHrefFor(kind: SheetKind, subject: AssignedSubject): string {
   const container = containerOf(subject.entity)
   const href =
     container.kind === 'game' ? newInGameHref(NEW_PATH[kind], container.gameId) : NEW_PATH[kind]
   const pair =
-    kind === 'mech' && subject.kind === 'pilot'
+    subject.kind === 'pilot' && kind !== 'pilot'
       ? 'pilot'
-      : kind === 'pilot' && subject.kind === 'mech'
+      : subject.kind === 'mech' && kind !== 'mech'
         ? 'mech'
         : null
   if (pair === null) return href

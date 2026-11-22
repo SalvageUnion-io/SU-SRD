@@ -92,6 +92,10 @@ export const buildWizardCopy = messages({
   nextReason: 'First: {reason}',
   forPilot: 'For {name}: the Mech is assigned to them once it is made.',
   forMech: 'For {name}: the Pilot is assigned to it once they are made.',
+  forCrewPilot: 'For {name}: they and their Mech are assigned to the crawler once it is made.',
+  forCrewMech: 'For {name}: it and its Pilot are assigned to the crawler once it is made.',
+  crawlerNotCrewed:
+    'The crawler was made, but its crew could not be assigned. Assign them on its sheet.',
   mechNotGivenTo: 'The Mech could not be given to {name}.',
   pilotNotGivenTo: 'The Pilot could not be assigned to {name}.',
   mechAssignedTo: 'Assigned {mech} to {pilot}.',

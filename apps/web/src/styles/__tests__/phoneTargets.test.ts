@@ -48,10 +48,17 @@ describe('a list count’s steps on a phone', () => {
     /\/\*[\s\S]*?\*\//g,
     ''
   )
-  const step =
-    ledger.match(
-      /\.su-ledger__table tbody \[data-kind='trailing'\] \.su-step-btn--cell\s*\{([^}]*)\}/
-    )?.[1] ?? ''
+  // Two rules: the pointer's 24px floor (r4 E22), then the phone's, which this reads.
+  const steps = [
+    ...ledger.matchAll(
+      /\.su-ledger__table tbody \[data-kind='trailing'\] \.su-step-btn--cell\s*\{([^}]*)\}/g
+    ),
+  ].map((found) => found[1] ?? '')
+  const step = steps[1] ?? ''
+
+  test('draw 24px square at the least off the phone', () => {
+    expect(steps[0]).toContain('min-height: var(--space-24)')
+  })
 
   test('draw 40px square', () => {
     expect(step).toContain('min-height: var(--space-40)')

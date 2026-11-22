@@ -178,9 +178,10 @@ export function MechChassisStep({
                 else onSelectCustom()
               }}
               disabled={(row) => (row.beyond ? mechCopy('notAStartingPattern') : undefined)}
+              why={() => mechCopy('notAStartingBuild')}
             />
-            {/* A pressed dimmed row answers here, with the way to build it; until
-                then the hint says what the dim means. Both links are routes: the
+            {/* A dimmed row says why on itself (r4 E22). A pressed one answers here,
+                with the way to build it; until then the hint gives that way. Both links are routes: the
                 surface's link adds the app's base. */}
             {asked !== undefined ? (
               <Text variant="hint" role="status">

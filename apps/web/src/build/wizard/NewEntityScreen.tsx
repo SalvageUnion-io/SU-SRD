@@ -51,6 +51,8 @@ type NewEntityScreenProps = {
   forPilot?: string | undefined
   /** A pilot made for a mech: that mech's name, on the chooser. */
   forMech?: string | undefined
+  /** A crawler made from a pilot's or mech's "+ Create": who is assigned to it, on the chooser. */
+  forCrew?: string | undefined
   /** `/mechs/new`: the book pattern its deep link names, for the chooser. */
   book?: { chassis?: string | undefined; pattern?: string | undefined } | undefined
 }
@@ -65,6 +67,7 @@ export function NewEntityScreen({
   gameId,
   forPilot,
   forMech,
+  forCrew,
   book,
 }: NewEntityScreenProps) {
   const connection = useSync()
@@ -92,6 +95,7 @@ export function NewEntityScreen({
                 gameId={gameId}
                 forPilot={forPilot}
                 forMech={forMech}
+                forCrew={forCrew}
                 book={book}
               />
               <BlankCreateDialog
