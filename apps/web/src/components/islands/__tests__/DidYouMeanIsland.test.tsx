@@ -40,6 +40,12 @@ describe('guessesFor', () => {
     expect(names).toContain('Gopher')
   })
 
+  test('the section in the address leads: /chassis/mulee/ guesses the Mule first (RR6-07)', () => {
+    const [first] = guessesFor(index, 'mulee', 'chassis')
+    expect(first?.entityName).toBe('Mule')
+    expect(first?.schemaName).toBe('chassis')
+  })
+
   test('caps the guesses at five', () => {
     expect(guessesFor(index, 'a').length).toBeLessThanOrEqual(5)
   })
