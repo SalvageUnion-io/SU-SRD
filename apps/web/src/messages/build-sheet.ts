@@ -178,6 +178,7 @@ export const buildSheetCopy = messages({
   addAnExpansionBay: 'Add an expansion bay',
   addBay: '+ Bay',
   t: 'T{t}',
+  tlScrap: 'T{t} Scrap',
   crawlerSheet: '{name} crawler sheet',
   whatCarries: 'What {name} carries',
   storageBay: 'Storage Bay',
