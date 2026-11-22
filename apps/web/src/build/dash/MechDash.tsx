@@ -16,7 +16,6 @@
  * cards under the columns, where their loadouts are fitted.
  */
 
-import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
@@ -49,9 +48,7 @@ import {
   tokens,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
-import { perUnitCost } from '../../lib/cargo/cargoTransfer'
 import { reportCargo } from '../../lib/cargo/reportCargo'
-import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import { changeUndoToast } from '../../lib/changeUndoToast'
 import { cn } from '../../lib/cn'
 import { chassisArt } from '../../lib/photos/defaultArt'
@@ -74,11 +71,12 @@ import { overSlots, slotCount } from '../sheet/mechSlots.model'
 import { usePrinting } from '../sheet/printing.model'
 import { cargoBreakToast } from '../sheet/ruleBreakToast.model'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
-import { undoToast } from '../sheet/undoToast.model'
+import { useShownSheet } from '../sheet/shownSheet'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
 import { ITEM_COLUMNS, itemRows } from './itemRows'
 import { RowRules } from './RowRules'
+import { unloadLot } from './unloadLot'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -195,28 +193,6 @@ type MechDashProps = {
   partners?: ReactNode
   /** A phone: the groups stacked. */
   phone: boolean
-}
-
-/**
- * Unload a lot, or `qty` of a stack, and leave the way back (r4 E10): the
- * same count rejoins the lot, or the lot returns whole.
- */
-function unloadLot(cargo: UseCargoResult, lot: CargoLot, qty: number | undefined, mechId: string) {
-  const part = qty !== undefined && lot.qty !== undefined && qty < lot.qty
-  const done = cargo.removeMechLot(lot.id, part ? qty : undefined)
-  reportCargo(done)
-  void done.then((result) => {
-    if (!result.ok) return
-    const back: CargoLot = part ? { ...lot, qty, units: qty * perUnitCost(lot) } : lot
-    undoToast(
-      part
-        ? buildSheetCopy('unloadedCount', { count: qty, name: lot.name })
-        : buildSheetCopy('unloadedName', { name: lot.name }),
-      () => reportCargo(cargo.addMechLot(back)),
-      mechId,
-      { stack: true }
-    )
-  })
 }
 
 export function MechDash({
@@ -444,9 +420,48 @@ export function MechDash({
     columns: ITEM_COLUMNS,
     whole: usePrinting(),
   } as const
+  const shown = useShownSheet()
+  // A shared Mech on a phone leads with its build, its vitals one short row under it (r5 C18).
+  const lead = shown && phone && !edit
+  const build = (
+    <DashColumn wide label={buildSheetCopy('whatHas', { name: mech.name })}>
+      {(mech.systems.length > 0 || edit) && (
+        <Ledger
+          {...loadout}
+          title={buildSheetCopy('systems')}
+          actions={manage('system', buildSheetCopy('manageSystems'))}
+          empty={buildSheetCopy('noSystemsInstalled')}
+          tally={slotCount(
+            capacity.systemSlotsUsed,
+            capacity.systemSlotsMax,
+            capacity.asPrinted,
+            'systems'
+          )}
+          groups={[{ key: 'systems', rows: loadoutRows('system') }]}
+        />
+      )}
+      {(mech.modules.length > 0 || edit) && (
+        <Ledger
+          {...loadout}
+          title={buildSheetCopy('modules')}
+          actions={manage('module', buildSheetCopy('manageModules'))}
+          empty={buildSheetCopy('noModulesInstalled')}
+          tally={slotCount(
+            capacity.moduleSlotsUsed,
+            capacity.moduleSlotsMax,
+            capacity.asPrinted,
+            'modules'
+          )}
+          groups={[{ key: 'modules', rows: loadoutRows('module') }]}
+        />
+      )}
+    </DashColumn>
+  )
   return (
     <>
+      {lead && <Dash>{build}</Dash>}
       <Strip
+        compact={lead}
         label={buildSheetCopy('unitVitals', { name: mech.name })}
         art={phone && !edit ? undefined : art}
         vitals={vitals}
@@ -458,38 +473,7 @@ export function MechDash({
       />
       {phone && linkedUnits}
       <Dash>
-        <DashColumn wide label={buildSheetCopy('whatHas', { name: mech.name })}>
-          {(mech.systems.length > 0 || edit) && (
-            <Ledger
-              {...loadout}
-              title={buildSheetCopy('systems')}
-              actions={manage('system', buildSheetCopy('manageSystems'))}
-              empty={buildSheetCopy('noSystemsInstalled')}
-              tally={slotCount(
-                capacity.systemSlotsUsed,
-                capacity.systemSlotsMax,
-                capacity.asPrinted,
-                'systems'
-              )}
-              groups={[{ key: 'systems', rows: loadoutRows('system') }]}
-            />
-          )}
-          {(mech.modules.length > 0 || edit) && (
-            <Ledger
-              {...loadout}
-              title={buildSheetCopy('modules')}
-              actions={manage('module', buildSheetCopy('manageModules'))}
-              empty={buildSheetCopy('noModulesInstalled')}
-              tally={slotCount(
-                capacity.moduleSlotsUsed,
-                capacity.moduleSlotsMax,
-                capacity.asPrinted,
-                'modules'
-              )}
-              groups={[{ key: 'modules', rows: loadoutRows('module') }]}
-            />
-          )}
-        </DashColumn>
+        {!lead && build}
         <DashColumn label={buildSheetCopy('whatCarries', { name: mech.name })}>
           {!phone && linkedUnits}
           {/* The chassis leads the side column. Its ability

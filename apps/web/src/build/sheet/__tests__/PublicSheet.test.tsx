@@ -8,7 +8,7 @@
  * `/p/` page; a private one fills its slot as "Not shared", and nothing more.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
@@ -107,5 +107,52 @@ describe('a public sheet’s assignments', () => {
     render(<PublicSheet appId="p1" answer={answer()} />)
     expect(screen.getByRole('note', { name: 'Read-only sheet' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Share this pilot$/ })).toBeNull()
+  })
+})
+
+describe('a shared mech on a phone (r5 C18)', () => {
+  const realMatchMedia = window.matchMedia
+  afterEach(() => {
+    window.matchMedia = realMatchMedia
+  })
+  // Every width query answers no (a phone), and so does `print`.
+  const widths = (wide: boolean) => {
+    window.matchMedia = ((query: string) => ({
+      matches: wide && query.includes('width'),
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })) as unknown as typeof window.matchMedia
+  }
+  const mech = mechFixture({
+    id: 'm1',
+    name: 'Iron Mongrel',
+    chassisRef: 'mule',
+    systems: ['floodlights'],
+    modules: ['zoom-optics'],
+  })
+  const before = (a: Element, b: Element) =>
+    (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
+
+  test('leads with Systems and Modules, its vitals one compact row under them', () => {
+    widths(false)
+    const { container } = render(
+      <PublicSheet appId="m1" answer={answer({ kind: 'mech', body: mech })} />
+    )
+    const systems = screen.getByRole('table', { name: /^Systems/ })
+    const mast = container.querySelector('.su-mast')
+    expect(mast).toBeTruthy()
+    expect(before(systems, mast as Element)).toBe(true)
+    expect(mast?.hasAttribute('data-compact')).toBe(true)
+  })
+
+  test('wider than a phone the masthead still leads', () => {
+    widths(true)
+    const { container } = render(
+      <PublicSheet appId="m1" answer={answer({ kind: 'mech', body: mech })} />
+    )
+    const systems = screen.getByRole('table', { name: /^Systems/ })
+    const mast = container.querySelector('.su-mast') as Element
+    expect(before(mast, systems)).toBe(true)
+    expect(mast.hasAttribute('data-compact')).toBe(false)
   })
 })

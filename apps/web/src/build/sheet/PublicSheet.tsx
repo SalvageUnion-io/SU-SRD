@@ -34,6 +34,7 @@ import { READ_ONLY_BANNER } from './readOnlyBanner.model'
 import type { PublicSheetAnswer } from './readOnlySheetStore.model'
 import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore.model'
 import { Sheet } from './Sheet'
+import { ShownSheetContext } from './shownSheet'
 
 type PublicSheetProps = {
   /** The app id the page is addressed by — the published entity's own id. */
@@ -107,15 +108,17 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
         </div>
       </div>
 
-      <Sheet
-        kind={kind}
-        id={appId}
-        store={store}
-        pilotAbilities={kind === 'mech' ? answer.pilotAbilities : undefined}
-        hrefFor={hrefFor}
-        withheld={withheld}
-        readOnly
-      />
+      <ShownSheetContext.Provider value>
+        <Sheet
+          kind={kind}
+          id={appId}
+          store={store}
+          pilotAbilities={kind === 'mech' ? answer.pilotAbilities : undefined}
+          hrefFor={hrefFor}
+          withheld={withheld}
+          readOnly
+        />
+      </ShownSheetContext.Provider>
     </div>
   )
 }
