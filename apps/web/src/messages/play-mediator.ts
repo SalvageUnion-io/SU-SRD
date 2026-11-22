@@ -178,6 +178,7 @@ export const mediatorCopy = messages({
   moraleTable: 'Morale',
   moraleDue: 'Morale due',
   rollMorale: 'Roll',
+  rollMoraleMenu: 'Roll Morale',
   rollMoraleFor: 'Roll Morale for {name}',
   groupDown: '{down} of {size} down',
   groupMembers: '{name}: its members',

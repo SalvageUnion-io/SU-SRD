@@ -25,7 +25,7 @@ import { heatDangerFrom, useDetailModal } from '../../components/app'
 import type { rollForTable } from '../../components/index'
 import { Button, HeaderMenu, Stat, TitledBox, Toggle } from '../../components/index'
 import type { ImportantTable } from '../../lib/rules/opposition'
-import { criticalTable } from '../../lib/rules/opposition'
+import { checksMoraleAlone, criticalTable } from '../../lib/rules/opposition'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayVital } from '../PlayVital'
 import { CONTROLS, NOTE_MUTED } from './mediatorStyles.model'
@@ -167,6 +167,16 @@ export function PlayNpcBox({
                           onSelect: canWrite ? () => onImportant(!npc.important) : undefined,
                         },
                       ]),
+                  // The Mediator's call on the spot, whatever the book prompts (r6 B5).
+                  ...(npc.down
+                    ? []
+                    : [
+                        {
+                          id: 'morale',
+                          label: mediatorCopy('rollMoraleMenu'),
+                          onSelect: canWrite && onMorale ? onMorale : undefined,
+                        },
+                      ]),
                   {
                     id: 'rename',
                     label: mediatorCopy('rename2'),
@@ -269,7 +279,13 @@ export function PlayNpcBox({
                 </Button>
               </span>
             ) : null}
-            <RollResultLine roll={npc.lastRoll} empty={mediatorCopy('noMoraleRoll')} />
+            {/* Morale is a Mech's, a Creature's or a group's (Core Book p.268): a
+                lone NPC's card says nothing of it until one is rolled (r6 B5). */}
+            {checksMoraleAlone(npc.refSchema) ? (
+              <RollResultLine roll={npc.lastRoll} empty={mediatorCopy('noMoraleRoll')} />
+            ) : npc.lastRoll !== null ? (
+              <RollResultLine roll={npc.lastRoll} />
+            ) : null}
           </>
         )}
       </TitledBox>

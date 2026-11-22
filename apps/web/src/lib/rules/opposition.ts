@@ -140,6 +140,54 @@ const checked = (npc: Pick<MoraleRead, 'lastRoll'>) =>
 const CHECKS_ALONE = new Set(['chassis', 'creatures', 'bio-titans'])
 
 /**
+ * Whether the book has this kind check Morale on its own (Core Book p.268):
+ * a Mech or a Creature. Any other NPC checks with its group, so its own card
+ * shows no Morale line until one is rolled for it (r6 B5).
+ */
+export function checksMoraleAlone(refSchema: string | null): boolean {
+  return refSchema !== null && CHECKS_ALONE.has(refSchema)
+}
+
+/** The longest name a group takes (`EncounterNpcSchema`'s `group.name`). */
+const GROUP_NAME_MAX = 40
+
+/**
+ * Units added in one go form a group (r6 B5, Core Book p.268): of the bodies
+ * fielded together, two or more of one kind fighting alone get one group,
+ * named for what they are, so its Morale prompt fires when half are down.
+ * Bodies already in a group, and a kind fielded once, are left as they are.
+ */
+export function groupedInOneGo<
+  T extends {
+    refSchema?: string
+    refSlug?: string
+    refName?: string
+    name: string
+    group?: unknown
+  },
+>(bodies: readonly T[], newId: () => string): T[] {
+  const kindOf = (b: T) =>
+    b.group === undefined && b.refSchema && b.refSlug ? `${b.refSchema}:${b.refSlug}` : null
+  const counts = new Map<string, number>()
+  for (const b of bodies) {
+    const kind = kindOf(b)
+    if (kind !== null) counts.set(kind, (counts.get(kind) ?? 0) + 1)
+  }
+  const groups = new Map<string, { id: string; name: string }>()
+  return bodies.map((b) => {
+    const kind = kindOf(b)
+    if (kind === null || (counts.get(kind) ?? 0) < 2) return b
+    let group = groups.get(kind)
+    if (group === undefined) {
+      const name = (b.refName ?? b.name.replace(/\s+\d+$/, '')).trim().slice(0, GROUP_NAME_MAX)
+      group = { id: newId(), name: name === '' ? 'Group' : name }
+      groups.set(kind, group)
+    }
+    return { ...b, group }
+  })
+}
+
+/**
  * Whether one NPC's Morale check is due (Core Book p.268): a Mech at 50% or
  * less of its SP, a Creature at 50% or less of its HP, still standing, with
  * no Morale roll made for it since. Due is a prompt; the Mediator rolls it

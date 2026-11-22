@@ -8,7 +8,7 @@ import {
 import type { RunningEncounter } from 'game-domain/schemas/encounter'
 import { EncounterSchema, RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { EncounterNpcSchema, MediatorRollResultSchema } from 'game-domain/schemas/encounterNpc'
-import { isDown } from '../../lib/rules/opposition'
+import { groupedInOneGo, isDown } from '../../lib/rules/opposition'
 import { RoomRefusal } from '../refusal'
 import type { GameStore } from './store'
 import { fromJson } from './store'
@@ -212,7 +212,8 @@ export class GameOpposition {
    * account room's shelf) and copied, never moved. `clear` empties the tray
    * first: their choice, made in a dialog that names what it removes
    * (ADR-007). `waves` fields only the first wave, each opponent with its
-   * group; the rest wait on the running encounter for `bringInWave`.
+   * group; the rest wait on the running encounter for `bringInWave`. Two or
+   * more of one kind in no group form one (`groupedInOneGo`, r6 B5).
    */
   runEncounter(
     actor: string,
@@ -226,9 +227,12 @@ export class GameOpposition {
       if (options.clear) this.store.rows('delete from tray')
       const now = new Date(at).toISOString()
       const waves = options.waves === true ? splitWaves(parsed) : null
-      const fielded = waves
-        ? trayNpcsFor(waves.first, this.names(), now, parsed.groups ?? [])
-        : trayNpcsFor(preppedOrder(parsed), this.names(), now)
+      const fielded = groupedInOneGo(
+        waves
+          ? trayNpcsFor(waves.first, this.names(), now, parsed.groups ?? [])
+          : trayNpcsFor(preppedOrder(parsed), this.names(), now),
+        this.newId
+      )
       for (const npc of fielded) this.insert(TrayBodySchema.parse(npc), at)
       this.putRunning(runningFrom(parsed, now, waves ? { held: waves.held } : undefined))
       return { added: fielded.length }

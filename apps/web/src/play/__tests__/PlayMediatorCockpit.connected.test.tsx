@@ -703,6 +703,20 @@ describe('the Opposition', () => {
     await restoreCrawler()
   })
 
+  // MD6-06: every card read 'No Morale roll yet', a lone NPC's too, and none could roll it.
+  test('Morale shows where the rules use it; every card’s ⋯ rolls it on the spot (r6 B5)', async () => {
+    await renderCockpit()
+    const strike = within(screen.getByRole('region', { name: 'NPC: Strikebreaker' }))
+    expect(strike.queryByText('No Morale roll yet')).toBeNull()
+    const scylla = within(screen.getByRole('region', { name: 'Bio-Titan: Scylla' }))
+    expect(scylla.getByText('No Morale roll yet')).toBeTruthy()
+    await click(strike.getByRole('button', { name: 'More for Strikebreaker' }))
+    await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Roll Morale' }))
+    await waitFor(() => expect(names()).toEqual(['mediator.updateNpc']))
+    const patch = sent()[0]?.args.patch as { lastMediatorRoll?: { table: string } }
+    expect(patch.lastMediatorRoll?.table).toBe('morale')
+  })
+
   test('a salvaged wreck folds to its one line: nothing is left to take', async () => {
     const tank = {
       _id: 'n-tank',

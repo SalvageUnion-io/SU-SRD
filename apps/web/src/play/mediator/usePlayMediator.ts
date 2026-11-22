@@ -175,6 +175,12 @@ type MediatorPrep = {
 }
 
 /** A running encounter as the server keeps it, or null when it does not read. */
+/** The group a roster line's copies fight in (r6 B5): one id, named for what they are. */
+function lineGroup(entity: { name?: unknown }): { id: string; name: string } {
+  const name = typeof entity.name === 'string' && entity.name.trim() !== '' ? entity.name : 'Group'
+  return { id: crypto.randomUUID(), name: name.trim().slice(0, 40) }
+}
+
 function readRunning(body: unknown): RunningEncounter | null {
   const parsed = RunningEncounterSchema.safeParse(body)
   return parsed.success ? parsed.data : null
@@ -457,6 +463,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
             outcome: `${count}`,
           })
         }
+        // Two or more from one line fight as a group (r6 B5, Core Book p.268).
+        const group = count > 1 ? lineGroup(entity) : undefined
         for (let i = 0; i < count; i++) {
           const body = newTrayNpc(
             schema,
@@ -465,7 +473,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
             new Date().toISOString(),
             pattern ? { pattern } : {}
           )
-          await fieldNpc(body, out)
+          await fieldNpc(group === undefined ? body : { ...body, group }, out)
           added += 1
         }
       }

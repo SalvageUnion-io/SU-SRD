@@ -99,6 +99,23 @@ describe('handing the table over mid-encounter (r6 B1)', () => {
   })
 })
 
+// MD6-06: three Raiders run together were never a group, so its Morale prompt never came.
+describe('units fielded in one go (r6 B5)', () => {
+  test('two or more of one kind in no group form one group', () => {
+    const { room } = table()
+    const raiders = {
+      ...encounter,
+      opposition: ['o1', 'o2', 'o3'].map((id) => ({ ...encounter.opposition[0], id })),
+    }
+    room.opposition.runEncounter(MEDIATOR, raiders, { clear: false }, AT)
+    const groups = room.opposition
+      .tray(MEDIATOR)
+      .map((n) => (n.group as { id: string; name: string } | undefined) ?? null)
+    expect(groups.every((g) => g !== null && g.id === groups[0]?.id)).toBe(true)
+    expect(groups[0]?.name).toBe('Raider')
+  })
+})
+
 describe('the order it was prepped in (MD3-05)', () => {
   test('an encounter arrives in its own order, however its ids sort', () => {
     const { room } = table()
