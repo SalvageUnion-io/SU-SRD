@@ -146,7 +146,10 @@ export function ClassAbilityStep({
           </div>
         )}
       </div>
-      <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky su-wiz-compare-detail--scroll">
+      {/* In the page's flow, never a column that scrolls in itself: with the
+          picked ability over the class its foot sat under the fold of its own
+          scroller, where no page scroll reached it (K14). */}
+      <div className="su-wiz-compare-detail">
         {selectedClass === undefined ? (
           <EmptyState
             variant="quiet"

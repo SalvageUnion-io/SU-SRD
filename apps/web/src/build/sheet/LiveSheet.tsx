@@ -144,8 +144,8 @@ type LiveSheetProps = {
    */
   kindDetail?: BandStamp
   /**
-   * In Edit, the act that changes what the stamp names, beside it (r4 E17: a
-   * mech's Change Chassis is where its chassis is named).
+   * In Edit, the act that changes what the stamp names, in the strip's last
+   * slot (r4 E17: a mech's Change Chassis is where its chassis is named).
    */
   kindAction?: ReactNode
   /** A mech's pattern (`PATTERN | Nimble Hauler`), linked to its page. */
@@ -403,6 +403,8 @@ export function LiveSheet({
               }
               nodes={{
                 rank,
+                // The strip's last slot (C8): chips never part for a control.
+                menu: kindAction,
                 relation: (
                   <>
                     {stamp &&
@@ -417,7 +419,6 @@ export function LiveSheet({
                       ) : (
                         <Stat label={stamp.label} value={stamp.name} wrap />
                       ))}
-                    {kindAction}
                     {fromPattern &&
                       (fromPattern.href || fromPattern.page ? (
                         <Tag

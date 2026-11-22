@@ -81,10 +81,12 @@ export function PilotAbilityItem({
       token={
         <Entity
           size="mini"
-          context="play"
+          // An untaken ability's one line is its name and cost: its action
+          // type is its Peek's, so the name has the line and is never cut
+          // (r4 E8: two abilities of a tree differ in their last word).
+          context={full ? 'play' : 'browse'}
           entity={ability}
           mode={{ kind: 'link' }}
-          // Two abilities of a tree differ in their last word: never cut (r4 E8).
           wholeName
           {...(full ? { body: { children: <AbilityRules ability={ability} /> } } : {})}
         />
