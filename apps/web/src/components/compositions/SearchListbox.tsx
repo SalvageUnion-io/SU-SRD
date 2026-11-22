@@ -252,8 +252,18 @@ const SEARCH_COLUMNS: readonly LedgerColumn[] = [
     kind: 'figure',
     phone: true,
   },
+  // How far and how hard, as the results page's chips say (RR6-04): the commonest
+  // question at the table, answered without a page.
+  { key: 'rng', label: compositionsCopy('rng'), title: compositionsCopy('range'), kind: 'text' },
+  { key: 'dmg', label: compositionsCopy('dmg'), title: compositionsCopy('damage'), kind: 'text' },
   { key: 'cost', label: compositionsCopy('cost'), kind: 'text' },
 ]
+
+/** A fact's compact value (`RNG Close/Medium`, `DMG 4 SP`), or nothing. */
+function factOf(model: EntityFormModel, key: string): string {
+  const fact = model.facts.find((entry) => entry.key === key)
+  return fact ? String(fact.shortValue ?? fact.value) : ''
+}
 
 /** Chrome's paint: the dropdown mixes kinds, so its band is ink. */
 const INK_PAINT: Paint = {
@@ -274,6 +284,9 @@ function SearchLedger({
   run: readonly Indexed[]
   target: LinkTarget
 }) {
+  // Two results of one name carry their kind in it: "Heat · Keyword" (RR6-15).
+  const titles = run.map(({ result }) => result.title)
+  const shared = new Set(titles.filter((title, i) => titles.indexOf(title) !== i))
   const rows = run.flatMap(({ result, index }) => {
     const model = modelOf(result)
     if (!model || result.kind !== 'entity') return []
@@ -281,7 +294,9 @@ function SearchLedger({
     return [
       {
         id: result.id,
-        name: model.title,
+        name: shared.has(result.title) ? `${model.title} · ${kind}` : model.title,
+        // A rules term says what it means, one line under its name (ledger L5, RR6-04).
+        under: model.lead,
         entityRef: model.ref,
         href: target.href(result),
         linkAttrs: {
@@ -293,7 +308,13 @@ function SearchLedger({
           // as they are by eye ("Stefanus, Pattern · Magpie").
           'aria-label': `${model.title}, ${kind}`,
         },
-        cells: [kind, model.techLevel != null ? String(model.techLevel) : '', model.cost ?? ''],
+        cells: [
+          kind,
+          model.techLevel != null ? String(model.techLevel) : '',
+          factOf(model, 'range'),
+          factOf(model, 'damage'),
+          model.cost ?? '',
+        ],
       },
     ]
   })

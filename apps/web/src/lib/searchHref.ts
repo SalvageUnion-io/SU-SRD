@@ -27,7 +27,7 @@ export function searchQuery(search: string): string | undefined {
 }
 
 /** The page of every result for a query (`/search/?q=shield`), grouped by kind. */
-const RESULTS_PAGE = '/search/'
+export const RESULTS_PAGE = '/search/'
 
 /** The results page for `query`. */
 export function resultsHref(query: string): string {

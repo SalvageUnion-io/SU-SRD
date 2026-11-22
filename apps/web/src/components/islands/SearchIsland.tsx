@@ -18,8 +18,8 @@ import { getEntitySlug, suggestSearchQuery } from 'salvageunion-reference'
 import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
-import { searchCompactIndex } from '../../lib/searchCompactIndex'
-import { resultsHref, SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
+import { aboveFloor, searchCompactIndex } from '../../lib/searchCompactIndex'
+import { RESULTS_PAGE, resultsHref, SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
 import { isSearchShortcut } from '../../lib/searchShortcut'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
@@ -116,8 +116,10 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const { ready, index, load } = useSearchIndex({ defer: true })
   // Each entity result is drawn from the index's slim model (no corpus).
   const models = useMemo(() => new Map(index.map((entry) => [entry.id, entry.model])), [index])
+  // The dropdown answers: what only mentions the query is left out once a result names it.
   const searchFn = useMemo(
-    () => (options: Parameters<typeof searchCompactIndex>[1]) => searchCompactIndex(index, options),
+    () => (options: Parameters<typeof searchCompactIndex>[1]) =>
+      aboveFloor(searchCompactIndex(index, options)),
     [index]
   )
   // Dropdown-open is DERIVED: open while a search has run, unless the user
@@ -125,6 +127,8 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   // produces a fresh results reference, which re-opens automatically —
   // mirroring the pre-hook behavior without a setState-in-effect.
   const [dismissedResults, setDismissedResults] = useState<unknown>(null)
+  // The results page's bar holds its query shut until the field is reached (RR6-02).
+  const [quiet, setQuiet] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   // What had the focus before the field took it (the shortcut, a Tab): Escape
@@ -172,7 +176,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     [load, handleInput]
   )
 
-  const isOpen = hasSearched && dismissedResults !== results
+  const isOpen = hasSearched && !quiet && dismissedResults !== results
 
   // An empty result's next step: the query with its slipped words put right,
   // where that finds something ("Did you mean").
@@ -205,15 +209,20 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   // The hero, and the bar on the Reference page, open on the address's query
   // (`/reference/?q=mule`), once, as if typed.
+  // The bar on the results page holds what was searched for, its list shut
+  // and the focus where it was, to refine it (RR6-02).
   const prefilled = useRef(false)
   useEffect(() => {
-    if (prefilled.current || !(hero || window.location.pathname === SEARCH_PAGE)) return
+    const onResults = !hero && window.location.pathname === RESULTS_PAGE
+    if (prefilled.current || !(hero || onResults || window.location.pathname === SEARCH_PAGE))
+      return
     prefilled.current = true
     const term = searchQuery(window.location.search)
     if (!term) return
     load()
     handleInput(term)
-    inputRef.current?.focus()
+    if (onResults) setQuiet(true)
+    else inputRef.current?.focus()
   }, [hero, load, handleInput])
 
   // Close dropdown when clicking outside
@@ -274,6 +283,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       onFocus={(e) => {
         load()
         setDismissedResults(null)
+        setQuiet(false)
         const from = e.relatedTarget
         if (from instanceof HTMLElement && !containerRef.current?.contains(from))
           fromRef.current = from

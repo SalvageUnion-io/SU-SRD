@@ -22,7 +22,8 @@ export type CompactSearchEntry = {
   /**
    * What a search result's Compact draws (entity display language, §7 "Search"):
    * the entity's model, slimmed to the Compact's parts — no prose, no lead (a
-   * result shows none, E11), no stat glossary — so the index stays small and
+   * result shows none, E11; a keyword's or trait's first sentence alone, the
+   * dropdown's line under its name, L5), no stat glossary — so the index stays small and
    * the browser still never loads the corpus.
    */
   model?: EntityFormModel

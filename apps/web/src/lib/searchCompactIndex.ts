@@ -94,3 +94,20 @@ export function searchCompactIndex(
   results.sort((a, b) => b.matchScore - a.matchScore)
   return limit && results.length > limit ? results.slice(0, limit) : results
 }
+
+/** The lowest literal name tier (`scoreSearchMatch`): a result at or over it names the query. */
+const NAMES_IT = 20
+
+/** Under it a result matched the query in its words alone (a rules kind's boost at most). */
+const RELEVANCE_FLOOR = 10
+
+/**
+ * The dropdown's relevance floor (SB6-28): once a result names the query, the
+ * ones that only say it somewhere in their words are left out ("pinning" is
+ * Pinning, never Retreat or Leviathan). With nothing named, every match stays:
+ * the words are the only answer there is.
+ */
+export function aboveFloor<R extends { matchScore: number }>(results: readonly R[]): R[] {
+  const named = results.some((result) => result.matchScore >= NAMES_IT)
+  return named ? results.filter((result) => result.matchScore >= RELEVANCE_FLOOR) : [...results]
+}

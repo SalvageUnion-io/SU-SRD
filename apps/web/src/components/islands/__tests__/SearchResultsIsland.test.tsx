@@ -49,6 +49,15 @@ describe('SearchResultsIsland (r5 E3)', () => {
     for (const kind of kinds) expect(headings.some((h) => h.includes(kind))).toBe(true)
   })
 
+  test('keeps the query in a field on the page, to refine it (RR6-02)', async () => {
+    await renderOn('?q=railgun%20damage')
+    const field = screen.getByRole('searchbox', {
+      name: 'Search the Reference',
+    }) as HTMLInputElement
+    expect(field.value).toBe('railgun damage')
+    expect(field.closest('form')?.getAttribute('action')).toBe('/search/')
+  })
+
   test('groups kinds in the order their best match ranks, a pattern under Patterns', () => {
     const groups = groupResults(searchCompactIndex(index, { query: 'ironmonger', limit: 200 }))
     expect(groups[0]?.kind).toBe('Patterns')
