@@ -11,7 +11,6 @@ const SEE_RULES = /\b(See rules for )([A-Z][\w-]*(?: [A-Z][\w-]*)*)(?=\.)/g
 
 /** The text with each resolving "See rules for X" marked as a `[[X]]` Mention. */
 export function linkSeeRules(text: string): string {
-  if (!text.includes('See rules for ')) return text
   return text.replace(SEE_RULES, (whole, lead: string, name: string) =>
     mentionRef(name) ? `${lead}[[${name}]]` : whole
   )
