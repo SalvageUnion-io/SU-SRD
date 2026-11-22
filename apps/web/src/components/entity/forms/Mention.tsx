@@ -14,17 +14,17 @@ export type MentionProps = {
   children: ReactNode
   /**
    * The link exists to take the reader somewhere (a list's row, Used by, Next
-   * and Previous): its first press opens the Page, and the Peek is hover's and
-   * focus's alone (E27). A term in a sentence leaves it off.
+   * and Previous): its Peek offers no Open page. Every link's press opens its
+   * Page; the Peek is hover's and focus's alone (E27).
    */
   goes?: boolean
 }
 
 /**
  * MENTION (entity display language, E4): an entity named in prose. The name in
- * the prose's own type (`InlineRef`), the Peek on hover, focus or a press, and
- * the Page on the next press or the Peek's Open page (E27). A Mention that is a
- * list's row or a way onward (`goes`) opens its Page on the first press.
+ * the prose's own type (`InlineRef`), the Peek on hover or focus, and the Page
+ * on a press or the Peek's Open page (E27). A Mention that is a list's row or
+ * a way onward (`goes`) is not a term: its Peek offers no Open page.
  *
  * Where it goes comes from the SURFACE: its route (`hrefFor`, the SRD) makes it
  * a link; else the Page opener (`openPage`, the app) makes it a button; else it is

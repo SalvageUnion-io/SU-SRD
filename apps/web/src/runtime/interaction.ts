@@ -16,8 +16,7 @@
  * - **Focus** that the mount dropped goes back to the same control.
  * - **A menu choice** (`<select>`, which has no `name` to carry it by) is
  *   chosen again on the same menu.
- * - **A press on a term** (a `trigger` island's `data-peek-press` link) is held
- *   and pressed again, so the Peek it opens is the host's to open.
+ * - **A press on a `trigger`** is never held: it is a link, and follows (E27).
  * - **Hover and focus on a `trigger`** are announced again, so a host that
  *   reacts to `pointerover` or `focusin` (the Peek) sees the one that woke it.
  *
@@ -36,13 +35,6 @@ const INTENT_EVENTS = ['pointerover', 'pointerdown', 'touchstart', 'focusin', 'k
 
 /** A press on one of these does nothing until the island listens, so it is held for the replay. */
 const PRESSABLE = 'button, [role="button"], [role="tab"], [role="switch"], summary'
-
-/**
- * A page-wide trigger whose press the host answers itself: a reference term's
- * link (`data-peek-press`, EDL E27), whose first plain press opens its Peek
- * rather than following it. Held like a button's until the host listens.
- */
-const HELD_TRIGGER = 'a[href][data-peek-press]'
 
 /** A child-index path from a root down to one element in it. */
 export type ElementPath = readonly number[]
@@ -83,8 +75,6 @@ export type PendingInteraction = {
   changes: { path: ElementPath; value: string }[]
   /** The page-wide trigger (`trigger` islands) whose hover or focus woke the island. */
   trigger: Element | null
-  /** The page-wide trigger whose press was held for the host (`HELD_TRIGGER`). */
-  triggerPress: Element | null
 }
 
 export type InteractionWatch = {
@@ -117,7 +107,6 @@ export function watchInteraction(
     focus: null,
     changes: [],
     trigger: null,
-    triggerPress: null,
   }
   let woken = false
 
@@ -140,19 +129,6 @@ export function watchInteraction(
 
   // Capture, so a press is held before anything else on the page sees it.
   const onClick = (event: Event) => {
-    if (trigger) {
-      // A plain pointer press on a term: the host's to answer. A press that
-      // asks for a new tab, and the keyboard's Enter (no pointer: `detail` 0),
-      // stay the link's own.
-      const term = aimedAt(event.target)?.closest(HELD_TRIGGER)
-      if (!term || !(event instanceof MouseEvent) || event.detail === 0 || event.button !== 0)
-        return
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-      event.preventDefault()
-      event.stopPropagation()
-      pending.triggerPress = term
-      return
-    }
     const aimed = aimedAt(event.target)
     const control = aimed?.closest(PRESSABLE)
     if (!control || !el.contains(control)) return
@@ -173,8 +149,8 @@ export function watchInteraction(
   const scope: Document | HTMLElement = trigger ? doc : el
   for (const type of INTENT_EVENTS)
     scope.addEventListener(type, onIntentEvent, { capture: true, passive: true })
-  if (trigger) doc.addEventListener('click', onClick, true)
-  else {
+  // A page-wide trigger is a link: its press is never held (E27).
+  if (!trigger) {
     el.addEventListener('click', onClick, true)
     el.addEventListener('change', onChange, true)
   }
@@ -182,8 +158,7 @@ export function watchInteraction(
   return {
     finish() {
       for (const type of INTENT_EVENTS) scope.removeEventListener(type, onIntentEvent, true)
-      if (trigger) doc.removeEventListener('click', onClick, true)
-      else {
+      if (!trigger) {
         el.removeEventListener('click', onClick, true)
         el.removeEventListener('change', onChange, true)
       }
@@ -222,13 +197,6 @@ export function replayInteraction(el: HTMLElement, pending: PendingInteraction):
   if (pending.press) {
     const control = elementAt(el, pending.press)
     if (control instanceof HTMLElement) control.click()
-  }
-  // A term's held press, pressed again: the host opens its Peek (and holds
-  // the link itself). Nothing else is announced; the press said it all.
-  const pressed = pending.triggerPress
-  if (pressed instanceof HTMLElement && pressed.isConnected) {
-    pressed.click()
-    return
   }
   const target = pending.trigger
   if (!target?.isConnected) return

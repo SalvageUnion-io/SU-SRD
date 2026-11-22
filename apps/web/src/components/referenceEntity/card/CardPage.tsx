@@ -295,9 +295,10 @@ export function CardPage({
               className="su-stat-column__stat"
             />
           )
-          // A stat is a term (E27): a press, hover or focus opens its glossary
-          // entry, or, where the glossary has none (Cargo Capacity), its
-          // meaning in the app's words: a `title` says nothing on a phone.
+          // A stat is a term (E27): hover or focus Peeks its glossary entry and
+          // a press opens it, or, where the glossary has none (Cargo Capacity),
+          // a press opens its meaning in the app's words: a `title` says
+          // nothing on a phone.
           const ref = factRef(stat)
           const term = ref ? undefined : statTerm(stat)
           return (
