@@ -22,7 +22,12 @@ export const mechCopy = messages({
     'No prefill — craft your Systems and Modules by hand in the next steps.',
   systems: 'Systems',
   modules: 'Modules',
-  scrapLeftOverGoesIntoHold: '{count} Scrap left over goes into the hold.',
+  scrapLeftOverGoesIntoHold:
+    '{count} Scrap left over goes into this Mech’s hold. Do not add it to the Union Crawler’s Scrap Pool as well.',
+  scrapLeftOverSplit:
+    '{count} Scrap left over: {stowed} goes into this Mech’s hold, which is then full (each Scrap takes one Cargo Slot, Core Book p.246). The other {banked} is for your Union Crawler’s Scrap Pool.',
+  scrapLeftOverForCrawler:
+    '{count} Scrap left over. The hold is full, so it is for your Union Crawler’s Scrap Pool.',
   sp: 'SP',
   ep: 'EP',
   heat: 'HEAT',

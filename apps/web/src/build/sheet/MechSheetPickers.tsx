@@ -9,6 +9,7 @@ import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { EntitySearcher } from '../../components/index'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import { mechScrap } from '../../lib/rules/mechScrap'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsStore } from '../../replica/units'
 import { choicesOf } from '../wizard/pickColumns'
@@ -55,6 +56,9 @@ export function MechSheetPickers({
   // The pickers open on the mech's Tech Level; a lettered one (Bio) shows all.
   const chassisTl = model.chassisEntity?.techLevel
   const techLevel = typeof chassisTl === 'number' ? chassisTl : undefined
+  // The build's running Scrap cost beside the slots, as the wizard's picker
+  // shows what is spent (r3 F3): the number an add moves.
+  const cost = { label: buildSheetCopy('costInScrap'), used: mechScrap(mech).total }
   return (
     <>
       <SheetPickerModal
@@ -86,6 +90,7 @@ export function MechSheetPickers({
               used: capacity.systemSlotsUsed,
               max: capacity.systemSlotsMax,
             },
+            cost,
             { label: buildSheetCopy('energy'), used: model.currentEP, max: maxEP },
           ]}
         />
@@ -119,6 +124,7 @@ export function MechSheetPickers({
               used: capacity.moduleSlotsUsed,
               max: capacity.moduleSlotsMax,
             },
+            cost,
             { label: buildSheetCopy('energy'), used: model.currentEP, max: maxEP },
           ]}
         />

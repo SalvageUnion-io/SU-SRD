@@ -19,6 +19,7 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { toast } from '../../../components/index'
@@ -256,6 +257,12 @@ describe('MechSheet — soft warnings on system removal', () => {
     )
 
     await click(/^Manage systems$/i)
+    // The Installed pane reads the build's running Scrap cost beside the slots (r3 F3).
+    const installed = screen.getByRole('region', { name: /^Installed/i })
+    const cost = within(installed).getByText('Cost in Scrap').closest('.su-stat-cell')
+    expect(cost?.textContent).toBe(
+      `Cost in Scrap${SalvageUnionReference.Systems.getBySlug('smoke-machine')?.salvageValue}`
+    )
     // Removing is the rail's ✕.
     await act(async () => {
       fireEvent.click(

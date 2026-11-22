@@ -59,7 +59,7 @@ export function MechShelf({
       [buildShelvesCopy('tl')]: figures.techLevel ?? '',
       [buildShelvesCopy('sys')]: figures.systems,
       [buildShelvesCopy('mod')]: figures.modules,
-      [buildShelvesCopy('scrap')]: figures.scrap > 0 ? figures.scrap : '',
+      [buildShelvesCopy('cost')]: figures.scrap > 0 ? figures.scrap : '',
       [VITAL.sp]: read(r, VITAL.sp),
       [VITAL.ep]: read(r, VITAL.ep),
       [VITAL.heat]: read(r, VITAL.heat),

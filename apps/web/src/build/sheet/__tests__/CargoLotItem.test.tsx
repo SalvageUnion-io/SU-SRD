@@ -51,7 +51,7 @@ const relic: CargoLot = {
   code: 'CIR',
 }
 
-type Move = { move: 'stow' | 'load'; lotId: string }
+type Move = { move: 'stow' | 'load' | 'takeBack'; lotId: string }
 
 function cargoWith({
   free = 10,
@@ -75,6 +75,11 @@ function cargoWith({
       moves.push({ move: 'load', lotId })
       return answer()
     },
+    takeBack: async (lot: CargoLot) => {
+      moves.push({ move: 'takeBack', lotId: lot.id })
+      return answer()
+    },
+    carrierId: 'mech-1',
   } as unknown as UseCargoResult
   return { cargo, moves }
 }
@@ -244,6 +249,13 @@ describe("the mech hold's lot", () => {
     expect(stow.textContent).toBe('Stow')
     await click(stow)
     expect(moves).toEqual([{ move: 'stow', lotId: 'lot-scrap' }])
+    // It says it moved, and Undo takes it back (r3 F1).
+    expect(await screen.findByText('Stowed T2 Scrap on the Union Crawler.')).toBeTruthy()
+    await click(screen.getByRole('button', { name: 'Undo' }))
+    expect(moves).toEqual([
+      { move: 'stow', lotId: 'lot-scrap' },
+      { move: 'takeBack', lotId: 'lot-scrap' },
+    ])
   })
 
   test('with no crawler linked, Stow is closed and says why; Unload still works', async () => {

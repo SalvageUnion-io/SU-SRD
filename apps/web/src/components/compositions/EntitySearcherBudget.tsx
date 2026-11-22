@@ -1,7 +1,8 @@
 /**
  * `EntitySearcher`'s soft budgets: one label-first `Stat` chip per budget
  * (`INVENTORY SLOTS | 4/6`), its frame the status colour when over. Honest over
- * capacity, and never blocking a pick.
+ * capacity, and never blocking a pick. A total with no cap reads alone
+ * (`COST | 21`).
  */
 
 import { Stat } from '../atoms/Stat'
@@ -14,8 +15,8 @@ export function BudgetChips({ budgets }: { budgets: BudgetConfig[] }) {
       size="mini"
       label={b.label}
       value={b.used}
-      max={b.max}
-      state={b.used > b.max ? 'critical' : undefined}
+      {...(b.max === undefined ? {} : { max: b.max })}
+      state={b.max !== undefined && b.used > b.max ? 'critical' : undefined}
     />
   ))
 }

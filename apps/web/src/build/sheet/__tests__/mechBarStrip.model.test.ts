@@ -12,6 +12,8 @@ describe('mechBarStrip', () => {
     const strip = mechBarStrip({ building: true, mech, vitals, cargo })
     expect(strip.map((item) => item.key)).toEqual(['systemSlots', 'moduleSlots', 'scrap', 'cargo'])
     expect(strip[2]?.value).toBeGreaterThan(0)
+    // Cost, so it cannot be read as the Scrap in the hold beside it (r3 F2).
+    expect(strip[2]?.label).toBe('Cost')
     expect(strip[0]?.max).toBeGreaterThan(0)
   })
 
