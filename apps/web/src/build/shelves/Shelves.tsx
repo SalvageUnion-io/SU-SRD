@@ -367,7 +367,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
       line={(p, over) => ({
         // Over its slots it wears the Mechs shelf's mark (r3 I2); its one act is on the row (r3 L5).
         under: over === undefined ? undefined : <RuleBreakMark what={over} />,
-        act: buildFromPattern(p, { go, confirm, canWrite }),
+        act: buildFromPattern(p, { go, canWrite }),
         menu: patternMenu(p),
       })}
     />

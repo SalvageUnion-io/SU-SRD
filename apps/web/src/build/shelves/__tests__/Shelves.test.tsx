@@ -511,12 +511,12 @@ describe('Patterns', () => {
     )
   })
 
-  test('Build With This asks once, makes the mech and lands on it (r2 G5, r3 L5)', async () => {
+  test('Build With This makes the mech in one press and lands on it (r4 E23)', async () => {
     await renderShelves()
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Build With This: Brawler' }))
     })
-    await confirmDialog('Build')
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     await settle(() => assigned.length > 0)
     const built = useUnits.getState().mechs.find((m) => m.name === 'Brawler')
     expect(built?.chassisRef).toBe('titan')

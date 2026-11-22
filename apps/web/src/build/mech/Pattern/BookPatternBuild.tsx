@@ -2,19 +2,18 @@
  * BookPatternBuild — the New Mech screen's book patterns: pick a chassis, then
  * one of the patterns it prints, and build the mech as printed. Every pattern
  * of every chassis is here, whatever its Tech Level; one past the starting
- * budget says so and asks before it builds (a Blank-family shortcut, as a
- * saved pattern's Build With This). A Reference pattern page's Build With
- * This lands here with its pattern picked (`?chassis=&pattern=`) and its one
- * confirm already open: the press on the page was the choice, so there is one
- * more to make, not two (r2 D4). The new mech's name is numbered past the
- * names in the bay, and the build says what it made.
+ * budget says so beside its totals and in the notice (a Blank-family shortcut,
+ * as a saved pattern's Build With This). One press builds, and the notice has
+ * Undo (r4 E23). A Reference pattern page's Build With This lands here with
+ * its pattern picked (`?chassis=&pattern=`) and this button focused: nothing
+ * is built by opening a link, so there is one more press to make, in sight.
+ * The new mech's name is numbered past the names in the bay.
  */
 
 import { moveTo } from 'game-domain/container'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { ConfirmDialog } from '../../../components/app'
 import { Button, Field, Select, Stat, Text, tokens } from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import {
@@ -30,7 +29,7 @@ import { mechCopy } from '../../../messages/build-mech'
 import { useSync } from '../../../replica/syncContext'
 import { useUnits } from '../../../replica/units'
 import { SaveSignInDialog } from '../../wizard/SaveSignInDialog'
-import { buildConfirmBody, builtToast, mechNamesTaken } from './buildConfirm.model'
+import { builtToast, mechNamesTaken } from './buildConfirm.model'
 
 const STACK = {
   display: 'flex',
@@ -66,8 +65,14 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
   const pool = chassisWithPatterns()
   const [chassisSlug, setChassisSlug] = useState(chassis ?? '')
   const [patternSlug, setPatternSlug] = useState(pattern ?? '')
-  // A deep link that names a pattern opens on its confirm.
-  const [confirming, setConfirming] = useState(bookPattern(chassis, pattern) !== undefined)
+  // A deep link that names a pattern lands on its Build With This, in view.
+  const linked = bookPattern(chassis, pattern) !== undefined
+  const act = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (!linked) return
+    act.current?.focus()
+    act.current?.scrollIntoView?.({ block: 'center' })
+  }, [linked])
   const [askSignIn, setAskSignIn] = useState(false)
   const picked = pool.find((c) => nameToSlug(c.name) === chassisSlug)
   const patterns = picked ? bookPatternsOf(picked) : []
@@ -93,15 +98,14 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
   async function run() {
     const result = await build.run()
     if (!result.ok) return
-    builtToast(result.value.name)
+    builtToast(result.value, !starting)
     onBuilt(result.value.id)
   }
 
   function ask() {
     // Signed out, the pick is kept in the address and asked for again after sign-in.
     if (signedOut) return setAskSignIn(true)
-    if (starting) return void run()
-    setConfirming(true)
+    void run()
   }
 
   return (
@@ -147,6 +151,7 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
         </div>
         {/* Full, the height of the two fields it stands beside (§4.7). */}
         <Button
+          ref={act}
           type="button"
           variant="primary"
           size="full"
@@ -169,15 +174,6 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
           {!starting && <Stat size="mini" label={mechCopy('notAStartingBuild')} />}
         </div>
       )}
-      <ConfirmDialog
-        // Signed out there is nothing to confirm yet: the press asks for the account.
-        open={confirming && input !== undefined && !signedOut}
-        onOpenChange={setConfirming}
-        title={mechCopy('buildAMechFrom', { name: chosen?.name ?? '' })}
-        body={buildConfirmBody({ book: true, past: !starting })}
-        confirmLabel={mechCopy('build')}
-        onConfirm={() => void run()}
-      />
       {/* Nothing was edited here: the ask names the choice, kept in the address. */}
       <SaveSignInDialog
         open={askSignIn}

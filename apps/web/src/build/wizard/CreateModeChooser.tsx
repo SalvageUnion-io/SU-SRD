@@ -3,8 +3,9 @@
  *
  * Doors under the page's ChapterBand, each the house `TitledBox` headed h2. A
  * mech's first door is FROM A PATTERN (ADR-066 §4: chassis, then a pattern,
- * then a mech): your saved patterns, each with its Build With This; with none
- * saved yet it is the last door, its empty state under the other two. Then GUIDED
+ * then a mech): the book's patterns, then your saved ones, each with its Build
+ * With This. It is first whether or not you have saved one, so the page keeps
+ * one order (r4 E23). Then GUIDED
  * (primary — the existing step wizard), headed in the kind's tone, and BLANK
  * (the escape hatch — an empty sheet, no steps, no limits), headed in ink.
  * A mech built for a pilot (`?pilot=`) says so above the doors.
@@ -16,7 +17,6 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { Button, ChapterBand, Slab, Text, TitledBox, tokens } from '../../components/index'
 import { clearWizardDraft, readWizardDraft, wizardDraftKey } from '../../lib/wizard/wizardDraft'
-import { usePatterns } from '../../replica/collections'
 import { BookPatternBuild } from '../mech/Pattern/BookPatternBuild'
 import { PatternList } from '../mech/Pattern/PatternList'
 import { WizardGameChip } from './WizardGameChip'
@@ -95,11 +95,8 @@ export function CreateModeChooser({
 }: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]
   const guided = GUIDED_COPY[kind]
-  // With no pattern saved yet, the pattern door's empty state waits under the
-  // other two rather than push Guided below the fold.
   // Read as the chooser draws: the draft is this tab's session's.
   const hasDraft = readWizardDraft(wizardDraftKey(kind)) !== null
-  const hasPatterns = usePatterns((s) => s.hydrated && s.mechPatterns.length > 0)
   const patterns = kind === 'mech' && (
     <div style={patternDoor}>
       <TitledBox title={buildWizardCopy('fromAPattern')} titleAs="h2" tone="mech">
@@ -152,7 +149,7 @@ export function CreateModeChooser({
           </Text>
         )}
         <div className="su-wiz-chooser-doors">
-          {(hasPatterns || book?.pattern !== undefined) && patterns}
+          {patterns}
           <TitledBox title={buildWizardCopy('guided')} titleAs="h2" tone={kind}>
             <p style={doorText}>{guided.body}</p>
             <p style={doorCite}>{guided.cite}</p>
@@ -182,7 +179,6 @@ export function CreateModeChooser({
               {buildWizardCopy('startBlank')}
             </Button>
           </TitledBox>
-          {!hasPatterns && book?.pattern === undefined && patterns}
         </div>
       </div>
     </section>
