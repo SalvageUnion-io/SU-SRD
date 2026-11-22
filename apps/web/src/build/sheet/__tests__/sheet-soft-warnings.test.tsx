@@ -218,7 +218,7 @@ describe('PilotSheet — advancing says what it breaks (r2 E4, r3 B5)', () => {
     expect(captured).toHaveLength(1)
   })
 
-  test('an unmet tree requirement is said on the bar, and still added, with Undo', async () => {
+  test('an unmet tree requirement is said on the bar; only Add anyway adds it, with Undo (r5 C1)', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot({ abilities: [], trainingPoints: 3 })
     render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
@@ -229,19 +229,44 @@ describe('PilotSheet — advancing says what it breaks (r2 E4, r3 B5)', () => {
         /level 1 and 2 of that tree haven't been taken/
       )
     ).toBeTruthy()
+    // The book does not sell it yet: Spend is off, Add anyway the one way in.
+    expect(bar.getByRole('button', { name: 'Spend 1 TP and add' })).toHaveProperty('disabled', true)
 
     await act(async () => {
-      fireEvent.click(bar.getByRole('button', { name: 'Spend 1 TP and add' }))
+      fireEvent.click(bar.getByRole('button', { name: 'Add anyway (rule breaking)' }))
     })
-    expect(captured[0]?.patch).toMatchObject({
-      abilities: ['mech-acquisition'],
-      trainingPoints: 2,
-    })
-    // Undo gives the Training Point back with the ability.
+    expect(captured[0]?.patch).toMatchObject({ abilities: ['mech-acquisition'] })
+    expect(captured[0]?.patch).not.toHaveProperty('trainingPoints')
     await act(async () => {
       breakLine(pilot.id)?.action.onClick({})
     })
-    expect(captured[1]?.patch).toMatchObject({ abilities: [], trainingPoints: 3 })
+    expect(captured[1]?.patch).toMatchObject({ abilities: [] })
+  })
+
+  test('an ability bought in this visit and taken back gives its TP back (r5 C1)', async () => {
+    const captured: CapturedUpdate[] = []
+    const pilot = makePilot({ abilities: [ABILITY_L1_SLUG], trainingPoints: 1 })
+    const store = makeCaptureStore('pilot', pilot, captured)
+    const { rerender } = render(<PilotSheet pilot={pilot} store={store} />)
+
+    const bar = await focusAbility(ABILITY_L2)
+    await act(async () => {
+      fireEvent.click(bar.getByRole('button', { name: 'Spend 1 TP and add' }))
+    })
+    expect(captured[0]?.patch).toMatchObject({ trainingPoints: 0 })
+    const bought = { ...pilot, ...captured[0]?.patch } as Pilot
+    rerender(<PilotSheet pilot={bought} store={store} />)
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: new RegExp(`^Remove ${ABILITY_L2}$`, 'i'),
+        })
+      )
+    })
+    expect(captured[1]?.patch).toMatchObject({
+      abilities: [ABILITY_L1_SLUG],
+      trainingPoints: 1,
+    })
   })
 })
 

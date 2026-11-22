@@ -30,6 +30,8 @@ export type FacetConfig = {
   traits?: boolean
   /** A schema-specific categorical facet (e.g. ability `tree`, NPC `damageType`). */
   category?: { label: string; of: (item: EntityLike) => string | undefined }
+  /** The list's order where TL then name is not the book's (abilities by tree, r5 C1). */
+  order?: (a: EntityLike, b: EntityLike) => number
 }
 
 export type BudgetConfig = {
