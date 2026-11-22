@@ -68,6 +68,20 @@ describe('running an encounter', () => {
   })
 })
 
+describe('the order it was prepped in (MD3-05)', () => {
+  test('an encounter arrives in its own order, however its ids sort', () => {
+    const { room } = table()
+    const names = Array.from({ length: 12 }, (_, i) => `Unit ${String.fromCharCode(76 - i)}`)
+    const prepped = {
+      ...encounter,
+      opposition: names.map((name, i) => ({ ...encounter.opposition[0], id: `o${i}`, name })),
+    }
+    room.opposition.runEncounter(MEDIATOR, prepped, { clear: false }, AT)
+    expect(room.opposition.tray(MEDIATOR).map((n) => n.name)).toEqual(names)
+    expect(room.opposition.trayRecords(MEDIATOR).map((r) => r.body.name)).toEqual(names)
+  })
+})
+
 describe('waves and groups', () => {
   const grouped = {
     ...encounter,

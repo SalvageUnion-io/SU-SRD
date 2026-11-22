@@ -361,7 +361,7 @@ export class GameRoster {
         return { to, parcel }
       })
       const npcs = this.store
-        .rows('select body from tray order by added_at, id')
+        .rows('select body from tray order by added_at, rowid')
         .map((row) => fromJson<Record<string, unknown>>(row.body))
       return { deliveries, tray: { to: actor, npcs } }
     })

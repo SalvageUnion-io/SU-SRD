@@ -1,4 +1,10 @@
-import { runningFrom, splitWaves, trayNpcsFor, waveOf } from 'game-domain/games/encounters'
+import {
+  preppedOrder,
+  runningFrom,
+  splitWaves,
+  trayNpcsFor,
+  waveOf,
+} from 'game-domain/games/encounters'
 import type { RunningEncounter } from 'game-domain/schemas/encounter'
 import { EncounterSchema, RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { EncounterNpcSchema, MediatorRollResultSchema } from 'game-domain/schemas/encounterNpc'
@@ -48,7 +54,7 @@ export class GameOpposition {
     const member = this.store.member(actor)
     if (member === null || !member.mediator) return []
     return this.store
-      .rows('select body from tray order by added_at, id')
+      .rows('select body from tray order by added_at, rowid')
       .map((row) => fromJson<Record<string, unknown>>(row.body))
   }
 
@@ -59,7 +65,7 @@ export class GameOpposition {
     const member = this.store.member(actor)
     if (member === null || !member.mediator) return []
     return this.store
-      .rows('select id, body, updated_at from tray order by added_at, id')
+      .rows('select id, body, updated_at from tray order by added_at, rowid')
       .map((row) => ({
         appId: String(row.id),
         body: fromJson<Record<string, unknown>>(row.body),
@@ -198,7 +204,7 @@ export class GameOpposition {
       const waves = options.waves === true ? splitWaves(parsed) : null
       const fielded = waves
         ? trayNpcsFor(waves.first, this.names(), now, parsed.groups ?? [])
-        : trayNpcsFor(parsed.opposition, this.names(), now)
+        : trayNpcsFor(preppedOrder(parsed), this.names(), now)
       for (const npc of fielded) this.insert(TrayBodySchema.parse(npc), at)
       this.putRunning(runningFrom(parsed, now, waves ? { held: waves.held } : undefined))
       return { added: fielded.length }
