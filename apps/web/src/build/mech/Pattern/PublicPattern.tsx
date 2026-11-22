@@ -43,6 +43,7 @@ import {
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { chapterForSchema } from '../../../lib/chapters'
 import { playerMessage } from '../../../lib/connection/useServerAction'
+import { madeToast } from '../../../lib/copiedToast'
 import { hereInApp } from '../../../lib/hereInApp'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import { areaTitle } from '../../../lib/pageTitle'
@@ -54,9 +55,11 @@ import {
   pastStartingRules,
   patternChassis,
   patternCopy,
+  savedPatternHref,
 } from '../../../lib/patterns/patterns'
 import { useTabTitle } from '../../../lib/useTabTitle'
 import { mechCopy } from '../../../messages/build-mech'
+import { componentsCopy } from '../../../messages/components'
 import { routesCopy } from '../../../messages/routes'
 import { PatternLoadout } from '../../../reference/PatternLoadout'
 import { usePatterns } from '../../../replica/collections'
@@ -171,8 +174,17 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   async function copy() {
     setBusy('copy')
     try {
-      await usePatterns.getState().create(patternCopy(pattern))
-      toast.success(mechCopy('copiedToYourTrainingBay', { name: pattern.name }))
+      const created = await usePatterns.getState().create(patternCopy(pattern))
+      // The way to the copy rides its line (r5 C12).
+      madeToast(
+        mechCopy('copiedToYourTrainingBay', { name: pattern.name }),
+        componentsCopy('openTheCopy'),
+        {
+          href: savedPatternHref(created.id),
+          exists: () => usePatterns.getState().mechPatterns.some((held) => held.id === created.id),
+        },
+        (href) => void navigate({ to: href } as never)
+      )
     } catch (err) {
       toast.error(playerMessage(err) ?? mechCopy('thePatternCouldNotBe'))
     } finally {

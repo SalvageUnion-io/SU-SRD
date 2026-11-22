@@ -6,16 +6,19 @@
  * dated backup file). Two rare acts behind one control, so the band's line
  * is the page's name.
  *
- * What either left behind (what an import created and skipped, why a file
- * was refused, a download that failed) goes to the caller's status line
- * (`onResult`; null clears it) and a toast. The file input resets after each
+ * What an import added is a toast that opens the first sheet it added (r5
+ * C12); why a file was refused, or a download failed, goes to the caller's
+ * status line (`onResult`; null clears it) and a toast. The file input resets after each
  * import, so the same file can be chosen again after a partial failure.
  */
 
+import { sheetPath } from 'game-domain/entityKinds'
 import { useRef } from 'react'
 import { HeaderMenu, toast } from '../../components/index'
+import { useGo } from '../../components/shared/useGo'
 import { useMyPerson } from '../../lib/auth/session'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { madeToast } from '../../lib/copiedToast'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import type { MergeSummary } from '../../lib/export/mergeImport'
@@ -23,13 +26,6 @@ import { mergeImport } from '../../lib/export/mergeImport'
 import { ImportRefused, parseImportBundle } from '../../lib/export/parseImportBundle'
 import { buildExportCopy } from '../../messages/build-export'
 import { ownUnits, useUnits } from '../../replica/units'
-
-/** The line an import leaves behind: what came in, and what was skipped. */
-function summaryText(summary: MergeSummary): string {
-  return `Imported: ${summary.created.pilots} pilot(s), ${summary.created.mechs} mech(s), ${summary.created.crawlers} crawler(s), ${summary.created.softLinks} link(s).${
-    summary.skippedDuplicates > 0 ? ` Skipped ${summary.skippedDuplicates} duplicate(s).` : ''
-  }`
-}
 
 /**
  * What an import says as it lands, in sheets (r4 E20): how many it added, and
@@ -55,6 +51,7 @@ type BackupMenuProps = {
 
 export function BackupMenu({ canImport, onResult }: BackupMenuProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const go = useGo()
   const me = useMyPerson()
 
   const importFile = useServerAction(
@@ -91,9 +88,22 @@ export function BackupMenu({ canImport, onResult }: BackupMenuProps) {
     if (!result.ok) return refuse(result.error)
     const merged = result.value
     const said = importToast(merged)
-    // With nothing added the one line says why; else the status line counts what came in.
-    onResult(said === buildExportCopy('importAlreadyHere') ? said : summaryText(merged))
-    toast.success(said)
+    // The result is the toast (r5 C12), with the way to the first sheet it
+    // added; the status line is for a refusal.
+    const { first } = merged
+    if (!first) {
+      toast.success(said)
+      return
+    }
+    madeToast(
+      said,
+      buildExportCopy('openImported', { name: first.name }),
+      {
+        href: sheetPath(first.type, first.id),
+        exists: () => useUnits.getState().get(first.type, first.id) !== null,
+      },
+      go
+    )
   }
 
   async function handleExportAll() {

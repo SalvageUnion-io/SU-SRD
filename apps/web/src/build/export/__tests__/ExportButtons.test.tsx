@@ -13,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useState } from 'react'
 import { FIXTURE_NOW, pilotFixture } from '../../../components/__tests__/fixtures'
+import { toast } from '../../../components/index'
 import type { ExportBundle } from '../../../lib/schemas/exportBundle'
 import { resetStores } from '../../../replica/__tests__/resetStores'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
@@ -132,7 +133,12 @@ describe('BackupMenu — Import', () => {
     fireEvent.change(input, { target: { files: [file] } })
   }
 
-  test('a valid backup lands in the store and says what it created', async () => {
+  type Line = { title?: unknown; action?: { label: string } }
+  const lines = () =>
+    toast.getToasts().filter((t) => !('dismiss' in t && t.dismiss)) as unknown as Line[]
+
+  test('a valid backup lands in the store and says what it created, in a toast that opens it (r5 C12)', async () => {
+    toast.dismiss()
     const bundle: ExportBundle = {
       schemaVersion: 2,
       exportedAt: FIXTURE_NOW,
@@ -150,7 +156,13 @@ describe('BackupMenu — Import', () => {
 
     choose(JSON.stringify(bundle))
 
-    await waitFor(() => expect(screen.getByText(/Imported: 1 pilot\(s\)/)).toBeTruthy())
+    await waitFor(() =>
+      expect(lines().some((t) => t.title === 'Import complete: 1 sheet added.')).toBe(true)
+    )
+    expect(lines().find((t) => t.action)?.action?.label).toBe('Open Imported')
+    // The result is the toast; the line above the title is for a refusal.
+    expect(screen.getByRole('status').textContent).toBe('')
+    toast.dismiss()
     // A copy earns a new id (see apps/web/src/routes/CLAUDE.md), so match on the name.
     expect(
       useUnits
@@ -181,11 +193,15 @@ describe('BackupMenu — Import', () => {
 
     choose(JSON.stringify(bundle))
 
+    toast.dismiss()
     await waitFor(() =>
-      expect(screen.getByRole('status').textContent).toBe(
-        'Nothing to import: every sheet in that backup is already here.'
-      )
+      expect(
+        lines().some(
+          (t) => t.title === 'Nothing to import: every sheet in that backup is already here.'
+        )
+      ).toBe(true)
     )
+    toast.dismiss()
     expect(useUnits.getState().list('pilot')).toHaveLength(1)
   })
 

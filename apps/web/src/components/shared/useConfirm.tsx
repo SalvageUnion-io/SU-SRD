@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import type { ConfirmCopy } from '../../lib/games/rowActionCopy'
 import { ConfirmDialog } from '../app'
+import { toast } from '../containers/toast'
 
 /**
  * One confirm dialog for a whole surface, opened imperatively.
@@ -60,7 +61,11 @@ export function useConfirm(): { confirm: Confirm; dialog: ReactNode } {
         confirmLabel={request.confirmLabel}
         pendingLabel={request.pendingLabel}
         tone={request.tone}
-        onConfirm={request.onConfirm}
+        onConfirm={async () => {
+          await request.onConfirm()
+          // What it did, once it is done (r5 C12): "Deleted Scuttler."
+          if (request.done) toast.success(request.done)
+        }}
         {...(request.alternate ? { alternate: request.alternate } : {})}
         describeError={(err) => failureMessage(err, request.failure)}
       />
