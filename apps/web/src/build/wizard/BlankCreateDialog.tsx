@@ -3,7 +3,7 @@
  * optional escape-valve pick) for a Blank create, then persists via
  * createBlank and hands the new id back to the route.
  *
- *   Pilot:   Name*, Callsign*, optional class (UNFILTERED — all classes
+ *   Pilot:   Name*, Callsign (blank: the Name, r6 F5), optional class (UNFILTERED — all classes
  *            including specialisations).
  *   Mech:    optional chassis, in the Ledger picker (UNFILTERED — any Tech
  *            Level, no scrap cost); its name can wait for the sheet.
@@ -23,6 +23,7 @@ import { Button, Field, Input, ModalShell, Select } from '../../components/index
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { readReference } from '../../lib/readReference'
 import { createBlank } from '../../lib/wizard/blankCreate'
+import { storedCallsign } from '../../lib/wizard/pilotFormState'
 import '../../styles/build/wizard.css'
 import { mechCopy } from '../../messages/build-mech'
 import { buildWizardCopy } from '../../messages/build-wizard'
@@ -100,14 +101,10 @@ export function BlankCreateDialog({
   const tlOptions = useMemo(() => (kind === 'crawler' ? techLevelOptions() : []), [kind])
 
   // A mech's name can wait for the sheet: it starts as its chassis's, or unnamed.
-  const canSubmit =
-    kind === 'mech' || (name.trim() !== '' && (kind !== 'pilot' || callsign.trim() !== ''))
-  // A disabled Create says what it waits for (MD4-22), the name before the callsign.
-  const missing = canSubmit
-    ? null
-    : name.trim() === ''
-      ? buildWizardCopy('addANameToCreate')
-      : buildWizardCopy('addACallsignToCreate')
+  // A blank Callsign is the Name (r6 F5).
+  const canSubmit = kind === 'mech' || name.trim() !== ''
+  // A disabled Create says what it waits for (MD4-22).
+  const missing = canSubmit ? null : buildWizardCopy('addANameToCreate')
   const mechName = (pick: string) =>
     name.trim() ||
     (pick !== '' ? SalvageUnionReference.Chassis.getBySlug(pick)?.name : undefined) ||
@@ -121,7 +118,7 @@ export function BlankCreateDialog({
           'pilot',
           {
             name: name.trim(),
-            callsign: callsign.trim(),
+            callsign: storedCallsign(callsign, name),
             ...(refPick !== '' ? { classRef: refPick } : {}),
           },
           { gameId }
@@ -201,13 +198,13 @@ export function BlankCreateDialog({
         </Field>
 
         {kind === 'pilot' && (
-          <Field label={buildWizardCopy('callsign')} required htmlFor="blank-pilot-callsign">
+          <Field label={buildWizardCopy('callsign')} htmlFor="blank-pilot-callsign">
             <Input
               id="blank-pilot-callsign"
               value={callsign}
               onChange={(e) => setCallsign(e.target.value)}
               onKeyDown={createOnEnter}
-              placeholder={buildWizardCopy('callsign')}
+              placeholder={name.trim() || buildWizardCopy('callsign')}
               autoComplete="off"
             />
           </Field>

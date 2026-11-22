@@ -352,7 +352,7 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
 })
 
 describe('BlankCreateDialog — blank pilot create', () => {
-  test('requires name + callsign, then persists a schema-valid pilot and reports its id', async () => {
+  test('requires a name (a blank callsign is it), then persists a schema-valid pilot', async () => {
     const created: string[] = []
     render(
       <NewEntityScreen
@@ -364,13 +364,13 @@ describe('BlankCreateDialog — blank pilot create', () => {
       />
     )
 
-    // The disabled Create says what it waits for (MD4-22): the name, then the callsign.
+    // The disabled Create says what it waits for (MD4-22): the name alone (r6 F5).
     const submit = screen.getByRole('button', { name: 'Add a name to create' })
     expect((submit as HTMLButtonElement).disabled).toBe(true)
 
     fireEvent.change(screen.getByLabelText(/^name/i), { target: { value: 'Juno Vale' } })
-    expect(submit.textContent).toBe('Add a callsign to create')
-    expect((submit as HTMLButtonElement).disabled).toBe(true)
+    expect(submit.textContent).toBe('Create Pilot')
+    expect(screen.getByPlaceholderText('Juno Vale')).toBeTruthy()
     fireEvent.change(screen.getByLabelText(/callsign/i), { target: { value: 'Nomad' } })
     expect(submit.textContent).toBe('Create Pilot')
     expect((submit as HTMLButtonElement).disabled).toBe(false)
@@ -386,7 +386,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
   })
 
   // MD3-04: Enter in a blank dialog's field is its Create.
-  test('Enter in the name creates a blank crawler; a pilot waits for its callsign', async () => {
+  test('Enter in the name creates a blank crawler, and a pilot whose blank callsign is its name', async () => {
     const created: string[] = []
     const first = render(
       <NewEntityScreen
@@ -415,12 +415,11 @@ describe('BlankCreateDialog — blank pilot create', () => {
       />
     )
     const pilotName = screen.getByLabelText(/^name/i)
+    // A blank callsign is the name (r6 F5): Enter in the name creates the pilot.
     fireEvent.change(pilotName, { target: { value: 'Juno Vale' } })
     fireEvent.keyDown(pilotName, { key: 'Enter' })
-    fireEvent.change(screen.getByLabelText(/callsign/i), { target: { value: 'Nomad' } })
-    fireEvent.keyDown(pilotName, { key: 'Enter' })
     await waitFor(() => expect(created.length).toBe(2))
-    expect(useUnits.getState().get('pilot', created[1] as string)?.callsign).toBe('Nomad')
+    expect(useUnits.getState().get('pilot', created[1] as string)?.callsign).toBe('Juno Vale')
   })
 
   test('class pick is UNFILTERED — every class incl. specialisations is offered', () => {

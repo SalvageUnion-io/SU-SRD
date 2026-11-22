@@ -139,10 +139,11 @@ describe('pilotCreationStepGate', () => {
     ).toBe(false)
   })
 
-  it('callsign: both Name and Callsign must be non-empty', () => {
-    const missing = pilotCreationStepGate('callsign', { ...legalForm(), callsign: '  ' })
+  it('callsign: only the Name is needed; a blank Callsign is the Name (r6 F5)', () => {
+    const missing = pilotCreationStepGate('callsign', { ...legalForm(), name: '  ' })
     expect(missing.ok).toBe(false)
-    expect(missing.reason).toBe('Enter a Name and Callsign to continue')
+    expect(missing.reason).toBe('Enter a Name to continue')
+    expect(pilotCreationStepGate('callsign', { ...legalForm(), callsign: '  ' }).ok).toBe(true)
     expect(pilotCreationStepGate('callsign', legalForm()).ok).toBe(true)
   })
 
