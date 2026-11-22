@@ -10,6 +10,7 @@ export const playCopy = messages({
   cancel: 'Cancel',
   chosen: 'Chosen',
   usedAction: 'Used {name}',
+  undoOf: 'Undo · {name}',
   cancel2: 'Cancel {name}',
   actionDone: 'Done',
   actionDone2: 'Done with {name}',
