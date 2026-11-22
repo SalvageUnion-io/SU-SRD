@@ -127,6 +127,8 @@ type WizShellProps = {
    * the reason's press lands on it, not on the reason at the step's foot.
    */
   noteTargetId?: string | undefined
+  /** A field the step opens on instead of its heading: its one ask (the NPC's name, r6 B3). */
+  focusId?: string | undefined
 }
 
 const STEP_NOTE_ID = 'wiz-step-note'
@@ -374,6 +376,7 @@ export function WizShell({
   keepAsFile,
   prompt,
   noteTargetId,
+  focusId,
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   // Every step opens at the top with focus on its heading (WCAG 2.4.3), the
@@ -385,8 +388,9 @@ export function WizShell({
     if (shownStep.current === active) return
     shownStep.current = active
     window.scrollTo(0, 0)
-    headingRef.current?.focus({ preventScroll: true })
-  }, [active])
+    const field = focusId === undefined ? null : document.getElementById(focusId)
+    ;(field ?? headingRef.current)?.focus({ preventScroll: true })
+  }, [active, focusId])
   const isLast = active >= steps.length - 1
   // From sm the Next names its step in words ("Next: Systems & modules").
   // A redesign saves from any step; its Next is a ghost beside Back.
