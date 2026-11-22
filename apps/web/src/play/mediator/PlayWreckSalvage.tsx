@@ -157,11 +157,13 @@ export function PlayWreckSalvage({
                   )
                 }
               >
-                {mediatorCopy('wreckPart', {
-                  name: part.name,
-                  tl: part.techLevel ?? '?',
-                  sv: Math.max(1, part.salvageValue),
-                })}
+                {part.salvageValue <= 1
+                  ? mediatorCopy('wreckPartOne', { name: part.name, tl: part.techLevel ?? '?' })
+                  : mediatorCopy('wreckPart', {
+                      name: part.name,
+                      tl: part.techLevel ?? '?',
+                      sv: part.salvageValue,
+                    })}
               </Toggle>
             ))}
           </div>

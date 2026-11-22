@@ -167,6 +167,9 @@ export const playCopy = messages({
   noMech: 'No Mech',
   joinWithALink: 'Join with a link',
   joinAGame: 'Join a Game',
+  joinSignedOut:
+    'An invite link is opened from the message it came in: press it there. Joining a Game needs a sign-in, with Discord.',
+  joinSignIn: 'Sign in with Discord',
   inviteLink: 'Invite link',
   pasteAnInviteLink: 'Paste an invite link…',
   thatIsNotAnInvite: 'That is not an invite link.',
@@ -181,6 +184,7 @@ export const playCopy = messages({
   eject: 'Eject',
   board: 'Board',
   noMechToBoard: 'No Mech to board',
+  buildANewMech: 'Build a new Mech',
   board2: 'Board {name}',
   boardChooseAMech: 'Board, choose a Mech',
   chooseWhichMech: 'Choose a Mech',

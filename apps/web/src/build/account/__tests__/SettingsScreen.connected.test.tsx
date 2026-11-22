@@ -188,6 +188,11 @@ describe('taking your data, and taking it away', () => {
     fireEvent.click(screen.getByText('Delete my account'))
     const dialog = screen.getByRole('alertdialog', { name: 'Delete your account?' })
     expect(within(dialog).getByText(/cannot be undone/i)).toBeTruthy()
+    // The section and its dialog list the same things (r5 C13).
+    const list =
+      'your Pilots, Mechs, Crawlers and NPCs, your patterns and Homebrew, and the sheets you shared'
+    expect(within(dialog).getByText(new RegExp(list))).toBeTruthy()
+    expect(screen.getByText(new RegExp(`^Deletes ${list}\\.`))).toBeTruthy()
     expect(within(dialog).getByText('Permanently delete')).toBeTruthy()
     expect(within(dialog).getByText('Cancel')).toBeTruthy()
   })

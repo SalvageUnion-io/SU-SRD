@@ -71,6 +71,29 @@ describe('Copy invite link', () => {
     expect(copied).toEqual([`${pageOrigin()}/games/invite/TOKEN0123456789A`])
   })
 
+  test('when the clipboard refuses, the link is shown in a field to select (r5 C15)', async () => {
+    await act(async () => {
+      render(
+        <SyncProvider>
+          <CopyInviteLink
+            gameId={'g1' as never}
+            clipboardWriter={async (text) => {
+              await text
+              throw new Error('no clipboard')
+            }}
+          />
+        </SyncProvider>
+      )
+    })
+    expect(screen.queryByRole('textbox', { name: 'Invite link' })).toBeNull()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
+    })
+    const field = screen.getByRole('textbox', { name: 'Invite link' }) as HTMLInputElement
+    expect(field.value).toBe(`${pageOrigin()}/games/invite/TOKEN0123456789A`)
+    expect(field.readOnly).toBe(true)
+  })
+
   test('is not offered to somebody who is not signed in', async () => {
     authed = false
     const container = await renderButton()

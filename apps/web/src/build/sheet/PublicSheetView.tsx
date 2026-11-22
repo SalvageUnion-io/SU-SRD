@@ -136,6 +136,9 @@ function PublicPatternQuery({ appId, onAddress }: QueryProps) {
 function PublicNpcQuery({ appId, onAddress }: QueryProps) {
   const result = usePublicSheet('npc', appId)
   useCanonicalAddress(appId, result, onAddress)
+  // Named after the NPC, as a shared sheet is (r5 B14).
+  const name = result ? nameOf(result.body) : undefined
+  useTabTitle(name ? areaTitle(PRODUCT.build, name) : null)
   if (result === undefined) return <SheetSkeleton />
   if (result === null) return <NotAvailable what="NPC" />
 

@@ -50,13 +50,14 @@ const TYPE_COLUMNS: readonly PickColumn<RefCrawler>[] = [
     key: 'weapons',
     label: buildWizardCopy('weapons'),
     title: buildWizardCopy('weaponsSystemsItsArmament'),
-    phone: true,
     value: (type) => crawlerWeaponSlots(type.mutations),
   },
   {
     key: 'ability',
     label: buildWizardCopy('ability'),
-    kind: 'quiet',
+    // Wrapped, not cut: the Ability is what tells the types apart, so a phone
+    // keeps it over Weapons, which the picked type's card says (r5 C16).
+    kind: 'line',
     phone: true,
     value: (type) => (Array.isArray(type.actions) ? type.actions.join(', ') : ''),
   },
@@ -82,7 +83,8 @@ export function CrawlerTypeSelectStep({
   const isAugmented = selected?.id === AUGMENTED_CRAWLER_ID
 
   return (
-    <div className="su-wiz-compare-layout">
+    // Wide: the type table takes the pane, its Ability read whole (r5 C16).
+    <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
       <div className="su-wiz-compare-main">
         <div>
           <PickList

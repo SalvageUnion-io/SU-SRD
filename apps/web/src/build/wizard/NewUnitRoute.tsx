@@ -49,7 +49,7 @@ export function NewUnitRoute({
   book?: { chassis?: string | undefined; pattern?: string | undefined }
 }) {
   const navigate = useNavigate()
-  const { mode, pilot: pilotId, mech: mechId } = search
+  const { mode, pilot: pilotId, mech: mechId, back } = search
   // Signing in from the gate comes back to this same URL, deep-link param and all.
   const returnTo = useLocation({ select: (location) => location.href })
   // A mech built for a pilot (`?pilot=`) lands in that pilot's Game.
@@ -140,7 +140,13 @@ export function NewUnitRoute({
       return void navigate({ to: SHEET_PATH[kind], params: { id } })
     }
     assignLink({ type: 'mech', id }, { type: 'pilot', id: pilot.id }).then(
-      () => void navigate({ to: '/pilots/$id', params: { id: pilot.id } }),
+      // From Play, back to the table: the pilot's Play screen, their new Mech assigned (r5 B17).
+      () =>
+        void navigate(
+          back === 'play'
+            ? { to: '/pilots/$id/play', params: { id: pilot.id } }
+            : { to: '/pilots/$id', params: { id: pilot.id } }
+        ),
       (err: unknown) => {
         toast.error(failureMessage(err, buildWizardCopy('mechNotGivenTo', { name: pilot.name })))
         void navigate({ to: '/mechs/$id', params: { id } })
@@ -174,7 +180,7 @@ export function NewUnitRoute({
           onResume={() =>
             void navigate({
               to: NEW_PATH[kind],
-              search: { mode: 'guided', game: search.game, pilot: pilotId, mech: mechId },
+              search: { mode: 'guided', game: search.game, pilot: pilotId, mech: mechId, back },
               replace: true,
             })
           }
@@ -187,7 +193,7 @@ export function NewUnitRoute({
             onOffRules={() =>
               void navigate({
                 to: NEW_PATH[kind],
-                search: { mode: 'blank', game: search.game, pilot: pilotId, mech: mechId },
+                search: { mode: 'blank', game: search.game, pilot: pilotId, mech: mechId, back },
               })
             }
           />

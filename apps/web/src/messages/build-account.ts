@@ -54,12 +54,13 @@ export const buildAccountCopy = messages({
     "Everything you own. Crewmates' characters and shared crawlers are theirs.",
   downloadMyData: 'Download my data',
   deleteAccount: 'Delete account',
+  // One list, said by the section and its dialog alike (r5 C13).
   deletesYourPilotsAndMechs:
-    'Deletes your Pilots and Mechs. Games you are in survive: their crawler stays, and one you organise passes to its longest-standing member. This cannot be undone.',
+    'Deletes your Pilots, Mechs, Crawlers and NPCs, your patterns and Homebrew, and the sheets you shared. Games you are in survive: their crawler stays, and one you organise passes to its longest-standing member. This cannot be undone.',
   deleteMyAccount: 'Delete my account',
   deleteYourAccount: 'Delete your account?',
   everythingYouOwnIsDeleted:
-    'Everything you own is deleted for good. The Games you are in carry on without you. This cannot be undone.',
+    'Deleted for good: your Pilots, Mechs, Crawlers and NPCs, your patterns and Homebrew, and the sheets you shared. The Games you are in carry on without you. This cannot be undone.',
   permanentlyDelete: 'Permanently delete',
   deleting: 'Deleting…',
   yourAccountIsUnreachableRight:

@@ -65,7 +65,7 @@ export const mechCopy = messages({
   buildWithThisAMech: 'Build With This: a Mech from {name}',
   building: 'Building…',
   buildWithThis: 'Build With This',
-  pastTheStartingRules: 'It is past the starting rules: a freeform build, like Blank.',
+  pastTheStartingRules: 'It is past the starting rules for a new Mech.',
   undo: 'Undo',
   buildUndone: 'Removed {name}.',
   buildNotUndone: '{name} could not be removed. Delete it from its sheet.',

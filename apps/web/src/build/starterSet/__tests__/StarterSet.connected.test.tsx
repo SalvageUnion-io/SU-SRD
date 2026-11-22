@@ -2,10 +2,10 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 
 /**
  * Copying from the Starter Set, signed in. "Make a copy" is one act with one
- * name, on a sheet and on each line of the Starter Set page: one confirm that
- * names where the copy goes (a menu of where first, for a player in a Game), a
- * pilot with their mech already assigned, and the player lands on the copy.
- * The template is left as it was.
+ * name, on a sheet and on each line of the Starter Set page: it copies at once
+ * with Undo in its notice (a menu of where first, for a player in a Game), a
+ * pilot with their mech already assigned, and the player lands on the copy in
+ * Sheet mode. The template is left as it was.
  *
  * Queries are answered **by name** — see `serverMock.ts`.
  */
@@ -26,6 +26,8 @@ const { hydrateStores } = await import('../../../components/__tests__/hydrateSto
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
 const { useUnits } = await import('../../../replica/units')
+const { useSheetModeStore } = await import('../../sheet/sheetMode.model')
+const { toast } = await import('../../../components/index')
 const { STARTER_PILOTS } = await import('game-domain/starterSet/starterSet')
 const { StarterSheetView } = await import('../StarterSheetView')
 const { StarterSetRoster } = await import('../StarterSetRoster')
@@ -62,25 +64,39 @@ function renderBonesaw() {
 }
 
 describe('Make a copy', () => {
-  test('one confirm naming the Training Bay; the pilot arrives with their mech assigned, and you land on the copy', async () => {
-    // In no Game there is one place to copy to, so the button asks at once.
+  test('one press copies to the Training Bay with Undo; the pilot arrives with their mech assigned, and you land on the copy in Sheet mode (r5 B18, C13)', async () => {
+    // In no Game there is one place to copy to, so the button copies at once.
     setQueryAnswers({ 'games.listMine': [] })
+    useSheetModeStore.getState().setEditing(true)
+    const said: { text: unknown; options: unknown }[] = []
+    const success = toast.success
+    toast.success = ((text: unknown, options: unknown) => {
+      said.push({ text, options })
+      return 0
+    }) as typeof toast.success
     const template = structuredClone(STARTER_PILOTS[0])
     renderBonesaw()
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Make a copy' }))
-    })
-    const dialog = screen.getByRole('alertdialog')
-    expect(dialog.textContent).toContain('Copy Bonesaw and Scrapper to your Training Bay?')
-    expect(dialog.textContent).toContain('the Mech already assigned')
-    expect(dialog.textContent).toContain('stays as Leyline Press published it')
-    expect(useUnits.getState().list('pilot')).toHaveLength(0)
-
-    await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Make a copy' }))
-    })
-    await waitFor(() => expect(serverMocks.navigations).toHaveLength(1))
+    try {
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Make a copy' }))
+      })
+      await waitFor(() => expect(serverMocks.navigations).toHaveLength(1))
+    } finally {
+      toast.success = success
+    }
+    // No confirm: nothing is lost by copying, and the notice takes it back.
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    const [notice] = said
+    expect(notice?.text).toBe('Copied Bonesaw and Scrapper to your Training Bay.')
+    const options = notice?.options as {
+      description: string
+      action: { label: string; onClick: () => void }
+    }
+    expect(options.description).toContain('stays as Leyline Press published it')
+    expect(options.action.label).toBe('Undo')
+    // A fresh copy opens in Sheet mode, whichever tab the player last used.
+    expect(useSheetModeStore.getState().editing).toBe(false)
 
     const [copy] = useUnits.getState().list('pilot')
     expect(copy?.name).toBe('Bonesaw')
@@ -98,6 +114,12 @@ describe('Make a copy', () => {
     expect(serverMocks.navigations).toEqual([{ to: `/pilots/${copy?.id}` }])
     // The template is untouched.
     expect(STARTER_PILOTS[0]).toEqual(template)
+    // Undo deletes the copy and its mech again.
+    await act(async () => {
+      options.action.onClick()
+    })
+    await waitFor(() => expect(useUnits.getState().list('pilot')).toHaveLength(0))
+    expect(useUnits.getState().list('mech')).toHaveLength(0)
   })
 
   test('a player in a Game picks where on the sheet too, under the same name', async () => {
@@ -161,24 +183,19 @@ describe('Make a copy on the Starter Set page', () => {
       )
     })
     expect(screen.queryByRole('menu')).toBeNull()
-    expect(screen.getByRole('alertdialog').textContent).toContain(
-      'Copy Bonesaw and Scrapper to your Training Bay?'
-    )
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    await waitFor(() => expect(serverMocks.navigations).toHaveLength(1))
+    expect(useUnits.getState().list('pilot')[0]?.gameId).toBeNull()
   })
 
-  test('asks once, then makes Bonesaw and their mech builds of the player’s own in the chosen Game', async () => {
+  test('choosing the Game makes Bonesaw and their mech builds of the player’s own there, at once', async () => {
     renderPage()
 
     const menu = await openCopy('Bonesaw')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'The Long Haul' }))
     })
-    const dialog = screen.getByRole('alertdialog')
-    expect(dialog.textContent).toContain('Copy Bonesaw and Scrapper to The Long Haul?')
-
-    await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Make a copy' }))
-    })
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     await waitFor(() => expect(serverMocks.navigations).toHaveLength(1))
     expect(useUnits.getState().list('pilot')[0]?.gameId).toBe('g1')
     expect(useUnits.getState().list('mech')[0]?.gameId).toBe('g1')

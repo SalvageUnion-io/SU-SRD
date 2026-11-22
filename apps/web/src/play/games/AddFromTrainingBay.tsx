@@ -12,13 +12,13 @@
  *
  * With nothing to bring it says which nothing (none built yet, or all of it in
  * a Game already) and offers the ways to have one: build it here, or copy one
- * from the Starter Set.
+ * of the Starter Set's Pilots into this Game, in place (`StarterHere`, r5 B18).
  */
 
 import type { Container } from 'game-domain/container'
 import { moveTo } from 'game-domain/container'
 import { pilotLabel } from 'game-domain/pilotLabel'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { PickDialog } from '../../components/app'
 import { Button, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
@@ -36,6 +36,9 @@ import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import type { BringChoice } from './addFromTrainingBay.model'
 import { bringChoices, bringPlan } from './addFromTrainingBay.model'
+
+// Only an empty dialog needs the Starter Set's templates.
+const StarterHere = lazy(() => import('./StarterHere').then((m) => ({ default: m.StarterHere })))
 
 export function AddFromTrainingBay({
   gameId,
@@ -196,9 +199,15 @@ export function AddFromTrainingBay({
               <Button href={newInGameHref('/mechs/new', gameId)} variant="default" size="compact">
                 {playGamesCopy('newMech')}
               </Button>
-              <Button href="/starter" variant="default" size="compact">
-                {playGamesCopy('starterSet')}
-              </Button>
+              <Suspense
+                fallback={
+                  <Button href="/starter" variant="default" size="compact">
+                    {playGamesCopy('starterSet')}
+                  </Button>
+                }
+              >
+                <StarterHere gameId={gameId} gameName={gameName} onCopied={() => setOpen(false)} />
+              </Suspense>
             </>
           )
         }

@@ -154,7 +154,8 @@ export function gamePublished(store: GameStore, gameId: string): Published {
       game: {
         name: game.name,
         description: game.description,
-        mediatedBy: mediator === undefined ? null : (mediator.displayName ?? 'the Mediator'),
+        // A Mediator with no name is not named (r5 B14): the invite reads whole without the clause.
+        mediatedBy: mediator?.displayName ?? null,
         members: members.map((m) => ({
           discordId: m.userId,
           mediator: m.mediator,

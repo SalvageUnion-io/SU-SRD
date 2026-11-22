@@ -594,7 +594,8 @@ describe('every verb that changes who has a build asks first', () => {
       { name: 'games.takeOffRoster', args: { gameId: 'g1', pilotId: 's-free' } },
     ])
     expect(
-      await screen.findByText('Pre-gen and Mazona are off the roster, in your Training Bay.')
+      // Where they went, said plainly (r5 B15).
+      await screen.findByText('Pre-gen and Mazona are back in your Training Bay.')
     ).toBeTruthy()
     mutations.length = 0
     await act(async () => {
@@ -933,10 +934,28 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     const hrefOf = (name: string) => within(dialog).getByRole('link', { name }).getAttribute('href')
     expect(hrefOf('+ New Pilot')).toBe('/pilots/new?game=g1')
     expect(hrefOf('+ New Mech')).toBe('/mechs/new?game=g1')
-    expect(hrefOf('Starter Set')).toBe('/starter')
     expect(within(dialog).getByRole('button', { name: 'Move in' }).hasAttribute('disabled')).toBe(
       true
     )
+    // The Starter Set in place (r5 B18): a Pilot is copied into this Game, their Mech assigned.
+    const bonesaw = await within(dialog).findByRole('button', {
+      name: 'Make a copy of Bonesaw in this Game',
+    })
+    await act(async () => {
+      fireEvent.click(bonesaw)
+    })
+    const copied = () => useUnits.getState().pilots.find((p) => p.name === 'Bonesaw')
+    await settle(() => copied()?.gameId === 'g1')
+    expect(copied()?.seedRef).toBe('starter-pilot-bonesaw')
+    const mech = useUnits.getState().mechs.find((m) => m.name === 'Scrapper')
+    expect(mech?.gameId).toBe('g1')
+    expect(
+      useUnits
+        .getState()
+        .softLinks.some((l) => l.type === 'mech-to-pilot' && l.to.id === copied()?.id)
+    ).toBe(true)
+    expect(screen.queryByRole('dialog', { name: 'Bring into this Game' })).toBeNull()
+    await forgetHeld(['mech', mech?.id ?? ''], ['pilot', copied()?.id ?? ''])
   })
 
   test('with everything in a Game already, it says that instead', async () => {
@@ -947,7 +966,9 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     await renderAs(ME, listing())
     const dialog = await openBring()
     expect(within(dialog).getByText(/is already in a Game/)).toBeTruthy()
-    expect(within(dialog).getByRole('link', { name: 'Starter Set' })).toBeTruthy()
+    expect(
+      await within(dialog).findByRole('button', { name: 'Make a copy of Bonesaw in this Game' })
+    ).toBeTruthy()
     await forgetHeld(['mech', 'm-away'])
   })
 })

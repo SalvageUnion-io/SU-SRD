@@ -233,6 +233,46 @@ describe('AssignPicker — candidates share the subject’s container', () => {
     expect(offered()).toEqual(['p-shelf-callsign · Dag'])
   })
 
+  test('a Mech in a Game is offered only the Pilots it may take, and its note says so (r5 B16)', () => {
+    const held: Record<string, string | null> = {
+      'p-razor': 'u-other', // a crewmate's
+      'p-free': null, // nobody's, no mech
+      'p-flown': null, // nobody's, in a mech nobody holds
+      'p-mine': 'u-me',
+      'm-free': null,
+    }
+    const store = makeStore({
+      pilots: [
+        pilot('p-razor', 'Razor', 'g1'),
+        pilot('p-free', 'Free', 'g1'),
+        pilot('p-flown', 'Flown', 'g1'),
+        pilot('p-mine', 'Hotdog', 'g1'),
+      ],
+      softLinks: [
+        {
+          id: 'l1',
+          type: 'mech-to-pilot',
+          from: { type: 'mech', id: 'm-free' },
+          to: { type: 'pilot', id: 'p-flown' },
+          createdAt: FIXTURE_NOW,
+        } as SoftLink,
+      ],
+      holders: { me: 'u-me', of: (_kind, id) => held[id] },
+    })
+    inMode(
+      CONNECTED,
+      <AssignPicker
+        subject={{ type: 'mech', id: 'm1' }}
+        container={GAME}
+        pick="pilot"
+        store={store}
+      />
+    )
+    open(/assign pilot to mech/i)
+    expect(offered()).toEqual(['p-free-callsign · Free', 'p-mine-callsign · Hotdog'])
+    expect(screen.getByText(/^Your Pilots and this Game’s unassigned ones\./)).toBeTruthy()
+  })
+
   test('says where it looked when nothing qualifies', () => {
     const empty = makeStore({ crawlers: [crawler('c-other', 'Elsewhere', 'g2')] })
     const { unmount } = inMode(

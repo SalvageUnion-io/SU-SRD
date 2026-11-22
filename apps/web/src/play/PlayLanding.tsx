@@ -113,6 +113,8 @@ const JOIN = {
   padding: tokens.space[20],
 } satisfies CSSProperties
 
+const JOIN_TEXT = { margin: 0 } satisfies CSSProperties
+
 const JOIN_ROW = {
   alignItems: 'flex-start',
   display: 'flex',
@@ -179,36 +181,51 @@ const AT_THE_TABLE_ART = [
  */
 function PlayFrontDoor() {
   // Signed out there is no Join dialog to open: the sub-nav's "Join with a
-  // link" goes to sign-in, and comes back to `/games/#join`, where the dialog
-  // opens itself (r3 E3, MD-03). Heard before the router, which would only
-  // scroll to the card that wears the id.
+  // link" opens a short panel that says what an invite link is and that
+  // joining needs a sign-in, before anything leaves the site (r5 B20). Its
+  // Sign in comes back to `/games/#join`, where the dialog opens itself
+  // (r3 E3, MD-03). Heard before the router, which would only scroll to the
+  // card that wears the id.
+  const [joining, setJoining] = useState(false)
   useEffect(() => {
     const pressed = (event: MouseEvent) => {
       const link = event.target instanceof Element ? event.target.closest('a[href$="#join"]') : null
       if (link === null) return
       event.preventDefault()
       event.stopPropagation()
-      signIn(JOIN_ROUTE)
+      setJoining(true)
     }
     document.addEventListener('click', pressed, true)
     return () => document.removeEventListener('click', pressed, true)
   }, [])
   const steps = AT_THE_TABLE.map((step, index) => ({ ...step, art: AT_THE_TABLE_ART[index] }))
   return (
-    <FrontDoor
-      area="play"
-      steps={
-        <StartHere
-          id="play-at-the-table"
-          title={playCopy('atTheTable')}
-          steps={steps}
-          numbered={false}
-          // Where Play's sub-nav lands signed out (`AREA_NAV.play`): sharing a
-          // table is how you join one, and Mediate is what the Kit is for.
-          anchors={{ table: 'join', mediate: MEDIATORS_KIT_ANCHOR }}
-        />
-      }
-    />
+    <>
+      <ModalShell open={joining} onOpenChange={setJoining} title={playCopy('joinWithALink')}>
+        <div style={JOIN}>
+          <p style={JOIN_TEXT}>{playCopy('joinSignedOut')}</p>
+          <div style={JOIN_ROW}>
+            <Button variant="primary" size="compact" onClick={() => signIn(JOIN_ROUTE)}>
+              {playCopy('joinSignIn')}
+            </Button>
+          </div>
+        </div>
+      </ModalShell>
+      <FrontDoor
+        area="play"
+        steps={
+          <StartHere
+            id="play-at-the-table"
+            title={playCopy('atTheTable')}
+            steps={steps}
+            numbered={false}
+            // Where Play's sub-nav lands signed out (`AREA_NAV.play`): sharing a
+            // table is how you join one, and Mediate is what the Kit is for.
+            anchors={{ table: 'join', mediate: MEDIATORS_KIT_ANCHOR }}
+          />
+        }
+      />
+    </>
   )
 }
 

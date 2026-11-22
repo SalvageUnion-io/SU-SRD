@@ -113,7 +113,7 @@ function pilotRow(pilot: Pilot, mech: Mech | undefined, confirm: Confirm | undef
     href: `/starter/pilot/${pilot.id}`,
     meta: pilotClass?.name,
     stamp: confirm ? (
-      <CopyStarterMenu kind="pilot" templateId={pilot.id} name={pilot.name} confirm={confirm} />
+      <CopyStarterMenu kind="pilot" templateId={pilot.id} name={pilot.name} />
     ) : undefined,
     cells: [pilotMaxHP(pilot), pilotMaxAP(pilot), ...mechCells(mech)],
   }
@@ -126,12 +126,7 @@ function crawlerRow(crawler: Crawler, confirm: Confirm | undefined): LedgerRow {
     name: crawler.name,
     href: `/starter/crawler/${crawler.id}`,
     stamp: confirm ? (
-      <CopyStarterMenu
-        kind="crawler"
-        templateId={crawler.id}
-        name={crawler.name}
-        confirm={confirm}
-      />
+      <CopyStarterMenu kind="crawler" templateId={crawler.id} name={crawler.name} />
     ) : undefined,
     cells: [
       type?.name ?? '',
@@ -181,12 +176,7 @@ export function StarterCrewLedger({
               href: `/starter/mech/${mech.id}`,
               meta: chassisMeta(mech, resolveChassisRef(mech.chassisRef)),
               stamp: confirm ? (
-                <CopyStarterMenu
-                  kind="mech"
-                  templateId={mech.id}
-                  name={mech.name}
-                  confirm={confirm}
-                />
+                <CopyStarterMenu kind="mech" templateId={mech.id} name={mech.name} />
               ) : undefined,
               cells: ['', '', '', ...mechCells(mech).slice(1)],
             })),

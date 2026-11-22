@@ -145,6 +145,7 @@ export const mediatorCopy = messages({
   wreckNothing: 'Nothing to take: settle it',
   wreckPickLede: 'Pick what to take, Damaged. Everything else is destroyed.',
   wreckPart: '{name} · T{tl} · {sv} Slots',
+  wreckPartOne: '{name} · T{tl} · 1 Slot',
   wreckNoCrawler: 'There is no crawler here to haul it to.',
   area: 'Area',
   setArea: 'Set the area being salvaged',
