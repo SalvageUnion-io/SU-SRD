@@ -195,6 +195,7 @@ export function GameHub({ gameId }: GameHubProps) {
           gameId={gameId}
           name={game ? game.name : 'Game'}
           mediator={game?.mediator}
+          organizer={game?.organizer === true}
           actions={
             game ? (
               <LaunchPlay

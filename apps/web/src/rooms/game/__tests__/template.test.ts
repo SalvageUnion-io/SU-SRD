@@ -15,7 +15,8 @@ describe('starting a Game from a template', () => {
   test('the crew arrives unassigned, under fresh ids, aboard the template’s crawler', () => {
     const { room } = started()
     expect(room.roster.read(ORGANIZER)).toMatchObject({
-      name: "Reclamation of the Wastes — Union Crawler #430 'Tenacity'",
+      // Unnamed, the campaign's short name; the crawler is named on its own (r6 C9).
+      name: 'Reclamation of the Wastes',
       templateOrigin: 'starter-set',
       organizer: true,
       pilotCount: STARTER_PILOTS.length,

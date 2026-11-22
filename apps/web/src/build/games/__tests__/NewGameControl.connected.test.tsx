@@ -35,7 +35,13 @@ const { SyncProvider } = await import('../../../replica/SyncProvider')
 const { resetSync } = await import('../../../replica/sync')
 
 const TEMPLATES = [
-  { id: 'starter-set', name: 'Reclamation of the Wastes', description: 'Six pre-gens.' },
+  {
+    id: 'starter-set',
+    name: "Reclamation of the Wastes — Union Crawler #430 'Tenacity'",
+    shortName: 'Reclamation of the Wastes',
+    crawler: "Union Crawler #430 'Tenacity'",
+    description: 'Six pre-gens.',
+  },
 ]
 
 /** No router is mounted, so `useGo` falls back to `location.assign`, observed here. */
@@ -176,9 +182,28 @@ describe('starting a game', () => {
     await press('Start this Game')
 
     expect(mutations).toEqual([
-      { name: 'templates.createGame', args: { templateId: 'starter-set', mediator: false } },
+      {
+        name: 'templates.createGame',
+        args: { templateId: 'starter-set', name: 'Reclamation of the Wastes', mediator: false },
+      },
     ])
     expect(assigned).toEqual(['/games/g-template'])
+  })
+
+  // r6 C9 (MD6-13): the Game is named before it exists, its crawler on a line of its own.
+  test('a template asks for its name, filled with the campaign’s short name', async () => {
+    await renderOpen()
+    const name = screen.getByLabelText(/^Name of the Game from /) as HTMLInputElement
+    expect(name.value).toBe('Reclamation of the Wastes')
+    expect(screen.getByText("Your crawler: Union Crawler #430 'Tenacity'")).toBeTruthy()
+    fireEvent.change(name, { target: { value: 'Rust Coast' } })
+    await press('Start this Game')
+    expect(mutations).toEqual([
+      {
+        name: 'templates.createGame',
+        args: { templateId: 'starter-set', name: 'Rust Coast', mediator: true },
+      },
+    ])
   })
 
   test('a refusal is shown in the server’s own words, and goes nowhere', async () => {

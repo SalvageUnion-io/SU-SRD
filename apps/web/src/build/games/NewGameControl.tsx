@@ -36,7 +36,7 @@ import {
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildGamesCopy } from '../../messages/build-games'
-import type { GameCallArgs } from '../../replica/roomCalls'
+import type { GameCallArgs, GameCallResult } from '../../replica/roomCalls'
 import { useGamesCall, useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 
@@ -67,6 +67,53 @@ const ROW = {
 
 const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 
+type Template = NonNullable<GameCallResult<'templates.list'>>[number]
+
+/**
+ * One template, started under the name its starter gives it (r6 C9): the
+ * field is filled with the campaign's short name, the crawler it comes with
+ * named on its own line, so the Game's title is short enough to read and
+ * theirs to change before it exists.
+ */
+function TemplateStart({
+  template,
+  busy,
+  onStart,
+}: {
+  template: Template
+  busy: boolean
+  onStart: (name: string) => void
+}) {
+  const [name, setName] = useState<string>(template.shortName)
+  const ready = !busy && name.trim().length > 0
+  return (
+    <SlabSection as="h4" title={template.shortName} bodyStyle={STACK}>
+      <Text variant="hint">{template.description}</Text>
+      <div style={ROW}>
+        <div style={GROW}>
+          <Field label={buildGamesCopy('gameName')}>
+            <Input
+              aria-label={buildGamesCopy('templateGameName', { template: template.shortName })}
+              value={name}
+              maxLength={80}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && ready) onStart(name)
+              }}
+            />
+          </Field>
+        </div>
+        <Button variant="default" size="full" disabled={!ready} onClick={() => onStart(name)}>
+          {buildGamesCopy('startThisGame')}
+        </Button>
+      </div>
+      <Text variant="hint">
+        {buildGamesCopy('comesWithCrawler', { crawler: template.crawler })}
+      </Text>
+    </SlabSection>
+  )
+}
+
 type NewGameDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -89,7 +136,7 @@ function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDia
   const nameField = useRef<HTMLInputElement | null>(null)
   const start = useServerAction(
     // The creator is the Organiser, who appoints the Mediator: themselves, if they said so.
-    (from: { name: string } | { templateId: TemplateId }) =>
+    (from: { name: string } | { templateId: TemplateId; name: string }) =>
       'templateId' in from
         ? createFromTemplate({ ...from, mediator: mediates })
         : create({ ...from, mediator: mediates }),
@@ -110,7 +157,7 @@ function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDia
     onOpenChange(false)
   }
 
-  async function startGame(from: { name: string } | { templateId: TemplateId }) {
+  async function startGame(from: { name: string } | { templateId: TemplateId; name: string }) {
     const result = await start.run(from)
     if (result.ok) enter(result.value)
   }
@@ -177,20 +224,13 @@ function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDia
         >
           {templates === undefined && <Pending label="templates" />}
           {templates?.map((t) => (
-            <SlabSection as="h4" title={t.name} key={t.id} bodyStyle={STACK}>
-              <Text variant="hint">{t.description}</Text>
-              <div>
-                <Button
-                  variant="default"
-                  size="compact"
-                  disabled={busy}
-                  // `t.id`, not a hardcoded template id — see `templates.list`.
-                  onClick={() => void startGame({ templateId: t.id })}
-                >
-                  {buildGamesCopy('startThisGame')}
-                </Button>
-              </div>
-            </SlabSection>
+            <TemplateStart
+              key={t.id}
+              template={t}
+              busy={busy}
+              // `t.id`, not a hardcoded template id — see `templates.list`.
+              onStart={(gameName) => void startGame({ templateId: t.id, name: gameName })}
+            />
           ))}
         </SlabSection>
 

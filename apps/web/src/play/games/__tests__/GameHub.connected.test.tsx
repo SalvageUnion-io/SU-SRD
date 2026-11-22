@@ -376,6 +376,28 @@ describe('the sections under the roster', () => {
     expect(screen.getByText(/Hand over needs another member/)).toBeTruthy()
   })
 
+  test('the Organiser renames the Game in place, on its band (r6 C9)', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, mediator: true },
+    })
+    fireEvent.click(screen.getByRole('button', { name: `Rename ${GAME.name}` }))
+    const field = screen.getByRole('textbox', { name: 'Game name' }) as HTMLInputElement
+    expect(field.value).toBe(GAME.name)
+    fireEvent.change(field, { target: { value: 'Rust Coast' } })
+    await act(async () => {
+      fireEvent.keyDown(field, { key: 'Enter' })
+    })
+    expect(mutations).toContainEqual({
+      name: 'games.update',
+      args: { gameId: 'g1', name: 'Rust Coast' },
+    })
+  })
+
+  test('a player reads the Game’s name and cannot rename it', async () => {
+    await renderHub({})
+    expect(screen.queryByRole('button', { name: /^Rename / })).toBeNull()
+  })
+
   test('members with no name go by their joining order, never one word for all (r6 C11)', async () => {
     await renderHub({
       'games.get': { ...GAME, organizer: true, mediator: true },

@@ -135,6 +135,10 @@ export const playGamesCopy = messages({
   gameSettingsMenu: 'Game settings…',
   gameSettings: 'Game settings',
   gameName: 'Name',
+  // The band's title, renamed in place (r6 C9).
+  renameGame: 'Rename {name}',
+  gameNameField: 'Game name',
+  renameNotSaved: 'The new name could not be saved. Try again.',
   gameDescription: 'Description',
   gameDescriptionHint: 'A line or two for your players. It is shown on the invite.',
   saveSettings: 'Save',

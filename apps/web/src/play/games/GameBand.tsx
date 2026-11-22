@@ -29,6 +29,7 @@ import { playGamesCopy } from '../../messages/play-games'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { SessionControl } from '../SessionControl'
 import type { GameSession } from '../useGameSession'
+import { GameTitle } from './GameTitle'
 import { gamePrepPath } from './prep/gamePrep.model'
 
 /**
@@ -49,6 +50,7 @@ export function GameBand({
   actions,
   session,
   scene = '',
+  organizer = false,
 }: {
   gameId: string | null
   /** The Game's name; "Game" while it loads. */
@@ -61,6 +63,8 @@ export function GameBand({
   session?: GameSession | null
   /** The Scene conditions that are on, by name; empty with none (r4 A11). */
   scene?: string
+  /** The viewer organises this Game: its name is renamed in place (r6 C9). */
+  organizer?: boolean
 }) {
   const mediates = mediator && gameId !== null
   const live = session?.live === true
@@ -107,7 +111,7 @@ export function GameBand({
         ) : undefined
       }
     >
-      {name}
+      {gameId === null ? name : <GameTitle gameId={gameId} name={name} editable={organizer} />}
     </ChapterBand>
   )
 }
