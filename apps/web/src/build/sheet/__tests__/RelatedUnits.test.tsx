@@ -9,6 +9,7 @@ import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { LinkedUnitLink } from '../LinkedUnitLink'
 import { RelatedUnits } from '../RelatedUnits'
+import { FoldEmptyRelated } from '../relatedUnitsFold.model'
 
 describe('RelatedUnits', () => {
   test('a unit held in a Game wears its owner chip on its head', () => {
@@ -76,6 +77,24 @@ describe('RelatedUnits', () => {
     expect(screen.getByRole('link', { name: /Create/ }).getAttribute('href')).toContain(
       '/crawlers/new?game=g1'
     )
+  })
+
+  test('where it folds empty (a phone’s Mech sheet), nothing linked is one shut line naming what is missing (r6 E10)', () => {
+    const slot = (kind: 'pilot' | 'crawler') => ({
+      key: kind,
+      kind,
+      assign: <button type="button">Assign</button>,
+      createHref: `/${kind}s/new`,
+    })
+    render(
+      <FoldEmptyRelated.Provider value>
+        <RelatedUnits editable={false} writes units={[]} slots={[slot('pilot'), slot('crawler')]} />
+      </FoldEmptyRelated.Provider>
+    )
+    expect(screen.getByText('No Pilot · No crawler')).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: /Related units/ }).getAttribute('aria-expanded')
+    ).toBe('false')
   })
 
   test('Read draws each empty place: plain to a reader, Assign and + Create to a writer', () => {
