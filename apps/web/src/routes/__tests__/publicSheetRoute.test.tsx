@@ -51,6 +51,8 @@ describe('the public sheet route', () => {
     expect(screen.getAllByText('Old Mags').length).toBeGreaterThan(0)
     expect(screen.getByText('Rosa')).toBeTruthy() // MADE BY | Rosa, on the band
     expect(screen.getByText(/a shared NPC, read-only/i)).toBeTruthy()
+    // The tab is the NPC's name, not "Shared sheet" (r5 B14).
+    expect(document.title).toBe('Old Mags · Training Bay · SalvageUnion.io')
     // Read-only: no Share, no Delete.
     expect(screen.queryByRole('button', { name: /share old mags/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /delete old mags/i })).toBeNull()

@@ -127,6 +127,9 @@ export function TheGame({
   const appointing = mediators.length === 0
   // Taking the table oneself is not giving it away: the dialog says what comes, not what goes (MD4-17).
   const takingBack = chosen !== '' && chosen === viewerId
+  // Somebody else mediates and the only one to give the table to is the viewer: the button says
+  // that act (r5 B14). With others to choose from it stays Hand over, and the dialog says which.
+  const canTakeBack = !appointing && candidates.length === 1 && candidates[0]?.userId === viewerId
   // The next day the table meets, by the viewer's own clock (the room answers from yesterday on).
   const today = todayDay()
   const nextSession = game.sessionDays?.find((day) => day >= today)
@@ -148,7 +151,11 @@ export function TheGame({
                 setHanding(true)
               }}
             >
-              {appointing ? playGamesCopy('appoint') : playGamesCopy('handOver')}
+              {appointing
+                ? playGamesCopy('appoint')
+                : canTakeBack
+                  ? playGamesCopy('takeBack')
+                  : playGamesCopy('handOver')}
             </Button>
             <HeaderMenu
               variant="overflow"

@@ -274,6 +274,11 @@ export class GameEvents {
       case 'drawLink':
       case 'removeLink': {
         const link = a.link as LinkShape
+        // A mech and its pilot: the pilot flies it, so "assigned to" stays a person's word (r5 B14).
+        if (link.type === 'mech-to-pilot') {
+          const verb = name === 'drawLink' ? 'flies' : 'no longer flies'
+          return say('assign', `${unit(link.to.id)} ${verb} ${unit(link.from.id)}`)
+        }
         const verb = name === 'drawLink' ? 'is assigned to' : 'is unassigned from'
         return say('assign', `${unit(link.from.id)} ${verb} ${unit(link.to.id)}`)
       }

@@ -409,7 +409,9 @@ describe('the sections under the roster', () => {
         { userId: 'u2', displayName: 'Beefcake', mediator: true, organizer: false, joinedAt: 2 },
       ],
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Hand over' }))
+    // The button names the act: the table can only come back to the viewer (r5 B14).
+    expect(screen.queryByRole('button', { name: 'Hand over' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Take back' }))
     const dialog = within(screen.getByRole('alertdialog'))
     expect(dialog.getAllByText('Take the table back?').length).toBeGreaterThan(0)
     expect(dialog.getByText(/^Comes to you: the table/)).toBeTruthy()
@@ -631,8 +633,11 @@ describe('the seats, on the Pilots rows', () => {
     expect(drawnText(crew).split('Spectrum')).toHaveLength(2)
     // An absent current HP is full.
     expect(cells(line('Hotdog'))[2]).toBe('8/8')
-    // The seats are the head's tally: `1/2 SEATS`.
-    expect(crew.querySelector('.su-rule-head__tally')?.textContent).toBe('1/2Seats')
+    // The head's tally says what it counts (r5 B14): `1/2 ASSIGNED`.
+    expect(crew.querySelector('.su-rule-head__tally')?.textContent).toBe('1/2Assigned')
+    expect(crew.querySelector('.su-rule-head__tally')?.getAttribute('title')).toBe(
+      '1 of the 2 Pilots in this Game are assigned to a player.'
+    )
     // No presence column: nothing writes it, and a false "Here" is worse than none.
     expect(screen.queryByText(/^(Here|Away)$/)).toBeNull()
   })

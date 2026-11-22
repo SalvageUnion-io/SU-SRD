@@ -251,6 +251,21 @@ describe('the table’s events', () => {
     ])
   })
 
+  test('a pilot paired with a mech flies it: the Feed keeps "assigned to" for a person (r5 B14)', () => {
+    const { act, texts } = seated()
+    const link = {
+      type: 'mech-to-pilot',
+      from: { type: 'mech', id: 'm1' },
+      to: { type: 'pilot', id: 'p1' },
+    }
+    act(PLAYER, 'drawLink', { link }, AT + 1)
+    act(PLAYER, 'removeLink', { link }, AT + MERGE_MS + 2)
+    expect(texts().slice(0, 2)).toEqual([
+      'p1 · Pilot p1 no longer flies Mech m1',
+      'p1 · Pilot p1 flies Mech m1',
+    ])
+  })
+
   test('the same line said again at once is counted on the line it follows, not repeated', () => {
     const { act, texts } = seated()
     const [first] = act(MEDIATOR, 'assign', { unitId: 'p1', userId: PLAYER }, AT + 1)

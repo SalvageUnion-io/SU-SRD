@@ -127,6 +127,12 @@ describe('what a Game room publishes', () => {
     const { code: next } = room.roster.resetInvite(ORGANIZER, AT + 5)
     expect(gamePublished(room.store, 'g1').roster?.game?.invite).toBe(next)
   })
+
+  test('a Mediator with no name is not named: the invite reads whole without "the Mediator" (r5 B14)', () => {
+    const { room } = table('g1')
+    room.store.sql.exec('update members set display_name = null where mediator = 1')
+    expect(gamePublished(room.store, 'g1').roster?.game?.mediatedBy).toBeNull()
+  })
 })
 
 describe('what an account room publishes', () => {
