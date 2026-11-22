@@ -44,6 +44,7 @@ import {
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { cn } from '../../lib/cn'
 import { classArt } from '../../lib/photos/defaultArt'
+import { copiesOf, copyCondition } from '../../lib/rules/equipmentCopies'
 import { cycleCondition } from '../../lib/rules/mechItems'
 import { isPartnerEquipment } from '../../lib/rules/partnerGrants'
 import {
@@ -262,9 +263,10 @@ export function PilotDash({
   })
 
   const gear: LedgerRow[] = [
-    ...model.ordinaryEquipment.map((slug): LedgerRow => {
+    // Each copy its own row and its own condition (r6 E16).
+    ...copiesOf(model.ordinaryEquipment).map(({ slug, copy, count }): LedgerRow => {
       const entity = resolveEquipment(slug)
-      const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
+      const condition = copyCondition(pilot.equipmentConditions, slug, copy, count)
       const usesLeft = pilot.equipmentUses?.[slug]
       const maxUses = equipmentMaxUses(entity)
       const selections = pilot.equipmentChoices?.[slug]
@@ -297,7 +299,7 @@ export function PilotDash({
           : undefined
       const chips = unmade ? [...made, unmade] : made
       return {
-        id: slug,
+        id: copy > 1 ? `${slug}#${copy}` : slug,
         name,
         entityRef: item?.ref,
         meta: entity ? undefined : buildSheetCopy('unknown'),
@@ -320,7 +322,12 @@ export function PilotDash({
               condition={condition}
               onCycle={() =>
                 runWrite(() =>
-                  actions.handleEquipmentConditionChange(slug, cycleCondition(condition))
+                  actions.handleEquipmentConditionChange(
+                    slug,
+                    cycleCondition(condition),
+                    copy,
+                    count
+                  )
                 )
               }
             />
