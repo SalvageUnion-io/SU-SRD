@@ -52,6 +52,7 @@ import { useGameSession } from '../useGameSession'
 import { useStopSign } from '../useStopSign'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
+import { FormerNotes } from './FormerNotes'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
@@ -133,6 +134,8 @@ function GameSections({ game }: { game: Game }) {
           />
           {/* The table runner's door to this Game's Prep (ADR-067 §3). */}
           {game.tableRunner && <MediatorPrep gameId={gameId} />}
+          {/* A former Mediator's own notes, read-only; nothing for anyone who wrote none. */}
+          {!game.tableRunner && <FormerNotes gameId={gameId} />}
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (

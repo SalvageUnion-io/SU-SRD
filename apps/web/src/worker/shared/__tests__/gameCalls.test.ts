@@ -194,6 +194,12 @@ describe('the Games calls', () => {
     await call('plan.set', { gameId, plan })
     expect(await call('plan.get', { gameId })).toEqual(plan)
     expect((await gameCall('plan.get', { gameId }, PLAYER, deps))?.ok).toBe(false)
+    // A member who never ran the table has no notes of their own to read back (MD4-17).
+    expect(await gameCall('plan.mine', { gameId }, PLAYER, deps)).toEqual({ ok: true, value: null })
+    expect(await call('plan.mine', { gameId })).toEqual({
+      notes: 'Glass Wastes',
+      sessions: [{ date: '2026-12-01', note: 'Ambush' }],
+    })
     // What is not a plan is refused before it reaches the room.
     expect(await gameCall('plan.set', { gameId, plan: { notes: 1 } }, ORG, deps)).toEqual({
       ok: false,

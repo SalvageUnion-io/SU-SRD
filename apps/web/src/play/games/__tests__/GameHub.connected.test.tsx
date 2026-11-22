@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 /**
  * `GameHub` — a Game's own page in Play, `/games/$gameId` (ADR-052 §5):
@@ -141,6 +141,8 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'safety.stopSign': { stop: null, mayLift: false },
     // The Game's Discord channel row (MD-20).
     'channelBindings.current': null,
+    // A member's own notes from when they ran the table: none, for most.
+    'plan.mine': null,
     ...over,
   }
 }
@@ -380,6 +382,53 @@ describe('the sections under the roster', () => {
       { name: 'games.setMediator', args: { gameId: 'g1', userId: 'u2', mediator: true } },
       { name: 'games.setMediator', args: { gameId: 'g1', userId: 'u1', mediator: false } },
     ])
+  })
+
+  // MD4-17: taking it back read as giving it away ("The new Mediator starts with empty notes").
+  test('choosing yourself is taking the table back, in its own words', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true },
+      'games.members': [
+        { userId: 'u1', displayName: 'Ash', mediator: false, organizer: true, joinedAt: 1 },
+        { userId: 'u2', displayName: 'Beefcake', mediator: true, organizer: false, joinedAt: 2 },
+      ],
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Hand over' }))
+    const dialog = within(screen.getByRole('alertdialog'))
+    expect(dialog.getAllByText('Take the table back?').length).toBeGreaterThan(0)
+    expect(dialog.getByText(/^Comes to you: the table/)).toBeTruthy()
+    expect(dialog.getByText(/you wrote before are yours to edit again/)).toBeTruthy()
+    expect(dialog.queryByText(/The new Mediator starts with empty notes/)).toBeNull()
+    await act(async () => {
+      fireEvent.click(dialog.getByRole('button', { name: 'Take it back' }))
+    })
+    expect(mutations).toEqual([
+      { name: 'games.setMediator', args: { gameId: 'g1', userId: 'u1', mediator: true } },
+      { name: 'games.setMediator', args: { gameId: 'g1', userId: 'u2', mediator: false } },
+    ])
+  })
+
+  // MD4-17: the notes that "stay with you" had no door once Prep left the page.
+  test('a former Mediator reads the notes they wrote, read-only; nobody else gets the door', async () => {
+    await renderHub()
+    expect(heading('Your notes from when you ran it')).toBeNull()
+    cleanup()
+    await renderHub({
+      'plan.mine': {
+        notes: 'Vex works for the corpo.',
+        sessions: [{ date: '2026-12-01', note: 'Ambush at dusk.' }, { note: 'Loose end.' }],
+      },
+    })
+    expect(heading('Your notes from when you ran it')).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Read your notes' }))
+    })
+    const dialog = within(screen.getByRole('dialog'))
+    expect(dialog.getByText('Vex works for the corpo.')).toBeTruthy()
+    expect(dialog.getByText('Ambush at dusk.')).toBeTruthy()
+    expect(dialog.getByText('Loose end.')).toBeTruthy()
+    expect(dialog.queryByRole('textbox')).toBeNull()
+    expect(dialog.queryByRole('button', { name: /^Edit/ })).toBeNull()
   })
 
   test('ending the game asks first, says where everything lands, and then shows your Games', async () => {

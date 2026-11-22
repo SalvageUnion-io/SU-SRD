@@ -146,6 +146,32 @@ describe('a plan’s notes are their author’s (ADR-067 §4, r2 B3)', () => {
     expect(room.plan.read(MEDIATOR)).toEqual(plan)
   })
 
+  // MD4-17: the dialog promised the notes stay theirs, and no door reached them.
+  test('a former Mediator reads back what they wrote, and only that', () => {
+    const { room } = table()
+    expect(room.plan.readOwn(MEDIATOR)).toBeNull()
+    room.plan.write(MEDIATOR, plan, AT)
+    handOver(room, PLAYER, MEDIATOR)
+    // Their notes, each session's with its day; the title is the table's, not theirs to read now.
+    expect(room.plan.readOwn(MEDIATOR)).toEqual({
+      notes: 'Vex works for the corpo.',
+      sessions: [{ date: '2026-12-01', note: 'Ambush at dusk.' }],
+    })
+    // The new Mediator wrote nothing, and reads nobody else's.
+    expect(room.plan.readOwn(PLAYER)).toBeNull()
+    expect(() => room.plan.readOwn('stranger')).toThrow()
+  })
+
+  test('notes kept before they had authors are read back by whoever ran the table then', () => {
+    const { room, sql } = table()
+    sql.exec('insert into plan (id, body, updated_at) values (1, ?, ?)', JSON.stringify(plan), AT)
+    // No author yet: a player is never handed them.
+    expect(room.plan.readOwn(PLAYER)).toBeNull()
+    handOver(room, PLAYER, MEDIATOR)
+    expect(room.plan.readOwn(MEDIATOR)?.notes).toBe('Vex works for the corpo.')
+    expect(room.plan.readOwn(PLAYER)).toBeNull()
+  })
+
   test('a session removed takes every author’s note for it', () => {
     const { room } = table()
     room.plan.write(MEDIATOR, plan, AT)

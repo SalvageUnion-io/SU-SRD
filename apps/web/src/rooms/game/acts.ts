@@ -168,6 +168,7 @@ const GAME_ACTS = {
 
   'safety.stopSign': (c: ActContext) => c.room.safety.stopSign(c.actor),
   'plan.get': (c: ActContext) => c.room.plan.read(c.actor),
+  'plan.mine': (c: ActContext) => c.room.plan.readOwn(c.actor),
   'plan.set': (c: ActContext, a: { plan: unknown }) => c.room.plan.write(c.actor, a.plan, c.at),
   'session.state': (c: ActContext) => c.room.session.session(c.actor),
   'session.start': (c: ActContext) => c.room.session.start(c.actor, c.at),
@@ -236,6 +237,7 @@ export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'safety.stopSign',
   'session.state',
   'plan.get',
+  'plan.mine',
   'plan.set',
 ])
 

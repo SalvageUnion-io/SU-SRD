@@ -280,6 +280,9 @@ const CALLS = {
   /** The Game's plan (ADR-067 §4): its table runner's alone. */
   'plan.get': async (who: Caller, a: { gameId: string }, deps: CallDeps) =>
     act(deps.game(a.gameId), who.discordId, 'plan.get', undefined as never),
+  /** The caller's own notes from when they ran the table, or null: any member's read. */
+  'plan.mine': async (who: Caller, a: { gameId: string }, deps: CallDeps) =>
+    act(deps.game(a.gameId), who.discordId, 'plan.mine', undefined as never),
   'plan.set': async (who: Caller, a: { gameId: string; plan: GamePlan }, deps: CallDeps) => {
     await act(deps.game(a.gameId), who.discordId, 'plan.set', { plan: a.plan })
     return null
@@ -522,6 +525,7 @@ const CALL_ARGS = {
   'games.update': GAME.extend({ name: z.string().optional(), description: z.string().optional() }),
   'games.removeMember': GAME.extend({ userId: z.string().optional() }),
   'plan.get': GAME,
+  'plan.mine': GAME,
   'plan.set': GAME.extend({ plan: GamePlanSchema }),
   'games.setPrimaryCrawler': GAME.extend({ crawlerId: z.string() }),
   'invites.link': GAME,

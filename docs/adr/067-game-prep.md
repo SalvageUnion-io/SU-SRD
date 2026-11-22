@@ -117,6 +117,15 @@ whoever is Mediator now. Prepared encounters and NPCs were never the Game's
 (§3) and stay their maker's. The hand over dialog says what goes and what
 stays, and the new Mediator is told by a `role` event on the table's stream.
 
+**A former Mediator reads their notes back** (amended 2026-11-22, fourth persona
+review). The dialog promised the notes stay theirs, and no screen reached them
+once Prep left their Game page. `plan.mine` answers any member their own notes
+(`ownNotesFor`): the Game notes and each session's note with its day, never a
+title, never another author's, and null when they wrote none. It is a read of
+what is already stored; nothing is added to the row. The Game page shows it
+read-only as "Your notes from when you ran it"; taking the table back makes
+them editable in Prep again, and that dialog says so.
+
 **The session days are every member's.** A Game's read (`games.get`) carries
 `sessionDays`: the coming sessions' days, soonest first, and nothing else of
 the plan (never a title or a note). The Game's page shows the next one.

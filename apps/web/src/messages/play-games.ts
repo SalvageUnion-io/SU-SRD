@@ -155,7 +155,19 @@ export const playGamesCopy = messages({
   handOverGoes:
     'Goes across: the table, the opposition on its field, the private rolls on the Feed, and the session plans with their days and titles.',
   handOverStays:
-    'Stays with you: your Game notes and private session notes, and the encounters and NPCs in your Mediator’s Kit. The new Mediator starts with empty notes.',
+    'Stays with you: your Game notes and private session notes, which you can still read on the Game’s page, and the encounters and NPCs in your Mediator’s Kit. The new Mediator starts with empty notes.',
+  takeTheTableBack: 'Take the table back?',
+  takeBackComes:
+    'Comes to you: the table, the opposition on its field, the private rolls on the Feed, and the session plans with their days and titles.',
+  takeBackNotes:
+    'Any Game notes and private session notes you wrote before are yours to edit again. Whoever mediates now keeps their own, and can still read them on the Game’s page.',
+  takeItBack: 'Take it back',
+  formerNotes: 'Your notes from when you ran it',
+  formerNotesLede:
+    'The Game notes and private session notes you wrote as Mediator. Only you see them, and they are read-only until the table is yours again.',
+  readYourNotes: 'Read your notes',
+  formerNoteFor: 'Session plan · {day}',
+  formerNoteUndated: 'Session plan · no day set',
   whoMediates: 'Who mediates',
   handedOverTo: '{name} now mediates {game}.',
   youMediateNow: 'You now mediate {game}.',

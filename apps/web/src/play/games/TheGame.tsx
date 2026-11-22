@@ -10,7 +10,8 @@
  * seats its creator with `mediator: false`. Hand over appoints the member you
  * choose, then stands down whoever mediated before, behind a confirm with
  * focus on Cancel, which says what goes across and what stays: a Mediator's
- * notes are their own and never pass with the role (ADR-067 §4). With nobody mediating yet it reads **Appoint**, and a
+ * notes are their own and never pass with the role (ADR-067 §4); choosing
+ * yourself is taking the table back, and the dialog says what comes to you. With nobody mediating yet it reads **Appoint**, and a
  * solo Organizer may appoint themselves.
  *
  * Game settings (rename, describe), Remove and Leave are `GameSettings`'s
@@ -117,6 +118,8 @@ export function TheGame({
   const mediators = members?.filter((m) => m.mediator) ?? []
   const candidates = members?.filter((m) => !m.mediator) ?? []
   const appointing = mediators.length === 0
+  // Taking the table oneself is not giving it away: the dialog says what comes, not what goes (MD4-17).
+  const takingBack = chosen !== '' && chosen === viewerId
   // The next day the table meets, by the viewer's own clock (the room answers from yesterday on).
   const today = todayDay()
   const nextSession = game.sessionDays?.find((day) => day >= today)
@@ -271,7 +274,13 @@ export function TheGame({
         open={handing}
         onOpenChange={setHanding}
         tone="danger"
-        title={appointing ? playGamesCopy('appointTheMediator') : playGamesCopy('handTheTableOver')}
+        title={
+          appointing
+            ? playGamesCopy('appointTheMediator')
+            : takingBack
+              ? playGamesCopy('takeTheTableBack')
+              : playGamesCopy('handTheTableOver')
+        }
         body={
           <>
             <span>
@@ -279,8 +288,8 @@ export function TheGame({
               {appointing ? '' : playGamesCopy('whoeverMediatesNowStandsDown')}
             </span>
             {/* What moves with the role and what never does (r2 B3). */}
-            <span>{playGamesCopy('handOverGoes')}</span>
-            <span>{playGamesCopy('handOverStays')}</span>
+            <span>{playGamesCopy(takingBack ? 'takeBackComes' : 'handOverGoes')}</span>
+            <span>{playGamesCopy(takingBack ? 'takeBackNotes' : 'handOverStays')}</span>
             <Field label={playGamesCopy('whoMediates')} htmlFor={`${id}-who`}>
               <Select id={`${id}-who`} value={chosen} onChange={(e) => setChosen(e.target.value)}>
                 {candidates.map((m) => (
@@ -292,7 +301,13 @@ export function TheGame({
             </Field>
           </>
         }
-        confirmLabel={appointing ? playGamesCopy('appoint') : playGamesCopy('handOver')}
+        confirmLabel={
+          appointing
+            ? playGamesCopy('appoint')
+            : takingBack
+              ? playGamesCopy('takeItBack')
+              : playGamesCopy('handOver')
+        }
         describeError={(err) => failureMessage(err, playGamesCopy('tableHandOverFailed'))}
         onConfirm={async () => {
           if (chosen === '') return
