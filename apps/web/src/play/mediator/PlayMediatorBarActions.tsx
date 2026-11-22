@@ -53,7 +53,7 @@ export function PlayMediatorBarActions({
   return (
     <>
       {/* On the board, not in a menu: the table's own switch (play.md §10). */}
-      {wide && <SessionControl session={session} />}
+      {wide && <SessionControl session={session} inBar />}
       {wide && (
         <Button variant="ink" size="compact" onClick={() => setTelling(true)}>
           {mediatorCopy('tellTheTable')}

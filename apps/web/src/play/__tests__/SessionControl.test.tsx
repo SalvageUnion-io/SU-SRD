@@ -41,3 +41,12 @@ test('End group session asks first, and ends only on the confirm', async () => {
   })
   expect(calls).toEqual(['end'])
 })
+
+test('On the bar, Start keeps its hint as its description, under it (r5 B13)', () => {
+  render(<SessionControl session={session(false, [])} inBar />)
+  const start = screen.getByRole('button', { name: 'Start group session' })
+  expect(start.closest('.su-play-session')).not.toBeNull()
+  expect(start.getAttribute('aria-describedby')).toBe(
+    document.querySelector('.su-play-session__hint')?.id ?? null
+  )
+})

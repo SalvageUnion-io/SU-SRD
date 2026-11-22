@@ -71,6 +71,29 @@ const TITLE = {
 const TITLE_CAPS = capsLabel({ size: 'readout' })
 
 /**
+ * The phone's title, "Moth · Ines Park": the callsign is never cut (r5 B13),
+ * only what follows it gives way. A grid whose first track is the callsign's
+ * own width and whose second can shrink to nothing, so the title's least
+ * width is the callsign's.
+ */
+const LINE_TITLE = {
+  display: 'grid',
+  gridTemplateColumns: 'max-content minmax(0, auto)',
+  minWidth: 'min-content',
+} satisfies CSSProperties
+const GIVES_WAY = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+/** A title split where it gives way: before its first " · ", and the rest. */
+function callsignFirst(title: string): [string, string] | null {
+  const at = title.indexOf(' · ')
+  return at <= 0 ? null : [title.slice(0, at), title.slice(at)]
+}
+
+/**
  * A bar stamp (role, ONLINE, read-only): the ink plate, never rust (ruleset
  * §3.1). Its height is the line's (`.su-play-bar__stamp`, `play/bar.css`).
  */
@@ -159,6 +182,7 @@ export function PlayBar({
   const band = paused ? pausedBand() : phaseBand(tone)
   // The phone's one-line band, the title kept on its cut-out.
   if (line) {
+    const lineTitle = callsignFirst(title)
     return (
       <header
         data-ground={band.ground}
@@ -183,9 +207,16 @@ export function PlayBar({
         >
           {backLabel}
         </Button>
-        <h1 className={cn(NOTCH, TITLE_CAPS)} style={TITLE}>
-          {title}
-        </h1>
+        {lineTitle === null ? (
+          <h1 className={cn(NOTCH, TITLE_CAPS)} style={TITLE}>
+            {title}
+          </h1>
+        ) : (
+          <h1 className={cn(NOTCH, TITLE_CAPS)} style={{ ...TITLE, ...LINE_TITLE }}>
+            <span>{lineTitle[0]}</span>
+            <span style={GIVES_WAY}>{lineTitle[1]}</span>
+          </h1>
+        )}
         {readOnly !== null && (
           <Badge
             shape="stamp"
