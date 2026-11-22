@@ -6,14 +6,15 @@
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import { PopoverPanel } from '../../components/app'
-import { FOCUS_RING } from '../../components/index'
+import { Button } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 
-const MEANING = {
-  SEALED: 'cargoSealedMeans',
-  SYSTEM: 'cargoSystemMeans',
-  POWER: 'cargoPowerMeans',
-} as const
+/** What the tag means, each key said as a literal so the catalogue sees it. */
+function meaning(cat: Exclude<CargoLot['cat'], 'SCRAP'>): string {
+  if (cat === 'SEALED') return buildSheetCopy('cargoSealedMeans')
+  if (cat === 'SYSTEM') return buildSheetCopy('cargoSystemMeans')
+  return buildSheetCopy('cargoPowerMeans')
+}
 
 /** The row's tag for `cat`; Scrap carries none (its Tech Level says it). */
 export function CargoCatTag({ cat }: { cat: CargoLot['cat'] }) {
@@ -21,16 +22,16 @@ export function CargoCatTag({ cat }: { cat: CargoLot['cat'] }) {
   return (
     <PopoverPanel
       trigger={
-        <button type="button" className={`su-stat-provenance__trigger ${FOCUS_RING}`}>
+        <Button variant="ghost" size="mini">
           {cat}
-        </button>
+        </Button>
       }
       label={cat}
       openOnHover
       side="top"
       align="center"
     >
-      <span>{buildSheetCopy(MEANING[cat])}</span>
+      <span>{meaning(cat)}</span>
     </PopoverPanel>
   )
 }

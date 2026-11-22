@@ -25,7 +25,7 @@ export const buildSheetCopy = messages({
   unstowAmount: 'Unstow amount',
   cargoSealedMeans: 'Sealed: a load of your own naming. It moves whole and is not Scrap or a part.',
   cargoSystemMeans:
-    'System: a salvaged part, carried in Slots until it is fitted, sold or scrapped.',
+    'System: a salvaged part, carried in Slots until it is fitted, sold or broken down.',
   cargoPowerMeans: 'Power: a power source carried as cargo.',
   stowNeedsCrawler:
     'Stow sends a lot to a crawler’s Storage Bay: this Mech has no crawler assigned.',
