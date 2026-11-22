@@ -319,7 +319,7 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
     const first = [...pattern.querySelectorAll('option')].find((o) => o.value !== '')
     fireEvent.change(pattern, { target: { value: first?.value } })
     expect(screen.getByText(/^Systems: \S/)).toBeTruthy()
-    expect(screen.getByText(/Scrap T1 \d+/)).toBeTruthy()
+    expect(screen.getByText(/Scrap TL1 \d+/)).toBeTruthy()
   })
 
   test('pilot and crawler choosers do NOT show the pattern door', () => {
