@@ -28,14 +28,15 @@
 import type { Encounter, EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
 import { ENCOUNTER_MAX_BRIEFING, ENCOUNTER_MAX_NOTES } from 'game-domain/schemas/encounter'
 import type { CSSProperties, ReactNode } from 'react'
-import { useRef, useState } from 'react'
-import { Grid, useDetailModal } from '../../components/app'
+import { useId, useRef, useState } from 'react'
+import { Grid } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
   EmptyState,
   Field,
   HeaderMenu,
+  ReferenceEntityCard,
   SlabSection,
   Stack,
   Stat,
@@ -126,19 +127,20 @@ export function EncounterPage({ id }: { id: string }) {
   return <EncounterBody encounter={encounter} />
 }
 
+/** The open card sits under its row, one list gap below it. */
+const OPEN_CARD = { marginTop: tokens.space[8] } satisfies CSSProperties
+
 /**
- * One opponent in the list: its name opens its card over the page (MD3-10),
- * the book's or the Mediator's own design, so what it does is read where it
- * is prepped. A Compact never expands under itself (ruleset §1, C8): its
- * details are its Page. Its chip says what it is, so no kind follows its name.
+ * One opponent in the list: its name opens its card under it (MD3-10), the
+ * book's or the Mediator's own design, so what it does is read where it is
+ * prepped; a second press shuts it. The one place a Compact expands in place
+ * (ruleset §1.5, C8): the card is read-only, and the name says whether it is
+ * open (`aria-expanded`). Its chip says what it is, so no kind follows its name.
  */
 function OpponentRow({ opponent, menu }: { opponent: EncounterOpponent; menu: ReactNode }) {
   const { entity, pattern } = opponentAsTray(opponent)
-  const detail = useDetailModal(entity ?? undefined, {
-    pattern: pattern ?? undefined,
-    forceModal: true,
-  })
-  const open = detail.control.onClick
+  const [open, setOpen] = useState(false)
+  const cardId = useId()
   return (
     <>
       <UnitRow
@@ -148,9 +150,21 @@ function OpponentRow({ opponent, menu }: { opponent: EncounterOpponent; menu: Re
         unkinded
         readings={[{ label: opponent.statKind === 'sp' ? 'SP' : 'HP', value: opponent.maxHp }]}
         trailing={menu}
-        {...(entity !== null && open ? { mode: { kind: 'link', onOpen: () => open() } } : {})}
+        {...(entity !== null
+          ? {
+              mode: {
+                kind: 'link',
+                onOpen: () => setOpen((was) => !was),
+                attrs: { 'aria-expanded': open, 'aria-controls': cardId },
+              },
+            }
+          : {})}
       />
-      {detail.modal}
+      {entity !== null && open && (
+        <div id={cardId} data-prep-card style={OPEN_CARD}>
+          <ReferenceEntityCard data={entity} pattern={pattern ?? undefined} disabled={false} />
+        </div>
+      )}
     </>
   )
 }

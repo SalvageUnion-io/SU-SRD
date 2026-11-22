@@ -101,6 +101,15 @@ describe('strip-control scan', () => {
     expect(scan()).toEqual([])
   })
 
+  test('a prep row’s open card is the card’s own, and a control beside it is still found', () => {
+    // An encounter's opponent, its card opened under it by its name (ruleset §1.5).
+    const card = `<div data-prep-card><div class="su-ec-frame"><button>Roll</button>${row('Rifle')}</div></div>`
+    document.body.innerHTML = `<ul><li data-top="0">${row('Raider')}${card}</li></ul>`
+    expect(scan()).toEqual([])
+    document.body.innerHTML = `<ul><li data-top="0">${row('Raider')}${card}<button>Edit</button></li></ul>`
+    expect(scan()).toEqual(['beside: button "Edit" beside “Raider”'])
+  })
+
   test('a slot ends at a section: the page’s controls beyond it pass', () => {
     document.body.innerHTML = `<div data-top="0"><section data-top="0">${row('Propose a change')}</section><button data-top="40">Tables</button></div>`
     expect(scan()).toEqual([])

@@ -128,22 +128,33 @@ async function editField(label: string, value: string) {
 
 describe('an encounter page', () => {
   // MD3-10: a unit could not be opened to read what it does, in Edit or in Read.
-  test('a unit’s name opens its card on the page, in Edit and in Read', async () => {
-    await renderPage()
-    const row = within(screen.getByRole('list', { name: 'Opposition' }))
-    await click(row.getByRole('button', { name: 'Raider' }))
-    const card = screen.getByRole('dialog', { name: /Raider/ })
-    expect(within(card).getAllByText(/Raider/).length).toBeGreaterThan(0)
-    cleanup()
+  // The one Compact that expands in place (ruleset §1.5): read-only, no dialog.
+  test('a unit’s name opens its card under it, and shuts it, in Edit and in Read', async () => {
+    for (const editing of [true, false]) {
+      useSheetModeStore.setState({ editing })
+      await renderPage()
+      const list = screen.getByRole('list', { name: 'Opposition' })
+      const name = () => within(list).getByRole('button', { name: 'Raider' })
+      expect(name().getAttribute('aria-expanded')).toBe('false')
+      expect(list.querySelector('[data-prep-card]')).toBeNull()
 
-    useSheetModeStore.setState({ editing: false })
-    await renderPage()
-    await click(
-      within(screen.getByRole('list', { name: 'Opposition' })).getByRole('button', {
-        name: 'Raider',
+      await click(name())
+      expect(name().getAttribute('aria-expanded')).toBe('true')
+      const card = list.querySelector<HTMLElement>('[data-prep-card]')
+      expect(card?.id).toBe(name().getAttribute('aria-controls') ?? '')
+      expect(within(card as HTMLElement).getAllByText(/Raider/).length).toBeGreaterThan(0)
+      // Read-only: nothing in the card edits, and nothing opens over the page.
+      expect(within(card as HTMLElement).queryAllByRole('textbox')).toEqual([])
+      expect(screen.queryByRole('dialog')).toBeNull()
+
+      // The keyboard shuts it: the name is a button, so Enter presses it.
+      await act(async () => {
+        fireEvent.keyDown(name(), { key: 'Enter' })
       })
-    )
-    expect(screen.getByRole('dialog', { name: /Raider/ })).toBeTruthy()
+      expect(name().getAttribute('aria-expanded')).toBe('false')
+      expect(list.querySelector('[data-prep-card]')).toBeNull()
+      cleanup()
+    }
   })
 
   // MD-18: every row read "(NPC)" after its name, whatever it was.
