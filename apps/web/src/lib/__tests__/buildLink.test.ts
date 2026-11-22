@@ -21,9 +21,17 @@ describe('buildLinkFor', () => {
     })
   })
 
-  test('a chassis the wizard never offers gets no link', () => {
-    const tech2 = must(SalvageUnionReference.Chassis.all().find((c) => c.techLevel === 2))
-    expect(buildLinkFor('chassis', tech2)).toBeNull()
+  test('every other chassis, a higher Tech Level or a Bio-Chassis, opens a Blank build of it (r5 D8)', () => {
+    for (const chassis of SalvageUnionReference.Chassis.all()) {
+      if (isLegalCreationChassis(chassis.techLevel)) continue
+      expect(buildLinkFor('chassis', chassis)?.href).toBe(
+        `${appPath('/mechs/new')}?mode=blank&chassis=${getEntitySlug(chassis)}`
+      )
+    }
+    const lettered = SalvageUnionReference.Chassis.all().filter(
+      (c) => typeof c.techLevel !== 'number'
+    )
+    expect(lettered.length).toBeGreaterThan(0)
   })
 
   test('a core class opens the pilot wizard; an advanced or hybrid class gets no link', () => {

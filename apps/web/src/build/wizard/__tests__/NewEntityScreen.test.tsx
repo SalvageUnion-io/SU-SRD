@@ -464,6 +464,23 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(useSheetModeStore.getState().editing).toBe(true)
   })
 
+  test('a chassis page’s Build With This opens Blank with its chassis picked (r5 D8)', async () => {
+    const created: string[] = []
+    render(
+      <NewEntityScreen
+        kind="mech"
+        mode="blank"
+        wizard={null}
+        onModeChange={noop}
+        onCreated={(id) => created.push(id)}
+        book={{ chassis: 'magpie' }}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Create Mech' }))
+    await waitFor(() => expect(created.length).toBe(1))
+    expect(useUnits.getState().get('mech', created[0] as string)?.chassisRef).toBe('magpie')
+  })
+
   test('a draft left mid-build is offered: Resume your draft, or Start over (which clears it)', () => {
     sessionStorage.setItem(wizardDraftKey('mech'), JSON.stringify({ name: 'Half built' }))
     const modes: unknown[] = []

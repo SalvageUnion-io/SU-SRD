@@ -41,6 +41,8 @@ type BlankCreateDialogProps = {
   onCreated: (id: string) => void
   /** The Game the new unit lands in (`?game=<id>`, ADR-052 §3); unset, the store decides. */
   gameId?: string | undefined
+  /** A mech's chassis, by slug, picked already (a chassis page's Build With This, r5 D8). */
+  chassis?: string | undefined
 }
 
 const KIND_LABEL: Record<SheetKind, string> = {
@@ -81,11 +83,16 @@ export function BlankCreateDialog({
   onClose,
   onCreated,
   gameId,
+  chassis,
 }: BlankCreateDialogProps) {
   const [name, setName] = useState('')
   const [callsign, setCallsign] = useState('')
-  /** Optional class/chassis ref ('' = decide later on the sheet). */
-  const [refPick, setRefPick] = useState('')
+  /** Optional class/chassis ref ('' = decide later on the sheet); a chassis page's link picks its own. */
+  const [refPick, setRefPick] = useState(() =>
+    kind === 'mech' && chassis !== undefined && SalvageUnionReference.Chassis.getBySlug(chassis)
+      ? chassis
+      : ''
+  )
   const [techLevel, setTechLevel] = useState(1)
 
   const label = KIND_LABEL[kind]

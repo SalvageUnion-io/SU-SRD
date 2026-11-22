@@ -5,10 +5,12 @@
  * the crawler wizard on that type. The app's `/…/new` routes read the slug
  * (`apps/web/src/lib/wizard/preselect.ts`) and keep it through sign-in.
  *
- * A page's own link is offered only where the wizard would accept the pick — a
+ * A page's own link opens the wizard only where it would accept the pick — a
  * Tech 1 chassis, a core class, any crawler type — by the same rules its
  * pickers filter on, so the button never lands on a wizard that silently
- * ignores it. A pattern page always has one (`patternBuildLinkFor`).
+ * ignores it. Every other chassis (higher Tech Levels, Bio-Chassis) opens a
+ * Blank build of it, which takes any chassis (r5 D8). A pattern page always
+ * has one (`patternBuildLinkFor`).
  *
  * A creation guide ends on its exits (`guideExitsFor`): the same wizard, unseeded,
  * the next guide, and the Starter Set.
@@ -58,15 +60,16 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
   const slug = getEntitySlug(item)
   switch (schemaId) {
     case 'chassis':
-      return 'techLevel' in item &&
-        item.techLevel !== undefined &&
-        isLegalCreationChassis(item.techLevel)
-        ? {
-            href: wizardHref('/mechs/new', { chassis: slug }),
-            label: BUILD_WITH_THIS,
-            ariaLabel: `${BUILD_WITH_THIS}: a mech`,
-          }
-        : null
+      return {
+        href:
+          'techLevel' in item &&
+          item.techLevel !== undefined &&
+          isLegalCreationChassis(item.techLevel)
+            ? wizardHref('/mechs/new', { chassis: slug })
+            : `${appPath('/mechs/new')}?${new URLSearchParams({ mode: 'blank', chassis: slug })}`,
+        label: BUILD_WITH_THIS,
+        ariaLabel: `${BUILD_WITH_THIS}: a mech`,
+      }
     case 'classes':
       return 'coreTrees' in item && isLegalCreationClass(item.coreTrees)
         ? {
