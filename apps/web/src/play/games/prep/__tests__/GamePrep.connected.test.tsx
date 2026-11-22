@@ -403,16 +403,33 @@ describe('the plan', () => {
     expect(sessionDays()).toEqual(['2026-12-05', '2026-12-12'])
   })
 
-  test('+ Add a session saves a new one dated today, at once', async () => {
-    await renderPrep()
-    await click(screen.getByRole('button', { name: '+ Add a session' }))
-    await settle(() => saves.length > 0)
-    const now = new Date()
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-    expect(saves).toHaveLength(1)
-    expect(saves[0]?.sessions).toHaveLength(3)
-    expect(saves[0]?.sessions[2]).toMatchObject({ date: today, note: '' })
-    expect(sessionDays()).toContain(today)
+  // MD3-07: it took today's day, so it jumped above the planned ones as "Session 1".
+  test('+ Add a session saves a new one after the last, numbered next and in view', async () => {
+    const shown: Element[] = []
+    const scroll = spyOn(Element.prototype, 'scrollIntoView').mockImplementation(function (
+      this: Element
+    ) {
+      shown.push(this)
+    })
+    try {
+      await renderPrep()
+      await click(screen.getByRole('button', { name: '+ Add a session' }))
+      await settle(() => saves.length > 0)
+      const now = new Date()
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+      const day = today > '2026-12-06' ? today : '2026-12-06'
+      expect(saves).toHaveLength(1)
+      expect(saves[0]?.sessions).toHaveLength(3)
+      expect(saves[0]?.sessions[2]).toMatchObject({ date: day, note: '' })
+      expect(sessionDays()).toEqual(['2026-11-28', '2026-12-05', day])
+      const rows = within(screen.getByRole('list', { name: 'Sessions' })).getAllByRole('listitem')
+      expect(
+        within(rows[2] as HTMLElement).getByRole('heading', { name: 'Session 3' })
+      ).toBeTruthy()
+      expect(shown).toEqual([rows[2] as Element])
+    } finally {
+      scroll.mockRestore()
+    }
   })
 
   test('removing a session asks first, and Cancel keeps it', async () => {

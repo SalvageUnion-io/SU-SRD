@@ -115,9 +115,27 @@ export function patchSession(
   }
 }
 
-/** The plan with a new, empty session on `date` (today, as the Mediator's clock has it). */
-export function addSession(plan: GamePlan, id: string, date: string): GamePlan {
-  return { ...plan, sessions: [...plan.sessions, { id, date, note: '' }] }
+/**
+ * The day a new session takes (MD3-07): the day after the last planned one,
+ * and never before `today` (the Mediator's clock), so it lists last and is
+ * numbered next. After a session with no day it has none either.
+ */
+export function nextSessionDay(
+  plan: Pick<GamePlan, 'sessions'>,
+  today: string
+): string | undefined {
+  const last = datedSessions(plan).at(-1)
+  if (last === undefined) return today
+  if (last.date === undefined) return undefined
+  const [year = 0, month = 1, day = 1] = last.date.split('-').map(Number)
+  const after = new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10)
+  return after > today ? after : today
+}
+
+/** The plan with a new, empty session on `date`, or with no day yet. */
+export function addSession(plan: GamePlan, id: string, date: string | undefined): GamePlan {
+  const session = date === undefined ? { id, note: '' } : { id, date, note: '' }
+  return { ...plan, sessions: [...plan.sessions, session] }
 }
 
 /** The plan without one session. */

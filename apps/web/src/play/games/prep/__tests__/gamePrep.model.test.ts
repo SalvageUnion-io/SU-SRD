@@ -9,6 +9,7 @@ import {
   lastOrder,
   looseEncounters,
   moveEncounter,
+  nextSessionDay,
   patchSession,
   removeSession,
   sessionName,
@@ -77,5 +78,23 @@ describe('the sessions list', () => {
     expect(heldSessions(plan, null).map((s) => s.id)).toEqual(['s2', 's1'])
     plan = addSession(plan, 's3', '2026-11-01')
     expect(heldSessions(plan, held).map((s) => s.id)).toEqual(['s1', 's2', 's3'])
+  })
+  // MD3-07: a new session took today's day, so it jumped above the planned ones.
+  test('a new session is dated after the last planned one, never before today', () => {
+    let plan = addSession(EMPTY_GAME_PLAN, 's1', '2026-12-13')
+    plan = addSession(plan, 's2', '2026-11-29')
+    expect(nextSessionDay(EMPTY_GAME_PLAN, '2026-11-22')).toBe('2026-11-22')
+    expect(nextSessionDay(plan, '2026-11-22')).toBe('2026-12-14')
+    // Across a month's end, and when every planned day has passed.
+    expect(nextSessionDay(addSession(plan, 's3', '2026-12-31'), '2026-11-22')).toBe('2027-01-01')
+    expect(nextSessionDay(plan, '2027-02-01')).toBe('2027-02-01')
+    const added = addSession(plan, 's3', nextSessionDay(plan, '2026-11-22'))
+    expect(datedSessions(added).map((s) => s.id)).toEqual(['s2', 's1', 's3'])
+    // After a session with no day, a new one has none either, so it still lists last.
+    const undated = patchSession(added, 's3', { date: '' })
+    expect(nextSessionDay(undated, '2026-11-22')).toBeUndefined()
+    const last = addSession(undated, 's4', nextSessionDay(undated, '2026-11-22'))
+    expect(last.sessions.at(-1)).toEqual({ id: 's4', note: '' })
+    expect(datedSessions(last).map((s) => s.id)).toEqual(['s2', 's1', 's3', 's4'])
   })
 })
