@@ -30,8 +30,8 @@ describe('the shell’s Union bar', () => {
     const tabs = Array.from(doc.querySelectorAll('.su-union-bar__tab'))
     expect(tabs.map((tab) => [tab.textContent, tab.getAttribute('href')])).toEqual([
       ['Reference', '/reference/'],
-      ['Build', '/build/'],
-      ['Play', '/games/'],
+      ['Training Bay', '/build/'],
+      ['Games', '/games/'],
     ])
     expect(tabs.map((tab) => tab.getAttribute('data-tool'))).toEqual(['reference', 'build', 'play'])
     expect(tabs[1]?.getAttribute('aria-current')).toBe('true')
@@ -49,7 +49,7 @@ describe('the shell’s Union bar', () => {
         el.textContent,
         el.getAttribute('aria-current'),
       ])
-    ).toEqual([['Build', 'true']])
+    ).toEqual([['Training Bay', 'true']])
   })
 
   test('carries every slot, empty, and Buy the game right after the areas', () => {
@@ -91,22 +91,22 @@ describe('the shell’s Union bar, marked for its route', () => {
   test('on Your Games: the Games tab', () => {
     expect(hereIn(markUnionRoute(renderUnionBar(), '/games/'))).toEqual({
       mode: 'play',
-      current: ['Play=true'],
+      current: ['Games=true'],
     })
   })
 
   test('on the Training Bay’s pages: its tab', () => {
     expect(hereIn(markUnionRoute(renderUnionBar(), '/patterns/'))).toEqual({
       mode: 'build',
-      current: ['Build=true'],
+      current: ['Training Bay=true'],
     })
     expect(hereIn(markUnionRoute(renderUnionBar(), '/starter/pilot/x'))).toEqual({
       mode: 'build',
-      current: ['Build=true'],
+      current: ['Training Bay=true'],
     })
     expect(hereIn(markUnionRoute(renderUnionBar(), '/settings'))).toEqual({
       mode: 'build',
-      current: ['Build=true'],
+      current: ['Training Bay=true'],
     })
   })
 

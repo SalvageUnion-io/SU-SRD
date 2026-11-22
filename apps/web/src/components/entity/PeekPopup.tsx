@@ -12,6 +12,7 @@ import {
 import { borderWidth, color, layer, space, widthAtLeast } from '../../design/tokens'
 import { captureException } from '../../lib/observability'
 import { entityCopy } from '../../messages/components-entity'
+import { CloseButton } from '../atoms/CloseButton'
 import { InlineRef } from '../atoms/InlineRef'
 import { EmptyState } from '../containers/EmptyState'
 import { Skeleton } from '../containers/Skeleton'
@@ -55,6 +56,18 @@ const PEEK_SHEET = {
   maxHeight: '80dvh',
   borderTop: `${borderWidth.entityCompact} solid ${color.ink}`,
   background: color.paper,
+} satisfies CSSProperties
+
+/**
+ * The sheet's head: its Close, over the card and outside its scroll. A sheet
+ * that covers most of a phone shows its own way out; Back and a press outside
+ * still close it.
+ */
+const PEEK_SHEET_HEAD = {
+  display: 'flex',
+  flex: 'none',
+  justifyContent: 'flex-end',
+  padding: `${space[4]} ${space[8]}`,
 } satisfies CSSProperties
 
 /** The sheet's card scrolls inside it, so its way out stays at the foot. */
@@ -230,6 +243,9 @@ export function PeekPopup({
         {...{ [PEEK_POPUP_ATTRIBUTE]: '' }}
         style={PEEK_SHEET}
       >
+        <div style={PEEK_SHEET_HEAD}>
+          <CloseButton label={entityCopy('close')} onClick={onDismiss} />
+        </div>
         {card ? (
           <PeekBoundary>
             <div style={PEEK_SHEET_CARD}>{card}</div>

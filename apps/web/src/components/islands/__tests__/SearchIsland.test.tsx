@@ -103,6 +103,42 @@ describe('SearchIsland', () => {
     expect(listbox.textContent).toContain('No results found')
   })
 
+  test('an empty result with nothing close links on to the listings and the rules (r3 D1)', async () => {
+    render(<SearchIsland />)
+    await typeAndSettle(screen.getByRole('combobox'), 'zzzzxxxxxnonsense99999')
+    const listbox = screen.getByRole('listbox')
+    const links = [...listbox.querySelectorAll('a')].map((a) => a.getAttribute('href'))
+    expect(links).toEqual(['/reference/', '/rules/'])
+    expect(listbox.textContent).not.toContain('Did you mean')
+  })
+
+  test('an empty result one slip from something offers it; pressing it searches (r3 D1)', async () => {
+    render(<SearchIsland />)
+    const input = screen.getByRole('combobox') as HTMLInputElement
+    // "damge" is in no name beside "railgun", so nothing matches as typed.
+    await typeAndSettle(input, 'railgun damge')
+    const listbox = screen.getByRole('listbox')
+    expect(listbox.textContent).toContain('No results found.')
+    const offer = screen.getByRole('button', { name: 'railgun damage' })
+    expect(listbox.textContent).toContain('Did you mean')
+    await act(async () => {
+      fireEvent.click(offer)
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_MS)
+    })
+    expect(input.value).toBe('railgun damage')
+    expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
+  })
+
+  test('a kind’s name one slip away still finds the kind (r3 D1)', async () => {
+    render(<SearchIsland />)
+    await typeAndSettle(screen.getByRole('combobox'), 'chasis')
+    const [first] = screen.getAllByRole('option')
+    expect(first?.textContent).toContain('Chassis')
+    expect(first?.getAttribute('href')).toBe('/chassis/')
+  })
+
   test('a pattern is a result of its own, opening its own page (PT-26)', async () => {
     const navigate = mock(() => {})
     render(<SearchIsland navigate={navigate} />)

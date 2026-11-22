@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { color, fontSize, space, weight } from '../../design/tokens'
 import { schemaLabel } from '../../lib/schemaLabels'
 import { compositionsCopy } from '../../messages/components-compositions'
@@ -35,6 +35,8 @@ type SearchListboxProps = {
   modelOf: (result: SearchComboboxResult) => EntityFormModel | undefined
   /** The host's placement: a popup under its field, or a scrolling panel. */
   style?: CSSProperties
+  /** Under the empty line, the host's next step: a "Did you mean", or the ways on. */
+  none?: ReactNode
 } & (
   | {
       /** In a dropdown hung under a field (the Union bar's): the entity results are a Ledger, each a link. */
@@ -52,6 +54,14 @@ type SearchListboxProps = {
 const STATUS = {
   paddingBlock: space[12],
   paddingInline: space[16],
+} satisfies CSSProperties
+
+/** The empty line over the host's next step. */
+const STATUS_NEXT = {
+  ...STATUS,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
 } satisfies CSSProperties
 
 /** Compacts one a line, 8px apart. */
@@ -115,6 +125,7 @@ export function SearchListbox({
   optionId,
   modelOf,
   style,
+  none,
   ...form
 }: SearchListboxProps) {
   const { target } = form
@@ -181,8 +192,9 @@ export function SearchListbox({
           <Pending label={compositionsCopy('searchIndex')} />
         </div>
       ) : results.length === 0 ? (
-        <div style={STATUS}>
+        <div style={none ? STATUS_NEXT : STATUS}>
           <EmptyState variant="inline" body={NO_RESULTS} />
+          {none}
         </div>
       ) : form.size === 'mini' ? (
         runs(results, isEntity).map((run) =>

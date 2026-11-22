@@ -44,6 +44,9 @@ describe('SparseRail', () => {
     const long = sparseRailFor('keywords', heat)
     expect(long.usedBy.length).toBeGreaterThan(14)
     expect(markup(long)).toContain('su-sparse-rail--long')
+    // The box is told how many rows would fit them all: it grows to that
+    // before it scrolls (r3 C5).
+    expect(markup(long)).toContain(`--su-used-rows:${long.usedBy.length}`)
     expect(markup({ ...long, usedBy: long.usedBy.slice(0, 14) })).not.toContain(
       'su-sparse-rail--long'
     )

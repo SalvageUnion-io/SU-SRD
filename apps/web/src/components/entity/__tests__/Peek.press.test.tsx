@@ -5,7 +5,7 @@
  * link.
  */
 import { describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { EntityRef } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../EntitySurface'
@@ -112,10 +112,16 @@ describe('a press on a reference term', () => {
       await waitFor(() => expect(peek.querySelector('[data-peek-out]')).not.toBeNull())
       // The card scrolls; the way out is its sibling, outside the scroll.
       const out = peek.querySelector('[data-peek-out]')?.parentElement
-      const card = peek.firstElementChild as HTMLElement
+      const card = out?.previousElementSibling as HTMLElement
       expect(card.style.overflowY).toBe('auto')
       expect(card.contains(out ?? null)).toBe(false)
       expect(out?.parentElement).toBe(peek)
+      // A visible Close heads the sheet, outside the scroll (r3 C3): Back and
+      // a press outside are ways out the sheet itself never shows.
+      const close = within(peek).getByRole('button', { name: 'Close' })
+      expect(card.contains(close)).toBe(false)
+      fireEvent.click(close)
+      await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
     } finally {
       window.matchMedia = real
     }

@@ -149,7 +149,9 @@ export {
   scoreSearchMatch,
   searchAliases,
   searchNameWords,
+  searchOneSlipAway,
   searchSquashedName,
+  suggestSearchQuery,
   tokenizeSearchQuery,
 } from './searchRanking'
 export { findEntityBySlug, getEntitySlug } from './slug'

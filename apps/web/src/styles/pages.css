@@ -854,8 +854,11 @@ html[data-listing-pending] .su-listing__groups {
   }
 }
 
-.su-page-jump__open {
+/* A full-size touch target (44px): it floats alone under a thumb. */
+.su-page-jump .su-page-jump__open {
   box-shadow: var(--shadow-lift);
+  height: var(--size-full);
+  width: var(--size-full);
 }
 
 .su-page-jump__sheet {

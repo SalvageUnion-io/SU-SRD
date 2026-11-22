@@ -34,7 +34,7 @@ import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
 import { relationsFor } from '../../../lib/pageRelations'
 import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
-import { isSparse, oneRelatedRules, sparseRailFor } from '../../../lib/sparseRail'
+import { isSparse, oneRelatedRules, sparseRailFor, tableRailFor } from '../../../lib/sparseRail'
 import { getItemStaticPaths } from '../../../lib/staticPaths'
 import { pagesCopy } from '../../../messages/reference-pages'
 import { Island } from '../../../runtime/Island'
@@ -91,10 +91,16 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   ) : null
   // A sparse Page's side column.
   // Its Related rules and the Page's own are one list.
+  // A roll table's is who sends a reader to it (r3 C4); none, no column.
+  const tableRail = schemaId === 'roll-tables' ? tableRailFor(item) : null
   const { rail: sparse, relations } = oneRelatedRules(
-    !rollPage && !techLevelPage && isSparse(item)
-      ? sparseRailFor(schemaId as RefEnumSchemaName, item)
-      : null,
+    tableRail
+      ? tableRail.usedBy.length + tableRail.rules.length > 0
+        ? tableRail
+        : null
+      : !rollPage && !techLevelPage && isSparse(item)
+        ? sparseRailFor(schemaId as RefEnumSchemaName, item)
+        : null,
     relationsFor(schemaId, item)
   )
   // An ability's Preceding and Next in its tree, at the Page's foot.

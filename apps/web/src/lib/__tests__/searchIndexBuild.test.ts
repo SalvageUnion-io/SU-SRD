@@ -38,3 +38,40 @@ describe('the search index’s rule rows', () => {
     expect(names).toContain('Mech Damage')
   })
 })
+
+describe('search forgives a slip and knows what players say (r3 D1, D2)', () => {
+  const first = (query: string) => searchCompactIndex(index, { query, limit: 10 })[0]?.entityName
+  const top = (query: string, count: number) =>
+    searchCompactIndex(index, { query, limit: count }).map((result) => result.entityName)
+
+  test('swapped neighbours and a dropped double letter find the name', () => {
+    expect(first('exlposive')).toBe('Explosive')
+    expect(first('hackre')).toBe('Hacker')
+    // "sheet" holds "heet": the name one slip away still leads the prose.
+    expect(first('heet')).toBe('Heat')
+  })
+
+  test('a range band as players say it leads with its distance page', () => {
+    expect(first('long range')).toBe('Long')
+    expect(first('close range')).toBe('Close')
+    expect(first('medium range')).toBe('Medium')
+    expect(top('range bands', 5).sort()).toEqual(['Close', 'Far', 'Long', 'Medium', 'Range'])
+  })
+
+  test('a question players ask leads with the rule it is about', () => {
+    expect(first('who goes first')).toBe('Group Initiative')
+    expect(top('can I shoot twice', 2).sort()).toEqual(['Multi-attack', 'Turn action'])
+    expect(first('my mech hits 0 SP')).toBe('Mech Damage')
+    expect(first('what happens when my mech hits 0 sp')).toBe('Mech Damage')
+  })
+
+  test('every phrase names a page the dataset has', () => {
+    for (const entry of index) {
+      for (const alias of entry.aliases ?? []) expect(entry.text).toContain(alias)
+    }
+    // The distance pages themselves, not a rule that mentions them.
+    const long = index.find((entry) => entry.name === 'Long')
+    expect(long?.schemaName).toBe('distances')
+    expect(long?.aliases).toContain('long range')
+  })
+})

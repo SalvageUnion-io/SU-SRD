@@ -7,6 +7,7 @@
 // names the full count, and the short pieces after it stand whole. Every entry
 // is a term (E27): a real link to its page on the SRD's surface, so the
 // keyboard reaches it and it works with no script.
+import type { CSSProperties } from 'react'
 import { cn, Mention, TitledBox } from '../components/index'
 import { ReferenceSurface } from '../components/ReferenceSurface'
 import type { SparseRail as Rail } from '../lib/sparseRail'
@@ -22,8 +23,9 @@ const BAND_TOKEN: Record<string, string> = {
 
 /**
  * The rows Used by always shows (`pages-docs.css`, its 22rem floor): a longer
- * list keeps that many in view however short the Page's words are, and the
- * Page grows to hold them (Heat showed 7 of 81 beside an empty column, RR2-17).
+ * list grows to fit its rows however short the Page's words are, the Page
+ * growing to hold them, and scrolls only past a screenful (Heat showed 14 of
+ * 81 in a 22rem box beside an empty column, RR2-17).
  */
 const USED_BY_FLOOR = 14
 
@@ -47,7 +49,12 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
         <p className="su-sparse-rail__count">
           {referenceCopy('usedByCount', { count: usedBy.length })}
         </p>
-        <ul className={cn('su-sparse-rail__rows', 'su-sparse-rail__scroll')}>
+        <ul
+          className={cn('su-sparse-rail__rows', 'su-sparse-rail__scroll')}
+          // How many rows it would take to fit them all: the box grows to
+          // that before it scrolls (`pages-docs.css`).
+          style={{ '--su-used-rows': usedBy.length } as CSSProperties}
+        >
           {usedBy.map((user) => (
             <li key={user.ref.id} className="su-sparse-rail__row">
               <Mention entityRef={user.ref} goes>

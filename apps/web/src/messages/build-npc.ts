@@ -20,9 +20,9 @@ export const npcCopy = messages({
   startedBlank: 'Started blank',
   preview: 'Preview',
   livePreview: 'Live preview',
-  livePreviewHowItWill: 'Live preview · how it will look in your Training Bay and in a Game',
+  livePreviewHowItWill: 'Live preview · how it will look in your Mediator’s Kit and in a Game',
   yoursNotTheBooks: 'Yours, not the book’s.',
-  howItWillLookIn: 'How it will look in your Training Bay and in a Game',
+  howItWillLookIn: 'How it will look in your Mediator’s Kit and in a Game',
   startBlank: 'Start blank?',
   yourStatsActionsAndTraits:
     'Your stats, actions and traits are cleared. The name and identity you wrote stay.',

@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { relationsFor } from '../pageRelations'
-import { isSparse, oneRelatedRules, sparseRailFor } from '../sparseRail'
+import { isSparse, oneRelatedRules, sparseRailFor, tableRailFor } from '../sparseRail'
 
 const find = (schema: 'traits' | 'keywords', slug: string) =>
   SalvageUnionReference.findAllIn(schema, () => true).find(
@@ -46,5 +46,32 @@ describe('oneRelatedRules', () => {
   test('a Page with no rail keeps its own list', () => {
     const relations = relationsFor('keywords', find('keywords', 'heat'))
     expect(oneRelatedRules(null, relations).relations).toBe(relations)
+  })
+})
+
+describe('tableRailFor: a roll table links back to what uses it (r3 C4)', () => {
+  const table = (name: string) =>
+    SalvageUnionReference.findAllIn('roll-tables', (t) => t.name === name)[0] as RefEntity
+
+  test('a system’s table lists the system, through the action that names the table', () => {
+    const rail = tableRailFor(table('Ejection System'))
+    expect(rail.usedBy).toContainEqual(
+      expect.objectContaining({ name: 'Ejection System', kind: 'System' })
+    )
+  })
+
+  test('a rules table lists the keyword and the guide whose words send a reader to it', () => {
+    const rail = tableRailFor(table('Reactor Overload'))
+    expect(rail.usedBy.map((row) => row.name)).toContain('Heat check')
+    expect(rail.rules.length).toBeGreaterThan(0)
+    // A table is never its own user, and no record is listed twice.
+    const ids = rail.usedBy.map((row) => row.ref.id)
+    expect(ids).not.toContain(table('Reactor Overload').id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  test('a table is named, never matched by a bare word: Shield is not every shield', () => {
+    const rail = tableRailFor(table('Shield'))
+    expect(rail.usedBy.length).toBeLessThan(6)
   })
 })

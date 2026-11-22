@@ -8,8 +8,12 @@
  * - **The sections** are the page's own contents where it draws them (a
  *   class's and a guide's "On this page", `data-page-contents`), else its
  *   second-level headings. One section is no list.
- * - A section pressed closes the sheet, scrolls to its heading and hands it
- *   the focus, so a screen reader and the next Tab start there.
+ * - A section pressed closes the sheet, goes to its heading and hands it the
+ *   focus, so a screen reader and the next Tab start there. A heading with an
+ *   id is named in the address, as the page's own contents name it: Back
+ *   returns to where the reader was.
+ * - Search opens the phone's search sheet over the page (`MobileSearchDialog`),
+ *   so the page stays where it is; the bar's own field is at the top of it.
  *
  * Plain DOM, free of React: the page's entry script runs it on every page.
  */
@@ -23,8 +27,11 @@ export const PAGE_JUMP_SHEET_ID = 'su-page-jump-sheet'
 /** A page's own contents (`nav`), whose links the sheet repeats. */
 const PAGE_CONTENTS_ATTRIBUTE = 'data-page-contents'
 
+/** The phone's search sheet's trigger (`MobileSearchDialog`), drawn or not. */
+const SEARCH_SHEET_TRIGGER = '.su-mobile-search__trigger'
+
 /** A page this many screens tall is long. */
-const LONG_PAGE_SCREENS = 2.5
+const LONG_PAGE_SCREENS = 2
 /** The button shows once the page has scrolled this many pixels: its header is out of sight. */
 const SHOW_AFTER = 240
 
@@ -60,7 +67,7 @@ export function isLongPage(pageHeight: number, screenHeight: number): boolean {
   return screenHeight > 0 && pageHeight >= screenHeight * LONG_PAGE_SCREENS
 }
 
-type PageJumpWindow = Pick<Window, 'addEventListener' | 'innerHeight' | 'scrollY'>
+type PageJumpWindow = Pick<Window, 'addEventListener' | 'innerHeight' | 'scrollY' | 'location'>
 
 /** Starts the button on `doc`, where the layout served one. */
 export function watchPageJump(doc: Document, win: PageJumpWindow = window): void {
@@ -89,7 +96,11 @@ export function watchPageJump(doc: Document, win: PageJumpWindow = window): void
         button.addEventListener('click', () => {
           close()
           if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
-          target.scrollIntoView({ block: 'start' })
+          // A new address is a history entry and the browser's own jump; the
+          // one already named, or a heading with no id, is scrolled to.
+          const hash = target.id ? `#${encodeURIComponent(target.id)}` : ''
+          if (hash && win.location.hash !== hash) win.location.hash = hash
+          else target.scrollIntoView({ block: 'start' })
           target.focus({ preventScroll: true })
         })
         item.append(button)
@@ -101,9 +112,18 @@ export function watchPageJump(doc: Document, win: PageJumpWindow = window): void
   sheet.addEventListener('beforetoggle', (event) => {
     if ((event as ToggleEvent).newState === 'open') fill()
   })
-  // Search leaves the sheet: the bar's field takes the focus (`data-search-open`).
+  // Search leaves the sheet for the phone's search sheet, which opens over the
+  // page where it is. Its island wakes on intent and plays the press back
+  // (`runtime/interaction.ts`). With none, the page's own handler focuses the
+  // bar's field (`data-search-open`, `islands.client.ts`).
   sheet.addEventListener('click', (event) => {
-    if (event.target instanceof Element && event.target.closest('[data-search-open]')) close()
+    if (!(event.target instanceof Element) || !event.target.closest('[data-search-open]')) return
+    close()
+    const trigger = doc.querySelector<HTMLElement>(SEARCH_SHEET_TRIGGER)
+    if (!trigger) return
+    event.preventDefault()
+    trigger.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    trigger.click()
   })
 
   const update = () => {

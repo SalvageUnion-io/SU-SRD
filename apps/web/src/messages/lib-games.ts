@@ -89,5 +89,6 @@ export const libGamesCopy = messages({
     "You can move {them} back to your {bay} later, but you'll need to make those assignments again.",
   onlyMembersCanBring: 'Only members of this Game can bring builds into it.',
   unknownGame: 'Unknown Game',
+  mediatorsKit: 'Mediator’s Kit',
   unionCrawler: 'Union Crawler',
 })

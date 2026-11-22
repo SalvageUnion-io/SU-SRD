@@ -7,8 +7,6 @@ export const unionBarCopy = messages({
   signInWithDiscord: 'Sign in with Discord',
   buyTheGame: 'Buy the game',
   navReference: 'The book',
-  navBuild: 'Build',
-  navPlay: 'Play',
   navPilots: 'Pilots',
   navMechs: 'Mechs',
   navUnionCrawler: 'Union Crawler',

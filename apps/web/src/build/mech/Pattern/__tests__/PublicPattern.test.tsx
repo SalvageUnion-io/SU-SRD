@@ -127,6 +127,20 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     expect(usePageCredit.getState().credit).toBeUndefined()
   })
 
+  test('signed out, its one action says signing in is how you build from it, and comes back to this page (r3 E3)', () => {
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    const before = window.location.href
+    window.location.href = 'http://localhost/build/p/pattern/tow-rig-pat'
+    serverMocks.signIns.length = 0
+    try {
+      renderAs(SIGNED_OUT)
+      fireEvent.click(screen.getByRole('button', { name: 'Sign in to build from this' }))
+      expect(serverMocks.signIns).toEqual([['/p/pattern/tow-rig-pat']])
+    } finally {
+      window.location.href = before
+    }
+  })
+
   test('the chassis and the loadout come from the reference', () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(SIGNED_OUT)

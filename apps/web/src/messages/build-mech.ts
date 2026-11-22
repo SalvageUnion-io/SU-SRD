@@ -81,6 +81,8 @@ export const mechCopy = messages({
   lineArt: '{name} line art',
   theChassisThisPatternIs: 'The chassis this pattern is built on is not in the reference.',
   aboutThisPattern: 'About this pattern',
+  signInToBuildFromThis: 'Sign in to build from this',
+  seeTheBooksPatterns: 'See the book’s patterns',
   signInToBuildThis: 'Sign in to build this Mech or copy it to your Training Bay.',
   saveAsPattern: 'Save as pattern',
   savedPattern: 'Saved pattern {name}.',

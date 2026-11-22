@@ -74,7 +74,7 @@ describe('on a chassis page', () => {
     expect(screen.queryByRole('link', { name: /show all/i })).toBeNull()
   })
 
-  test('remembered on, it lists at once; none shared, it says so; turned off, it hides them', async () => {
+  test('remembered on with none shared, it says so and the switch hides: nothing to show or hide (r3 C5)', async () => {
     localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
     answer(() => new Response('[]'))
     render(<HomebrewIsland chassisRef="mule" />)
@@ -84,6 +84,17 @@ describe('on a chassis page', () => {
     expect(
       screen.getByRole('link', { name: 'Every chassis’s Homebrew' }).getAttribute('href')
     ).toBe('/homebrew/')
+    expect(screen.queryByRole('button', { name: /Homebrew/ })).toBeNull()
+    // The reader's choice is kept for the next chassis.
+    expect(localStorage.getItem(SHOW_HOMEBREW_KEY)).toBe('on')
+  })
+
+  test('remembered on, it lists at once; turned off, it hides them', async () => {
+    localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
+    answer(() => new Response(JSON.stringify(ROWS)))
+    render(<HomebrewIsland chassisRef="mule" />)
+    await settle()
+    expect(document.querySelectorAll('tbody tr')).toHaveLength(2)
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Hide Homebrew' }))

@@ -96,6 +96,34 @@ function changesOf(pattern: RefObjectAnyPattern): ReactNode {
   ))
 }
 
+/** The pattern's build, as the capacity rules read it. */
+function buildOf(chassisName: string, pattern: RefObjectAnyPattern) {
+  const copies = (parts: readonly { name: string; count?: number | undefined }[] = []) =>
+    parts.flatMap((part) => new Array<string>(part.count ?? 1).fill(nameToSlug(part.name)))
+  const mech = isBioTitanPattern(pattern) ? { systems: [], modules: [] } : pattern
+  return {
+    chassisRef: nameToSlug(chassisName),
+    systems: copies(mech.systems),
+    modules: copies(mech.modules),
+  }
+}
+
+const capacityOf = (build: ReturnType<typeof buildOf>) =>
+  computeMechCapacity({
+    chassisRef: build.chassisRef,
+    systems: build.systems.map((ref) => ({ ref })),
+    modules: build.modules.map((ref) => ({ ref })),
+  })
+
+/** Whether the book prints this pattern over its chassis's slots (`AS_PRINTED_OVERFLOW`). */
+function printedOver(chassisName: string, pattern: RefObjectAnyPattern): boolean {
+  if (isBioTitanPattern(pattern)) return false
+  const loaded = (['chassis', 'systems', 'modules'] as const).every((schema) =>
+    SalvageUnionReference.isLoaded(schema)
+  )
+  return loaded && capacityOf(buildOf(chassisName, pattern)).asPrinted !== undefined
+}
+
 /** A mech pattern's figures: slots filled of the chassis's, and the build's Scrap. */
 function figuresOf(chassisName: string, pattern: RefObjectAnyPattern): ReactNode[] {
   if (isBioTitanPattern(pattern)) return []
@@ -104,18 +132,8 @@ function figuresOf(chassisName: string, pattern: RefObjectAnyPattern): ReactNode
     SalvageUnionReference.isLoaded(schema)
   )
   if (!loaded) return ['', '', '']
-  const copies = (parts: readonly { name: string; count?: number | undefined }[] = []) =>
-    parts.flatMap((part) => new Array<string>(part.count ?? 1).fill(nameToSlug(part.name)))
-  const build = {
-    chassisRef: nameToSlug(chassisName),
-    systems: copies(pattern.systems),
-    modules: copies(pattern.modules),
-  }
-  const capacity = computeMechCapacity({
-    chassisRef: build.chassisRef,
-    systems: build.systems.map((ref) => ({ ref })),
-    modules: build.modules.map((ref) => ({ ref })),
-  })
+  const build = buildOf(chassisName, pattern)
+  const capacity = capacityOf(build)
   if (capacity.violations.some((v) => v.kind === 'chassis-not-found')) return ['', '', '']
   return [
     `${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`,
@@ -159,6 +177,18 @@ export function PatternLedger({
         ) : undefined,
         cells: [changesOf(pattern), ...(titans ? [] : figuresOf(model.title, pattern))],
       }))}
+      // A total the book prints over its limit is the book's own: the list's
+      // one note says so (L6), since the figure wears no mark (R71).
+      {...(patterns.some((pattern) => printedOver(model.title, pattern))
+        ? {
+            footMeta: [
+              {
+                label: referenceEntityCopy('overItsLimit'),
+                value: referenceEntityCopy('asPrintedInTheBook'),
+              },
+            ],
+          }
+        : {})}
     />
   )
 }

@@ -217,6 +217,20 @@ describe('signed out', () => {
     expect(signIn).toHaveBeenCalledTimes(1)
   })
 
+  test('the header’s Sign in comes back to the page it was pressed on, a shared sheet among them (r3 E3)', () => {
+    authed = false
+    setQueryAnswers({})
+    const before = window.location.href
+    window.location.href = 'http://localhost/build/p/mech/tow-rig-abc123?from=link'
+    try {
+      wrap(<HeaderActions />)
+      fireEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
+      expect(signIn.mock.calls.at(-1)).toEqual(['/p/mech/tow-rig-abc123?from=link'])
+    } finally {
+      window.location.href = before
+    }
+  })
+
   test('mobile: the header row stays empty and the drawer offers sign-in', () => {
     authed = false
     setQueryAnswers({})
