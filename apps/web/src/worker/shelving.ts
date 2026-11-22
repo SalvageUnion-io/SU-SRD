@@ -44,7 +44,7 @@ export async function unshelved(
 ): Promise<GameActAnswer<null>> {
   const at = Date.now()
   const allowed = answerOrRefuse(() => {
-    logic.store.requireOrganizer(actor)
+    logic.roster.unshelving(actor, unitIds)
     return null
   })
   if (!allowed.ok) return allowed

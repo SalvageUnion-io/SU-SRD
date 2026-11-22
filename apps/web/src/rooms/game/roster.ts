@@ -61,6 +61,9 @@ const DAY_MS = 24 * 60 * 60_000
 const cameWithGame = (game: GameRow, unit: UnitRow) =>
   game.templateOrigin !== null && unit.createdAt === game.createdAt
 
+/** The `change_log` row that says a unit was taken off the roster (`shelving`). */
+const shelfKey = (unitId: string) => `shelved:${unitId}`
+
 /** Nobody was handed it and nothing was applied to it: as the template left it. */
 const untouched = (unit: UnitRow) => unit.ownerId === null && unit.headSeq === 0
 
@@ -262,7 +265,7 @@ export class GameRoster {
         throw new RoomRefusal('That Pilot is assigned to a player: unassign it first')
       }
       this.units.assign(actor, pilotId, at)
-      return this.store
+      const going = this.store
         .units()
         .filter(
           (unit) =>
@@ -271,7 +274,39 @@ export class GameRoster {
         )
         .filter((unit) => cameWithGame(game, unit))
         .map((unit) => unit.id)
+      // What left this way, so the Undo can bring back these and nothing else.
+      for (const id of going) {
+        this.store.rows(
+          `insert or replace into change_log (id, field, after, source, actor_id, ts)
+             values (?, 'shelved', null, 'roster', ?, ?)`,
+          shelfKey(id),
+          actor,
+          at
+        )
+      }
+      return going
     })
+  }
+
+  /**
+   * The Undo of `shelving` may bring back only what `shelving` took off:
+   * any other unit of the Organiser's stays theirs, never the Game's own
+   * (ADR-007). Refuses the whole Undo over one id it did not take.
+   */
+  unshelving(actor: string, unitIds: readonly string[]): void {
+    this.store.requireOrganizer(actor)
+    if (unitIds.length === 0 || !unitIds.every((id) => this.wasShelved(id))) {
+      throw new RoomRefusal('Only what was taken off this roster can be put back')
+    }
+  }
+
+  private wasShelved(unitId: string): boolean {
+    return (
+      this.store.rows(
+        "select 1 from change_log where id = ? and field = 'shelved'",
+        shelfKey(unitId)
+      ).length > 0
+    )
   }
 
   /**
@@ -284,6 +319,8 @@ export class GameRoster {
       this.store.requireOrganizer(actor)
       for (const id of unitIds) {
         const unit = this.store.unit(id)
+        if (!this.wasShelved(id)) continue
+        this.store.rows("delete from change_log where id = ? and field = 'shelved'", shelfKey(id))
         if (unit === null || unit.kind === 'crawler' || unit.ownerId !== actor) continue
         this.units.reassign(unit, null, actor, at)
         // Arriving stamped it anew: it is one the Game came with again.

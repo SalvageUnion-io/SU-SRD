@@ -335,6 +335,25 @@ describe('the Game room Durable Object', () => {
     expect(units().some((unit) => went.value.includes(unit.id))).toBe(false)
   })
 
+  test('Undo puts back only what was taken off this roster, never another unit by id', async () => {
+    shelves.clear()
+    const { game, units, pilots } = await fromTemplate('g-unshelve')
+    const [spare] = pilots as [string]
+    const before = units().map((unit) => unit.id)
+    const refusal = 'Only what was taken off this roster can be put back'
+    // Nothing was taken yet: no id is one the Undo may bring in.
+    expect(await game.unshelve(ORGANIZER, ['somebody-elses-pilot'])).toEqual({ ok: false, refusal })
+    const went = await game.shelve(ORGANIZER, spare)
+    if (!went.ok) throw new Error(went.refusal)
+    // One id it did not take refuses the whole Undo, and nothing moves in.
+    expect(await game.unshelve(ORGANIZER, [...went.value, 'somebody-elses-pilot'])).toEqual({
+      ok: false,
+      refusal,
+    })
+    expect(await game.unshelve(PLAYER, went.value)).toMatchObject({ ok: false })
+    expect(units().map((unit) => unit.id)).toEqual(before.filter((id) => !went.value.includes(id)))
+  })
+
   test('a Pilot the Game did not come with is never taken off this way', async () => {
     const { game } = await seeded('g-shelve-own')
     expect(await game.shelve(ORGANIZER, 'p1')).toEqual({
