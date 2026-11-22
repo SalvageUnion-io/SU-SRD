@@ -17,6 +17,19 @@
   column-gap: var(--space-8);
 }
 
+/* Its two rows pan inside the bar on a narrow screen (r4 E7, `PANS`): what
+   they hold keeps its width, and the scroller leaves a focus ring its room. */
+.su-sheet-bar__end,
+.su-sheet-gutter [data-sheet-strip] {
+  margin-block: calc(var(--space-4) * -1);
+  padding-block: var(--space-4);
+}
+
+.su-sheet-bar__end > *,
+.su-sheet-bar__vital {
+  flex-shrink: 0;
+}
+
 .su-sheet-bar__name {
   align-items: baseline;
   background-color: var(--color-paper);

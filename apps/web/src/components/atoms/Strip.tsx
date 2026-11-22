@@ -20,6 +20,7 @@
 
 import { Minus, Plus } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { useContext } from 'react'
 import * as tokens from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { atomsCopy } from '../../messages/components-atoms'
@@ -28,6 +29,7 @@ import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { trackSegmentState } from './pipRows'
 import { RuleBreakMark } from './RuleBreakMark'
+import { StatMeaningContext } from './statMeaning'
 import { VitalMax } from './VitalMax'
 import type { PhoneVital } from './vitalControl'
 import { meterColumns, useVitalControl } from './vitalControl'
@@ -85,6 +87,13 @@ function Meter({
  */
 function StripVital({ vital }: { vital: PhoneVital }) {
   const { label, name, max, note, onChange, maxEdit } = vital
+  const meaning = useContext(StatMeaningContext)
+  const words = (
+    <>
+      {label}
+      <small>{max === undefined ? note : name}</small>
+    </>
+  )
   const control = useVitalControl(vital)
   const { shown, count, summary } = control
   const segments = Array.from({ length: count }, (_, index) => (
@@ -105,10 +114,8 @@ function StripVital({ vital }: { vital: PhoneVital }) {
       data-vital={vital.key}
       data-counter={max === undefined ? '' : undefined}
     >
-      <p className={cn('su-strip__label', CAPS)}>
-        {label}
-        <small>{max === undefined ? note : name}</small>
-      </p>
+      {/* The label opens what the number means, where the sheet says how (r4 E21). */}
+      <p className={cn('su-strip__label', CAPS)}>{meaning ? meaning(vital.key, words) : words}</p>
       <div className="su-strip__read">
         <p className={cn('su-strip__num', CAPS)} data-over={control.over ? '' : undefined}>
           <b>{shown}</b>
@@ -200,6 +207,8 @@ export type StripFigureProps = {
   over?: boolean
   /** Pips to a row: a pilot's six inventory slots sit 3 × 2. */
   perRow?: number
+  /** The stat's key, where its label opens what it means (`inventory`, r4 E21). */
+  statKey?: string
 }
 
 /** A fixed figure: label, numeral, and a small meter where there is one. */
@@ -213,13 +222,17 @@ export function StripFigure({
   tint,
   over,
   perRow,
+  statKey,
 }: StripFigureProps) {
+  const meaning = useContext(StatMeaningContext)
   const numeric = typeof value === 'number' ? value : Number(value)
   const tl = typeof tint === 'object' ? tint.tl : undefined
   const bar = tl !== undefined ? `var(--color-tl-${String(tl).toLowerCase()})` : undefined
   return (
     <div className="su-strip__cell su-strip__cell--figure" title={name}>
-      <dt className={cn('su-strip__label', CAPS)}>{label}</dt>
+      <dt className={cn('su-strip__label', CAPS)}>
+        {meaning && statKey ? meaning(statKey, label) : label}
+      </dt>
       <dd className="su-strip__value">
         <span className={cn('su-strip__num', CAPS)} data-over={over ? '' : undefined}>
           <b>{value}</b>

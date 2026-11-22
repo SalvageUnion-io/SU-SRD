@@ -201,6 +201,7 @@ export function PilotDash({
       tint="cargo"
       over={model.overCapacity}
       perRow={3}
+      statKey="inventory"
     />
   )
   const art = (

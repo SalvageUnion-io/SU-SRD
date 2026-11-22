@@ -191,6 +191,7 @@ const ROSTER = {
     'SearchListbox',
     'useSearchCombobox',
     'StartHere',
+    'StatMeanings', // a sheet's stat labels open what the number means (r4 E21)
     'MarkdownSection',
     'InlineMarkdown',
     'TraitProse',

@@ -27,6 +27,9 @@ export const entityCopy = messages({
   termDamage: 'Damage',
   termDamageIs:
     'What a hit takes off its target: Structure Points (SP) from a Mech, Hit Points (HP) from a Pilot. A Mech takes half the damage of a weapon that deals HP; a Pilot takes double the damage of one that deals SP.',
+  termInventory: 'Inventory',
+  termInventoryIs:
+    'What a Pilot carries on them. A Pilot starts with 6 Inventory Slots, and most Pilot Equipment fills one.',
   termTrainingPoints: 'Training Points',
   termTrainingPointsIs:
     'What a Pilot spends to train an Ability, in the Pilot Bay during Downtime: 1 for a Core Ability, 2 for an Advanced or Hybrid Class Ability, 3 for a Legendary Ability.',
