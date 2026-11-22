@@ -39,8 +39,8 @@ export type LedgerRead = {
   unpicked: number
 }
 
-/** The one Ledger off an SRD index whose head stamps sort (L2): the Training Bay's Mechs shelf. */
-const SORTING_SHELF = 'Mechs'
+/** The Ledgers off an SRD index whose head stamps sort (L2): the Training Bay's Mechs and Patterns shelves (r4 E13). */
+const SORTING_SHELVES: readonly string[] = ['Mechs', 'Patterns']
 
 export function findLedgerFaults(
   ledgers: readonly LedgerRead[],
@@ -54,7 +54,7 @@ export function findLedgerFaults(
     for (const fault of ledgerOrderFaults(l.stamps)) faults.push(`order: ${l.label}: ${fault}`)
     if (l.blankCells > 0) faults.push(`empty: ${l.label}: ${l.blankCells} blank cell(s)`)
     if (l.unpicked > 0) faults.push(`picked: ${l.label}: ${l.unpicked} picked row(s) not inked`)
-    if (l.sorts && !index && !(shelves && l.label === SORTING_SHELF))
+    if (l.sorts && !index && !(shelves && SORTING_SHELVES.includes(l.label)))
       faults.push(`sort: ${l.label}: a head stamp sorts off an SRD index`)
   }
   return faults

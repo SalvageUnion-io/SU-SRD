@@ -236,6 +236,8 @@ type LedgerListProps = {
    * `onSort` it sorts by the rank, as a column's stamp does by its column.
    */
   rank?: { key: string; label: string; title?: string }
+  /** `false`: with `onSort` the stamps sort and the tab stays a title (a shelf's, a mark beside it; L2). */
+  sortTab?: boolean
   /** More columns than a narrow frame holds: between a phone and `lg` the quiet line gives way and the cells sit closer. */
   dense?: boolean
   /** Names the table for a screen reader. */
@@ -320,6 +322,7 @@ function LedgerList({
   mark,
   onSort,
   rank,
+  sortTab = true,
   dense = false,
   label,
   action,
@@ -400,7 +403,7 @@ function LedgerList({
               {/* The title's cut-out: the Compact head's paper tab. */}
               <span className={TITLE_LINE}>
                 <span className="su-entity-compact__notch">
-                  {onSort ? (
+                  {onSort && sortTab ? (
                     <button
                       type="button"
                       className="su-ledger__sort su-entity-compact__title"

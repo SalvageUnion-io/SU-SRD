@@ -148,7 +148,8 @@ export function ShelfLedger({
         tone={tone}
         nameLabel={title}
         count={rows.length}
-        {...(homebrew ? { mark: <HomebrewStamp size="mini" /> } : {})}
+        // A tab with a mark beside it stays a title: its stamps sort (L2).
+        {...(homebrew ? { mark: <HomebrewStamp size="mini" />, sortTab: false } : {})}
         columns={kept.map(({ column }) => column)}
         rows={rows.map((row) => ({
           id: row.id,

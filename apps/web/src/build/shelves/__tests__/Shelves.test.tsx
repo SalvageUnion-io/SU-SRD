@@ -471,6 +471,13 @@ describe('a unit’s ⋯ menu', () => {
 })
 
 describe('Patterns', () => {
+  test('its stamps sort; its tab, the Homebrew mark beside it, stays a title (L2)', async () => {
+    await renderShelves()
+    const shelf = document.getElementById('shelf-patterns') as HTMLElement
+    expect(shelf.querySelectorAll('thead button.su-ledger__sort').length).toBeGreaterThan(0)
+    expect(shelf.querySelector('.su-entity-compact__notch button')).toBeNull()
+  })
+
   test('+ From a mech lists the mechs to start from', async () => {
     await renderShelves()
     await act(async () => {
