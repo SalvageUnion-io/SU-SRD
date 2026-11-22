@@ -18,6 +18,15 @@ describe('pilotFormToUpdatePatch', () => {
     expect(patch.name).toBe('Mira')
     expect(patch.callsign).toBe('Sparks')
   })
+
+  it('a blank Callsign is the Name (r6 F5)', () => {
+    const patch = pilotFormToUpdatePatch({
+      ...EMPTY_PILOT_FORM_STATE,
+      name: ' Mira ',
+      callsign: ' ',
+    })
+    expect(patch.callsign).toBe('Mira')
+  })
 })
 
 describe('pilotFormToCreateInput', () => {

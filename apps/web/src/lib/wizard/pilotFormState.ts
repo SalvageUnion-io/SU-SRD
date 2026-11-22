@@ -64,12 +64,22 @@ type PilotWizardPatch = Pick<
   | 'equipmentChoices'
 >
 
+/**
+ * The Callsign a new pilot is stored with: left blank, it is the Name (r6 F5),
+ * which the rules allow. A stored value, not a display fallback: the pilot is
+ * still named through `pilotLabel`.
+ */
+export function storedCallsign(callsign: string, name: string): string {
+  const typed = callsign.trim()
+  return typed === '' ? name.trim() : typed
+}
+
 export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardPatch {
   // A dropped item's choices go with it: only what is carried keeps its own.
   const equipmentChoices = madeChoices(form.equipmentChoices, form.equipment)
   return {
     name: form.name.trim(),
-    callsign: form.callsign.trim(),
+    callsign: storedCallsign(form.callsign, form.name),
     classRef: form.classId,
     abilities: form.abilities,
     equipment: form.equipment,

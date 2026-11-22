@@ -57,7 +57,7 @@ describe('MechChassisStep', () => {
     const { getByRole, queryByRole } = render(step('mule'))
     // The help link is a route: the surface's link adds the app's base, once.
     expect(getByRole('link', { name: 'New Mech, From a pattern' }).getAttribute('href')).toBe(
-      '/mechs/new'
+      '/mechs/new?mode=pattern'
     )
     expect(queryByRole('status')).toBeNull()
     const patterns = getByRole('table', { name: 'Or start from a Pattern' })
@@ -74,7 +74,7 @@ describe('MechChassisStep', () => {
   it('in a Game, both links keep the Game in the address (r3 L4)', () => {
     const { getByRole } = render(step('mule', 'game-1'))
     expect(getByRole('link', { name: 'New Mech, From a pattern' }).getAttribute('href')).toBe(
-      '/mechs/new?game=game-1'
+      '/mechs/new?game=game-1&mode=pattern'
     )
     const patterns = getByRole('table', { name: 'Or start from a Pattern' })
     fireEvent.click(within(patterns).getByRole('radio', { name: 'Crusher' }))

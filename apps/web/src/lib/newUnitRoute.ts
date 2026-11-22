@@ -26,7 +26,7 @@ export type NewUnitSearch<K extends string = never> = {
 } & { [P in K]?: string }
 
 /**
- * - mode: absent → chooser · 'guided' → the wizard · 'blank' → blank dialog
+ * - mode: absent or 'guided' → the wizard (r6 F2) · 'blank' → blank dialog · 'pattern' → a mech's patterns
  * - game: the Game it lands in, from that Game's page in Play (`lib/wizard/fromGame.ts`)
  * - each of `slugKeys`: a slug deep-linked from an SRD page's "Build with
  *   this" (`lib/wizard/preselect.ts`), kept only when slug-shaped

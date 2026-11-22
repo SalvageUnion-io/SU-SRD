@@ -35,16 +35,18 @@ type SignInToBuildProps = {
   title: string
   /** Where Discord's round trip lands (`SignInControl`'s `redirectTo`); unset, the site root. */
   redirectTo?: string
+  /** What signing in gives here; unset, the units' line (an NPC's wall names NPCs, r6 F9). */
+  body?: string
 }
 
-export function SignInToBuild({ title, redirectTo }: SignInToBuildProps) {
+export function SignInToBuild({ title, redirectTo, body }: SignInToBuildProps) {
   return (
     <section aria-label={title}>
       <ChapterBand tone="build" measure={MEASURE}>
         {title}
       </ChapterBand>
       <div style={COLUMN}>
-        <Text variant="body">{buildAccountCopy('buildAndRunYourSalvage')}</Text>
+        <Text variant="body">{body ?? buildAccountCopy('buildAndRunYourSalvage')}</Text>
         <SignInControl size="full" redirectTo={redirectTo} />
       </div>
     </section>

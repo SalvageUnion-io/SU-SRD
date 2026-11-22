@@ -174,8 +174,8 @@ function equipmentGate(form: PilotWizardFormState): StepGateResult {
 }
 
 function callsignGate(form: PilotWizardFormState): StepGateResult {
-  if (form.name.trim() === '' || form.callsign.trim() === '') {
-    return { ok: false, reason: libRulesCopy('enterANameAndCallsign') }
+  if (form.name.trim() === '') {
+    return { ok: false, reason: libRulesCopy('enterANameToContinue') }
   }
   return OK
 }

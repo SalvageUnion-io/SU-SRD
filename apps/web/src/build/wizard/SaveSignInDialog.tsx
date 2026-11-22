@@ -1,7 +1,7 @@
 /**
  * SaveSignInDialog — a guided wizard runs signed out; saving is where an
- * account is asked for (ADR-034 as amended). The build stays this tab's
- * session draft (`wizardDraft.ts`), so the Discord round trip lands back on
+ * account is asked for (ADR-034 as amended). The build stays the browser's
+ * draft (`wizardDraft.ts`), so the Discord round trip lands back on
  * this step with every pick in place, and Save then lands it.
  *
  * Where nothing was edited (the pattern picker's Build With This, two picks
@@ -12,6 +12,7 @@
 import { DialogActions } from '../../components/app'
 import { Button, ModalShell, Text } from '../../components/index'
 import { hereInApp } from '../../lib/hereInApp'
+import { DRAFT_SCOPE } from '../../lib/wizard/wizardDraft'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { SignInControl } from '../account/SignInControl'
 import type { KeepAsFileActs } from './KeepAsFile'
@@ -46,7 +47,9 @@ export function SaveSignInDialog({
       <div style={dialogBodyStyle}>
         <Text variant="body">
           {pick === undefined
-            ? buildWizardCopy('yourBuildIsKeptAsADraft')
+            ? buildWizardCopy(
+                DRAFT_SCOPE === 'tab' ? 'yourBuildIsKeptAsADraft' : 'yourBuildIsKeptInThisBrowser'
+              )
             : buildWizardCopy('signInToBuildThis')}
         </Text>
         {keep && <KeepAsFile {...keep} />}

@@ -134,11 +134,11 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
   })
 
   test('the pilot wizard stays under budget', async ({ page }) => {
-    // `?mode=guided` is load-bearing, not decoration: bare `/pilots/new` renders
-    // the CreateModeChooser (two doors), NOT the wizard, so without it this
-    // measures the chooser's chunk and reports it under the wizard's name — a
-    // budget that would sit green while the thing it claims to guard grew
-    // unwatched. `mode=guided` is what mounts PilotWizard (NewEntityScreen.tsx).
+    // `?mode=guided` is load-bearing, not decoration: while the r6 F2 ruling
+    // (`OPENS_ON_FIRST_STEP`) is switched back, bare `/pilots/new` renders the
+    // CreateModeChooser, NOT the wizard, and this would measure the chooser's
+    // chunk under the wizard's name. `mode=guided` always mounts PilotWizard
+    // (NewEntityScreen.tsx).
     const CEILING = 2_390_000
     const totals = await captureRouteJs(page, '/pilots/new?mode=guided')
     report('/pilots/new?mode=guided (wizard)', totals, CEILING)

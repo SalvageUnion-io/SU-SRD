@@ -16,7 +16,8 @@ type CallsignStepProps = {
  * Step 4 · Choose your Callsign (Pilot Bay p.19). Callsign gets the d20
  * roller on the p.88 Callsign Table (roll is an assist — the result stays
  * editable). Name rides on this step: it is the record's required field with
- * no book step of its own. Next is gated on both being non-empty.
+ * no book step of its own. Next needs only the Name: a blank Callsign is
+ * the Name (r6 F5), which its placeholder shows.
  */
 export function CallsignStep({ name, callsign, onChange, _rollDeps }: CallsignStepProps) {
   return (
@@ -31,15 +32,15 @@ export function CallsignStep({ name, callsign, onChange, _rollDeps }: CallsignSt
           required
         />
       </Field>
-      <Field label={buildWizardCopy('callsign')} required htmlFor="pilot-callsign">
+      <Field label={buildWizardCopy('callsign')} htmlFor="pilot-callsign">
         <div style={fieldRowStyle}>
           <Input
             id="pilot-callsign"
             type="text"
             value={callsign}
             onChange={(e) => onChange('callsign', e.target.value)}
-            placeholder={buildWizardCopy('yourPilotCallsign')}
-            required
+            // Left blank, it is the Name (r6 F5): the placeholder shows it.
+            placeholder={name.trim() || buildWizardCopy('yourPilotCallsign')}
           />
           <RollTableButton
             field="callsign"

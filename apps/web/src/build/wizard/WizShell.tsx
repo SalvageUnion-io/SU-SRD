@@ -18,6 +18,7 @@ import { SaveSignInDialog } from './SaveSignInDialog'
 import { SignedInBack } from './SignedInBack'
 import { WIZ_NEXT_ID } from './SkipToNext'
 import { WizardGameChip } from './WizardGameChip'
+import { WizStartLines } from './WizStarts'
 import { promptShows, scrollToAsked, useInView } from './wizPrompt.model'
 import {
   ctaLockedStyle,
@@ -33,7 +34,6 @@ import {
   stepNumberStyle,
   stepTitleCaps,
   stepTitleStyle,
-  tryNoteStyle,
 } from './wizShellStyles.model'
 import '../../styles/build/wizard.css'
 import { cn } from '../../lib/cn'
@@ -541,7 +541,7 @@ export function WizShell({
                   {title}
                 </h1>
               </div>
-              {tryNote && <p style={tryNoteStyle}>{tryNote}</p>}
+              <WizStartLines active={active} tryNote={tryNote} redesign={saveNow !== undefined} />
               <Box body="flush">
                 <div className={STEP_BODY}>
                   {/* Before the build, so it is seen with Create and before

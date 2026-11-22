@@ -22,6 +22,7 @@ import { cn } from '../../lib/cn'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { mechCopy } from '../../messages/build-mech'
+import { ChassisLegend } from '../wizard/ChassisLegend'
 import { PickList } from '../wizard/PickList'
 import type { PickColumn } from '../wizard/pickLedger.model'
 import { SkipToNext } from '../wizard/SkipToNext'
@@ -200,7 +201,7 @@ export function MechChassisStep({
                   {mechCopy('dimmedPatternsAreBuilt')}{' '}
                   {/* One line, so a press on its middle lands on it wherever the hint wraps. */}
                   <InlineRef
-                    href={gameId === undefined ? '/mechs/new' : newInGameHref('/mechs/new', gameId)}
+                    href={`${gameId === undefined ? '/mechs/new?' : `${newInGameHref('/mechs/new', gameId)}&`}mode=pattern`}
                     style={NO_WRAP}
                   >
                     {mechCopy('newMechFromAPattern')}
@@ -260,6 +261,8 @@ function ChassisGallery({
         <h2 className={cn('su-rule-head__label', CAPS)}>{title}</h2>
         <span className={cn('su-rule-head__note', CAPS)}>{note}</span>
       </header>
+      {/* What the cards' figures mean, each opening its glossary entry (r6 F3). */}
+      <ChassisLegend />
       <div className="su-grid su-chassis-gallery__grid" role="radiogroup" aria-label={title}>
         {pool.map((chassis) => {
           const slug = nameToSlug(chassis.name)
