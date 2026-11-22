@@ -139,6 +139,8 @@ export const playCopy = messages({
   notPostedToDiscord: 'Not posted to Discord: {message}',
   posting: 'Posting…',
   posted: 'Posted',
+  notSentYet: 'Not sent yet',
+  sendHeld: 'Try again: send {label} to the table',
   toDiscord: '{label} {label2} to Discord',
   signInToPlay: 'Sign in to play',
   artScout: 'A Scout Pilot',
@@ -490,6 +492,5 @@ export const playCopy = messages({
   mechDestroyed: 'Mech destroyed',
   inAMech: 'In a Mech',
   onFootMechParked: 'On foot · {mech} parked',
-  notPostedReadOnly: 'Not posted: Play is read-only for now.',
   rollDidNotReachDiscord: 'The roll did not reach Discord.',
 })

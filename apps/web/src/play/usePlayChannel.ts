@@ -17,6 +17,10 @@
  *
  * Every roll but a private one posts while a channel is bound, the Mediator's
  * too: there is no opt-in. `/su unbind` is how rolls stop posting.
+ *
+ * A roll made while Play cannot write (offline) is held (r5 A6): its line says
+ * "Not sent yet", and it is logged and posted once the connection returns, or
+ * when its Try again is pressed then. Held in memory, for the open tab.
  */
 
 import type { PostRollResult } from 'game-domain/games/discord'
@@ -38,8 +42,8 @@ import {
 } from './playRolls.model'
 import { CORE_MECHANIC_TABLE } from './tables.model'
 
-/** One roll's post, as its Feed line says it. */
-export type PlayPostState = { kind: 'posting' } | PostRollResult
+/** One roll's post, as its Feed line says it; `held` is a roll not sent yet (r5 A6). */
+export type PlayPostState = { kind: 'posting' } | { kind: 'held' } | PostRollResult
 
 /** The bound channel: undefined while unknown, null when none is bound. */
 export function usePlayChannelBinding(
@@ -63,7 +67,7 @@ type DispatchArgs = {
 export type PlayRollDispatch = {
   /** Each roll's post, by roll id; absent for a change, or before it is sent. */
   posts: ReadonlyMap<string, PlayPostState>
-  /** Post this roll again: a failed one's Try again. */
+  /** Post this roll again: a failed one's Try again; a held one is sent whole. */
   postNow: (roll: PlayRoll) => void
 }
 
@@ -83,16 +87,21 @@ export function usePlayRollDispatch({
   const settle = useCallback((id: string, state: PlayPostState) => {
     setPosts((prev) => new Map(prev).set(id, state))
   }, [])
+  const forget = useCallback((id: string) => {
+    setPosts((prev) => {
+      const next = new Map(prev)
+      next.delete(id)
+      return next
+    })
+  }, [])
+  // The rolls made while Play could not write, oldest first, by id.
+  const held = useRef(new Map<string, PlayRoll>())
 
   const send = useCallback(
     (roll: PlayRoll) => {
       const { target: t, binding: b, canWrite: writable, postRoll: action } = latest.current
       if (!writable) {
-        settle(roll.id, {
-          kind: 'failed',
-          channelId: null,
-          message: playCopy('notPostedReadOnly'),
-        })
+        settle(roll.id, { kind: 'held' })
         return
       }
       if (b === null) {
@@ -127,35 +136,64 @@ export function usePlayRollDispatch({
     [settle]
   )
 
+  /** The roll to the Game's log and its post: once Play can write. */
+  const deliver = useCallback(
+    (roll: PlayRoll) => {
+      const { target: t, rollerName: name } = latest.current
+      if (t.gameId !== null) {
+        void sendChangeLog([
+          rollLogEntry(
+            t.gameId,
+            {
+              description: playRollDescription(name, roll),
+              result: {
+                kind: roll.tableName === CORE_MECHANIC_TABLE ? 'core' : 'table',
+                roll: roll.rolls[0] ?? null,
+                outcome: roll.outcome ?? '',
+              },
+              ...(roll.private ? { private: true as const } : {}),
+              // The Opposition's names stay in the room (ADR-051 §9b).
+              ...(roll.veiled ? { veiled: veiledRollDescription(roll) } : {}),
+            },
+            roll.at
+          ),
+        ])
+      }
+      // A private roll stays off Discord: nothing mirrors it out of the room.
+      if (roll.private) forget(roll.id)
+      else send(roll)
+    },
+    [send, forget]
+  )
+
   useEffect(
     () =>
       onPlayRoll((roll) => {
         if (!isDiceRoll(roll)) return
-        const { target: t, rollerName: name, canWrite: writable } = latest.current
-        if (t.gameId !== null && writable) {
-          void sendChangeLog([
-            rollLogEntry(
-              t.gameId,
-              {
-                description: playRollDescription(name, roll),
-                result: {
-                  kind: roll.tableName === CORE_MECHANIC_TABLE ? 'core' : 'table',
-                  roll: roll.rolls[0] ?? null,
-                  outcome: roll.outcome ?? '',
-                },
-                ...(roll.private ? { private: true as const } : {}),
-                // The Opposition's names stay in the room (ADR-051 §9b).
-                ...(roll.veiled ? { veiled: veiledRollDescription(roll) } : {}),
-              },
-              roll.at
-            ),
-          ])
-        }
-        // A private roll stays off Discord: nothing mirrors it out of the room.
-        if (!roll.private) send(roll)
+        if (latest.current.canWrite) return deliver(roll)
+        held.current.set(roll.id, roll)
+        settle(roll.id, { kind: 'held' })
       }),
-    [send]
+    [deliver, settle]
   )
 
-  return { posts, postNow: send }
+  // Back online: what was held is sent, oldest first.
+  useEffect(() => {
+    if (!canWrite) return
+    const waiting = [...held.current.values()]
+    held.current.clear()
+    for (const roll of waiting) deliver(roll)
+  }, [canWrite, deliver])
+
+  const postNow = useCallback(
+    (roll: PlayRoll) => {
+      if (!held.current.has(roll.id)) return send(roll)
+      if (!latest.current.canWrite) return
+      held.current.delete(roll.id)
+      deliver(roll)
+    },
+    [send, deliver]
+  )
+
+  return { posts, postNow }
 }

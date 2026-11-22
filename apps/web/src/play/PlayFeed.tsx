@@ -12,6 +12,7 @@
  * Each of my rolls says what became of its Discord post (§9): Posting…,
  * Posted, a Post button for one the toggle kept private (the per-roll
  * override), or Not posted with the reason and Try again. Never silent.
+ * One made offline says Not sent yet, with Try again, until it is sent (r5 A6).
  *
  * A Mediator's Opposition roll reaches the players without its names (ADR-051
  * §9b), and a private one not at all: its line here says which and offers
@@ -199,6 +200,24 @@ function PostState({
   }
   if (post.kind === 'posted') return <span style={STATE}>{playCopy('posted')}</span>
   const label = playCopy('tryAgain')
+  if (post.kind === 'held') {
+    return (
+      <span style={ACTIONS}>
+        <span role="status" style={STATE}>
+          {playCopy('notSentYet')}
+        </span>
+        <Button
+          variant="default"
+          size="mini"
+          disabled={!canWrite}
+          aria-label={playCopy('sendHeld', { label: roll.label })}
+          onClick={() => postNow(roll)}
+        >
+          {label}
+        </Button>
+      </span>
+    )
+  }
   return (
     <Button
       variant="default"
