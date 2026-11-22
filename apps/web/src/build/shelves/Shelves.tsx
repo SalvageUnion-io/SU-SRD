@@ -83,6 +83,7 @@ import {
   pilotFact,
 } from '../../lib/shelves/shelfItems'
 import { VITAL } from '../../lib/units/readings'
+import { buildExportCopy } from '../../messages/build-export'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { useEncounters, usePatterns, useTray } from '../../replica/collections'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
@@ -213,9 +214,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   /** Write verbs exist only where a write could land. */
   const writable = (run: () => void): (() => void) | undefined => (canWrite ? run : undefined)
 
-  async function exportUnit(type: EntityKind, id: string, name: string) {
+  async function exportUnit(type: EntityKind, id: string, name: string, mech?: string) {
     const result = await exportOne.run(type, id, name)
-    if (result.ok) toast.success(`Exported ${name}.`)
+    if (result.ok)
+      toast.success(
+        mech
+          ? buildExportCopy('exportedWith', { name, mech })
+          : buildExportCopy('exported', { name })
+      )
   }
 
   function unitMenu(
@@ -268,11 +274,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               },
             ]
           : []),
-        {
-          id: 'export',
-          label: 'Export',
-          onSelect: () => void exportUnit(type, unit.id, unit.name),
-        },
+        exportItem(type, unit),
       ],
       [
         deleteItem(
@@ -296,6 +298,18 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         ),
       ],
     ]
+  }
+
+  /** Export; a pilot's takes the Mech they fly, and says so (r6 E17). */
+  const exportItem = (type: EntityKind, unit: { id: string; name: string }): HeaderMenuItem => {
+    const mech = keptMech(type, unit.id)
+    return {
+      id: 'export',
+      label: mech
+        ? buildExportCopy('exportWith', { name: unit.name, mech })
+        : buildExportCopy('export'),
+      onSelect: () => void exportUnit(type, unit.id, unit.name, mech),
+    }
   }
 
   /** A pilot's Rename…: its callsign and its name, the two it goes by (r4 E20). */

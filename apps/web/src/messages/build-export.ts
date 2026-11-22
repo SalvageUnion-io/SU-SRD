@@ -7,6 +7,8 @@ export const buildExportCopy = messages({
   exportAll: 'Export all',
   exported: 'Exported {name}.',
   export: 'Export',
+  exportWith: 'Export {name} and {mech}',
+  exportedWith: 'Exported {name} and {mech}.',
   exportedToFoundry: 'Exported {name}. In Foundry, make an empty {kind} and choose Import Data.',
   exportToFoundry: 'Export to Foundry',
   import: 'Import…',
