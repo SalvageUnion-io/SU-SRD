@@ -6,7 +6,9 @@
  * (`PilotAbilityTrainer`); crafting is done on the crawler's sheet, which its
  * row opens (`useOpenSheet`, play.md §4); a rumour is a roll, made here and put
  * on Play's roll log (`rollFor`, `playRolls.model.ts`): a plain d20 the
- * Mediator answers. An adventure's own rumour table is a "Roll a table…"
+ * Mediator answers (solo, the player: the line sends nobody to a Mediator
+ * who is not there). With no crawler, Craft · Trade says a Union Crawler is
+ * needed and, solo, links to making one. An adventure's own rumour table is a "Roll a table…"
  * search away, never offered to every table (`tables.model.ts`).
  *
  * A bay that blocks one is named on its line (Pilot Bay, Trading Bay), never a
@@ -39,6 +41,8 @@ type PlayDowntimeActionRowProps = {
   /** Why it is not on hand ("needs Downtime"), or null when it is. */
   need: string | null
   canWrite: boolean
+  /** A solo table: no Mediator to answer a rumour, and the crawler is the player's own to make. */
+  solo?: boolean
 }
 
 /**
@@ -59,16 +63,20 @@ export function PlayDowntimeActionRow({
   rollFor,
   need,
   canWrite,
+  solo = false,
 }: PlayDowntimeActionRowProps) {
   const [rumour, setRumour] = useState<{ roll: number; text: string } | null>(null)
   const [training, setTraining] = useState(false)
   const setSheet = useOpenSheet()
   const away = need !== null
 
-  /** A plain d20, which the Mediator answers. */
+  /** A plain d20, which the Mediator answers; solo there is none, and the line never sends to one (r3 L2). */
   async function rollRumour() {
     const die = await rollFor(name, name)
-    setRumour({ roll: die(20), text: playCopy('rumourPlainRoll') })
+    setRumour({
+      roll: die(20),
+      text: playCopy(solo ? 'rumourPlainRollSolo' : 'rumourPlainRoll'),
+    })
   }
 
   /** "Open": the unit's sheet in Build. */
@@ -85,7 +93,12 @@ export function PlayDowntimeActionRow({
         {damagedBay(crawler, 'pilot-bay', playCopy('pilotBay'))}
       </>
     ) : id === 'craftTrade' ? (
-      damagedBay(crawler, 'trading-bay', playCopy('tradingBay'))
+      // No crawler is why there is nothing to open: said, never a greyed button (r3 L2).
+      crawler === null ? (
+        <NeedChip need={playCopy('needsAUnionCrawler')} />
+      ) : (
+        damagedBay(crawler, 'trading-bay', playCopy('tradingBay'))
+      )
     ) : undefined
 
   const controls = away ? undefined : id === 'train' ? (
@@ -94,7 +107,14 @@ export function PlayDowntimeActionRow({
       {playCopy('spendTp')}
     </Button>
   ) : id === 'craftTrade' ? (
-    open(crawler ? { kind: 'crawler', id: crawler.id, name: crawler.name } : null, 'Open')
+    crawler !== null ? (
+      open({ kind: 'crawler', id: crawler.id, name: crawler.name }, 'Open')
+    ) : solo ? (
+      // Solo the crawler is the player's own to make; a Game's is its table runner's.
+      <Button size="mini" href="/crawlers/new">
+        {playCopy('makeAUnionCrawler')}
+      </Button>
+    ) : undefined
   ) : id === 'rumours' ? (
     <Button size="mini" disabled={!canWrite} onClick={() => void rollRumour()}>
       {playCopy('rollD20')}
