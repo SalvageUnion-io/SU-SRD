@@ -10,10 +10,9 @@
  *   gave does not (the press is a click: it follows the link).
  * - Touch: a long press opens it and swallows the click and the callout the
  *   press would otherwise make; a tap elsewhere closes it.
- * - A press on a trigger marked `data-peek-press` opens it at once: a button
- *   that does nothing else, and a reference term that links to its entry
- *   (E27). The term's link is not followed by that press; the next press on
- *   it (the Peek now open), a modified press or the keyboard's Enter follows it.
+ * - A press on a button marked `data-peek-press`, which does nothing else,
+ *   opens it at once. A press on a link always follows the link, however
+ *   soon (E27): a reference term's Peek is hover's and focus's alone.
  * - Escape closes it, and only it: the dialog or page under it stays.
  *
  * A trigger inside the popup never peeks (E16: a Peek is terminal).
@@ -29,8 +28,6 @@ const PEEK_CLOSE_DELAY = 150
 const PEEK_LONG_PRESS = 500
 /** A press that travels further than this is a scroll, not a long press. */
 const PRESS_SLOP = 10
-/** A press this soon after its trigger's Peek closed was made on the open Peek. */
-const PRESS_ON_OPEN_WINDOW = 700
 /** Focus this soon after a pointer press came from the press. */
 const POINTER_FOCUS_WINDOW = 600
 
@@ -68,9 +65,6 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   let pressAt: { x: number; y: number } | undefined
   let swallowClick = false
   let lastPress = Number.NEGATIVE_INFINITY
-  // The trigger whose Peek last closed, and when: a press on an open Peek's
-  // term can close the Peek (the popup's own outside-press) before its click.
-  let closed: { trigger: HTMLElement; at: number } | undefined
 
   const clearOpen = () => {
     clearTimeout(openTimer)
@@ -99,7 +93,6 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     clearOpen()
     clearClose()
     if (!current) return
-    closed = { trigger: current, at: performance.now() }
     current = null
     callbacks.close()
   }
@@ -181,16 +174,11 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     if (!swallowClick) {
       const trigger = triggerOf(event.target)
       if (!trigger?.hasAttribute(PEEK_PRESS_ATTRIBUTE)) return
+      // A link is followed, never held (E27): a click costs one click.
+      // Its Peek, open or on its way, goes: the reader is leaving for the page.
       if (trigger instanceof HTMLAnchorElement && trigger.hasAttribute('href')) {
-        // A term's link (E27). Its Peek already open (hover, focus, an earlier
-        // press), or a press that asks for a new tab or window: the link's.
-        const modified = event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
-        const wasOpen =
-          trigger === current ||
-          (closed?.trigger === trigger && performance.now() - closed.at < PRESS_ON_OPEN_WINDOW)
-        if (wasOpen || event.button !== 0 || modified) return
-        event.preventDefault()
-        event.stopPropagation()
+        closeNow()
+        return
       }
       // A trigger whose press does nothing else opens its Peek.
       openNow(trigger, 'press')

@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../lib/cn'
+import type { ListingFieldFacets } from '../../lib/listingFacets'
 import type { TechLevel } from '../../lib/listingGroups'
 import { tlName } from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
 import { islandsCopy } from '../../messages/components-islands'
 import { capsLabel } from '../atoms/capsLabel'
-import { Badge, Button, SearchField, Segmented, SegmentedOption, Select } from '../index'
+import { Badge, Button, SearchField, Segmented, SegmentedOption, Select, Toggle } from '../index'
 
 /** The rail's menu is a caps label that keeps its rule's face and tracking. */
 const MENU = cn('su-rail__menu', capsLabel({ weight: 'inherit', tracking: 'inherit' }))
@@ -61,6 +62,8 @@ type RailFacets = {
   trees: string[]
   /** The traits a weapon or a piece of gear can be filtered by (`listingTraits`); none on most listings. */
   traits?: string[]
+  /** Range, Action and Weapons only, from the List's own columns (`listingFieldFacets`); Systems alone. */
+  fields?: ListingFieldFacets
   /** The views it offers (`listingViews`): Catalog | List, a tree listing's Catalog | Tree | List. */
   views: readonly ListingView[]
 }
@@ -70,6 +73,9 @@ type RailFilters = {
   source: string
   tree: string
   trait?: string
+  range?: string
+  action?: string
+  weapons?: boolean
   name: string
 }
 
@@ -88,6 +94,9 @@ export type RailActions = {
   setSource: (source: string) => void
   setTree: (tree: string) => void
   setTrait: (trait: string) => void
+  setRange: (range: string) => void
+  setAction: (action: string) => void
+  setWeapons: (only: boolean) => void
   setView: (view: ListingView) => void
   toggleFacets: () => void
 }
@@ -99,6 +108,9 @@ const IDLE: RailActions = {
   setSource: noop,
   setTree: noop,
   setTrait: noop,
+  setRange: noop,
+  setAction: noop,
+  setWeapons: noop,
   setView: noop,
   toggleFacets: noop,
 }
@@ -146,7 +158,7 @@ type ListingRailProps = {
  * behind Filters.
  */
 export function ListingRail({
-  facets: { count, techLevels, sources, trees, traits = [], views },
+  facets: { count, techLevels, sources, trees, traits = [], fields, views },
   filters = NO_FILTERS,
   facetsOpen = false,
   view,
@@ -163,7 +175,11 @@ export function ListingRail({
   const hasSources = hasToolbar && sources.length > 1
   const hasTrees = hasToolbar && trees.length > 1
   const hasTraits = hasToolbar && traits.length > 1
-  const hasFacets = hasTechLevels || hasSources || hasTrees || hasTraits
+  const hasRanges = hasToolbar && (fields?.ranges.length ?? 0) > 1
+  const hasActions = hasToolbar && (fields?.actions.length ?? 0) > 1
+  const hasWeapons = hasToolbar && fields?.weapons === true
+  const hasFacets =
+    hasTechLevels || hasSources || hasTrees || hasTraits || hasRanges || hasActions || hasWeapons
   const hasNameFilter = hasToolbar
   const showView = part !== 'filters' && views.length > 1
   const showFilters = part !== 'view'
@@ -173,7 +189,10 @@ export function ListingRail({
     filters.techLevels.size +
     (filters.source ? 1 : 0) +
     (filters.tree ? 1 : 0) +
-    (filters.trait ? 1 : 0)
+    (filters.trait ? 1 : 0) +
+    (filters.range ? 1 : 0) +
+    (filters.action ? 1 : 0) +
+    (filters.weapons ? 1 : 0)
 
   return (
     <div
@@ -300,6 +319,49 @@ export function ListingRail({
                 </option>
               ))}
             </Select>
+          )}
+          {hasRanges && (
+            <Select
+              chevron
+              aria-label={islandsCopy('range')}
+              className={MENU}
+              data-on={filters.range ? true : undefined}
+              value={filters.range ?? ''}
+              onChange={(e) => on.setRange(e.target.value)}
+            >
+              <option value="">{islandsCopy('anyRange')}</option>
+              {fields?.ranges.map((range) => (
+                <option key={range} value={range}>
+                  {range}
+                </option>
+              ))}
+            </Select>
+          )}
+          {hasActions && (
+            <Select
+              chevron
+              aria-label={islandsCopy('action')}
+              className={MENU}
+              data-on={filters.action ? true : undefined}
+              value={filters.action ?? ''}
+              onChange={(e) => on.setAction(e.target.value)}
+            >
+              <option value="">{islandsCopy('anyAction')}</option>
+              {fields?.actions.map((action) => (
+                <option key={action} value={action}>
+                  {action}
+                </option>
+              ))}
+            </Select>
+          )}
+          {hasWeapons && (
+            <Toggle
+              size="full"
+              pressed={filters.weapons === true}
+              onClick={() => on.setWeapons(!filters.weapons)}
+            >
+              {islandsCopy('weaponsOnly')}
+            </Toggle>
           )}
         </div>
       )}

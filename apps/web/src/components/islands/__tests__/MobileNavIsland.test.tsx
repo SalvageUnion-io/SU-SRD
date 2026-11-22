@@ -7,11 +7,23 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { NAV_CATALOG } from '../../../generated/navCatalog'
+import { ACCOUNT_HINT_KEY, STORED_SESSION_KEY } from '../../../lib/accountHint'
 import { MobileNavIsland } from '../MobileNavIsland'
 
 afterEach(() => {
   window.location.href = 'http://localhost/'
+  localStorage.clear()
 })
+
+function chapterHeadings(menu: HTMLElement) {
+  return (
+    within(menu)
+      .getAllByRole('heading', { level: 2 })
+      .map((h) => h.textContent)
+      // The drawer's own (visually hidden) title heads the dialog.
+      .filter((label) => label !== 'Navigation menu')
+  )
+}
 
 async function openMenu() {
   await act(async () => {
@@ -21,16 +33,23 @@ async function openMenu() {
 }
 
 describe('MobileNavIsland', () => {
-  test('opens on your own areas (Training Bay, Games), then the chapter index, every schema a row, no counts', async () => {
+  test('signed out, the book leads: the chapter index, then the Training Bay and Games', async () => {
     render(<MobileNavIsland />)
     const menu = await openMenu()
-    const chapters = within(menu)
-      .getAllByRole('heading', { level: 2 })
-      .map((h) => h.textContent)
-      // The drawer's own (visually hidden) title heads the dialog.
-      .filter((label) => label !== 'Navigation menu')
+    expect(chapterHeadings(menu)).toEqual([
+      ...NAV_CATALOG.map((chapter) => chapter.title),
+      'Training Bay',
+      'Games',
+    ])
+  })
+
+  test('signed in, opens on your own areas (Training Bay, Games), then the chapter index, every schema a row, no counts', async () => {
+    localStorage.setItem(STORED_SESSION_KEY, '1')
+    localStorage.setItem(ACCOUNT_HINT_KEY, JSON.stringify({ name: 'Ada', avatarUrl: null }))
+    render(<MobileNavIsland />)
+    const menu = await openMenu()
     // Your own things lead, named as the bar's links are; then the book's chapters.
-    expect(chapters).toEqual([
+    expect(chapterHeadings(menu)).toEqual([
       'Training Bay',
       'Games',
       ...NAV_CATALOG.map((chapter) => chapter.title),

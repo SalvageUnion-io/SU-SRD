@@ -12,13 +12,32 @@ import type {
 } from '../schemas/encounter'
 import type { EncounterNpc } from '../schemas/encounterNpc'
 
-/** "Raider Band", or "Raider Band 2" when the tray already has one. */
+/**
+ * "Raider Band", or "Raider Band 2" when the tray already has one (under its
+ * own name, or as "Raider Band 1" once it was numbered, `numberFirst`).
+ */
 export function instanceName(refName: string, taken: readonly string[]): string {
   const names = new Set(taken)
-  if (!names.has(refName)) return refName
+  if (!names.has(refName) && !names.has(`${refName} 1`)) return refName
   let n = 2
   while (names.has(`${refName} ${n}`)) n += 1
   return `${refName} ${n}`
+}
+
+/**
+ * The list once `added` ("Raider 2") has joined it: the one still under the
+ * bare name reads "Raider 1" (r4 D5), so the first is never the odd one out
+ * when targets are called. The same list when there is nothing to number.
+ */
+export function numberFirst<T extends { name: string }>(
+  list: readonly T[],
+  added: string
+): readonly T[] {
+  const base = /^(.+) \d+$/.exec(added)?.[1]
+  const at = base === undefined ? -1 : list.findIndex((o) => o.name === base)
+  const first = `${base} 1`
+  if (at < 0 || list.some((o) => o.name === first)) return list
+  return list.map((o, i) => (i === at ? { ...o, name: first } : o))
 }
 
 /** A tray NPC as `mediator.addNpc` takes it: no id or Game, which the server sets. */
@@ -37,7 +56,7 @@ export function trayNpcsFor(
   groups?: readonly EncounterGroup[]
 ): TrayNpcBody[] {
   const names = [...taken]
-  return opposition.map(({ id: _id, groupId, ...opponent }) => {
+  const fielded = opposition.map(({ id: _id, groupId, ...opponent }): TrayNpcBody => {
     const name = instanceName(opponent.name, names)
     names.push(name)
     const group = groups?.find((g) => g.id === groupId)
@@ -52,6 +71,10 @@ export function trayNpcsFor(
       updatedAt: now,
     }
   })
+  // Copies fielded together are numbered from 1; a name already out is left as it is.
+  let out: readonly TrayNpcBody[] = fielded
+  for (const body of fielded) out = numberFirst(out, body.name)
+  return [...out]
 }
 
 /** The wave an opponent arrives in: its group's, or 1 when it fights alone. */

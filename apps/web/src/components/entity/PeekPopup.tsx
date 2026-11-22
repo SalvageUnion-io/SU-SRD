@@ -19,7 +19,7 @@ import { Skeleton } from '../containers/Skeleton'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import { useEntitySurface } from './entitySurfaceContext'
 import type { PeekLoader } from './Peek'
-import { PeekCard, PeekMini } from './PeekCard'
+import { PeekEntity } from './PeekCard'
 import { PeekTable } from './PeekTable'
 import { PeekTerm } from './PeekTerm'
 import type { StatTerm } from './parts/statTerms'
@@ -207,7 +207,7 @@ export function PeekPopup({
   const outLink =
     subject?.kind === 'entity' ? externalLink?.(subject.entity, { inPeek: true }) : undefined
   // A term's Peek (E27): the page its link names, said in words under the
-  // card, since the press that opened the Peek did not follow the link.
+  // card, for a reader whose pointer is already on the plate (a long press's too).
   const termHref =
     !outLink && anchor.hasAttribute(PEEK_PRESS_ATTRIBUTE) ? anchor.getAttribute('href') : null
   useEffect(() => {
@@ -219,10 +219,8 @@ export function PeekPopup({
       <PeekTerm term={subject.term} />
     ) : subject.kind === 'table' ? (
       <PeekTable name={subject.name} table={subject.table} />
-    ) : size === 'mini' ? (
-      <PeekMini entity={subject.entity} down={down} />
     ) : (
-      <PeekCard entity={subject.entity} down={down} />
+      <PeekEntity entity={subject.entity} down={down} size={size} />
     )
   ) : null
   const out =

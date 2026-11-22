@@ -108,6 +108,8 @@ export const playCopy = messages({
   done: 'Done ✓',
   markDone: 'Mark done',
   skip: 'Skip',
+  jumpTo: 'Jump to',
+  skipTo: 'Skip to {name}',
   applyMarkDone: 'Apply & mark done',
   downtimeSteps: 'Downtime steps',
   feed: 'Feed',

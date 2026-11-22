@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { TechLevel } from './listingGroups'
 import {
+  PARAM_ACTION,
   PARAM_COLUMNS,
   PARAM_NAME,
+  PARAM_RANGE,
   PARAM_SORT,
   PARAM_SOURCE,
   PARAM_TECH_LEVEL,
   PARAM_TRAIT,
   PARAM_TREE,
   PARAM_VIEW,
+  PARAM_WEAPONS,
 } from './listingParams'
 
 /** A listing's sort: the column's key, and which way. */
@@ -70,6 +73,9 @@ export function useListingFilters({
   const [source, setSource] = useState(() => readUrlChoice(PARAM_SOURCE))
   const [tree, setTree] = useState(() => readUrlChoice(PARAM_TREE))
   const [trait, setTrait] = useState(() => readUrlChoice(PARAM_TRAIT))
+  const [range, setRange] = useState(() => readUrlChoice(PARAM_RANGE))
+  const [action, setAction] = useState(() => readUrlChoice(PARAM_ACTION))
+  const [weapons, setWeapons] = useState(() => readUrlParam(PARAM_WEAPONS) === '1')
   const [name, setName] = useState(() => readUrlParam(PARAM_NAME))
   const [sort, setSort] = useState(() => parseSort(readUrlParam(PARAM_SORT)))
   const [columns, setColumns] = useState<readonly string[]>(() => readUrlList(PARAM_COLUMNS))
@@ -88,6 +94,9 @@ export function useListingFilters({
     setOrDelete(PARAM_SOURCE, source)
     setOrDelete(PARAM_TREE, tree)
     setOrDelete(PARAM_TRAIT, trait)
+    setOrDelete(PARAM_RANGE, range)
+    setOrDelete(PARAM_ACTION, action)
+    setOrDelete(PARAM_WEAPONS, weapons ? '1' : '')
     setOrDelete(PARAM_NAME, name)
     setOrDelete(PARAM_SORT, formatSort(sort))
     setOrDelete(PARAM_COLUMNS, columns.join(','))
@@ -98,7 +107,20 @@ export function useListingFilters({
     if (nextUrl !== currentUrl) {
       window.history.replaceState(window.history.state, '', nextUrl)
     }
-  }, [techLevelFilters, source, tree, trait, name, sort, columns, view, viewInUrl])
+  }, [
+    techLevelFilters,
+    source,
+    tree,
+    trait,
+    range,
+    action,
+    weapons,
+    name,
+    sort,
+    columns,
+    view,
+    viewInUrl,
+  ])
 
   const toggleTechLevel = useCallback(
     (level: TechLevel) => {
@@ -114,10 +136,13 @@ export function useListingFilters({
     [techLevels]
   )
   const clearTechLevels = useCallback(() => setTechLevelFilters(new Set()), [])
-  /** A column's label pressed: up by it, down on a second press. */
+  /**
+   * A column's label pressed: by it, the other way on a second press. A
+   * measure's first press is highest first (`highFirst`), a word's A to Z.
+   */
   const sortBy = useCallback(
-    (key: string) =>
-      setSort((now) => ({ key, descending: now?.key === key ? !now.descending : false })),
+    (key: string, highFirst = false) =>
+      setSort((now) => ({ key, descending: now?.key === key ? !now.descending : highFirst })),
     []
   )
   const clearSort = useCallback(() => setSort(undefined), [])
@@ -126,6 +151,9 @@ export function useListingFilters({
     setSource('')
     setTree('')
     setTrait('')
+    setRange('')
+    setAction('')
+    setWeapons(false)
     setName('')
   }, [])
 
@@ -134,12 +162,18 @@ export function useListingFilters({
     source,
     tree,
     trait,
+    range,
+    action,
+    weapons,
     name,
     sort,
     columns,
     setSource,
     setTree,
     setTrait,
+    setRange,
+    setAction,
+    setWeapons,
     setName,
     setColumns,
     toggleTechLevel,

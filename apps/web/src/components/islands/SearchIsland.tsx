@@ -18,7 +18,6 @@ import { getEntitySlug, suggestSearchQuery } from 'salvageunion-reference'
 import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
-import { PARAM_NAME } from '../../lib/listingParams'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
 import { isSearchShortcut } from '../../lib/searchShortcut'
@@ -56,10 +55,10 @@ type SearchIslandProps = {
 const LISTBOX = {
   ...POPUP_SURFACE.paper,
   marginTop: space[4],
-  // Room for every row it can hold, a thumb's height each (ten, the last the
-  // "more" row): at 24rem a phone hid the tenth under a scroll with no cue
-  // (RR2-17). It scrolls only where the screen is shorter than its rows.
-  maxHeight: 'min(30rem, calc(100dvh - 7rem))',
+  // Room for its first rows, a thumb's height each (ten, then "Show more"):
+  // at 24rem a phone hid the tenth under a scroll with no cue (RR2-17). It
+  // scrolls where the screen is shorter than its rows, or the list lengthened.
+  maxHeight: 'min(33rem, calc(100dvh - 7rem))',
   overflowY: 'auto',
   position: 'absolute',
   top: '100%',
@@ -102,9 +101,8 @@ const RULES_HREF = '/rules/'
 /** Site URL for a combobox result: category listing or entity item page. */
 function resultUrl(result: SearchComboboxResult): string {
   if (result.kind === 'schema') return schemaHref(result.schemaId)
-  if (result.kind === 'more') {
-    return `${schemaHref(result.schemaId)}?${new URLSearchParams({ [PARAM_NAME]: result.query })}`
-  }
+  // "Show more" opens nothing: the combobox lengthens its list (`submit`).
+  if (result.kind === 'more') return ''
   return result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity))
 }
 
@@ -129,6 +127,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const [dismissedResults, setDismissedResults] = useState<unknown>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  // What had the focus before the field took it (the shortcut, a Tab): Escape
+  // gives it back, so a keyboard reader goes on from where they were.
+  const fromRef = useRef<HTMLElement | null>(null)
 
   const doNavigate = useCallback(
     (url: string) => {
@@ -187,7 +188,10 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       // next one starts clean.
       if (e.key === 'Escape' && (isOpen || query)) {
         clear()
-        inputRef.current?.blur()
+        const from = fromRef.current
+        fromRef.current = null
+        if (from?.isConnected) from.focus()
+        else inputRef.current?.blur()
         return
       }
       if (!isOpen) return
@@ -231,6 +235,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (!isSearchShortcut(e)) return
       e.preventDefault()
+      const active = document.activeElement
+      if (active instanceof HTMLElement && active !== inputRef.current && active !== document.body)
+        fromRef.current = active
       inputRef.current?.focus()
       inputRef.current?.select()
     }
@@ -262,9 +269,12 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       value={query}
       onChange={(e) => onInput(e.target.value)}
       onKeyDown={onKeyDown}
-      onFocus={() => {
+      onFocus={(e) => {
         load()
         setDismissedResults(null)
+        const from = e.relatedTarget
+        if (from instanceof HTMLElement && !containerRef.current?.contains(from))
+          fromRef.current = from
       }}
       // The bar's width is the Union bar's (The app's trigger shares it), a class
       // so the mobile sheet can widen it.
@@ -294,6 +304,11 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         optionId={optionId}
         modelOf={(result) => models.get(result.id)}
         target={{ href: resultUrl }}
+        onMore={(result) => {
+          submit(result)
+          // The press took the focus off the field; typing and the arrows go on.
+          inputRef.current?.focus()
+        }}
         style={home ? LISTBOX_HOME : hero ? LISTBOX_HERO : LISTBOX_BAR}
         none={
           suggestion ? (

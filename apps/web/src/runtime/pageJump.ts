@@ -1,10 +1,12 @@
 /**
- * pageJump — the script half of a long page's floating "On this page" button
- * (`PageJump`, the Reference's layout): it shows the button once a long page
- * has scrolled past its header, and fills the sheet with the page's sections.
+ * pageJump — the script half of a page's floating search glass and "On this
+ * page" button (`PageJump`, the Reference's layout): it shows them once a long
+ * page has scrolled past its header, and fills the sheet with the page's
+ * sections.
  *
- * - **Long** is `LONG_PAGE_SCREENS` screens or more: a shorter page's header
- *   is one flick away.
+ * - **Long** is any page that scrolls its header out of sight (`isLongPage`):
+ *   there the bar's search is gone and the glass is the one in reach.
+ * - A page with no sections floats the glass alone (`data-sections`).
  * - **The sections** are the page's own contents where it draws them (a
  *   class's and a guide's "On this page", `data-page-contents`), else its
  *   second-level headings. One section is no list.
@@ -30,8 +32,6 @@ const PAGE_CONTENTS_ATTRIBUTE = 'data-page-contents'
 /** The phone's search sheet's trigger (`MobileSearchDialog`), drawn or not. */
 const SEARCH_SHEET_TRIGGER = '.su-mobile-search__trigger'
 
-/** A page this many screens tall is long. */
-const LONG_PAGE_SCREENS = 2
 /** The button shows once the page has scrolled this many pixels: its header is out of sight. */
 const SHOW_AFTER = 240
 
@@ -62,9 +62,9 @@ export function pageSections(doc: Document): PageSection[] {
   return sections.length > 1 ? sections : []
 }
 
-/** Whether the page is long enough to want the button. */
+/** Whether the page is long enough to want the button: it scrolls its header out of sight. */
 export function isLongPage(pageHeight: number, screenHeight: number): boolean {
-  return screenHeight > 0 && pageHeight >= screenHeight * LONG_PAGE_SCREENS
+  return screenHeight > 0 && pageHeight - screenHeight > SHOW_AFTER
 }
 
 type PageJumpWindow = Pick<Window, 'addEventListener' | 'innerHeight' | 'scrollY' | 'location'>
@@ -116,7 +116,8 @@ export function watchPageJump(doc: Document, win: PageJumpWindow = window): void
   // page where it is. Its island wakes on intent and plays the press back
   // (`runtime/interaction.ts`). With none, the page's own handler focuses the
   // bar's field (`data-search-open`, `islands.client.ts`).
-  sheet.addEventListener('click', (event) => {
+  // The floating glass is the same press with no sheet between.
+  root.addEventListener('click', (event) => {
     if (!(event.target instanceof Element) || !event.target.closest('[data-search-open]')) return
     close()
     const trigger = doc.querySelector<HTMLElement>(SEARCH_SHEET_TRIGGER)
@@ -129,7 +130,11 @@ export function watchPageJump(doc: Document, win: PageJumpWindow = window): void
   const update = () => {
     const long = isLongPage(doc.documentElement.scrollHeight, win.innerHeight)
     const show = long && win.scrollY > SHOW_AFTER
-    if (root.hidden === show) root.hidden = !show
+    if (root.hidden === show) {
+      root.hidden = !show
+      // Whether there is a contents button to draw, before its sheet opens.
+      if (show) root.toggleAttribute('data-sections', pageSections(doc).length > 0)
+    }
     if (!show) close()
   }
   win.addEventListener('scroll', update, { passive: true })

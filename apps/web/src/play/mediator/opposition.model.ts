@@ -6,7 +6,7 @@
  * Pure apart from the reference lookups.
  */
 
-import { instanceName } from 'game-domain/games/encounters'
+import { instanceName, numberFirst } from 'game-domain/games/encounters'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import { ENCOUNTER_REF_SCHEMAS } from 'game-domain/schemas/encounterNpc'
 import type { Npc, NpcTemplateKind } from 'game-domain/schemas/npc'
@@ -298,10 +298,17 @@ export function slugOf(entity: { name: string }): string {
  */
 export type TrayDraw = { pattern?: RefObjectAnyPattern; saved?: SavedPattern; name?: string }
 
+/** A chassis drawn as a named pattern, as the picker and the field list it: "Bobcat · Mr Miner". */
+export function patternLabel(chassis: string, pattern: string): string {
+  return `${chassis} · ${pattern}`
+}
+
 /**
  * A new tray instance of a reference entity, at full HP or SP. Drawn as one of
  * its patterns, book or saved (whose loadout it copies), it is named for the
- * pattern and keeps the host's stats; a
+ * pattern and keeps the host's stats; a chassis's says the chassis first
+ * ("Bobcat · Mr Miner", `patternLabel`, r4 D5), so the field names the Mech
+ * the Mediator picked; a
  * name the Mediator typed wins over both, numbered like any other when the
  * tray already has it. `mediator.addNpc` mints its id and parses it.
  */
@@ -313,7 +320,9 @@ export function newTrayNpc(
   { pattern, saved, name: custom }: TrayDraw = {}
 ): Omit<EncounterNpc, 'id' | 'gameId'> {
   const hostName = 'name' in entity && typeof entity.name === 'string' ? entity.name : 'NPC'
-  const name = saved?.name ?? pattern?.name ?? hostName
+  const drawn = saved?.name ?? pattern?.name
+  const name =
+    drawn === undefined ? hostName : schema === 'chassis' ? patternLabel(hostName, drawn) : drawn
   const given = custom?.trim() ?? ''
   const { maxHp, statKind } = trackOf(
     entity,
@@ -372,4 +381,20 @@ export function newBuiltTrayNpc(
     createdAt: now,
     updatedAt: now,
   }
+}
+
+/**
+ * The unit on the field a new one numbers (r4 D5): with "Raider 2" added, the
+ * one still called "Raider" is to read "Raider 1". Null when there is none.
+ */
+export function firstToNumber<T extends { id: string; name: string }>(
+  tray: readonly T[],
+  added: string
+): { npc: T; name: string } | null {
+  const numbered = numberFirst(tray, added)
+  for (const [i, npc] of tray.entries()) {
+    const name = numbered[i]?.name
+    if (name !== undefined && name !== npc.name) return { npc, name }
+  }
+  return null
 }

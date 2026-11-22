@@ -29,6 +29,7 @@
  */
 
 import { gamePath } from 'game-domain/entityKinds'
+import { proposalTargets } from 'game-domain/games/proposals'
 import { PRODUCT } from 'game-domain/product'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
@@ -45,7 +46,11 @@ import { PlayGameStateSwitch } from './mediator/PlayGameStateSwitch'
 import { PlayMediatorBarActions } from './mediator/PlayMediatorBarActions'
 import { PlayMediatorDowntime } from './mediator/PlayMediatorDowntime'
 import { PlayMediatorOpposition } from './mediator/PlayMediatorOpposition'
-import { MediatorTablesAndFeed, PlayMediatorProposeSection } from './mediator/PlayMediatorSide'
+import {
+  MediatorTablesAndFeed,
+  PlayMediatorProposeSection,
+  RunningNotes,
+} from './mediator/PlayMediatorSide'
 import { PlayMediatorTable } from './mediator/PlayMediatorTable'
 import { SrdExplorer } from './mediator/SrdExplorer'
 import { usePlayMediator } from './mediator/usePlayMediator'
@@ -156,7 +161,13 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     opposition: running ? (
       <PlayMediatorDowntime mediator={mediator} rollFor={rollFor} />
     ) : (
-      <PlayMediatorOpposition mediator={mediator} rollFor={rollFor} />
+      <PlayMediatorOpposition
+        mediator={mediator}
+        rollFor={rollFor}
+        hit={{ targets: proposalTargets(mediator.crew), onPropose: mediator.propose }}
+        // On a phone the Briefing and Notes sit with the encounter (r4 D3).
+        notes={wide ? undefined : <RunningNotes mediator={mediator} />}
+      />
     ),
     // Private rolls sits where the rolls are (r2 B2): the Rolls pane's head,
     // which is the phone's Rolls tab.
@@ -164,6 +175,8 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       <MediatorTablesAndFeed
         mediator={mediator}
         side={side}
+        // The Opposition tab holds them on a phone; Downtime takes that tab.
+        notes={wide || running}
         actions={
           <Toggle size="compact" pressed={privately} onClick={togglePrivately}>
             {playCopy('privateRolls')}
@@ -232,6 +245,16 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       panes={mediatorPanes(running, wide).map((p) => ({ ...p, node: nodes[p.value] }))}
       tab={tab}
       onTab={setTab}
+      // The first unit's HP was 27 Tabs from the top (r4 D6).
+      jumps={[
+        { pane: 'table', label: playCopy('theTable') },
+        {
+          pane: 'opposition',
+          label: running ? playCopy('downtimeWord') : playCopy('opposition'),
+        },
+        { pane: 'tables', label: playCopy('rolls') },
+        { pane: 'propose', label: mediatorCopy('proposeAChange') },
+      ]}
       foot={
         <PlayFoot
           solo={false}

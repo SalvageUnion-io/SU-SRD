@@ -328,8 +328,13 @@ export function matchSearchTokens(
   hasLiteral: (token: string) => boolean
 ): { matches: boolean; usedTypo: boolean } {
   let usedTypo = false
-  for (const token of tokens) {
+  // A number after the whole name is the name's value as a weapon prints it
+  // ("hot 3" for Hot): the entry's text is not asked for it.
+  const named =
+    nameWords.length > 0 && nameWords.every((word, i) => tokens[i] === word) ? nameWords.length : -1
+  for (const [i, token] of tokens.entries()) {
     if (hasLiteral(token)) continue
+    if (named >= 0 && i >= named && isNumber(token)) continue
     // Another form of the word ("salvaging" for "salvage").
     const stem = searchWordStem(token)
     if (stem !== token && hasLiteral(stem)) continue
@@ -345,6 +350,17 @@ export function matchSearchTokens(
   return { matches: true, usedTypo }
 }
 
+/** A token that is a number and nothing else. */
+function isNumber(token: string): boolean {
+  return token !== '' && [...token].every((ch) => ch >= '0' && ch <= '9')
+}
+
+/**
+ * The name, then more words ("mule sp", "hot 3"): the thing named leads the
+ * looser hits. Under an exact name and its looser readings, over a prefix.
+ */
+const NAME_THEN_WORDS_SCORE = 80
+
 /** What a matcher knows about one hit. The optional facts are ORM-only. */
 export type SearchMatchFacts = SearchQuery & {
   /** The entity name, lowered. */
@@ -357,6 +373,11 @@ export type SearchMatchFacts = SearchQuery & {
   matchedFieldCount?: number
   /** The entity's schema: the rules' own kinds rank ahead on equal terms. */
   schemaName?: string
+  /**
+   * A roll table printed inside another entry (`embeddedRollTableNames`): it
+   * ranks one point under what its owner earns, never ahead as a rule.
+   */
+  embedded?: boolean
 }
 
 /** A token as a name word, literally or one slip away. */
@@ -461,7 +482,8 @@ export function suggestSearchQuery(query: string, names: readonly string[]): str
  * one of the entity's aliases 90 ("sp" → Structure Points), the name without
  * its punctuation 85 ("biotitan" → Bio-Titan), another form of the name's
  * words 20 ("overheating" → Overheat). The rules' own kinds add a few points
- * (`RULES_KIND_BOOST`).
+ * (`RULES_KIND_BOOST`). The name with more words after it 80 ("mule sp"); a
+ * roll table printed inside another entry, one under its owner.
  */
 export function scoreSearchMatch(facts: SearchMatchFacts): number {
   const { nameText, loweredQuery, tokens } = facts
@@ -471,13 +493,14 @@ export function scoreSearchMatch(facts: SearchMatchFacts): number {
   if (queries.some((q) => nameText === q)) score += 100
   else if (saysAlias(nameText, queries)) score += 90
   else if (searchSquashedName(nameText) === searchSquashedName(loweredQuery)) score += 85
+  else if (queries.some((q) => q.startsWith(`${nameText} `))) score += NAME_THEN_WORDS_SCORE
   else if (queries.some((q) => nameText.startsWith(q))) score += 50
   else if (queries.some((q) => nameText.includes(q))) score += 25
   else if (tokens.every((t) => nameText.includes(t) || nameText.includes(searchWordStem(t))))
     score += 20
   else if (facts.usedTypo) score += typoNameScore(tokens, nameText)
 
-  score += RULES_KIND_BOOST[facts.schemaName ?? ''] ?? 0
+  score += facts.embedded ? -1 : (RULES_KIND_BOOST[facts.schemaName ?? ''] ?? 0)
 
   if (facts.descriptionText?.includes(loweredQuery)) score += 10
   score += (facts.matchedFieldCount ?? 0) * 5

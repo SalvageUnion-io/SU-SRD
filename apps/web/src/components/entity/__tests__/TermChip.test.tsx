@@ -101,7 +101,7 @@ describe('a chip that names a term', () => {
     const cost = screen.getByRole('link', { name: 'Ability points: 4' })
     expect(cost.getAttribute('href')).toBe('/keywords/ability-points/')
     expect(cost.getAttribute('data-peek')).toStartWith('keywords:')
-    // A stat chip: its first press Peeks (E27).
+    // A stat chip is a term (E27): its press follows it, its Peek offers Open page.
     expect(cost.hasAttribute('data-peek-press')).toBe(true)
     expect(cost.textContent).toBe('4 AP')
     cleanup()

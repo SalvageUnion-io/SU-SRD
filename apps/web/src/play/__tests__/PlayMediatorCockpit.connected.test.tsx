@@ -243,7 +243,7 @@ function downtimeAt(stepIndex: number, upkeepSpent = false): QueryAnswers {
   }
 }
 
-async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
+async function renderCockpit(over: QueryAnswers = {}, canWrite = true, die = 14) {
   const all = answers(over)
   setQueryAnswers(all)
   serveReads(GAME, all)
@@ -259,7 +259,7 @@ async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
         <PlayMediatorCockpit
           gameId={GAME}
           gameName="The Rust Belt Run"
-          rollFor={async () => () => 14}
+          rollFor={async () => () => die}
         />
       </SyncContext.Provider>
     )
@@ -468,22 +468,59 @@ describe('the table', () => {
     expect(within(wren).getByText('Last seen Boarded · Mule')).toBeTruthy()
   })
 
-  test('tapping a seat aims Propose at that pilot and focuses To; the proposal sends', async () => {
+  test('tapping a seat aims Propose at that pilot and focuses its number; Change opens on Take, so a typed 3 is 3 damage (r4 D2)', async () => {
     await renderCockpit()
     await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
     const dock = region('Propose')
     expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')
-    expect(document.activeElement).toBe(dock.getByLabelText('To'))
+    expect((dock.getByLabelText('Change') as HTMLSelectElement).value).toBe('take')
+    expect(document.activeElement).toBe(dock.getByLabelText('Amount'))
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('Amount'), { target: { value: '3' } })
+    })
+    await click(dock.getByRole('button', { name: 'Propose' }))
+    // Rook is at 4 HP: taking 3 leaves 1, never "HP set to 3".
+    expect(sent()).toEqual([
+      {
+        name: 'ops.propose',
+        args: { entityId: 'row-rook', entityType: 'pilot', field: 'currentHP', after: 1 },
+      },
+    ])
+  })
+
+  test('Set to still proposes the value itself', async () => {
+    await renderCockpit()
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
+    const dock = region('Propose')
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('Change'), { target: { value: 'set' } })
+    })
     await act(async () => {
       fireEvent.change(dock.getByLabelText('To'), { target: { value: '6' } })
     })
     await click(dock.getByRole('button', { name: 'Propose' }))
-    expect(sent()).toEqual([
-      {
-        name: 'ops.propose',
-        args: { entityId: 'row-rook', entityType: 'pilot', field: 'currentHP', after: 6 },
-      },
-    ])
+    expect(sent()[0]?.args).toMatchObject({ field: 'currentHP', after: 6 })
+  })
+
+  test('a Mech target can be proposed EP, between SP and Heat (r4 D2)', async () => {
+    await renderCockpit()
+    const dock = region('Propose')
+    const target = dock.getByLabelText('Target') as HTMLSelectElement
+    const atlas = [...target.options].find((o) => o.textContent === "Mags's Atlas")
+    await act(async () => {
+      fireEvent.change(target, { target: { value: atlas?.value } })
+    })
+    const field = dock.getByLabelText('Field') as HTMLSelectElement
+    expect([...field.options].map((o) => o.textContent)).toEqual(['SP', 'EP', 'Heat'])
+    await act(async () => {
+      fireEvent.change(field, { target: { value: 'currentEP' } })
+    })
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('Amount'), { target: { value: '2' } })
+    })
+    await click(dock.getByRole('button', { name: 'Propose' }))
+    // Atlas holds 5 of 5 EP.
+    expect(sent()[0]?.args).toMatchObject({ entityType: 'mech', field: 'currentEP', after: 3 })
   })
 
   test('Setbacks fills Propose with the book’s 2 HP default for the pilot aimed at', async () => {
@@ -612,8 +649,91 @@ describe('the Opposition', () => {
     expect(names()).toEqual(['salvageAreas.set'])
   })
 
-  test('the chosen NPC’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed, the Game’s log and Discord', async () => {
+  test('Actions opens a unit’s actions inside its own card, each on its own; none is open until asked for (r4 D1)', async () => {
     await renderCockpit()
+    expect(screen.queryByRole('list', { name: /’s actions$/ })).toBeNull()
+    await click(named('Scylla’s actions'))
+    expect(named('Scylla’s actions').getAttribute('aria-pressed')).toBe('true')
+    const scylla = screen.getByRole('list', { name: 'Scylla’s actions' })
+    // In the card: the unit's own list item holds its box and its actions.
+    const card = scylla.closest('.su-play-npc') as HTMLElement
+    expect(within(card).getByRole('region', { name: /Scylla/ })).toBeTruthy()
+    // Another unit's opens beside it; Scylla's stays where it was.
+    await click(named('Strikebreaker’s actions'))
+    expect(screen.getByRole('list', { name: 'Scylla’s actions' })).toBe(scylla)
+    expect(
+      screen.getByRole('list', { name: 'Strikebreaker’s actions' }).closest('.su-play-npc')
+    ).not.toBe(card)
+    // Pressed again, it shuts.
+    await click(named('Scylla’s actions'))
+    expect(screen.queryByRole('list', { name: 'Scylla’s actions' })).toBeNull()
+    expect(named('Scylla’s actions').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  test('a weapon’s roll offers its hit: Propose 3 HP to…, the Pilots listed, and a seat pressed is proposed it (r4 D2)', async () => {
+    await renderCockpit({
+      'mediator.npcs': [
+        {
+          _id: 'n-raider',
+          body: { name: 'Raider', refSchema: 'npcs', refSlug: 'raider', currentHp: 3, maxHp: 3 },
+        },
+      ],
+    })
+    await click(named('Raider’s actions'))
+    const list = within(screen.getByRole('list', { name: 'Raider’s actions' }))
+    // Nothing is offered before the roll.
+    await click(list.getByRole('button', { name: /^Use Improvised Firearm.* for Raider$/ }))
+    expect(screen.queryByRole('button', { name: /^Propose 3 HP/ })).toBeNull()
+    await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
+    const offer = await screen.findByRole('button', { name: 'Propose 3 HP from Raider to…' })
+    expect(offer.textContent).toContain('Propose 3 HP to…')
+    acts.length = 0
+    await click(offer)
+    // HP damage goes to Pilots, never to a Mech; each says what it is left with.
+    const seats = screen.getAllByRole('menuitem').map((item) => item.textContent)
+    expect(seats.some((s) => s?.startsWith('Rook') && s.includes('HP 4 → 1'))).toBe(true)
+    expect(seats.some((s) => s?.includes('Buzzard'))).toBe(false)
+    await click(screen.getByRole('menuitem', { name: /^Rook/ }))
+    await waitFor(() =>
+      expect(sent()).toEqual([
+        {
+          name: 'ops.propose',
+          args: {
+            entityId: 'row-rook',
+            entityType: 'pilot',
+            field: 'currentHP',
+            after: 1,
+            reason: 'Raider · Improvised Firearm (Raider)',
+          },
+        },
+      ])
+    )
+  })
+
+  test('a miss offers no hit: the table’s Failure rows propose nothing (r4 D2)', async () => {
+    await renderCockpit(
+      {
+        'mediator.npcs': [
+          {
+            _id: 'n-raider',
+            body: { name: 'Raider', refSchema: 'npcs', refSlug: 'raider', currentHp: 3, maxHp: 3 },
+          },
+        ],
+      },
+      true,
+      3
+    )
+    await click(named('Raider’s actions'))
+    const list = within(screen.getByRole('list', { name: 'Raider’s actions' }))
+    await click(list.getByRole('button', { name: /^Use Improvised Firearm.* for Raider$/ }))
+    await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
+    await waitFor(() => expect(list.getByText('3 · Failure')).toBeTruthy())
+    expect(screen.queryByRole('button', { name: /^Propose 3 HP/ })).toBeNull()
+  })
+
+  test('a unit’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed, the Game’s log and Discord', async () => {
+    await renderCockpit()
+    await click(named('Strikebreaker’s actions'))
     const list = within(screen.getByRole('list', { name: 'Strikebreaker’s actions' }))
     await click(
       list.getAllByRole('button', { name: /^Use .* for Strikebreaker$/ })[0] as HTMLElement
@@ -679,6 +799,7 @@ describe('the Opposition', () => {
     await renderCockpit()
     await click(named('Private rolls'))
     expect(named('Private rolls').getAttribute('aria-pressed')).toBe('true')
+    await click(named('Strikebreaker’s actions'))
     await click(named('Roll the die on Morale'))
     await waitFor(() =>
       expect(feedLines().some((l) => /^You · Strikebreaker · Morale · .* · Private/.test(l))).toBe(
@@ -699,6 +820,7 @@ describe('the Opposition', () => {
     expect(again.getAttribute('aria-pressed')).toBe('true')
     expect(again.closest('section')?.querySelector('h2')?.textContent).toBe('Rolls')
     // And the next roll after the reload is private at once.
+    await click(named('Strikebreaker’s actions'))
     await click(named('Roll the die on Morale'))
     await waitFor(() => expect(logged()).toHaveLength(1))
     expect(logged()[0]?.after.private).toBe(true)
@@ -743,15 +865,9 @@ describe('the Opposition', () => {
     expect(sent()).toEqual([{ name: 'scenes.setUpNow', args: { pilotId: null } }])
   })
 
-  test('Actions on another NPC lists its actions instead', async () => {
-    await renderCockpit()
-    await click(named('Scylla’s actions'))
-    expect(named('Scylla’s actions').getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByRole('list', { name: 'Scylla’s actions' })).toBeTruthy()
-  })
-
   test('Morale rolls on the Morale table, kept on the NPC and on the Feed', async () => {
     await renderCockpit()
+    await click(named('Strikebreaker’s actions'))
     await click(named('Roll the die on Morale'))
     await waitFor(() => expect(names()).toEqual(['mediator.updateNpc']))
     const patch = sent()[0]?.args.patch as { lastMediatorRoll?: { table: string } }
@@ -1191,12 +1307,81 @@ describe('below `lg`, on a phone (play.md §11)', () => {
     expect(phoneTab('Propose').getAttribute('aria-selected')).toBe('true')
     const dock = within(openPanel().getByRole('region', { name: 'Propose' }))
     expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')
-    expect(document.activeElement).toBe(dock.getByLabelText('To'))
+    expect(document.activeElement).toBe(dock.getByLabelText('Amount'))
+  })
+
+  test('the running encounter’s Notes sit on the Opposition tab, under its name, not on Rolls (r4 D3)', async () => {
+    await renderCockpit({
+      'mediator.running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: [],
+        notes: 'The gantry gives way on a Cascade Failure.',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    await click(phoneTab('Opposition'))
+    const panel = openPanel()
+    const notes = panel.getByRole('heading', { name: 'Notes' })
+    const name = panel.getByText('Ambush')
+    expect(name.compareDocumentPosition(notes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(panel.getByText('The gantry gives way on a Cascade Failure.')).toBeTruthy()
+    await click(phoneTab('Rolls'))
+    expect(openPanel().queryByRole('heading', { name: 'Notes' })).toBeNull()
+  })
+
+  test('skip links lead the screen: each opens its tab and moves focus into its pane (r4 D6)', async () => {
+    await renderCockpit()
+    const jumps = within(screen.getByRole('navigation', { name: 'Jump to' })).getAllByRole('link')
+    expect(jumps.map((j) => j.textContent)).toEqual([
+      'Skip to The table',
+      'Skip to Opposition',
+      'Skip to Rolls',
+      'Skip to Propose a change',
+    ])
+    await click(jumps[1] as HTMLElement)
+    expect(phoneTab('Opposition').getAttribute('aria-selected')).toBe('true')
+    expect(document.activeElement?.getAttribute('role')).toBe('tabpanel')
+    expect(within(document.activeElement as HTMLElement).getAllByText('Strikebreaker').length).toBe(
+      1
+    )
+    await click(jumps[3] as HTMLElement)
+    expect(phoneTab('Propose').getAttribute('aria-selected')).toBe('true')
+    expect(
+      within(document.activeElement as HTMLElement).getByRole('region', { name: 'Propose' })
+    ).toBeTruthy()
   })
 
   test('in Downtime the second tab says so and holds the track', async () => {
     await renderCockpit(downtimeAt(2))
     await click(phoneTab('Downtime'))
     expect(openPanel().getByRole('list', { name: 'Downtime steps' })).toBeTruthy()
+  })
+})
+
+describe('from `lg`: the Mediator’s jumps and notes', () => {
+  test('the skip links come before everything else on the screen, and Notes head the end column', async () => {
+    await renderCockpit({
+      'mediator.running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: [],
+        notes: 'Hold fire.',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    const main = screen.getByRole('main')
+    const first = main.querySelector('a, button') as HTMLElement
+    expect(first.textContent).toBe('Skip to The table')
+    await click(screen.getByRole('link', { name: 'Skip to Rolls' }))
+    const pane = document.activeElement as HTMLElement
+    expect(within(pane).getByRole('heading', { name: 'Rolls' })).toBeTruthy()
+    // From `lg` the Notes stay in the end column, above the Rolls.
+    expect(within(pane).getByRole('heading', { name: 'Notes' })).toBeTruthy()
+    expect(
+      within(screen.getByRole('region', { name: 'Opposition' })).queryByRole('heading', {
+        name: 'Notes',
+      })
+    ).toBeNull()
   })
 })

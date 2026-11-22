@@ -4,6 +4,7 @@
  * before (ADR-030 §4, as amended), so a row names only the value it asks for.
  */
 
+import type { ProposalField, ProposalTarget } from 'game-domain/games/proposals'
 import { clampProposalValue, fieldLabel } from 'game-domain/games/proposals'
 import type { SentProposal } from '../../rooms/game/proposals'
 
@@ -42,4 +43,42 @@ export function proposalAfter(
   if (current === null) return null
   const next = Math.max(0, mode === 'take' ? current - typed : current + typed)
   return max === null ? next : Math.min(next, max)
+}
+
+/** What a weapon's hit does, as the reference prints it: an amount of HP or SP. */
+export type HitDamage = { damageType: 'HP' | 'SP'; amount: number }
+
+/** An action's damage where it is a plain number; a variable amount is the Mediator's to work out. */
+export function hitDamageOf(action: {
+  damage?: { damageType: string; amount: unknown }
+}): HitDamage | null {
+  const damage = action.damage
+  if (damage === undefined || typeof damage.amount !== 'number' || damage.amount <= 0) return null
+  if (damage.damageType !== 'HP' && damage.damageType !== 'SP') return null
+  return { damageType: damage.damageType, amount: damage.amount }
+}
+
+/** One seat a hit can be proposed to: what it has, and what taking the hit leaves. */
+export type HitTarget = {
+  target: ProposalTarget
+  field: ProposalField
+  before: number
+  after: number
+}
+
+/**
+ * Who a hit can be proposed to (r4 D2): HP damage to the Pilots, SP damage to
+ * the Mechs, each with what the hit leaves it ("take 3"). A target whose
+ * vital is unknown is left out: Propose a change still reaches it.
+ */
+export function hitTargets(damage: HitDamage, targets: readonly ProposalTarget[]): HitTarget[] {
+  const kind = damage.damageType === 'HP' ? 'pilot' : 'mech'
+  const field: ProposalField = damage.damageType === 'HP' ? 'currentHP' : 'currentSP'
+  return targets.flatMap((target) => {
+    if (target.kind !== kind) return []
+    const reading = target.readings[field]
+    const before = reading?.current ?? reading?.max ?? null
+    const after = proposalAfter('take', String(damage.amount), before, reading?.max ?? null)
+    return before === null || after === null ? [] : [{ target, field, before, after }]
+  })
 }

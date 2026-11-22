@@ -75,3 +75,44 @@ describe('search forgives a slip and knows what players say (r3 D1, D2)', () => 
     expect(long?.aliases).toContain('long range')
   })
 })
+
+describe('search finds the thing named, however it is typed (r4 F1)', () => {
+  const names = (query: string) =>
+    searchCompactIndex(index, { query, limit: 10 }).map((result) => result)
+
+  test('a trait typed with its number, as a weapon prints it', () => {
+    for (const [query, trait] of [
+      ['hot 3', 'Hot'],
+      ['explosive 2', 'Explosive'],
+    ] as const) {
+      const [first] = names(query)
+      expect(first?.entityName).toBe(trait)
+      expect(first?.schemaName).toBe('traits')
+    }
+  })
+
+  test('the name stays first when more words follow', () => {
+    for (const [query, name, schema] of [
+      ['mule sp', 'Mule', 'chassis'],
+      ['railgun damage', 'Railgun', 'systems'],
+      ['hacker abilities', 'Hacker', 'classes'],
+    ] as const) {
+      const [first] = names(query)
+      expect(first?.entityName).toBe(name)
+      expect(first?.schemaName).toBe(schema)
+    }
+  })
+
+  test("an ability's own roll table ranks under the ability", () => {
+    const found = names('hacker').filter((r) => r.entityName === 'System and Software Hacker')
+    expect(found.map((r) => r.schemaName)).toEqual(['abilities', 'roll-tables'])
+  })
+
+  test('tables printed inside other entries do not crowd a table under its own heading', () => {
+    const found = names('crit injury')
+    expect(found[0]?.entityName).toBe('Critical Injury')
+    const embedded = new Set(index.filter((entry) => entry.embedded).map((entry) => entry.id))
+    expect(embedded.size).toBeGreaterThan(0)
+    expect(found.filter((r) => embedded.has(r.entityId)).length).toBeLessThanOrEqual(2)
+  })
+})

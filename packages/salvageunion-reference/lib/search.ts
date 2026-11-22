@@ -15,6 +15,7 @@ import {
   searchWordStem,
   tokenizeSearchQuery,
 } from './searchRanking'
+import { embeddedRollTableNames } from './topLevelRollTables'
 
 /** Lazily-built membership set: the non-meta schema catalog ids. */
 let indexableSchemaNames: ReadonlySet<string> | null = null
@@ -71,6 +72,8 @@ type SearchIndexEntry = {
   fields: ReadonlyArray<readonly [string, string]>
   /** Lowercased name words for bounded typo matching. */
   nameWords: string[]
+  /** A roll table another record claims as its own (`embeddedRollTableNames`). */
+  embedded: boolean
 }
 
 let searchIndex: SearchIndexEntry[] | null = null
@@ -137,6 +140,10 @@ function buildSearchIndex(): SearchIndexEntry[] {
   const { dataMap } = getDataMaps()
 
   const schemasToIndex = schemaCatalog.schemas.filter((s) => !s.meta)
+  // The roll tables another record prints as its own: ranked under that owner.
+  const embedded = embeddedRollTableNames(
+    Object.entries(dataMap).flatMap(([id, records]) => (id === 'roll-tables' ? [] : [records]))
+  )
 
   for (const schema of schemasToIndex) {
     // Every non-meta catalog id is in the enum, so this guard is a runtime
@@ -219,6 +226,7 @@ function buildSearchIndex(): SearchIndexEntry[] {
         patternsText,
         fields: fieldPairs,
         nameWords: searchNameWords(nameText),
+        embedded: schemaId === 'roll-tables' && embedded.has(entity.name),
       })
     }
   }
@@ -370,6 +378,7 @@ export function search(options: SearchOptions): SearchResult[] {
         nameText: indexEntry.nameText,
         usedTypo,
         schemaName: indexEntry.schemaName,
+        embedded: indexEntry.embedded,
         descriptionText: indexEntry.descriptionText,
         matchedFieldCount: matchedFields.length,
       })

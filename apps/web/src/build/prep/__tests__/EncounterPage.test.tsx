@@ -272,7 +272,8 @@ describe('an encounter page', () => {
     await click(raider)
     await click(within(picker).getAllByRole('button', { name: /^Add/ })[0] as HTMLElement)
     await settle(() => current()?.opposition.length === 2)
-    expect(current()?.opposition.map((o) => o.name)).toEqual(['Raider', 'Raider 2'])
+    // The first reads "Raider 1" once a second is added (r4 D5).
+    expect(current()?.opposition.map((o) => o.name)).toEqual(['Raider 1', 'Raider 2'])
   })
 
   test('Read prints the encounter: no edits, its empty sections left out', async () => {

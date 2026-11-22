@@ -105,8 +105,9 @@ describe('waves and groups', () => {
     expect(room.opposition.running(MEDIATOR)?.held).toHaveLength(1)
     expect(room.opposition.bringInWave(MEDIATOR, 2, AT)).toEqual({ added: 1 })
     expect(room.opposition.running(MEDIATOR)?.held).toBeUndefined()
+    // Copies fielded together are numbered from 1 (r4 D5); a later wave counts on.
     expect(room.opposition.tray(MEDIATOR).map((n) => n.name)).toEqual([
-      'Raider',
+      'Raider 1',
       'Raider 2',
       'Raider 3',
     ])

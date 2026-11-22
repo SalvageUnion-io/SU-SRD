@@ -139,7 +139,8 @@ export type EntitySearcherProps = {
   onClose?: () => void
   /**
    * Extra `hide` config for the focused Page, merged OVER the searcher's
-   * own defaults (actions/choices are always suppressed). Big entities — a
+   * own defaults (choices are always suppressed, actions unless
+   * `actions: false` asks for them). Big entities — a
    * chassis, a crawler type — carry sections a picker has no room for
    * (`{ patterns: true }`), and that is a property of the entity, not of the
    * surface, so it is the caller's call rather than a schema check in here.

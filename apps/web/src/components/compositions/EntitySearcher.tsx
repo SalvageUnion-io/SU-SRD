@@ -144,9 +144,10 @@ export function EntitySearcher({
   userMade,
   frame,
 }: EntitySearcherProps) {
-  // Actions/choices are never pickable inside a picker; anything else is the
-  // caller's to suppress.
-  const cardHide: ReferenceEntityCardHideConfig = { ...hide, actions: true, choices: true }
+  // Actions/choices are never pickable inside a picker, so they are hidden
+  // unless the caller asks for them (`hide.actions: false`: a denizen's
+  // weapons are what the Mediator picks it by); anything else is its to suppress.
+  const cardHide: ReferenceEntityCardHideConfig = { actions: true, ...hide, choices: true }
   const browse = mode === 'browse'
   const {
     query,

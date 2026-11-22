@@ -118,7 +118,7 @@ function SrdHome({
     onSubmit: (result) => {
       if (result.kind === 'entity') {
         onPickEntity(result.entity)
-      } else {
+      } else if (result.kind === 'schema') {
         onPickSchema(result.schemaId, result.title)
       }
     },

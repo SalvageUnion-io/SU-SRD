@@ -138,6 +138,19 @@ describe('the tray’s writes', () => {
     })
     expect(bodies()).toHaveLength(1)
     expect(bodies()[0]).toMatchObject({ refSchema: 'npcs', refSlug: 'raider', name: 'Raider 2' })
+    // …and the one already out reads "Raider 1": the first is never the odd one (r4 D5).
+    expect(sent('mediator.updateNpc')).toEqual([{ npcId: 'n-1', patch: { name: 'Raider 1' } }])
+  })
+
+  test('a first of its kind renames nothing', async () => {
+    const m = await mediator({ 'mediator.npcs': [] })
+    const raider = SalvageUnionReference.NPCs.getBySlug('raider')
+    if (raider === undefined) throw new Error('no Raider')
+    await act(async () => {
+      await m().tray.add('npcs', raider)
+    })
+    expect(bodies()[0]).toMatchObject({ name: 'Raider' })
+    expect(sent('mediator.updateNpc')).toEqual([])
   })
 
   test('one of the Mediator’s own NPCs is fielded as a snapshot, under the name given', async () => {

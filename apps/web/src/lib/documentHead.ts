@@ -55,8 +55,12 @@ export type PreviewMeta = {
   type?: string
   /** `theme-color`: the browser chrome, and an unfurl's side bar. */
   themeColor: string
-  /** The card's image, always 1200×630; without one the unfurl is text. */
-  image?: { url: string; alt: string }
+  /**
+   * The preview's image; without one the unfurl is text. The site's own card
+   * is 1200×630 and says so; an entity's art (`sized: false`) is its own
+   * shape, so the block claims no size for it.
+   */
+  image?: { url: string; alt: string; sized?: boolean }
   /**
    * The page's Discord Component Embed JSON (`componentEmbedFor`): Discord
    * draws it in place of the preview. Written as data, never run.
@@ -94,8 +98,12 @@ export function metaTags(page: PreviewMeta): HeadTag[] {
     ...(image
       ? [
           meta({ property: 'og:image', content: image.url }),
-          meta({ property: 'og:image:width', content: '1200' }),
-          meta({ property: 'og:image:height', content: '630' }),
+          ...(image.sized === false
+            ? []
+            : [
+                meta({ property: 'og:image:width', content: '1200' }),
+                meta({ property: 'og:image:height', content: '630' }),
+              ]),
           meta({ property: 'og:image:alt', content: image.alt }),
           meta({ name: 'twitter:card', content: 'summary_large_image' }),
           meta({ name: 'twitter:image', content: image.url }),

@@ -148,6 +148,24 @@ describe('what a row is, beside its name (MD-18)', () => {
     )
   })
 
+  test('what the name already says is not said again (r4 D5)', () => {
+    // A numbered copy is still a Raider; a Mech named "chassis · pattern" names both.
+    expect(
+      opponentNote(row({ refSchema: 'npcs', refSlug: 'raider', name: 'Raider 1' }))
+    ).toBeUndefined()
+    expect(
+      opponentNote(
+        row({
+          refSchema: 'chassis',
+          refSlug: 'mule',
+          refPattern: 'hauler',
+          name: 'Mule · Hauler',
+          statKind: 'sp',
+        })
+      )
+    ).toBe('Mech')
+  })
+
   // MD-18, MD2-15: a design keeps the kind it was built from.
   test('a design built from a Bio-Titan says so; one built from an NPC has nothing to add', () => {
     const built = { npcId: 'n1', name: 'The Relay Lurker', actions: [], traits: [] }
@@ -185,7 +203,8 @@ describe('Make a copy of a row (MD-27)', () => {
     const grouped = { ...band, groupId: 'g' }
     const next = duplicateOpponent({ opposition: [grouped, { ...band, id: 'o2' }] }, 'o1', 'new')
     expect(next.map((o) => [o.id, o.name, o.groupId])).toEqual([
-      ['o1', 'Raider Band', 'g'],
+      // The second of a kind numbers the first (r4 D5).
+      ['o1', 'Raider Band 1', 'g'],
       ['new', 'Raider Band 2', 'g'],
       ['o2', 'Raider Band', undefined],
     ])

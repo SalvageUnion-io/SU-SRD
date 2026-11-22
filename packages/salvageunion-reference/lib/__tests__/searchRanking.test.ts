@@ -63,6 +63,24 @@ describe('matchSearchTokens', () => {
   })
 })
 
+describe('a number after the name (r4 F1)', () => {
+  const literal = (text: string) => (token: string) => text.includes(token)
+
+  test("a trait's value is not asked of its text: 'hot 3' matches Hot", () => {
+    expect(
+      matchSearchTokens(['hot', '3'], ['hot'], literal('hot this weapon runs hot')).matches
+    ).toBe(true)
+  })
+
+  test('only after the whole name, and only a number', () => {
+    expect(matchSearchTokens(['heat', '3'], ['heat', 'spike'], literal('heat spike')).matches).toBe(
+      false
+    )
+    expect(matchSearchTokens(['hot', 'rod'], ['hot'], literal('hot')).matches).toBe(false)
+    expect(matchSearchTokens(['3', 'hot'], ['hot'], literal('hot')).matches).toBe(false)
+  })
+})
+
 describe('scoreSearchMatch', () => {
   const score = (nameText: string, query: string, extra: object = {}) => {
     const q = tokenizeSearchQuery(query)
@@ -124,6 +142,27 @@ describe('scoreSearchMatch', () => {
   test("a question's filler is left out, and the name tiers still read the query as typed", () => {
     expect(score('salvaging', 'how does salvaging work?')).toBe(100)
     expect(score("let's make a deal", "let's make a deal")).toBe(100)
+  })
+
+  test('the name, then more words: the thing named stays over a looser hit (r4 F1)', () => {
+    expect(score('mule', 'mule sp')).toBe(80)
+    expect(score('hot', 'hot 3', { schemaName: 'traits' })).toBe(83)
+    // Under an exact name and its looser readings, over a prefix.
+    expect(score('mule sp', 'mule sp')).toBe(100)
+    expect(score('mule', 'mule sp')).toBeGreaterThan(score('mule sprinter', 'mule sp'))
+    // The name's own words, never a word that opens as it does.
+    expect(score('mule', 'mules sp')).toBe(0)
+  })
+
+  test('a roll table printed inside another entry ranks under its owner (r4 F1)', () => {
+    const owner = score('system and software hacker', 'hacker', { schemaName: 'abilities' })
+    const table = score('system and software hacker', 'hacker', {
+      schemaName: 'roll-tables',
+      embedded: true,
+    })
+    expect(table).toBe(owner - 1)
+    // A table under its own heading keeps the rules' place.
+    expect(score('critical injury', 'injury', { schemaName: 'roll-tables' })).toBe(27)
   })
 
   test("the rules' own kinds come ahead on equal terms", () => {

@@ -8,7 +8,8 @@
  * carries across them) and the Mediator's own designed NPCs under Yours; a
  * new instance starts at full HP and takes a numbered name when it duplicates
  * one, or the name typed in the rail (cleared once used), so the table can
- * tell its opposition apart. An entity with patterns (a chassis, a Bio-Titan)
+ * tell its opposition apart. The preview is the entity's Reference card,
+ * weapons included. An entity with patterns (a chassis, a Bio-Titan)
  * offers them beside its Add: one step. Delete asks first and is never done for you
  * (ADR-007); Rename gives an NPC a name of the Mediator's own.
  *
@@ -36,7 +37,13 @@ import {
 import { npcAsReferenceEntity } from '../../lib/npcs/npcModel'
 import { mediatorCopy } from '../../messages/play-mediator'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from './opposition.model'
-import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
+import {
+  OPPOSITION_SCHEMAS,
+  patternLabel,
+  patternSlugOf,
+  patternsOf,
+  slugOf,
+} from './opposition.model'
 
 const { space } = tokens
 
@@ -102,6 +109,9 @@ const LEAD = {
 } satisfies CSSProperties
 
 const PATTERN = { flex: '0 1 16rem', minWidth: 0 } satisfies CSSProperties
+
+/** The focused Page keeps its actions, which a picker hides by default. */
+const SHOW_ACTIONS = { actions: false } as const
 
 /** How many of a kind's entries the query finds; null with nothing typed. */
 function matches(kind: Kind, query: string, yours: readonly { name: string }[]): number | null {
@@ -196,6 +206,9 @@ export function OppositionPicker({
     railEntities,
     railActions: nameField,
     emptyMessage: mediatorCopy('nothingOfThisKind'),
+    // What it can do is what it is picked by (r4 D4): its Page lists its
+    // weapons, as its Reference page does.
+    hide: SHOW_ACTIONS,
   }
 
   if (kind === YOURS) {
@@ -257,6 +270,9 @@ export function OppositionPicker({
         const book = patternsOf(entity)
         const own = savedFor(schema, entity, saved)
         if (book.length === 0 && own.length === 0) return null
+        // A chassis's pattern is listed as it will stand on the field (r4 D5).
+        const listed = (pattern: string) =>
+          schema === 'chassis' ? patternLabel(item.name, pattern) : pattern
         return (
           <Select
             aria-label={mediatorCopy('pattern', { name: item.name })}
@@ -268,7 +284,7 @@ export function OppositionPicker({
               <optgroup label={mediatorCopy('savedPatterns')}>
                 {own.map((p) => (
                   <option key={p.id} value={savedValue(p)}>
-                    {p.name} · {p.madeBy}
+                    {listed(p.name)} · {p.madeBy}
                   </option>
                 ))}
               </optgroup>
@@ -277,7 +293,7 @@ export function OppositionPicker({
               <optgroup label={mediatorCopy('fromTheBook')}>
                 {book.map((p) => (
                   <option key={p.name} value={bookValue(p)}>
-                    {p.name}
+                    {listed(p.name)}
                   </option>
                 ))}
               </optgroup>
