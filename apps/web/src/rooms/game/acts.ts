@@ -114,6 +114,7 @@ const GAME_ACTS = {
     const began = c.room.play.beginDowntime(c.actor, c.at)
     // A turn is a Scene's: nobody is up in Downtime (r2 E1), and the turn's resolve is closed (r5 A7).
     if (began) c.room.scene.clearUpNow(c.at)
+    if (began) c.room.opposition.endInitiative(c.at)
     if (began && was !== undefined) c.room.play.closeUnapplied([was], c.at)
     return began
   },
@@ -159,6 +160,9 @@ const GAME_ACTS = {
   'mediator.endEncounter': (c: ActContext, a?: { clear?: boolean }) =>
     c.room.opposition.endEncounter(c.actor, { clear: a?.clear === true }),
   'mediator.clearTray': (c: ActContext) => c.room.opposition.clearTray(c.actor),
+  'mediator.initiative': (c: ActContext) => c.room.opposition.initiative(c.actor),
+  'mediator.setInitiative': (c: ActContext, a: { initiative: unknown }) =>
+    c.room.opposition.setInitiative(c.actor, a.initiative, c.at),
 
   // The table's state, under the names a client's act carries.
   'scenes.current': (c: ActContext) => c.room.scene.scene(c.actor),
@@ -168,12 +172,17 @@ const GAME_ACTS = {
   'scenes.setUpNow': (c: ActContext, a: { pilotId: string | null }) => {
     const was = c.room.scene.scene(c.actor).upNow
     c.room.scene.setUpNow(c.actor, a.pilotId, c.at)
-    // The turn moved on: what its pilot left unapplied is closed (r5 A7).
-    if (was !== undefined && was !== a.pilotId) c.room.play.closeUnapplied([was], c.at)
+    // The turn moved on: what its pilot left unapplied is closed (r5 A7), and
+    // they have acted this round (r6 B4).
+    if (was !== undefined && was !== a.pilotId) {
+      c.room.play.closeUnapplied([was], c.at)
+      c.room.opposition.markActed(was, c.at)
+    }
   },
   'scenes.endTurn': (c: ActContext) => {
     const pilotId = c.room.scene.endTurn(c.actor, c.at)
     c.room.play.closeUnapplied([pilotId], c.at)
+    c.room.opposition.markActed(pilotId, c.at)
     return pilotId
   },
   'salvageAreas.here': (c: ActContext) => c.room.scene.salvageArea(c.actor),
@@ -192,6 +201,7 @@ const GAME_ACTS = {
     c.room.session.end(c.actor)
     // The table got up: nobody is up now (r2 E1), and nothing is left resolving (r5 A7).
     c.room.scene.clearUpNow(c.at)
+    c.room.opposition.endInitiative(c.at)
     c.room.play.closeUnapplied(null, c.at)
   },
   'safety.showStop': (c: ActContext) => c.room.safety.showStop(c.actor, c.at),
@@ -247,6 +257,7 @@ export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'mediator.npcs',
   'mediator.amMediator',
   'mediator.running',
+  'mediator.initiative',
   'unitsFor',
   'unit',
   'scenes.current',

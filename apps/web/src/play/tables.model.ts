@@ -16,12 +16,13 @@
 import type { OverloadTable } from 'salvageunion-reference/rules'
 import { damageTableName, overloadTableName } from 'salvageunion-reference/rules'
 
-/** The combat tables, On foot or Boarded. */
+/** The combat tables, On foot or Boarded; Group Initiative says who acts first each round (r6 B4). */
 const COMBAT_TABLES = [
   'Core Mechanic',
   'Critical Damage',
   'Reactor Overload',
   'Critical Injury',
+  'Group Initiative',
 ] as const
 
 /** The Core Mechanic, first of the combat tables: the table every check rolls on. */
@@ -40,8 +41,8 @@ export function pinnedTables(
 ): readonly string[] {
   if (downtime) return DOWNTIME_TABLES
   if (mechTables === 'reactor') return COMBAT_TABLES
-  const [core, , , injury] = COMBAT_TABLES
-  return [core, damageTableName(mechTables), overloadTableName(mechTables), injury]
+  const [core, , , injury, initiative] = COMBAT_TABLES
+  return [core, damageTableName(mechTables), overloadTableName(mechTables), injury, initiative]
 }
 
 /** How many tables a search lists at once. */

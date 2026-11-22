@@ -13,6 +13,7 @@
 import type { RunningEncounter } from 'game-domain/schemas/encounter'
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import type { z } from 'salvageunion-reference/zod'
+import type { Initiative } from '../lib/rules/initiative'
 import type { PatternSharing } from '../rooms/account/sharing'
 import type { SoloSeatRead } from '../rooms/account/soloPlay'
 import type { GameActName, GameActResult } from '../rooms/game/acts'
@@ -139,6 +140,11 @@ const ANSWERED_BY: Record<ReadName, Answer> = {
     answer: (held) => (held as { running?: unknown } | null)?.running ?? null,
   },
   'mediator.amMediator': { table: 'mediator', answer: (held) => held !== null },
+  // The Group Initiative tracker rides the same record (r6 B4).
+  'mediator.initiative': {
+    table: 'mediator',
+    answer: (held) => (held as { initiative?: unknown } | null)?.initiative ?? null,
+  },
   'seats.forGame': { table: 'seats' },
   'seats.solo': { table: 'seats', answer: soloSeat },
   'downtime.state': {
@@ -165,6 +171,7 @@ type Reads = {
   'mediator.npcs': { _id: string; body: Record<string, unknown> }[]
   'mediator.running': RunningEncounter | null
   'mediator.amMediator': boolean
+  'mediator.initiative': Initiative | null
   'seats.forGame': SeatRead[]
   'seats.solo': SoloSeatRead | null
   'downtime.state': DowntimeState | null

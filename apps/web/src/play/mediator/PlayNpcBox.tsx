@@ -28,6 +28,7 @@ import type { ImportantTable } from '../../lib/rules/opposition'
 import { checksMoraleAlone, criticalTable } from '../../lib/rules/opposition'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayVital } from '../PlayVital'
+import { ActedMark } from './MediatorInitiative'
 import { CONTROLS, NOTE_MUTED } from './mediatorStyles.model'
 import { npcKind } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
@@ -71,6 +72,8 @@ type PlayNpcBoxProps = {
   moraleDue?: boolean
   /** Roll its Morale check: the tray's write. */
   onMorale?: () => void
+  /** While Group Initiative is kept (r6 B4): whether it acted this round, and the toggle. */
+  acted?: { acted: boolean; onToggle?: (() => void) | undefined } | undefined
 }
 
 export function PlayNpcBox({
@@ -93,6 +96,7 @@ export function PlayNpcBox({
   onHeatCheck,
   moraleDue = false,
   onMorale,
+  acted,
 }: PlayNpcBoxProps) {
   const detail = useDetailModal(npc.entity ?? undefined, { pattern: npc.pattern ?? undefined })
   const stat = npc.statKind === 'sp' ? 'SP' : 'HP'
@@ -133,6 +137,7 @@ export function PlayNpcBox({
         }
         controls={
           <span style={CONTROLS}>
+            {acted && <ActedMark name={npc.name} acted={acted.acted} onToggle={acted.onToggle} />}
             {folded ? null : (
               <Toggle
                 size="mini"

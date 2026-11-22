@@ -50,6 +50,7 @@ import { PlayNpcActions } from './PlayNpcActions'
 import { PlayNpcBox } from './PlayNpcBox'
 import { PlayNpcGroup } from './PlayNpcGroup'
 import { RunEncounterDialog } from './RunEncounterDialog'
+import { useInitiative } from './useInitiative'
 import type { PlayMediator } from './usePlayMediator'
 
 /** The encounter running: its chip, then End, on one line. */
@@ -87,6 +88,8 @@ export function PlayMediatorOpposition({
   const [clearing, setClearing] = useState(false)
   const [ending, setEnding] = useState(false)
   const { area } = mediator
+  // Each unit standing carries its Group Initiative mark while one is kept (r6 B4).
+  const { initiative, setActed } = useInitiative(mediator.gameId, onFailure)
   // The Scene's conditions that are on: End asks whether to clear them (r4 A11).
   const sceneOn = sceneConditionNames(mediator.scene.conditions)
   const fail = (write: Promise<unknown>) => void write.catch(onFailure)
@@ -151,6 +154,16 @@ export function PlayMediatorOpposition({
       onHeatCheck={() => fail(tray.heatCheck(npc))}
       moraleDue={grouping && moraleDue(npc)}
       onMorale={() => fail(tray.morale(npc))}
+      acted={
+        initiative === null || npc.down
+          ? undefined
+          : {
+              acted: initiative.acted.includes(npc.id),
+              onToggle: canWrite
+                ? () => setActed(npc.id, !initiative.acted.includes(npc.id))
+                : undefined,
+            }
+      }
     />
   )
 

@@ -490,6 +490,7 @@ describe('the Tables (play.md §8)', () => {
       'Critical Damage',
       'Reactor Overload',
       'Critical Injury',
+      'Group Initiative',
     ])
     const damage = pins.getByRole('button', { name: 'Critical Damage' })
     expect(damage.getAttribute('aria-pressed')).toBe('false')

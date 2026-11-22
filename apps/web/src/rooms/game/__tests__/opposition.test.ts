@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { runAct } from '../acts'
-import { AT, MEDIATOR, ORGANIZER, PLAYER, table } from './harness'
+import { AT, bodies, MEDIATOR, ORGANIZER, PLAYER, table } from './harness'
 
 const encounter = {
   id: 'e1',
@@ -209,7 +209,7 @@ describe('waves and groups', () => {
     const { room } = table()
     expect(room.opposition.mediatorRecords(PLAYER)).toEqual([])
     expect(room.opposition.mediatorRecords(MEDIATOR)).toEqual([
-      { appId: 'mediator', body: { running: null }, updatedAt: 0 },
+      { appId: 'mediator', body: { running: null, initiative: null }, updatedAt: 0 },
     ])
     room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT)
     expect(room.opposition.mediatorRecords(MEDIATOR)[0]?.body.running?.name).toBe(
@@ -237,5 +237,62 @@ describe('clearing the field (MD-19)', () => {
     room.opposition.endEncounter(MEDIATOR, { clear: true })
     expect(room.opposition.running(MEDIATOR)).toBeNull()
     expect(room.opposition.tray(MEDIATOR)).toEqual([])
+  })
+})
+
+// MD6-04: Mediate had no Group Initiative: no sides, no round, no record of who had acted.
+describe('the Group Initiative tracker (r6 B4)', () => {
+  test('is the Mediator’s to keep and end, and on their record', () => {
+    const { room } = table()
+    expect(room.opposition.initiative(MEDIATOR)).toBeNull()
+    room.opposition.setInitiative(MEDIATOR, { round: 2, side: 'pilots', acted: ['n1'] }, AT)
+    expect(room.opposition.initiative(MEDIATOR)).toEqual({
+      round: 2,
+      side: 'pilots',
+      acted: ['n1'],
+    })
+    expect(room.opposition.mediatorRecords(MEDIATOR)[0]?.body.initiative?.round).toBe(2)
+    // The crew do not read the Mediator's screen, and may not move it.
+    expect(room.opposition.initiative(PLAYER)).toBeNull()
+    expect(() => room.opposition.setInitiative(PLAYER, { round: 1, acted: [] }, AT)).toThrow()
+    expect(() => room.opposition.setInitiative(MEDIATOR, { round: 0, acted: [] }, AT)).toThrow()
+    room.opposition.setInitiative(MEDIATOR, null, AT + 1)
+    expect(room.opposition.initiative(MEDIATOR)).toBeNull()
+    // Ended, it still reads newer.
+    expect(room.opposition.mediatorRecords(MEDIATOR)[0]?.updatedAt).toBe(AT + 1)
+    // A tracker is no roll and no event.
+    expect(room.log.rolls(MEDIATOR)).toEqual([])
+  })
+
+  test('a pilot’s mark fills when their turn ends or is given to another', () => {
+    const { room } = table()
+    room.units.create(PLAYER, { id: 'p1', kind: 'pilot', body: bodies.pilot('p1'), at: AT })
+    const med = { room, actor: MEDIATOR, gameId: 'g1', at: AT + 1 }
+    const player = { ...med, actor: PLAYER }
+    // With no tracker kept, a turn's end keeps none.
+    expect(runAct(med, 'scenes.setUpNow', { pilotId: 'p1' }).ok).toBe(true)
+    expect(runAct(player, 'scenes.endTurn', undefined).ok).toBe(true)
+    expect(room.opposition.initiative(MEDIATOR)).toBeNull()
+
+    expect(runAct(med, 'mediator.setInitiative', { initiative: { round: 1, acted: [] } }).ok).toBe(
+      true
+    )
+    expect(runAct(med, 'scenes.setUpNow', { pilotId: 'p1' }).ok).toBe(true)
+    expect(runAct(player, 'scenes.endTurn', undefined).ok).toBe(true)
+    expect(room.opposition.initiative(MEDIATOR)?.acted).toEqual(['p1'])
+
+    runAct(med, 'mediator.setInitiative', { initiative: { round: 2, acted: [] } })
+    runAct(med, 'scenes.setUpNow', { pilotId: 'p1' })
+    runAct(med, 'scenes.setUpNow', { pilotId: 'p2' })
+    expect(room.opposition.initiative(MEDIATOR)?.acted).toEqual(['p1'])
+  })
+
+  test('the table getting up ends it', () => {
+    const { room } = table()
+    const med = { room, actor: MEDIATOR, gameId: 'g1', at: AT + 1 }
+    runAct(med, 'session.start', undefined)
+    runAct(med, 'mediator.setInitiative', { initiative: { round: 1, acted: [] } })
+    expect(runAct(med, 'session.end', undefined).ok).toBe(true)
+    expect(room.opposition.initiative(MEDIATOR)).toBeNull()
   })
 })

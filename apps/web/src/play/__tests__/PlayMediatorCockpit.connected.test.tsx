@@ -1526,3 +1526,54 @@ describe('from `lg`: the Mediator’s jumps and notes', () => {
     ).toBeNull()
   })
 })
+
+// MD6-04: Group Initiative (Core Book p.235–236) had no place on Mediate.
+describe('Group Initiative on the table (r6 B4)', () => {
+  const initiative = () =>
+    sent()
+      .filter((s) => s.name === 'mediator.setInitiative')
+      .map((s) => s.args.initiative)
+
+  test('Start keeps round 1, who acts first not yet said', async () => {
+    await renderCockpit()
+    await click(named('Start Group Initiative'))
+    expect(initiative()).toEqual([{ round: 1, acted: [] }])
+  })
+
+  test('New round asks who acts first: a choice, or the table’s roll answers it', async () => {
+    await renderCockpit({ 'mediator.initiative': { round: 1, acted: [] } })
+    const tracker = region('Group Initiative')
+    await click(tracker.getByRole('button', { name: 'Opposition first' }))
+    expect(initiative()).toEqual([{ round: 1, acted: [], side: 'opposition' }])
+    acts.length = 0
+    // A 14 on the Group Initiative Table: Quickdraw, a Pilot first.
+    const roll = tracker
+      .getAllByRole('button')
+      .find((b) => /^Roll/.test(b.getAttribute('aria-label') ?? b.textContent ?? ''))
+    await click(roll as HTMLElement)
+    await waitFor(() => expect(initiative()).toEqual([{ round: 1, acted: [], side: 'pilots' }]))
+  })
+
+  test('the round, whose side is to act, each mark, Next side and New round', async () => {
+    const seat = MEDIATOR_SEATS[0]?.pilotId ?? ''
+    await renderCockpit({
+      'mediator.initiative': { round: 2, side: 'pilots', acted: [seat] },
+    })
+    const tracker = region('Group Initiative')
+    expect(tracker.getByText('Pilots to act')).toBeTruthy()
+    const marks = screen.getAllByRole('button', { name: /^Acted: / })
+    expect(marks.map((m) => m.getAttribute('aria-pressed'))).toContain('true')
+    const strike = named('Acted: Strikebreaker')
+    expect(strike.getAttribute('aria-pressed')).toBe('false')
+    await click(strike)
+    expect(initiative()).toEqual([{ round: 2, side: 'pilots', acted: [seat, 'n-strike'] }])
+    acts.length = 0
+    await click(tracker.getByRole('button', { name: 'Next side' }))
+    expect(initiative()).toEqual([{ round: 2, side: 'opposition', acted: [seat] }])
+    acts.length = 0
+    await click(tracker.getByRole('button', { name: 'New round' }))
+    expect(initiative()).toEqual([{ round: 3, acted: [] }])
+    // Give the turn still works within a side.
+    expect(screen.getAllByRole('button', { name: /^Give the turn: / }).length).toBeGreaterThan(0)
+  })
+})

@@ -631,6 +631,7 @@ describe('the Tables (play.md §8)', () => {
       'Critical Damage',
       'Reactor Overload',
       'Critical Injury',
+      'Group Initiative',
     ])
     // An adventure's rumour table is never pinned for every table (False Flag p.8).
     expect(pinnedTables(true)).toEqual(['Core Mechanic', 'Critical Injury'])
@@ -642,6 +643,7 @@ describe('the Tables (play.md §8)', () => {
       'Bio-Chassis Damage Table',
       'Bio-Chassis Overload Table',
       'Critical Injury',
+      'Group Initiative',
     ])
     expect(pinnedTables(true, 'bio')).toEqual(['Core Mechanic', 'Critical Injury'])
   })
