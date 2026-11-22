@@ -376,7 +376,7 @@ function SchemaViewer({
               traitFilter,
               rangeFilter,
               actionFilter,
-              weaponsOnly && islandsCopy('weaponsOnly'),
+              weaponsOnly ? islandsCopy('weaponsOnly') : '',
               nameFilter && `“${nameFilter}”`,
             ]}
             count={filteredData.length}
