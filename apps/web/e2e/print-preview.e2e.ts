@@ -44,6 +44,31 @@ test.describe('sheet print preview', () => {
     await expect(page.getByRole('link', { name: /edit this pilot/i })).toBeHidden()
   })
 
+  test('prints the Read view from Edit, every name whole (r4 E9)', async ({ page }) => {
+    await page.setViewportSize({ width: 794, height: 1123 })
+    await page.getByRole('button', { name: 'Edit', exact: true }).click()
+    // Edit's controls are up on screen.
+    const manage = page.getByRole('button', { name: 'Manage Abilities' })
+    await expect(manage).toBeVisible()
+
+    await page.emulateMedia({ media: 'print' })
+    // Paper is the Read view: no field, no "+ Add", whichever tab was up.
+    await expect(page.getByRole('heading', { name: 'Print Test' })).toBeVisible()
+    await expect(manage).toHaveCount(0)
+    await expect(page.locator('main').locator('input, textarea')).toHaveCount(0)
+    // No name or masthead label is cut on paper.
+    const cut = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('.su-entity-mini__name, .su-strip__label')]
+        .filter((el) => el.getClientRects().length > 0 && el.scrollWidth > el.clientWidth + 1)
+        .map((el) => el.textContent)
+    )
+    expect(cut).toEqual([])
+
+    // Back on screen the sheet is on the tab it was on.
+    await page.emulateMedia({ media: 'screen' })
+    await expect(manage).toBeVisible()
+  })
+
   test('renders critical content under print @ US Letter', async ({ page }) => {
     // US Letter: 816 × 1056 CSS px at 96dpi
     await page.setViewportSize({ width: 816, height: 1056 })

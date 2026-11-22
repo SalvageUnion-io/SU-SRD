@@ -21,6 +21,30 @@ export function shortSource(source: string): string {
 }
 
 /**
+ * What a filtered list is filtered to, in words, on paper only (r4 E9,
+ * `.su-listing__printed`): there the rail that says it on screen is not drawn.
+ */
+export function ListingPrinted({
+  levels,
+  words,
+  count,
+  total,
+}: {
+  levels: readonly TechLevel[]
+  /** The other filters as set; an unset one is empty. */
+  words: readonly string[]
+  count: number
+  total: number
+}) {
+  const filters = [...levels.map(tlName), ...words.filter(Boolean).map(shortSource)].join(' · ')
+  return (
+    <p className="su-listing__printed">
+      {islandsCopy('filteredTo', { filters, count, count2: total })}
+    </p>
+  )
+}
+
+/**
  * The toolbar's cut-off: a listing shows its filter toolbar — the name filter
  * and its facets (tech level, sources, trees) — only when it lists more than
  * this many entries; a shorter one reads at a glance.

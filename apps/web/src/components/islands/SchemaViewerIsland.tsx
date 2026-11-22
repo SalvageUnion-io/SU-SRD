@@ -48,7 +48,7 @@ import { sortIndexItems } from './indexColumns.model'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
 import type { RailActions } from './ListingRail'
-import { ListingRail, shortSource, tlButtonLabel } from './ListingRail'
+import { ListingPrinted, ListingRail, shortSource, tlButtonLabel } from './ListingRail'
 
 type RailPart = 'all' | 'view' | 'filters'
 
@@ -377,6 +377,15 @@ function SchemaViewer({
         data-view={view}
       >
         {!band && renderRail('all')}
+
+        {hasActiveFilters && (
+          <ListingPrinted
+            levels={orderedTechLevels.filter((tl) => techLevelFilters.has(String(tl)))}
+            words={[sourceFilter, treeFilter, traitFilter, nameFilter && `“${nameFilter}”`]}
+            count={filteredData.length}
+            total={initialData.length}
+          />
+        )}
 
         {filteredData.length === 0 ? (
           <EmptyState

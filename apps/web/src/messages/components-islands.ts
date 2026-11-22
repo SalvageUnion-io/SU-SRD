@@ -41,6 +41,7 @@ export const islandsCopy = messages({
   of: '{count} of {count2}',
   tl2: 'TL {level}',
   clearAll: 'Clear all',
+  filteredTo: 'Filtered to {filters}: {count} of {count2}',
   nothingHere: 'Nothing here',
   noItemsMatchTheCurrent: 'No items match the current filters.',
   clearFilters: 'Clear filters',

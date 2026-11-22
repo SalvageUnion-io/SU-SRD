@@ -68,6 +68,7 @@ import { npcStamp } from '../sheet/bandStamps.model'
 import { LiveSheet } from '../sheet/LiveSheet'
 import { NpcLines } from '../sheet/NpcLines'
 import { PhotoBeside } from '../sheet/PhotoBeside'
+import { usePrinting } from '../sheet/printing.model'
 import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
 import { SheetColumns } from '../sheet/SheetColumns'
 import { SheetHero } from '../sheet/SheetHero'
@@ -146,7 +147,9 @@ export function NpcSheet({
   // As on every sheet (`Sheet.tsx`): Read until Edit is pressed, and nothing
   // writes while the server of record cannot be reached.
   const writesBlocked = !canWrite && status !== 'syncing'
-  const editing = sheetMode === null || sheetMode.editing
+  // Paper is always the Read view (r4 E9).
+  const printing = usePrinting()
+  const editing = !printing && (sheetMode === null || sheetMode.editing)
   const editable = !readOnlyProp && !writesBlocked && editing
 
   function patch(fields: Partial<Npc>) {

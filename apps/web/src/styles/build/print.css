@@ -254,6 +254,25 @@
   }
 
   /* -------------------------------------------------------------------------
+   * Names and labels whole on paper (r4 E9): nothing can be hovered or
+   * opened there, so a Mini's name wraps under its chips rather than end in
+   * "…", and a masthead label ("HP Hit Points") keeps its full line height.
+   * ------------------------------------------------------------------------- */
+  .su-strip__label:not(#\#) > small,
+  .su-strip__label:not(#\#) > .su-chip-link > small {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .su-strip__label:not(#\#) {
+    flex-wrap: wrap;
+    line-height: 1.3;
+    white-space: normal;
+  }
+
+  /* -------------------------------------------------------------------------
    * Border adjustments for ink-friendliness
    * ------------------------------------------------------------------------- */
   /* An inline border is matched by its style attribute. The parts named here

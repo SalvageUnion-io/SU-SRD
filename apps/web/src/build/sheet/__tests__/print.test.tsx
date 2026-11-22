@@ -13,7 +13,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
@@ -85,6 +85,28 @@ describe('Print markup — PilotSheet', () => {
     // PilotSheet renders <section class="su-sheet-section"> (print page-break target)
     const section = container.querySelector('section.su-sheet-section')
     expect(section).toBeTruthy()
+  })
+
+  test('going to paper draws the Read view, and coming back restores Edit (r4 E9)', () => {
+    const { container } = render(
+      <Sheet
+        kind="pilot"
+        id="print-pilot-1"
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock()}
+      />
+    )
+    const fields = () => container.querySelectorAll('input, textarea').length
+    // No mode is provided, so the sheet is writable: Edit's fields are up.
+    expect(fields()).toBeGreaterThan(0)
+    act(() => {
+      window.dispatchEvent(new Event('beforeprint'))
+    })
+    expect(fields()).toBe(0)
+    act(() => {
+      window.dispatchEvent(new Event('afterprint'))
+    })
+    expect(fields()).toBeGreaterThan(0)
   })
 
   test('marks the LiveSheet top bar data-print="hide" (the chrome-hide rule target)', () => {
