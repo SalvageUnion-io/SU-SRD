@@ -104,6 +104,7 @@ export const playGamesCopy = messages({
     'No Pilot in this Game is assigned to you. Add one of yours, or use Assign to me on a free one in the Crew list, then play.',
   assignToMeNamed: 'Assign to me: {name}',
   awaitingYourAnswer: 'Awaiting your answer',
+  proposedBy: 'From {name}',
   lastSession: 'Last time at the table',
   encounterStillRunning: 'An encounter is still running: {name}. Mediate opens it.',
   thisSession: 'This session',

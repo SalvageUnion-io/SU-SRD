@@ -165,3 +165,25 @@ describe('every act reaches its part of the room', () => {
     ok(runAct(org, 'setMediator', { userId: MEDIATOR, mediator: false }))
   })
 })
+
+// r5 A11 (MD5-14): handed the table, a player saw the proposal on their own pilot as one they sent.
+describe('after a hand over', () => {
+  test('a proposal to the new Mediator’s own pilot awaits their answer, signed, and is not theirs as sent', () => {
+    const { room } = table()
+    const as = (actor: string) => ({ room, actor, gameId: 'g1', at: AT })
+    const ok = <T>(answer: { ok: true; value: T } | { ok: false; refusal: string }): T => {
+      if (!answer.ok) throw new Error(answer.refusal)
+      return answer.value
+    }
+    ok(runAct(as(PLAYER), 'createUnit', { id: 'p1', kind: 'pilot', body: bodies.pilot('p1') }))
+    const sent = ok(
+      runAct(as(MEDIATOR), 'ops.propose', { entityId: 'p1', field: 'motto', after: 'Onward' })
+    )
+    expect(ok(runAct(as(MEDIATOR), 'ops.sent', undefined as never))).toHaveLength(1)
+    ok(runAct(as(ORGANIZER), 'setMediator', { userId: PLAYER, mediator: true }))
+    ok(runAct(as(ORGANIZER), 'setMediator', { userId: MEDIATOR, mediator: false }))
+    expect(ok(runAct(as(PLAYER), 'ops.sent', undefined as never))).toEqual([])
+    const [awaiting] = ok(runAct(as(PLAYER), 'ops.pending', undefined as never))
+    expect(awaiting).toMatchObject({ _id: sent, byName: 'Med' })
+  })
+})

@@ -28,6 +28,8 @@ export type ProposalRead = {
    * the notice's "HP 7 → 0". Read when served, never stored (ADR-030 §4).
    */
   current?: number | null
+  /** Who sent it, on one awaiting its answer: a Mediator who handed the table on signs theirs still (r5 A11). */
+  byName?: string | null
 }
 
 export type SentProposal = ProposalRead & {
@@ -117,18 +119,27 @@ export class GameProposals {
       out.push({
         ...read,
         current: typeof held === 'number' ? held : unsetVital(this.store, unit.id, read.field),
+        byName: this.store.member(op.author)?.displayName ?? null,
       })
     }
     return out.sort((a, b) => b.ts - a.ts)
   }
 
-  /** Every Mediator proposal, newest first, for any Mediator: one handed the table inherits them. */
+  /**
+   * Every Mediator proposal, newest first, for any Mediator: one handed the
+   * table inherits them. Never one another Mediator sent to the viewer's own
+   * unit: theirs to answer, it reads under Awaiting your answer (r5 A11).
+   */
   sent(actor: string): SentProposal[] {
     const member = this.store.member(actor)
     if (member === null || !member.mediator) return []
     const rows = this.store.rows(
-      'select id from ops where source = ? order by at desc, id limit ?',
+      `select o.id from ops o left join units u on u.id = o.unit_id
+       where o.source = ? and not (u.owner_id is not null and u.owner_id = ? and o.author != ?)
+       order by o.at desc, o.id limit ?`,
       PROPOSAL_SOURCE,
+      actor,
+      actor,
       MAX_SENT
     )
     const out: SentProposal[] = []

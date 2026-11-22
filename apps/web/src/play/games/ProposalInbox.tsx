@@ -90,6 +90,10 @@ export function ProposalInbox({ gameId }: { gameId: string }) {
             >
               <span style={HEAD}>{what}</span>
               {p.reason !== null && <span style={REASON}>“{p.reason}”</span>}
+              {/* Signed: after a hand over it may be another Mediator's (r5 A11). */}
+              {p.byName != null && (
+                <span style={REASON}>{playGamesCopy('proposedBy', { name: p.byName })}</span>
+              )}
             </FeedLine>
           )
         })}
