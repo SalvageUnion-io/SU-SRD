@@ -89,6 +89,7 @@ export const mediatorCopy = messages({
   upNow: 'Up now',
   vitalsOf: '{name}’s vitals',
   addOpposition: 'Add opposition',
+  oppositionUnits: 'Opposition units',
   markUpNow: 'Give the turn',
   upNowFor: 'Give the turn: {name}',
   inTheMechBay: 'In the Mech Bay · {mech}',

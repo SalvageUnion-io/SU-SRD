@@ -1375,36 +1375,35 @@ describe('below `lg`, on a phone (play.md §11)', () => {
     expect(openPanel().queryByRole('heading', { name: 'Notes' })).toBeNull()
   })
 
-  test('skip links lead the screen: each opens its tab and moves focus into its pane (r4 D6)', async () => {
+  // MD6-12: with five units, eleven skip links stood before the header.
+  test('four skip links lead the screen, whatever the fight; each opens its tab and moves focus into its pane (r4 D6, r6 B11)', async () => {
     await renderCockpit()
     const jumps = within(screen.getByRole('navigation', { name: 'Jump to' })).getAllByRole('link')
-    expect(jumps.slice(0, 4).map((j) => j.textContent)).toEqual([
+    expect(jumps.map((j) => j.textContent)).toEqual([
       'Skip to The table',
       'Skip to Opposition',
       'Skip to Rolls',
-      'Skip to Propose a change',
+      'Skip to Feed',
     ])
-    // Then each unit's vitals, and Add opposition's Add (r5 A17).
-    expect(jumps.at(-1)?.textContent).toBe('Skip to Add opposition')
-    const strike = jumps.find((j) => j.textContent === 'Skip to Strikebreaker’s vitals')
+    // The Opposition jump lands on its heading, which leads into its own list of units.
+    await click(jumps[1] as HTMLElement)
+    expect(phoneTab('Opposition').getAttribute('aria-selected')).toBe('true')
+    expect(document.activeElement?.textContent).toBe('Opposition')
+    const units = within(screen.getByRole('navigation', { name: 'Opposition units' }))
+      .getAllByRole('link')
+      .map((link) => link as HTMLElement)
+    expect(units.at(-1)?.textContent).toBe('Skip to Add opposition')
+    const strike = units.find((j) => j.textContent === 'Skip to Strikebreaker’s vitals')
     expect(strike).toBeTruthy()
     await click(strike as HTMLElement)
     expect(document.activeElement?.closest('[data-npc-id]')?.textContent).toContain('Strikebreaker')
-    await click(jumps.at(-1) as HTMLElement)
+    await click(units.at(-1) as HTMLElement)
     expect(document.activeElement?.getAttribute('aria-label')).toBe(
       'Add opposition from the reference'
     )
-    await click(jumps[1] as HTMLElement)
-    expect(phoneTab('Opposition').getAttribute('aria-selected')).toBe('true')
-    expect(document.activeElement?.getAttribute('role')).toBe('tabpanel')
-    expect(within(document.activeElement as HTMLElement).getAllByText('Strikebreaker').length).toBe(
-      1
-    )
     await click(jumps[3] as HTMLElement)
-    expect(phoneTab('Propose').getAttribute('aria-selected')).toBe('true')
-    expect(
-      within(document.activeElement as HTMLElement).getByRole('region', { name: 'Propose' })
-    ).toBeTruthy()
+    expect(phoneTab('Table').getAttribute('aria-selected')).toBe('true')
+    expect(document.activeElement?.textContent).toBe('Feed')
   })
 
   test('in Downtime the second tab says so and holds the track', async () => {

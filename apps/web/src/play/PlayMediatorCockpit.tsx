@@ -249,35 +249,18 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
         panes={mediatorPanes(running, wide).map((p) => ({ ...p, node: nodes[p.value] }))}
         tab={tab}
         onTab={setTab}
-        // The first unit's HP was 27 Tabs from the top (r4 D6); then each
-        // unit's vitals and Add opposition's Add are a jump each (r5 A17).
+        // The first unit's HP was 27 Tabs from the top (r4 D6). Four jumps,
+        // whatever the size of the fight (r6 B11): the Opposition's lands on its
+        // heading, which leads into its own list of units (`OppositionJumps`).
         jumps={[
           { pane: 'table', label: playCopy('theTable') },
           {
             pane: 'opposition',
             label: running ? playCopy('downtimeWord') : playCopy('opposition'),
+            ...(running ? {} : { first: '#mediate-opposition' }),
           },
           { pane: 'tables', label: playCopy('rolls') },
-          { pane: 'propose', label: mediatorCopy('proposeAChange') },
-          ...mediator.seats.map((seat) => ({
-            pane: 'table' as const,
-            label: mediatorCopy('vitalsOf', { name: seat.name }),
-            first: `[data-seat-id="${seat.pilotId}"] button`,
-          })),
-          ...(running
-            ? []
-            : [
-                ...(mediator.npcs ?? []).map((npc) => ({
-                  pane: 'opposition' as const,
-                  label: mediatorCopy('vitalsOf', { name: npc.name }),
-                  first: `[data-npc-id="${npc.id}"] .su-vital-gauge__value-button`,
-                })),
-                {
-                  pane: 'opposition' as const,
-                  label: mediatorCopy('addOpposition'),
-                  first: '[data-opposition-add]',
-                },
-              ]),
+          { pane: 'table', label: playCopy('feed'), first: '#mediate-feed' },
         ]}
         foot={
           <PlayFoot

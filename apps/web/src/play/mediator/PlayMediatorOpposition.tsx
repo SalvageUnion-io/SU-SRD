@@ -30,10 +30,12 @@ import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { SheetPickerModal } from '../../build/sheet/SheetPickerModal'
+import { SkipLink } from '../../components/app'
 import type { rollForTable } from '../../components/index'
 import { Button, EmptyState, Slab, Stat, toast, tokens } from '../../components/index'
 import { flagOn } from '../../lib/flags'
 import { moraleDue } from '../../lib/rules/opposition'
+import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { SalvageAreaDialog } from '../SalvageAreaDialog'
 import { sceneConditionNames } from '../useScene'
@@ -140,6 +142,7 @@ export function PlayMediatorOpposition({
       <PlayMediatorScene mediator={mediator} rollFor={rollFor} />
       <Slab
         as="h2"
+        id="mediate-opposition"
         label={mediatorCopy('opposition')}
         flush
         actions={
@@ -174,6 +177,7 @@ export function PlayMediatorOpposition({
           </>
         }
       />
+      <OppositionJumps npcs={npcs ?? []} />
       {prep.running !== null && (
         <div style={RUNNING} role="status">
           <Stat label={mediatorCopy('running')} value={prep.running.name} size="mini" />
@@ -336,5 +340,31 @@ export function PlayMediatorOpposition({
         writes={tray}
       />
     </>
+  )
+}
+
+/**
+ * The Opposition heading's own list of units (r6 B11): off screen until
+ * focused, a jump to each unit's vitals, then Add. The screen's skip links
+ * stay four whatever the size of the fight; this list follows the heading
+ * the Opposition jump lands on.
+ */
+function OppositionJumps({ npcs }: { npcs: readonly TrayNpc[] }) {
+  const focus = (selector: string) => document.querySelector<HTMLElement>(selector)?.focus()
+  return (
+    <nav aria-label={mediatorCopy('oppositionUnits')} data-opposition-units="">
+      {npcs.map((npc) => (
+        <SkipLink
+          key={npc.id}
+          to="mediate-opposition"
+          onFollow={() => focus(`[data-npc-id="${npc.id}"] .su-vital-gauge__value-button`)}
+        >
+          {playCopy('skipTo', { name: mediatorCopy('vitalsOf', { name: npc.name }) })}
+        </SkipLink>
+      ))}
+      <SkipLink to="mediate-opposition" onFollow={() => focus('[data-opposition-add]')}>
+        {playCopy('skipTo', { name: mediatorCopy('addOpposition') })}
+      </SkipLink>
+    </nav>
   )
 }

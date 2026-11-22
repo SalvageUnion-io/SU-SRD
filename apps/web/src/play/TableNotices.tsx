@@ -544,7 +544,8 @@ function GameNotices({
   // The Stop Sign keeps a strip of its own: it is the table's state, never one of the stack.
   if (sign === null || !paused) return null
   return (
-    <div role="status" data-table-notice="stop">
+    // Named for what it is, not the strip's "Your Games" (r6 B11).
+    <div role="status" aria-label={playSafetyCopy('stopSign')} data-table-notice="stop">
       <Callout tone="bad">
         <div className="su-table-notice">
           <div className="su-table-notice__text">
