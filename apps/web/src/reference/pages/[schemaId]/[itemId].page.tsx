@@ -28,7 +28,7 @@ import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
 import { componentEmbedFor } from '../../../lib/componentEmbed'
 import { entityTitle, META_DESCRIPTION_MAX, SITE_URL, titleName } from '../../../lib/constants'
 import { itemHref, schemaHref } from '../../../lib/entityHref'
-import { entityPageHead } from '../../../lib/entityPageHead'
+import { entityPageHead, previewDescriptionFor } from '../../../lib/entityPageHead'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
 import { relationsFor } from '../../../lib/pageRelations'
@@ -157,6 +157,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       // The preview's words and colour come from the same card its image is
       // screenshotted from, so the text beside the image matches it.
       og: ogMetaFor(ogCardFor(schemaId, itemId, item)),
+      // A shared link says what the thing is: its stats, then its own summary.
+      previewDescription: previewDescriptionFor({
+        kind: schemaName,
+        stats: staticSummary?.stats ?? [],
+        traits: staticSummary?.traits ?? [],
+        summary: firstParagraph || itemDescription || undefined,
+      }),
       componentEmbed: componentEmbedFor(item),
       crumbs: [{ name: pluralName, url: listingUrl }],
       crumb: itemName,

@@ -212,6 +212,9 @@ function itemHtmlPath(entity: Entity): string {
   return join(DIST_DIR, href, 'index.html')
 }
 
+/** A built page whose og:image is its entity's art, on the artwork CDN. */
+const ART_PREVIEW = /<meta property="og:image" content="https:\/\/assets\.salvageunion\.io\//
+
 /**
  * Point one built item page at its own og:image.
  *
@@ -220,11 +223,12 @@ function itemHtmlPath(entity: Entity): string {
  * property: generation being skipped, budget-capped, or failing outright leaves
  * the default in place instead of advertising an image that 404s.
  *
- * Returns false if the page didn't contain the expected default URL, which
+ * Returns `'art'` for a page that previews as its entity's art, which keeps
+ * it. Returns false if the page didn't contain the expected default URL, which
  * means BaseLayout's meta block changed shape — surfaced as a warning rather
  * than silently doing nothing.
  */
-function pointPageAtOgImage(entity: Entity): boolean {
+function pointPageAtOgImage(entity: Entity): boolean | 'art' {
   const htmlPath = itemHtmlPath(entity)
   // Read directly and handle the failure, rather than existsSync-then-read:
   // the check-then-use pattern is a file-system race (CodeQL js/file-system-race)
@@ -236,6 +240,8 @@ function pointPageAtOgImage(entity: Entity): boolean {
     // Unreadable page: treat as "not using the default image" and skip it.
     return false
   }
+  // A page whose preview is its entity's art keeps it (`entityPageHead`).
+  if (ART_PREVIEW.test(html)) return 'art'
   const defaultUrl = new URL(DEFAULT_OG_IMAGE, SITE_URL).href
   if (!html.includes(defaultUrl)) return false
   const ownUrl = new URL(ogImagePath(entity.schemaId, entity.itemId, entity.patternId), SITE_URL)
@@ -340,8 +346,9 @@ async function run() {
     let mismatched = 0
     for (const entity of allEntities) {
       if (!existsSync(distPngPath(entity))) continue
-      if (pointPageAtOgImage(entity)) linked++
-      else mismatched++
+      const pointed = pointPageAtOgImage(entity)
+      if (pointed === true) linked++
+      else if (pointed === false) mismatched++
     }
     if (mismatched > 0) {
       log(

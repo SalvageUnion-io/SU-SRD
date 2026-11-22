@@ -16,8 +16,11 @@ paths:
   `apps/web/scripts/og-screenshots.ts` shoots it at 1200×630 to
   `dist/{schemaId}/{itemId}.og.png`; patterns get their own at
   `/{schemaId}/{itemId}/pattern/{patternId}.og.png`.
-- `og:title` is the name, `og:description` the kind and cite (never the body),
-  `theme-color` the band's tone.
+- `og:title` is the name, `og:description` the entity's stats and summary
+  (`previewDescriptionFor`; the kind and cite where it has neither),
+  `theme-color` the band's tone. An entity with art previews as its art, the
+  artwork CDN's 880px width of it (`entityPageHead`), and the generator leaves
+  that page's `og:image` alone.
 - Opt-in: `bun --filter web og:generate` (chromium via `og:install-browser`);
   a plain build never renders images. The default image is
   `public/og-image.png` (`BrandCard` at `/og-card?brand`), and a skipped,

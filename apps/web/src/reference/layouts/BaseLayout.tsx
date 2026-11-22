@@ -87,6 +87,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
     ogType = 'website',
     ogImage = DEFAULT_OG_IMAGE,
     ogImageAlt,
+    ogImageArt = false,
     ogTitle = title,
     ogDescription = description,
     themeColor = THEME_COLOR,
@@ -119,8 +120,9 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         <meta name="color-scheme" content="light" />
         <meta name="text-scale" content="scale" />
         <title>{title}</title>
-        {/* The link-preview block every document carries (`metaTags`). All OG
-            images the site emits are 1200×630 (the default banner). With it,
+        {/* The link-preview block every document carries (`metaTags`). The OG
+            images the site renders are 1200×630; an entity's art is its own
+            shape. With it,
             Discord's Component Embed: a pasted link to this page renders as
             the bot's card (`src/lib/componentEmbed.ts`). Data, never run. */}
         {metaTags({
@@ -131,7 +133,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           canonical: canonicalUrl,
           type: ogType,
           themeColor,
-          image: { url: ogImageUrl, alt: ogImageAlt ?? ogTitle },
+          image: { url: ogImageUrl, alt: ogImageAlt ?? ogTitle, sized: !ogImageArt },
           ...(componentEmbed ? { componentEmbed } : {}),
         }).map((head) => {
           const { attrs } = head

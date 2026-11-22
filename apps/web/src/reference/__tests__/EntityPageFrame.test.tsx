@@ -97,6 +97,11 @@ describe('EntityPageFrame', () => {
     // Static markup the client entry makes live (`watchSharePage`): no island.
     expect(share.hasAttribute('data-share-page')).toBe(true)
     expect(share.closest('[data-island]')).toBeNull()
+    // A copy shows the word beside its Check (r4 F8): in the markup, shown by
+    // `data-copied`, and said aloud by the status, never twice.
+    const copied = share.querySelector('.su-share-page__copied')
+    expect(copied?.textContent).toBe('Copied')
+    expect(copied?.getAttribute('aria-hidden')).toBe('true')
   })
 
   test('a page with nothing to build still carries Share', () => {
