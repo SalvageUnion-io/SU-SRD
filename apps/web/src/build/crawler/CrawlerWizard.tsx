@@ -32,6 +32,7 @@ import {
 import { withPreselection } from '../../lib/wizard/preselect'
 import { crawlerCopy } from '../../messages/build-crawler'
 import { routesCopy } from '../../messages/routes'
+import { useGameListing } from '../../replica/gameListing'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -132,8 +133,14 @@ export function CrawlerWizard({
 
   // How many pilots and mechs of yours are saved here, said beside step 1's
   // rule (the book makes the crawler last). It gates nothing.
-  const pilotCount = useOwnUnits('pilot').length
-  const mechCount = useOwnUnits('mech').length
+  // In a Game it is the Game's pilots and mechs, whoever made them: the crew
+  // the crawler is for (r3 L4). Until the Game's room has answered, no count.
+  const ownPilots = useOwnUnits('pilot').length
+  const ownMechs = useOwnUnits('mech').length
+  const listing = useGameListing(gameId ?? null)
+  const counted = gameId === undefined || listing !== undefined
+  const pilotCount = gameId === undefined ? ownPilots : (listing?.pilots.length ?? 0)
+  const mechCount = gameId === undefined ? ownMechs : (listing?.mechs.length ?? 0)
 
   // The session draft (`useWizardDraft`): the deterministic clamp (§5.3)
   // drops illegal types/weapons, then clamps weapons NEWEST-first to the
@@ -264,16 +271,18 @@ export function CrawlerWizard({
                 { source: 'Salvage Union Workshop Manual', page: 212 },
                 'Once all players have created their Pilot and Mech, the final step is for everyone to create the Union Crawler they share. Your Crawler type provides a unique Ability that only it can do, as well as a special NPC who resides on the Crawler and confers their own bonuses.'
               )}{' '}
-              <span style={MUTED}>
-                {crawlerCopy('youHaveSavedSoFar', {
-                  pilots: crawlerCopy(pilotCount === 1 ? 'pilotCountOne' : 'pilotCountMany', {
-                    count: pilotCount,
-                  }),
-                  mechs: crawlerCopy(mechCount === 1 ? 'mechCountOne' : 'mechCountMany', {
-                    count: mechCount,
-                  }),
-                })}
-              </span>
+              {counted && (
+                <span style={MUTED}>
+                  {crawlerCopy(gameId === undefined ? 'youHaveSavedSoFar' : 'thisGameHasSoFar', {
+                    pilots: crawlerCopy(pilotCount === 1 ? 'pilotCountOne' : 'pilotCountMany', {
+                      count: pilotCount,
+                    }),
+                    mechs: crawlerCopy(mechCount === 1 ? 'mechCountOne' : 'mechCountMany', {
+                      count: mechCount,
+                    }),
+                  })}
+                </span>
+              )}
             </>
           ),
           cite: {
