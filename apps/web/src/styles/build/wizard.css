@@ -661,16 +661,27 @@
   }
 }
 
-/* A pick's card under its list, 12px off it (R17). */
-.su-wiz-pick-under {
-  margin-top: var(--space-12);
-}
-
 /* L-1: at the measure the rail and step keep the band's title's edge. */
 @media (width >= 80rem) {
   .su-wiz-body {
     box-sizing: border-box;
     padding-inline: calc(var(--su-shell-edge) - var(--space-16) - var(--space-4))
       calc(var(--su-shell-edge) - var(--space-40));
+  }
+}
+
+/* A pick list whose rows say what they do beside their facts (First Ability,
+   r4 E8): the words wrap at a readable measure, and a long name or tree wraps
+   before the head's last mark ("Choose 1") is pushed off the frame. */
+@media (width >= 40rem) {
+  .su-wiz-compare-main .su-ledger__table:has(td[data-kind='text'] ~ td[data-kind='line']) tbody th,
+  .su-wiz-compare-main .su-ledger__table td[data-kind='text']:has(~ td[data-kind='line']) {
+    white-space: normal;
+    width: auto;
+  }
+
+  .su-wiz-compare-main .su-ledger__table td[data-kind='text'] ~ td[data-kind='line'] {
+    min-width: 11rem;
+    width: 45%;
   }
 }
