@@ -14,6 +14,8 @@ export const pagesCopy = messages({
   total: 'Total',
   totalAsPrinted: 'Total, as printed in the book',
   scrapByTechLevel: 'Scrap by Tech Level',
+  previousGuide: 'Previous',
+  nextGuide: 'Next',
   thePageYouAreLooking: 'The page you are looking for could not be found.',
   patternOf: 'Pattern of',
   aboutSalvageunionIoAnOpen:

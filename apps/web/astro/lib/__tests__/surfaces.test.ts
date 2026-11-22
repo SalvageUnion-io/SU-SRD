@@ -226,6 +226,37 @@ describe('a chapter’s own page: its band, then its every listing', () => {
     const html = page('/reference')
     for (const [route] of chapters) expect(html).toContain(`href="${route}/"`)
   })
+
+  it('lists the guides and the distances in the book’s order, as their own listings do (r5 E6)', () => {
+    const html = page('/rules')
+    const order = (hrefs: string[]) => hrefs.map((href) => html.indexOf(`href="${href}"`))
+    const ascending = (at: number[]) =>
+      at.every((n, i) => n > 0 && (i === 0 || n > (at[i - 1] ?? 0)))
+    expect(
+      ascending(
+        order(['/guides/safety-protocols/', '/guides/create-a-pilot/', '/guides/setbacks/'])
+      )
+    ).toBe(true)
+    expect(
+      ascending(
+        order(['/distances/close/', '/distances/medium/', '/distances/long/', '/distances/far/'])
+      )
+    ).toBe(true)
+  })
+})
+
+describe('a guide reads on in the book’s order (r5 E6)', () => {
+  it('ends with the guide before it and the one after', () => {
+    const html = page('/guides/heat')
+    const row = html.slice(html.indexOf('su-entity-page__neighbour-row'))
+    expect(row).toMatch(/Previous:.*?href="\/guides\/pushing-a-mech\/"/s)
+    expect(row).toMatch(/Next:.*?href="\/guides\/activating-and-shutting-down-a-mech\/"/s)
+  })
+
+  it('the first has no Previous, the last no Next', () => {
+    expect(page('/guides/safety-protocols')).not.toContain('Previous:')
+    expect(page('/guides/setbacks')).not.toMatch(/Next:\u00a0|Next:&nbsp;|Next: /)
+  })
 })
 
 describe('a listing (a Ledger under a visible heading)', () => {
