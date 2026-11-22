@@ -48,6 +48,7 @@ export const npcCopy = messages({
   actionsAndTraits: 'Actions and traits',
   addAnActionOrTrait: 'Add an action or trait from the reference',
   matches: 'Matches',
+  noActionsMatch: 'No actions match',
   alreadyListed: '{displayTitle} — already listed',
   add: 'Add {displayTitle}',
   name: 'Name',

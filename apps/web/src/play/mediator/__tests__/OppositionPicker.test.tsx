@@ -277,6 +277,13 @@ describe('+ From the reference', () => {
     expect(searcherMini('Wasteland Bear', dialog())).not.toBeNull()
   })
 
+  test('On the field names each unit as it fights, not by its book name (r5 B11)', async () => {
+    await renderTab([{ ...fallenRaider, name: 'Lookout' }])
+    await openPicker()
+    const rail = within(dialog()).getAllByTestId('rail-entry')
+    expect(rail[0]?.textContent).toContain('Lookout')
+  })
+
   test('On the field counts every kind, not only the one showing (MD-22)', async () => {
     await renderTab([rifleSquad, fallenRaider])
     await openPicker()
@@ -291,10 +298,11 @@ describe('+ From the reference', () => {
     expect(calls).toEqual([{ name: 'addBuilt', args: [KESSLER, ''] }])
   })
 
-  test('a name typed in the rail goes with the next add, then clears', async () => {
+  test('a name typed beside Add goes with that add, then clears (r5 B11)', async () => {
     await renderTab([])
-    const picker = await openPicker()
-    const name = picker.getByLabelText('Name (optional)') as HTMLInputElement
+    await openPicker()
+    const bar = await openInSearcher('Trooper', dialog())
+    const name = within(bar).getByLabelText('Name (optional)') as HTMLInputElement
     await act(async () => {
       fireEvent.change(name, { target: { value: 'Red Leader' } })
     })

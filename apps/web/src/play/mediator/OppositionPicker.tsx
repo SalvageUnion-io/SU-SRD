@@ -31,7 +31,6 @@ import {
   Segmented,
   SegmentedOption,
   Select,
-  Stack,
   tokens,
 } from '../../components/index'
 import { npcAsReferenceEntity } from '../../lib/npcs/npcModel'
@@ -112,6 +111,9 @@ const LEAD = {
 
 const PATTERN = { flex: '0 1 16rem', minWidth: 0 } satisfies CSSProperties
 
+/** The name the next one is added under, beside Add. */
+const NAME = { flex: '0 1 12rem', minWidth: 0 } satisfies CSSProperties
+
 /** The focused Page keeps its actions, which a picker hides by default. */
 const SHOW_ACTIONS = { actions: false } as const
 
@@ -161,8 +163,10 @@ export function OppositionPicker({
     () => yours.map((npc) => npcAsReferenceEntity(npc) as PoolEntity),
     [yours]
   )
+  // Each on the field by the name it fights under ("Lookout"), not its book's (r5 B11).
   const railEntities = useMemo(
-    () => npcs.flatMap((n) => (n.entity === null ? [] : [n.entity as PoolEntity])),
+    () =>
+      npcs.flatMap((n) => (n.entity === null ? [] : [{ ...n.entity, name: n.name } as PoolEntity])),
     [npcs]
   )
   const kinds: { kind: Kind; label: string }[] = [
@@ -183,19 +187,18 @@ export function OppositionPicker({
       </Segmented>
     </div>
   )
+  // Beside Add, where the name it goes with is pressed (r5 B11).
   const nameField = (
-    <Stack gap={6}>
-      <Eyebrow as="label" tone="muted" htmlFor={`${id}-name`}>
-        {mediatorCopy('nameOptional')}
-      </Eyebrow>
-      <Input
-        id={`${id}-name`}
-        value={name}
-        placeholder={mediatorCopy('eGRedLeader')}
-        autoComplete="off"
-        onChange={(e) => setName(e.target.value)}
-      />
-    </Stack>
+    <Input
+      id={`${id}-name`}
+      size="compact"
+      value={name}
+      aria-label={mediatorCopy('nameOptional')}
+      placeholder={mediatorCopy('nameOptional')}
+      autoComplete="off"
+      style={NAME}
+      onChange={(e) => setName(e.target.value)}
+    />
   )
   const shared = {
     mode: 'count' as const,
@@ -206,7 +209,6 @@ export function OppositionPicker({
     initialQuery: query,
     onQueryChange: setQuery,
     railEntities,
-    railActions: nameField,
     emptyMessage: mediatorCopy('nothingOfThisKind'),
     // What it can do is what it is picked by (r4 D4): its Page lists its
     // weapons, as its Reference page does.
@@ -223,6 +225,7 @@ export function OppositionPicker({
         userMade
         selected={npcs.flatMap((n) => (n.builtFrom === null ? [] : [n.builtFrom]))}
         idOf={yoursId}
+        focusExtra={() => nameField}
         emptyMessage={
           yours.length === 0 ? mediatorCopy('noNpcsOfYourOwn') : mediatorCopy('nothingOfThisKind')
         }
@@ -268,40 +271,43 @@ export function OppositionPicker({
       }}
       focusExtra={(item) => {
         const entity = findEntityBySlug(schema, slugOf(item))
-        if (entity === null) return null
+        if (entity === null) return nameField
         const book = patternsOf(entity)
         const own = savedFor(schema, entity, saved)
-        if (book.length === 0 && own.length === 0) return null
+        if (book.length === 0 && own.length === 0) return nameField
         // A chassis's pattern is listed as it will stand on the field (r4 D5).
         const listed = (pattern: string) =>
           schema === 'chassis' ? patternLabel(item.name, pattern) : pattern
         return (
-          <Select
-            aria-label={mediatorCopy('pattern', { name: item.name })}
-            style={PATTERN}
-            value={patternOf(entity)}
-            onChange={(e) => setPatterns({ ...patterns, [slugOf(item)]: e.target.value })}
-          >
-            {own.length > 0 ? (
-              <optgroup label={mediatorCopy('savedPatterns')}>
-                {own.map((p) => (
-                  <option key={p.id} value={savedValue(p)}>
-                    {listed(p.name)} · {p.madeBy}
-                  </option>
-                ))}
-              </optgroup>
-            ) : null}
-            {book.length > 0 ? (
-              <optgroup label={mediatorCopy('fromTheBook')}>
-                {book.map((p) => (
-                  <option key={p.name} value={bookValue(p)}>
-                    {listed(p.name)}
-                  </option>
-                ))}
-              </optgroup>
-            ) : null}
-            <option value={NO_PATTERN}>{mediatorCopy('noPattern')}</option>
-          </Select>
+          <>
+            <Select
+              aria-label={mediatorCopy('pattern', { name: item.name })}
+              style={PATTERN}
+              value={patternOf(entity)}
+              onChange={(e) => setPatterns({ ...patterns, [slugOf(item)]: e.target.value })}
+            >
+              {own.length > 0 ? (
+                <optgroup label={mediatorCopy('savedPatterns')}>
+                  {own.map((p) => (
+                    <option key={p.id} value={savedValue(p)}>
+                      {listed(p.name)} · {p.madeBy}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null}
+              {book.length > 0 ? (
+                <optgroup label={mediatorCopy('fromTheBook')}>
+                  {book.map((p) => (
+                    <option key={p.name} value={bookValue(p)}>
+                      {listed(p.name)}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null}
+              <option value={NO_PATTERN}>{mediatorCopy('noPattern')}</option>
+            </Select>
+            {nameField}
+          </>
         )
       }}
     />
