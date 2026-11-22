@@ -504,6 +504,19 @@ describe('the table’s events', () => {
     ])
   })
 
+  // r6 D3 (LG6-11): players were not told an area was set until they opened Area Salvage.
+  test('an area opened to salvage is one line; setting it again says nothing', () => {
+    const { act, texts } = seated()
+    const area = { name: 'Raider Camp', techLevel: 2, supply: 3 }
+    const [opened] = act(MEDIATOR, 'salvageAreas.set', { area }, AT + 1)
+    expect(opened).toMatchObject({ kind: 'action', text: 'A salvage area is open' })
+    expect(act(MEDIATOR, 'salvageAreas.set', { area: { ...area, supply: 2 } }, AT + 2)).toEqual([])
+    expect(act(MEDIATOR, 'salvageAreas.set', { area: null }, AT + 3)).toEqual([])
+    expect(act(MEDIATOR, 'salvageAreas.set', { area }, AT + 4)).toHaveLength(1)
+    // Opened again a moment later, it merges into the line before (MERGE_MS).
+    expect(texts(PLAYER)).toEqual(['A salvage area is open ×2'])
+  })
+
   test('Downtime beginning and ending are each one line for everyone (r2 E2)', () => {
     const { act, texts } = seated()
     const [began] = act(MEDIATOR, 'downtime.begin', undefined as never, AT + 1)

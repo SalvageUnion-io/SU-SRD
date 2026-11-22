@@ -80,9 +80,10 @@ import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
 import { useUnits } from '../replica/units'
 import type { ActionsDeck, ActionsDeckProps, ResolveModel } from './actionsDeck.model'
-import { areaSalvageRowText, haulText, isExpertSalvager } from './areaSalvage.model'
+import { areaSalvageRowText, haulFeedText, haulText, isExpertSalvager } from './areaSalvage.model'
 import { actionUsesLeft, companionNow, payActivation } from './deckActivation.model'
 import type { PlayStore } from './play.model'
+import { recordPlayRoll } from './playRolls.model'
 import { confirmMeltdown, pushMech } from './reactorWrites.model'
 import { CORE_MECHANIC_TABLE } from './tables.model'
 
@@ -255,6 +256,7 @@ export function useActionsDeck({
    */
   function doSalvageApply(current: SeatResolving, result: AreaSalvageResult) {
     let said: string | null = null
+    let feed: string | null = null
     if (!onFoot && mech) {
       const fresh = s.get('mech', mech.id) ?? mech
       const cap = mechMaxCargo(fresh, undefined, { abilities: pilot?.abilities })
@@ -262,6 +264,7 @@ export function useActionsDeck({
       const { patch } = carried
       if (patch) runWrite(() => s.update('mech', mech.id, patch, meta))
       said = haulText(result, carried, playCopy('salvageMechCargo', { name: fresh.name }))
+      feed = haulFeedText(result, carried, playCopy('salvageFeedCargo'))
     } else if (pilot) {
       const fresh = s.get('pilot', pilot.id) ?? pilot
       const carried = areaSalvageToPilot(fresh, pilotMaxInventorySlots(fresh), result)
@@ -272,7 +275,18 @@ export function useActionsDeck({
         carried,
         playCopy('salvagePilotInventory', { name: pilotCallsign(fresh) })
       )
+      feed = haulFeedText(result, carried, playCopy('salvageFeedInventory'))
     }
+    // What it found and where it went reaches the table's Feed (r6 D3): a
+    // line without dice reaches the Game's log only in a slot.
+    if (feed !== null)
+      recordPlayRoll({
+        tableName: '',
+        rolls: [],
+        label: playCopy('salvageFeedLabel'),
+        outcome: feed,
+        slot: `area-salvage:${current.ref}:${Date.now()}`,
+      })
     // It finishes like any other action (LG-12): the row says Done, the seat
     // stops saying it is being resolved, and a toast keeps what was loaded.
     if (said !== null) toast(said, { id: `area-salvage-${current.ref}` })

@@ -248,6 +248,13 @@ export const playCopy = messages({
     '{items} of Tech {tl}, Damaged: the Mediator picks it or rolls for it. Add it to the hold on the sheet.',
   salvageJackpotOne: 'A Mech Chassis, System or Module',
   salvageJackpotTwo: 'Two Mech Chassis, Systems or Modules',
+  salvageFeedItems: '{count} T{tl} item to pick',
+  salvageFeedCarried: '{count} T{tl} Scrap to {where}',
+  salvageFeedLeft: '{count} left in the area',
+  salvageFeedNothing: 'nothing found',
+  salvageFeedLabel: 'Area Salvage',
+  salvageFeedInventory: 'inventory',
+  salvageFeedCargo: 'Cargo',
   salvageMechCargo: '{name}’s Cargo',
   salvagePilotInventory: '{name}’s inventory',
   cascadeFailureASevereConsequence:

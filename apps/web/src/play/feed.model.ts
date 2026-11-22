@@ -268,7 +268,8 @@ export function playFeedEntries({
 }: FeedSources): FeedEntry[] {
   const said = (e: TableEvent) => tableLine(e, viewerId)
   const echoKey = (r: PlayRoll) => `${r.at}|${playRollDescription(rollerName, r)}`
-  const echoes = new Set(mine.filter(isDiceRoll).map(echoKey))
+  // A line in a slot reaches the log without dice (r6 D3), so its copy is an echo too.
+  const echoes = new Set(mine.filter((r) => isDiceRoll(r) || r.slot !== undefined).map(echoKey))
   // The log's copy of a roll this screen holds: its id is what Reveal names,
   // and it says whether the roll is private still.
   const copies = new Map(

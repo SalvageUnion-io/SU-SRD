@@ -288,6 +288,11 @@ export class GameEvents {
               }),
             ]
           : []
+      // An area opened to salvage is said to the table (r6 D3); its Supply is the Mediator's.
+      case 'salvageAreas.set':
+        return a.area !== null && a.area !== undefined && before.area !== true
+          ? say('action', 'A salvage area is open')
+          : []
       case 'ops.propose': {
         const op = this.store.op(String(value))
         if (op === null) return []
