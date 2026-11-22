@@ -119,6 +119,7 @@ const OWN: ReadonlySet<TableEvent['kind']> = new Set([
   'session',
   'downtime',
   'join',
+  'stop',
 ])
 
 /**
@@ -134,6 +135,7 @@ const DID = [
   ' declined: ',
   ' undid: ',
   ` ${playCopy('saidJoined')}`,
+  ` ${playCopy('saidLiftedStop')}`,
 ] as const
 
 function asMine(text: string): string {
@@ -156,6 +158,7 @@ function asMine(text: string): string {
 export function tableLine(e: TableEvent, viewerId: string | null): string {
   if (viewerId === null) return e.text
   if (e.kind === 'role' && e.about === viewerId) return playCopy('youNowMediateLine')
+  if (e.kind === 'leave' && e.about === viewerId) return playCopy('youWereRemovedLine')
   if (e.kind === 'roll') {
     const signed = `${playCopy('feedMediator')} · `
     return e.actorId === viewerId && e.text.startsWith(signed)

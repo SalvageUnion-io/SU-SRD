@@ -34,6 +34,15 @@ describe('the table’s events', () => {
     expect(act('d-org', 'setMediator', { userId: MEDIATOR, mediator: false })).toEqual([])
   })
 
+  test('a line names its people as they are now: a former Mediator by name (r6 A9)', () => {
+    const { act, texts } = seated()
+    act(MEDIATOR, 'session.start', undefined as never, AT + 1)
+    act('d-org', 'setMediator', { userId: PLAYER, mediator: true }, AT + 2)
+    act('d-org', 'setMediator', { userId: MEDIATOR, mediator: false }, AT + 3)
+    expect(texts()).toContain('Med started the group session')
+    expect(texts()).toContain('Player now mediates this Game')
+  })
+
   test('a vital’s change is one line naming the unit, from and to', () => {
     const { act, texts } = seated()
     const [event] = act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 6 })] })

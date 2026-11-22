@@ -415,6 +415,8 @@ export const playCopy = messages({
     'The table and its sessions are yours to run. Notes its last Mediator wrote stay theirs.',
   youNowMediate: 'You now mediate this Game.',
   youNowMediateLine: 'You now mediate this Game',
+  youWereRemovedLine: 'You were removed from the Game',
+  saidLiftedStop: 'lifted the Stop Sign',
   saidStartedSession: 'started the group session',
   saidEndedSession: 'ended the group session',
   saidBeganDowntime: 'began Downtime',
