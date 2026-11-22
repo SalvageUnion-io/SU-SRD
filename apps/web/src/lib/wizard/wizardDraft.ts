@@ -51,6 +51,7 @@ export function clearWizardDraft(key: string): void {
   try {
     sessionStorage.removeItem(key)
     sessionStorage.removeItem(`${key}:reached`)
+    sessionStorage.removeItem(`${key}:signIn`)
   } catch {
     /* storage unavailable — nothing to clear */
   }
@@ -66,6 +67,24 @@ export function readWizardReached(key: string): number {
     return Number.isFinite(n) && n > 0 ? n : 0
   } catch {
     return 0
+  }
+}
+
+/** That Save asked for a sign-in over this draft, so the return can say what is left (r5 C14). */
+export function markWizardSignIn(key: string): void {
+  try {
+    sessionStorage.setItem(`${key}:signIn`, '1')
+  } catch {
+    /* unavailable — the return says nothing extra */
+  }
+}
+
+/** Whether Save asked for a sign-in over this draft (`markWizardSignIn`). */
+export function readWizardSignIn(key: string): boolean {
+  try {
+    return sessionStorage.getItem(`${key}:signIn`) !== null
+  } catch {
+    return false
   }
 }
 

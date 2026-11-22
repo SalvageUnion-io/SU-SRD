@@ -26,6 +26,25 @@ function renderStep() {
 }
 
 describe('WizShell', () => {
+  test('back from sign-in on the last step, the bar says the Create is still to press (r5 C14)', () => {
+    render(
+      <WizShell
+        kind="pilot"
+        eyebrow="New Pilot"
+        steps={['Class', 'Review']}
+        active={1}
+        title="Review"
+        onCancel={() => {}}
+        onNext={() => {}}
+        submitLabel="Create Pilot ✦"
+        signedInBack
+      >
+        <p>Step content</p>
+      </WizShell>
+    )
+    expect(screen.getByText('Signed in. Press Create Pilot to save it.')).toBeTruthy()
+  })
+
   test('the Next button says "Next:" once, in the text a reader reads (RR2-19)', () => {
     renderStep()
     const next = screen.getByRole('button', { name: 'Next: Review' })

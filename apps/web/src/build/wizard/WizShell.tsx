@@ -26,6 +26,7 @@ import {
   pillTrackersStyle,
   promptStyle,
   STEP_BODY,
+  signedInStyle,
   stepHeadStyle,
   stepNoteStyle,
   stepNumberStyle,
@@ -110,6 +111,8 @@ type WizShellProps = {
   signIn?: { open: boolean; onClose: () => void }
   /** A line under the step's title: signed out, step 1 says saving needs a sign-in. */
   tryNote?: string | undefined
+  /** Back from Save's sign-in on the last step: the bar says the Save is still to press (r5 C14). */
+  signedInBack?: boolean
   /** Signed out on the last step: the build kept as a file or on paper (`KeepAsFile`). */
   keepAsFile?: KeepAsFileActs | undefined
   /**
@@ -366,6 +369,7 @@ export function WizShell({
   confirmCancel = false,
   signIn,
   tryNote,
+  signedInBack = false,
   keepAsFile,
   prompt,
   noteTargetId,
@@ -580,6 +584,13 @@ export function WizShell({
                   })}
                 <ChevronDown aria-hidden="true" size={tokens.iconSize.mini} />
               </Button>
+            )}
+            {signedInBack && isLast && (
+              <p role="status" style={signedInStyle}>
+                {buildWizardCopy('signedInPressSave', {
+                  label: submitLabel.replace(/\s*✦$/, ''),
+                })}
+              </p>
             )}
             {actionPill}
           </footer>

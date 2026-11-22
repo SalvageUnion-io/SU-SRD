@@ -78,6 +78,51 @@ describe('useWizardFlow — signed out', () => {
     expect(result.current.shell.signIn.open).toBe(false)
   })
 
+  test('back from the sign-in Save asked for, the submit step says Save is still to press (r5 C14)', async () => {
+    const form = { name: 'Bullseye' }
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form))
+    const options = {
+      entityType: 'mech' as const,
+      noun: 'Mech',
+      steps: ['review'] as const,
+      stepLabels: { review: 'Name & Review' },
+      gateFor: () => ({ ok: true as const }),
+      initialStep: 'review' as const,
+      submitStep: 'review' as const,
+      form,
+      draftKey: DRAFT_KEY,
+      formDirty: true,
+      schema: { safeParse: () => ({ success: true }) },
+      toCreateInput: () => ({}) as never,
+      failureMessage: 'The mech could not be saved. Try again.',
+      onComplete: () => {},
+      onCancel: () => {},
+    }
+    const out = renderHook(() => useWizardFlow(options), { wrapper })
+    expect(out.result.current.shell.signedInBack).toBe(false)
+    await act(async () => {
+      out.result.current.shell.onNext()
+    })
+    out.unmount()
+    // The Discord round trip reloads the page: the wizard mounts again, signed in.
+    const LIVE: SyncState = { status: 'live', canWrite: true, outdated: false }
+    const back = renderHook(() => useWizardFlow(options), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <SyncContext.Provider value={LIVE}>{children}</SyncContext.Provider>
+      ),
+    })
+    expect(back.result.current.shell.signedInBack).toBe(true)
+    back.unmount()
+    // A wizard that never asked says nothing.
+    sessionStorage.clear()
+    const fresh = renderHook(() => useWizardFlow(options), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <SyncContext.Provider value={LIVE}>{children}</SyncContext.Provider>
+      ),
+    })
+    expect(fresh.result.current.shell.signedInBack).toBe(false)
+  })
+
   test('a step forward is a history entry: the browser’s Back is one step, not the way out', async () => {
     const steps = ['a', 'b', 'c'] as const
     const { result } = renderHook(

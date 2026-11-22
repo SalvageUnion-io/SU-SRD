@@ -110,6 +110,7 @@ export const buildWizardCopy = messages({
   noTechLevel1Equipment: 'No Tech Level 1 equipment found.',
   roll: 'Roll {lowerCase}',
   signInToSave: 'Sign in to save',
+  signedInPressSave: 'Signed in. Press {label} to save it.',
   yourBuildIsKeptAsADraft:
     'Saving needs an account. Your build is kept as a draft in this tab: sign in with Discord, and it is here when you come back, ready to save.',
   signInToBuildAn: 'Sign in to build an NPC',
