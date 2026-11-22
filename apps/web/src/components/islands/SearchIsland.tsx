@@ -127,6 +127,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const [dismissedResults, setDismissedResults] = useState<unknown>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  // What had the focus before the field took it (the shortcut, a Tab): Escape
+  // gives it back, so a keyboard reader goes on from where they were.
+  const fromRef = useRef<HTMLElement | null>(null)
 
   const doNavigate = useCallback(
     (url: string) => {
@@ -185,7 +188,10 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       // next one starts clean.
       if (e.key === 'Escape' && (isOpen || query)) {
         clear()
-        inputRef.current?.blur()
+        const from = fromRef.current
+        fromRef.current = null
+        if (from?.isConnected) from.focus()
+        else inputRef.current?.blur()
         return
       }
       if (!isOpen) return
@@ -229,6 +235,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (!isSearchShortcut(e)) return
       e.preventDefault()
+      const active = document.activeElement
+      if (active instanceof HTMLElement && active !== inputRef.current && active !== document.body)
+        fromRef.current = active
       inputRef.current?.focus()
       inputRef.current?.select()
     }
@@ -260,9 +269,12 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       value={query}
       onChange={(e) => onInput(e.target.value)}
       onKeyDown={onKeyDown}
-      onFocus={() => {
+      onFocus={(e) => {
         load()
         setDismissedResults(null)
+        const from = e.relatedTarget
+        if (from instanceof HTMLElement && !containerRef.current?.contains(from))
+          fromRef.current = from
       }}
       // The bar's width is the Union bar's (The app's trigger shares it), a class
       // so the mobile sheet can widen it.

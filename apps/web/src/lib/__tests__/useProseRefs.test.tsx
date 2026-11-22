@@ -96,4 +96,19 @@ describe('useParseTraitReferences', () => {
     render(<Prose text="This Chassis gains the Dependable Trait." />)
     expect(screen.queryByRole('link')).toBeNull()
   })
+
+  test('within one paragraph only the first link to a term is a Tab stop (r4 F9)', () => {
+    const { container } = render(
+      <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
+        <Prose
+          text={'It is [[Hot]] and [[[Hot] (3)]], then [[Burn]].\n\nA new paragraph: [[Hot]].'}
+        />
+      </EntitySurfaceProvider>
+    )
+    const links = [...container.querySelectorAll('a')]
+    // Every mention is still a link a pointer can follow.
+    expect(links.map((a) => a.textContent)).toEqual(['Hot', 'Hot (3)', 'Burn', 'Hot'])
+    // The keyboard stops once a term a paragraph.
+    expect(links.map((a) => a.getAttribute('tabindex'))).toEqual([null, '-1', null, null])
+  })
 })

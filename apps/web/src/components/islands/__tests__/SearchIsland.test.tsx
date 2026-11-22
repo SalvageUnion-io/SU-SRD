@@ -321,6 +321,28 @@ describe('SearchIsland', () => {
     expect(screen.queryByRole('listbox')).toBeNull()
   })
 
+  test('Escape gives the focus back to where the shortcut took it from (r4 F9)', async () => {
+    render(
+      <div>
+        <a href="/chassis/mule/">Mule</a>
+        <SearchIsland navigate={mock(() => {})} />
+      </div>
+    )
+    const link = screen.getByRole('link', { name: 'Mule' })
+    const input = screen.getByRole('combobox')
+    await act(async () => {
+      link.focus()
+      fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
+    })
+    expect(document.activeElement).toBe(input)
+    await typeAndSettle(input, 'chassis')
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Escape' })
+    })
+    expect(screen.queryByRole('listbox')).toBeNull()
+    expect(document.activeElement).toBe(link)
+  })
+
   test('"/" outside a field focuses the search; inside one it is typed', async () => {
     render(
       <div>

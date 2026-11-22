@@ -18,6 +18,12 @@ export type MentionProps = {
    * Page; the Peek is hover's and focus's alone (E27).
    */
   goes?: boolean
+  /**
+   * A later link to a term its paragraph already links: still a link, never a
+   * second Tab stop (the keyboard reads a paragraph without stopping twice at
+   * one word).
+   */
+  repeat?: boolean
 }
 
 /**
@@ -34,10 +40,11 @@ export type MentionProps = {
  * The Peek itself is the page's one `PeekHost`: the Mention only carries its
  * address (`data-peek`), so it renders the same on the server.
  */
-export function Mention({ entityRef, children, goes = false }: MentionProps) {
+export function Mention({ entityRef, children, goes = false, repeat = false }: MentionProps) {
   const surface = useEntitySurface()
   const insidePeek = useInsidePeek()
-  const peek = usePeekAttrs(entityRef)
+  const own = usePeekAttrs(entityRef)
+  const peek = repeat ? { ...own, tabIndex: -1 } : own
   if (!entityRef || entityRef.synthetic || insidePeek) return <InlineRef>{children}</InlineRef>
   const href = surface.hrefFor(entityRef)
   if (href) {
