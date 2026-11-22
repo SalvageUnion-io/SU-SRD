@@ -2,11 +2,19 @@
  * The Change Log in the sheet's own words (r2 C2), and its changes as the
  * player made them (r2 C1): the server's rows are one per field, and a change
  * is the fields one write moved, so a chassis swap reads as one change with
- * its chassis and what came off, and Restore puts all of it back.
+ * its chassis and what came off.
+ *
+ * A change's button reverses that one change on the sheet as it is NOW (r3
+ * B1): what the row removed goes back, what it added comes off, a value it
+ * set is set back, and nothing a later change did is touched.
  */
 
+import { mechMaxima, pilotMaxima } from 'game-domain/rules/crewStatus'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { crawlerMaxSP, resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveClass } from '../../lib/classRef'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
@@ -25,8 +33,43 @@ export type LogChange = {
   kind: EntityLogRow['kind']
   state: EntityLogRow['state']
   lines: LogLine[]
-  /** What Restore writes: each field as it was before (undefined: it was absent). */
-  before: Record<string, unknown>
+  /** Each field the write moved, as stored: what reversing it reads. */
+  fields: LogField[]
+  /** Where a rule wrote it from, where the log says so in words (r3 B4). */
+  from?: 'play' | 'downtime'
+  /** What spent the points, where the write named it: "Squeeze It In". */
+  did?: string
+}
+
+/** One field of a write: absent sides are undefined. */
+export type LogField = { field: string; before: unknown; after: unknown }
+
+/**
+ * What an absent value stood for when the write was made: a pool nobody had
+ * spent from is full, a tally nobody had added to is 0 (r3 B4). By field.
+ */
+export type LogDefaults = Readonly<Record<string, number>>
+
+/**
+ * What each of a sheet's absent numbers stands for (r3 B4): a pool nobody has
+ * spent from is full, by the sheet's maxima as they are now, and Heat and
+ * Training Points start at 0.
+ */
+export function logDefaults(
+  unit:
+    | { kind: 'pilot'; entity: Pilot; crawler: Pick<Crawler, 'techLevel'> | null }
+    | { kind: 'mech'; entity: Mech; pilotAbilities: string[] | undefined }
+    | { kind: 'crawler'; entity: Crawler }
+): LogDefaults {
+  if (unit.kind === 'pilot') {
+    const { maxHP, maxAP } = pilotMaxima(unit.entity, unit.crawler)
+    return { currentHP: maxHP, currentAP: maxAP, trainingPoints: 0 }
+  }
+  if (unit.kind === 'mech') {
+    const { maxSP, maxEP } = mechMaxima(unit.entity, unit.pilotAbilities, [])
+    return { currentSP: maxSP, currentEP: maxEP, currentHeat: 0 }
+  }
+  return { currentSP: crawlerMaxSP(unit.entity) }
 }
 
 type NameOf = (slug: string) => string | undefined
@@ -115,7 +158,7 @@ function missing(from: readonly string[], to: readonly string[]): string[] {
   })
 }
 
-function rowLines(row: EntityLogRow): LogLine[] {
+function rowLines(row: EntityLogRow, defaults: LogDefaults): LogLine[] {
   const nameOf = LISTS[row.field]
   const before = slugs(row.before)
   const after = slugs(row.after)
@@ -141,11 +184,16 @@ function rowLines(row: EntityLogRow): LogLine[] {
   const ref = REFS[row.field]
   const text = (value: unknown) =>
     ref && typeof value === 'string' && value !== '' ? (ref.name(value) ?? value) : valueText(value)
+  // A number written over nothing started from what nothing stood for.
+  const start =
+    (row.before === null || row.before === undefined) && typeof row.after === 'number'
+      ? defaults[row.field]
+      : undefined
   return [
     {
       key: row._id,
       label: fieldLabel(row.field),
-      before: text(row.before),
+      before: text(start ?? row.before),
       after: text(row.after),
     },
   ]
@@ -155,23 +203,172 @@ function rowLines(row: EntityLogRow): LogLine[] {
 const opOf = (row: EntityLogRow) =>
   row._id.endsWith(`:${row.field}`) ? row._id.slice(0, -row.field.length - 1) : row._id
 
+/**
+ * A write's surface and what it was for, from its `source`: `play` or
+ * `downtime`, then the action's name after a colon where the write gave one
+ * (`sourceOf`, `replica/provenance.ts`).
+ */
+function origin(source: string): Pick<LogChange, 'from' | 'did'> {
+  const at = source.indexOf(':')
+  const surface = at === -1 ? source : source.slice(0, at)
+  if (surface !== 'play' && surface !== 'downtime') return {}
+  const did = at === -1 ? '' : source.slice(at + 1).trim()
+  return did === '' ? { from: surface } : { from: surface, did }
+}
+
 /** The log as changes, in the order the rows came (newest first). */
-export function logChanges(rows: readonly EntityLogRow[]): LogChange[] {
+export function logChanges(rows: readonly EntityLogRow[], defaults: LogDefaults = {}): LogChange[] {
   const changes = new Map<string, LogChange>()
   for (const row of rows) {
     const id = opOf(row)
     let change = changes.get(id)
     if (!change) {
-      change = { id, ts: row.ts, kind: row.kind, state: row.state, lines: [], before: {} }
+      change = {
+        id,
+        ts: row.ts,
+        kind: row.kind,
+        state: row.state,
+        lines: [],
+        fields: [],
+        ...origin(row.source),
+      }
       changes.set(id, change)
     }
-    change.before[row.field] = row.before ?? undefined
+    change.fields.push({
+      field: row.field,
+      before: row.before ?? undefined,
+      after: row.after ?? undefined,
+    })
     // The thing itself reads first: the chassis, then what came off with it.
-    if (row.field in REFS) change.lines.unshift(...rowLines(row))
-    else change.lines.push(...rowLines(row))
+    if (row.field in REFS) change.lines.unshift(...rowLines(row, defaults))
+    else change.lines.push(...rowLines(row, defaults))
   }
   return [...changes.values()]
 }
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+
+const idOf = (item: unknown): string | undefined =>
+  typeof item === 'object' && item !== null && typeof (item as { id?: unknown }).id === 'string'
+    ? (item as { id: string }).id
+    : undefined
+
+/** What `from` holds that `to` does not, by value, counting repeats. */
+function without(from: readonly unknown[], to: readonly unknown[]): unknown[] {
+  const left = [...to]
+  return from.filter((item) => {
+    const at = left.findIndex((other) => same(item, other))
+    if (at === -1) return true
+    left.splice(at, 1)
+    return false
+  })
+}
+
+/**
+ * A list as it is now with one write's move taken back: what the write took
+ * off goes back on the end, what it put on comes off (one of each, where it
+ * is still there), and a thing it altered (same id) reads as it did before.
+ * Everything else in the list stays as it is.
+ */
+function reverseList(
+  now: readonly unknown[],
+  before: readonly unknown[],
+  after: readonly unknown[]
+): unknown[] {
+  const result = [...now]
+  const removed = without(before, after)
+  for (const item of without(after, before)) {
+    const id = idOf(item)
+    const was = id === undefined ? -1 : removed.findIndex((old) => idOf(old) === id)
+    const at =
+      id === undefined
+        ? result.findIndex((other) => same(item, other))
+        : result.findIndex((other) => idOf(other) === id)
+    if (was !== -1) {
+      // Altered, and still on the sheet: back to how it read. Gone since: left gone.
+      if (at !== -1) result[at] = removed[was]
+      removed.splice(was, 1)
+    } else if (at !== -1) result.splice(at, 1)
+  }
+  return [...result, ...removed]
+}
+
+const list = (value: unknown): unknown[] | null =>
+  value === undefined || value === null ? [] : Array.isArray(value) ? value : null
+
+/**
+ * The patch that reverses one change on the sheet as it is now (r3 B1). A
+ * list field takes back only what the change moved; any other field is set
+ * to what it was (undefined: it was absent).
+ */
+export function reverseChange(
+  change: Pick<LogChange, 'fields'>,
+  now: Readonly<Record<string, unknown>>
+): Record<string, unknown> {
+  const patch: Record<string, unknown> = {}
+  for (const { field, before, after } of change.fields) {
+    const was = list(before)
+    const became = list(after)
+    const current = list(now[field])
+    const listed = Array.isArray(before) || Array.isArray(after)
+    patch[field] = listed && was && became && current ? reverseList(current, was, became) : before
+  }
+  return patch
+}
+
+/** What a change's button does, and what its toast says it did. */
+export type Reversal = { label: string; done: string }
+
+/**
+ * A change's button in the words of what it will do (r3 B1): "Put back" for
+ * a removal, "Remove" for an addition, "Set back to 5" for one value, and
+ * the plain "Undo this change" where the change did several things.
+ */
+export function reversal(change: LogChange, defaults: LogDefaults = {}): Reversal {
+  const sentences = change.lines.filter((line) => 'text' in line)
+  const values = change.lines.filter((line) => !('text' in line))
+  const only = change.fields.length === 1 ? change.fields[0] : undefined
+  const nameOf = only ? LISTS[only.field] : undefined
+  const before = only ? slugs(only.before) : null
+  const after = only ? slugs(only.after) : null
+  if (only && nameOf && before && after && values.length === 0 && sentences.length === 1) {
+    const names = (items: string[]) => items.map((slug) => nameOf(slug) ?? slug).join(', ')
+    const removed = missing(before, after)
+    if (removed.length > 0) {
+      return {
+        label: buildSheetCopy('logPutBack'),
+        done: buildSheetCopy('logPutBackDone', { names: names(removed) }),
+      }
+    }
+    return {
+      label: buildSheetCopy('logTakeOff'),
+      done: buildSheetCopy('logTakeOffDone', { names: names(missing(after, before)) }),
+    }
+  }
+  const value = values[0]
+  if (only && value && 'label' in value && change.lines.length === 1) {
+    const absent = only.before === undefined || only.before === null || only.before === ''
+    if (absent && defaults[only.field] === undefined) {
+      return {
+        label: buildSheetCopy('logClear'),
+        done: buildSheetCopy('logClearDone', { label: value.label }),
+      }
+    }
+    const short = value.before.length <= SHORT_VALUE
+    return {
+      label: short
+        ? buildSheetCopy('logSetBackTo', { value: value.before })
+        : buildSheetCopy('logSetBack'),
+      done: short
+        ? buildSheetCopy('logSetBackDone', { label: value.label, value: value.before })
+        : buildSheetCopy('logSetBackDonePlain', { label: value.label }),
+    }
+  }
+  return { label: buildSheetCopy('logUndoChange'), done: buildSheetCopy('logUndoChangeDone') }
+}
+
+/** The longest value a button names; a longer one reads "Set back". */
+const SHORT_VALUE = 16
 
 /** A line as one sentence: a control's name, a test's reading. */
 export function lineText(line: LogLine): string {

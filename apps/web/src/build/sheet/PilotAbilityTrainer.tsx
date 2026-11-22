@@ -4,11 +4,10 @@
  * `pilotSheet.model.ts`, `pilotSheetActions.model.ts`) with no sheet under
  * them. Play's Downtime action "Spend TP" opens it (play.md §6), so Training
  * Points are spent where the step earned them; the edit is still the Build
- * sheet's, its advisory confirm included.
+ * sheet's, its rule-break line and Undo included.
  */
 
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
 import { PilotSheetPickers } from './PilotSheetPickers'
@@ -43,13 +42,6 @@ export function PilotAbilityTrainer({
         model={model}
         actions={actions}
         store={store}
-      />
-      <SoftWarningDialog
-        open={actions.warningSubtitle !== null}
-        warnings={actions.warnings}
-        subtitle={actions.warningSubtitle ?? undefined}
-        onCancel={actions.cancelBuildEdit}
-        onSaveAnyway={actions.confirmBuildEdit}
       />
     </>
   )

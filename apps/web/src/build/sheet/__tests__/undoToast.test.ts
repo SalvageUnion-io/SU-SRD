@@ -5,9 +5,11 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { toast } from '../../../components/index'
+import { changeUndoToast } from '../../../lib/changeUndoToast'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { units } from '../../../replica/units'
-import { undoToast } from '../undoToast.model'
+import { ruleBreakToast } from '../ruleBreakToast.model'
+import { leaveSheet, undoToast } from '../undoToast.model'
 
 const shown = () => toast.getToasts().map((t) => t.id)
 
@@ -44,5 +46,22 @@ describe('undoToast', () => {
     }
     line.action.onClick({})
     expect(undone).toBe(1)
+  })
+
+  test("leaving a sheet takes its Undo, its number lines and its rule-break lines, and no other sheet's (r3 B3)", () => {
+    undoToast('Removed Cargo Pod', () => {}, 'm1')
+    undoToast('Removed Red Laser', () => {}, 'm2')
+    ruleBreakToast('m1', [{ stat: 'systemSlots', used: 13, max: 12 }])
+    ruleBreakToast('m2', [{ stat: 'systemSlots', used: 13, max: 12 }])
+    changeUndoToast({ id: 'mech:m1:currentEP', label: 'EP', from: 10, to: 8, undo: () => {} })
+    changeUndoToast({ id: 'mech:m2:currentEP', label: 'EP', from: 10, to: 8, undo: () => {} })
+
+    leaveSheet('m1')
+
+    const open = toast
+      .getToasts()
+      .filter((t) => !('dismiss' in t && t.dismiss))
+      .map((t) => t.id)
+    expect(open.sort()).toEqual(['mech:m2:currentEP', 'rule-break:m2:systemSlots', 'undo:m2'])
   })
 })

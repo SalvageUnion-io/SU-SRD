@@ -42,6 +42,19 @@ export type ChangeMeta = {
  */
 export const PLAY_TXN: ChangeMeta = { kind: 'transaction', source: 'play' }
 
+/**
+ * A Play transaction that names what it was for, so the Change Log can say
+ * what spent the points ("From Play · Squeeze It In", r3 B4). The name rides
+ * after the surface in `source` (`play:<name>`): the op's shape is unchanged,
+ * and a reader that wants only the surface takes what is before the colon.
+ */
+export function playTxn(did: string): ChangeMeta {
+  return { kind: 'transaction', source: `${PLAY_TXN.source}:${did}` }
+}
+
+/** A Downtime step or claim: Guided Play's, said apart in the Change Log (r3 B4). */
+export const DOWNTIME_TXN: ChangeMeta = { kind: 'transaction', source: 'downtime' }
+
 /** Guided Creation — an enforced creation-time transaction. */
 export const WIZARD_TXN: ChangeMeta = { kind: 'transaction', source: 'wizard' }
 

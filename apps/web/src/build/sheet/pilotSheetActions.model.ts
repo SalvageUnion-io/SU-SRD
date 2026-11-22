@@ -30,7 +30,6 @@ import type { UnitsStore } from '../../replica/units'
 
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { GenericInventoryEntry, Pilot } from 'game-domain/schemas/pilot'
-import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { enrichPilotSnapshot, pilotMaxAP, resolvePoolStart } from 'salvageunion-reference/rules'
@@ -47,7 +46,7 @@ import type { ChangeMeta, UnitsState } from '../../replica/units'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import { changedFields, freshEntity } from './freshEntity.model'
 import type { UsedTraitKey } from './PilotIdentity'
-import { ruleBreakToast } from './ruleBreakToast.model'
+import { buildBreakToast, ruleBreakToast } from './ruleBreakToast.model'
 import type { SheetPatch } from './sheetViewProps.model'
 import { undoToast } from './undoToast.model'
 
@@ -77,13 +76,6 @@ export type PilotSheetActions = {
   handleSpendAP: (cost: number) => void
   handleAbilityUsedChange: (slug: string, next: boolean) => void
   handleGenericInventoryChange: (next: GenericInventoryEntry[]) => void
-  /** Advisory soft-warning state for the confirm dialog. */
-  warnings: SoftWarning[]
-  warningSubtitle: string | null
-  /** Discard the pending build edit (dialog "Fix it"). */
-  cancelBuildEdit: () => void
-  /** Persist the pending build edit despite its warnings (dialog "Save anyway"). */
-  confirmBuildEdit: () => void
 }
 
 export function usePilotSheetActions({
@@ -93,10 +85,11 @@ export function usePilotSheetActions({
   crawlerTechLevel,
 }: PilotSheetActionsOptions): PilotSheetActions {
   // Soft warnings (ADR-021) on BUILD edits only — ability add/remove
-  // and the class change. Advisory, never blocking: a clean edit saves straight
-  // through and the dialog never appears. Vitals/live-play writes (HP, AP, TP,
-  // conditions, uses, Spend AP) deliberately bypass this — they are transient
-  // state, not the build these rules evaluate, and would warn on every tick.
+  // and the class change. Advisory, never blocking, and never asked first (r3
+  // B5): the edit saves, and where it breaks a rule one line says which and
+  // offers Undo, as the mech's Manage Systems does. Vitals/live-play writes
+  // (HP, AP, TP, conditions, uses, Spend AP) deliberately bypass this — they
+  // are transient state, not the build these rules evaluate.
   // `enrichPilotSnapshot` is REQUIRED: Pilot.abilities is a slug array, and the
   // tier/tree checks need the resolved ability structs.
   const softWarnings = useSoftWarnings({
@@ -105,10 +98,6 @@ export function usePilotSheetActions({
     toSnapshot: (p) => enrichPilotSnapshot(p),
     store,
   })
-  const [warningSubtitle, setWarningSubtitle] = useState<string | null>(null)
-  // What the pending edit breaks that no rules check reads off the sheet: an
-  // ability added free with too few Training Points to pay for it.
-  const [extraWarnings, setExtraWarnings] = useState<SoftWarning[]>([])
 
   /** Freshest pilot record from the store, falling back to the render prop. */
   function freshPilot(): Pilot {
@@ -140,21 +129,25 @@ export function usePilotSheetActions({
   }
 
   /**
-   * Preview a build patch: save immediately when clean (true), otherwise raise
-   * the confirm-and-proceed dialog. `label` describes the pending edit.
+   * Save a build patch at once. `extra` is what it breaks that no rules check
+   * reads off the sheet (an ability added free with too few Training Points).
+   * Answers whether it broke a rule: then its line carries the Undo, which
+   * writes the patch's fields back as they were.
    */
-  function saveBuildEdit(
-    fields: Partial<Pilot>,
-    label: string,
-    extra: SoftWarning[] = []
-  ): boolean {
-    if (softWarnings.preview(fields).length === 0 && extra.length === 0) {
-      runWrite(() => softWarnings.saveAnyway())
-      return true
-    }
-    setExtraWarnings(extra)
-    setWarningSubtitle(label)
-    return false
+  function saveBuildEdit(fields: Partial<Pilot>, extra: SoftWarning[] = []): boolean {
+    const before: Partial<Pilot> = freshPilot()
+    const broken = [...extra, ...softWarnings.preview(fields)]
+    runWrite(() => softWarnings.saveAnyway())
+    if (broken.length === 0) return false
+    const prior = Object.fromEntries(
+      Object.keys(fields).map((key) => [key, before[key as keyof Pilot]])
+    )
+    buildBreakToast(
+      pilot.id,
+      broken.map((warning) => warning.message),
+      () => write(prior)
+    )
+    return true
   }
 
   /**
@@ -168,7 +161,7 @@ export function usePilotSheetActions({
   const patchPilot: SheetPatch = (input) => {
     const fields = typeof input === 'function' ? input(freshPilot()) : input
     if ('classRef' in fields) {
-      saveBuildEdit(fields, buildSheetCopy('changeClassEdit'))
+      saveBuildEdit(fields)
       return
     }
     write(fields)
@@ -200,8 +193,7 @@ export function usePilotSheetActions({
   // Reads the FRESHEST record so rapid toggles in the picker grid don't race
   // the async store write.
   // Advisory only (soft warnings), never rule-GATED: the cap, tree order and
-  // the Advanced/Legendary prerequisites surface in a confirm dialog and the
-  // user may always proceed.
+  // the Advanced/Legendary prerequisites are said as the edit saves, with Undo.
   function toggleAbility(slug: string, pay = false) {
     const current = freshPilot()
     const removing = current.abilities.includes(slug)
@@ -210,12 +202,12 @@ export function usePilotSheetActions({
     const left = current.trainingPoints ?? 0
     const name = SalvageUnionReference.Abilities.getBySlug(slug)?.name ?? slug
     // Added free with too few Training Points to train it (Core Book p.224):
-    // asked once, never refused.
+    // said as it saves, never refused.
     const unpaid = !pay && price > left
     const abilities = removing
       ? current.abilities.filter((a) => a !== slug)
       : [...current.abilities, slug]
-    const saved = saveBuildEdit(
+    const broke = saveBuildEdit(
       {
         abilities,
         // Abilities are the second grant-lifecycle edge, because they carry the
@@ -228,9 +220,6 @@ export function usePilotSheetActions({
         ...(cost > 0 ? { trainingPoints: Math.max(0, (current.trainingPoints ?? 0) - cost) } : {}),
       },
       unpaid
-        ? buildSheetCopy('addNameWithoutSpending', { name })
-        : `${removing ? 'Remove' : 'Add'} ${name}`,
-      unpaid
         ? [
             {
               code: 'TRAINING_POINTS_SHORT',
@@ -240,8 +229,8 @@ export function usePilotSheetActions({
           ]
         : []
     )
-    // A removal that landed offers Undo: the abilities and partners as they were.
-    if (saved && removing) {
+    // A clean removal offers Undo: the abilities and partners as they were.
+    if (!broke && removing) {
       undoToast(
         buildSheetCopy('removedName', { name }),
         () => write({ abilities: current.abilities, partners: current.partners }),
@@ -349,17 +338,5 @@ export function usePilotSheetActions({
     handleSpendAP,
     handleAbilityUsedChange,
     handleGenericInventoryChange,
-    warnings: [...extraWarnings, ...softWarnings.warnings],
-    warningSubtitle,
-    cancelBuildEdit: () => {
-      softWarnings.fixIt()
-      setExtraWarnings([])
-      setWarningSubtitle(null)
-    },
-    confirmBuildEdit: () => {
-      runWrite(() => softWarnings.saveAnyway())
-      setExtraWarnings([])
-      setWarningSubtitle(null)
-    },
   }
 }

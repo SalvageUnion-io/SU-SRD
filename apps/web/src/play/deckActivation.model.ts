@@ -35,7 +35,7 @@ import type { MechItemEconomy } from '../lib/rules/mechItems'
 import { partnerDerivedStats, partnerTechLevel } from '../lib/rules/partnerStats'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../replica/provenance'
+import { PLAY_TXN, playTxn } from '../replica/provenance'
 import type { PlayStore } from './play.model'
 
 /** Whose numbers an activation reads and writes. */
@@ -112,7 +112,7 @@ function payPilot(
     return
   }
   // The resolve moves on to Roll only once the spend has landed.
-  runWrite(() => store.update('pilot', pilot.id, patch, PLAY_TXN), onPaid)
+  runWrite(() => store.update('pilot', pilot.id, patch, playTxn(action.name)), onPaid)
   if (typeof patch.currentAP === 'number' && patch.currentAP !== before)
     changeUndoToast({
       id: `pilot:${pilot.id}:currentAP`,
@@ -269,7 +269,7 @@ function payMech(
     onPaid()
     return
   }
-  runWrite(() => store.update('mech', mech.id, patch, PLAY_TXN), onPaid)
+  runWrite(() => store.update('mech', mech.id, patch, playTxn(action.name)), onPaid)
   activationUndo({
     id: `mech:${mech.id}:activation`,
     prefix: '',

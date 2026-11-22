@@ -20,6 +20,19 @@ export type UndoChange = { key: string; label: string; from: number; to: number 
 /** Each open line's numbers, by its key: each keeps the value its run started from. */
 const origins = new Map<string, Map<string, UndoChange>>()
 
+/**
+ * Take down every open line about one unit (r3 B3): a line's key carries its
+ * unit's id as a whole segment (`mech:<id>:currentEP`). The sheet's own call,
+ * when the player leaves it.
+ */
+export function dismissChangeUndo(unitId: string) {
+  for (const id of [...origins.keys()]) {
+    if (!id.split(':').includes(unitId)) continue
+    origins.delete(id)
+    toast.dismiss(id)
+  }
+}
+
 /** A value's change is a glyph at the line's Size (K11), never a text arrow. */
 const GLYPH = {
   display: 'inline-block',
