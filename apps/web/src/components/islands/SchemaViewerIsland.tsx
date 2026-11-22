@@ -438,6 +438,7 @@ function SchemaViewer({
                       }}
                       phone={{ columns: filters.columns, setColumns: filters.setColumns }}
                       orderNote={groupIndex === 0}
+                      byName={byName}
                     />
                   ) : treeTracks.get(group.key) ? (
                     <ReferenceAbilityTrack

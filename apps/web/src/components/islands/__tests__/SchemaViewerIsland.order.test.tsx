@@ -77,14 +77,45 @@ describe('a sort in the address', () => {
       expect(screen.queryByRole('button', { name: 'Sort by Tech Level' })).toBeNull()
       const rank = screen.getByRole('button', { name: 'Sort by TL (Tech Level)' })
       expect(rank.closest('thead')).not.toBeNull()
-      fireEvent.click(rank)
-      expect(window.location.search).toBe('?sort=tl')
-      expect(screen.getByText('Sorted by Tech Level, low to high.')).toBeTruthy()
-      expect(rank.closest('th')?.getAttribute('aria-sort')).toBe('ascending')
+      // A number column's first press is highest first (r4 F5).
       fireEvent.click(rank)
       expect(window.location.search).toBe('?sort=-tl')
+      expect(screen.getByText('Sorted by Tech Level, high to low.')).toBeTruthy()
+      expect(rank.closest('th')?.getAttribute('aria-sort')).toBe('descending')
+      fireEvent.click(rank)
+      expect(window.location.search).toBe('?sort=tl')
       fireEvent.click(screen.getByRole('button', { name: 'Book order' }))
       expect(window.location.search).toBe('')
+    },
+    HEAVY
+  )
+
+  it(
+    'a number column sorts highest first on its first press; a word column, A to Z (r4 F5)',
+    () => {
+      listing('chassis')
+      fireEvent.click(screen.getByRole('button', { name: /^Sort by SP/ }))
+      expect(window.location.search).toMatch(/^\?sort=-/)
+      fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
+      expect(window.location.search).toBe('?sort=name')
+      expect(screen.getByText('Sorted by Name, A to Z.')).toBeTruthy()
+    },
+    HEAVY
+  )
+
+  it(
+    'the Abilities list runs A to Z and says so, never "the book’s order" (r4 F5)',
+    () => {
+      listing('abilities')
+      const shown = names()
+      expect(shown).toEqual([...shown].sort((a, b) => a.localeCompare(b)))
+      expect(screen.getByText(/^A to Z\./)).toBeTruthy()
+      expect(screen.queryByText(/In the book’s order/)).toBeNull()
+      // The way back from a sort names that order too.
+      fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
+      expect(screen.getByRole('button', { name: 'A to Z' })).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'Book order' })).toBeNull()
     },
     HEAVY
   )

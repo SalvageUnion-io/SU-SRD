@@ -114,10 +114,13 @@ export function useListingFilters({
     [techLevels]
   )
   const clearTechLevels = useCallback(() => setTechLevelFilters(new Set()), [])
-  /** A column's label pressed: up by it, down on a second press. */
+  /**
+   * A column's label pressed: by it, the other way on a second press. A
+   * measure's first press is highest first (`highFirst`), a word's A to Z.
+   */
   const sortBy = useCallback(
-    (key: string) =>
-      setSort((now) => ({ key, descending: now?.key === key ? !now.descending : false })),
+    (key: string, highFirst = false) =>
+      setSort((now) => ({ key, descending: now?.key === key ? !now.descending : highFirst })),
     []
   )
   const clearSort = useCallback(() => setSort(undefined), [])
