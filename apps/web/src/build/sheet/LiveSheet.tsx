@@ -134,6 +134,11 @@ type LiveSheetProps = {
    * (ADR-066: a mech names its chassis even when its name is the chassis's).
    */
   kindDetail?: BandStamp
+  /**
+   * In Edit, the act that changes what the stamp names, beside it (r4 E17: a
+   * mech's Change Chassis is where its chassis is named).
+   */
+  kindAction?: ReactNode
   /** A mech's pattern (`PATTERN | Nimble Hauler`), linked to its page. */
   fromPattern?: PatternStamp | undefined
   /**
@@ -324,6 +329,7 @@ export function LiveSheet({
   actions,
   band,
   kindDetail: stamp,
+  kindAction,
   fromPattern,
   source,
   rank,
@@ -488,6 +494,7 @@ export function LiveSheet({
                       ) : (
                         <Stat label={stamp.label} value={stamp.name} wrap />
                       ))}
+                    {kindAction}
                     {fromPattern &&
                       (fromPattern.href || fromPattern.page ? (
                         <Tag

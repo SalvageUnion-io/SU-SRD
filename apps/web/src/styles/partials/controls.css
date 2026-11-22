@@ -365,8 +365,10 @@
   padding: 0 var(--space-6) var(--space-2);
 }
 
-.su-searcher__item.su-entity-mini-line > .su-badge-stamp {
+.su-searcher__item.su-entity-mini-line > .su-badge-stamp,
+.su-searcher__item.su-entity-mini-line > .su-stat-cell {
   align-self: center;
+  flex: none;
 }
 
 .su-searcher__item[data-focused][data-selected] {

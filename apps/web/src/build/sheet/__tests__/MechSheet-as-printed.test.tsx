@@ -14,6 +14,7 @@ import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
 import { slabChip, slabCountCritical } from '../../../components/__tests__/slabChip'
+import { mechRuleBreaks } from '../../../lib/rules/ruleBreaks'
 import { MechSheet } from '../MechSheet'
 
 const MANIC_MINER_SYSTEMS = [
@@ -26,7 +27,7 @@ const MANIC_MINER_SYSTEMS = [
   'cargo-pod',
 ]
 
-function makeMech(systems: string[]): Mech {
+function makeMech(systems: string[], modules = ['comms-module', 'survey-scanner']): Mech {
   return {
     id: 'mech-as-printed-1',
     schemaVersion: 1,
@@ -34,7 +35,7 @@ function makeMech(systems: string[]): Mech {
     startingPatternRef: 'manic-miner',
     chassisRef: 'bobcat',
     systems,
-    modules: ['comms-module', 'survey-scanner'],
+    modules,
     cargoLots: [],
     conditions: [],
     createdAt: FIXTURE_NOW,
@@ -67,5 +68,16 @@ describe('MechSheet — patterns printed over their slots', () => {
     expect(systems.textContent).toBe('15/13Slots')
     expect(slabCountCritical(systems)).toBe(true)
     expect(screen.queryByText(/as printed/)).toBeNull()
+  })
+
+  test('editing the Modules leaves the untouched Systems line as printed (r4 E16)', () => {
+    const mech = makeMech(MANIC_MINER_SYSTEMS, ['comms-module', 'survey-scanner', 'comms-module'])
+    renderSheet(mech)
+    const systems = must(slabChip('Systems'))
+    expect(systems.textContent).toBe('14/13Slotsas printed')
+    expect(slabCountCritical(systems)).toBe(false)
+    // The edited line is counted as any loadout's, and only it breaks a rule.
+    expect(slabCountCritical(must(slabChip('Modules')))).toBe(true)
+    expect(mechRuleBreaks(mech).map((b) => b.stat)).toEqual(['moduleSlots'])
   })
 })

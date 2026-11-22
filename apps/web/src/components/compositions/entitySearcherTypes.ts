@@ -51,6 +51,13 @@ export type PickCost = {
    * tree hasn't been taken"): said on the action bar, never a gate.
    */
   unmet?: readonly string[]
+  /**
+   * The plain add would break a rule (out of order, or too few points to
+   * pay): its button says so before the press (r4 E12).
+   */
+  breaks?: boolean
+  /** The cost on the entry's line in the list: `TP | 1` (r4 E12). */
+  row?: { label: string; value: number | string }
 }
 
 /** One facet row: its label and its chips, a Field over its Segmented. */

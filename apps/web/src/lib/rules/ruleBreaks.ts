@@ -47,11 +47,15 @@ export function mechRuleBreaks(
   const cargo = cargoRuleBreaks(
     carrierCargoUsage(mech.cargoLots ?? [], mechMaxCargo(mech, undefined, { abilities }))
   )
-  // A printed pattern's slot count is the book's.
-  if (capacity.asPrinted) return cargo
+  // A printed pattern's slot count is the book's, each line on its own (r4 E16):
+  // editing the Modules never turns an untouched printed Systems line into a break.
   return [
-    ...over('systemSlots', capacity.systemSlotsUsed, capacity.systemSlotsMax),
-    ...over('moduleSlots', capacity.moduleSlotsUsed, capacity.moduleSlotsMax),
+    ...(capacity.asPrinted?.systems
+      ? []
+      : over('systemSlots', capacity.systemSlotsUsed, capacity.systemSlotsMax)),
+    ...(capacity.asPrinted?.modules
+      ? []
+      : over('moduleSlots', capacity.moduleSlotsUsed, capacity.moduleSlotsMax)),
     ...cargo,
   ]
 }

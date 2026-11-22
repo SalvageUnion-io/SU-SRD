@@ -16,8 +16,8 @@
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
-import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import type { CSSProperties, Ref } from 'react'
+import { useRef, useState } from 'react'
 import { DialogActions, FieldError } from '../../../components/app'
 import {
   Button,
@@ -80,17 +80,21 @@ export function SavePatternDialog({
   onSaved,
   stay = false,
 }: SavePatternDialogProps) {
+  // Typing starts in the name, never on Close (r4 E14).
+  const nameRef = useRef<HTMLInputElement | null>(null)
   return (
     <ModalShell
       open={open}
       onOpenChange={onOpenChange}
       title={mechCopy('saveAsPattern')}
       width="default"
+      initialFocus={nameRef}
     >
       {/* Mounted only while open, so every opening starts from the mech's name. */}
       {open && (
         <SavePatternBody
           source={source}
+          nameRef={nameRef}
           onClose={() => onOpenChange(false)}
           onSaved={onSaved}
           stay={stay}
@@ -102,11 +106,13 @@ export function SavePatternDialog({
 
 function SavePatternBody({
   source,
+  nameRef,
   onClose,
   onSaved,
   stay,
 }: {
   source: PatternSource
+  nameRef: Ref<HTMLInputElement>
   onClose: () => void
   onSaved: SavePatternDialogProps['onSaved']
   stay: boolean
@@ -141,6 +147,7 @@ function SavePatternBody({
 
   const nameField = (
     <Input
+      ref={nameRef}
       aria-label={mechCopy('patternName')}
       value={name}
       onChange={(e) => setName(e.target.value)}

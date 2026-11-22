@@ -49,6 +49,7 @@ export const mechCopy = messages({
   patternNameTable: 'Pattern Name Table',
   scrapSpent: 'Scrap spent',
   scrap: 'Scrap',
+  tScrap: 'T{tl} Scrap',
   usesAndCosts: 'What it uses and costs',
   systemSlots: 'System Slots',
   moduleSlots: 'Module Slots',

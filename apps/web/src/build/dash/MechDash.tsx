@@ -16,6 +16,7 @@
  * cards under the columns, where their loadouts are fitted.
  */
 
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
@@ -47,7 +48,9 @@ import {
   tokens,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { perUnitCost } from '../../lib/cargo/cargoTransfer'
 import { reportCargo } from '../../lib/cargo/reportCargo'
+import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import { changeUndoToast } from '../../lib/changeUndoToast'
 import { cn } from '../../lib/cn'
 import { chassisArt } from '../../lib/photos/defaultArt'
@@ -66,9 +69,10 @@ import { MechAppearanceField, MechDescriptionField, MechIdentityPanel } from '..
 import { MechItemControls } from '../sheet/MechItemMini'
 import type { MechSheetModel } from '../sheet/mechSheet.model'
 import type { ItemKind, MechSheetActions } from '../sheet/mechSheetActions.model'
-import { slotCount } from '../sheet/mechSlots.model'
+import { overSlots, slotCount } from '../sheet/mechSlots.model'
 import { cargoBreakToast } from '../sheet/ruleBreakToast.model'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
+import { undoToast } from '../sheet/undoToast.model'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
 import { ITEM_COLUMNS, itemRows } from './itemRows'
@@ -191,6 +195,28 @@ type MechDashProps = {
   phone: boolean
 }
 
+/**
+ * Unload a lot, or `qty` of a stack, and leave the way back (r4 E10): the
+ * same count rejoins the lot, or the lot returns whole.
+ */
+function unloadLot(cargo: UseCargoResult, lot: CargoLot, qty: number | undefined, mechId: string) {
+  const part = qty !== undefined && lot.qty !== undefined && qty < lot.qty
+  const done = cargo.removeMechLot(lot.id, part ? qty : undefined)
+  reportCargo(done)
+  void done.then((result) => {
+    if (!result.ok) return
+    const back: CargoLot = part ? { ...lot, qty, units: qty * perUnitCost(lot) } : lot
+    undoToast(
+      part
+        ? buildSheetCopy('unloadedCount', { count: qty, name: lot.name })
+        : buildSheetCopy('unloadedName', { name: lot.name }),
+      () => reportCargo(cargo.addMechLot(back)),
+      mechId,
+      { stack: true }
+    )
+  })
+}
+
 export function MechDash({
   mech,
   model,
@@ -229,7 +255,12 @@ export function MechDash({
         max={capacity.systemSlotsMax}
         meter="pips"
         tint="ink"
-        over={!capacity.asPrinted && capacity.systemSlotsUsed > capacity.systemSlotsMax}
+        over={overSlots(
+          capacity.systemSlotsUsed,
+          capacity.systemSlotsMax,
+          capacity.asPrinted,
+          'systems'
+        )}
       />
       <StripFigure
         label={STAT_LABELS.moduleSlots.short}
@@ -238,7 +269,12 @@ export function MechDash({
         max={capacity.moduleSlotsMax}
         meter="pips"
         tint="ink"
-        over={!capacity.asPrinted && capacity.moduleSlotsUsed > capacity.moduleSlotsMax}
+        over={overSlots(
+          capacity.moduleSlotsUsed,
+          capacity.moduleSlotsMax,
+          capacity.asPrinted,
+          'modules'
+        )}
       />
       <StripFigure
         label={STAT_LABELS.cargoCapacity.short}
@@ -401,7 +437,8 @@ export function MechDash({
               tally={slotCount(
                 capacity.systemSlotsUsed,
                 capacity.systemSlotsMax,
-                capacity.asPrinted
+                capacity.asPrinted,
+                'systems'
               )}
               columns={ITEM_COLUMNS}
               groups={[{ key: 'systems', rows: loadoutRows('system') }]}
@@ -418,7 +455,8 @@ export function MechDash({
               tally={slotCount(
                 capacity.moduleSlotsUsed,
                 capacity.moduleSlotsMax,
-                capacity.asPrinted
+                capacity.asPrinted,
+                'modules'
               )}
               columns={ITEM_COLUMNS}
               groups={[{ key: 'modules', rows: loadoutRows('module') }]}
@@ -490,7 +528,7 @@ export function MechDash({
                         side="mech"
                         cargo={cargo}
                         linked={crawler !== null}
-                        onRemove={() => reportCargo(cargo.removeMechLot(lot.id))}
+                        onRemove={(qty) => unloadLot(cargo, lot, qty, mech.id)}
                       />
                     ) : undefined,
                     cells: [

@@ -31,6 +31,7 @@ import { usePatterns } from '../../replica/collections'
 import { useSync } from '../../replica/syncContext'
 import { assignedRail } from './assignedRail'
 import { mechPatternStamp, mechStamp } from './bandStamps.model'
+import { ChangeChassis } from './chassisControls'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
 import { mechBarStrip } from './mechBarStrip.model'
@@ -62,6 +63,7 @@ export function MechLiveSheet({
   holds,
   hrefFor,
   withheld,
+  patch,
 }: MechLiveSheetProps) {
   const pilotAbilities = ownPilotAbilities ?? composition.pilot?.abilities
   const chassis = resolveChassisRef(mech.chassisRef)
@@ -117,6 +119,10 @@ export function MechLiveSheet({
       band={band}
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
+      // Change Chassis sits where the chassis is named (r4 E17).
+      kindAction={
+        editable && mech.chassisRef !== '' ? <ChangeChassis mech={mech} patch={patch} /> : undefined
+      }
       fromPattern={mechPatternStamp(
         mech,
         (id) => savedPatterns.find((p) => p.id === id),

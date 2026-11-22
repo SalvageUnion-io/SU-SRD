@@ -13,7 +13,7 @@ import { computeMechCapacity } from 'salvageunion-reference/rules'
 import { RuleBreakMark } from '../components/app'
 import type { LedgerColumn, LedgerRow } from '../components/index'
 import { Ledger } from '../components/index'
-import { mechScrap } from '../lib/rules/mechScrap'
+import { mechScrap, scrapSplit } from '../lib/rules/mechScrap'
 import { pagesCopy } from '../messages/reference-pages'
 
 type PatternPart = { name: string; count?: number | undefined }
@@ -125,7 +125,8 @@ export function PatternLoadout({
         cells: [
           slots(capacity.systemSlotsUsed, capacity.systemSlotsMax),
           slots(capacity.moduleSlotsUsed, capacity.moduleSlotsMax),
-          mechScrap(build).total,
+          // By Tech Level, as it is paid (r4 E11).
+          scrapSplit(mechScrap(build)),
         ],
       }}
     />

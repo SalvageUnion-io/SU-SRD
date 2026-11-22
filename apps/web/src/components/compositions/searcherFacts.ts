@@ -33,11 +33,20 @@ function fact(model: EntityModel, key: string): string {
   return keyword?.param ? String(keyword.param) : ''
 }
 
-export type RowFact = { key: string; label: string; value: string }
+/** `always`: shown at every width (a chassis's slots, what it is chosen by). */
+export type RowFact = { key: string; label: string; value: string; always?: boolean }
 
 /** The row's facts, each only where the entity has it. */
 export function rowFacts(entity: PoolEntity): RowFact[] {
   const facts: RowFact[] = []
+  // A chassis is chosen by its slots (r4 E17): on every row, a phone's too.
+  const { systemSlots, moduleSlots } = entity as { systemSlots?: unknown; moduleSlots?: unknown }
+  if (typeof systemSlots === 'number' && typeof moduleSlots === 'number') {
+    return [
+      { key: 'sys', label: compositionsCopy('rowSys'), value: String(systemSlots), always: true },
+      { key: 'mod', label: compositionsCopy('rowMod'), value: String(moduleSlots), always: true },
+    ]
+  }
   const sv = (entity as { salvageValue?: unknown }).salvageValue
   if (typeof sv === 'number') {
     facts.push({ key: 'sv', label: compositionsCopy('rowSv'), value: String(sv) })

@@ -34,3 +34,12 @@ export function mechScrap(mech: Pick<Mech, 'chassisRef' | 'systems' | 'modules'>
     .map(([techLevel, scrap]) => ({ techLevel, scrap }))
   return { total: byTechLevel.reduce((sum, level) => sum + level.scrap, 0), byTechLevel }
 }
+
+/**
+ * A build's Scrap as it is paid (r4 E11): by the Tech Level of each part,
+ * "T1 8 · T3 24", never one sum across levels, which nobody can pay
+ * (Core Book p.94, p.97). Bio and Nano read by their letter.
+ */
+export function scrapSplit(scrap: MechScrap): string {
+  return scrap.byTechLevel.map((level) => `T${level.techLevel} ${level.scrap}`).join(' · ')
+}

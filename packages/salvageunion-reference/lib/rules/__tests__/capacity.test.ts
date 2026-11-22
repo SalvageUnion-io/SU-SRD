@@ -186,7 +186,26 @@ describe('computeMechCapacity — patterns printed over their slots', () => {
     expect(result.asPrinted).toEqual({
       pattern: 'Manic Miner',
       cite: 'Salvage Union Starter Set, Parts Catalogue p.11',
+      systems: true,
+      modules: true,
     })
+  })
+
+  it('keeps the untouched Systems line as printed when the Modules change (r4 E16)', () => {
+    const result = computeMechCapacity({
+      ...manicMiner,
+      modules: [...manicMiner.modules, { ref: 'comms-module' }],
+    })
+    expect(result.asPrinted).toMatchObject({
+      pattern: 'Manic Miner',
+      systems: true,
+      modules: false,
+    })
+    // The printed line raises nothing; the edited one is counted as any loadout's.
+    expect(result.violations.map((v) => v.kind)).not.toContain('system-over-slots')
+    expect(result.violations.map((v) => v.kind).includes('module-over-slots')).toBe(
+      result.moduleSlotsUsed > result.moduleSlotsMax
+    )
   })
 
   it('matches the loadout in any order', () => {

@@ -18,6 +18,7 @@ export const buildWizardCopy = messages({
   classOptional: 'Class (optional)',
   chassis: 'Chassis',
   searchChassis: 'Search chassis',
+  nothingFound: 'Nothing found.',
   optionalDecideOnTheSheet: 'Optional: decide on the sheet',
   nameOptional: 'Name (optional)',
   nameItLaterOnTheSheet: 'Name it later on the sheet.',

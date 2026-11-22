@@ -63,6 +63,7 @@ import { SearchField } from '../atoms/SearchField'
 import { Stat } from '../atoms/Stat'
 import { EmptyState } from '../containers/EmptyState'
 import { TitledBox } from '../containers/TitledBox'
+import { holdToastsOnTop } from '../containers/toastPlacement'
 import { paintFor } from '../entity'
 import { Entity } from '../entity/Entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
@@ -208,8 +209,8 @@ const OUTSIDE_HEAD_STYLE = {
 } satisfies CSSProperties
 
 /** A wide row's facts beside its Mini (r4 E6): each a `Stat`, in running text. */
-function RowFacts({ entity }: { entity: PoolEntity }) {
-  const facts = rowFacts(entity)
+function RowFacts({ entity, wide }: { entity: PoolEntity; wide: boolean }) {
+  const facts = rowFacts(entity).filter((each) => wide || each.always)
   if (facts.length === 0) return null
   return (
     <span className="su-searcher__facts">
@@ -368,6 +369,9 @@ export function EntitySearcher({
   // stays open, the match's line and the sidebar counting what was added. A
   // phone keeps its keyboard down until the field is pressed.
   const searchRef = useRef<HTMLInputElement>(null)
+  // A picker's Done is at its foot, where a toast lands: while it is open the
+  // toasts stand at the top, so a "Saved" line never covers Done (r4 E12).
+  useEffect(() => (browse ? undefined : holdToastsOnTop()), [browse])
   useEffect(() => {
     if (browse || !window.matchMedia(WIDE_QUERY).matches) return
     const frame = requestAnimationFrame(() => searchRef.current?.focus())
@@ -440,6 +444,7 @@ export function EntitySearcher({
   const tokenOf = (item: PoolEntity) => {
     const ref = idOf(item)
     const count = countOf(item)
+    const price = browse ? undefined : cost?.(item)
     const token = (
       <Entity
         size="mini"
@@ -475,8 +480,11 @@ export function EntitySearcher({
             {compositionsCopy('aboveTech', { techLevel: techLevel ?? 0 })}
           </Badge>
         )}
+        {price?.row && count === 0 && (
+          <Stat size="mini" label={price.row.label} value={price.row.value} />
+        )}
         {count > 0 && <SelectedSeal word={count > 1 ? `${count} ${chosenLabel}` : chosenLabel} />}
-        {wide && <RowFacts entity={item} />}
+        <RowFacts entity={item} wide={wide} />
       </div>
     )
   }
