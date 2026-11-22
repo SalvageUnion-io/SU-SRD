@@ -498,6 +498,10 @@ export function Sheet({
     ) : null
   const band: SheetBand = {
     game,
+    doorNote:
+      modeToggle !== null && play?.gameId != null && game
+        ? buildSheetCopy('soloIsNowTable', { game: game.name })
+        : undefined,
     actions:
       modeToggle === null && bandActions === undefined ? undefined : (
         <>
