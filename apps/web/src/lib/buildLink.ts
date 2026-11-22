@@ -81,6 +81,12 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
         label: BUILD_WITH_THIS,
         ariaLabel: `${BUILD_WITH_THIS}: a crawler`,
       }
+    // A denizen's page leads into the Mediator's Kit, signed in or out (r5 B19):
+    // static markup, so the Reference page loads no script for it.
+    case 'npcs':
+    case 'squads':
+    case 'creatures':
+      return { href: designHref(schemaId, item), label: referenceCopy('designFromThis') }
     case 'guides': {
       // A creation guide's band opens the builder for what it creates.
       const step = CREATION_GUIDES.find(
@@ -101,7 +107,12 @@ const DENIZEN_KINDS = ['npcs', 'squads', 'creatures', 'vehicles', 'drones', 'mel
  * (`.su-mediator-acts`): field it in one of their encounters
  * (`/encounters/add`), or design an NPC of their own from it (`/npcs/new`).
  */
-export type MediatorLinks = { add: BuildLink; design: BuildLink }
+export type MediatorLinks = { add: BuildLink; design: BuildLink | null }
+
+/** The NPC designer, started from this denizen (`/npcs/new?from=<schema>:<slug>`). */
+function designHref(schemaId: string, item: RefEntity): string {
+  return `${appPath('/npcs/new')}?${new URLSearchParams({ from: `${schemaId}:${getEntitySlug(item)}` })}`
+}
 
 /** The page's Mediator links, or `null` where it is no denizen. */
 export function mediatorLinksFor(schemaId: string, item: RefEntity): MediatorLinks | null {
@@ -112,7 +123,11 @@ export function mediatorLinksFor(schemaId: string, item: RefEntity): MediatorLin
       href: `${appPath('/encounters/add')}?${from}`,
       label: referenceCopy('addToAnEncounter'),
     },
-    design: { href: `${appPath('/npcs/new')}?${from}`, label: referenceCopy('designFromThis') },
+    // Where the band already carries it (`buildLinkFor`), the foot does not repeat it.
+    design:
+      buildLinkFor(schemaId, item) === null
+        ? { href: designHref(schemaId, item), label: referenceCopy('designFromThis') }
+        : null,
   }
 }
 
