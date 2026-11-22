@@ -8,6 +8,7 @@ import { answerOrRefuse, RoomRefusal } from '../refusal'
 import type { GameRoomLogic } from './gameRoomLogic'
 import type { LogEntry } from './log'
 import type { TrayPatch } from './opposition'
+import { noteReturned, owedTo } from './rejoin'
 import type { Profile } from './roster'
 import { seedTemplate } from './template'
 
@@ -58,6 +59,10 @@ const GAME_ACTS = {
   resetInvite: (c: ActContext) => c.room.roster.resetInvite(c.actor, c.at),
   redeem: (c: ActContext, a: { code: string; profile: Profile }) =>
     c.room.roster.redeem(c.actor, a.code, a.profile, c.at),
+  // Rejoining after a removal (r6 C7): what is owed, then what came back.
+  returning: (c: ActContext) => owedTo(c.room.store, c.actor),
+  returned: (c: ActContext, a: { moved: string[] }) =>
+    noteReturned(c.room.store, c.room.units, c.actor, a.moved, c.at),
 
   createUnit: (c: ActContext, a: { id: string; kind: EntityKind; body: unknown }) =>
     c.room.units.create(c.actor, { ...a, at: c.at }),
@@ -255,6 +260,7 @@ export type GameActResult<N extends GameActName> = ReturnType<Act<N>>
 export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'read',
   'members',
+  'returning',
   'inviteCode',
   'units',
   'links',

@@ -158,6 +158,11 @@ export class GameEvents {
       }
       case 'redeem':
         return value === 'joined' ? say('join', `${who} joined the Game`) : []
+      case 'returned': {
+        // Rejoining brought their units back (r6 C7).
+        const back = (value as string[]).map((id) => unit(id))
+        return back.length === 0 ? [] : say('join', `${who} is back, with ${back.join(' and ')}`)
+      }
       case 'session.start':
         return value === true
           ? [

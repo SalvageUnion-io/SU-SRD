@@ -83,6 +83,14 @@ reader.
   and the dialog lists which is which. The Organiser can take an unassigned
   one, with the mech it came with, off the roster to their own Training Bay
   (`games.takeOffRoster`, undone by `games.putBack`): a move, never a delete.
+  **Rejoining brings them back** (amended 2026-11-22, r6 C7). A removal
+  writes one `change_log` row (`field` `left`, the member as `actor_id`,
+  `{ moved, kept }`: what went home, and the Game's own it unassigned); no
+  table or column of its own. When they join again the Worker hands `moved`
+  back from their Training Bay (one gone from there stays put), the room
+  assigns them each `kept` unit still unassigned, writes a `returned` row and
+  tells the table ("Cal is back, with Bonesaw"). Leaving of one's own accord
+  writes none.
 - **Prep.** `/games/<gameId>/prep`, for the table runner: the Game's
   encounters in order, the NPCs moved to the Game, and the plan (§4). An
   encounter gains `gameId` and `order`. `gameId` is the owner's label on their
