@@ -309,6 +309,19 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
     expect(chassis().some((t) => !t.endsWith('(T1)'))).toBe(true)
   })
 
+  test('a picked book pattern lists its Systems and Modules and its Scrap by Tech Level (r5 D6)', () => {
+    usePatterns.setState({ mechPatterns: [], hydrated: true })
+    chooser()
+    fireEvent.change(screen.getByRole('combobox', { name: 'Chassis' }), {
+      target: { value: 'mule' },
+    })
+    const pattern = screen.getByRole('combobox', { name: 'Pattern' })
+    const first = [...pattern.querySelectorAll('option')].find((o) => o.value !== '')
+    fireEvent.change(pattern, { target: { value: first?.value } })
+    expect(screen.getByText(/^Systems: \S/)).toBeTruthy()
+    expect(screen.getByText(/Scrap T1 \d+/)).toBeTruthy()
+  })
+
   test('pilot and crawler choosers do NOT show the pattern door', () => {
     const { unmount } = render(
       <NewEntityScreen

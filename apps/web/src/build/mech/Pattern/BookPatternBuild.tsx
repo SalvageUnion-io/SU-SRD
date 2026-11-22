@@ -25,8 +25,8 @@ import {
   isStartingBookPattern,
   mechFromBookPattern,
 } from '../../../lib/patterns/bookPatterns'
-import { loadoutSlots } from '../../../lib/patterns/patterns'
-import { mechScrap } from '../../../lib/rules/mechScrap'
+import { countedLoadout, loadoutSlots } from '../../../lib/patterns/patterns'
+import { mechScrap, scrapSplit } from '../../../lib/rules/mechScrap'
 import { mechCopy } from '../../../messages/build-mech'
 import { useSync } from '../../../replica/syncContext'
 import { useUnits } from '../../../replica/units'
@@ -53,6 +53,10 @@ const TOTALS = {
   flexWrap: 'wrap',
   gap: tokens.space[8],
 } satisfies CSSProperties
+
+/** A loadout's lines, copies counted: `Mini Mortar ×2, Chainsaw Arm`. */
+const counted = (lines: readonly { name: string; count: number }[]) =>
+  lines.map((line) => (line.count > 1 ? `${line.name} ×${line.count}` : line.name)).join(', ')
 
 type BookPatternBuildProps = {
   /** The deep link's pick, as slugs; either may name nothing. */
@@ -91,6 +95,7 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
   const starting =
     picked !== undefined && chosen !== undefined && isStartingBookPattern(picked, chosen)
   const slots = input ? loadoutSlots(input) : undefined
+  const loadout = input ? countedLoadout(input) : undefined
   const signedOut = status === 'signedOut' && !canWrite
 
   const build = useServerAction(
@@ -183,10 +188,26 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
             {mechCopy('slotsAndScrap', {
               systems: `${slots.systemSlotsUsed}/${slots.systemSlotsMax}`,
               modules: `${slots.moduleSlotsUsed}/${slots.moduleSlotsMax}`,
-              scrap: mechScrap(input).total,
+              // Scrap as it is paid, by Tech Level (r5 D6).
+              scrap: scrapSplit(mechScrap(input)),
             })}
           </Text>
           {!starting && <Stat size="mini" label={mechCopy('notAStartingBuild')} />}
+        </div>
+      )}
+      {/* What is in it, before it is built (r5 D6). */}
+      {loadout && (
+        <div>
+          {loadout.systems.length > 0 && (
+            <Text variant="note">
+              {mechCopy('patternSystemsLine', { names: counted(loadout.systems) })}
+            </Text>
+          )}
+          {loadout.modules.length > 0 && (
+            <Text variant="note">
+              {mechCopy('patternModulesLine', { names: counted(loadout.modules) })}
+            </Text>
+          )}
         </div>
       )}
       {/* Nothing was edited here: the ask names the choice, kept in the address. */}
