@@ -7,6 +7,7 @@
  */
 
 import { mechMaxHeat, resolveChassisRef, resolveGauge } from 'salvageunion-reference/rules'
+import { actionUsesLeft } from './deckActivation.model'
 import { PlayActionRow } from './PlayActionRow'
 import { PlayDowntimeActionRow } from './PlayDowntimeActionRow'
 import { PlayMountRow } from './PlayMountRow'
@@ -59,6 +60,15 @@ export function PlayActionEntry({
           canWrite={play.canWrite}
           techLevel={actions.crawlerTechLevel}
           grouped={grouped}
+          uses={actionUsesLeft(
+            {
+              store: actions.store,
+              pilot: actions.pilot,
+              mech: actions.mech,
+              crawler: actions.crawler,
+            },
+            entry.action
+          )}
           locked={
             entry.need === null
               ? lockReason(entry.action, play.seat.seat.range, heat, actions.closeOnly)

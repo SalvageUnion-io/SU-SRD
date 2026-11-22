@@ -5,7 +5,12 @@
  * a pure `ResolveModel` to draw inside the action's Mini.
  *
  *   Activate  → pay EP/AP + Hot Heat, decrement Uses (auto bookkeeping)
- *   Roll      → the Core Mechanic d20 + its band
+ *   Roll      → pays the same cost first where Activate has not (r4 A1: once,
+ *               by `payThen`), then the Core Mechanic d20 + its band
+ *
+ * So an action never finishes with its cost unpaid: Apply stands off until it
+ * is paid, a Roll the cost refuses (over the Heat Cap) is refused with it, and
+ * Start over keeps what was paid. An action with no cost has no Activate.
  *   Push      → reroll the d20, +2 Heat, forcing a Heat Check (mech deck only)
  *   Apply     → commit the rolled outcome (a Cascade Failure is never
  *               auto-written: the Mini says to take the damage on the mech)
@@ -39,7 +44,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import type { SeatResolving } from 'game-domain/schemas/seat'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { AreaSalvageResult, CoreRollResult } from 'salvageunion-reference/rules'
 import {
   AREA_SALVAGE_TABLE,
@@ -79,7 +84,7 @@ import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
 import { useUnits } from '../replica/units'
 import { areaSalvageRowText, haulText, isExpertSalvager } from './areaSalvage.model'
-import { companionNow, payActivation } from './deckActivation.model'
+import { actionUsesLeft, companionNow, payActivation } from './deckActivation.model'
 import type { PlayStore } from './play.model'
 import { confirmMeltdown, pushMech } from './reactorWrites.model'
 import type { Situation } from './situation.model'
@@ -99,9 +104,14 @@ export type ResolveModel =
       onBack: () => void
       /**
        * What activating spends, each 0 when it spends none: `amount` of the
-       * `currency`, the Heat it adds, and its uses. Drawn by `ResolveSpend`.
+       * `currency`, the Heat it adds, and its uses; `usesLeft` is what remains
+       * of them where they are counted. Drawn by `ResolveSpend`.
        */
-      cost: { amount: number; heat: number; uses: number }
+      cost: { amount: number; heat: number; uses: number; usesLeft?: number }
+      /** It costs nothing: there is no Activate step, Roll alone (r4 A2). */
+      free: boolean
+      /** What pressing Roll will spend, while the cost is unpaid; null when nothing. */
+      rollSpends: string | null
       /** What this activation spends: the mech's EP or the pilot's AP. */
       currency: 'EP' | 'AP'
       /** EP-vs-AP cost radio for `activationCurrency === 'EP or AP'` actions. */
@@ -126,6 +136,8 @@ export type ResolveModel =
         activateTitle?: string
         onActivate: () => void
         onRoll: () => void
+        /** Why Roll is refused: it would pay a cost that cannot be paid now. */
+        rollLockedReason?: string
         /**
          * Mech actions only (pilots cannot Push, Core Book p.233). Disabled
          * before a roll, once this roll is pushed, and where +2 Heat would
@@ -262,6 +274,8 @@ export function useActionsDeck({
   const [hotX, setHotX] = useState(1)
   const [currency, setCurrency] = useState<PlayActionCurrency>('EP')
   const [doneKey, setDoneKey] = useState<string | null>(null)
+  // One spend at a time: a second press while it lands pays nothing more.
+  const paying = useRef(false)
 
   const selected = resolving === null ? null : (deck.find((a) => a.key === resolving.ref) ?? null)
   const roll: CoreRollResult | null = resolving?.roll ?? null
@@ -296,10 +310,10 @@ export function useActionsDeck({
     onResolving(null)
   }
 
-  /** Back to the opened state: the action stays chosen, its progress goes. */
+  /** Back to the opened state: the action stays chosen, its roll goes; what was paid stays paid. */
   function clear(action: PlayAction) {
     resetLocal()
-    onResolving({ ref: action.key, name: action.name, activated: false, applied: false })
+    onResolving({ ref: action.key, name: action.name, activated, applied: false })
   }
 
   /** Replace the seat's resolve with a new step of the same action. */
@@ -456,7 +470,48 @@ export function useActionsDeck({
     })
     const projectedHeat = actionHeat.currentHeat + eco.heat
     const apUnavailable = effCurrency === 'AP' && !pilot
-    const activateDisabled = activated || !heatOk || apUnavailable
+    const unpayable = apUnavailable
+      ? playCopy('noPilotToSpendAp')
+      : heatOk
+        ? undefined
+        : playCopy('activatingWouldExceed')
+    const activateDisabled = activated || unpayable !== undefined
+    const counted = actionUsesLeft(units, selected, effCurrency)
+    const cost = {
+      amount: eco.epCost,
+      heat: heatApplies ? eco.heat : 0,
+      uses: counted?.max ?? eco.maxUses,
+      ...(counted ? { usesLeft: counted.left } : {}),
+    }
+    const spends = [
+      ...(cost.amount > 0 ? [`${cost.amount} ${effCurrency}`] : []),
+      ...(cost.heat > 0 ? [playCopy('spendsHeat', { heat: cost.heat })] : []),
+      ...(counted && counted.left > 0 ? [playCopy('spendsUse')] : []),
+    ]
+    /**
+     * Pay the cost where it is not paid yet, once, then go on with the resolve
+     * as paid: Activate's own path, so the spend says itself with Undo.
+     */
+    const payThen = (after: (paid: SeatResolving) => void) => {
+      if (activated) return after(current)
+      if (paying.current || unpayable !== undefined) return
+      paying.current = true
+      payActivation(
+        units,
+        selected,
+        effCurrency,
+        eco,
+        () => {
+          paying.current = false
+          const paid = { ...current, activated: true }
+          onResolving(paid)
+          after(paid)
+        },
+        () => {
+          paying.current = false
+        }
+      )
+    }
 
     // Core Book p.233: a pushed roll is not pushed again. A new roll clears
     // the Push readout, and with it this.
@@ -469,11 +524,12 @@ export function useActionsDeck({
     return {
       kind: 'resolve',
       onBack: close,
-      cost: {
-        amount: eco.epCost,
-        heat: heatApplies ? eco.heat : 0,
-        uses: eco.maxUses,
-      },
+      cost,
+      free: cost.amount <= 0 && cost.heat <= 0 && cost.uses <= 0,
+      rollSpends:
+        activated || spends.length === 0
+          ? null
+          : playCopy('rollSpends', { cost: spends.join(', ') }),
       currency: effCurrency,
       currencyChoice: currencyChoice
         ? {
@@ -499,17 +555,11 @@ export function useActionsDeck({
         : undefined,
       controls: {
         activateDisabled,
-        activateTitle: apUnavailable
-          ? playCopy('noPilotToSpendAp')
-          : heatOk
-            ? undefined
-            : playCopy('activatingWouldExceed'),
-        onActivate: () =>
-          payActivation(units, selected, effCurrency, eco, () =>
-            step(current, { activated: true })
-          ),
+        activateTitle: unpayable,
+        onActivate: () => payThen(() => undefined),
         activated,
-        onRoll: () => void (salvaging ? doSalvageRoll(current) : doRoll(current)),
+        onRoll: () => payThen((paid) => void (salvaging ? doSalvageRoll(paid) : doRoll(paid))),
+        ...(!activated && unpayable !== undefined ? { rollLockedReason: unpayable } : {}),
         push:
           // A companion cannot Push (Core Book p.68).
           isPilotAction || salvaging || selected.companion
@@ -527,7 +577,9 @@ export function useActionsDeck({
                 onPush: () => void doPush(current),
               },
         applyLabel: applied ? 'Applied' : 'Apply',
-        applyDisabled: (salvaging ? salvaged === null : roll === null) || applied || applyRouted,
+        // Never done with its cost unpaid (r4 A1).
+        applyDisabled:
+          !activated || (salvaging ? salvaged === null : roll === null) || applied || applyRouted,
         onApply: () => {
           if (salvaging) {
             if (salvaged) doSalvageApply(current, salvaged)

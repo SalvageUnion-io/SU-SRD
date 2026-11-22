@@ -273,19 +273,93 @@ describe('the resolve', () => {
     expect(container.querySelector('.su-roll [aria-current="true"]')).toBeNull()
   })
 
+  test('Roll the die pays the cost Activate has not, once, and says what it will spend (r4 A1)', async () => {
+    const mech = makeMech()
+    const { store, calls } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    const { epCost } = clickPrimaryAction(container)
+    expect(screen.getByText(new RegExp(`^Roll the die spends ${epCost} EP`))).toBeTruthy()
+    await clickRolling('Roll the Die')
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.patch.currentEP).toBe(Math.max(0, 6 - epCost))
+    expect(screen.getByRole('button', { name: 'Activated ✓' })).toBeTruthy()
+    expect(screen.queryByText(/^Roll the die spends/)).toBeNull()
+    // Start over keeps what was paid: the next roll spends nothing more.
+    fireEvent.click(screen.getByText('Start over'))
+    await clickRolling('Roll the Die')
+    expect(calls).toHaveLength(1)
+  })
+
+  test('an action with no cost has no Activate: Roll the die alone (r4 A2)', async () => {
+    const free = SalvageUnionReference.Systems.all().find((sys) => {
+      const resolved = sys.id ? resolveSystem(getEntitySlug(sys)) : undefined
+      const acts = resolved ? (SalvageUnionReference.resolveActions(resolved) ?? []) : []
+      const first = acts.find((a) => !a.hidden)
+      const eco = first ? actionEconomy(first) : null
+      return eco !== null && eco.epCost === 0 && eco.heat === 0 && eco.maxUses === 0
+    })
+    if (!free) throw new Error('no system with a free action')
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'unknown-chassis',
+      systems: [getEntitySlug(free)],
+      currentEP: 6,
+    })
+    const { store, calls } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    fireEvent.click(deckCards(container)[0] as Element)
+    expect(screen.queryByRole('button', { name: /^Activate\b/ })).toBeNull()
+    expect(screen.queryByText(/^Roll the die spends/)).toBeNull()
+    await clickRolling('Roll the Die')
+    expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
+    expect(calls).toHaveLength(0)
+  })
+
+  test('Activate then Roll pays once', async () => {
+    const mech = makeMech()
+    const { store, calls } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    clickPrimaryAction(container)
+    await clickActivate()
+    await clickRolling('Roll the Die')
+    expect(calls).toHaveLength(1)
+  })
+
+  test('a roll the seat holds unpaid cannot be applied (r4 A1)', () => {
+    const mech = makeMech()
+    const { store } = stubStore(mech)
+    const key = buildMechActions(mech).find((a) => typeof a.action.activationCost === 'number')?.key
+    render(
+      <ActionsDeck
+        mech={mech}
+        store={store}
+        initial={{
+          ref: key ?? '',
+          name: 'x',
+          activated: false,
+          applied: false,
+          roll: { roll: 14, band: 'success' },
+        }}
+      />
+    )
+    expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(true)
+  })
+
   test('Apply commits a rolled outcome without ever auto-writing a destructive condition', async () => {
     const mech = makeMech()
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
     await clickRolling('Roll the Die')
+    calls.length = 0
     fireEvent.click(screen.getByText('Apply'))
     // Either the non-destructive auto-commit or the Cascade-Failure route note —
     // never both, and neither writes a destructive condition through the store.
     const applied = container.querySelector('.su-play-resolve') === null
     const routed = screen.queryByText(/^Cascade Failure: a severe/)
     expect(Boolean(applied) !== Boolean(routed)).toBe(true)
-    // Apply performs no store write at all (the cost lands at Activate; a
+    // Apply performs no store write at all (the cost lands at Activate or Roll; a
     // destructive band is the player's to take on the gauge, never auto-applied).
     expect(calls).toHaveLength(0)
   })
@@ -538,6 +612,7 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     const push = resolve().controls.push
     expect(push?.disabled).toBe(true)
     expect(push?.lockedReason).toBe('No Push at Heat 17/18: +2 Heat would pass the Heat Capacity.')
+    calls.length = 0
     await act(async () => push?.onPush())
     expect(calls).toHaveLength(0)
     expect(resolve().pushLog).toBeNull()
@@ -548,6 +623,7 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     const push = resolve().controls.push
     expect(push?.disabled).toBe(false)
     expect(push?.lockedReason).toBeUndefined()
+    calls.length = 0
     await act(async () => push?.onPush())
     expect(calls[0]?.patch.currentHeat).toBe(18)
   })

@@ -20,7 +20,10 @@ export const playCopy = messages({
   clear: 'Clear',
   startOver: 'Start over',
   resolveStepsHint:
-    'Apply writes the result to your units and closes the action. Start over rolls again from Activate.',
+    'Apply writes the result to your units and closes the action. Start over clears the roll; what was paid stays paid.',
+  rollSpends: 'Roll the die spends {cost}.',
+  spendsHeat: '+{heat} Heat',
+  spendsUse: '1 Use',
   filterActionsByType: 'Filter actions by type',
   findAnAction: 'Find an action',
   find: 'Find…',

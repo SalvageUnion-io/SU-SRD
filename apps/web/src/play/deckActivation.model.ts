@@ -14,7 +14,11 @@
  * Every spend says itself with Undo (chrome K5, `changeUndoToast`): AP, or
  * each of EP, Heat and the action's Uses it moved, and Undo writes back all of
  * them as the spend found them. `onPaid` runs once the
- * spend has landed, or at once where the action spends nothing.
+ * spend has landed, or at once where the action spends nothing; `onRefused`
+ * where nothing was paid (no unit to pay from, or the write failed).
+ *
+ * `actionUsesLeft` reads the same counts, so an action's Uses chip says what
+ * is left as its sheet does (r4 A2).
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
@@ -35,6 +39,7 @@ import { replacePartner } from '../lib/partnerLookup'
 import type { PlayAction, PlayActionCompanion, PlayActionCurrency } from '../lib/rules/actionList'
 import { activationPatch, pilotActivationPatch } from '../lib/rules/actionPatches'
 import type { MechItemEconomy } from '../lib/rules/mechItems'
+import { itemUsesRemaining } from '../lib/rules/mechItems'
 import { partnerDerivedStats, partnerTechLevel } from '../lib/rules/partnerStats'
 import { equipmentMaxUses, resolveEquipment } from '../lib/rules/pilotInventory'
 import { runWrite } from '../lib/runWrite'
@@ -89,20 +94,64 @@ export function payActivation(
   action: PlayAction,
   currency: PlayActionCurrency,
   economy: MechItemEconomy,
-  onPaid: () => void
+  onPaid: () => void,
+  onRefused: () => void = () => undefined
 ): void {
-  if (currency === 'AP') payPilot(units, action, economy, onPaid)
-  else if (action.companion) payCompanion(units, action, action.companion, economy, onPaid)
-  else payMech(units, action, economy, onPaid)
+  if (currency === 'AP') payPilot(units, action, economy, onPaid, onRefused)
+  else if (action.companion)
+    payCompanion(units, action, action.companion, economy, onPaid, onRefused)
+  else payMech(units, action, economy, onPaid, onRefused)
+}
+
+/** The spend's write: `onPaid` once it has landed, `onRefused` where it did not. */
+function spend(write: () => Promise<unknown>, onPaid: () => void, onRefused: () => void) {
+  runWrite(() => {
+    try {
+      const written = write()
+      // Its own branch: `runWrite` still says the refusal, on the write itself.
+      written.catch(onRefused)
+      return written
+    } catch (err) {
+      onRefused()
+      throw err
+    }
+  }, onPaid)
+}
+
+/**
+ * The Uses an action has left and counts from, as one activation of it in
+ * `currency` would tick them; null where it counts none.
+ */
+export function actionUsesLeft(
+  units: ActivationUnits,
+  action: PlayAction,
+  currency: PlayActionCurrency = action.currency
+): { left: number; max: number } | null {
+  if (currency === 'AP') {
+    const max = gearMaxUses(action, action.economy)
+    if (max <= 0 || !units.pilot) return null
+    const fresh = units.store.get('pilot', units.pilot.id) ?? units.pilot
+    return { left: itemUsesRemaining(max, fresh.equipmentUses?.[action.slug]), max }
+  }
+  const max = action.economy.maxUses
+  if (max <= 0) return null
+  if (action.companion) {
+    const now = companionNow(units, action.companion)
+    return now ? { left: itemUsesRemaining(max, now.partner.itemUses?.[action.slug]), max } : null
+  }
+  if (!units.mech) return null
+  const fresh = units.store.get('mech', units.mech.id) ?? units.mech
+  return { left: itemUsesRemaining(max, fresh.itemUses?.[action.slug]), max }
 }
 
 function payPilot(
   { store, pilot, crawler }: ActivationUnits,
   action: PlayAction,
   economy: MechItemEconomy,
-  onPaid: () => void
+  onPaid: () => void,
+  onRefused: () => void
 ) {
-  if (!pilot) return
+  if (!pilot) return onRefused()
   const fresh = store.get('pilot', pilot.id) ?? pilot
   // An unrecorded live stat means UNSPENT, not empty: a pilot who has never
   // spent AP is at full AP. The stored value stays authoritative when
@@ -123,7 +172,7 @@ function payPilot(
     return
   }
   // The resolve moves on to Roll only once the spend has landed.
-  runWrite(() => store.update('pilot', pilot.id, patch, playTxn(action.name)), onPaid)
+  spend(() => store.update('pilot', pilot.id, patch, playTxn(action.name)), onPaid, onRefused)
   const changes: UndoChange[] = []
   if (typeof patch.currentAP === 'number' && patch.currentAP !== before)
     changes.push({ key: 'currentAP', label: 'AP', from: before, to: patch.currentAP })
@@ -169,10 +218,11 @@ function payCompanion(
   action: PlayAction,
   companion: PlayActionCompanion,
   economy: MechItemEconomy,
-  onPaid: () => void
+  onPaid: () => void,
+  onRefused: () => void
 ) {
   const now = companionNow(units, companion)
-  if (!now) return
+  if (!now) return onRefused()
   const before = resolvePoolStart(now.partner.currentEP, now.maxEP)
   const patch = activationPatch({
     slug: action.slug,
@@ -195,7 +245,7 @@ function payCompanion(
       ? units.store.update('pilot', companion.host.id, { partners }, PLAY_TXN)
       : units.store.update('mech', companion.host.id, { partners }, PLAY_TXN)
   }
-  runWrite(() => write(patch), onPaid)
+  spend(() => write(patch), onPaid, onRefused)
   activationUndo({
     id: `partner:${companion.id}:activation`,
     prefix: `${companion.name} `,
@@ -288,10 +338,11 @@ function payMech(
   { store, mech }: ActivationUnits,
   action: PlayAction,
   economy: MechItemEconomy,
-  onPaid: () => void
+  onPaid: () => void,
+  onRefused: () => void
 ) {
   // EP is the mech's: only a boarded deck offers it.
-  if (!mech) return
+  if (!mech) return onRefused()
   const chassis = resolveChassisRef(mech.chassisRef)
   const fresh = store.get('mech', mech.id) ?? mech
   // Unrecorded EP means a mech that has never spent any: full, not empty.
@@ -308,7 +359,7 @@ function payMech(
     onPaid()
     return
   }
-  runWrite(() => store.update('mech', mech.id, patch, playTxn(action.name)), onPaid)
+  spend(() => store.update('mech', mech.id, patch, playTxn(action.name)), onPaid, onRefused)
   activationUndo({
     id: `mech:${mech.id}:activation`,
     prefix: '',

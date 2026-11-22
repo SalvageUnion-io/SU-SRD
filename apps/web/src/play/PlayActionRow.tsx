@@ -61,6 +61,8 @@ type PlayActionRowProps = {
   techLevel?: number | undefined
   /** The row sits under its action type's heading, so its head leaves the type out (C10). */
   grouped?: boolean
+  /** The Uses it has left and counts from, where it counts them (r4 A2). */
+  uses?: { left: number; max: number } | null
 }
 
 /**
@@ -119,10 +121,19 @@ export function PlayActionRow({
   locked,
   techLevel,
   grouped = false,
+  uses = null,
 }: PlayActionRowProps) {
+  const usesLeft = uses?.left
+  const usesMax = uses?.max
   const { model, summary, picks } = useMemo(
-    () => actionRow(entry.action, { techLevel, grouped }),
-    [entry.action, techLevel, grouped]
+    () =>
+      actionRow(entry.action, {
+        techLevel,
+        grouped,
+        uses:
+          usesLeft === undefined || usesMax === undefined ? null : { left: usesLeft, max: usesMax },
+      }),
+    [entry.action, techLevel, grouped, usesLeft, usesMax]
   )
   const wide = usePlayWide()
   const companion = entry.action.companion

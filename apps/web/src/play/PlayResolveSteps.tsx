@@ -1,7 +1,9 @@
 /**
  * PlayResolveSteps — an action's resolve, opened in place as its Mini's
  * contentful body (play.md §5): Activate, then the Core Mechanic table, then
- * Apply. Presentational:
+ * Apply. Roll pays the cost where Activate has not, and a line says what it
+ * will spend (r4 A1); an action with no cost has no Activate (r4 A2).
+ * Presentational:
  * `useActionsDeck` builds the `ResolveModel` from the seat's `resolving` and
  * owns every write; this draws its steps and calls back.
  *
@@ -99,18 +101,24 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
       </div>
       <ResolveCost currencyChoice={view.currencyChoice} variableHot={view.variableHot} />
 
-      <div className="su-play-resolve__steps">
-        <Button
-          variant={controls.activated ? 'default' : 'primary'}
-          size="compact"
-          style={GROW}
-          onClick={controls.onActivate}
-          disabled={!canWrite || controls.activateDisabled}
-          title={controls.activateTitle}
-        >
-          {controls.activated ? playCopy('activated') : playCopy('activate')}
-        </Button>
-      </div>
+      {/* An action with no cost has nothing to activate: Roll alone (r4 A2). */}
+      {!view.free && (
+        <div className="su-play-resolve__steps">
+          <Button
+            variant={controls.activated ? 'default' : 'primary'}
+            size="compact"
+            style={GROW}
+            onClick={controls.onActivate}
+            disabled={!canWrite || controls.activateDisabled}
+            title={controls.activateTitle}
+          >
+            {controls.activated ? playCopy('activated') : playCopy('activate')}
+          </Button>
+        </div>
+      )}
+      {/* Roll pays what Activate has not (r4 A1): said before it is pressed. */}
+      {view.rollSpends && !controls.rollLockedReason && <p style={NOTE}>{view.rollSpends}</p>}
+      {controls.rollLockedReason && <p style={NOTE}>{controls.rollLockedReason}</p>}
 
       {salvage && (
         <div style={AREA}>
@@ -141,7 +149,13 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         table={salvage ? AREA_SALVAGE_TABLE : CORE_MECHANIC_TABLE}
         roll={salvage ? salvage.roll : (roll?.roll ?? null)}
         stamp={push ? 'Push:' : undefined}
-        onRoll={canWrite && salvageOpen ? (push ? push.onPush : controls.onRoll) : undefined}
+        onRoll={
+          canWrite && salvageOpen && !controls.rollLockedReason
+            ? push
+              ? push.onPush
+              : controls.onRoll
+            : undefined
+        }
         off={salvageShut}
       />
       {controls.push?.lockedReason && <p style={NOTE}>{controls.push.lockedReason}</p>}
