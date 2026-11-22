@@ -167,6 +167,9 @@ export const playCopy = messages({
   noMech: 'No Mech',
   joinWithALink: 'Join with a link',
   joinAGame: 'Join a Game',
+  joinSignedOut:
+    'An invite link is opened from the message it came in: press it there. Joining a Game needs a sign-in, with Discord.',
+  joinSignIn: 'Sign in with Discord',
   inviteLink: 'Invite link',
   pasteAnInviteLink: 'Paste an invite link…',
   thatIsNotAnInvite: 'That is not an invite link.',

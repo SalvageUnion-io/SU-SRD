@@ -200,7 +200,7 @@ describe('the Play landing', () => {
     for (const id of anchors) expect(document.getElementById(id)).not.toBeNull()
   })
 
-  test('signed out, pressing the sub-nav’s "Join with a link" goes to sign-in and back to the Join dialog (r3 E3)', async () => {
+  test('signed out, the sub-nav’s "Join with a link" explains before it leaves, and its Sign in comes back to the Join dialog (r3 E3, r5 B20)', async () => {
     answerReads({})
     serverMocks.signIns.length = 0
     await renderAs('signedOut')
@@ -209,8 +209,16 @@ describe('the Play landing', () => {
     document.body.append(nav)
     try {
       const press = new MouseEvent('click', { bubbles: true, cancelable: true })
-      nav.dispatchEvent(press)
+      await act(async () => {
+        nav.dispatchEvent(press)
+      })
       expect(press.defaultPrevented).toBe(true)
+      // Nothing leaves the site on the press: a panel says what comes first.
+      expect(serverMocks.signIns).toEqual([])
+      const panel = within(screen.getByRole('dialog', { name: 'Join with a link' }))
+      expect(panel.getByText(/opened from the message it came in/)).toBeTruthy()
+      expect(panel.getByText(/needs a sign-in/)).toBeTruthy()
+      fireEvent.click(panel.getByRole('button', { name: 'Sign in with Discord' }))
       expect(serverMocks.signIns).toEqual([['/games/#join']])
     } finally {
       nav.remove()
