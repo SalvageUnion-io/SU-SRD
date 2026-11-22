@@ -43,6 +43,8 @@ export const ITEM_COLUMNS: readonly LedgerColumn[] = [
     label: buildDashCopy('cost'),
     title: buildDashCopy('activationCost'),
     phone: true,
+    // Its stamp opens what an EP cost is, as the strip's labels do (r5 C8).
+    statKey: 'cost',
   },
 ]
 

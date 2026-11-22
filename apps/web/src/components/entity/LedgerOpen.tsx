@@ -16,13 +16,14 @@
  */
 
 import { ChevronDown } from 'lucide-react'
-import { Fragment, useId, useState } from 'react'
+import { Fragment, useContext, useId, useState } from 'react'
 import * as tokens from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { entityCopy } from '../../messages/components-entity'
 import { capsLabel } from '../atoms/capsLabel'
 import { InlineRef } from '../atoms/InlineRef'
 import type { SlabCount } from '../atoms/slabSummary'
+import { StatMeaningContext } from '../atoms/statMeaning'
 import { CostMark } from './CostMark'
 import { Mention } from './forms/Mention'
 import type { LedgerColumn, LedgerGroup, LedgerOpenProps, LedgerRow } from './Ledger'
@@ -216,6 +217,7 @@ export function LedgerOpen({
     !whole && filled.some((group) => group.rows.some((row) => row.detail !== undefined))
   // The table is named by its title, as a screen reader lists it.
   const titleId = useId()
+  const meaning = useContext(StatMeaningContext)
   return (
     // `data-form`: a list's form, the same in Read and Edit (R11).
     <table className={cn('su-open', className)} aria-labelledby={titleId} data-form="ledger">
@@ -260,7 +262,8 @@ export function LedgerOpen({
               {/* A paper cut-out on the strip's foot, as the title's tab (L2). */}
               <span className="su-open__col-tab">
                 {column.key === 'cost' && <CostMark />}
-                {column.label}
+                {/* Its stamp opens what it means, where the sheet says how (r5 C8). */}
+                {meaning && column.statKey ? meaning(column.statKey, column.label) : column.label}
               </span>
             </th>
           ))}

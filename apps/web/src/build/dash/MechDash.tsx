@@ -251,6 +251,7 @@ export function MechDash({
       <StripFigure
         label={STAT_LABELS.systemSlots.short}
         name={STAT_LABELS.systemSlots.label}
+        statKey="systemSlots"
         value={capacity.systemSlotsUsed}
         max={capacity.systemSlotsMax}
         meter="pips"
@@ -265,6 +266,7 @@ export function MechDash({
       <StripFigure
         label={STAT_LABELS.moduleSlots.short}
         name={STAT_LABELS.moduleSlots.label}
+        statKey="moduleSlots"
         value={capacity.moduleSlotsUsed}
         max={capacity.moduleSlotsMax}
         meter="pips"
@@ -279,6 +281,7 @@ export function MechDash({
       <StripFigure
         label={STAT_LABELS.cargoCapacity.short}
         name={STAT_LABELS.cargoCapacity.label}
+        statKey="cargoCapacity"
         value={used}
         max={cap}
         meter="pips"
