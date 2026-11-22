@@ -64,7 +64,14 @@ export function NewUnitRoute({
   const game = search.game ?? (typeof paired?.gameId === 'string' ? paired.gameId : undefined)
   // Cancelling goes back to the page the build was started from: the Game's
   // page (`?game=`), or the Training Bay.
-  const goBack = useWizardReturn(search.game)
+  const toGame = useWizardReturn(search.game)
+  // A crawler made from a pilot's solo Downtime goes back to it (r5 A13).
+  const toPlay =
+    kind === 'crawler' && search.back === 'play' && pilot !== undefined ? pilot.id : undefined
+  const goBack = () =>
+    toPlay === undefined
+      ? toGame()
+      : void navigate({ to: '/pilots/$id/play', params: { id: toPlay } })
   // A mech built in a Game by a member with one mech-less pilot there is that
   // pilot's: assigned at once, with the way back in the notice. Two such
   // pilots and nobody can say whose, so the Crew's own "Assign" asks.
@@ -115,7 +122,10 @@ export function NewUnitRoute({
         return void navigate({ to: '/crawlers/$id', params: { id } })
       }
       crewNewCrawler(id, origin).then(
-        () => void navigate({ to: SHEET_PATH[origin.type], params: { id: origin.id } }),
+        () =>
+          toPlay === undefined
+            ? void navigate({ to: SHEET_PATH[origin.type], params: { id: origin.id } })
+            : goBack(),
         (err: unknown) => {
           toast.error(failureMessage(err, buildWizardCopy('crawlerNotCrewed')))
           void navigate({ to: '/crawlers/$id', params: { id } })
@@ -174,7 +184,13 @@ export function NewUnitRoute({
           onResume={() =>
             void navigate({
               to: NEW_PATH[kind],
-              search: { mode: 'guided', game: search.game, pilot: pilotId, mech: mechId },
+              search: {
+                mode: 'guided',
+                game: search.game,
+                pilot: pilotId,
+                mech: mechId,
+                back: search.back,
+              },
               replace: true,
             })
           }
@@ -187,7 +203,13 @@ export function NewUnitRoute({
             onOffRules={() =>
               void navigate({
                 to: NEW_PATH[kind],
-                search: { mode: 'blank', game: search.game, pilot: pilotId, mech: mechId },
+                search: {
+                  mode: 'blank',
+                  game: search.game,
+                  pilot: pilotId,
+                  mech: mechId,
+                  back: search.back,
+                },
               })
             }
           />

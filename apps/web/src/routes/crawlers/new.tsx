@@ -14,6 +14,8 @@ export const Route = createFileRoute('/crawlers/new')({
     ...newUnitSearch(search, 'type'),
     pilot: parseGameParam(search.pilot),
     mech: parseGameParam(search.mech),
+    // From a solo Downtime: finishing returns to it (r5 A13)
+    back: search.back === 'play' ? 'play' : undefined,
   }),
   component: CrawlersNewPage,
 })

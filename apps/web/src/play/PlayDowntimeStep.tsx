@@ -269,7 +269,7 @@ export function PlayDowntimeStep({
                 ticked={!unticked.has(line.key)}
                 onToggle={() => toggle(line.key)}
                 disabled={claimed}
-                crawlerHref={inGame ? null : makeCrawlerHref()}
+                crawlerHref={inGame ? null : makeCrawlerHref(pilot?.id ?? null)}
               />
             ))}
           </ul>

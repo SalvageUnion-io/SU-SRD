@@ -476,7 +476,7 @@ describe('Downtime’s dead ends say why', () => {
     expect(onHand.queryByRole('button', { name: 'Open' })).toBeNull()
     expect(onHand.getByText('Needs a Union Crawler')).toBeTruthy()
     expect(onHand.getByRole('link', { name: 'Make a Union Crawler' }).getAttribute('href')).toBe(
-      '/crawlers/new'
+      '/crawlers/new?pilot=dt-p&back=play'
     )
   })
 
@@ -497,7 +497,7 @@ describe('Downtime’s dead ends say why', () => {
     expect(within(stepBox()).getByText('HP stays 3: healing needs a Med Bay')).toBeTruthy()
     expect(
       within(stepBox()).getByRole('link', { name: 'Make a Union Crawler' }).getAttribute('href')
-    ).toBe('/crawlers/new')
+    ).toBe('/crawlers/new?pilot=dt-p&back=play')
     expect(within(stepBox()).queryByRole('button', { name: 'Heal at the Med Bay' })).toBeNull()
 
     cleanup()

@@ -28,6 +28,7 @@ import { playCopy } from '../messages/play'
 import { NeedChip } from './PlayActionRow'
 import type { DowntimeActionId } from './playActions.model'
 import { playLineModel } from './playLine.model'
+import { makeCrawlerHref } from './units.model'
 import type { SheetTarget } from './useOpenSheet'
 import { useOpenSheet } from './useOpenSheet'
 import type { PlayActions } from './usePlayActions'
@@ -111,7 +112,7 @@ export function PlayDowntimeActionRow({
       open({ kind: 'crawler', id: crawler.id, name: crawler.name }, 'Open')
     ) : solo ? (
       // Solo the crawler is the player's own to make; a Game's is its table runner's.
-      <Button size="mini" href="/crawlers/new">
+      <Button size="mini" href={makeCrawlerHref(pilot?.id ?? null)}>
         {playCopy('makeAUnionCrawler')}
       </Button>
     ) : undefined
