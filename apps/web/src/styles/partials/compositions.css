@@ -149,43 +149,6 @@
   flex: 1 1 auto;
 }
 
-/* A class page's Ability opens its rules in place under its Compact (r5 E5,
-   `ClassAbilityTree`'s `AbilityRules`): a slim "Rules" row hung from the
-   Compact's foot in the track's hue, its card under it once open. It keeps
-   its own height: the Compact above is what stretches. */
-.su-ability-track[data-track] > .su-ability-track__tier > .su-ability-open {
-  background-color: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--su-track-color);
-  border-top: 0;
-  flex: 0 0 auto;
-}
-
-.su-ability-open__summary {
-  align-items: center;
-  cursor: pointer;
-  display: flex;
-  gap: var(--space-4);
-  list-style: none;
-  min-height: var(--size-compact);
-  padding: 0 var(--space-8);
-}
-
-.su-ability-open__summary::-webkit-details-marker {
-  display: none;
-}
-
-.su-ability-open[open] > .su-ability-open__summary > svg {
-  transform: rotate(180deg);
-}
-
-.su-ability-open__label {
-  font-size: var(--text-chip);
-}
-
-.su-ability-open__body {
-  padding: 0 var(--space-8) var(--space-8);
-}
-
 /* The stem, from this tier's foot to the next tier's head. */
 .su-ability-track[data-track]:not([data-track='legendary'])
 > .su-ability-track__tier:not(:last-child)::after {

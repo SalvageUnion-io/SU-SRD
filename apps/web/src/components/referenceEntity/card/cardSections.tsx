@@ -120,7 +120,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         table={entityTable}
         name={tableName}
         size={size}
-        disabled={!!isDown || !!hide?.roll}
+        disabled={!!isDown}
         nested={!onPage}
         peekAt={onPage ? undefined : tablePeekAddress(tableSource)}
         tone={tone.bgColor}
