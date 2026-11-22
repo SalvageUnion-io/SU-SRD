@@ -50,6 +50,7 @@ type TableEventKind =
   | 'board'
   | 'assign'
   | 'join'
+  | 'leave'
   | 'role'
   | 'session'
   | 'downtime'
@@ -401,7 +402,7 @@ export class GameEvents {
    */
   removed(actor: string, userId: string, at: number): TableEvent {
     return this.note(actor, at, {
-      kind: 'join',
+      kind: 'leave',
       text: `${this.memberName(userId)} was removed from the Game`,
     })
   }

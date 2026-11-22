@@ -3,14 +3,18 @@ import type { TableEvent } from '../../rooms/game/events'
 import {
   endedSession,
   eventsToToast,
+  gameOfPage,
   gamesGone,
   leavingOnPurpose,
+  lostRole,
   myTurn,
   onGamePages,
   pausedTitle,
   pinnedAlert,
   pinnedRole,
   resumedTitle,
+  stackNotices,
+  standingDownOnPurpose,
 } from '../tableNotices.model'
 
 const event = (over: Partial<TableEvent> & { _id: string }): TableEvent => ({
@@ -182,6 +186,106 @@ describe('pinnedAlert', () => {
     expect(pinnedAlert([start(500), alert], new Set(), 'me', 2000)).toBe(alert)
     // The next session began after it: last session's, so gone.
     expect(pinnedAlert([start(500), alert, start(1500)], new Set(), 'me', 2000)).toBeNull()
+  })
+})
+
+describe('pinnedAlert clears itself (r3 H1)', () => {
+  const alert = event({
+    _id: 'al',
+    kind: 'alert',
+    text: 'Mediator · Dust',
+    actorId: 'gm',
+    ts: 1000,
+  })
+  const session = (ts: number, session: 'start' | 'end') =>
+    event({ _id: `s${ts}`, kind: 'session', session, actorId: 'gm', ts })
+
+  test('it unpins when the session ends; one sent after the end pins', () => {
+    const during = [session(500, 'start'), alert, session(1500, 'end')]
+    expect(pinnedAlert(during, new Set(), 'me', 2000)).toBeNull()
+    expect(
+      pinnedAlert([session(500, 'start'), session(900, 'end'), alert], new Set(), 'me', 2000)
+    ).toBe(alert)
+  })
+
+  test('it is not shown to someone who joined after it was sent', () => {
+    const joined = (ts: number, actorId: string) =>
+      event({ _id: `j${ts}`, kind: 'join', text: 'Pip joined the Game', actorId, ts })
+    expect(pinnedAlert([alert, joined(1500, 'me')], new Set(), 'me', 2000)).toBeNull()
+    expect(pinnedAlert([joined(500, 'me'), alert], new Set(), 'me', 2000)).toBe(alert)
+    // Somebody else joining, or a member removed by the viewer, changes nothing.
+    const removed = event({
+      _id: 'l',
+      kind: 'leave',
+      text: 'Pip was removed',
+      actorId: 'me',
+      ts: 1500,
+    })
+    expect(pinnedAlert([alert, joined(1500, 'pip'), removed], new Set(), 'me', 2000)).toBe(alert)
+  })
+
+  test('which Game a page is, so an alert is never pinned over another Game’s', () => {
+    const games = [
+      { id: 'g1', root: '/games/g1', pilotRoots: ['/pilots/p1'] },
+      { id: 'g2', root: '/games/g2', pilotRoots: [] },
+    ]
+    expect(gameOfPage('/games/g2/mediate', games)).toBe('g2')
+    expect(gameOfPage('/pilots/p1/play', games)).toBe('g1')
+    expect(gameOfPage('/chassis/mule/', games)).toBeNull()
+  })
+})
+
+describe('the one strip (r3 H1)', () => {
+  const n = (key: string, rank: 'answer' | 'turn' | 'news', ts: number) => ({
+    key,
+    rank,
+    ts,
+    dismissible: rank === 'news',
+  })
+
+  test('what waits on an answer leads, then my turn, then the news, newest first', () => {
+    const stacked = stackNotices([
+      n('alert', 'news', 300),
+      n('turn', 'turn', 0),
+      n('ended', 'news', 900),
+      n('proposal', 'answer', 100),
+      n('role', 'news', 500),
+    ])
+    expect(stacked.map((notice) => notice.key)).toEqual([
+      'proposal',
+      'turn',
+      'ended',
+      'role',
+      'alert',
+    ])
+  })
+})
+
+describe('the Mediator’s role taken back (r3 A4)', () => {
+  test('whoever loses it is told once, never for their own hand over, never at first sight', () => {
+    expect(lostRole(true, false, 'g1')).toBe(true)
+    expect(lostRole(null, false, 'g1')).toBe(false)
+    expect(lostRole(false, false, 'g1')).toBe(false)
+    expect(lostRole(true, true, 'g1')).toBe(false)
+    standingDownOnPurpose('g1')
+    expect(lostRole(true, false, 'g1')).toBe(false)
+    expect(lostRole(true, false, 'g1')).toBe(true)
+    standingDownOnPurpose('g1')()
+    expect(lostRole(true, false, 'g1')).toBe(true)
+  })
+
+  test('the role moving is told to the whole table, never to whoever moved it', () => {
+    const { heard } = eventsToToast([], null, 'me')
+    const role = event({
+      _id: 'r',
+      kind: 'role',
+      text: 'Ash now mediates this Game',
+      actorId: 'org',
+      about: 'ash',
+    })
+    expect(eventsToToast([role], heard, 'me').toast).toEqual([role])
+    expect(eventsToToast([role], heard, 'ash').toast).toEqual([role])
+    expect(eventsToToast([role], heard, 'org').toast).toEqual([])
   })
 })
 

@@ -29,6 +29,7 @@ export const libGamesCopy = messages({
   unassignedFromYou:
     '{name} is no longer assigned to you: whoever runs the table unassigned it. You can still read it.',
   assignedToACrewmate: '{name} is now assigned to a crewmate. You can still read it.',
+  assignedToYou: '{name} is now assigned to you.',
 
   thisGame: 'this Game',
   clearedPilot:

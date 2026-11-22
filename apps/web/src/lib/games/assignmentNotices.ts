@@ -18,10 +18,10 @@ import { useViewerId } from '../../replica/roomCalls'
 /** A Game's pilot or mech, and who its room says holds it. */
 export type HeldUnit = { kind: 'pilot' | 'mech'; id: string; name: string; owner: string | null }
 
-/** Units the player just handed back or on themselves: their own doing, so not announced. */
+/** Units the player just handed back, on or took themselves: their own doing, so not announced. */
 const ownDoing = new Set<string>()
 
-/** The player is unassigning or reassigning `unitId` themselves; call the answer if it did not happen. */
+/** The player is unassigning, reassigning or taking `unitId` themselves; call the answer if it did not happen. */
 export function handedBack(unitId: string): () => void {
   ownDoing.add(unitId)
   return () => {
@@ -29,7 +29,11 @@ export function handedBack(unitId: string): () => void {
   }
 }
 
-/** One line for each unit that was `me`'s in `before` and is still here, held by another or nobody. */
+/**
+ * One line for each unit that was `me`'s in `before` and is still here, held
+ * by another or nobody; and one for each that was here, not `me`'s, and now
+ * is (r3 A4): whoever runs the table assigned it to them.
+ */
 export function assignmentNotices(
   before: readonly HeldUnit[],
   now: readonly HeldUnit[],
@@ -37,7 +41,11 @@ export function assignmentNotices(
 ): string[] {
   if (me === null) return []
   const mine = new Set(before.filter((u) => u.owner === me).map((u) => u.id))
+  const others = new Set(before.filter((u) => u.owner !== me).map((u) => u.id))
   return now.flatMap((unit) => {
+    if (others.has(unit.id) && unit.owner === me) {
+      return ownDoing.delete(unit.id) ? [] : [libGamesCopy('assignedToYou', { name: unit.name })]
+    }
     if (!mine.has(unit.id) || unit.owner === me) return []
     if (ownDoing.delete(unit.id)) return []
     return [

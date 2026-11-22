@@ -154,6 +154,9 @@ export const playGamesCopy = messages({
   handOverStays:
     'Stays with you: your Game notes and private session notes, and the encounters and NPCs in your Mediator’s Kit. The new Mediator starts with empty notes.',
   whoMediates: 'Who mediates',
+  handedOverTo: '{name} now mediates {game}.',
+  youMediateNow: 'You now mediate {game}.',
+  gameDeleted: '{game} is deleted.',
   yourPrep: 'Prep',
   encounters: 'Encounters',
   npcs: 'NPCs',

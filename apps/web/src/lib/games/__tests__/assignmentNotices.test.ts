@@ -44,4 +44,15 @@ describe('what a player is told when an assignment leaves them', () => {
     handedBack('p1')()
     expect(assignmentNotices([held('u-me')], [held(null)], 'u-me')).toHaveLength(1)
   })
+
+  test('assigned to them by whoever runs the table: they are told; one they took themselves is not news (r3 A4)', () => {
+    expect(assignmentNotices([held(null)], [held('u-me')], 'u-me')).toEqual([
+      'Sparrow is now assigned to you.',
+    ])
+    expect(assignmentNotices([held('u-other')], [held('u-me')], 'u-me')).toHaveLength(1)
+    // One that was not in the Game before is theirs by bringing it, not by assignment.
+    expect(assignmentNotices([], [held('u-me')], 'u-me')).toEqual([])
+    handedBack('p1')
+    expect(assignmentNotices([held(null)], [held('u-me')], 'u-me')).toEqual([])
+  })
 })

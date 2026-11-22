@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
  * `TableNotices` — what a member's Games tell them on every screen of the app
@@ -306,6 +306,125 @@ describe('the pinned notices', () => {
       fireEvent.click(screen.getByRole('button', { name: /^Dismiss: You are no longer in/ }))
     })
     expect(notice('removed')).toBeNull()
+  })
+
+  test('several notices share one strip: the newest, how many more, and Dismiss all (r3 H1)', async () => {
+    const now = Date.now()
+    const alert = {
+      _id: 'a-stack',
+      ts: now - 3000,
+      kind: 'alert',
+      text: 'Mediator · Dust on the ridge',
+      actorId: 'gm',
+    }
+    const made = {
+      _id: 'r-stack',
+      ts: now - 2000,
+      kind: 'role',
+      text: 'Ash now mediates this Game',
+      actorId: 'org',
+      about: 'u1',
+    }
+    await renderNotices(
+      {
+        'games.listMine': [{ ...GAME, mediator: true, tableRunner: true }],
+        'session.state': { live: true, startedAt: now - 5000 },
+        'changeLog.events': [made, alert],
+      },
+      '/games/g1/prep'
+    )
+    const strips = () => [...document.querySelectorAll('[data-table-notice]')]
+    // One strip, the newest of the three; the others wait behind the count.
+    expect(strips().map((el) => el.getAttribute('data-table-notice'))).toEqual(['role'])
+    const more = screen.getByRole('button', { name: 'Show 2 more notices' })
+    expect(more.textContent).toBe('2 more')
+    expect(more.getAttribute('aria-expanded')).toBe('false')
+    await act(async () => {
+      fireEvent.click(more)
+    })
+    expect(strips().map((el) => el.getAttribute('data-table-notice'))).toEqual([
+      'role',
+      'alert',
+      'session',
+    ])
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Dismiss all' }))
+    })
+    expect(strips()).toEqual([])
+    expect(screen.getByRole('region', { name: 'Your Games' }).childElementCount).toBe(0)
+  })
+
+  test('a proposal leads the strip, and Dismiss all leaves it waiting (r3 H1)', async () => {
+    const proposal = {
+      _id: 'p-1',
+      entityId: 'bonesaw',
+      entityType: 'pilot',
+      targetName: 'Static',
+      field: 'currentAP',
+      after: 2,
+      reason: null,
+      ts: 5,
+    }
+    const alert = {
+      _id: 'a-2',
+      ts: Date.now() - 1000,
+      kind: 'alert',
+      text: 'Mediator · Pickle, you are up.',
+      actorId: 'gm',
+    }
+    await renderNotices({ 'ops.pending': [proposal], 'changeLog.events': [alert] })
+    const strips = () =>
+      [...document.querySelectorAll('[data-table-notice]')].map((el) =>
+        el.getAttribute('data-table-notice')
+      )
+    expect(strips()).toEqual(['proposal'])
+    expect(screen.getByRole('button', { name: 'Accept: Static AP → 2' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Dismiss all' }))
+    })
+    expect(strips()).toEqual(['proposal'])
+    expect(screen.queryByRole('button', { name: 'Dismiss all' })).toBeNull()
+  })
+
+  test('"You now mediate" carries the door to the Mediate screen (r3 A4)', async () => {
+    const made = {
+      _id: 'r-2',
+      ts: Date.now() - 1000,
+      kind: 'role',
+      text: 'Ash now mediates this Game',
+      actorId: 'org',
+      about: 'u1',
+    }
+    await renderNotices({
+      'games.listMine': [{ ...GAME, mediator: true, tableRunner: true }],
+      'changeLog.events': [made],
+    })
+    const door = within(notice('role') as HTMLElement).getByRole('link', { name: 'Mediate' })
+    expect(door.getAttribute('href')).toBe('/games/g1/mediate')
+  })
+
+  test('an alert is not pinned over another Game’s pages (r3 H1)', async () => {
+    const alert = {
+      _id: 'a-3',
+      ts: Date.now() - 1000,
+      kind: 'alert',
+      text: 'Mediator · Raiders close in',
+      actorId: 'gm',
+    }
+    const other = { ...GAME, _id: 'g2', name: 'Other' }
+    openRooms('g2')
+    serveReads('g2', answers())
+    await renderNotices(
+      { 'games.listMine': [GAME, other], 'changeLog.events': [alert] },
+      '/games/g2'
+    )
+    expect(notice('alert')).toBeNull()
+    cleanup()
+    await renderNotices(
+      { 'games.listMine': [GAME, other], 'changeLog.events': [alert] },
+      '/games/g1'
+    )
+    expect(notice('alert')).not.toBeNull()
   })
 
   test('on a Play screen the session needs no door', async () => {

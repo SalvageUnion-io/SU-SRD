@@ -472,7 +472,7 @@ describe('the table’s events', () => {
   test('a member removed is a line for the table, as their joining was (r3 A4)', () => {
     const { room, texts } = seated()
     const told = room.events.removed('d-org', PLAYER, AT + 1)
-    expect(told).toMatchObject({ kind: 'join', text: 'Player was removed from the Game' })
+    expect(told).toMatchObject({ kind: 'leave', text: 'Player was removed from the Game' })
     expect(isMirrored(told)).toBe(true)
     expect(texts(MEDIATOR)).toEqual(['Player was removed from the Game'])
   })
