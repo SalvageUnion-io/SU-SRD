@@ -149,6 +149,17 @@ describe('CrawlerWizard — create mode', () => {
     expect(getNextButton().disabled).toBe(false)
   })
 
+  it('step 1’s type table takes the pane and wraps its Ability, kept on a phone over Weapons (r5 C16)', async () => {
+    const { container } = renderWizard()
+    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
+    expect(container.querySelector('.su-wiz-compare-layout--wide')).not.toBeNull()
+    const head = (label: string) =>
+      [...container.querySelectorAll('thead th')].find((th) => th.textContent === label)
+    expect(head('Ability')?.getAttribute('data-kind')).toBe('line')
+    expect(head('Ability')?.hasAttribute('data-phone')).toBe(true)
+    expect(head('Weapons')?.hasAttribute('data-phone')).toBe(false)
+  })
+
   it('the Augmented type surfaces the +1 Training Point callout (text only)', async () => {
     renderWizard()
     await waitFor(() => screen.getByRole('radio', { name: 'Augmented' }))
