@@ -75,6 +75,11 @@
   padding: var(--space-4) var(--space-12) var(--space-6);
 }
 
+/* The page's address: paper's alone (`theme.css`'s print rules, r5 E9). */
+.su-footer__address {
+  display: none;
+}
+
 /* Thumb first (ruleset §4.6): 44px targets under a coarse pointer, and at
  * phone width whatever the pointer, so a phone-sized window never draws the
  * footer's links at 32px. */

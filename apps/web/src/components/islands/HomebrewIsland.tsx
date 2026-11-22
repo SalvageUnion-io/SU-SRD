@@ -169,6 +169,8 @@ function ChassisHomebrew({ chassisRef }: { chassisRef: string }) {
         none ? undefined : (
           <Toggle
             pressed={on}
+            // A switch is the screen's: paper leaves it out (r5 E9).
+            data-print="hide"
             onClick={() => {
               writeShowHomebrew(!on)
               setOn(!on)
