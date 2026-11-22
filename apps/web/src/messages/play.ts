@@ -33,7 +33,8 @@ export const playCopy = messages({
   addTheBot: 'Add the bot to your server',
   addTheBotFirst: 'The SalvageUnion.io bot has to be in the Discord server first.',
   copySuBind: 'Copy /su bind',
-  noDiscordChannelIsBound: 'No Discord channel is bound to {whose} yet, so its rolls stay in Play.',
+  noDiscordChannelIsBound:
+    'No Discord channel is bound to {whose} yet, so its rolls stay at the table.',
   rollsFromPostToIts:
     'Rolls from {whose} post to its bound Discord channel, as the bot’s roll card. Bound {dateTime}.',
   yourRollsPostToYourOwn:
@@ -158,10 +159,11 @@ export const playCopy = messages({
   thatIsNotAnInvite: 'That is not an invite link.',
   join: 'Join',
   signInToRunYour: 'Sign in to run your Game',
-  theMediatorRunsAGame: 'The Mediator runs a Game from Play. Sign in to open this one.',
+  theMediatorRunsAGame:
+    'The Mediator runs a Game from its page, under Games. Sign in to open this one.',
   onlyThisGamesMediatorRuns: "Only this Game's Mediator runs this screen",
   mediateIsForWhoeverMediates:
-    'Mediate is for whoever mediates the Game. Its players play their Pilots from Play.',
+    'Mediate is for whoever mediates the Game. Its players play their Pilots from the Game’s page.',
   dismount: 'Dismount',
   eject: 'Eject',
   board: 'Board',
@@ -245,7 +247,7 @@ export const playCopy = messages({
   notAnNpc: 'not an NPC: run it yourself',
   pinnedTables: 'Pinned tables',
   thisEncountersTables: "This encounter's tables",
-  channelNoneBound: 'None bound: rolls stay in Play',
+  channelNoneBound: 'None bound: rolls stay at the table',
   channelNoneBoundPlayer: 'None bound: the Mediator or Organiser connects one',
   channelSetUp: 'Set up',
   channelSetUpLabel: 'Set up a Discord channel',

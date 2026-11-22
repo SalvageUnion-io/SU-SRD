@@ -605,7 +605,7 @@ describe('the Discord channel on the Game page', () => {
   test('the Organiser is offered Set up there, and in Game settings', async () => {
     await renderLive({ 'games.get': { ...GAME, organizer: true } })
     const sidebar = within(screen.getByRole('complementary', { name: 'The Game' }))
-    expect(sidebar.getByText('None bound: rolls stay in Play')).toBeTruthy()
+    expect(sidebar.getByText('None bound: rolls stay at the table')).toBeTruthy()
     expect(sidebar.getAllByRole('button', { name: /Discord channel/ }).length).toBe(1)
     await openGameMenu()
     fireEvent.click(screen.getByRole('menuitem', { name: 'Game settings…' }))
@@ -712,7 +712,7 @@ describe('a game the viewer is not in', () => {
     expect(screen.getByText(/not in this Game/i)).toBeTruthy()
     expect(screen.getByText(/invite link/i)).toBeTruthy()
     expect(heading('Crew & seats')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/games/')
+    expect(screen.getByRole('link', { name: 'Back to Games' }).getAttribute('href')).toBe('/games/')
   })
 
   test('still loading is not the same as not a member', async () => {

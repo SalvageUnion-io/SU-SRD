@@ -437,7 +437,7 @@ describe('Discord (play.md §9)', () => {
     expect(postRoll).toHaveBeenCalledTimes(1)
   })
 
-  test('nothing bound: the Tables say rolls stay in Play; nothing is sent', async () => {
+  test('nothing bound: the Tables say rolls stay at the table; nothing is sent', async () => {
     answers({ 'channelBindings.current': null })
     await renderSide()
     // A player cannot bind a Game's channel: told who can, offered no control.
@@ -456,7 +456,7 @@ describe('Discord (play.md §9)', () => {
   test('nothing bound, the Mediator’s: the row sets one up, with the bot’s link and the command', async () => {
     answers({ 'channelBindings.current': null })
     await renderSide({ mediator: true })
-    expect(screen.getByText('None bound: rolls stay in Play')).toBeTruthy()
+    expect(screen.getByText('None bound: rolls stay at the table')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Set up a Discord channel' }))
     const dialog = within(await screen.findByRole('dialog'))
     expect(

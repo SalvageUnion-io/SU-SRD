@@ -158,10 +158,10 @@ describe('who may open a Game’s Prep', () => {
     expect(screen.queryByText('Game notes')).toBeNull()
   })
 
-  test('a Game that is gone sends its reader back to Play', async () => {
+  test('a Game that is gone sends its reader back to Games', async () => {
     setQueryAnswers({ 'games.get': null })
     await renderPrep()
-    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/games')
+    expect(screen.getByRole('link', { name: 'Back to Games' }).getAttribute('href')).toBe('/games')
   })
 
   test('its Mediator gets the page, named for the Game, with the door to Mediate', async () => {

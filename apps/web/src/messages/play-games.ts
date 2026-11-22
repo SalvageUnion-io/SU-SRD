@@ -32,11 +32,12 @@ export const playGamesCopy = messages({
   mediate: 'Mediate',
   youAreNotInThis:
     'You are not in this Game. Ask its Organiser for the invite link, then open it to join.',
-  play: 'Play',
+  // The way back names the place the header names (glossary 9): Games, never "Play".
+  play: 'Games',
   inviteLink: 'Invite link',
   thisGame: 'this Game',
   signInToOpenThis: 'Sign in to open this Game',
-  aGameLivesOnIts: "A Game lives on its players' accounts. Sign in, then open it from Play.",
+  aGameLivesOnIts: "A Game lives on its players' accounts. Sign in, then open it from Games.",
   yourSession: 'your session',
   thisGameOpensOnceYou: 'This Game opens once you are back online',
   aGamesPageIsRead:
@@ -115,7 +116,7 @@ export const playGamesCopy = messages({
   decline: 'Decline',
   decline2: 'Decline {what}',
   proposalsYouSent: 'Proposals you sent',
-  nothingSentYetProposeA: 'Nothing sent yet. Propose a change from Mediate, in Play.',
+  nothingSentYetProposeA: 'Nothing sent yet. Propose a change from Mediate.',
   member: 'Member',
   theGame: 'The Game',
   appoint: 'Appoint',
