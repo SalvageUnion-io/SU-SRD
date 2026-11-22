@@ -27,7 +27,7 @@ import type { Scope, Served, Table } from './replica'
 import { release, serve } from './replica'
 import { noteRoomChange } from './roomChanges'
 import { dropSharedByLink, holdSharedByLink, putSharedByLink } from './sharedByLink'
-import { WritesBlockedOffline } from './sync'
+import { syncStatus, WritesBlockedOffline } from './sync'
 import { dropTableState, isStateTable, putTableState, serveTableState } from './tableState'
 
 /**
@@ -263,7 +263,8 @@ export const ROOM_OPEN_WAIT_MS = 10_000
  * The room `gameId`'s writes go through, waiting up to `waitMs` while its
  * socket is still opening: a page is `live` as soon as its session is, a
  * moment before its sockets are, so a write made then waits for the socket
- * instead of failing as offline. A unit test's stand-in answers too unless
+ * instead of failing as offline, as does one made live before the feed has
+ * opened the account room at all. A unit test's stand-in answers too unless
  * `standIns` is false (`useTableAct` takes only an open room). Null when the
  * room is not open and none is coming.
  */
@@ -272,7 +273,10 @@ export async function roomReady(
   { standIns = true, waitMs = ROOM_OPEN_WAIT_MS }: { standIns?: boolean; waitMs?: number } = {}
 ): Promise<Room | null> {
   const now = standIns ? roomOrStandIn(gameId) : roomOf(gameId)
-  if (now !== null || !coming.has(gameId ?? ACCOUNT)) return now
+  // Live, the feed opens the account room (`RoomFeed`), a moment after the
+  // page turns live: a write made in that moment waits for it as well.
+  const expected = coming.has(gameId ?? ACCOUNT) || (gameId === null && syncStatus() === 'live')
+  if (now !== null || !expected) return now
   return await new Promise((resolve) => {
     const done = (room: Room | null) => {
       clearTimeout(timer)

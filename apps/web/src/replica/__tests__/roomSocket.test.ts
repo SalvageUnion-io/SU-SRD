@@ -18,7 +18,7 @@ import {
   roomOf,
   roomReady,
 } from '../roomSocket'
-import { WritesBlockedOffline } from '../sync'
+import { resetSync, WritesBlockedOffline } from '../sync'
 import { resetStores } from './resetStores'
 
 const unit = (kind: 'pilot' | 'crawler', body: { id: string }, gameId: string | null, seq = 1) => ({
@@ -244,6 +244,24 @@ describe('openRoom', () => {
     expect(await ready).toBe(roomOf(null))
     expect(await ready).not.toBeNull()
     close()
+  })
+
+  test('live, a write made before the feed opens the account room waits for it, not failing as offline', async () => {
+    // A page is live a moment before its feed mounts (`RoomFeed`): a press then
+    // (Make a copy on a freshly loaded Starter sheet) waits for the account room.
+    resetSync('live')
+    try {
+      const ready = roomReady(null, { standIns: false })
+      const close = openRoom('/__rooms/account/socket', 'account')
+      ;(FakeSocket.all[0] as FakeSocket).opens()
+      expect(await ready).toBe(roomOf(null))
+      expect(await ready).not.toBeNull()
+      close()
+      // A Game's room is opened only for a Game the feed knows: none coming, no wait.
+      expect(await roomReady('g1', { standIns: false, waitMs: 60_000 })).toBeNull()
+    } finally {
+      resetSync()
+    }
   })
 
   test('with no socket coming, or none opening in time, there is no room', async () => {
