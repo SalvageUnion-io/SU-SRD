@@ -24,6 +24,7 @@ import { lazy, Suspense } from 'react'
 import { GameDataGate } from '../../components/GameDataGate'
 import { RoutePending } from '../../components/shared/RouteFallbacks'
 import type { CreateMode } from '../../lib/wizard/createMode'
+import { buildAccountCopy } from '../../messages/build-account'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { sharedCopy } from '../../messages/components-shared'
 import { useSync } from '../../replica/syncContext'
@@ -122,6 +123,8 @@ export function SignInGate({ kind, returnTo }: { kind: SheetKind | 'npc'; return
             : buildWizardCopy('signInToBuildA', { kind })
         }
         redirectTo={returnTo}
+        // An NPC's wall says what signing in gives a Mediator (r6 F9).
+        {...(kind === 'npc' ? { body: buildAccountCopy('buildYourNpcs') } : {})}
       />
     </main>
   )

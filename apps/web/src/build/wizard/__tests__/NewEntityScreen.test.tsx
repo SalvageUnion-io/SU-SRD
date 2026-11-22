@@ -108,6 +108,9 @@ describe('NewEntityScreen — signed out', () => {
     signedOut('guided', 'npc')
     expect(screen.getByRole('heading', { name: 'Sign in to build an NPC' })).toBeTruthy()
     expect(screen.queryByTestId('stub-wizard')).toBeNull()
+    // The NPC's wall talks about NPCs, not the Pilots, Mechs and Crawlers line (r6 F9).
+    expect(screen.getByText(/Design NPCs and the encounters/)).toBeTruthy()
+    expect(screen.queryByText(/Pilots, Mechs and Union Crawlers/)).toBeNull()
   })
 })
 

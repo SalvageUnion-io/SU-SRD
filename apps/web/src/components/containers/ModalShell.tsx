@@ -14,7 +14,8 @@ type ModalShellProps = {
   title: string
   subtitle?: string
   /**
-   * sr-only accessibility description (defaults to the title).
+   * sr-only accessibility description, read after the title; unset, none (the
+   * title is said once, r6 F8).
    *
    * `null` means the children render a VISIBLE `Dialog.Description` of their
    * own, so the popup is described by the text the reader actually sees rather
@@ -175,9 +176,12 @@ export function ModalShell({
         finalFocus={finalFocus}
         style={container ? CONTAINED_POPUP : popupStyle}
       >
-        {!ownTitle && <Dialog.Title className="su-sr-only">{title}</Dialog.Title>}
-        {description !== null && (
-          <Dialog.Description className="su-sr-only">{description ?? title}</Dialog.Description>
+        {/* The title is said once (r6 F8): the cut-out's visible heading
+            names the popup; only a bare one, which draws its own frame, names
+            it with a hidden one. A description is read only when it says more. */}
+        {bare && !ownTitle && <Dialog.Title className="su-sr-only">{title}</Dialog.Title>}
+        {typeof description === 'string' && (
+          <Dialog.Description className="su-sr-only">{description}</Dialog.Description>
         )}
 
         {bare ? (
@@ -188,6 +192,7 @@ export function ModalShell({
           // foot, the × on the band.
           <TitledBox
             title={title}
+            {...(ownTitle ? {} : { titleAs: Dialog.Title })}
             paint={paint}
             className="su-modal-panel"
             body="flush"
