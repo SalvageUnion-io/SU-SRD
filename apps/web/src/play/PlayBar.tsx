@@ -72,16 +72,17 @@ const TITLE_CAPS = capsLabel({ size: 'readout' })
 
 /**
  * The phone's title, "Moth · Ines Park": the callsign is never cut (r5 B13),
- * only what follows it gives way. A grid whose first track is the callsign's
- * own width and whose second can shrink to nothing, so the title's least
- * width is the callsign's.
+ * only what follows it gives way. A flex line whose callsign never shrinks
+ * and whose rest can shrink to nothing, so the title's least width is the
+ * callsign's.
  */
 const LINE_TITLE = {
-  display: 'grid',
-  gridTemplateColumns: 'max-content minmax(0, auto)',
+  display: 'flex',
   minWidth: 'min-content',
 } satisfies CSSProperties
+const KEEPS = { flexShrink: 0 } satisfies CSSProperties
 const GIVES_WAY = {
+  minWidth: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -213,7 +214,7 @@ export function PlayBar({
           </h1>
         ) : (
           <h1 className={cn(NOTCH, TITLE_CAPS)} style={{ ...TITLE, ...LINE_TITLE }}>
-            <span>{lineTitle[0]}</span>
+            <span style={KEEPS}>{lineTitle[0]}</span>
             <span style={GIVES_WAY}>{lineTitle[1]}</span>
           </h1>
         )}
