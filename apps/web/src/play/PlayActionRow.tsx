@@ -61,6 +61,8 @@ type PlayActionRowProps = {
   canWrite: boolean
   /** Why it cannot run as it stands (out of range, over the Heat Cap), or null. */
   locked: string | null
+  /** Not to be used at all now (a Down Mech's, r6 A7): the lock says why, and no Use is offered. */
+  unavailable?: boolean
   /** The pilot's crawler Tech Level: an item's action scales with it (Custom Sniper Rifle damage). */
   techLevel?: number | undefined
   /** The row sits under its action type's heading, so its head leaves the type out (C10). */
@@ -124,6 +126,7 @@ export function PlayActionRow({
   onUse,
   canWrite,
   locked,
+  unavailable = false,
   techLevel,
   grouped = false,
   uses = null,
@@ -168,7 +171,7 @@ export function PlayActionRow({
   const away = entry.need !== null
   const size = wide ? 'mini' : 'compact'
   const control =
-    away || entry.type === 'Passive' ? null : open ? (
+    away || entry.type === 'Passive' || (unavailable && !open) ? null : open ? (
       <Button
         size={size}
         className="su-play-act__use"

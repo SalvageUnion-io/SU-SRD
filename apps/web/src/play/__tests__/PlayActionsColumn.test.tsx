@@ -25,7 +25,6 @@ import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechI
 import { playTxn } from '../../replica/provenance'
 import { ACTION_TYPE_ORDER } from '../playActions.model'
 import type { PlayRoll } from '../playRolls.model'
-import { narrowViewport } from './narrowViewport'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
@@ -205,27 +204,26 @@ describe('under the Scene’s conditions', () => {
   })
 })
 
-describe('who is up (r5 A4)', () => {
-  test('below lg the Act tab says whose turn it is, and nothing while nobody is up', () => {
-    const restore = narrowViewport()
-    const mech = makeMech()
+describe('the Heat Check the rules call for (r6 A6)', () => {
+  test('at its Heat Capacity the boarded Mech’s Heat Check heads the Actions, its Roll right there', async () => {
+    const probe = makeMech({ chassisRef: 'leviathan' })
+    const cap = mechMaxHeat(probe, resolveChassisRef(probe.chassisRef))
+    expect(cap).toBeGreaterThan(0)
+    const mech = makeMech({ chassisRef: 'leviathan', currentHeat: cap })
     const pilot = makePilot()
     const { store } = stubStore(mech, pilot)
-    render(
-      <Harness
-        pilot={pilot}
-        mech={mech}
-        situation="boarded"
-        store={store}
-        writes={[]}
-        scene={{ conditions: [], hours: 0, upNow: 'p1' }}
-      />
-    )
-    expect(document.querySelector('[data-up-now]')?.textContent).toBe('Up now · You')
+    render(<Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />)
+    const due = `Heat ${cap}/${cap}: make a Heat Check`
+    // Said at the Actions' head and on the Reactor's own row.
+    expect(screen.getAllByText(due)).toHaveLength(2)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Roll the Heat Check' }))
+    })
+    const reactor = document.querySelector('[data-action-key="reactor"]') as HTMLElement
+    expect(reactor.querySelector('[aria-live="polite"]')?.textContent).not.toBe('')
     cleanup()
     renderBoarded()
-    expect(document.querySelector('[data-up-now]')).toBeNull()
-    restore()
+    expect(screen.queryByRole('button', { name: 'Roll the Heat Check' })).toBeNull()
   })
 })
 
@@ -500,19 +498,11 @@ describe('Use: the resolve, in the Compact', () => {
     expect(row.getAttribute('data-open')).toBeNull()
   })
 
-  test('a Down mech’s action asks Act anyway once, then opens as any (r5 A1)', async () => {
-    const { writes } = renderBoarded({ mech: makeMech({ currentSP: 0 }) })
-    await click(use(primary().name))
-    const dialog = screen.getByRole('alertdialog', { name: 'Buzzard is at 0 SP. Act anyway?' })
-    expect(writes.filter((w) => w.name === 'seat.setResolving')).toHaveLength(0)
-    await click(within(dialog).getByRole('button', { name: 'Act anyway' }))
-    const row = rowFor(primary().name)
-    expect(row.getAttribute('data-open')).toBe('true')
-    await click(within(row).getByRole('button', { name: `Cancel ${primary().name}` }))
-    // Asked once while it stays Down.
-    await click(use(primary().name))
-    expect(screen.queryByRole('alertdialog')).toBeNull()
-    expect(rowFor(primary().name).getAttribute('data-open')).toBe('true')
+  test('a Down Mech’s actions are not offered: Down, and repair in Downtime the way back (r6 A7)', () => {
+    renderBoarded({ mech: makeMech({ currentSP: 0 }) })
+    expect(screen.queryByRole('button', { name: `Use ${primary().name}` })).toBeNull()
+    const row = document.querySelector(`[data-action-key="${primaryKey()}"]`) as HTMLElement
+    expect(within(row).getByText('Down · repair it in Downtime')).toBeTruthy()
   })
 
   test('Activate writes the EP spend through the store', async () => {

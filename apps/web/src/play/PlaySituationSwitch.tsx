@@ -24,6 +24,7 @@ import type { BoardOption } from './boardMenu.model'
 import { boardable, boardedMechName, boardMenuSections } from './boardMenu.model'
 import type { Play } from './situation.model'
 import { useSituationMoves } from './useSituationMoves'
+import { isDown } from './zeroVital.model'
 
 const ROW = {
   alignItems: 'center',
@@ -68,6 +69,11 @@ export function PlaySituationSwitch({
 
   const boardedName = boardedMechName(play)
   const boarded = situation === 'boarded'
+  // A Down Mech is never offered as boarded (r6 A7): where it is, and that it is Down.
+  const downName =
+    boarded && play.boardedMech !== null && isDown(play.boardedMech.currentSP)
+      ? play.boardedMech.name
+      : null
 
   return (
     <div style={fill ? FILL_ROW : ROW}>
@@ -93,6 +99,7 @@ export function PlaySituationSwitch({
           mechs={mechs}
           pressed={boarded}
           boardedName={boardedName}
+          downName={downName}
           disabled={!canWrite}
           onChoose={(option) => go({ kind: 'board', option })}
         />
@@ -129,17 +136,27 @@ function BoardOptionControl({
   mechs,
   pressed,
   boardedName,
+  downName = null,
   disabled,
   onChoose,
 }: {
   mechs: readonly BoardOption[]
   pressed: boolean
   boardedName: string | null
+  /** The boarded Mech, while it is Down at 0 SP (r6 A7). */
+  downName?: string | null
   disabled: boolean
   onChoose: (option: BoardOption) => void
 }) {
   const only = mechs.length === 1 ? mechs[0] : undefined
-  const label = pressed ? (boardedName === null ? 'Boarded' : `Boarded · ${boardedName}`) : 'Board'
+  const label =
+    downName !== null
+      ? playCopy('mechIsDownHere', { name: downName })
+      : pressed
+        ? boardedName === null
+          ? 'Boarded'
+          : `Boarded · ${boardedName}`
+        : 'Board'
 
   if (mechs.length === 0) {
     return (
@@ -155,7 +172,10 @@ function BoardOptionControl({
   }
 
   if (only !== undefined) {
-    const text = `${pressed ? 'Boarded' : 'Board'} · ${pressed && boardedName !== null ? boardedName : only.name}`
+    const text =
+      downName !== null
+        ? label
+        : `${pressed ? 'Boarded' : 'Board'} · ${pressed && boardedName !== null ? boardedName : only.name}`
     return (
       <SegmentedOption
         pressed={pressed}
