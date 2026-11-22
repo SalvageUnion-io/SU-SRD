@@ -376,6 +376,17 @@ describe('the sections under the roster', () => {
     expect(screen.getByText(/Hand over needs another member/)).toBeTruthy()
   })
 
+  test('the Mediator’s band has one Mediate, the session’s state under it, and no Start (r6 C3)', async () => {
+    await renderHub({
+      'games.get': { ...GAME, mediator: true, tableRunner: true },
+      'session.state': { live: false, startedAt: null },
+    })
+    const mediate = screen.getByRole('link', { name: 'Mediate' })
+    expect(mediate.getAttribute('href')).toBe('/games/g1/mediate')
+    expect(screen.getByText('The session starts when you play')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Start group session' })).toBeNull()
+  })
+
   test('the Organiser renames the Game in place, on its band (r6 C9)', async () => {
     await renderHub({
       'games.get': { ...GAME, organizer: true, mediator: true },

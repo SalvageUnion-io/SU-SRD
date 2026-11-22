@@ -135,6 +135,9 @@ export const playGamesCopy = messages({
   gameSettingsMenu: 'Game settings…',
   gameSettings: 'Game settings',
   gameName: 'Name',
+  // Under the band's Mediate (r6 C3).
+  sessionStartsWithPlay: 'The session starts when you play',
+  noSessionYet: 'No session yet',
   // The band's title, renamed in place (r6 C9).
   renameGame: 'Rename {name}',
   gameNameField: 'Game name',

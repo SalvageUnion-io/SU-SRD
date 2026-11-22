@@ -14,6 +14,12 @@ import { seedTemplate } from './template'
 /** Who is acting, in which Game, and when: the Worker vouches for the first, the room supplies the rest. */
 type ActContext = { room: GameRoomLogic; actor: string; gameId: string; at: number }
 
+/** A table act that played: it starts the group session when none is live (r6 C3, `startWithPlay`). */
+function withPlay<T>(c: ActContext, value: T): T {
+  c.room.session.startWithPlay(c.actor, c.at)
+  return value
+}
+
 /** A seat write's address. */
 type SeatArgs = { pilotId: string }
 
@@ -124,7 +130,7 @@ const GAME_ACTS = {
   'changeLog.appendChangeLog': (c: ActContext, a: { entries: LogEntry[] }) =>
     c.room.log.append(c.actor, a.entries),
   'changeLog.broadcast': (c: ActContext, a: { message: string }) =>
-    c.room.log.broadcast(c.actor, a.message, c.at),
+    withPlay(c, c.room.log.broadcast(c.actor, a.message, c.at)),
   'changeLog.withdrawAlert': (c: ActContext, a: { alertId: string }) =>
     c.room.log.withdrawAlert(c.actor, a.alertId),
   'changeLog.reveal': (c: ActContext, a: { rollId: string }) =>
@@ -150,7 +156,7 @@ const GAME_ACTS = {
   'mediator.runEncounter': (
     c: ActContext,
     a: { encounter: unknown; clear: boolean; waves?: boolean }
-  ) => c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at),
+  ) => withPlay(c, c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at)),
   'mediator.bringInWave': (c: ActContext, a: { wave: number }) =>
     c.room.opposition.bringInWave(c.actor, a.wave, c.at),
   'mediator.endEncounter': (c: ActContext, a?: { clear?: boolean }) =>
@@ -167,6 +173,8 @@ const GAME_ACTS = {
     c.room.scene.setUpNow(c.actor, a.pilotId, c.at)
     // The turn moved on: what its pilot left unapplied is closed (r5 A7).
     if (was !== undefined && was !== a.pilotId) c.room.play.closeUnapplied([was], c.at)
+    // Giving the turn is playing (r6 C3); taking it back is not.
+    if (a.pilotId !== null) withPlay(c, undefined)
   },
   'scenes.endTurn': (c: ActContext) => {
     const pilotId = c.room.scene.endTurn(c.actor, c.at)
