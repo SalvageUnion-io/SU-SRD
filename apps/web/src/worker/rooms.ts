@@ -562,9 +562,27 @@ export class GameRoom extends Room {
     this.published()
   }
 
-  /** The same messages to every member's open socket. */
+  /**
+   * The same messages to every member's open socket. A unit's `applied` goes
+   * only to the members the room serves that unit (`readerOf`, r3 A3): an NPC
+   * kept from a player never reaches their socket with its op either.
+   */
   private broadcast(messages: readonly ServerMessage[]): void {
-    sendEach(this.ctx, messages, (member) => this.isMember(member))
+    const open = messages.filter((message) => message.type !== 'applied')
+    if (open.length === messages.length) {
+      sendEach(this.ctx, messages, (member) => this.isMember(member))
+      return
+    }
+    for (const message of messages) {
+      const unitId = message.type === 'applied' ? message.unit.appId : null
+      const unit = unitId === null ? null : this.logic.store.unit(unitId)
+      sendEach(
+        this.ctx,
+        [message],
+        (member) =>
+          this.isMember(member) && (unit === null || this.logic.units.readerOf(member)(unit))
+      )
+    }
   }
 
   /** Who is here, to every open socket but `gone` (the one closing). */

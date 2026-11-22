@@ -279,20 +279,51 @@ export class GameUnits {
     })
   }
 
-  /** Every unit, for any member to read. Non-members read nothing (ADR-030 §5). */
-  list(actor: string): UnitRow[] {
-    if (this.store.member(actor) === null) return []
-    return this.store.units()
+  /**
+   * Which units `actor` may read (ADR-030 §5): every pilot, mech and crawler,
+   * for any member; nothing for a non-member. An NPC in a Game is its
+   * Mediator's (r3 A3): the table runner reads it, and whoever made it; the
+   * rest of the table only one that crews a crawler, which that crawler's
+   * sheet shows them. The room withholds every other, so a player who follows
+   * its address is served nothing of it.
+   */
+  readerOf(actor: string): (unit: UnitRow) => boolean {
+    const member = this.store.member(actor)
+    if (member === null) return () => false
+    if (this.store.isTableRunner(member)) return () => true
+    return (unit) =>
+      unit.kind !== 'npc' ||
+      unit.ownerId === actor ||
+      this.store.linksTouching(unit.id).some((link) => link.type === 'npc-to-crawler')
   }
 
-  /** The Game's wiring, for any member. */
+  /** Every unit `actor` may read (`readerOf`). */
+  list(actor: string): UnitRow[] {
+    return this.store.units().filter(this.readerOf(actor))
+  }
+
+  /** The Game's wiring, for any member: never a link to a unit they may not read. */
   links(actor: string): LinkShape[] {
     if (this.store.member(actor) === null) return []
-    return this.store.links()
+    const hidden = this.hiddenFrom(actor)
+    return this.store.links().filter((l) => !hidden.has(l.from.id) && !hidden.has(l.to.id))
+  }
+
+  /** The ids of the units the room withholds from `actor` (`readerOf`). */
+  hiddenFrom(actor: string): ReadonlySet<string> {
+    const reads = this.readerOf(actor)
+    return new Set(
+      this.store
+        .units('npc')
+        .filter((unit) => !reads(unit))
+        .map((unit) => unit.id)
+    )
   }
 
   /** One unit's op log, newest first, for its Change Log. */
   history(actor: string, unitId: string): StoredOp[] {
+    const unit = this.store.unit(unitId)
+    if (unit !== null && !this.readerOf(actor)(unit)) return []
     if (this.store.member(actor) === null) return []
     return this.store.opsOf(unitId).reverse()
   }
