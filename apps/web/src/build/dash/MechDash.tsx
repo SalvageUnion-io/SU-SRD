@@ -71,6 +71,7 @@ import { MechItemControls } from '../sheet/MechItemMini'
 import type { MechSheetModel } from '../sheet/mechSheet.model'
 import type { ItemKind, MechSheetActions } from '../sheet/mechSheetActions.model'
 import { overSlots, slotCount } from '../sheet/mechSlots.model'
+import { usePrinting } from '../sheet/printing.model'
 import { cargoBreakToast } from '../sheet/ruleBreakToast.model'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { undoToast } from '../sheet/undoToast.model'
@@ -435,6 +436,14 @@ export function MechDash({
         ]}
       />
     ) : undefined
+  // On paper each part prints its rules line, with no opener to press (r5 C17).
+  const loadout = {
+    open: true,
+    as: 'h2',
+    className: 'su-open--loadout',
+    columns: ITEM_COLUMNS,
+    whole: usePrinting(),
+  } as const
   return (
     <>
       <Strip
@@ -452,9 +461,7 @@ export function MechDash({
         <DashColumn wide label={buildSheetCopy('whatHas', { name: mech.name })}>
           {(mech.systems.length > 0 || edit) && (
             <Ledger
-              open
-              as="h2"
-              className="su-open--loadout"
+              {...loadout}
               title={buildSheetCopy('systems')}
               actions={manage('system', buildSheetCopy('manageSystems'))}
               empty={buildSheetCopy('noSystemsInstalled')}
@@ -464,15 +471,12 @@ export function MechDash({
                 capacity.asPrinted,
                 'systems'
               )}
-              columns={ITEM_COLUMNS}
               groups={[{ key: 'systems', rows: loadoutRows('system') }]}
             />
           )}
           {(mech.modules.length > 0 || edit) && (
             <Ledger
-              open
-              as="h2"
-              className="su-open--loadout"
+              {...loadout}
               title={buildSheetCopy('modules')}
               actions={manage('module', buildSheetCopy('manageModules'))}
               empty={buildSheetCopy('noModulesInstalled')}
@@ -482,7 +486,6 @@ export function MechDash({
                 capacity.asPrinted,
                 'modules'
               )}
-              columns={ITEM_COLUMNS}
               groups={[{ key: 'modules', rows: loadoutRows('module') }]}
             />
           )}
