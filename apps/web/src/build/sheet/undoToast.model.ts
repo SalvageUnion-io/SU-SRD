@@ -50,14 +50,15 @@ function sheetChanged(sheetId: string): void {
 }
 
 /**
- * Say what was taken off, with Undo. Call it AFTER the write it reports: the
- * line leaves on the sheet's next write. `sheetId` is the unit's id.
+ * Say what was taken off, with Undo (or `label`: an undo's Redo). Call it
+ * AFTER the write it reports: the line leaves on the sheet's next write.
+ * `sheetId` is the unit's id.
  */
 export function undoToast(
   message: string,
   undo: () => void,
   sheetId: string,
-  { stack = false }: { stack?: boolean } = {}
+  { stack = false, label = componentsCopy('undo') }: { stack?: boolean; label?: string } = {}
 ) {
   if (stack) {
     serial += 1
@@ -68,7 +69,7 @@ export function undoToast(
     toast(message, {
       id: lineId,
       action: {
-        label: componentsCopy('undo'),
+        label,
         onClick: () => {
           unstack(sheetId, lineId)
           toast.dismiss(lineId)
@@ -87,7 +88,7 @@ export function undoToast(
   toast(message, {
     id: toastId(sheetId),
     action: {
-      label: componentsCopy('undo'),
+      label,
       onClick: () => {
         standing.delete(sheetId)
         undo()

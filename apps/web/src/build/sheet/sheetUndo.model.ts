@@ -3,6 +3,11 @@
  * menu's "Undo last change" all take ONE change back on the sheet as it is
  * now (`reverseChange`), in a write that names the change (`sheetUndo`), so
  * the log marks it taken back and the next press steps one change further.
+ *
+ * Ctrl+Z and "Undo last change" reach only the changes made in this tab
+ * (`madeInThisTab`, r5 C2): another tab's change is that tab's to take back,
+ * or the Change Log's. What this tab undid, Ctrl+Shift+Z or Ctrl+Y (and the
+ * undo's own Redo) puts back, newest first, until the sheet's next change.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
@@ -13,6 +18,7 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { sheetRedo, sheetUndo } from '../../replica/provenance'
 import { roomOf } from '../../replica/roomSocket'
 import type { UnitsState } from '../../replica/units'
+import { madeInThisTab, onUnitWrite } from '../../replica/units'
 import type { EntityLogRow } from '../../rooms/ops'
 import type { LogChange, LogDefaults, Reversal } from './changeLog.model'
 import { lastUndoable, logChanges, reversal, reverseChange } from './changeLog.model'
@@ -34,11 +40,58 @@ const typing = (target: EventTarget | null): boolean =>
   target instanceof HTMLElement &&
   (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
 
+/** What a key press asks of the sheet: Ctrl+Z undo, Ctrl+Shift+Z or Ctrl+Y redo. */
+export function sheetKey(
+  event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'>
+): 'undo' | 'redo' | null {
+  if (!(event.ctrlKey || event.metaKey) || event.altKey) return null
+  const key = event.key.toLowerCase()
+  if (key === 'z') return event.shiftKey ? 'redo' : 'undo'
+  if (key === 'y' && !event.shiftKey) return 'redo'
+  return null
+}
+
+/** The change this tab's Undo takes back next: the newest it made that still stands. */
+export const lastUndoableHere = (
+  changes: readonly LogChange[],
+  taken: ReadonlySet<string> = new Set()
+): LogChange | undefined =>
+  lastUndoable(changes.filter((each) => !taken.has(each.id) && madeInThisTab(each.id)))
+
+/** A change this tab undid: the change, its words, and the fields it put back. */
+type Undone = { change: LogChange; did: Reversal; prior: Record<string, unknown> }
+
 export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }: SheetUndoInput) {
   // Changes this sheet has taken back whose write the log may not show yet:
   // two quick presses step back twice, never the same change twice.
   const taken = useRef(new Set<string>())
   const busy = useRef(false)
+  // What Redo puts back, newest last; the sheet's next change (not ours) clears it.
+  const redos = useRef<Undone[]>([])
+  const ours = useRef(false)
+  useEffect(
+    () =>
+      onUnitWrite((written) => {
+        if (written === id && !ours.current) redos.current = []
+      }),
+    [id]
+  )
+
+  const write = (patch: Record<string, unknown>, meta: Parameters<UnitsState['update']>[3]) => {
+    ours.current = true
+    try {
+      return storeState.update(kind, id, patch, meta)
+    } finally {
+      ours.current = false
+    }
+  }
+
+  const redo = (undone: Undone): void => {
+    redos.current = redos.current.filter((each) => each !== undone)
+    taken.current.delete(undone.change.id)
+    runWrite(() => write(undone.prior, sheetRedo(undone.change.id)))
+    undoToast(buildSheetCopy('changeRedone'), () => void reverse(undone.change, undone.did), id)
+  }
 
   const reverse = (change: LogChange, did: Reversal): Promise<unknown> => {
     const now = storeState.get(kind, id) as Record<string, unknown> | null
@@ -46,17 +99,19 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     const back = reverseChange(change, now)
     const prior = Object.fromEntries(Object.keys(back).map((field) => [field, now[field]]))
     taken.current.add(change.id)
-    const done = storeState.update(kind, id, back, sheetUndo(change.id))
+    const done = write(back, sheetUndo(change.id))
     runWrite(() => done)
-    undoToast(
-      did.done,
-      () => {
-        taken.current.delete(change.id)
-        runWrite(() => storeState.update(kind, id, prior, sheetRedo(change.id)))
-      },
-      id
-    )
+    const undone: Undone = { change, did, prior }
+    redos.current = [...redos.current, undone]
+    undoToast(did.done, () => redo(undone), id, { label: buildSheetCopy('redo') })
     return done.catch(() => undefined)
+  }
+
+  const redoLast = (): void => {
+    if (blocked) return
+    const undone = redos.current.at(-1)
+    if (undone) redo(undone)
+    else toast(buildSheetCopy('nothingToRedo'), { id: `undo-none:${id}` })
   }
 
   const undoLast = async (): Promise<void> => {
@@ -66,9 +121,7 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     busy.current = true
     try {
       const rows = (await room.act('changeLog.forEntity', { entityId: id })) as EntityLogRow[]
-      const change = lastUndoable(
-        logChanges(rows, defaults).filter((each) => !taken.current.has(each.id))
-      )
+      const change = lastUndoableHere(logChanges(rows, defaults), taken.current)
       if (!change) {
         toast(buildSheetCopy('nothingToUndo'), { id: `undo-none:${id}` })
         return
@@ -81,20 +134,22 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     }
   }
 
-  // Ctrl+Z (Cmd+Z) anywhere on the sheet but in a text field, which keeps its own.
-  const latest = useRef(undoLast)
-  latest.current = undoLast
+  // Ctrl+Z (Cmd+Z), Ctrl+Shift+Z and Ctrl+Y anywhere on the sheet but in a
+  // text field, which keeps its own.
+  const latest = useRef({ undoLast, redoLast })
+  latest.current = { undoLast, redoLast }
   useEffect(() => {
     if (blocked) return undefined
     const onKey = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== 'z' || !(event.ctrlKey || event.metaKey)) return
-      if (event.shiftKey || event.altKey || event.defaultPrevented || typing(event.target)) return
+      const asked = sheetKey(event)
+      if (asked === null || event.defaultPrevented || typing(event.target)) return
       event.preventDefault()
-      void latest.current()
+      if (asked === 'undo') void latest.current.undoLast()
+      else latest.current.redoLast()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [blocked])
 
-  return { reverse, undoLast }
+  return { reverse, undoLast, redoLast }
 }

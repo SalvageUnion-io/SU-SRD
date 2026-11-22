@@ -28,6 +28,7 @@ const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
 const { useUnits } = await import('../../../replica/units')
 const { hold } = await import('../../../replica/replica')
+const { LIVE_SHEET_MANUAL } = await import('../../../replica/provenance')
 
 afterAll(() => {
   serverMocks.restore()
@@ -281,11 +282,30 @@ describe('Sheet — Change Log menu wiring', () => {
   })
 
   test('Ctrl+Z steps back one change at a time, each write naming the change it took back (r4 E3)', async () => {
-    const pilot = await useUnits.getState().create('pilot', basePilotInput)
+    const pilot = await useUnits.getState().create('pilot', {
+      ...basePilotInput,
+      callsign: 'Spook',
+      motto: 'Old words.',
+    })
     openRooms(null)
+    // Two changes this tab made (r5 C2: Ctrl+Z reaches only those), and one
+    // from another tab, newest in the log, that it passes by.
+    const opIds = () => batches.flatMap((batch) => batch.ops.map((op) => (op as { id: string }).id))
+    await useUnits
+      .getState()
+      .update('pilot', pilot.id, { motto: 'Everything burns.' }, LIVE_SHEET_MANUAL)
+    const op1 = opIds().at(-1)
+    await useUnits.getState().update('pilot', pilot.id, { callsign: 'Ghost' }, LIVE_SHEET_MANUAL)
+    const op2 = opIds().at(-1)
     const entries = [
-      row({ _id: 'op2:callsign', field: 'callsign', before: 'Spook', after: 'Ghost' }),
-      row({ _id: 'op1:motto', field: 'motto', before: 'Old words.', after: 'Everything burns.' }),
+      row({ _id: 'elsewhere:name', field: 'name', before: 'Yara', after: 'Yara Voss' }),
+      row({ _id: `${op2}:callsign`, field: 'callsign', before: 'Spook', after: 'Ghost' }),
+      row({
+        _id: `${op1}:motto`,
+        field: 'motto',
+        before: 'Old words.',
+        after: 'Everything burns.',
+      }),
     ]
     answerActs(({ name }) => (name === 'changeLog.forEntity' ? entries : undefined))
     connected(<Sheet kind="pilot" id={pilot.id} />)
@@ -295,16 +315,29 @@ describe('Sheet — Change Log menu wiring', () => {
     await act(async () => {
       fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true })
     })
-    await waitFor(() => expect(sources()).toContain('live-sheet-undo:op2'))
+    await waitFor(() => expect(sources()).toContain(`live-sheet-undo:${op2}`))
     expect(useUnits.getState().get('pilot', pilot.id)?.callsign).toBe('Spook')
+    expect(sources()).not.toContain('live-sheet-undo:elsewhere')
 
     // The log has not caught up: the next press still steps one further back.
     await act(async () => {
       fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true })
     })
-    await waitFor(() => expect(sources()).toContain('live-sheet-undo:op1'))
+    await waitFor(() => expect(sources()).toContain(`live-sheet-undo:${op1}`))
     expect(useUnits.getState().get('pilot', pilot.id)?.motto).toBe('Old words.')
-    expect(sources().filter((source) => source === 'live-sheet-undo:op2')).toHaveLength(1)
+    expect(sources().filter((source) => source === `live-sheet-undo:${op2}`)).toHaveLength(1)
+
+    // Ctrl+Shift+Z puts back the newest undone, and Ctrl+Y the one before (r5 C2).
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'Z', ctrlKey: true, shiftKey: true })
+    })
+    await waitFor(() => expect(sources()).toContain(`live-sheet-redo:${op1}`))
+    expect(useUnits.getState().get('pilot', pilot.id)?.motto).toBe('Everything burns.')
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'y', ctrlKey: true })
+    })
+    await waitFor(() => expect(sources()).toContain(`live-sheet-redo:${op2}`))
+    expect(useUnits.getState().get('pilot', pilot.id)?.callsign).toBe('Ghost')
 
     // In a text field Ctrl+Z is the field's own.
     const field = document.createElement('input')
