@@ -20,6 +20,8 @@ import {
   TRAIN_STEP_NAME,
   UPKEEP_STEP_NAME,
 } from 'game-domain/rules/downtime'
+import type { ScrapByTl } from 'game-domain/rules/tallyScrap'
+import { mechScrap, pilotScrap, scrapCount, sumScrap } from 'game-domain/rules/tallyScrap'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -46,10 +48,10 @@ const NO_MED_BAY: MedBayStatus = {
 }
 
 /** One label-first chip on a line: `SP | 14→20`, or a label alone (`Paid`). */
-type PlanChip = { label: string; value?: string }
+export type PlanChip = { label: string; value?: string }
 
 export type PlanLine = {
-  key: 'mech' | 'pilot' | 'uses' | 'resets' | 'train' | 'upkeep' | 'nanites'
+  key: 'mech' | 'pilot' | 'uses' | 'resets' | 'train' | 'upkeep' | 'nanites' | 'scrap'
   /** The unit or thing it applies to: "Buzzard", "Uses recharge". */
   title: string
   chips: PlanChip[]
@@ -441,4 +443,25 @@ export function stepNames(steps: readonly { name: string }[], indexes: readonly 
 /** The Downtime steps the ticked lines switch on. */
 export function stepsFor(lines: readonly PlanLine[], unticked: ReadonlySet<string>): DowntimeSteps {
   return onlySteps(lines.filter((l) => !unticked.has(l.key)).flatMap((l) => l.steps))
+}
+
+/** Scrap by Tech Level as chips, lowest first: `T1 | 2`, `T2 | 3`. */
+export function scrapChips(tally: ScrapByTl): PlanChip[] {
+  return Object.entries(tally)
+    .filter(([, n]) => (n ?? 0) > 0)
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([tl, n]) => ({ label: `T${tl}`, value: String(n) }))
+}
+
+/**
+ * Tally Salvage's line (Core Book p.227, r6 D1): the Scrap this pilot carries
+ * home, theirs and their mech's, by Tech Level. Null when they carry none.
+ */
+export function carriedScrap(
+  pilot: Pilot | null,
+  mech: Mech | null
+): { tally: ScrapByTl; count: number; chips: PlanChip[] } | null {
+  const tally = sumScrap(pilotScrap(pilot), mechScrap(mech))
+  const count = scrapCount(tally)
+  return count === 0 ? null : { tally, count, chips: scrapChips(tally) }
 }

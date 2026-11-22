@@ -38,6 +38,7 @@ export const ACCOUNT_ACTS: { [N in keyof Acts]: (c: Context, a: Args<N>) => unkn
   'downtime.setStep': (c, a) => c.room.solo.setDowntimeStep(c.actor, pilotOf(a), a.stepIndex),
   'downtime.end': (c, a) => c.room.solo.endDowntime(c.actor, pilotOf(a)),
   'downtime.claim': (c, a) => c.room.solo.claim(c.actor, pilotOf(a), a.claim, a.op),
+  'downtime.moveScrap': (c, a) => c.room.solo.moveScrap(c.actor, a, c.at),
   'changeLog.forEntity': (c, a) => entityLog(c.room.shelf.history(c.actor, a.entityId)),
 }
 

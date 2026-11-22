@@ -73,6 +73,9 @@ export const mediatorCopy = messages({
   downtimeStepOf: 'Downtime · Step {value} of {count}',
   ofDone: '{done} of {of} done',
   whoIsDone: 'Who is done',
+  scrapMoved: 'Scrap in',
+  scrapCarried: 'Carries Scrap',
+  scrapTotals: 'Scrap: {pool} in the crawler’s pool, {carried} still carried.',
   notFinished: 'Not finished: {who}. Next moves the table on all the same.',
   jumpToStepAsk: 'Jump to step {step}?',
   jumpToStepBody:

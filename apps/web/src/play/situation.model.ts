@@ -78,6 +78,8 @@ export type DowntimeView = {
   upkeepSpent: boolean
   /** Every member of the Game: one ready pip each; none solo. */
   members: readonly DowntimeMember[]
+  /** The pilots whose carried Scrap is in the crawler this Downtime (r6 D1); a Game's only. */
+  scrapMoved?: readonly string[]
 }
 
 /** The Game's or the solo seat's Downtime, and the writes Play may send for it. */
@@ -130,6 +132,14 @@ export type PlayDowntime = {
     crawlerId: string,
     patch: Record<string, unknown>
   ) => Promise<boolean>
+  /**
+   * Tally Salvage: move a pilot's carried Scrap (theirs and their mech's) into
+   * the crawler, taking the step (`downtime.moveScrap`, r6 D1). True when this
+   * call moved it. Null where no screen moves any.
+   */
+  moveScrap:
+    | ((move: { pilotId: string; mechId: string | null; crawlerId: string }) => Promise<boolean>)
+    | null
 }
 
 /**

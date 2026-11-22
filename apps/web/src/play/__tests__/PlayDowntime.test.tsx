@@ -100,6 +100,39 @@ function currentStep(): number {
 }
 const button = (name: string | RegExp) => within(stepBox()).getByRole('button', { name })
 
+// r6 D1 (LG6-12): Tally Salvage asked players to note their Scrap down.
+describe('Tally Salvage moves the Scrap', () => {
+  test('the carried Scrap by Tech Level, one press into the crawler, and the step taken', async () => {
+    const { pilot, mech, crawler } = units()
+    const carrying: Pilot = {
+      ...pilot,
+      genericInventory: [{ id: 's', name: 'Tech 1 Scrap', slotCost: 3, qty: 2 }],
+    }
+    const writes: Write[] = []
+    render(
+      <Harness
+        pilot={carrying}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(carrying, mech, crawler).store}
+        writes={writes}
+        downtime={{ stepIndex: 0 }}
+      />
+    )
+    const line = within(within(stepBox()).getByRole('list', { name: 'Carried Scrap' }))
+    expect(line.getByText('T1')).toBeTruthy()
+    expect(line.getByText('2')).toBeTruthy()
+    // The book's 'note it down' gives way to the move.
+    expect(within(stepBox()).queryByText(/note these down/i)).toBeNull()
+    await click(button('Move to the crawler'))
+    expect(writes).toContainEqual({
+      name: 'downtime.moveScrap',
+      args: { pilotId: 'dt-p', mechId: 'dt-m', crawlerId: 'dt-c' },
+    })
+    expect(within(stepBox()).getByText('Moved 2 Scrap to Tenacity.')).toBeTruthy()
+  })
+})
+
 describe('a solo Downtime, end to end', () => {
   test('every step in turn: Upkeep paid once, Restore and Train applied, then End', async () => {
     const { pilot, mech, crawler } = units()

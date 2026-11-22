@@ -34,7 +34,12 @@ import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
  * a box of their own (play.md §12).
  */
 
-import { downtimeMechPatch, downtimePilotPatch, isSeatFreeStep } from 'game-domain/rules/downtime'
+import {
+  downtimeMechPatch,
+  downtimePilotPatch,
+  isSeatFreeStep,
+  isTallyStep,
+} from 'game-domain/rules/downtime'
 import { useId, useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
 import { ConfirmDialog } from '../components/app'
@@ -54,6 +59,7 @@ import { playCopy } from '../messages/play'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
 import {
+  carriedScrap,
   healAgainPatch,
   mechBayOf,
   medBayOf,
@@ -119,6 +125,9 @@ export function PlayDowntimeStep({
   const lead = restoreLead(planInput)
   // A Game's step with nothing for this seat counts as done for it (r6 D2).
   const seatFree = inGame && isSeatFreeStep(stepIndex)
+  // Tally Salvage: the Scrap this pilot carries home, one press into the crawler (r6 D1).
+  const carried = isTallyStep(stepIndex) ? carriedScrap(pilot, mech) : null
+  const canMove = carried !== null && crawler !== null && downtime.moveScrap !== null
   const members = downtime.downtime.members
   const doneCount = downtime.downtime.completedBy.filter((m) =>
     members.some((member) => member.userId === m.userId)
@@ -199,6 +208,23 @@ export function PlayDowntimeStep({
     setNote(playCopy(ok ? 'appliedTo' : 'stepAlreadyDone', { what: fresh.name }))
   }
 
+  /** Move the carried Scrap into the crawler; the room takes the step with it. */
+  async function moveScrap() {
+    if (pilot === null || crawler === null || carried === null || downtime.moveScrap === null)
+      return
+    const ok = await downtime.moveScrap({
+      pilotId: pilot.id,
+      mechId: mech?.id ?? null,
+      crawlerId: crawler.id,
+    })
+    if (!ok) return
+    setClaimedHere(true)
+    recordPlayChange(
+      `${step.name} · ${playCopy('movedScrapTo', { count: carried.count, crawler: crawler.name })}`
+    )
+    setNote(playCopy('movedScrapTo', { count: carried.count, crawler: crawler.name }))
+  }
+
   /** Pay this Downtime's Upkeep (`payDowntimeUpkeep`). */
   function payTheUpkeep(): Promise<string | null> {
     return payDowntimeUpkeep({ crawler, store, claim: downtime.claim })
@@ -267,7 +293,27 @@ export function PlayDowntimeStep({
   return (
     <TitledBox title={step.name} as="section" chips={chip}>
       {lead && <p className="su-play-act__need">{lead}</p>}
-      {shown.length > 0 ? (
+      {carried !== null && pilot !== null && (
+        <ul className="su-play-dt-lines" aria-label={playCopy('carriedScrap')}>
+          <PlanLineItem
+            line={{
+              key: 'scrap',
+              title: playCopy('carriedScrap'),
+              chips: carried.chips,
+              steps: [],
+              skippable: false,
+              ...(crawler === null
+                ? { note: playCopy('scrapNeedsACrawler'), needsCrawler: true }
+                : {}),
+            }}
+            ticked
+            onToggle={() => undefined}
+            disabled
+            crawlerHref={inGame ? null : makeCrawlerHref(pilot.id)}
+          />
+        </ul>
+      )}
+      {carried !== null ? null : shown.length > 0 ? (
         <>
           {/* The ticks the words promise: said only where a line has one (r6 D2). */}
           {!claimed && applicable.length > 0 && (
@@ -298,7 +344,23 @@ export function PlayDowntimeStep({
         </p>
       )}
       <div className="su-play-dt-controls">
-        {claimed ? (
+        {canMove ? (
+          <>
+            {!claimed && (
+              <Button size="compact" onClick={() => void skip()} disabled={off}>
+                {playCopy('skip')}
+              </Button>
+            )}
+            <Button
+              size="compact"
+              variant="primary"
+              onClick={() => void moveScrap()}
+              disabled={off}
+            >
+              {playCopy('moveToTheCrawler')}
+            </Button>
+          </>
+        ) : claimed ? (
           <>
             <span className="su-play-act__state">{playCopy('done')}</span>
             {canHealAgain && (

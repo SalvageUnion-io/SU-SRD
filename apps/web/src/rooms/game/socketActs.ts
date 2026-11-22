@@ -82,6 +82,12 @@ const DOWNTIME_ACTS = {
   'downtime.setStep': PLACE.extend({ stepIndex: z.number() }),
   'downtime.end': PLACE,
   'downtime.claim': PLACE.extend({ claim: z.enum(['upkeep', 'nanites']), op: OpInputSchema }),
+  /** Tally Salvage: a pilot's carried Scrap into the crawler (r6 D1); the room builds the patches. */
+  'downtime.moveScrap': z.object({
+    pilotId: z.string(),
+    mechId: z.string().nullable(),
+    crawlerId: z.string(),
+  }),
 }
 
 /** A unit's Change Log, as the drawer reads it. */

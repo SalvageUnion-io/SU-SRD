@@ -1,6 +1,14 @@
 import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
+import type { ScrapByTl } from 'game-domain/rules/tallyScrap'
 import type { DowntimePlace, Running } from '../downtime'
-import { beginDowntime, claimed, claimInStep, doneSteps, moveDowntime } from '../downtime'
+import {
+  beginDowntime,
+  claimed,
+  claimInStep,
+  doneSteps,
+  moveDowntime,
+  moveScrapInStep,
+} from '../downtime'
 import type { UnitRow } from '../game/store'
 import { fromJsonOrNull } from '../game/store'
 import type { OpInput } from '../ops'
@@ -98,6 +106,22 @@ export class AccountSoloPlay extends SeatTable {
       if (crawler.kind !== 'crawler') throw new RoomRefusal('That is not a crawler')
       const room = { store: this.store, units: this.shelf.units, place }
       return claimInStep(room, claim, op, actor, crawler)
+    })
+  }
+
+  /** Move the pilot's carried Scrap to their crawler in Tally Salvage (`moveScrapInStep`, r6 D1). */
+  moveScrap(
+    actor: string,
+    a: { pilotId: string; mechId: string | null; crawlerId: string },
+    at: number
+  ): ScrapByTl | null {
+    return this.asPilot(actor, a.pilotId, (place) => {
+      const pilot = this.writable(actor, a.pilotId, 'pilot')
+      const mech = a.mechId === null ? null : this.writable(actor, a.mechId, 'mech')
+      const crawler = this.shelf.writable(actor, a.crawlerId)
+      if (crawler.kind !== 'crawler') throw new RoomRefusal('That is not a crawler')
+      const room = { store: this.store, units: this.shelf.units, place }
+      return moveScrapInStep(room, { pilot, mech, crawler }, actor, at)
     })
   }
 

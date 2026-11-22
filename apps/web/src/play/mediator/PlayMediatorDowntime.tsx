@@ -27,9 +27,11 @@
 import {
   CRAFT_STEP_NAME,
   currentDowntimeStep,
+  isTallyStep,
   isUpkeepStep,
   UPKEEP_STEP_NAME,
 } from 'game-domain/rules/downtime'
+import { scrapCount } from 'game-domain/rules/tallyScrap'
 import { useState } from 'react'
 import { crawlerUpkeepCost } from 'salvageunion-reference/rules'
 import { ConfirmDialog } from '../../components/app'
@@ -42,6 +44,7 @@ import { useUnits } from '../../replica/units'
 import { DowntimeStepNav } from '../DowntimeStepNav'
 import { PlayDowntimeActionRow } from '../PlayDowntimeActionRow'
 import { PlayDowntimeTrack } from '../PlayDowntimeTrack'
+import { carriedScrap } from '../playDowntime.model'
 import { playLineModel } from '../playLine.model'
 import { naniteStatus, processDowntimeNanites } from '../playNanites.model'
 import { reportingRoll } from '../playRolls.model'
@@ -83,6 +86,25 @@ export function PlayMediatorDowntime({
   const nanites = naniteStatus(unit)
   const craftStep = step?.name === CRAFT_STEP_NAME
   const working = seats.filter((seat) => !seatDone(seat, completedBy)).map((s) => s.name)
+  // Tally Salvage: each seat's carried Scrap and whether it is in, and the totals (r6 D1).
+  const tally = isTallyStep(idx)
+  const moved = new Set(downtime.downtime.scrapMoved ?? [])
+  const carriedBy = (pilotId: string, mechId: string | null) =>
+    carriedScrap(
+      store.get('pilot', pilotId) ?? null,
+      mechId === null ? null : (store.get('mech', mechId) ?? null)
+    )?.count ?? 0
+  const stillCarried = tally
+    ? seats.reduce((sum, seat) => sum + carriedBy(seat.pilotId, seat.mech?.id ?? null), 0)
+    : 0
+  const inPool = scrapCount({
+    1: unit?.scrapPool?.tl1,
+    2: unit?.scrapPool?.tl2,
+    3: unit?.scrapPool?.tl3,
+    4: unit?.scrapPool?.tl4,
+    5: unit?.scrapPool?.tl5,
+    6: unit?.scrapPool?.tl6,
+  })
 
   const rollFor: PlayActions['rollFor'] = async (tableName, label, options) =>
     reportingRoll(
@@ -119,6 +141,19 @@ export function PlayMediatorDowntime({
     if (setStep === null) return
     if (to - idx > 1) setJumpTo(to)
     else moveTo(to, () => setStep(to))
+  }
+
+  /**
+   * Under the other D1 ruling (`DOWNTIME_RULINGS.scrapMove`), Next from Tally
+   * Salvage moves every pilot's carried Scrap; `moveScrap` is null otherwise.
+   */
+  function sweepScrap() {
+    const move = downtime.moveScrap
+    if (!tally || move === null || unit === null) return
+    for (const seat of seats) {
+      if (moved.has(seat.pilotId) || carriedBy(seat.pilotId, seat.mech?.id ?? null) === 0) continue
+      void move({ pilotId: seat.pilotId, mechId: seat.mech?.id ?? null, crawlerId: unit.id })
+    }
   }
 
   async function pay() {
@@ -160,6 +195,7 @@ export function PlayMediatorDowntime({
           <ul className="su-entity-mini-list" aria-label={mediatorCopy('whoIsDone')}>
             {seats.map((seat) => {
               const isDone = seatDone(seat, completedBy)
+              const carried = (s: typeof seat) => carriedBy(s.pilotId, s.mech?.id ?? null)
               return (
                 <li key={seat.pilotId}>
                   <Entity
@@ -169,22 +205,39 @@ export function PlayMediatorDowntime({
                     // Where they are in the step, a state chip of the Mini's
                     // own Size, never loose words (C3, C8).
                     state={
-                      <Stat
-                        label={
-                          isDone
-                            ? mediatorCopy('done')
-                            : seat.present
-                              ? mediatorCopy('working')
-                              : mediatorCopy('away')
-                        }
-                        size="mini"
-                      />
+                      <>
+                        <Stat
+                          label={
+                            isDone
+                              ? mediatorCopy('done')
+                              : seat.present
+                                ? mediatorCopy('working')
+                                : mediatorCopy('away')
+                          }
+                          size="mini"
+                        />
+                        {tally && moved.has(seat.pilotId) && (
+                          <Stat label={mediatorCopy('scrapMoved')} size="mini" />
+                        )}
+                        {tally && !moved.has(seat.pilotId) && carried(seat) > 0 && (
+                          <Stat
+                            label={mediatorCopy('scrapCarried')}
+                            value={String(carried(seat))}
+                            size="mini"
+                          />
+                        )}
+                      </>
                     }
                   />
                 </li>
               )
             })}
           </ul>
+          {tally && (
+            <p className="su-play-resolve__note">
+              {mediatorCopy('scrapTotals', { pool: inPool, carried: stillCarried })}
+            </p>
+          )}
           {/* The Mediator may always move on; the note names who has not finished (r6 D2). */}
           {working.length > 0 && (
             <p className="su-play-resolve__note">
@@ -203,7 +256,10 @@ export function PlayMediatorDowntime({
               off={off}
               onBack={downtime.setStep === null ? null : () => downtime.setStep?.(idx - 1)}
               onEnd={last ? downtime.end : () => setConfirmEnd(true)}
-              onAdvance={() => moveTo(idx + 1, downtime.advance)}
+              onAdvance={() => {
+                sweepScrap()
+                moveTo(idx + 1, downtime.advance)
+              }}
               endEarly
             />
           </div>
