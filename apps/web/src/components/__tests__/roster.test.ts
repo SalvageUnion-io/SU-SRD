@@ -194,6 +194,7 @@ const ROSTER = {
     'useSearchCombobox',
     'StartHere',
     'StatMeanings', // a sheet's stat labels open what the number means (r4 E21)
+    'ScrapSplit', // a build's Scrap in a narrow cell, broken between Tech Levels (r6 E4)
     'MarkdownSection',
     'InlineMarkdown',
     'TraitProse',
