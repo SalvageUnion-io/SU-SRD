@@ -1,5 +1,5 @@
 import { X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useState } from 'react'
 import type { RefAbility, RefEntity } from 'salvageunion-reference'
 import {
   getEntitySlug,
@@ -18,6 +18,7 @@ import {
   resolveGroupBy,
   tlName,
 } from '../../lib/listingGroups'
+import { keepListingScroll } from '../../lib/listingScroll'
 import { entityTraitNames } from '../../lib/listingTraits'
 import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
@@ -184,6 +185,8 @@ function SchemaViewer({
   serverRender?: boolean
 }) {
   const { view, views, setView, fromUrl: viewInUrl } = listingView
+  // Back lands on the row the reader left, once these rows are in place.
+  useLayoutEffect(() => (serverRender ? undefined : keepListingScroll()), [serverRender])
   const initialData = useMemo(() => {
     const all = getModel(schemaId)?.all() ?? []
     if (!entryIds) return all

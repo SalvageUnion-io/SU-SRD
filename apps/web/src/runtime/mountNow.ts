@@ -1,6 +1,7 @@
 /**
  * When an `interaction` island cannot wait for the reader: its server markup
- * is not what this visit should show, so it mounts as soon as it is in view.
+ * is not what this visit should show, so it mounts as soon as it is in view
+ * (a listing at once, `mountsUnseen`).
  *
  * The server draws a listing unfiltered, in its default view. A shared link
  * that names a filter or a view, or a view the reader chose on an earlier
@@ -41,6 +42,18 @@ const MOUNTS_NOW: Record<string, Predicate> = {
     const schemaId = typeof props.schemaId === 'string' ? props.schemaId : ''
     return schemaId !== '' && stored(win, listingViewStorageKey(schemaId)) !== null
   },
+}
+
+/**
+ * Islands that mount without waiting to be seen: a listing is its page's
+ * rows, and Back restores the scroll far below its first box, where a
+ * listing waiting to be in view never mounted (r3 C1).
+ */
+const UNSEEN = ['SchemaViewerIsland']
+
+/** Whether an island that mounts now does so wherever the reader is on the page. */
+export function mountsUnseen(name: string): boolean {
+  return UNSEEN.includes(name)
 }
 
 /** Whether the island `name` must mount now instead of on the reader's first intent. */
