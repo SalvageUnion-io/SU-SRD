@@ -84,6 +84,8 @@ export function PilotAbilityItem({
           context="play"
           entity={ability}
           mode={{ kind: 'link' }}
+          // Two abilities of a tree differ in their last word: never cut (r4 E8).
+          wholeName
           {...(full ? { body: { children: <AbilityRules ability={ability} /> } } : {})}
         />
       }

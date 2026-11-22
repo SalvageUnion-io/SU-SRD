@@ -185,7 +185,8 @@ describe('PilotSheet — advancing says what it breaks (r2 E4, r3 B5)', () => {
     render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
 
     const bar = await focusAbility(ABILITY_L2)
-    const free = bar.getByRole('button', { name: 'Add to Yara Voss' })
+    // The button that breaks a rule says so before it is pressed (r4 E12).
+    const free = bar.getByRole('button', { name: 'Add anyway (rule breaking)' })
     expect(free.className).not.toContain('primary')
     expect(bar.getByRole('button', { name: 'Spend 1 TP and add' })).toHaveProperty('disabled', true)
     // In order in its tree: nothing the book asks first.
@@ -257,12 +258,14 @@ describe('MechSheet — soft warnings on system removal', () => {
     )
 
     await click(/^Manage systems$/i)
-    // The Installed pane reads the build's running Scrap cost beside the slots (r3 F3).
+    // The Installed pane reads what the build is worth beside the slots (r3 F3),
+    // by Tech Level, and never as a cost (r4 E10, E11).
     const installed = screen.getByRole('region', { name: /^Installed/i })
-    const cost = within(installed).getByText('Cost in Scrap').closest('.su-stat-cell')
-    expect(cost?.textContent).toBe(
-      `Cost in Scrap${SalvageUnionReference.Systems.getBySlug('smoke-machine')?.salvageValue}`
-    )
+    const smoke = SalvageUnionReference.Systems.getBySlug('smoke-machine')
+    const label = `Worth · T${smoke?.techLevel} Scrap`
+    const cost = within(installed).getByText(label).closest('.su-stat-cell')
+    expect(cost?.textContent).toBe(`${label}${smoke?.salvageValue}`)
+    expect(within(installed).queryByText(/Cost in Scrap/)).toBeNull()
     // Removing is the rail's ✕.
     await act(async () => {
       fireEvent.click(

@@ -28,11 +28,13 @@
 
 import { Minus, Plus } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { useContext } from 'react'
 import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { atomsCopy } from '../../messages/components-atoms'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
+import { StatMeaningContext } from './statMeaning'
 import type { PhoneVital } from './vitalControl'
 import { meterColumns, useVitalControl } from './vitalControl'
 
@@ -74,6 +76,7 @@ export function PhoneVitals({ label, vitals, foot, className, style }: PhoneVita
 function Row({ vital }: { vital: PhoneVital }) {
   const { label, name, max, note, onChange } = vital
   const control = useVitalControl(vital)
+  const meaning = useContext(StatMeaningContext)
   const { shown, count, summary } = control
   const segments = Array.from({ length: count }, (_, index) => (
     <span
@@ -89,7 +92,7 @@ function Row({ vital }: { vital: PhoneVital }) {
   return (
     <div className="su-phone-vitals__row" data-vital={vital.key}>
       <span className={LABEL_CAPS} title={name}>
-        {label}
+        {meaning ? meaning(vital.key, label) : label}
       </span>
       {max === undefined ? (
         <span className="su-phone-vitals__note">{note}</span>

@@ -79,6 +79,21 @@
   text-overflow: clip;
 }
 
+/* A label that opens what its number means (r4 E21): the same words on the
+   same line, a 24px target that takes no room (its padding is bled back). */
+.su-strip__label > .su-chip-link {
+  align-items: baseline;
+  gap: var(--space-6);
+  margin-block: calc(var(--space-6) * -1);
+  min-block-size: 0;
+  min-width: 0;
+  padding-block: var(--space-6);
+}
+
+.su-strip__label > .su-chip-link:hover {
+  text-decoration: underline;
+}
+
 .su-strip__read {
   align-items: flex-end;
   display: flex;

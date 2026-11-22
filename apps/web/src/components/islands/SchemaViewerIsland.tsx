@@ -22,6 +22,7 @@ import { keepListingScroll } from '../../lib/listingScroll'
 import { entityTraitNames } from '../../lib/listingTraits'
 import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
+import { nameMatches } from '../../lib/nameMatch'
 import { classDrawingTree } from '../../lib/rules/classPath'
 import { artUrlFor } from '../../lib/sourceCovers'
 import type { SchemaList } from '../../lib/useGameData'
@@ -47,7 +48,7 @@ import { sortIndexItems } from './indexColumns.model'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
 import type { RailActions } from './ListingRail'
-import { ListingRail, shortSource, tlButtonLabel } from './ListingRail'
+import { ListingPrinted, ListingRail, shortSource, tlButtonLabel } from './ListingRail'
 
 type RailPart = 'all' | 'view' | 'filters'
 
@@ -220,7 +221,6 @@ function SchemaViewer({
   const [facetsOpen, setFacetsOpen] = useState(false)
 
   const filteredData = useMemo(() => {
-    const name = nameFilter.toLowerCase()
     return initialData.filter((item) => {
       if (techLevelFilters.size > 0) {
         const itemTechLevel = getTechLevel(item)?.toString()
@@ -229,7 +229,8 @@ function SchemaViewer({
       if (sourceFilter && !getSources(item).includes(sourceFilter)) return false
       if (treeFilter && getTree(item) !== treeFilter) return false
       if (traitFilter && !entityTraitNames(toEntityModel(item)).includes(traitFilter)) return false
-      if (name && !item.name.toLowerCase().includes(name)) return false
+      // The name filter forgives the slips the site search forgives (r4 E14).
+      if (nameFilter && !nameMatches(item.name, nameFilter)) return false
       return true
     })
   }, [initialData, techLevelFilters, sourceFilter, treeFilter, traitFilter, nameFilter])
@@ -376,6 +377,15 @@ function SchemaViewer({
         data-view={view}
       >
         {!band && renderRail('all')}
+
+        {hasActiveFilters && (
+          <ListingPrinted
+            levels={orderedTechLevels.filter((tl) => techLevelFilters.has(String(tl)))}
+            words={[sourceFilter, treeFilter, traitFilter, nameFilter && `“${nameFilter}”`]}
+            count={filteredData.length}
+            total={initialData.length}
+          />
+        )}
 
         {filteredData.length === 0 ? (
           <EmptyState

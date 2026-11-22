@@ -101,13 +101,14 @@ export function BlankCreateDialog({
     : name.trim() === ''
       ? buildWizardCopy('addANameToCreate')
       : buildWizardCopy('addACallsignToCreate')
-  const mechName = () =>
+  const mechName = (pick: string) =>
     name.trim() ||
-    (refPick !== '' ? SalvageUnionReference.Chassis.getBySlug(refPick)?.name : undefined) ||
+    (pick !== '' ? SalvageUnionReference.Chassis.getBySlug(pick)?.name : undefined) ||
     mechCopy('unnamedMech')
 
   const create = useServerAction(
-    () => {
+    // `pick`: the chassis Enter took in the search, ahead of the state it set.
+    (pick: string = refPick) => {
       if (kind === 'pilot') {
         return createBlank(
           'pilot',
@@ -122,7 +123,7 @@ export function BlankCreateDialog({
       if (kind === 'mech') {
         return createBlank(
           'mech',
-          { name: mechName(), ...(refPick !== '' ? { chassisRef: refPick } : {}) },
+          { name: mechName(pick), ...(pick !== '' ? { chassisRef: pick } : {}) },
           { gameId }
         )
       }
@@ -132,11 +133,13 @@ export function BlankCreateDialog({
   )
   const { pending, error } = create
 
-  // Typing starts in the name, never on Close (MD2-04); a mech's dialog opens on its chassis.
+  // Typing starts in the first field, never on Close (MD2-04): the name, or a
+  // mech's chassis search (r4 E14).
   const nameField = useRef<HTMLInputElement | null>(null)
+  const chassisSearch = useRef<HTMLInputElement | null>(null)
 
-  async function handleCreate() {
-    const result = await create.run()
+  async function handleCreate(pick?: string) {
+    const result = await create.run(pick)
     if (!result.ok) return
     // A blank sheet has nothing to read: it opens in Edit, on its prompts.
     useSheetModeStore.getState().setEditing(true)
@@ -156,12 +159,21 @@ export function BlankCreateDialog({
       }}
       title={buildWizardCopy('blank', { label })}
       width={kind === 'mech' ? 'default' : 'narrow'}
-      {...(kind === 'mech' ? {} : { initialFocus: nameField })}
+      initialFocus={kind === 'mech' ? chassisSearch : nameField}
     >
       <div style={dialogBodyStyle}>
         <p style={noteStyle}>{buildWizardCopy('anEmptySheetNoSteps')}</p>
 
-        {kind === 'mech' && <BlankChassisPick value={refPick} onChange={setRefPick} />}
+        {kind === 'mech' && (
+          <BlankChassisPick
+            value={refPick}
+            onChange={setRefPick}
+            searchRef={chassisSearch}
+            onEnter={(pick) => {
+              if (!pending) void handleCreate(pick)
+            }}
+          />
+        )}
 
         <Field
           label={kind === 'mech' ? buildWizardCopy('nameOptional') : buildWizardCopy('name')}

@@ -23,6 +23,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
+import { StatMeanings } from '../../components/app'
 import type { EntitySurfaceValue } from '../../components/index'
 import {
   Button,
@@ -40,6 +41,14 @@ import {
 } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { BandStamp, PatternStamp } from './bandStamps.model'
+import {
+  BAR_ANCHOR,
+  BAR_END,
+  BAR_HIDDEN,
+  BAR_SHOWN,
+  STRIP_HIDDEN,
+  STRIP_SHOWN,
+} from './liveSheetBarStyles.model'
 import { RailActs } from './RailActs'
 import { SheetBarStrip } from './SheetBarStrip'
 import { swapHere, useSheetEmbed } from './sheetEmbed.model'
@@ -134,6 +143,11 @@ type LiveSheetProps = {
    * (ADR-066: a mech names its chassis even when its name is the chassis's).
    */
   kindDetail?: BandStamp
+  /**
+   * In Edit, the act that changes what the stamp names, beside it (r4 E17: a
+   * mech's Change Chassis is where its chassis is named).
+   */
+  kindAction?: ReactNode
   /** A mech's pattern (`PATTERN | Nimble Hauler`), linked to its page. */
   fromPattern?: PatternStamp | undefined
   /**
@@ -169,94 +183,8 @@ type LiveSheetProps = {
   quoted?: boolean
 }
 
-/** Sticky bar height: one compact row. */
-const BAR_HEIGHT_PX = 48
-
 /** As tall as its content; `#root`'s column keeps the foot on the window's edge. */
 const ROOT = { background: 'var(--color-wk-bg)' } satisfies CSSProperties
-
-/**
- * The sticky bar's anchor: sticky at the top, but no height, so at rest the
- * page starts with the band and nothing above it.
- */
-const BAR_ANCHOR = {
-  height: 0,
-  position: 'sticky',
-  top: 0,
-  zIndex: tokens.layer.sticky,
-} satisfies CSSProperties
-
-/** The bar, over the page from its anchor. Its gutter (`.su-sheet-gutter`) widens at sm. */
-const BAR = {
-  alignItems: 'center',
-  // The band in brief, in the unit's own paint.
-  background: 'var(--su-kind, var(--color-wk-bg))',
-  // No black rule under the app's nav: the lift alone
-  // sets it off the page it floats over.
-  boxShadow: tokens.shadow.lift,
-  columnGap: tokens.space[16],
-  // `display` is `.su-sheet-bar`'s, so paper's `data-print="hide"` passes it.
-  flexWrap: 'wrap',
-  insetInline: 0,
-  minHeight: `${BAR_HEIGHT_PX}px`,
-  paddingBlock: tokens.space[4],
-  position: 'absolute',
-  rowGap: tokens.space[4],
-  top: 0,
-  transitionDuration: 'var(--dur-fast)',
-  transitionProperty: 'opacity, visibility, translate',
-  transitionTimingFunction: tokens.ease,
-} satisfies CSSProperties
-
-/** Scrolled past the sentinel: the bar fades in. */
-const BAR_SHOWN = {
-  ...BAR,
-  opacity: 1,
-  translate: '0 0',
-  visibility: 'visible',
-} satisfies CSSProperties
-
-/** At rest it is not there to see, click or read. */
-const BAR_HIDDEN = {
-  ...BAR,
-  opacity: 0,
-  pointerEvents: 'none',
-  translate: '0 -100%',
-  visibility: 'hidden',
-} satisfies CSSProperties
-
-const STRIP = {
-  alignItems: 'stretch',
-  display: 'flex',
-  flexWrap: 'nowrap',
-  gap: tokens.space[8],
-  minWidth: 0,
-  transitionDuration: 'var(--dur-base)',
-  transitionProperty: 'opacity, transform',
-  transitionTimingFunction: tokens.ease,
-} satisfies CSSProperties
-
-const STRIP_SHOWN = { ...STRIP, opacity: 1, translate: '0 0' } satisfies CSSProperties
-
-// At rest it is out of the flow as well as invisible: an invisible strip
-// still took the bar's first row on a phone, pushing Share and ⋯ down.
-const STRIP_HIDDEN = {
-  ...STRIP,
-  opacity: 0,
-  pointerEvents: 'none',
-  position: 'absolute',
-  translate: '0 5px',
-  visibility: 'hidden',
-} satisfies CSSProperties
-
-const BAR_END = {
-  alignItems: 'center',
-  display: 'flex',
-  flexShrink: 0,
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  marginLeft: 'auto',
-} satisfies CSSProperties
 
 /** The phone switch row; its `display` (phones only) is `.su-sheet-live-segments`. */
 const SEGMENTS = {
@@ -324,6 +252,7 @@ export function LiveSheet({
   actions,
   band,
   kindDetail: stamp,
+  kindAction,
   fromPattern,
   source,
   rank,
@@ -410,7 +339,7 @@ export function LiveSheet({
 
             `segments` already carries the wired set (it drives the mobile
             switcher below); the active one is this sheet, so it is skipped. */}
-          <div style={BAR_END}>
+          <div className="su-sheet-bar__end" style={BAR_END}>
             {/* The band's acts, compact, at the end. */}
             {condensed && (band?.actions || actions) && (
               <div className="su-sheet-bar__acts">
@@ -488,6 +417,7 @@ export function LiveSheet({
                       ) : (
                         <Stat label={stamp.label} value={stamp.name} wrap />
                       ))}
+                    {kindAction}
                     {fromPattern &&
                       (fromPattern.href || fromPattern.page ? (
                         <Tag
@@ -588,7 +518,8 @@ export function LiveSheet({
                 {out.note}
               </p>
             )}
-            {renderBody()}
+            {/* A stat's label opens what the number means (r4 E21). */}
+            <StatMeanings>{renderBody()}</StatMeanings>
           </EntitySurfaceProvider>
         </div>
       </div>

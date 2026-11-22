@@ -476,6 +476,35 @@ describe('remove-carrier-lot', () => {
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.reason).toMatch(/not in the mech hold/i)
   })
+
+  test('part of a stack leaves the lot that many lighter, and its Undo rejoins it (r4 E10)', () => {
+    const scrap = bulkLot({ id: 'lot-scrap', qty: 5, units: 5 })
+    const result = cargoTransfer(state({ carrierLots: [scrap] }), {
+      type: 'remove-carrier-lot',
+      lotId: 'lot-scrap',
+      qty: 3,
+    })
+    if (!result.ok) throw new Error(result.reason)
+    expect(result.state.carrierLots).toEqual([{ ...scrap, qty: 2, units: 2 }])
+
+    const back = cargoTransfer(result.state, {
+      type: 'add-carrier-lot',
+      lot: { ...scrap, qty: 3, units: 3 },
+    })
+    if (!back.ok) throw new Error(back.reason)
+    expect(back.state.carrierLots).toEqual([scrap])
+  })
+
+  test('the whole count of a stack removes the lot', () => {
+    const scrap = bulkLot({ id: 'lot-scrap', qty: 5, units: 5 })
+    const result = cargoTransfer(state({ carrierLots: [scrap] }), {
+      type: 'remove-carrier-lot',
+      lotId: 'lot-scrap',
+      qty: 5,
+    })
+    if (!result.ok) throw new Error(result.reason)
+    expect(result.state.carrierLots).toEqual([])
+  })
 })
 
 describe('add-depot-lot', () => {

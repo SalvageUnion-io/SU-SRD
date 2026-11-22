@@ -93,8 +93,8 @@ export type UseCargoResult = {
   withdrawScrap: (tl: number, qty: number) => Promise<CargoTransferResult>
   /** Add a lot directly to the mech hold. Needs a mech, NOT a crawler. */
   addMechLot: (lot: CargoLot) => Promise<CargoTransferResult>
-  /** Discard a lot from the mech hold. Needs a mech, NOT a crawler. */
-  removeMechLot: (lotId: string) => Promise<CargoTransferResult>
+  /** Discard a lot from the mech hold, or `qty` of a stack. Needs a mech, NOT a crawler. */
+  removeMechLot: (lotId: string, qty?: number) => Promise<CargoTransferResult>
   /** Add a lot directly to the crawler Storage Bay. Needs a crawler, NOT a mech. */
   addCrawlerLot: (lot: CargoLot) => Promise<CargoTransferResult>
   /** Discard a lot from the crawler Storage Bay. Needs a crawler, NOT a mech. */
@@ -285,7 +285,7 @@ export function useCargo({
     load: (lotId, qty) => dispatch({ type: 'load', lotId, qty }),
     withdrawScrap: (tl, qty) => dispatch({ type: 'withdraw-scrap', tl, qty }),
     addMechLot: (lot) => dispatchMechLocal({ type: 'add-carrier-lot', lot }),
-    removeMechLot: (lotId) => dispatchMechLocal({ type: 'remove-carrier-lot', lotId }),
+    removeMechLot: (lotId, qty) => dispatchMechLocal({ type: 'remove-carrier-lot', lotId, qty }),
     addCrawlerLot: (lot) => dispatchCrawlerLocal({ type: 'add-depot-lot', lot }),
     removeCrawlerLot: (lotId) => dispatchCrawlerLocal({ type: 'remove-depot-lot', lotId }),
   }

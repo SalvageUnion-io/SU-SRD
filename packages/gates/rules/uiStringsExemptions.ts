@@ -150,7 +150,7 @@ export const EXEMPTIONS: readonly StringExemption[] = [
       "A roll-table lookup key, and the dataset's activationCurrency value compared against: machine keys.",
   },
   {
-    file: 'apps/web/src/build/sheet/LiveSheet.tsx',
+    file: 'apps/web/src/build/sheet/liveSheetBarStyles.model.ts',
     strings: [
       'var(--su-kind, var(--color-wk-bg))',
       'opacity, visibility, translate',

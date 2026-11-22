@@ -8,19 +8,22 @@
  * ownership changes, and the Mediator's proposals, applied or still pending.
  * The log itself is never mutated from the UI: a change's button (the newest
  * ten changes) is a new write that reverses that one change on the sheet as
- * it is now, and is logged as one (r3 B1).
+ * it is now, and is logged as one (r3 B1). It works once (r4 E2): the write
+ * names the change it took back, and that line then says so instead.
  */
 
 import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { FeedLine, FeedList, FeedTime } from '../../components/app'
 import type { BadgeTone } from '../../components/index'
 import {
   Badge,
   Button,
   EmptyState,
+  Eyebrow,
   ModalShell,
   Pending,
   Text,
@@ -30,7 +33,7 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { useSync } from '../../replica/syncContext'
 import { useEntityLog } from '../../replica/useEntityLog'
 import type { LogChange, LogDefaults, LogLine, Reversal } from './changeLog.model'
-import { lineText, logChanges, reversal } from './changeLog.model'
+import { lineText, logChanges, reversal, reversible, splitJustNow } from './changeLog.model'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -95,6 +98,10 @@ const BODY = { backgroundColor: tokens.color.paper } satisfies CSSProperties
 /** How many of the newest changes offer Restore. */
 const RESTORABLE = 10
 
+/** The log's two runs ("Just now", then what the dialog opened with), and each run. */
+const RUNS = { display: 'grid', gap: tokens.space[16] } satisfies CSSProperties
+const RUN = { display: 'grid', gap: tokens.space[8] } satisfies CSSProperties
+
 /** A change's lines stack, each whole. */
 const LINES = { display: 'grid', gap: tokens.space[4] } satisfies CSSProperties
 
@@ -114,6 +121,15 @@ function Line({ line }: { line: LogLine }) {
   )
 }
 
+/** The nearest ancestor that scrolls: the dialog's body. */
+function scrollerOf(el: HTMLElement): HTMLElement | null {
+  for (let at = el.parentElement; at; at = at.parentElement) {
+    const { overflowY } = getComputedStyle(at)
+    if (overflowY === 'auto' || overflowY === 'scroll') return at
+  }
+  return null
+}
+
 function ChangeLogEntries({
   entityType,
   entityId,
@@ -121,6 +137,23 @@ function ChangeLogEntries({
   defaults,
 }: Pick<ChangeLogDrawerProps, 'entityType' | 'entityId' | 'onRestore' | 'defaults'>) {
   const entries = useEntityLog(entityType, entityId)
+  // What the log held when the dialog opened: later changes go above it, under
+  // "Just now", and these keep their place (r4 E2).
+  const seen = useRef<ReadonlySet<string> | null>(null)
+  const earlierRef = useRef<HTMLDivElement>(null)
+  const earlierTop = useRef<number | null>(null)
+  // A line that arrives above pushes the rest down: the dialog scrolls by as
+  // much, so the line under the pointer is still the one under it.
+  useLayoutEffect(() => {
+    const el = earlierRef.current
+    if (!el) return
+    const top = el.offsetTop
+    const was = earlierTop.current
+    earlierTop.current = top
+    if (was === null || top === was) return
+    const scroller = scrollerOf(el)
+    if (scroller) scroller.scrollTop += top - was
+  })
 
   if (entries === undefined) return <Pending />
   if (entries.length === 0) {
@@ -131,50 +164,71 @@ function ChangeLogEntries({
       />
     )
   }
-  return (
-    <FeedList>
-      {logChanges(entries, defaults).map((change, i) => {
-        const kind = KIND_META[change.kind]
-        const from = origin(change)
-        const did = reversal(change, defaults)
-        return (
-          <FeedLine
-            key={change.id}
-            head={
-              <>
-                {kind && <KindChip label={kind.label} tone={kind.tone} />}
-                {from && <span style={MUTED}>{from}</span>}
-                {change.state === 'proposed' && <KindChip label={buildSheetCopy('proposed')} />}
-                <span style={PUSH}>
-                  <FeedTime ts={change.ts} format="datetime" />
-                </span>
-              </>
-            }
-            end={
-              onRestore && i < RESTORABLE && change.state === 'applied' ? (
-                <Button
-                  size="compact"
-                  // Each button names its own change: ten "Put back" read apart.
-                  aria-label={buildSheetCopy('logReverseNamed', {
-                    action: did.label,
-                    change: change.lines.map(lineText).join(', '),
-                  })}
-                  onClick={() => onRestore(change, did)}
-                >
-                  {did.label}
-                </Button>
-              ) : undefined
-            }
-          >
-            <span style={LINES}>
-              {change.lines.map((line) => (
-                <Line key={line.key} line={line} />
-              ))}
+  const changes = logChanges(entries, defaults)
+  seen.current ??= new Set(changes.map((change) => change.id))
+  const { justNow, earlier } = splitJustNow(changes, seen.current)
+  const line = (change: LogChange) => {
+    const kind = KIND_META[change.kind]
+    const from = origin(change)
+    const did = reversal(change, defaults)
+    const named = change.lines.map(lineText).join(', ')
+    return (
+      <FeedLine
+        key={change.id}
+        head={
+          <>
+            {kind && <KindChip label={kind.label} tone={kind.tone} />}
+            {from && <span style={MUTED}>{from}</span>}
+            {change.state === 'proposed' && <KindChip label={buildSheetCopy('proposed')} />}
+            <span style={PUSH}>
+              <FeedTime ts={change.ts} format="seconds" />
             </span>
-          </FeedLine>
-        )
-      })}
-    </FeedList>
+          </>
+        }
+        end={
+          // A change taken back says so and offers nothing more (r4 E2): a
+          // second press of "Put back" put a second copy on the sheet.
+          change.reversed ? (
+            <KindChip label={did.was} />
+          ) : onRestore && changes.indexOf(change) < RESTORABLE && reversible(change) ? (
+            <Button
+              size="compact"
+              // Each button names its own change: ten "Put back" read apart.
+              aria-label={buildSheetCopy('logReverseNamed', { action: did.label, change: named })}
+              onClick={() => onRestore(change, did)}
+            >
+              {did.label}
+            </Button>
+          ) : undefined
+        }
+      >
+        <span style={LINES}>
+          {change.lines.map((each) => (
+            <Line key={each.key} line={each} />
+          ))}
+        </span>
+      </FeedLine>
+    )
+  }
+  return (
+    <div style={RUNS}>
+      {justNow.length > 0 && (
+        <section aria-label={buildSheetCopy('logJustNow')} style={RUN}>
+          <Eyebrow as="div" tone="muted">
+            {buildSheetCopy('logJustNow')}
+          </Eyebrow>
+          <FeedList>{justNow.map(line)}</FeedList>
+        </section>
+      )}
+      <div ref={earlierRef} style={RUN}>
+        {justNow.length > 0 && earlier.length > 0 && (
+          <Eyebrow as="div" tone="muted">
+            {buildSheetCopy('logEarlier')}
+          </Eyebrow>
+        )}
+        <FeedList>{earlier.map(line)}</FeedList>
+      </div>
+    </div>
   )
 }
 

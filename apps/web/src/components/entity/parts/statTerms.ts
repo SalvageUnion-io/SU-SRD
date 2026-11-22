@@ -50,6 +50,13 @@ const TERMS: readonly (StatTerm & { names: RegExp })[] = [
     text: entityCopy('termTrainingPointsIs'),
     cite: cite(23),
   },
+  {
+    key: 'inventory',
+    names: /^inventory$/i,
+    name: entityCopy('termInventory'),
+    text: entityCopy('termInventoryIs'),
+    cite: cite(20),
+  },
 ]
 
 /** The term a fact's key names (a book stat's is `book-<its name>`), or none. */

@@ -1620,6 +1620,21 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   outline-offset: calc(-1 * (var(--su-mini-inset, 0px) + var(--bw-chrome)));
 }
 
+/* On paper every Mini's name is whole (r4 E9): nothing there can be hovered
+   or opened, so the name wraps under its chips rather than end in "…". */
+@media print {
+  .su-entity-mini__pill.su-entity-mini__pill {
+    flex-wrap: wrap;
+  }
+
+  .su-entity-mini__name.su-entity-mini__name {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
+
 /* A list that keeps its Minis' names whole (`data-names-whole`: a Game's
    people, R50; R56). The pill wraps, so the role and pilot chips take the row beneath the name when
    the two do not share a line. */

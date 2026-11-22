@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { formatAgo, formatClock, formatDateTime } from '../../lib/formatDate'
+import { formatAgo, formatClock, formatDateTime, formatDateTimeSeconds } from '../../lib/formatDate'
 import { Eyebrow } from '../atoms/Eyebrow'
 
 type FeedListProps = {
@@ -54,8 +54,11 @@ export function FeedLine({ head, children, end, struck = false }: FeedLineProps)
 
 type FeedTimeProps = { ts: number } & (
   | {
-      /** `clock` "14:05" (a log line), `datetime` a day and a time (a change's history). */
-      format: 'clock' | 'datetime'
+      /**
+       * `clock` "14:05" (a log line), `datetime` a day and a time, `seconds`
+       * the same to the second (a change's history).
+       */
+      format: 'clock' | 'datetime' | 'seconds'
     }
   | {
       /** `ago` "3 min ago", read against the caller's `now` so a list agrees. */
@@ -71,7 +74,9 @@ export function FeedTime(props: FeedTimeProps) {
       ? formatAgo(props.ts, props.now)
       : props.format === 'clock'
         ? formatClock(props.ts)
-        : formatDateTime(props.ts)
+        : props.format === 'seconds'
+          ? formatDateTimeSeconds(props.ts)
+          : formatDateTime(props.ts)
   return (
     <time className="su-feed-line__time" dateTime={new Date(props.ts).toISOString()}>
       {text}

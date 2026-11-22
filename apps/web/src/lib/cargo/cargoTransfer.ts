@@ -62,7 +62,8 @@ export type CargoTransferAction =
   // container (distinct from the crawler's Storage Bay), so cargo can be added
   // to / discarded from it whether or not a crawler is linked.
   | { type: 'add-carrier-lot'; lot: CargoLot }
-  | { type: 'remove-carrier-lot'; lotId: string }
+  // `qty`: part of a stack (r4 E10); absent, the whole lot.
+  | { type: 'remove-carrier-lot'; lotId: string; qty?: number | undefined }
   // Crawler-bay-local edits — NO docked mech required. The Storage Bay is its
   // own container too, so cargo can be added to / discarded from it whether or
   // not a mech is docked.
@@ -166,7 +167,7 @@ export function cargoTransfer(
     case 'add-carrier-lot':
       return addCarrierLot(state, action.lot)
     case 'remove-carrier-lot':
-      return removeCarrierLot(state, action.lotId)
+      return removeCarrierLot(state, action.lotId, action.qty)
     case 'add-depot-lot':
       return addDepotLot(state, action.lot)
     case 'remove-depot-lot':
@@ -181,6 +182,20 @@ export function cargoTransfer(
  * hold above cap. Prepended so the newest lot reads first, mirroring load/stow.
  */
 function addCarrierLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferResult {
+  // Part of a stack coming back (an Unload's Undo) rejoins the lot it left.
+  const held = state.carrierLots.find((l) => l.id === lot.id)
+  if (held && isSplittable(held) && isSplittable(lot)) {
+    return {
+      ok: true,
+      state: {
+        ...state,
+        carrierLots: state.carrierLots.map((l) =>
+          l === held ? { ...held, qty: held.qty + lot.qty, units: held.units + lot.units } : l
+        ),
+      },
+      changed: { carrier: true, depot: false },
+    }
+  }
   return {
     ok: true,
     state: { ...state, carrierLots: [lot, ...state.carrierLots] },
@@ -189,9 +204,29 @@ function addCarrierLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferR
 }
 
 /** Remove (discard) a lot from the mech hold entirely — no crawler required. */
-function removeCarrierLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
-  if (!state.carrierLots.some((l) => l.id === lotId)) {
+function removeCarrierLot(
+  state: CargoBoundaryState,
+  lotId: string,
+  qty?: number
+): CargoTransferResult {
+  const lot = state.carrierLots.find((l) => l.id === lotId)
+  if (!lot) {
     return { ok: false, reason: libCargoCopy('lotNotInMechHold', { id: lotId }) }
+  }
+  // Part of a stack (r4 E10): the lot stays, that many lighter.
+  if (qty !== undefined && isSplittable(lot) && qty > 0 && qty < lot.qty) {
+    const gone = qty * perUnitCost(lot)
+    return {
+      ok: true,
+      state: {
+        ...state,
+        carrierLots: state.carrierLots.map((l) =>
+          l === lot ? { ...lot, qty: lot.qty - qty, units: Math.max(0, lot.units - gone) } : l
+        ),
+      },
+      changed: { carrier: true, depot: false },
+      moved: qty,
+    }
   }
   return {
     ok: true,

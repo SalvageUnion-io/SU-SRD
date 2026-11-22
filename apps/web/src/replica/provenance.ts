@@ -68,6 +68,24 @@ export const WIZARD_TXN: ChangeMeta = { kind: 'transaction', source: 'wizard' }
 /** Free Edit — a direct hand edit of entity state. */
 export const LIVE_SHEET_MANUAL: ChangeMeta = { kind: 'manual', source: 'live-sheet' }
 
+/**
+ * A sheet's Undo taking one change back (r4 E2, E3), from the Change Log's
+ * button, Ctrl+Z or "Undo last change": a hand edit whose `source` names the
+ * change it reverses (`live-sheet-undo:<change id>`), so the log can say that
+ * change is taken back and offer it no second time. `sheetRedo` is that
+ * Undo's own Undo: the change stands again.
+ */
+export const SHEET_UNDO_SOURCE = 'live-sheet-undo'
+export const SHEET_REDO_SOURCE = 'live-sheet-redo'
+
+export function sheetUndo(changeId: string): ChangeMeta {
+  return { kind: 'manual', source: `${SHEET_UNDO_SOURCE}:${changeId}` }
+}
+
+export function sheetRedo(changeId: string): ChangeMeta {
+  return { kind: 'manual', source: `${SHEET_REDO_SOURCE}:${changeId}` }
+}
+
 /** Free Edit — pinning or reverting a quantitative cap (ADR-022 stat override). */
 export const LIVE_SHEET_OVERRIDE: ChangeMeta = { kind: 'override', source: 'live-sheet' }
 

@@ -748,9 +748,22 @@ html[data-srd-signed-in] .su-mediator-acts {
   }
 }
 
+/* What a filtered list is filtered to, said on paper only (r4 E9): there the
+   rail that says it on screen is not drawn. */
+.su-listing__printed {
+  display: none;
+}
+
 @media print {
-  .su-rail {
+  .su-rail,
+  .su-listing__order:not(#\#) {
     display: none;
+  }
+
+  .su-listing__printed {
+    display: block;
+    font-weight: var(--font-weight-semibold);
+    margin: 0 0 var(--space-8);
   }
 }
 

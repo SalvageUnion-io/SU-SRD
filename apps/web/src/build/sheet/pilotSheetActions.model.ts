@@ -43,6 +43,7 @@ import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
 import type { ChangeMeta, UnitsState } from '../../replica/units'
+import { takeBack } from './changeLog.model'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import { changedFields, freshEntity } from './freshEntity.model'
 import type { UsedTraitKey } from './PilotIdentity'
@@ -231,10 +232,21 @@ export function usePilotSheetActions({
     )
     // A clean removal offers Undo: the abilities and partners as they were.
     if (!broke && removing) {
+      // Its own Undo (r4 E3): this ability back on the sheet as it is by then.
       undoToast(
         buildSheetCopy('removedName', { name }),
-        () => write({ abilities: current.abilities, partners: current.partners }),
-        pilot.id
+        () =>
+          write(
+            takeBack(freshPilot(), current, {
+              abilities,
+              partners: syncPartners(
+                current.partners,
+                pilotPartnerSeeds(current.equipment, abilities)
+              ),
+            })
+          ),
+        pilot.id,
+        { stack: true }
       )
     }
   }
@@ -269,8 +281,22 @@ export function usePilotSheetActions({
       const name = SalvageUnionReference.Equipment.getBySlug(slug)?.name ?? slug
       undoToast(
         buildSheetCopy('removedName', { name }),
-        () => write({ equipment: current.equipment, partners: current.partners }),
-        pilot.id
+        () =>
+          write(
+            takeBack(freshPilot(), current, {
+              equipment,
+              ...(isPartnerEquipment(slug)
+                ? {
+                    partners: syncPartners(
+                      current.partners,
+                      pilotPartnerSeeds(equipment, current.abilities)
+                    ),
+                  }
+                : {}),
+            })
+          ),
+        pilot.id,
+        { stack: true }
       )
     }
   }
@@ -319,8 +345,16 @@ export function usePilotSheetActions({
       const gone = before.find((entry) => !next.some((kept) => kept.id === entry.id))
       undoToast(
         buildSheetCopy('removedName', { name: gone?.name ?? buildSheetCopy('item') }),
-        () => write({ genericInventory: before }),
-        pilot.id
+        () =>
+          write(
+            takeBack(
+              freshPilot(),
+              { ...freshPilot(), genericInventory: before },
+              { genericInventory: next }
+            )
+          ),
+        pilot.id,
+        { stack: true }
       )
     }
   }

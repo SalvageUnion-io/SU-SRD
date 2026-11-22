@@ -97,11 +97,13 @@ export type MechCapacityResult = {
   moduleSlotsMax: number
   violations: CapacityViolation[]
   /**
-   * Set when the loadout is exactly a pattern the book prints over its
-   * chassis's slots (`AS_PRINTED_OVERFLOW`): its over-slot counts are the
-   * book's, so they are reported here rather than as violations.
+   * Set when the loadout is a pattern the book prints over its chassis's
+   * slots (`AS_PRINTED_OVERFLOW`), or one of its lines still is: `systems`
+   * and `modules` say which lines are the book's own lists. An over-slot
+   * count on such a line is the book's, reported here rather than as a
+   * violation; the other line is counted as any loadout's is.
    */
-  asPrinted?: { pattern: string; cite: string }
+  asPrinted?: { pattern: string; cite: string; systems: boolean; modules: boolean }
 }
 
 /**
