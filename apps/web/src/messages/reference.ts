@@ -24,8 +24,7 @@ export const referenceCopy = messages({
   shareFailed: 'The page could not be shared. Try again.',
   copyLinkFailed: 'The link could not be copied. Try again.',
   siteName: 'SalvageUnion.io',
-  pitchValue:
-    "Everything you need to play Salvage Union, the world's best post-apocalyptic mech TTRPG.",
+  pitchValue: "Everything you need to play the world's best post-apocalyptic mech TTRPG.",
   usedBy: 'Used by',
   usedByCount: '{count} uses',
   relatedRules: 'Related rules',
