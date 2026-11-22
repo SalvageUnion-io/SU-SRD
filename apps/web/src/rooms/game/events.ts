@@ -1,6 +1,5 @@
 import { fieldLabel } from 'game-domain/games/proposals'
 import type { LinkShape } from 'game-domain/links/linkRules'
-import { seatOf } from '../seats'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
 import type { Stored } from './eventLines'
@@ -16,6 +15,8 @@ import {
   VITALS,
   vitalLine,
 } from './eventLines'
+import type { EventsBefore } from './eventsBefore'
+import { eventsBefore, unappliedOf } from './eventsBefore'
 import { isPrivateRoll, isRevealedRoll, rollLineFor } from './log'
 import { undoes } from './proposals'
 import type { GameStore, StoredOp } from './store'
@@ -121,26 +122,6 @@ const KEPT = 600
 /** The most events a read returns: the stream's newest page. */
 const SERVED = 200
 
-/** What an act needs remembered from before it ran, to say what changed. */
-export type EventsBefore = {
-  resolving?: string | null
-  proposal?: StoredOp | null
-  session?: boolean
-  /** Whether a Downtime was running. */
-  downtime?: boolean
-  stop?: boolean
-  /** Whether the effect was switched on. */
-  effectOn?: boolean
-  /** Who held the unit an assignment moves. */
-  holder?: string | null
-  /** Whether the roll was already revealed: a second Reveal tells nobody again. */
-  revealed?: boolean
-  /** Who was up: giving the same pilot the turn again tells nobody. */
-  upNow?: string | null
-  /** The resolves nobody applied that the act may close (r5 A7). */
-  unapplied?: { pilotId: string; name: string }[]
-}
-
 /** A proposal's Undo: its Mediator's row changes with it, so every list is served again (r5 A2). */
 export const isUndone = (event: TableEvent): boolean => event.answer === 'undone'
 
@@ -174,77 +155,9 @@ export class GameEvents {
       .filter((event) => event.private !== true || member.mediator)
   }
 
-  /** What `after` needs from before the act ran. */
+  /** What `after` needs from before the act ran (`eventsBefore.ts`). */
   before(name: GameActName, args: unknown): EventsBefore {
-    const a = (args ?? {}) as Record<string, unknown>
-    switch (name) {
-      case 'seats.setResolving': {
-        const row = this.store.rows(
-          'select resolving from seats where pilot_id = ?',
-          String(a.pilotId)
-        )[0]
-        const resolving =
-          typeof row?.resolving === 'string'
-            ? (JSON.parse(row.resolving) as { name?: string } | null)
-            : null
-        return { resolving: resolving?.name ?? null }
-      }
-      case 'seats.toggleEffect': {
-        const row = this.store.rows('select * from seats where pilot_id = ?', String(a.pilotId))[0]
-        return {
-          effectOn: row !== undefined && seatOf(row).activeEffects.includes(String(a.ref)),
-        }
-      }
-      case 'assign':
-      case 'unassign':
-        return { holder: this.store.unit(String(a.unitId))?.ownerId ?? null }
-      case 'ops.accept':
-      case 'ops.decline':
-      case 'ops.withdraw':
-        return { proposal: this.store.op(String(a.opId)) }
-      case 'session.start':
-        return { session: this.store.rows('select 1 from session where id = 1').length > 0 }
-      case 'session.end':
-        return {
-          session: this.store.rows('select 1 from session where id = 1').length > 0,
-          unapplied: this.unapplied(null),
-        }
-      case 'downtime.begin':
-      case 'downtime.end': {
-        const was = name === 'downtime.begin' ? this.upNow() : null
-        return {
-          downtime: this.store.rows('select 1 from downtime_run where id = 1').length > 0,
-          unapplied: was === null ? [] : this.unapplied([was]),
-        }
-      }
-      case 'changeLog.reveal': {
-        const row = this.store.rows(
-          'select after from change_log where id = ?',
-          String(a.rollId)
-        )[0]
-        return {
-          revealed:
-            typeof row?.after === 'string' && isRevealedRoll(JSON.parse(row.after) as unknown),
-        }
-      }
-      case 'scenes.setUpNow': {
-        const was = this.upNow()
-        return { upNow: was, unapplied: was === null ? [] : this.unapplied([was]) }
-      }
-      case 'scenes.endTurn': {
-        const was = this.upNow()
-        return { unapplied: was === null ? [] : this.unapplied([was]) }
-      }
-      case 'safety.showStop':
-      case 'safety.liftStop':
-        return {
-          stop:
-            this.store.rows('select 1 from stop_sign where id = 1 and shown_at is not null')
-              .length > 0,
-        }
-      default:
-        return {}
-    }
+    return eventsBefore(this.store, name, args)
   }
 
   /**
@@ -268,7 +181,7 @@ export class GameEvents {
     // What the act closed unapplied, a line each (r5 A7).
     const closed = () =>
       (before.unapplied ?? [])
-        .filter((u) => this.unapplied([u.pilotId]).length === 0)
+        .filter((u) => unappliedOf(this.store, [u.pilotId]).length === 0)
         .map((u) =>
           this.note(actor, at, {
             kind: 'action',
@@ -523,27 +436,6 @@ export class GameEvents {
   }
 
   /** Write one line, or rewrite the open line it repeats. */
-  /** Who the Mediator has up, or null. */
-  private upNow(): string | null {
-    const row = this.store.rows("select after from change_log where field = 'upNow'")[0]
-    if (typeof row?.after !== 'string') return null
-    return (JSON.parse(row.after) as { pilotId?: string | null }).pilotId ?? null
-  }
-
-  /** The resolves nobody applied on these pilots' seats, or every seat's with null. */
-  private unapplied(pilotIds: readonly string[] | null): { pilotId: string; name: string }[] {
-    return this.store
-      .rows('select pilot_id, resolving from seats where resolving is not null')
-      .map((row) => ({
-        pilotId: String(row.pilot_id),
-        resolving: JSON.parse(String(row.resolving)) as { name?: string; applied?: boolean },
-      }))
-      .filter(
-        (s) => (pilotIds === null || pilotIds.includes(s.pilotId)) && s.resolving.applied !== true
-      )
-      .map((s) => ({ pilotId: s.pilotId, name: s.resolving.name ?? '' }))
-  }
-
   private note(actor: string | null, at: number, next: Stored): TableEvent {
     const open = next.key === undefined ? undefined : this.open(actor, next.key, at)
     if (open !== undefined) {
