@@ -38,7 +38,8 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * once it ends) is the art with the entity's own words under it, headed
  * Description; with no art it is the Description alone. Words that hold the
  * entity's choices are rules, so they lead the rules column instead. A phone
- * reads stats, art, rules, Description.
+ * reads stats, art, rules, Description. A chassis leads with its stats and
+ * its ability, the art after them (on a phone a short band, RR6-06).
  *
  * **A pattern's page and a guide's** keep the art-led layout
  * (`.su-entity-page*`, `styles/partials/entity-page.css`): the line art as the
@@ -256,8 +257,9 @@ export function CardPage({
           {prose}
         </SlabSection>
       ))
-    // The chassis ability stands in the side column,
-    // under the Description, its tab the paper of its panel.
+    // The chassis ability follows the stats in the main track (RR6-06): the
+    // rule a reader came for, beside the numbers, the art after it. Its tab is
+    // the paper of its panel.
     // The strip reads "Chassis ability" with the ability's name in it; its
     // body is the ability's words (as a mech sheet's side cell).
     const ability =
@@ -353,28 +355,38 @@ export function CardPage({
     // short banner and the actions come before its words (`manual-page.css`).
     const fought =
       !!hero && split.main.length > 0 && 'actions' in entity && !('techLevel' in entity)
-    return (
-      <div className={cn('su-entity-page su-manual', fought && 'su-manual--fought')}>
-        {lead && <div className="su-manual__lead">{lead}</div>}
-        {side && (
-          <div className="su-manual__side">
-            {hero && <div className="su-manual__art">{hero}</div>}
-            {statsAside && stats}
-            {ability}
-            {actionsSection(
-              split.side,
-              cn(
-                'su-manual__side-actions',
-                split.main.length > 0 && 'su-manual__side-actions--more'
-              )
-            )}
-          </div>
+    // A Page with art and an ability (a chassis) leads with both: the stats,
+    // the ability, then the art, a short band on a phone. The side track
+    // follows the main one in the markup, so Tab reads what the eye does.
+    const led = !!hero && !!ability
+    const sideTrack = side && (
+      <div className="su-manual__side">
+        {hero && <div className="su-manual__art">{hero}</div>}
+        {statsAside && stats}
+        {!led && ability}
+        {actionsSection(
+          split.side,
+          cn('su-manual__side-actions', split.main.length > 0 && 'su-manual__side-actions--more')
         )}
+      </div>
+    )
+    return (
+      <div
+        className={cn(
+          'su-entity-page su-manual',
+          fought && 'su-manual--fought',
+          led && 'su-manual--led'
+        )}
+      >
+        {lead && <div className="su-manual__lead">{lead}</div>}
+        {!led && sideTrack}
         {/* The main track, always beside a side
             track (empty or not), so every Page's blocks share one width. */}
         <div className="su-manual__main">
-          {loreOnly && words}
+          {loreOnly && !led && words}
           {!statsAside && stats}
+          {led && ability}
+          {loreOnly && led && words}
           {opening && <div className="su-entity-page__opening">{opening}</div>}
           {!loreOnly && words}
           {!side && ability}
@@ -400,6 +412,7 @@ export function CardPage({
           />
           {after && <div className="su-manual__after">{after}</div>}
         </div>
+        {led && sideTrack}
         {aside && (
           <div className="su-manual__side su-manual__side--after">
             <div className="su-manual__aside">{aside}</div>

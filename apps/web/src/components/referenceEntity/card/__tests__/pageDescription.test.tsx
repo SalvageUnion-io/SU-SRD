@@ -1,7 +1,7 @@
 /**
  * A Page's lore leads its main column as plain prose (best, revision 8,
  * replacing R43's Description Slab and R61's side column): no heading, no
- * panel, before the stats and the rules.
+ * panel, before the rules; a chassis's stats and ability lead it (RR6-06).
  */
 import { expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -24,11 +24,16 @@ test('the entity’s own words are plain prose, under no Description heading', (
   ).toBe(false)
 })
 
-test('the words lead the main column; the side column holds the art', () => {
+test('a chassis reads stats, its ability, then its words; the side column holds the art (RR6-06)', () => {
   const container = page()
   const main = container.querySelector('.su-manual__main')
-  expect(main?.firstElementChild?.classList.contains('su-entity-page__prose')).toBe(true)
+  const kids = [...(main?.children ?? [])].map((kid) => kid.className)
+  expect(kids[0]).toContain('su-manual__stats')
+  expect(kids[1]).toContain('su-manual__ability')
+  expect(kids[2]).toContain('su-entity-page__prose')
   const side = container.querySelector('.su-manual__side')
   expect(side?.querySelector('.su-entity-page__prose')).toBeNull()
   expect(side?.firstElementChild?.classList.contains('su-manual__art')).toBe(true)
+  // The art follows the rules in the markup, so Tab reads what the eye does.
+  expect(main?.compareDocumentPosition(side as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
 })

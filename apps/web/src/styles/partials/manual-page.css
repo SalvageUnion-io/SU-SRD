@@ -60,6 +60,19 @@
   }
 }
 
+/* A chassis Page (`.su-manual--led`) leads with its stats and the chassis
+   ability, the rule a reader came for; the art follows, on a phone a short
+   band, so the ability starts in the first screen (RR6-06). */
+.su-manual__main > .su-manual__ability {
+  order: 0;
+}
+
+@media not (width >= 40rem) {
+  .su-manual--led .su-entity-hero {
+    --su-hero-max-h: 9rem;
+  }
+}
+
 /* A tablet reads the art over the rules, as a phone does, but at a tablet's
    70vh it would take the whole first screen: capped, so the ability and the
    Description start beside the stats and the drawing (r5 E10). */
