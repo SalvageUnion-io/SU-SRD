@@ -47,11 +47,11 @@
  */
 
 import { X } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { iconSize } from '../../design/tokens'
+import { iconSize, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
@@ -60,6 +60,7 @@ import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { InsidePeekContext } from '../atoms/insidePeek'
 import { SearchField } from '../atoms/SearchField'
+import { Stat } from '../atoms/Stat'
 import { EmptyState } from '../containers/EmptyState'
 import { TitledBox } from '../containers/TitledBox'
 import { paintFor } from '../entity'
@@ -92,6 +93,7 @@ import type {
   PoolEntity,
 } from './entitySearcherTypes'
 import { NO_RESULTS } from './searchCopy'
+import { namedBy, rowFacts } from './searcherFacts'
 import { aboveTechLevel, TECH_LEVEL_ROW, useSearcherPool } from './useSearcherPool'
 
 type EntitySearcherProps = {
@@ -199,6 +201,25 @@ type EntitySearcherProps = {
   frame?: (parts: { toolbar: ReactNode; body: ReactNode }) => ReactNode
 }
 
+/** The "In other Tech Levels" head: the summary line's caps, set off the list above. */
+const OUTSIDE_HEAD_STYLE = {
+  ...SUMMARY_STYLE,
+  margin: `${space[12]} 0 ${space[6]}`,
+} satisfies CSSProperties
+
+/** A wide row's facts beside its Mini (r4 E6): each a `Stat`, in running text. */
+function RowFacts({ entity }: { entity: PoolEntity }) {
+  const facts = rowFacts(entity)
+  if (facts.length === 0) return null
+  return (
+    <span className="su-searcher__facts">
+      {facts.map((each) => (
+        <Stat key={each.key} surface="plain" size="mini" label={each.label} value={each.value} />
+      ))}
+    </span>
+  )
+}
+
 /** The default `idOf`: module-level, so it is one function across renders. */
 const nameOf = (item: EntityLike) => item.name
 
@@ -243,6 +264,8 @@ export function EntitySearcher({
     setQuery,
     pool,
     visible,
+    outside,
+    activeTechLevels,
     countOf,
     facetRows,
     showRow,
@@ -316,6 +339,24 @@ export function EntitySearcher({
     }
   })
 
+  // ---- The keyboard's highlight (r4 E4): Down and Up in the search move it
+  // through the rows, the named ones in other Tech Levels after the rest, and
+  // Enter acts on it. One row wears it; it clears when the search changes. ----
+  const rows = useMemo(() => [...visible, ...outside], [visible, outside])
+  const [cursorId, setCursorId] = useState<string | null>(null)
+  const cursor = cursorId === null ? undefined : rows.find((item) => idOf(item) === cursorId)
+  const rowId = useId()
+  const domId = (item: PoolEntity) => `${rowId}-${item.id}`
+  function moveCursor(step: 1 | -1) {
+    if (rows.length === 0) return
+    const at = cursor ? rows.indexOf(cursor) : -1
+    const next = at === -1 ? (step === 1 ? 0 : rows.length - 1) : at + step
+    const item = rows[Math.max(0, Math.min(rows.length - 1, next))]
+    if (!item) return
+    setCursorId(idOf(item))
+    document.getElementById(domId(item))?.scrollIntoView?.({ block: 'nearest' })
+  }
+
   // Toggle and single emit `onToggle` either way; count appends a copy.
   function add(ref: string) {
     if (mode === 'count') onAdd?.(ref)
@@ -333,8 +374,12 @@ export function EntitySearcher({
     return () => cancelAnimationFrame(frame)
   }, [browse])
   function addFirstMatch() {
-    const first = visible[0]
-    if (browse || !first || !query.trim()) return
+    // The highlighted row; else, with something typed, the first row the search
+    // NAMES (r4 E5: never one matched only on its rules text while a name
+    // matches, even a name in a Tech Level that is switched off), else the top.
+    const q = query.trim()
+    const first = cursor ?? (q ? (rows.find((item) => namedBy(item, q)) ?? visible[0]) : undefined)
+    if (browse || !first) return
     const ref = idOf(first)
     // A single pick applies on Choose, so Enter only opens the match to read.
     if (mode === 'single') return open(ref)
@@ -360,13 +405,20 @@ export function EntitySearcher({
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
+            setCursorId(null)
             onQueryChange?.(e.target.value)
           }}
           onKeyDown={(e) => {
+            if (!browse && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+              e.preventDefault()
+              moveCursor(e.key === 'ArrowDown' ? 1 : -1)
+              return
+            }
             if (e.key !== 'Enter') return
             e.preventDefault()
             addFirstMatch()
           }}
+          aria-activedescendant={cursor ? domId(cursor) : undefined}
           enterKeyHint={browse ? undefined : 'done'}
           placeholder={compositionsCopy('searchByNameOrTrait')}
           aria-label={compositionsCopy('search')}
@@ -376,14 +428,16 @@ export function EntitySearcher({
       }
       inline={inline}
       folded={folded}
-      activeFilters={activeFilters}
+      // Filters counts what is set in its own panel (r4 E6): the Tech level
+      // chips beside it are in plain sight and count for nothing there.
+      activeFilters={activeFilters - (inline ? activeTechLevels : 0)}
       filters={filters}
     />
   )
 
   // ---- The Mini list ----
   const single = mode === 'single'
-  const tokens = visible.map((item) => {
+  const tokenOf = (item: PoolEntity) => {
     const ref = idOf(item)
     const count = countOf(item)
     const token = (
@@ -409,9 +463,11 @@ export function EntitySearcher({
     return (
       <div
         key={item.id}
+        id={domId(item)}
         className="su-searcher__item su-entity-mini-line"
         data-focused={ref === focusedId || undefined}
         data-selected={count > 0 || undefined}
+        data-cursor={item === cursor || undefined}
       >
         {token}
         {aboveTechLevel(item.techLevel, techLevel) && (
@@ -420,9 +476,11 @@ export function EntitySearcher({
           </Badge>
         )}
         {count > 0 && <SelectedSeal word={count > 1 ? `${count} ${chosenLabel}` : chosenLabel} />}
+        {wide && <RowFacts entity={item} />}
       </div>
     )
-  })
+  }
+  const tokens = visible.map(tokenOf)
 
   const browser = (
     <div ref={listRef} className="su-searcher__browser" hidden={takeover}>
@@ -430,6 +488,8 @@ export function EntitySearcher({
         <div style={SUMMARY_ROW_STYLE}>
           <p className={SUMMARY_CAPS} style={SUMMARY_STYLE}>
             {compositionsCopy('showingOf', { count: visible.length, count2: pool.length })}
+            {outside.length > 0 &&
+              ` · ${compositionsCopy('namedElsewhere', { count: outside.length })}`}
           </p>
           {techLevel !== undefined && showAllTechLevels && (
             <Button
@@ -456,6 +516,20 @@ export function EntitySearcher({
         {visible.length === 0 && emptyMessage && (
           <EmptyState variant="inline" className="su-searcher__none" body={emptyMessage} />
         )}
+        {/* What the search names in a Tech Level that is switched off (r4 E5):
+            listed, tagged, and reachable by the arrow keys and Enter. */}
+        {!browse && outside.length > 0 && (
+          <section aria-label={compositionsCopy('inOtherTechLevels')}>
+            <p className={SUMMARY_CAPS} style={OUTSIDE_HEAD_STYLE}>
+              {compositionsCopy('inOtherTechLevels')}
+            </p>
+            <InsidePeekContext.Provider value>
+              <PeekOffContext.Provider value>
+                <div className="su-searcher__list">{outside.map(tokenOf)}</div>
+              </PeekOffContext.Provider>
+            </InsidePeekContext.Provider>
+          </section>
+        )}
       </div>
     </div>
   )
@@ -472,7 +546,13 @@ export function EntitySearcher({
       cost={cost?.(focused)}
       hide={cardHide}
       showChassisAbility={showChassisAbility}
-      onAdd={() => focusedId && add(focusedId)}
+      onAdd={() => {
+        if (!focusedId) return
+        add(focusedId)
+        // On a phone the Page has the whole picker: an add returns to the
+        // list for the next one (r4 E6). A single pick closes by itself.
+        if (!wide && mode !== 'single') back()
+      }}
       extra={focusExtra?.(focused)}
       budgets={wide || budget === undefined ? undefined : [budget].flat()}
       userMade={userMade}

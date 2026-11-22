@@ -341,6 +341,30 @@
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
+/* The keyboard's highlight (r4 E4): the one row Enter acts on, a heavy ink
+   outline set off the row, so it never reads as the chosen ring (flush) or
+   the opened Page's thin one. */
+.su-searcher__item[data-cursor] {
+  outline: var(--bw-entity) solid var(--color-ink);
+  outline-offset: var(--bw-entity);
+}
+
+/* A wide row's facts (r4 E6): a line of running text under the Mini, so the
+   name keeps the row's width. */
+.su-searcher__item.su-entity-mini-line:has(> .su-searcher__facts) {
+  flex-wrap: wrap;
+}
+
+.su-searcher__facts {
+  color: var(--color-wk-muted);
+  display: flex;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  font-size: var(--text-caption);
+  gap: var(--space-2) var(--space-12);
+  padding: 0 var(--space-6) var(--space-2);
+}
+
 .su-searcher__item.su-entity-mini-line > .su-badge-stamp {
   align-self: center;
 }
