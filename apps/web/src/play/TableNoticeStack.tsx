@@ -36,6 +36,8 @@ export type Notice = StackedNotice & {
     | 'quiet'
     // A Downtime step waiting on the viewer, off the Play screen (r6 C5).
     | 'downtime'
+    // The boarded Mech at its Heat Capacity: the Heat Check is due (r6 A6).
+    | 'heat'
   tone: 'ink' | 'pilot' | 'crawler' | 'bad'
   title: string
   body?: string

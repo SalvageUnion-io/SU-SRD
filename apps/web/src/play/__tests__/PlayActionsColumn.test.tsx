@@ -25,6 +25,8 @@ import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechI
 import { playTxn } from '../../replica/provenance'
 import { ACTION_TYPE_ORDER } from '../playActions.model'
 import type { PlayRoll } from '../playRolls.model'
+import { NoticeStack } from '../TableNoticeStack'
+import { useScreenNotices } from '../tableStripSlot.model'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
@@ -205,16 +207,26 @@ describe('under the Scene’s conditions', () => {
 })
 
 describe('the Heat Check the rules call for (r6 A6)', () => {
-  test('at its Heat Capacity the boarded Mech’s Heat Check heads the Actions, its Roll right there', async () => {
+  /** The table's strip, as the root draws what the screen puts on it. */
+  function Strip() {
+    return <NoticeStack notices={useScreenNotices()} fixed />
+  }
+
+  test('at its Heat Capacity the boarded Mech’s Heat Check is the strip’s line, its Roll right there', async () => {
     const probe = makeMech({ chassisRef: 'leviathan' })
     const cap = mechMaxHeat(probe, resolveChassisRef(probe.chassisRef))
     expect(cap).toBeGreaterThan(0)
     const mech = makeMech({ chassisRef: 'leviathan', currentHeat: cap })
     const pilot = makePilot()
     const { store } = stubStore(mech, pilot)
-    render(<Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />)
+    render(
+      <>
+        <Strip />
+        <Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />
+      </>
+    )
     const due = `Heat ${cap}/${cap}: make a Heat Check`
-    // Said at the Actions' head and on the Reactor's own row.
+    // Said on the table's strip and on the Reactor's own row.
     expect(screen.getAllByText(due)).toHaveLength(2)
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll the Heat Check' }))

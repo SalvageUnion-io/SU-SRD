@@ -233,7 +233,9 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
     setTab(next)
   }
   const nodes: Record<PlayerPane, ReactNode> = {
-    act: <PlayActionsColumn target={target} play={play} {...actions} />,
+    act: (
+      <PlayActionsColumn target={target} play={play} onShow={() => openTab('act')} {...actions} />
+    ),
     // From `lg` the
     // Feed, the table's log, runs under the Units, and the Reference under the
     // Tables, so both side columns end with the centre one.

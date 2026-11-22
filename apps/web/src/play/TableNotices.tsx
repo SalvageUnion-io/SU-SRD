@@ -40,7 +40,7 @@ import { NoticeStack } from './TableNoticeStack'
 import type { KnownGame } from './tableNotices.model'
 import { gameOfPage, gamesGone, YOUR_TURN_ID } from './tableNotices.model'
 import { focusYourTurn, useNoticesHeight } from './tableNoticesDom.model'
-import { useTableStripSlot } from './tableStripSlot.model'
+import { useScreenNotices, useTableStripSlot } from './tableStripSlot.model'
 
 /** A Game the viewer was removed from, with when this screen learned of it. */
 type GoneGame = KnownGame & { at: number }
@@ -55,6 +55,7 @@ export function TableNotices({ pathname }: { pathname: string }) {
   if (served !== undefined) lastGames.current = served
   const games = served ?? (status === 'offline' ? lastGames.current : undefined)
   const slot = useTableStripSlot()
+  const screen = useScreenNotices()
   // A Game the viewer was in and is in no longer, not by their own doing (r2 B4).
   const known = useRef<readonly KnownGame[] | null>(null)
   const [gone, setGone] = useState<readonly GoneGame[]>([])
@@ -80,12 +81,26 @@ export function TableNotices({ pathname }: { pathname: string }) {
   }, [])
   // The viewer's own pilots, to tell which Game's pages this is (the replica holds the crew's too).
   const pilots = useOwnUnits('pilot')
-  if (person === null || games === undefined || (games.length === 0 && gone.length === 0)) {
-    return null
-  }
   const inPlay = hidesUnionBar(pathname)
   // On a Play screen the strip stands under its bar, at one height (r6 A1).
   const fixed = inPlay && slot !== null
+  // What the Play screen itself says there, solo too: the Heat Check due (r6 A6).
+  const own = fixed ? screen : []
+  if (own.length > 0 && (person === null || games === undefined || games.length === 0)) {
+    return createPortal(
+      <section className="su-table-notices" data-in-play="" aria-label={playCopy('tableNotices')}>
+        <NoticeStack
+          notices={own}
+          fixed
+          offline={status === 'offline' ? playCopy('stripOffline') : undefined}
+        />
+      </section>,
+      slot as HTMLElement
+    )
+  }
+  if (person === null || games === undefined || (games.length === 0 && gone.length === 0)) {
+    return null
+  }
   const pageGame = gameOfPage(
     pathname,
     games.map((game) => ({
@@ -116,7 +131,7 @@ export function TableNotices({ pathname }: { pathname: string }) {
   const offline = status === 'offline'
   const strip = (
     <NoticeStack
-      notices={[...removed, ...theirs]}
+      notices={[...removed, ...theirs, ...own]}
       fixed={fixed}
       offline={offline ? playCopy('stripOffline') : undefined}
     />
