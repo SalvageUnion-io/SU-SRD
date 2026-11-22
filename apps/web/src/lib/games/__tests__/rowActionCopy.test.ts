@@ -139,6 +139,19 @@ describe('rowActionCopy', () => {
     )
   })
 
+  // MD3-15: assigned to yourself, the confirm began "you will edit …".
+  test('the Assign confirm starts with a capital', () => {
+    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'you', null).body[0]).toStartWith(
+      'You will edit Vex Arlo'
+    )
+    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'you', 'Mara').body[0]).toStartWith(
+      'You will edit Vex Arlo in this Game instead of Mara'
+    )
+    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'you', null).title).toBe(
+      'Assign Vex Arlo to you?'
+    )
+  })
+
   test('only the constructive verbs are not danger-toned', () => {
     expect(ROW_ACTION_COPY.assignSelf('Vex Arlo').tone).toBe('default')
     expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'Mara', null).tone).toBe('default')

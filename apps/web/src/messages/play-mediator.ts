@@ -36,7 +36,7 @@ export const mediatorCopy = messages({
   runNamed: 'Run {name}',
   runningPending: 'Running…',
   runningAdded: 'Running {name}: {added} added to the Opposition.',
-  clearItFirst: 'Clear it first (removes {count} on the tray)',
+  clearItFirst: 'Clear it first (removes {count} on the field)',
   onTheField: 'On the field',
   drawFrom: 'Draw from',
   nameOptional: 'Name (optional)',

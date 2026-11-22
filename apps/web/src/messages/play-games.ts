@@ -19,7 +19,7 @@ export const playGamesCopy = messages({
   andAnythingUnassignedComeTo:
     '{crawlerName} and anything unassigned come to you, in your {build}.',
   theCrewItsInviteLink:
-    "The crew, its invite link, the opposition tray and the assignments between everyone's builds go with the Game.",
+    "The crew, its invite link, the Opposition on the field and the assignments between everyone's builds go with the Game.",
   theRestGoesHome:
     'Anything somebody built, was handed or changed is kept: it goes back to whoever holds it, in their {build}.',
   alsoDeleteTemplateUnits: 'Also delete the {count} it came with?',

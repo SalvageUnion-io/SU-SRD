@@ -4,6 +4,7 @@
  */
 import type { ReactNode } from 'react'
 import type { LedgerColumn } from '../../components/index'
+import { HP_OR_SP } from '../../lib/shelves/shelfItems'
 import { VITAL } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { buildShelvesCopy } from '../../messages/build-shelves'
@@ -58,7 +59,8 @@ export const NPC_COLUMNS = [
   word('position', buildShelvesCopy('position')),
   word('who', buildShelvesCopy('seenBy')),
   GAME,
-  fig(VITAL.hp, buildShelvesCopy('hitOrStructurePoints'), true),
+  // An NPC's track is HP or SP (`SP 39/39`), so the head says both (MD3-15).
+  { ...fig(VITAL.hp, buildShelvesCopy('hitOrStructurePoints'), true), label: HP_OR_SP },
 ]
 // Beside the other column the panel is narrow: it spares who sees a pattern
 // (its page says), so its make and each line's menu stay inside the frame.

@@ -69,6 +69,14 @@
   }
 }
 
+/* Nor does a phone's width, whatever points at it (MD3-15): the field is
+   short there, and the cap took room from what is typed. */
+@media not (width >= 40rem) {
+  .su-search-field__shortcut {
+    display: none;
+  }
+}
+
 /* ── Toaster ── */
 /* components/containers/Toaster.tsx — a success or error toast's status icon takes
  * the status colour. Sonner renders the icon, so only a descendant rule

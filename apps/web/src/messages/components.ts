@@ -5,8 +5,8 @@ import { messages } from './define'
 export const componentsCopy = messages({
   undo: 'Undo',
   // Make a copy runs at once; its notice stays, with the way to the copy.
-  madeCopy: 'Made {name}.',
-  madeCopyWithMech: 'Made {name}, with {mech}.',
+  madeCopy: 'Copied {name}.',
+  madeCopyWithMech: 'Copied {name}, with {mech}.',
   openTheCopy: 'Open the copy',
   copyTheMechToo: 'Copy the Mech too?',
   pilotFliesMech: '{name} flies {mech}. A copy of the Pilot alone has no Mech.',

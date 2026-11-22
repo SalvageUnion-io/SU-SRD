@@ -146,12 +146,14 @@ export const ROW_ACTION_COPY = {
    * whoever holds it now. It moves who edits it, not what is on it.
    */
   assignTo(name: string, kind: RowActionKind, to: string, from: string | null): ConfirmCopy {
+    // The sentence opens on who: "You will edit …", never "you will edit …" (MD3-15).
+    const who = to.charAt(0).toUpperCase() + to.slice(1)
     return {
       title: libGamesCopy('assignToTitle', { name, to }),
       body: [
         from === null
-          ? libGamesCopy('assignToFresh', { to, name, them: them(kind) })
-          : libGamesCopy('assignToFrom', { to, name, from, them: them(kind) }),
+          ? libGamesCopy('assignToFresh', { to: who, name, them: them(kind) })
+          : libGamesCopy('assignToFrom', { to: who, name, from, them: them(kind) }),
         libGamesCopy('assignToUndo'),
       ],
       confirmLabel: libGamesCopy('assignTo', { to }),

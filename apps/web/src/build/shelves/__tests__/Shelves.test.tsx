@@ -502,7 +502,7 @@ describe('Patterns', () => {
         .mechPatterns.map((p) => p.name)
         .sort()
     ).toEqual(['Brawler', 'COPY OF Brawler'])
-    expect(await screen.findByText('Made COPY OF Brawler.')).toBeTruthy()
+    expect(await screen.findByText('Copied Brawler.')).toBeTruthy()
     const copy = usePatterns.getState().mechPatterns.find((p) => p.name === 'COPY OF Brawler')
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Open the copy' }))

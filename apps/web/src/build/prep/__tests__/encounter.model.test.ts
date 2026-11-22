@@ -116,8 +116,8 @@ describe('running one from Play', () => {
   })
 
   test('the clear-first choice names what it removes', () => {
-    expect(trayChoiceLabel(1)).toBe('Clear it first (removes 1 NPC on the tray)')
-    expect(trayChoiceLabel(3)).toBe('Clear it first (removes 3 NPCs on the tray)')
+    expect(trayChoiceLabel(1)).toBe('Clear it first (removes 1 unit on the field)')
+    expect(trayChoiceLabel(3)).toBe('Clear it first (removes 3 units on the field)')
   })
 })
 

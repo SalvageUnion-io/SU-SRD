@@ -15,21 +15,24 @@ import { usePatterns } from '../replica/collections'
 import { subscribe } from '../replica/replica'
 import { useUnits } from '../replica/units'
 import { failureMessage } from './connection/useServerAction'
-import { copyForShelf, copyName, freeName, namesOn } from './copyEntity'
+import { copyBeside, copyForShelf, copyName, freeName, namesOn } from './copyEntity'
 import { patternCopy, savedPatternHref } from './patterns/patterns'
 
 /** How long an action toast stays: the Undo line's time (`changeUndoToast`). */
 const ACTION_TOAST_MS = 8000
 
-/** What a copy answers: its name, where it opens, and whether it is still there. */
+/** What a copy answers: its name, where it opens, whether it is still there, and the mech copied with it. */
 type Made = { name: string; href: string; exists?: () => boolean; mech?: string }
 
-/** Says a copy was made, with the way to it, for as long as there is a copy to open. */
-function copiedToast(made: Made, go: (href: string) => void): void {
+/**
+ * Says what was copied, by the original's name (`of`), with the way to the
+ * copy, for as long as there is a copy to open.
+ */
+function copiedToast(of: string, made: Made, go: (href: string) => void): void {
   let unwatch: (() => void) | undefined
   const said = made.mech
-    ? componentsCopy('madeCopyWithMech', { name: made.name, mech: made.mech })
-    : componentsCopy('madeCopy', { name: made.name })
+    ? componentsCopy('madeCopyWithMech', { name: of, mech: made.mech })
+    : componentsCopy('madeCopy', { name: of })
   const id = toast.success(said, {
     duration: ACTION_TOAST_MS,
     action: { label: componentsCopy('openTheCopy'), onClick: () => go(made.href) },
@@ -57,7 +60,7 @@ export async function makeACopy(args: {
   go: (href: string) => void
 }): Promise<void> {
   try {
-    copiedToast(await args.make(), args.go)
+    copiedToast(args.name, await args.make(), args.go)
   } catch (err) {
     toast.error(failureMessage(err, componentsCopy('couldNotBeCopied', { name: args.name })))
   }
@@ -94,8 +97,8 @@ export const keptMech = (type: EntityKind, id: string, units?: Units): string | 
   type === 'pilot' ? mechFlownBy(id, units)?.name : undefined
 
 /**
- * Copy one of your units onto the Training Bay, named "Copy of …", numbered
- * past the names taken. A pilot's copy takes a callsign of its own too
+ * Copy one of your units onto the Training Bay (an NPC, into the Game its
+ * original is in), named "Copy of …", numbered past the names taken. A pilot's copy takes a callsign of its own too
  * (`GHOST 2`): the list leads with the callsign, so two alike read as one
  * pilot. With `mech`, the pilot's mech is copied and paired with the copy, all
  * or nothing.
@@ -111,7 +114,9 @@ function copyUnit(
   return makeACopy({
     name,
     make: async () => {
-      const copy = copyForShelf(body, name, namesOn(units.list(type)))
+      // An NPC's copy stays in the Game its original is in (MD3-12).
+      const taken = namesOn(units.list(type))
+      const copy = type === 'npc' ? copyBeside(body, name, taken) : copyForShelf(body, name, taken)
       if (type === 'pilot' && typeof copy.callsign === 'string')
         copy.callsign = freeName(
           copy.callsign,
@@ -133,7 +138,7 @@ function copyUnit(
             to: { type: 'pilot', id: created.id },
             type: 'mech-to-pilot',
           })
-          withMech = twin.name
+          withMech = source.name
         } catch (error) {
           if (made) await units.delete('mech', made)
           await units.delete(type, created.id)

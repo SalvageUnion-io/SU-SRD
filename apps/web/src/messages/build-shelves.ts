@@ -43,6 +43,7 @@ export const buildShelvesCopy = messages({
   tl: 'TL',
   techLevel: 'Tech Level',
   hitOrStructurePoints: 'Hit or Structure Points',
+  hpOrSp: 'HP / SP',
   sys: 'Sys',
   systemSlotsUsed: 'System Slots used',
   mod: 'Mod',

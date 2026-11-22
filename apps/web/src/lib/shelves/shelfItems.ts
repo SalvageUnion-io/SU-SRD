@@ -189,6 +189,9 @@ export function npcReading(npc: Pick<Npc, 'hitPoints' | 'damageType' | 'currentH
   return vitalReading(npc.damageType, resolvePool(npc.currentHP, npc.hitPoints), npc.hitPoints)
 }
 
+/** The head of a column that holds HP for one row and SP for another: an NPC list's (MD3-15). */
+export const HP_OR_SP = buildShelvesCopy('hpOrSp')
+
 /**
  * A reading in an HP column: the figures alone, or with its own label where it
  * is not Hit Points (`SP 39/39`), so a mech-scale NPC never reads as HP.

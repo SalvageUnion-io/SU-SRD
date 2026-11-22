@@ -132,4 +132,16 @@ describe('the shell’s Union bar, marked for its route', () => {
     expect(hereIn(marked).mode).toBe('play')
     expect(markUnionRoute(marked, '/')).toBe(shell)
   })
+  // MD3-17: the Games page loaded under the Training Bay's tab title.
+  test('titles the shell for the Games on a Games route, and leaves the rest', () => {
+    const titleOf = (html: string) => /<title>([^<]*)<\/title>/.exec(html)?.[1]
+    const shell = renderShell()
+    expect(titleOf(markUnionRoute(shell, '/games/'))).toBe('Games · SalvageUnion.io')
+    expect(titleOf(markUnionRoute(shell, '/games/g1/prep'))).toBe('Games · SalvageUnion.io')
+    expect(titleOf(markUnionRoute(shell, '/'))).toBe(titleOf(shell))
+    expect(titleOf(markUnionRoute(shell, '/pilots/p1'))).toBe('Training Bay · SalvageUnion.io')
+    // A shell built with a page's own title keeps it.
+    const starter = shell.replace(/<title>[^<]*<\/title>/, '<title>Starter Set</title>')
+    expect(titleOf(markUnionRoute(starter, '/games/'))).toBe('Starter Set')
+  })
 })
