@@ -38,6 +38,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
 import { FieldError, RosterSkeleton } from '../../components/app'
+import { UnitDown } from '../../components/entity/UnitDown'
 import type { HeaderMenuItem, LedgerColumn, LedgerRow } from '../../components/index'
 import {
   Button,
@@ -388,6 +389,8 @@ export function GameRoster({ gameId, gameName, pregens }: GameRosterProps) {
       stamp: (
         <>
           {row.primary && <Stat size="mini" label={playGamesCopy('primary')} />}
+          {/* A unit at 0 SP or 0 HP says Down and what it needs (r6 C6). */}
+          <UnitDown readings={[...(chips.readings ?? []), ...mech]} />
           {/* A free one's seal is its Assign to me button: a row of yours says
               Mine in its Member column, once (R59). */}
           {row.owner?.unassigned && (

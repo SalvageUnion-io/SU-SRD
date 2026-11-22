@@ -10,9 +10,10 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { RuleBreakMark } from '../../components/app'
+import { UnitDown } from '../../components/entity/UnitDown'
 import type { HeaderMenuItem, LedgerSort } from '../../components/index'
 import { chassisFact } from '../../lib/shelves/shelfItems'
-import { VITAL } from '../../lib/units/readings'
+import { isDown, VITAL } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { usePatterns } from '../../replica/collections'
@@ -100,14 +101,17 @@ export function MechShelf({
           href: `/mechs/${mech.id}`,
           // A build over its chassis's slots says so in words, and which limit
           // it is over, under its name (R71, r3 L5).
-          under: over ? (
-            <>
-              {own.under}
-              <RuleBreakMark what={what} />
-            </>
-          ) : (
-            own.under
-          ),
+          // A mech at 0 SP says Down and needs repair under its name (r6 C6).
+          under:
+            over || isDown(readings.get(mech.id)) ? (
+              <>
+                {own.under}
+                <UnitDown readings={readings.get(mech.id)} />
+                {over && <RuleBreakMark what={what} />}
+              </>
+            ) : (
+              own.under
+            ),
           cells: MECH_COLUMNS.map((column) =>
             column.key === 'game' ? inGame(own.game) : (values[column.key] ?? '')
           ),

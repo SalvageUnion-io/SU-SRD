@@ -20,4 +20,7 @@ export const libCopy = messages({
   hybridClasses: 'Hybrid Classes',
   coreClasses: 'Core Classes',
   changeNotSaved: 'That change could not be saved.',
+  // A unit at 0 SP or 0 HP, wherever it is listed (r6 C6).
+  down: 'Down',
+  needsRepair: 'needs repair',
 })
