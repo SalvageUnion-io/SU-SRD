@@ -79,7 +79,7 @@ export type TableEvent = {
   kind: TableEventKind
   /** The line: who and what, as the Feed, a toast and Discord all read it. */
   text: string
-  /** Whose act it was; null for the Stop Sign, which names nobody. */
+  /** Whose act it was; null for the Stop Sign, which names nobody but whoever lifted someone else's. */
   actorId: string | null
   /** Mediators' eyes only: never toasted to a player, never mirrored. */
   private?: true
@@ -129,6 +129,8 @@ export type EventsBefore = {
   /** Whether a Downtime was running. */
   downtime?: boolean
   stop?: boolean
+  /** Who showed the Stop Sign: lifted by anyone else, the Feed names who lifted it (r5 A8). */
+  stopBy?: string | null
   /** Whether the effect was switched on. */
   effectOn?: boolean
   /** Who held the unit an assignment moves. */
@@ -214,12 +216,15 @@ export class GameEvents {
         }
       }
       case 'safety.showStop':
-      case 'safety.liftStop':
+      case 'safety.liftStop': {
+        const row = this.store.rows(
+          'select shown_by from stop_sign where id = 1 and shown_at is not null'
+        )[0]
         return {
-          stop:
-            this.store.rows('select 1 from stop_sign where id = 1 and shown_at is not null')
-              .length > 0,
+          stop: row !== undefined,
+          stopBy: (row?.shown_by as string | null | undefined) ?? null,
         }
+      }
       default:
         return {}
     }
@@ -376,9 +381,17 @@ export class GameEvents {
           ? []
           : [this.note(null, at, { kind: 'stop', text: 'The Stop Sign is up. Play is paused.' })]
       case 'safety.liftStop':
-        return before.stop === true
-          ? [this.note(null, at, { kind: 'stop', text: 'The Stop Sign is lifted. Play resumes.' })]
-          : []
+        if (before.stop !== true) return []
+        // Lifted for someone else, the Feed says who lifted it (r5 A8); whoever
+        // showed it lifting it themselves stays unnamed.
+        return before.stopBy !== actor
+          ? [
+              this.note(actor, at, {
+                kind: 'stop',
+                text: `${who} lifted the Stop Sign. Play resumes.`,
+              }),
+            ]
+          : [this.note(null, at, { kind: 'stop', text: 'The Stop Sign is lifted. Play resumes.' })]
       default:
         return []
     }

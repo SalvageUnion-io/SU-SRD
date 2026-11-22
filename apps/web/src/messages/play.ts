@@ -399,7 +399,7 @@ export const playCopy = messages({
   answerDidNotLand: 'Your answer did not land. Try again.',
   tableNotices: 'Your Games',
   pausedTitlePrefix: 'Paused · ',
-  pausedIn: 'Stop Sign · {game}: the game is paused',
+  pausedIn: 'Stop Sign · {game}: the table is asked to pause',
   endGroupSessionTitle: 'End the group session?',
   endGroupSessionBody:
     'The table is told the session has ended. Play stays open for everyone, and you can start another at any time.',

@@ -281,8 +281,18 @@ describe('the table’s events', () => {
     const [up] = act(PLAYER, 'safety.showStop', undefined as never)
     expect(up).toMatchObject({ kind: 'stop', actorId: null })
     expect(isMirrored(up as never)).toBe(false)
-    const [down] = act(MEDIATOR, 'safety.liftStop', undefined as never, AT + 1)
-    expect(down?.actorId).toBeNull()
+    // Lifted by its own shower: nobody named.
+    const [own] = act(PLAYER, 'safety.liftStop', undefined as never, AT + 1)
+    expect(own).toMatchObject({ actorId: null, text: 'The Stop Sign is lifted. Play resumes.' })
+    expect(isMirrored(own as never)).toBe(true)
+    // Lifted by the Mediator for someone else: the Feed says who lifted it (r5 A8).
+    act(PLAYER, 'safety.showStop', undefined as never, AT + 2)
+    const [down] = act(MEDIATOR, 'safety.liftStop', undefined as never, AT + 3)
+    expect(down).toMatchObject({
+      actorId: MEDIATOR,
+      text: 'Med lifted the Stop Sign. Play resumes.',
+    })
+    expect(down?.about).toBeUndefined()
     expect(isMirrored(down as never)).toBe(true)
   })
 

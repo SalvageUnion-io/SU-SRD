@@ -90,7 +90,7 @@ describe('the pinned notices', () => {
   test('the Stop Sign pins on a sheet too, names the tab, and whoever may lift it resumes', async () => {
     document.title = 'Bonesaw · Training Bay'
     await renderNotices({ 'safety.stopSign': { stop: { shownAt: 1, mine: true }, mayLift: true } })
-    expect(screen.getByText('Stop Sign · Tenacity: the game is paused')).toBeTruthy()
+    expect(screen.getByText('Stop Sign · Tenacity: the table is asked to pause')).toBeTruthy()
     expect(document.title).toBe('Paused · Bonesaw · Training Bay')
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Resume play' }))
