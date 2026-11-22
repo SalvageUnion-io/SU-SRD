@@ -432,6 +432,8 @@ export function LiveSheet({
                       ) : (
                         <Stat label={patternLabel(fromPattern)} value={fromPattern.name} wrap />
                       ))}
+                    {/* What differs from the pattern now (r5 D2). */}
+                    {fromPattern?.differs && <Stat label={fromPattern.differs} wrap />}
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />
                     )}
