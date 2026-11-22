@@ -28,7 +28,7 @@ export function nextStop(
   from: Element | null,
   key: string
 ): HTMLElement | null {
-  const at = stops.findIndex((stop) => stop === from)
+  const at = stops.indexOf(from as HTMLElement)
   if (at === -1) return null
   return stops[at + (key === 'ArrowLeft' ? -1 : 1)] ?? null
 }
