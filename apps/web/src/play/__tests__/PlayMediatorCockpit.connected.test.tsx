@@ -243,7 +243,7 @@ function downtimeAt(stepIndex: number, upkeepSpent = false): QueryAnswers {
   }
 }
 
-async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
+async function renderCockpit(over: QueryAnswers = {}, canWrite = true, die = 14) {
   const all = answers(over)
   setQueryAnswers(all)
   serveReads(GAME, all)
@@ -259,7 +259,7 @@ async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
         <PlayMediatorCockpit
           gameId={GAME}
           gameName="The Rust Belt Run"
-          rollFor={async () => () => 14}
+          rollFor={async () => () => die}
         />
       </SyncContext.Provider>
     )
@@ -701,6 +701,27 @@ describe('the Opposition', () => {
         },
       ])
     )
+  })
+
+  test('a miss offers no hit: the table’s Failure rows propose nothing (r4 D2)', async () => {
+    await renderCockpit(
+      {
+        'mediator.npcs': [
+          {
+            _id: 'n-raider',
+            body: { name: 'Raider', refSchema: 'npcs', refSlug: 'raider', currentHp: 3, maxHp: 3 },
+          },
+        ],
+      },
+      true,
+      3
+    )
+    await click(named('Raider’s actions'))
+    const list = within(screen.getByRole('list', { name: 'Raider’s actions' }))
+    await click(list.getByRole('button', { name: /^Use Improvised Firearm.* for Raider$/ }))
+    await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
+    await waitFor(() => expect(list.getByText('3 · Failure')).toBeTruthy())
+    expect(screen.queryByRole('button', { name: /^Propose 3 HP/ })).toBeNull()
   })
 
   test('a unit’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed, the Game’s log and Discord', async () => {

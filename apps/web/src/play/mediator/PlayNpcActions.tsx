@@ -18,8 +18,8 @@
  *
  * A weapon's roll offers its hit (r4 D2): "Propose 3 HP to…" lists the seats
  * that take that damage (`hitTargets`), and pressing one sends the proposal,
- * the weapon its reason. The Mediator decides whether it hit; the player
- * still decides whether it applies.
+ * the weapon its reason. Nothing is offered on the table's Failure rows, a
+ * miss; the player still decides whether a proposal applies.
  */
 
 import type { ProposalTarget } from 'game-domain/games/proposals'
@@ -69,6 +69,9 @@ function npcActionOutcome(die: number): string {
   const row = resultForTable(SalvageUnionReference.RollTables.getByName(NPC_ACTION)?.table, die)
   return row.success ? (row.result.label ?? row.result.value) : ''
 }
+
+/** The table's own word for a miss: its Failure rows ("a weapon attack misses"). */
+const missed = (band: string) => /failure/i.test(band)
 
 type PlayNpcActionsProps = {
   npc: TrayNpc
@@ -222,7 +225,7 @@ function NpcActionRow({
                         {rolled.die} · {rolled.band}
                       </p>
                     ) : null}
-                    {rolled && damage && hit ? (
+                    {rolled && !missed(rolled.band) && damage && hit ? (
                       <HitOffer npc={npc} weapon={entry.name} damage={damage} hit={hit} />
                     ) : null}
                   </div>
