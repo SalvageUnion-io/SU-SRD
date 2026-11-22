@@ -84,10 +84,7 @@ export function guessesFor(
 }
 
 /** The section a missed address names, where its first segment is a kind the index holds. */
-export function sectionOf(
-  index: readonly CompactSearchEntry[],
-  pathname: string
-): string | undefined {
+function sectionOf(index: readonly CompactSearchEntry[], pathname: string): string | undefined {
   const [first] = pathname.split('/').filter(Boolean)
   return first && index.some((entry) => entry.schemaName === first) ? first : undefined
 }
