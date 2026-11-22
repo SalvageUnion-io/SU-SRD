@@ -92,7 +92,7 @@ let seat: SoloSeatRead | null = null
  * leaving Play and coming back in this tab picks the round up again, as its
  * Feed does. A reload forgets it.
  */
-const left = new Map<string, { units: (Pilot | Mech)[]; seat: SoloSeatRead }>()
+const left = new Map<string, { units: (Pilot | Mech)[]; seat: SoloSeatRead; changed: boolean }>()
 let changed = false
 const listeners = new Set<() => void>()
 
@@ -130,7 +130,8 @@ export function openTrial(crew: TrialCrew): () => void {
   const kept = left.get(crew.pilot.id)
   const played = (unit: Pilot | Mech) => kept?.units.find((u) => u.id === unit.id) ?? unit
   seat = kept?.seat ?? seatOf(crew.pilot.id)
-  changed = kept !== undefined
+  // A round reopened untouched (leaving and coming back, or React's dev double effect) is still untouched.
+  changed = kept?.changed ?? false
   setTrialWrites(true)
   holdTabRoom({
     submit: (ops) => {
@@ -164,7 +165,7 @@ export function openTrial(crew: TrialCrew): () => void {
     const now = [...view.pilots, ...view.mechs].filter(
       (u) => u.id === crew.pilot.id || crew.mechs.some((m) => m.id === u.id)
     )
-    if (seat !== null) left.set(crew.pilot.id, { units: now, seat })
+    if (seat !== null) left.set(crew.pilot.id, { units: now, seat, changed })
     for (const l of crew.links) release('account', 'softLink', l.id)
     for (const m of crew.mechs) release('account', 'mech', m.id)
     release('account', 'pilot', crew.pilot.id)

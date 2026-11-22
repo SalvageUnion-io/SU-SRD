@@ -21,6 +21,15 @@ describe('the trial room', () => {
     expect(crew?.mechs.map((m) => m.id)).toEqual(['starter-mech-scrapper'])
   })
 
+  test('reopened untouched (as React’s dev double effect does), the round is still untouched', () => {
+    const crew = trialCrew('starter-pilot-bonesaw')
+    if (crew === null) throw new Error('no crew')
+    openTrial(crew)()
+    const close = openTrial(crew)
+    expect(trialChanged()).toBe(false)
+    close()
+  })
+
   test('opens writable over the crew, takes a vital and a boarding, and leaves nothing', async () => {
     const crew = trialCrew('starter-pilot-bonesaw')
     if (crew === null) throw new Error('no crew')
