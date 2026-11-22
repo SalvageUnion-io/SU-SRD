@@ -93,6 +93,8 @@ test(
       // --- 1. Propose → accept ---
       await seat(page).click()
       await expect(seat(page)).toHaveAttribute('aria-pressed', 'true')
+      // Propose opens on Take (r4 D2): this one names the value itself.
+      await page.getByLabel('Change', { exact: true }).selectOption('set')
       await page.getByLabel('To', { exact: true }).fill('4')
       await page.getByLabel('Reason (optional)').fill('Rifle Squad volley')
       await page.getByRole('button', { name: 'Propose', exact: true }).click()
