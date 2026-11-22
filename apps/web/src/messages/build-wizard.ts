@@ -89,12 +89,17 @@ export const buildWizardCopy = messages({
   anEmptySheetNoSteps2: 'An empty sheet. No steps, no limits. Fill it in on the live sheet.',
   forVeteransImportsAndHomebrew: 'For veterans, imports, and homebrew.',
   startBlank: 'Start blank',
+  orStart: 'Or:',
+  orBuildItGuided: 'Or build it step by step, guided',
+  startNeedsSignIn: '{label} (needs a sign-in)',
+  startsSaveAtOnce: 'Each saves at once.',
+  continueYourDraft: 'Continue your draft',
   fromAPattern: 'From a pattern',
   aPatternIsYourPlan:
     'A Pattern is a plan for a Mech: one the book prints, at any Tech Level, or one of your own. Build With This makes the Mech.',
   yourPatterns: 'Your Patterns',
   patternNeedsSignIn:
-    'Building from a pattern saves the Mech at once, so it needs a sign-in. Guided and Blank work without one.',
+    'Building from a pattern saves the Mech at once, so it needs a sign-in. The guided build works without one.',
   nextReason: 'First: {reason}',
   forPilot: 'For {name}: the Mech is assigned to them once it is made.',
   forMech: 'For {name}: the Pilot is assigned to it once they are made.',

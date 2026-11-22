@@ -3,9 +3,14 @@
  * Router-agnostic so the three routes stay thin and the routing
  * behaviour is testable without a RouterProvider:
  *
- *   mode absent   → CreateModeChooser (Guided vs Blank doors)
- *   mode 'guided' → the EXISTING wizard, rendered unchanged (`wizard` slot)
- *   mode 'blank'  → the chooser with the Blank dialog open over it
+ *   mode absent    → the wizard on its first step (r6 F2: `OPENS_ON_FIRST_STEP`;
+ *                    false, CreateModeChooser's Guided vs Blank doors)
+ *   mode 'guided'  → the EXISTING wizard, rendered unchanged (`wizard` slot)
+ *   mode 'blank'   → the Blank dialog open over the wizard (or the chooser)
+ *   mode 'pattern' → a mech's patterns (`PatternStart`)
+ *
+ * Opening on the step, the wizard's head carries the other starts and a kept
+ * draft's Continue · Discard (`WizStarts`, provided here).
  *
  * Signed out, the chooser and the guided wizard still run (ADR-034 as
  * amended): a guided build is a session draft, and its Save asks for the
@@ -20,19 +25,27 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
-import { lazy, Suspense } from 'react'
+import { Fragment, lazy, Suspense, useState } from 'react'
 import { GameDataGate } from '../../components/GameDataGate'
 import { RoutePending } from '../../components/shared/RouteFallbacks'
 import type { CreateMode } from '../../lib/wizard/createMode'
+import { drawsWizard, OPENS_ON_FIRST_STEP, shownMode } from '../../lib/wizard/createMode'
+import { clearWizardDraft, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { buildAccountCopy } from '../../messages/build-account'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { sharedCopy } from '../../messages/components-shared'
 import { useSync } from '../../replica/syncContext'
 import { SignInToBuild } from '../account/SignInToBuild'
 import { showsSignedOutView } from '../account/signedOutView.model'
+import type { WizStarts } from './wizStarts.model'
+import { forLine, WizStartsContext } from './wizStarts.model'
 
 /** The doors and the Blank dialog, with the pattern lists they carry: not the guided wizard's to download. */
 const CreateDoors = lazy(() => import('./CreateDoors').then((m) => ({ default: m.CreateDoors })))
+/** The Blank dialog over the wizard: only after its link is pressed. */
+const BlankCreateDialog = lazy(() =>
+  import('./BlankCreateDialog').then((m) => ({ default: m.BlankCreateDialog }))
+)
 
 type NewEntityScreenProps = {
   kind: SheetKind | 'npc'
@@ -62,7 +75,7 @@ type NewEntityScreenProps = {
 
 export function NewEntityScreen({
   kind,
-  mode,
+  mode: asked,
   wizard,
   onModeChange,
   onCreated,
@@ -74,18 +87,57 @@ export function NewEntityScreen({
   book,
 }: NewEntityScreenProps) {
   const connection = useSync()
+  const mode = shownMode(asked, kind, book?.pattern)
+  // Discarding a kept draft starts the wizard again: a new mount, empty.
+  const [run, setRun] = useState(0)
   // A blank sheet and a designed NPC are written at once: they need the account first.
   if (showsSignedOutView(connection.status) && (kind === 'npc' || mode === 'blank')) {
     return <SignInGate kind={kind} returnTo={returnTo} />
   }
+  const starts: WizStarts | null =
+    kind === 'npc' || !OPENS_ON_FIRST_STEP
+      ? null
+      : {
+          kind,
+          signedOut: showsSignedOutView(connection.status),
+          forLine: forLine({ forPilot, forMech, forCrew }),
+          onStart: onModeChange,
+          onDiscard: () => {
+            clearWizardDraft(wizardDraftKey(kind))
+            // The step it had reached leaves the address too.
+            window.history.replaceState(
+              window.history.state,
+              '',
+              window.location.pathname + window.location.search
+            )
+            setRun((n) => n + 1)
+          },
+        }
 
   // The NPC designer is its own `<main>`; a unit's screen is in this one.
   return (
     <GameDataGate fallback={<RoutePending label={sharedCopy('referenceData')} />}>
       {kind === 'npc' ? (
         wizard
-      ) : mode === 'guided' ? (
-        <main>{wizard}</main>
+      ) : drawsWizard(mode) ? (
+        <main>
+          <WizStartsContext.Provider value={starts}>
+            <Fragment key={run}>{wizard}</Fragment>
+          </WizStartsContext.Provider>
+          {mode === 'blank' && (
+            <Suspense fallback={null}>
+              <BlankCreateDialog
+                kind={kind}
+                open
+                onClose={() => onModeChange(undefined)}
+                onCreated={onCreated}
+                gameId={gameId}
+                // A chassis page's Build With This opens a Blank build of it (r5 D8).
+                chassis={kind === 'mech' ? book?.chassis : undefined}
+              />
+            </Suspense>
+          )}
+        </main>
       ) : (
         // The wait is its own `<main>`, so it stands in for this one.
         <Suspense fallback={<RoutePending />}>

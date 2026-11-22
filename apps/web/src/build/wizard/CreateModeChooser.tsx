@@ -50,6 +50,34 @@ const KIND_LABEL: Record<SheetKind, string> = {
   crawler: 'Crawler',
 }
 
+/**
+ * FROM A PATTERN: the book's patterns, opening on the starting-level chassis,
+ * then your saved ones, each with its Build With This. The chooser's third
+ * door, and the whole of `PatternStart` (r6 F2).
+ */
+export function PatternDoor({
+  book,
+  onBuilt,
+  gameId,
+}: Pick<CreateModeChooserProps, 'book' | 'onBuilt' | 'gameId'>) {
+  const signedOut = useSync().status === 'signedOut'
+  return (
+    <TitledBox title={buildWizardCopy('fromAPattern')} titleAs="h2" tone="mech">
+      <p style={doorText}>{buildWizardCopy('aPatternIsYourPlan')}</p>
+      {signedOut && <Text variant="note">{buildWizardCopy('patternNeedsSignIn')}</Text>}
+      <BookPatternBuild
+        chassis={book?.chassis}
+        pattern={book?.pattern}
+        onBuilt={onBuilt}
+        gameId={gameId}
+      />
+      {/* A section head is the one Slab (R53). */}
+      <Slab as="h3" label={buildWizardCopy('yourPatterns')} />
+      <PatternList onInstantiated={onBuilt} gameId={gameId} />
+    </TitledBox>
+  )
+}
+
 /** Guided-door copy + Core Book citation per kind. */
 const GUIDED_COPY: Record<SheetKind, { body: string; cite: string }> = {
   pilot: {
@@ -98,22 +126,9 @@ export function CreateModeChooser({
   const guided = GUIDED_COPY[kind]
   // Read as the chooser draws: the draft is the browser's.
   const hasDraft = readWizardDraft(wizardDraftKey(kind)) !== null
-  const signedOut = useSync().status === 'signedOut'
   const patterns = kind === 'mech' && (
     <div style={patternDoor}>
-      <TitledBox title={buildWizardCopy('fromAPattern')} titleAs="h2" tone="mech">
-        <p style={doorText}>{buildWizardCopy('aPatternIsYourPlan')}</p>
-        {signedOut && <Text variant="note">{buildWizardCopy('patternNeedsSignIn')}</Text>}
-        <BookPatternBuild
-          chassis={book?.chassis}
-          pattern={book?.pattern}
-          onBuilt={onBuilt}
-          gameId={gameId}
-        />
-        {/* A section head is the one Slab (R53). */}
-        <Slab as="h3" label={buildWizardCopy('yourPatterns')} />
-        <PatternList onInstantiated={onBuilt} gameId={gameId} />
-      </TitledBox>
+      <PatternDoor book={book} onBuilt={onBuilt} gameId={gameId} />
     </div>
   )
 

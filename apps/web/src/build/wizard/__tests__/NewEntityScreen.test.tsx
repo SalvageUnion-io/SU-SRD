@@ -21,6 +21,7 @@ import { PilotSchema } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { installServerMocks } from '../../../components/__tests__/serverMock'
+import type { CreateMode } from '../../../lib/wizard/createMode'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
 import { draftStorage, wizardDraftKey } from '../../../lib/wizard/wizardDraft'
 import type { SyncState } from '../../../replica/syncContext'
@@ -36,6 +37,7 @@ const { withSignedInBackend } = await import('../../../replica/__tests__/signedI
 const { useUnits } = await import('../../../replica/units')
 const { usePatterns } = await import('../../../replica/collections')
 const { NewEntityScreen } = await import('../NewEntityScreen')
+const { WizStartLines } = await import('../WizStarts')
 const { useSheetModeStore } = await import('../../sheet/sheetMode.model')
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -77,7 +79,7 @@ describe('parseCreateMode', () => {
 
 describe('NewEntityScreen — signed out', () => {
   // Outside any provider the connection is Solo.
-  const signedOut = (mode: 'guided' | 'blank' | undefined, kind: 'mech' | 'npc' = 'mech') =>
+  const signedOut = (mode: CreateMode, kind: 'mech' | 'npc' = 'mech') =>
     rtlRender(
       <NewEntityScreen
         kind={kind}
@@ -88,12 +90,16 @@ describe('NewEntityScreen — signed out', () => {
       />
     )
 
-  test('the chooser and the guided wizard run without an account (SB-06, PT-23)', async () => {
+  test('the guided wizard runs without an account, opening on its first step (SB-06, r6 F2)', async () => {
     signedOut(undefined)
-    expect(await screen.findByRole('button', { name: /guided/i })).toBeTruthy()
+    expect(await screen.findByTestId('stub-wizard')).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Sign in to build a mech' })).toBeNull()
-    // The pattern door says before any press that it needs an account (r5 D5).
-    expect(screen.getByText(/building from a pattern .* needs a sign-in/i)).toBeTruthy()
+    cleanup()
+    // The patterns say before any press that they need an account (r5 D5), and
+    // no longer promise that Blank works signed out (PT6-15).
+    signedOut('pattern')
+    expect(await screen.findByText(/building from a pattern .* needs a sign-in/i)).toBeTruthy()
+    expect(screen.queryByText(/Blank work/)).toBeNull()
     cleanup()
     signedOut('guided')
     expect(await screen.findByTestId('stub-wizard')).toBeTruthy()
@@ -156,7 +162,7 @@ describe('NewEntityScreen — signed out, deep-linked', () => {
 })
 
 describe('NewEntityScreen — mode routing', () => {
-  test('mode absent renders the chooser, not the wizard or dialog', () => {
+  test('mode absent opens the wizard on its first step: no chooser, no dialog (r6 F2)', () => {
     render(
       <NewEntityScreen
         kind="pilot"
@@ -166,11 +172,9 @@ describe('NewEntityScreen — mode routing', () => {
         onCreated={noop}
       />
     )
-    expect(screen.getByRole('heading', { name: /new pilot/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /guided/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /blank/i })).toBeTruthy()
-    expect(screen.queryByTestId('stub-wizard')).toBeFalsy()
-    expect(screen.queryByRole('dialog')).toBeFalsy()
+    expect(screen.getByTestId('stub-wizard')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /start guided/i })).toBeNull()
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   test("mode 'guided' renders the wizard slot unchanged, no chooser", () => {
@@ -187,8 +191,8 @@ describe('NewEntityScreen — mode routing', () => {
     expect(screen.queryByRole('heading', { name: /new pilot/i })).toBeFalsy()
   })
 
-  test("mode 'blank' opens the blank dialog over the chooser", () => {
-    const { container } = render(
+  test("mode 'blank' opens the blank dialog over the wizard", async () => {
+    render(
       <NewEntityScreen
         kind="pilot"
         mode="blank"
@@ -197,10 +201,9 @@ describe('NewEntityScreen — mode routing', () => {
         onCreated={noop}
       />
     )
-    // The chooser stays mounted underneath (base-ui inerts it while the
-    // modal is open, so query structurally rather than by role).
-    expect(container.querySelector('.su-sheet--pilot')).toBeTruthy()
-    expect(screen.getByRole('dialog')).toBeTruthy()
+    // The wizard stays mounted underneath (base-ui inerts it while the modal is open).
+    expect(await screen.findByRole('dialog')).toBeTruthy()
+    expect(screen.getByTestId('stub-wizard')).toBeTruthy()
     expect(screen.getByLabelText(/callsign/i)).toBeTruthy()
   })
 
@@ -224,84 +227,85 @@ describe('NewEntityScreen — mode routing', () => {
           />
         )
       })
-      const name = screen.getByRole('textbox', { name: /name/i })
+      const name = await screen.findByRole('textbox', { name: /name/i })
       expect(document.activeElement === name).toBe(true)
     } finally {
       frame.mockRestore()
     }
   })
 
-  test('chooser doors fire onModeChange with the chosen mode', () => {
-    const calls: Array<'guided' | 'blank' | undefined> = []
-    render(
-      <NewEntityScreen
-        kind="crawler"
-        mode={undefined}
-        wizard={null}
-        onModeChange={(next) => calls.push(next)}
-        onCreated={noop}
-      />
-    )
-    fireEvent.click(screen.getByRole('button', { name: /guided/i }))
-    fireEvent.click(screen.getByRole('button', { name: /blank/i }))
-    expect(calls).toEqual(['guided', 'blank'])
-  })
-})
-
-describe('CreateModeChooser — the mech’s From a pattern door', () => {
-  const order = () => {
-    const [pattern, guided, blank] = ['From a pattern', 'Guided', 'Blank'].map((t) =>
-      screen.getByRole('heading', { name: t })
-    )
-    const before = (a?: Node, b?: Node) =>
-      Boolean(a && b && a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
-    return {
-      patternFirst: before(pattern, guided),
-      guidedFirst: before(guided, blank),
-      patternLast: before(blank, pattern),
-    }
-  }
-  const chooser = () =>
+  test("the wizard's head links Start blank and a mech's From a pattern (r6 F2)", () => {
+    const calls: CreateMode[] = []
     render(
       <NewEntityScreen
         kind="mech"
         mode={undefined}
-        wizard={null}
+        wizard={<WizStartLines active={0} />}
+        onModeChange={(next) => calls.push(next)}
+        onCreated={noop}
+        forPilot="Nia Vale"
+      />
+    )
+    // Who it is for, as the chooser said it.
+    expect(screen.getByText(/For Nia Vale/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Start blank' }))
+    fireEvent.click(screen.getByRole('button', { name: 'From a pattern' }))
+    expect(calls).toEqual(['blank', 'pattern'])
+  })
+
+  test('signed out, each link says it needs a sign-in; a pilot has no pattern link', () => {
+    rtlRender(
+      <NewEntityScreen
+        kind="pilot"
+        mode={undefined}
+        wizard={<WizStartLines active={0} />}
+        onModeChange={noop}
+        onCreated={noop}
+      />
+    )
+    expect(screen.getByRole('button', { name: /^Start blank \(needs a sign-in\)$/ })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /From a pattern/ })).toBeNull()
+  })
+})
+
+describe('PatternStart — a mech’s patterns, from the wizard’s From a pattern (r6 F2)', () => {
+  const chooser = async () => {
+    render(
+      <NewEntityScreen
+        kind="mech"
+        mode="pattern"
+        wizard={<div data-testid="stub-wizard" />}
         onModeChange={noop}
         onCreated={noop}
         forPilot="Nia Vale"
       />
     )
+    await screen.findByRole('heading', { name: 'From a pattern' })
+  }
 
-  test('with a pattern saved, a mech chooser opens on Guided and Blank, then From a pattern, and names the pilot (r5 D5)', () => {
-    usePatterns.setState({
-      mechPatterns: [
-        {
-          id: 'pat-1',
-          schemaVersion: 1,
-          name: 'Brawler',
-          chassisRef: 'titan',
-          systems: [],
-          modules: [],
-          createdAt: 0,
-        },
-      ],
-      hydrated: true,
-    })
-    chooser()
-    expect(order()).toMatchObject({ patternLast: true, guidedFirst: true })
+  test('the patterns stand alone, name the pilot, and lead back to the guided build', async () => {
+    const calls: CreateMode[] = []
+    usePatterns.setState({ mechPatterns: [], hydrated: true })
+    render(
+      <NewEntityScreen
+        kind="mech"
+        mode="pattern"
+        wizard={<div data-testid="stub-wizard" />}
+        onModeChange={(next) => calls.push(next)}
+        onCreated={noop}
+        forPilot="Nia Vale"
+      />
+    )
+    expect(await screen.findByRole('heading', { name: 'From a pattern' })).toBeTruthy()
+    expect(screen.queryByTestId('stub-wizard')).toBeNull()
     expect(screen.getByText(/For Nia Vale/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /guided/i }))
+    expect(calls).toEqual(['guided'])
   })
 
-  test('with none saved, the order is the same: Guided and Blank, then From a pattern', () => {
+  test('its chassis open on the starting level; every Tech Level is one press away (r5 D5)', async () => {
     usePatterns.setState({ mechPatterns: [], hydrated: true })
-    chooser()
-    expect(order()).toMatchObject({ patternLast: true, guidedFirst: true })
-  })
-
-  test('its chassis open on the starting level; every Tech Level is one press away (r5 D5)', () => {
-    usePatterns.setState({ mechPatterns: [], hydrated: true })
-    chooser()
+    await chooser()
     const chassis = () =>
       [...screen.getByRole('combobox', { name: 'Chassis' }).querySelectorAll('option')]
         .map((o) => o.textContent ?? '')
@@ -312,9 +316,9 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
     expect(chassis().some((t) => !t.endsWith('(T1)'))).toBe(true)
   })
 
-  test('a picked book pattern lists its Systems and Modules and its Scrap by Tech Level (r5 D6)', () => {
+  test('a picked book pattern lists its Systems and Modules and its Scrap by Tech Level (r5 D6)', async () => {
     usePatterns.setState({ mechPatterns: [], hydrated: true })
-    chooser()
+    await chooser()
     fireEvent.change(screen.getByRole('combobox', { name: 'Chassis' }), {
       target: { value: 'mule' },
     })
@@ -325,11 +329,11 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
     expect(screen.getByText(/Scrap TL1 \d+/)).toBeTruthy()
   })
 
-  test('pilot and crawler choosers do NOT show the pattern door', () => {
+  test('a pilot or a crawler has no patterns: its pattern mode is the wizard', () => {
     const { unmount } = render(
       <NewEntityScreen
         kind="pilot"
-        mode={undefined}
+        mode="pattern"
         wizard={null}
         onModeChange={noop}
         onCreated={noop}
@@ -363,6 +367,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
         onCreated={(id) => created.push(id)}
       />
     )
+    await screen.findByRole('dialog')
 
     // The disabled Create says what it waits for (MD4-22): the name alone (r6 F5).
     const submit = screen.getByRole('button', { name: 'Add a name to create' })
@@ -397,6 +402,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
         onCreated={(id) => created.push(id)}
       />
     )
+    await screen.findByRole('dialog')
     const crawlerName = screen.getByLabelText(/^name/i)
     fireEvent.keyDown(crawlerName, { key: 'Enter' })
     fireEvent.change(crawlerName, { target: { value: 'Old Faithful' } })
@@ -414,6 +420,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
         onCreated={(id) => created.push(id)}
       />
     )
+    await screen.findByRole('dialog')
     const pilotName = screen.getByLabelText(/^name/i)
     // A blank callsign is the name (r6 F5): Enter in the name creates the pilot.
     fireEvent.change(pilotName, { target: { value: 'Juno Vale' } })
@@ -422,7 +429,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(useUnits.getState().get('pilot', created[1] as string)?.callsign).toBe('Juno Vale')
   })
 
-  test('class pick is UNFILTERED — every class incl. specialisations is offered', () => {
+  test('class pick is UNFILTERED — every class incl. specialisations is offered', async () => {
     render(
       <NewEntityScreen
         kind="pilot"
@@ -432,6 +439,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
         onCreated={noop}
       />
     )
+    await screen.findByRole('dialog')
     const select = screen.getByLabelText<HTMLSelectElement>(/class \(optional\)/i)
     // "None" + the complete class catalog, nothing filtered out.
     expect(select.options.length).toBe(SalvageUnionReference.Classes.all().length + 1)
@@ -449,6 +457,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
         onCreated={(id) => created.push(id)}
       />
     )
+    await screen.findByRole('dialog')
     // Unfiltered: a radio a chassis, at every Tech Level.
     expect(screen.getAllByRole('radio').length).toBe(SalvageUnionReference.Chassis.all().length)
 
@@ -478,31 +487,47 @@ describe('BlankCreateDialog — blank pilot create', () => {
         book={{ chassis: 'magpie' }}
       />
     )
+    await screen.findByRole('dialog')
     fireEvent.click(screen.getByRole('button', { name: 'Create Mech' }))
     await waitFor(() => expect(created.length).toBe(1))
     expect(useUnits.getState().get('mech', created[0] as string)?.chassisRef).toBe('magpie')
   })
 
-  test('a draft left mid-build is offered: Resume your draft, or Start over (which clears it)', () => {
+  test('a kept draft is offered on the wizard: Continue your draft, or Discard (which clears it, r6 F6)', () => {
     draftStorage().setItem(wizardDraftKey('mech'), JSON.stringify({ name: 'Half built' }))
-    const modes: unknown[] = []
     render(
       <NewEntityScreen
         kind="mech"
         mode={undefined}
-        wizard={null}
-        onModeChange={(mode) => modes.push(mode)}
+        wizard={<WizStartLines active={0} />}
+        onModeChange={noop}
         onCreated={noop}
       />
     )
-    expect(screen.queryByRole('button', { name: 'Start guided' })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Resume your draft' })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Start over' }))
+    expect(screen.getByRole('button', { name: 'Continue your draft' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }))
     expect(draftStorage().getItem(wizardDraftKey('mech'))).toBeNull()
-    expect(modes).toEqual(['guided'])
+    // The wizard starts again, with no draft to offer.
+    expect(screen.queryByRole('button', { name: 'Continue your draft' })).toBeNull()
   })
 
-  test('a book pattern above Tech 1 builds from the chooser, as printed, in one press (r4 E23)', async () => {
+  test('Continue your draft keeps it and puts the offer away', () => {
+    draftStorage().setItem(wizardDraftKey('pilot'), JSON.stringify({ name: 'Half built' }))
+    render(
+      <NewEntityScreen
+        kind="pilot"
+        mode={undefined}
+        wizard={<WizStartLines active={0} />}
+        onModeChange={noop}
+        onCreated={noop}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Continue your draft' }))
+    expect(screen.queryByRole('button', { name: 'Discard' })).toBeNull()
+    expect(draftStorage().getItem(wizardDraftKey('pilot'))).not.toBeNull()
+  })
+
+  test('a book pattern above Tech 1 builds from its patterns, as printed, in one press (r4 E23)', async () => {
     const created: string[] = []
     render(
       <NewEntityScreen
@@ -514,7 +539,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
         book={{ chassis: 'magpie', pattern: 'stefanus' }}
       />
     )
-    const books = screen.getByLabelText('Book Patterns')
+    const books = await screen.findByLabelText('Book Patterns')
     expect(within(books).getByText('Not a starting build')).toBeTruthy()
     // A link builds nothing and asks nothing: the pick is made and the press is the player's.
     expect(screen.queryByRole('alertdialog')).toBeNull()
@@ -528,7 +553,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(mech?.systems.length).toBeGreaterThan(0)
   })
 
-  test('crawler dialog offers Tech Levels 1–6, defaulting to 1', () => {
+  test('crawler dialog offers Tech Levels 1–6, defaulting to 1', async () => {
     render(
       <NewEntityScreen
         kind="crawler"
@@ -538,6 +563,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
         onCreated={noop}
       />
     )
+    await screen.findByRole('dialog')
     const select = screen.getByLabelText<HTMLSelectElement>(/tech level/i)
     expect(select.options.length).toBe(6)
     expect(select.value).toBe('1')

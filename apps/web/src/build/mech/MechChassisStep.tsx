@@ -201,7 +201,7 @@ export function MechChassisStep({
                   {mechCopy('dimmedPatternsAreBuilt')}{' '}
                   {/* One line, so a press on its middle lands on it wherever the hint wraps. */}
                   <InlineRef
-                    href={gameId === undefined ? '/mechs/new' : newInGameHref('/mechs/new', gameId)}
+                    href={`${gameId === undefined ? '/mechs/new?' : `${newInGameHref('/mechs/new', gameId)}&`}mode=pattern`}
                     style={NO_WRAP}
                   >
                     {mechCopy('newMechFromAPattern')}
