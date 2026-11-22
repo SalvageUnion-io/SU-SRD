@@ -43,6 +43,8 @@ type PickListProps<T> = {
   under?: (row: T) => ReactNode
   /** Why a row cannot be picked now; it dims, and says why on a pointer. */
   disabled?: (row: T) => string | undefined
+  /** A dimmed row's reason in a word or two, marked on the row itself, undimmed (r4 E22). */
+  why?: (row: T) => string | undefined
   /** The selected row's card, opened under its line where no column stands beside the list. */
   detail?: (row: T) => ReactNode
   /** `always`: the detail opens under its line at every width (a row's own fields). */
@@ -64,6 +66,7 @@ export function PickList<T>({
   stamp,
   under,
   disabled,
+  why,
   detail,
   detailAt,
   foot,
@@ -84,11 +87,22 @@ export function PickList<T>({
         const picked = count ? copies > 0 : key === selected
         // A row holding copies is never dimmed: its `+` alone says it is full.
         const blocked = count && copies > 0 ? undefined : disabled?.(row)
+        const mark = blocked === undefined ? undefined : why?.(row)
         return {
           id: key,
           name,
           entityRef: undefined,
-          stamp: stamp?.(row),
+          stamp:
+            mark === undefined ? (
+              stamp?.(row)
+            ) : (
+              <>
+                {stamp?.(row)}
+                <span className="su-ledger__why">
+                  <Stat size="mini" label={mark} />
+                </span>
+              </>
+            ),
           cells: columns.map((column) => column.value(row)),
           under: picked ? under?.(row) : undefined,
           ...(count ? { picked } : {}),

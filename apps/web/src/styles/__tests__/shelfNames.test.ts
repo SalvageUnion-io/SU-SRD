@@ -68,6 +68,11 @@ describe('a rule-breaking mark under a name', () => {
 describe("a count's steps on a phone", () => {
   const step = ".su-ledger__table tbody [data-kind='trailing'] .su-step-btn--cell"
 
+  test('off the phone each draws 24px square at the least (r4 E22, SB4-22)', () => {
+    const [desk] = rules(step)
+    expect(desk).toContain('min-height: var(--space-24)')
+  })
+
   test('each draws 40px wide and reaches 44px over what is not a control', () => {
     expect(rules(step).join()).toContain('min-width: var(--space-40)')
     expect(rules(`${step}:first-of-type::after`).join()).toContain(

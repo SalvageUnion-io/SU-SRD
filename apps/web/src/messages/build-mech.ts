@@ -115,8 +115,7 @@ export const mechCopy = messages({
   choose1: 'Choose 1',
   orStartFromAPattern: 'Or start from a Pattern',
   notAStartingPattern: 'Not a starting Pattern: it costs more than 20 Tech 1 Scrap',
-  dimmedPatternsAreBuilt:
-    'A dimmed Pattern is not a starting build. Build it as the book prints it:',
+  dimmedPatternsAreBuilt: 'A Pattern marked Not a starting build is built as the book prints it:',
   newMechFromAPattern: 'New Mech, From a pattern',
   patternNotStarting:
     '{name}: Not a starting Pattern. It costs more than 20 Tech 1 Scrap, so it is built as the book prints it:',
@@ -141,6 +140,8 @@ export const mechCopy = messages({
   optional: 'Optional',
   needsSlots: 'Needs {count} Slots · {left} left',
   needsScrap: 'Needs {count} Scrap · {left} left',
+  tooFewSlots: 'Too few Slots',
+  tooLittleScrap: 'Too little Scrap',
   scrapCost: '{count} Scrap',
   suggested: 'Suggested',
   itsSvInTech1: 'Its SV in Tech 1 Scrap',
