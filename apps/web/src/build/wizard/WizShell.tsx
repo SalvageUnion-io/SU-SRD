@@ -15,6 +15,7 @@ import {
 import type { KeepAsFileActs } from './KeepAsFile'
 import { KeepAsFile } from './KeepAsFile'
 import { SaveSignInDialog } from './SaveSignInDialog'
+import { SignedInBack } from './SignedInBack'
 import { WizardGameChip } from './WizardGameChip'
 import { promptShows, scrollToAsked, useInView } from './wizPrompt.model'
 import {
@@ -26,7 +27,6 @@ import {
   pillTrackersStyle,
   promptStyle,
   STEP_BODY,
-  signedInStyle,
   stepHeadStyle,
   stepNoteStyle,
   stepNumberStyle,
@@ -585,13 +585,7 @@ export function WizShell({
                 <ChevronDown aria-hidden="true" size={tokens.iconSize.mini} />
               </Button>
             )}
-            {signedInBack && isLast && (
-              <p role="status" style={signedInStyle}>
-                {buildWizardCopy('signedInPressSave', {
-                  label: submitLabel.replace(/\s*✦$/, ''),
-                })}
-              </p>
-            )}
+            {signedInBack && isLast && <SignedInBack submitLabel={submitLabel} />}
             {actionPill}
           </footer>
           {signIn && (
