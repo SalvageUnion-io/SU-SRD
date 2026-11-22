@@ -32,6 +32,19 @@ describe('mediatorSeats', () => {
     expect(seat('Bonesaw').rowId).toBe('row-bonesaw')
   })
 
+  test('a seat carries its player’s name, for the line under the Pilot’s (r4 B8)', () => {
+    const crew = mediatorCrewAt()
+    const [bonesaw] = crew.pilots
+    if (bonesaw === undefined) throw new Error('fixture')
+    crew.pilots[0] = { ...bonesaw, ownerName: 'Ada' }
+    const mags = crew.pilots[1]
+    if (mags === undefined) throw new Error('fixture')
+    crew.pilots[1] = { ...mags, ownerName: null }
+    const [first, second] = mediatorSeats(crew, MEDIATOR_SEATS, MEDIATOR_MEMBERS, TABLE_HERE)
+    expect(first?.player).toBe('Ada')
+    expect(second?.player).toBeNull()
+  })
+
   test('presence comes from the Game room: Wren is away', () => {
     expect(seats.map((s) => s.present)).toEqual([true, true, true, false])
   })

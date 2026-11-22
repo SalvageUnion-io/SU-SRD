@@ -3,7 +3,7 @@
  * Minis), its chips what the table needs at a glance: the mech as a relation
  * chip (C11), whether they are here ("Here", or "Away" once their seat
  * stops beating) and the vital needing the Mediator (▲, critical). Its body
- * (N3, plain content, no entity) is the mount in words, every live vital as a
+ * (N3, plain content, no entity) is who plays them ("Played by Ada", r4 B8), the mount in words, every live vital as a
  * chip, and what they are doing now.
  *
  *  - **Attention** — something needs the Mediator (`crewLines()`'s verdict):
@@ -16,10 +16,11 @@
  * The Mini is a toggle (EDL Modes): pressed, its name aims Propose at this
  * pilot (see the problem, propose the fix), the ring on its pill; the other
  * seats stay at full strength, since their vitals are still being read. Sheet, its chip group's last slot, opens their
- * sheet read-only over Play. Mark up now is a toggle button on its own line
- * in the body, apart from the Here badge it was taken for (r2 E1): it marks
- * whose turn it is, for every seat to read (a marker only: nothing is
- * enforced), and that player is told wherever they are (`TableNotices`).
+ * sheet read-only over Play. Give the turn (r4 B1; "Mark up now" before) is
+ * a toggle button on its own line in the body, apart from the Here badge it
+ * was taken for (r2 E1): it marks whose turn it is, for every seat to read (a
+ * marker only: nothing is enforced), and that player is told wherever they
+ * are (`TableNotices`), where they end it themselves.
  *
  * While Downtime runs nobody is Boarded (r2 E2): a seat aboard reads "In the
  * Mech Bay".
@@ -140,6 +141,9 @@ export function PlayMediatorSeat({
           text: false,
           children: (
             <>
+              {seat.player === null ? null : (
+                <p style={NOTE_MUTED}>{mediatorCopy('playedBy', { name: seat.player })}</p>
+              )}
               <SeatMount mount={mount} />
               <div style={CHIPS}>
                 {seat.vitals.map((v) => (

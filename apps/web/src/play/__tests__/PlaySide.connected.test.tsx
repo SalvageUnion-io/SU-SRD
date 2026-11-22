@@ -285,9 +285,15 @@ describe('the Crew (play.md §7)', () => {
   test('Up now: the Mediator’s marker names the crewmate, or says it is you', async () => {
     answers({ 'scenes.current': { conditions: [], hours: 0, upNow: 'mags' } })
     await renderSide()
-    expect(screen.getByText('Up now · Mags')).toBeTruthy()
+    // Said, never drawn above the first card (r4 B3): the mark is on Mags's own card.
+    expect(screen.getByText('Up now · Mags').className).toBe('su-sr-only')
     const crew = within(screen.getByRole('list', { name: 'Crew' }))
-    expect(crew.getByText('Up now')).toBeTruthy()
+    expect(
+      within(crew.getByRole('button', { name: /^Mags, / }).closest('li') as HTMLElement).getByText(
+        'Up now'
+      )
+    ).toBeTruthy()
+    expect(crew.getAllByText('Up now')).toHaveLength(1)
     expect(
       crew.getByRole('button', {
         name: 'Mags, here, Boarded · Atlas, SP 22, fine, HP 10/10, AP 5/5, SP 22/26, EP 6/6, Heat 0/9, Up now. Open their sheet',
