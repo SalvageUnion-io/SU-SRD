@@ -1,5 +1,9 @@
 import type { EntityKind } from 'game-domain/entityKinds'
-import { normalizeReason, PROPOSAL_REASON_MAX } from 'game-domain/games/proposals'
+import {
+  CARGO_PROPOSAL_FIELD,
+  normalizeReason,
+  PROPOSAL_REASON_MAX,
+} from 'game-domain/games/proposals'
 import type { OpState } from '../ops'
 import { RoomRefusal } from '../refusal'
 import { unsetVital } from '../vitals'
@@ -76,6 +80,12 @@ export class GameProposals {
       }
       if (unit.ownerId === null) {
         throw new RoomRefusal('That entity is unassigned — assign it before proposing changes')
+      }
+      if (args.field === CARGO_PROPOSAL_FIELD) {
+        if (unit.kind !== 'mech') throw new RoomRefusal('Only a Mech takes cargo')
+        if (!Array.isArray(args.value) || args.value.length === 0) {
+          throw new RoomRefusal('A cargo proposal names what it adds')
+        }
       }
       let reason: string | undefined
       try {
@@ -170,7 +180,7 @@ export class GameProposals {
         this.units.assertMayWrite(actor, unit)
         const seq = this.units.applyTo(
           unit,
-          { ...proposal, baseSeq: unit.headSeq, at },
+          { ...proposal, patch: appliedPatch(proposal, unit), baseSeq: unit.headSeq, at },
           proposal.author,
           proposal.reason
         )
@@ -219,6 +229,18 @@ export class GameProposals {
   }
 }
 
+/**
+ * The patch accepting `proposal` writes: its own, but for a cargo proposal
+ * (r5 B2), whose lots are added ahead of the hold as it is now. The op keeps
+ * the lots it added (`putOp` never rewrites a patch), so every line reads them.
+ */
+function appliedPatch(proposal: StoredOp, unit: UnitRow): Record<string, unknown> {
+  const added = proposal.patch[CARGO_PROPOSAL_FIELD]
+  if (!Array.isArray(added)) return proposal.patch
+  const held = unit.body[CARGO_PROPOSAL_FIELD]
+  return { [CARGO_PROPOSAL_FIELD]: [...added, ...(Array.isArray(held) ? held : [])] }
+}
+
 /** What `field` held before `op` applied: its stored before, or what a vital never written reads. */
 function heldBefore(store: GameStore, op: StoredOp, field: string): number | null {
   const was = op.before?.[field]
@@ -265,6 +287,7 @@ function undoneBy(store: GameStore, proposal: StoredOp): StoredOp | null {
 }
 
 function proposalRead(op: StoredOp, unit: UnitRow | null): ProposalRead {
+  // A cargo proposal keeps the lots it added, accepted or not (`appliedPatch`).
   const [field = '', after = null] = Object.entries(op.patch)[0] ?? []
   return {
     _id: op.id,

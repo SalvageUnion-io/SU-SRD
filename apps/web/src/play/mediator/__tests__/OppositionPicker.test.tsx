@@ -40,6 +40,7 @@ function trayWrites(refuse: ReadonlySet<keyof TrayWrites> = new Set()): TrayWrit
     add: record('add'),
     addBuilt: record('addBuilt'),
     setHp: record('setHp'),
+    salvageRoll: record('salvageRoll'),
     morale: record('morale'),
     groupRoll: record('groupRoll'),
     setImportant: record('setImportant'),

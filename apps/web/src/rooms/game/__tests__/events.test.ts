@@ -311,6 +311,23 @@ describe('the table’s events', () => {
     expect(room.events.list(STRANGER)).toEqual([])
   })
 
+  test('a Mediator’s roll in a slot replaces the one before it on the Feed; a player’s never does (r5 B1)', () => {
+    const { room, texts } = seated()
+    const roll = (description: string, ts: number, slot = 'wreck:n1') => ({
+      entityType: 'game',
+      field: 'roll',
+      after: { description, slot },
+      source: 'play',
+      ts,
+    })
+    room.log.append(MEDIATOR, [roll('Mediator · Mech Salvage · 6', AT + 1)])
+    room.log.append(MEDIATOR, [roll('Mediator · Mech Salvage · 12', AT + 2)])
+    room.log.append(MEDIATOR, [roll('Mediator · Morale · 3', AT + 3, 'wreck:n2')])
+    expect(texts(PLAYER)).toEqual(['Mediator · Morale · 3', 'Mediator · Mech Salvage · 12'])
+    room.log.append(PLAYER, [roll('p1 · Core Mechanic · 4', AT + 4, 'wreck:n2')])
+    expect(texts(PLAYER)).toHaveLength(3)
+  })
+
   test('an Opposition roll reaches players without its names, in the Feed and the log, until the Mediator reveals it (r2 B1)', () => {
     const { room, act, texts } = seated()
     const full = 'Mediator · Veteran · Green Laser Rifle (Veteran) · 9 · Tough Choice'
@@ -558,6 +575,37 @@ describe('the table’s events', () => {
     expect(() => act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 3)).toThrow(
       'That alert is no longer there'
     )
+  })
+
+  test('a salvaged part proposed to a Mech’s hold adds to the hold it holds when accepted (r5 B2)', () => {
+    const { act, room, texts } = seated()
+    const held = { id: 'l1', kind: 'unit', name: 'Crate', cat: 'SEALED', units: 1, code: 'CRT' }
+    act(PLAYER, 'submit', { ops: [op('m1', { cargoLots: [held] })] }, AT)
+    const part = {
+      id: 'l2',
+      kind: 'unit',
+      name: 'Mule (Damaged)',
+      cat: 'SYSTEM',
+      units: 7,
+      code: 'MUL',
+    }
+    act(MEDIATOR, 'ops.propose', { entityId: 'm1', field: 'cargoLots', after: [part] }, AT + 1)
+    expect(texts()[0]).toBe('Mediator proposes Mech m1 Cargo → + Mule (Damaged)')
+    // The hold changed after the proposal was sent: accepting keeps both.
+    const other = { ...held, id: 'l3', name: 'Ration Pack' }
+    act(PLAYER, 'submit', { ops: [op('m1', { cargoLots: [held, other] }, { baseSeq: 1 })] }, AT + 2)
+    const opId = String(room.proposals.pending(PLAYER)[0]?._id)
+    act(PLAYER, 'ops.accept', { opId }, AT + 3)
+    const mech = room.units.list(PLAYER).find((u) => u.id === 'm1')
+    expect(((mech?.body.cargoLots ?? []) as { name: string }[]).map((l) => l.name)).toEqual([
+      'Mule (Damaged)',
+      'Crate',
+      'Ration Pack',
+    ])
+    expect(room.proposals.sent(MEDIATOR)[0]).toMatchObject({ state: 'applied', after: [part] })
+    expect(() =>
+      act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'cargoLots', after: [part] }, AT + 4)
+    ).toThrow('Mech')
   })
 
   test('a sent proposal is withdrawn by a Mediator: it leaves the player’s list and reads Withdrawn (r2 C7)', () => {

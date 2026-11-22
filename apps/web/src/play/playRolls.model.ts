@@ -52,6 +52,12 @@ export type PlayRoll = {
    * Mediator reveals it. Absent on a table roll and on every player's roll.
    */
   veiled?: true
+  /**
+   * What the roll stands for, once (a wreck's Mech Salvage, r5 B1): recording
+   * another in the same slot replaces it here, and the Game's log drops the
+   * slot's row before it, so a roll made again is one Feed line, not two.
+   */
+  slot?: string
 }
 
 /** What a caller hands `recordPlayRoll`: the id is assigned, `at` defaults to now. */
@@ -74,7 +80,7 @@ export function recordPlayRoll(input: PlayRollInput): PlayRoll {
     at: input.at ?? Date.now(),
     ...(privately && input.rolls.length > 0 ? { private: true as const } : {}),
   }
-  log = [...log, roll]
+  log = [...log.filter((r) => input.slot === undefined || r.slot !== input.slot), roll]
   for (const listener of listeners) listener(roll)
   for (const watch of watchers) watch()
   return roll
@@ -178,7 +184,7 @@ export function usePlayRollLog(): readonly PlayRoll[] {
 }
 
 /** What a reported roll says about itself besides its table and dice, read when it lands. */
-export type PlayRollMeta = Pick<PlayRollInput, 'label' | 'outcome' | 'veiled'>
+export type PlayRollMeta = Pick<PlayRollInput, 'label' | 'outcome' | 'veiled' | 'slot'>
 
 /** The Core Mechanic's band for a die ("Success"), the outcome a Core roll reports. */
 function coreOutcome(die: number | undefined): string | undefined {
@@ -211,6 +217,7 @@ export function reportingRoll(roll: Roll, tableName: string, meta: () => PlayRol
           label: said.label,
           ...(outcome === undefined ? {} : { outcome }),
           ...(said.veiled ? { veiled: true as const } : {}),
+          ...(said.slot === undefined ? {} : { slot: said.slot }),
         })
       })
     }
@@ -236,6 +243,8 @@ export type LoggedRoll = {
   private?: true
   /** An Opposition roll: the line the room serves the players in `description`'s place. */
   veiled?: string
+  /** A Mediator's slot (`PlayRoll.slot`): the row replaces the slot's row before it. */
+  slot?: string
 }
 
 /**
@@ -259,6 +268,7 @@ export function rollLogEntry<GameId extends string>(gameId: GameId, roll: Logged
       result: roll.result,
       ...(roll.private ? { private: true as const } : {}),
       ...(roll.veiled === undefined ? {} : { veiled: roll.veiled }),
+      ...(roll.slot === undefined ? {} : { slot: roll.slot }),
     },
     source: PLAY_TXN.source,
   }

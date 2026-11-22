@@ -13,6 +13,7 @@
  */
 
 import type { WreckPart } from 'game-domain/rules/wreck'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -139,13 +140,37 @@ export function wreckSalvageOutcome(
       taken: [`${count} ${pilotScrapName(chassis.techLevel)}`],
     }
   }
+  const { lots, taken } = wreckHaulLots(parts, band, picked)
+  if (lots.length === 0) return { patch: null, taken: [] }
+  return { patch: { cargoLots: [...lots, ...(crawler.cargoLots ?? [])] }, taken }
+}
+
+/**
+ * The same haul as lots for a Mech's hold (r5 B2): each picked part a Damaged
+ * lot of its Salvage Value in Slots, and a 2–5's Scrap as a lot of its Tech
+ * Level, since a Mech has no pool. Nothing, where the band or picks yield none.
+ */
+export function wreckHaulLots(
+  parts: readonly WreckPart[],
+  band: MechSalvageBand,
+  picked: readonly string[]
+): { lots: CargoLot[]; taken: string[] } {
+  if (band === 'nuts') {
+    const chassis = parts.find((p) => p.kind === 'chassis')
+    if (chassis?.techLevel === undefined) return { lots: [], taken: [] }
+    const count = halfSalvageValue(chassis.salvageValue)
+    return {
+      lots: [makeScrapLot(chassis.techLevel, count)],
+      taken: [`${count} ${pilotScrapName(chassis.techLevel)}`],
+    }
+  }
   const chosen = parts.filter((p) => picked.includes(p.key))
   const pick = {
     chassis: chosen.some((p) => p.kind === 'chassis'),
     systems: chosen.filter((p) => p.kind === 'system').length,
     modules: chosen.filter((p) => p.kind === 'module').length,
   }
-  if (chosen.length === 0 || !mechSalvageAllows(band, pick)) return { patch: null, taken: [] }
+  if (chosen.length === 0 || !mechSalvageAllows(band, pick)) return { lots: [], taken: [] }
   const lots = chosen.map((p) =>
     makeUnitLot(`${p.name} (Damaged)`, {
       cat: 'SYSTEM',
@@ -153,10 +178,12 @@ export function wreckSalvageOutcome(
       ...(p.techLevel === undefined ? {} : { tl: p.techLevel }),
     })
   )
-  return {
-    patch: { cargoLots: [...lots, ...(crawler.cargoLots ?? [])] },
-    taken: chosen.map((p) => p.name),
-  }
+  return { lots, taken: chosen.map((p) => p.name) }
+}
+
+/** A scrapped Vehicle's Scrap as one lot for a Mech's hold (r5 B2). */
+export function wreckScrapLot(wreck: { techLevel: number; salvageValue: number }): CargoLot | null {
+  return wreck.salvageValue <= 0 ? null : makeScrapLot(wreck.techLevel, wreck.salvageValue)
 }
 
 /**

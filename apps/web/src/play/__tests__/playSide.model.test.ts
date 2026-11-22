@@ -5,6 +5,7 @@
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
+import { renderHook } from '@testing-library/react'
 import type { TableEvent } from '../../rooms/game/events'
 import { channelButtonLabel, channelTag, postsToLabel } from '../channels.model'
 import { crewLineLabel, crewSeatLines, hereCount, pairedMech } from '../crew.model'
@@ -21,6 +22,7 @@ import {
   reportingRoll,
   rollLogEntry,
   setPrivateRolls,
+  usePlayRollLog,
   veiledRollDescription,
 } from '../playRolls.model'
 import { proposalChange } from '../proposalAnswer.model'
@@ -274,6 +276,10 @@ describe('the Feed (play.md §8)', () => {
     expect(proposalChange({ field: 'currentHP', after: 0, current: 7 })).toBe('HP 7 → 0')
     expect(proposalChange({ field: 'currentHP', after: 0, current: null })).toBe('HP → 0')
     expect(proposalChange({ field: 'currentHP', after: 0 })).toBe('HP → 0')
+    // A wreck's part proposed to a Mech's hold names what it adds (r5 B2).
+    expect(proposalChange({ field: 'cargoLots', after: [{ name: 'Mule (Damaged)' }] })).toBe(
+      'Cargo → + Mule (Damaged)'
+    )
     const [first] = playFeedEntries({
       rolls: [],
       alerts: [],
@@ -501,6 +507,21 @@ describe('the roll log (playRolls)', () => {
     expect(a.at).toBe(5)
     expect(isDiceRoll(a)).toBe(true)
     expect(isDiceRoll(b)).toBe(false)
+  })
+
+  test('a roll in a slot replaces the slot’s roll before it (r5 B1)', () => {
+    recordPlayRoll({ tableName: 'Mech Salvage', rolls: [6], label: 'Wreck', slot: 'wreck:n1' })
+    recordPlayRoll({ tableName: 'Morale', rolls: [3], label: 'Raider' })
+    recordPlayRoll({ tableName: 'Mech Salvage', rolls: [12], label: 'Wreck', slot: 'wreck:n1' })
+    const { result, unmount } = renderHook(() => usePlayRollLog())
+    expect(result.current.map((r) => r.rolls[0])).toEqual([3, 12])
+    unmount()
+    const logged = rollLogEntry(
+      'g1',
+      { description: 'd', result: { kind: 'table', roll: 12, outcome: '' }, slot: 'wreck:n1' },
+      1
+    )
+    expect(logged.after).toMatchObject({ slot: 'wreck:n1' })
   })
 
   test('a reporting roll is recorded once, with every die it read', async () => {

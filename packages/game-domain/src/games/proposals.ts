@@ -37,13 +37,32 @@ type ProposalTargetKind = keyof typeof PROPOSAL_FIELDS
 
 export type ProposalField = (typeof PROPOSAL_FIELDS)[ProposalTargetKind][number]['field']
 
-const FIELD_LABEL: Record<string, string> = Object.fromEntries(
-  [...PROPOSAL_FIELDS.pilot, ...PROPOSAL_FIELDS.mech].map((f) => [f.field, f.label])
-)
+/**
+ * A Mech's hold, proposed by a wreck's salvage (r5 B2): the proposal holds the
+ * lots it adds, and accepting adds them to the hold as it is then.
+ */
+export const CARGO_PROPOSAL_FIELD = 'cargoLots'
+
+const FIELD_LABEL: Record<string, string> = Object.fromEntries([
+  ...[...PROPOSAL_FIELDS.pilot, ...PROPOSAL_FIELDS.mech].map((f) => [f.field, f.label]),
+  [CARGO_PROPOSAL_FIELD, 'Cargo'],
+])
 
 /** "HP" for `currentHP`; an unknown field reads as itself. */
 export function fieldLabel(field: string): string {
   return FIELD_LABEL[field] ?? field
+}
+
+/** What a proposal asks, as its line reads it: a number, or "+ Mule (Damaged)" for lots added. */
+export function proposalValueText(value: unknown): string {
+  if (value === null || value === undefined) return '—'
+  if (Array.isArray(value)) {
+    const names = value.map((lot) =>
+      typeof (lot as { name?: unknown })?.name === 'string' ? (lot as { name: string }).name : '?'
+    )
+    return `+ ${names.join(', ')}`
+  }
+  return String(value)
 }
 
 /** A proposal's state, in words. `proposed` reads Pending. */

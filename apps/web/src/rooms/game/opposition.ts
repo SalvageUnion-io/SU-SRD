@@ -27,6 +27,9 @@ import { fromJson } from './store'
  */
 const TrayBodySchema = EncounterNpcSchema.partial().extend({ name: EncounterNpcSchema.shape.name })
 
+/** A wreck's kept Mech Salvage roll, as the record holds it. */
+const SalvageRollSchema = EncounterNpcSchema.shape.salvageRoll.unwrap()
+
 /** The fields a fight changes on a tray NPC. */
 export type TrayPatch = {
   currentHp?: number
@@ -35,6 +38,8 @@ export type TrayPatch = {
   lastMediatorRoll?: unknown
   /** Claim a downed wreck's salvage: refused once claimed, or while it still stands. */
   salvaged?: true
+  /** A downed Mech's Mech Salvage roll, kept until it is salvaged (r5 B1). */
+  salvageRoll?: unknown
   important?: boolean
   /** The chassis's EP and Heat Capacity, frozen when it is marked important. */
   maxEp?: number
@@ -128,6 +133,11 @@ export class GameOpposition {
           throw new RoomRefusal('Only a downed wreck can be salvaged')
         }
         next.salvaged = true
+      }
+      if (patch.salvageRoll !== undefined) {
+        if (body.salvaged === true) throw new RoomRefusal('That wreck is already salvaged')
+        if (!trayNpcDown(next)) throw new RoomRefusal('Only a downed wreck can be salvaged')
+        next.salvageRoll = SalvageRollSchema.parse(patch.salvageRoll)
       }
       if (patch.lastImportantRoll !== undefined) {
         next.lastImportantRoll = MediatorRollResultSchema.parse(patch.lastImportantRoll)

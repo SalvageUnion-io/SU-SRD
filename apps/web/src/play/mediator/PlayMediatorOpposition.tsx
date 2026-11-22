@@ -26,6 +26,7 @@
  */
 
 import { heldGroups, heldWaves } from 'game-domain/games/encounters'
+import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { SheetPickerModal } from '../../build/sheet/SheetPickerModal'
@@ -90,6 +91,10 @@ export function PlayMediatorOpposition({
   const entries: TrayEntry[] =
     npcs === null ? [] : grouping ? trayEntries(npcs) : npcs.map((npc) => ({ kind: 'alone', npc }))
   const held = grouping && prep.running !== null ? heldWaves(prep.running) : []
+  // The crew's Mechs, whose holds a wreck's haul can be proposed to (r5 B2).
+  const wreckMechs = proposalTargets(mediator.crew)
+    .filter((t) => t.kind === 'mech')
+    .map((t) => ({ id: t.id, label: t.label }))
 
   const box = (npc: TrayNpc) => (
     <PlayNpcBox
@@ -118,6 +123,8 @@ export function PlayMediatorOpposition({
       onRemove={() => setRemoving(npc)}
       onSalvage={mediator.salvageWreck}
       hasCrawler={mediator.crawler?.held === true}
+      mechs={wreckMechs}
+      onSalvageRoll={tray.salvageRoll}
       rollFor={rollFor}
       onImportant={(important) => fail(tray.setImportant(npc, important))}
       onReactor={(patch) => fail(tray.setReactor(npc, patch))}

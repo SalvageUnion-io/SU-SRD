@@ -1,4 +1,4 @@
-import { fieldLabel } from 'game-domain/games/proposals'
+import { fieldLabel, proposalValueText } from 'game-domain/games/proposals'
 import type { LinkShape } from 'game-domain/links/linkRules'
 import { seatOf } from '../seats'
 import { unsetVital } from '../vitals'
@@ -583,7 +583,7 @@ export class GameEvents {
 
   private proposalLine(op: StoredOp): string {
     const [field = '', after = null] = Object.entries(op.patch)[0] ?? []
-    return `${this.unitLabel(op.unitId)} ${fieldLabel(field)} → ${after === null ? '—' : String(after)}`
+    return `${this.unitLabel(op.unitId)} ${fieldLabel(field)} → ${proposalValueText(after)}`
   }
 }
 

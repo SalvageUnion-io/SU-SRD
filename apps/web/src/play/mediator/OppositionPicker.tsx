@@ -53,6 +53,8 @@ export type TrayWrites = {
   /** Field one of the Mediator's own designed NPCs, as a snapshot (ADR-067 §1). */
   addBuilt: (npc: Npc, name: string) => Promise<unknown>
   setHp: (npc: TrayNpc, next: number) => Promise<unknown>
+  /** Keep a downed Mech's Mech Salvage roll with its wreck (r5 B1). */
+  salvageRoll: (npc: TrayNpc, roll: number) => Promise<unknown>
   morale: (npc: TrayNpc) => Promise<unknown>
   /** One Reaction or Morale roll for a whole group, kept on each member standing (p.267-268). */
   groupRoll: (group: { id: string; name: string }, table: 'reaction' | 'morale') => Promise<unknown>

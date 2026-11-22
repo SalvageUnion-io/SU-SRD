@@ -617,7 +617,11 @@ describe('the Opposition', () => {
           ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
       ).toBe(true)
     )
-    expect(names()).toEqual(['mediator.updateNpc'])
+    // The roll is kept with the wreck first (r5 B1), then the wreck is claimed.
+    expect(sent().map((a) => Object.keys((a.args as { patch: object }).patch))).toEqual([
+      ['salvageRoll'],
+      ['salvaged'],
+    ])
     await restoreCrawler()
   })
 

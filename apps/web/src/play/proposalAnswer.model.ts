@@ -11,7 +11,7 @@
  *    who accepted it writes back what the sheet held.
  */
 
-import { fieldLabel } from 'game-domain/games/proposals'
+import { fieldLabel, proposalValueText } from 'game-domain/games/proposals'
 import { changeUndoToast } from '../lib/changeUndoToast'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
@@ -32,9 +32,7 @@ function noticeZero(kind: 'pilot' | 'mech', id: string, field: string, from: num
   )
 }
 
-function show(value: unknown): string {
-  return value === null || value === undefined ? '—' : String(value)
-}
+const show = proposalValueText
 
 /** "HP 7 → 0", or "HP → 0" when the room gave no current value. */
 export function proposalChange(p: Asked): string {
