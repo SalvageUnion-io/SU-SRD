@@ -171,8 +171,8 @@ export function HomeHero() {
                 >
                   <p className="su-front__show-pitch">{referenceCopy('pitchValue')}</p>
                   {/* The two things a visit is for. "Look something up" opens
-                      the search where the script runs (`data-search-open`,
-                      `islands.client.ts`), else the Reference's Contents. */}
+                      the Reference, as its link says: the search band is
+                      already in view below. */}
                   <div className="su-front__show-acts">
                     <Button
                       href={appPath('/')}
@@ -189,7 +189,6 @@ export function HomeHero() {
                       variant="default"
                       size="full"
                       className="su-front__show-act"
-                      data-search-open=""
                     >
                       {referenceCopy('showLookUp')}
                     </Button>

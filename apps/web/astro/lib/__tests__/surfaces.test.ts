@@ -77,10 +77,10 @@ describe('home: the front door, its slideshow alone', () => {
     expect(first).toContain('su-front__show-copy')
     expect(first).toContain('su-front__show-pitch')
     expect(first).toMatch(/href="\/build\/"[^>]*>(?:<[^>]+>)*Start building</)
-    // Opens the search where the script runs, else the Reference's Contents.
-    expect(first).toMatch(
-      /<a[^>]*href="\/reference\/"[^>]*data-search-open[^>]*>(?:<[^>]+>)*Look something up</
-    )
+    // Opens the Reference, as its link says, never only the search field below (r5 E12).
+    const lookUp = first.match(/<a[^>]*href="\/reference\/"[^>]*>(?:<[^>]+>)*Look something up</)
+    expect(lookUp?.[0]).toBeDefined()
+    expect(lookUp?.[0]).not.toContain('data-search-open')
   })
 
   it('gives every slide a way forward', () => {
