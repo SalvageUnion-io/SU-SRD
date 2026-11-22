@@ -498,7 +498,13 @@ export function LiveSheet({
         }
       >
         {title}
-        {nameAside && <span className="su-title-aka">{nameAside}</span>}
+        {/* "Stumpy · Mara Voss", to the eye and to a screen reader alike (r6 E20). */}
+        {nameAside && (
+          <>
+            {' '}
+            <span className="su-title-aka">{buildSheetCopy('titleAka', { name: nameAside })}</span>
+          </>
+        )}
         {/* The kind is never stamped (EDL E9): the h1 says it to screen readers. */}
         <KindLabel kind={KIND_LABEL[variant]} />
       </ChapterBand>

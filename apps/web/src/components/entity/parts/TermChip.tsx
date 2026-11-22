@@ -14,9 +14,15 @@ import { termPeekAddress } from './statTerms'
 export function TermChip({
   term,
   value,
+  above = false,
   children,
 }: {
   term: StatTerm
+  /**
+   * Its Peek opens above it (r6 E20): a sheet's stat label, whose own
+   * controls sit below it and must stay free to press.
+   */
+  above?: boolean
   /** The cell's value, for the control's name: `Cargo Capacity: 30`. */
   value?: string | undefined
   children: ReactNode
@@ -28,6 +34,7 @@ export function TermChip({
       {...peek}
       {...{ [PEEK_PRESS_ATTRIBUTE]: '' }}
       data-term=""
+      data-peek-side={above ? 'top' : undefined}
       aria-label={
         value
           ? entityCopy('termValueMeans', { term: term.name, value })

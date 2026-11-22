@@ -267,7 +267,8 @@ export function PeekPopup({
       <PreviewCard.Portal>
         <PreviewCard.Positioner
           anchor={anchor}
-          side="bottom"
+          // A trigger whose controls sit below it asks for the room above (r6 E20).
+          side={anchor.getAttribute('data-peek-side') === 'top' ? 'top' : 'bottom'}
           align="start"
           sideOffset={5}
           collisionPadding={8}

@@ -195,7 +195,7 @@
 /* A PILOT'S REAL NAME. Plain words on the callsign's
    baseline, inside the title's cut-out, in the body face at a lighter weight. */
 .su-title-aka {
-  margin-inline-start: var(--space-12);
+  margin-inline-start: var(--space-8);
   font-family: var(--font-body);
   font-size: var(--text-title);
   font-weight: 400;
