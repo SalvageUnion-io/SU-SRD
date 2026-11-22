@@ -14,7 +14,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
@@ -22,6 +22,7 @@ import {
 } from '../../../components/__tests__/mockEntityStore'
 import { buttonVariants } from '../../../components/index'
 import { Sheet } from '../Sheet'
+import { SheetEmbedContext } from '../sheetEmbed.model'
 import { fakeCrawler, fakeMech, fakePilot, mechToPilot, pilotToCrawler } from './sheetFixtures'
 
 beforeAll(hydrateStores)
@@ -187,5 +188,45 @@ describe('Sheet — mobile segment switch', () => {
       />
     )
     expect(screen.queryByRole('navigation', { name: /assigned sheets/i })).toBeNull()
+  })
+
+  test('inside another screen the switch swaps the sheet there, and no second main stands (r3 I3)', () => {
+    const shown: string[] = []
+    const { container } = render(
+      <SheetEmbedContext.Provider
+        value={{
+          // The host offers the mech, not the crawler: that one keeps its link.
+          show: (kind, id) => (kind === 'mech' ? () => shown.push(`${kind}:${id}`) : undefined),
+        }}
+      >
+        <Sheet
+          kind="pilot"
+          id="pilot-1"
+          readOnly
+          entityStore={makeEntityLookupMock([fakePilot, fakeMech, fakeCrawler])}
+          softLinkStore={makeSoftLinkStoreMock([mechToPilot, pilotToCrawler])}
+        />
+      </SheetEmbedContext.Provider>
+    )
+    expect(container.querySelector('main')).toBeNull()
+    const nav = screen.getByRole('navigation', { name: /assigned sheets/i })
+    const mech = Array.from(nav.querySelectorAll('button')).find((b) => b.textContent === 'Mech')
+    expect(mech).toBeTruthy()
+    expect(nav.querySelector('a[href*="mech-1"]')).toBeNull()
+    fireEvent.click(mech as HTMLElement)
+    expect(shown).toEqual(['mech:mech-1'])
+    expect(nav.querySelector('a[href*="crawler-1"]')).toBeTruthy()
+  })
+
+  test('on its own page the sheet is the page’s main', () => {
+    const { container } = render(
+      <Sheet
+        kind="pilot"
+        id="pilot-1"
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([])}
+      />
+    )
+    expect(container.querySelectorAll('main')).toHaveLength(1)
   })
 })

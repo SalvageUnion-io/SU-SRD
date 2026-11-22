@@ -430,7 +430,7 @@ export function Sheet({
     for (const { key, label, unit } of counterparts) {
       const href = unit ? hrefFor(key, unit.id) : undefined
       if (unit && href !== undefined) {
-        segments.push({ key, label, name: unit.name, href, active: kind === key })
+        segments.push({ key, label, name: unit.name, id: unit.id, href, active: kind === key })
       }
     }
   }

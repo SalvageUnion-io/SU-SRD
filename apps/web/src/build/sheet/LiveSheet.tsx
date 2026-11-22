@@ -42,6 +42,7 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import type { BandStamp, PatternStamp } from './bandStamps.model'
 import { RailActs } from './RailActs'
 import { SheetBarStrip } from './SheetBarStrip'
+import { useSheetEmbed } from './sheetEmbed.model'
 import type { SheetBand } from './sheetViewProps.model'
 
 /** The band's strip draws only the host's stamps: the unit's own chips are its body's. */
@@ -83,6 +84,8 @@ export type LiveSheetSegment = {
   label: string
   /** The unit's own name: its Mini in the condensed bar. */
   name: string
+  /** The unit's id: what a host screen is asked to show (`sheetEmbed.model.ts`). */
+  id?: string | undefined
   href: string
   /** The segment matching the sheet being viewed — rust fill, no nav. */
   active: boolean
@@ -337,13 +340,21 @@ export function LiveSheet({
 
   const title = quoted ? `“${name}”` : name
   const game = band?.game
+  // Inside another screen (Play's sheet pane) that screen's `<main>` is the
+  // page's one landmark, and the phone switch swaps the pane (r3 I3).
+  const embed = useSheetEmbed()
+  const Root = embed ? 'div' : 'main'
+  const swapTo = (segment: LiveSheetSegment) => {
+    const show = segment.id === undefined ? undefined : embed?.show(segment.key, segment.id)
+    return show && { onClick: show }
+  }
 
   return (
     // The page's one `<main>` landmark, on every surface that draws a sheet
     // (the live, public and Starter Set sheets): none of their routes wraps
     // one, and `Sheet`'s not-found state is itself a `<main>`, so the landmark
     // belongs here rather than around `Sheet`.
-    <main
+    <Root
       className={cn(`su-sheet--${variant}`, 'su-page-gutters')}
       style={ROOT}
       data-variant={variant}
@@ -543,7 +554,8 @@ export function LiveSheet({
                   ) : (
                     <Button
                       key={segment.key}
-                      href={segment.href}
+                      // A host screen shows the other unit in place; a sheet's own page links.
+                      {...(swapTo(segment) ?? { href: segment.href })}
                       size="compact"
                       className="su-page-action"
                       style={SEGMENT}
@@ -587,6 +599,6 @@ export function LiveSheet({
           </EntitySurfaceProvider>
         </div>
       </div>
-    </main>
+    </Root>
   )
 }

@@ -28,6 +28,8 @@ import {
   sheetDataFromListing,
 } from '../build/sheet/readOnlySheetStore.model'
 import { Sheet } from '../build/sheet/Sheet'
+import type { SheetEmbed } from '../build/sheet/sheetEmbed.model'
+import { SheetEmbedContext } from '../build/sheet/sheetEmbed.model'
 import { Button, CloseButton, HeaderMenu, Pending, Slab, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import { useGameListing } from '../replica/gameListing'
@@ -62,8 +64,20 @@ type PlaySheetPaneProps = {
 }
 
 export function PlaySheetPane({ shown, sections, gameId, onShow, onClose }: PlaySheetPaneProps) {
+  // The sheet stands inside Play: no `<main>` of its own, and its phone
+  // Pilot | Mech | Crawler switch shows the other unit here (r3 I3). A unit
+  // the picker does not offer keeps its link.
+  const embed = useMemo<SheetEmbed>(
+    () => ({
+      show: (kind, id) => {
+        const choice = sections.flat().find((c) => c.kind === kind && c.id === id)
+        return choice && (() => onShow(choice))
+      },
+    }),
+    [sections, onShow]
+  )
   return (
-    <>
+    <SheetEmbedContext.Provider value={embed}>
       <Slab
         as="h2"
         flush
@@ -108,7 +122,7 @@ export function PlaySheetPane({ shown, sections, gameId, onShow, onClose }: Play
       ) : (
         <ListedSheet key={`${shown.kind}:${shown.id}`} gameId={gameId} shown={shown} />
       )}
-    </>
+    </SheetEmbedContext.Provider>
   )
 }
 
