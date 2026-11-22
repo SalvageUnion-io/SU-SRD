@@ -4,7 +4,8 @@
  * Gather Cantina Rumours. Training Points are spent in the pilot sheet's
  * Manage Abilities, which "Spend TP" opens here, over Play
  * (`PilotAbilityTrainer`); crafting is done on the crawler's sheet, which its
- * row opens (`useOpenSheet`, play.md §4); a rumour is a roll, made here and put
+ * row opens: solo in Build, in Edit, where the economy's dialogs are (r5
+ * A14); in a Game over Play (`useOpenSheet`, play.md §4); a rumour is a roll, made here and put
  * on Play's roll log (`rollFor`, `playRolls.model.ts`): a plain d20 the
  * Mediator answers (solo, the player: the line sends nobody to a Mediator
  * who is not there). With no crawler, Craft · Trade says a Union Crawler is
@@ -18,11 +19,14 @@
  * content (N3, play.md §12).
  */
 
+import { sheetPath } from 'game-domain/entityKinds'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
 import { PilotAbilityTrainer } from '../build/sheet/PilotAbilityTrainer'
+import { useSheetModeStore } from '../build/sheet/sheetMode.model'
 import { Button, Entity, Stat } from '../components/index'
+import { useGo } from '../components/shared/useGo'
 import { bayGate } from '../lib/rules/crawlerEconomy'
 import { playCopy } from '../messages/play'
 import { NeedChip } from './PlayActionRow'
@@ -69,6 +73,7 @@ export function PlayDowntimeActionRow({
   const [rumour, setRumour] = useState<{ roll: number; text: string } | null>(null)
   const [training, setTraining] = useState(false)
   const setSheet = useOpenSheet()
+  const go = useGo()
   const away = need !== null
 
   /** A plain d20, which the Mediator answers; solo there is none, and the line never sends to one (r3 L2). */
@@ -80,9 +85,13 @@ export function PlayDowntimeActionRow({
     })
   }
 
-  /** "Open": the unit's sheet in Build. */
-  const open = (target: SheetTarget | null, label: string) => (
-    <Button size="mini" disabled={target === null} onClick={() => target && setSheet(target)}>
+  /** "Open": the unit's sheet, over Play, or where `onOpen` takes it. */
+  const open = (target: SheetTarget | null, label: string, onOpen?: () => void) => (
+    <Button
+      size="mini"
+      disabled={target === null}
+      onClick={() => (onOpen ? onOpen() : target && setSheet(target))}
+    >
       {label}
     </Button>
   )
@@ -109,7 +118,18 @@ export function PlayDowntimeActionRow({
     </Button>
   ) : id === 'craftTrade' ? (
     crawler !== null ? (
-      open({ kind: 'crawler', id: crawler.id, name: crawler.name }, 'Open')
+      open(
+        { kind: 'crawler', id: crawler.id, name: crawler.name },
+        'Open',
+        // Solo the crawler is the player's own: its sheet in Build, in Edit,
+        // where Pay Upkeep, Fund and Trade are (r5 A14).
+        solo
+          ? () => {
+              useSheetModeStore.getState().setEditing(true)
+              go(sheetPath('crawler', crawler.id))
+            }
+          : undefined
+      )
     ) : solo ? (
       // Solo the crawler is the player's own to make; a Game's is its table runner's.
       <Button size="mini" href={makeCrawlerHref(pilot?.id ?? null)}>

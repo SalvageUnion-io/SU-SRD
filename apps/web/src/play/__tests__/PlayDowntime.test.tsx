@@ -6,7 +6,7 @@
  * the Game's: the Mediator advances it, a player marks themselves done.
  */
 
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { downtimeStepNames } from 'game-domain/rules/downtime'
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -425,7 +425,7 @@ describe('a solo Downtime, end to end', () => {
         />
       )
       const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
-      // Crafting opens the crawler's sheet over Play; Spend TP opens the
+      // Crafting opens the crawler's sheet in Build (r5 A14); Spend TP opens the
       // pilot's Manage Abilities, where Training Points are spent.
       expect(onHand.getByRole('button', { name: 'Spend TP' })).toBeTruthy()
       expect(onHand.getByRole('button', { name: 'Open' })).toBeTruthy()
@@ -455,6 +455,36 @@ describe('a solo Downtime, end to end', () => {
       stop()
     }
   })
+})
+
+// r5 A14 (SB5-08): Open showed the crawler read-only, with nothing to craft or trade with.
+test('solo, Craft · Trade opens the crawler’s sheet in Build, in Edit', async () => {
+  const { useSheetModeStore } = await import('../../build/sheet/sheetMode.model')
+  useSheetModeStore.getState().setEditing(false)
+  const { pilot, mech, crawler } = units()
+  const assigned: string[] = []
+  const assign = spyOn(window.location, 'assign').mockImplementation((to: string | URL) => {
+    assigned.push(String(to))
+  })
+  try {
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(pilot, mech, crawler).store}
+        writes={[]}
+        downtime={{ stepIndex: 0 }}
+      />
+    )
+    const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
+    await click(onHand.getByRole('button', { name: 'Open' }))
+    expect(assigned).toEqual(['/crawlers/dt-c'])
+    expect(useSheetModeStore.getState().editing).toBe(true)
+  } finally {
+    assign.mockRestore()
+    useSheetModeStore.getState().setEditing(false)
+  }
 })
 
 // r3 L2 (SB3-06): a greyed Open said nothing about why, or what to make first.

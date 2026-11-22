@@ -110,7 +110,8 @@ export function PlayUnitsColumn({
           live={units.live.crawler}
           downtime={play.situation === 'downtime'}
           onOpenSheet={
-            units.live.crawler && crawler
+            // In Downtime the crawler's sheet is on hand whoever writes it (r5 A14).
+            (units.live.crawler || (play.situation === 'downtime' && units.crawler.held)) && crawler
               ? () => setSheet({ kind: 'crawler', id: crawler.id, name: crawler.name })
               : undefined
           }
