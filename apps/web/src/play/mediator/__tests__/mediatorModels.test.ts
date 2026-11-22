@@ -12,6 +12,7 @@ import {
   clampProposalValue,
   fieldLabel,
   normalizeReason,
+  PROPOSAL_FIELDS,
   proposalTargets,
 } from 'game-domain/games/proposals'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -24,7 +25,7 @@ import {
   trayEntries,
 } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
-import { proposalAfter, proposalLine } from '../proposalLine.model'
+import { hitDamageOf, hitTargets, proposalAfter, proposalLine } from '../proposalLine.model'
 import { choiceLine, runChoices } from '../runEncounter.model'
 import { setbackDraft } from '../setbacks.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
@@ -108,6 +109,40 @@ describe('proposal targets and values', () => {
   test('fields read as the sheet labels them', () => {
     expect(fieldLabel('currentHP')).toBe('HP')
     expect(fieldLabel('currentHeat')).toBe('Heat')
+    expect(fieldLabel('currentEP')).toBe('EP')
+  })
+
+  test('a Mech can be proposed EP as well as SP and Heat (r4 D2)', () => {
+    expect(PROPOSAL_FIELDS.mech.map((f) => f.label)).toEqual(['SP', 'EP', 'Heat'])
+    const spectrum = targets.find((t) => t.label === "Pickle's Spectrum")
+    expect(spectrum?.readings.currentEP).toBeDefined()
+  })
+
+  test('a hit is a plain number of HP or SP; a variable amount offers nothing', () => {
+    expect(hitDamageOf({ damage: { damageType: 'HP', amount: 3 } })).toEqual({
+      damageType: 'HP',
+      amount: 3,
+    })
+    expect(hitDamageOf({ damage: { damageType: 'SP', amount: 'X' } })).toBeNull()
+    expect(hitDamageOf({ damage: { damageType: 'SP', amount: 0 } })).toBeNull()
+    expect(hitDamageOf({})).toBeNull()
+  })
+
+  test('HP damage is offered to the Pilots, SP damage to the Mechs, each with what it leaves', () => {
+    const hp = hitTargets({ damageType: 'HP', amount: 3 }, targets)
+    expect(hp.every((h) => h.target.kind === 'pilot' && h.field === 'currentHP')).toBe(true)
+    expect(hp.every((h) => h.after === Math.max(0, h.before - 3))).toBe(true)
+    const sp = hitTargets({ damageType: 'SP', amount: 4 }, targets)
+    expect(sp.map((h) => h.target.kind)).toEqual(sp.map(() => 'mech'))
+    expect(sp.find((h) => h.target.label === "Pickle's Spectrum")).toMatchObject({
+      field: 'currentSP',
+      before: 6,
+      after: 2,
+    })
+    // A hit never takes a vital below 0.
+    expect(hitTargets({ damageType: 'SP', amount: 99 }, targets).every((h) => h.after === 0)).toBe(
+      true
+    )
   })
 })
 

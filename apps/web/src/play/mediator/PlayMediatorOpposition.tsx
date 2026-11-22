@@ -4,8 +4,11 @@
  * running (`RUNNING | its name`, End; ADR-059), the area the crew is
  * salvaging (`AREA | its name, Tech Level and Supply`, set through
  * `SalvageAreaDialog`, Core Book p.245), then each NPC,
- * mech, squad or Bio-Titan on the tray as a unit box (`PlayNpcBox`, level 1),
- * then the chosen one's actions (`PlayNpcActions`).
+ * mech, squad or Bio-Titan on the tray as a unit box (`PlayNpcBox`, level 1);
+ * Actions on a box opens that unit's actions inside its own card
+ * (`PlayNpcActions`, r4 D1), each unit's on its own, shut until asked for.
+ * On a phone the running encounter's Briefing and Notes stand under its name
+ * (`notes`, r4 D3).
  *
  * Behind the `encounterSheet` flag (ADR-059 §5), an encounter's groups sit
  * together under their own Slab (`PlayNpcGroup`), with one Reaction and one
@@ -18,12 +21,12 @@
  *
  * The Opposition is hidden from players (ADR-030 §5). + Add opens the picker
  * over the reference (`OppositionPicker`, saved patterns included), and Rename
- * and Delete ask first (`OppositionDialogs`). The chosen NPC is the screen's
- * own; until one is chosen it is the first still standing.
+ * and Delete ask first (`OppositionDialogs`). Which units' actions are open is
+ * the screen's own.
  */
 
 import { heldGroups, heldWaves } from 'game-domain/games/encounters'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { SheetPickerModal } from '../../build/sheet/SheetPickerModal'
 import type { rollForTable } from '../../components/index'
@@ -37,6 +40,7 @@ import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
 import { trayEntries } from './opposition.model'
 import { PlayMediatorScene } from './PlayMediatorScene'
+import type { NpcHit } from './PlayNpcActions'
 import { PlayNpcActions } from './PlayNpcActions'
 import { PlayNpcBox } from './PlayNpcBox'
 import { PlayNpcGroup } from './PlayNpcGroup'
@@ -54,12 +58,22 @@ const RUNNING = {
 type PlayMediatorOppositionProps = {
   mediator: PlayMediator
   /** The dice the NPC actions roll (a test injects its own). */
-  rollFor?: typeof rollForTable
+  rollFor?: typeof rollForTable | undefined
+  /** Where a weapon's hit can be proposed (`PlayNpcActions`). */
+  hit?: NpcHit
+  /** Below `lg`, the running encounter's Briefing and Notes, under its name. */
+  notes?: ReactNode
 }
 
-export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOppositionProps) {
+export function PlayMediatorOpposition({
+  mediator,
+  rollFor,
+  hit,
+  notes,
+}: PlayMediatorOppositionProps) {
   const { npcs, tray, prep, canWrite, onFailure } = mediator
-  const [chosenId, setChosenId] = useState<string | null>(null)
+  // The units whose actions are open, each in its own card.
+  const [openIds, setOpenIds] = useState<readonly string[]>([])
   const [picking, setPicking] = useState(false)
   const [running, setRunning] = useState(false)
   const [removing, setRemoving] = useState<TrayNpc | null>(null)
@@ -68,8 +82,6 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
   const [clearing, setClearing] = useState(false)
   const [ending, setEnding] = useState(false)
   const { area } = mediator
-  const chosen =
-    npcs?.find((n) => n.id === chosenId) ?? npcs?.find((n) => !n.down) ?? npcs?.[0] ?? null
   const fail = (write: Promise<unknown>) => void write.catch(onFailure)
   const grouping = flagOn('encounterSheet')
   const entries: TrayEntry[] =
@@ -80,8 +92,23 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
     <PlayNpcBox
       key={npc.id}
       npc={npc}
-      chosen={chosen?.id === npc.id}
-      onChoose={() => setChosenId(npc.id)}
+      chosen={openIds.includes(npc.id)}
+      onChoose={() =>
+        setOpenIds((ids) =>
+          ids.includes(npc.id) ? ids.filter((id) => id !== npc.id) : [...ids, npc.id]
+        )
+      }
+      actions={
+        openIds.includes(npc.id) ? (
+          <PlayNpcActions
+            npc={npc}
+            canWrite={canWrite}
+            onMorale={() => fail(tray.morale(npc))}
+            hit={hit}
+            rollFor={rollFor}
+          />
+        ) : null
+      }
       canWrite={canWrite}
       onHp={(next) => fail(tray.setHp(npc, next))}
       onRename={() => setRenaming(npc)}
@@ -151,6 +178,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
           </Button>
         </div>
       )}
+      {prep.running !== null ? notes : null}
       {prep.running !== null &&
         held.map((wave) => (
           <div key={wave} style={RUNNING} role="status">
@@ -229,15 +257,6 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
             {mediatorCopy('clearTheField')}
           </Button>
         </div>
-      )}
-      {chosen !== null && (
-        <PlayNpcActions
-          key={chosen.id}
-          npc={chosen}
-          canWrite={canWrite}
-          onMorale={() => fail(tray.morale(chosen))}
-          rollFor={rollFor}
-        />
       )}
       <SheetPickerModal
         open={picking}

@@ -15,11 +15,27 @@
  * bound Discord channel. The Morale check is the
  * tray's own (`TrayWrites.morale`): the Morale table, open, its stamp the
  * roll, the NPC's last roll its marked row, kept on the NPC and in its box.
+ *
+ * A weapon's roll offers its hit (r4 D2): "Propose 3 HP to…" lists the seats
+ * that take that damage (`hitTargets`), and pressing one sends the proposal,
+ * the weapon its reason. The Mediator decides whether it hit; the player
+ * still decides whether it applies.
  */
 
+import type { ProposalTarget } from 'game-domain/games/proposals'
+import { PROPOSAL_REASON_MAX } from 'game-domain/games/proposals'
 import { useMemo, useState } from 'react'
 import { resultForTable, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
-import { Button, EmptyState, Entity, rollForTable, Slab, TraitProse } from '../../components/index'
+import {
+  Button,
+  EmptyState,
+  Entity,
+  HeaderMenu,
+  rollForTable,
+  Slab,
+  TraitProse,
+  toast,
+} from '../../components/index'
 import { actionEffect } from '../../lib/rules/actionEffect'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollInstrument } from '../PlayRollInstrument'
@@ -29,6 +45,16 @@ import { usePlayWide } from '../usePlayWide'
 import type { NpcAction } from './npcActions.model'
 import { npcActions } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
+import type { ProposeArgs } from './ProposeDock'
+import type { HitDamage } from './proposalLine.model'
+import { hitDamageOf, hitTargets } from './proposalLine.model'
+
+/** Where a weapon's hit goes: the seats a proposal can reach, and the write. */
+export type NpcHit = {
+  targets: readonly ProposalTarget[]
+  /** Resolves when the server has the proposal; rejects with its refusal, already said. */
+  onPropose: (args: ProposeArgs) => Promise<void>
+}
 
 /** The NPC Action table (Workshop Manual): what every NPC action's roll reads. */
 const NPC_ACTION = 'NPC Action'
@@ -49,14 +75,17 @@ type PlayNpcActionsProps = {
   canWrite: boolean
   /** The NPC's Morale check: the tray's write. */
   onMorale: () => void
+  /** Where a weapon's hit can be proposed; absent, a roll offers nothing. */
+  hit?: NpcHit | undefined
   /** The dice (a test injects its own). */
-  rollFor?: typeof rollForTable
+  rollFor?: typeof rollForTable | undefined
 }
 
 export function PlayNpcActions({
   npc,
   canWrite,
   onMorale,
+  hit,
   rollFor = rollForTable,
 }: PlayNpcActionsProps) {
   const actions = useMemo(() => npcActions(npc), [npc])
@@ -82,6 +111,7 @@ export function PlayNpcActions({
             live={live}
             open={open === entry.key}
             onOpen={(on) => setOpen(on ? entry.key : null)}
+            hit={live ? hit : undefined}
             rollFor={rollFor}
           />
         ))}
@@ -113,6 +143,7 @@ function NpcActionRow({
   live,
   open,
   onOpen,
+  hit,
   rollFor,
 }: {
   npc: TrayNpc
@@ -120,6 +151,7 @@ function NpcActionRow({
   live: boolean
   open: boolean
   onOpen: (open: boolean) => void
+  hit: NpcHit | undefined
   rollFor: typeof rollForTable
 }) {
   // The same row text as the player's board: the effect alone.
@@ -131,6 +163,7 @@ function NpcActionRow({
   const first = effect.find((block) => typeof block.value === 'string')?.value
   const wide = usePlayWide()
   const [rolled, setRolled] = useState<{ die: number; band: string } | null>(null)
+  const damage = useMemo(() => hitDamageOf(entry.action), [entry.action])
 
   async function roll() {
     let said: string | undefined
@@ -189,6 +222,9 @@ function NpcActionRow({
                         {rolled.die} · {rolled.band}
                       </p>
                     ) : null}
+                    {rolled && damage && hit ? (
+                      <HitOffer npc={npc} weapon={entry.name} damage={damage} hit={hit} />
+                    ) : null}
                   </div>
                 ),
               },
@@ -203,5 +239,59 @@ function NpcActionRow({
             : {})}
       />
     </li>
+  )
+}
+
+/**
+ * A rolled weapon's hit, two presses from its target (r4 D2): the button
+ * names the damage, its menu the seats that take it and what each is left
+ * with; a seat pressed is proposed it at once.
+ */
+function HitOffer({
+  npc,
+  weapon,
+  damage,
+  hit,
+}: {
+  npc: TrayNpc
+  weapon: string
+  damage: HitDamage
+  hit: NpcHit
+}) {
+  const unit = damage.damageType
+  const seats = hitTargets(damage, hit.targets)
+  if (seats.length === 0) {
+    return <p className="su-play-resolve__note">{mediatorCopy('noOneToHit', { unit })}</p>
+  }
+  return (
+    <HeaderMenu
+      variant="button"
+      size="compact"
+      trigger={mediatorCopy('proposeHitTo', { amount: damage.amount, unit })}
+      label={mediatorCopy('proposeHitFor', { amount: damage.amount, unit, name: npc.name })}
+      sections={[
+        seats.map(({ target, field, before, after }) => ({
+          id: target.id,
+          label: target.label,
+          hint: mediatorCopy('hitLeaves', { unit, before, after }),
+          onSelect: () =>
+            void hit
+              .onPropose({
+                entityId: target.id,
+                entityType: target.kind,
+                field,
+                after,
+                reason: `${npc.name} · ${weapon}`.slice(0, PROPOSAL_REASON_MAX),
+              })
+              .then(() =>
+                toast.success(
+                  mediatorCopy('hitProposed', { name: target.label, unit, before, after })
+                )
+              )
+              // The caller has already said why.
+              .catch(() => undefined),
+        })),
+      ]}
+    />
   )
 }

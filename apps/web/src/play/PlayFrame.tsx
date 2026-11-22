@@ -19,6 +19,10 @@
  *    column stacks its panes in one scroller; a `dock` pane sits at its foot.
  *    A `sheet` stands in the centre column, its panes kept mounted under it.
  *
+ * A screen with a long way to its panes gives `jumps` (r4 D6, the Mediator's):
+ * skip links ahead of the bar, off screen until focused, each opening its
+ * pane (its tab below `lg`) and moving focus into it.
+ *
  * The arrangement is CSS (`styles/play/frame.css`); `wide` (`usePlayWide`,
  * the same rung) decides only what a reader is told, so crossing it re-lays
  * the panes without remounting them: a pane is a column's region from `lg`,
@@ -49,11 +53,13 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Tab, TabList, Tabs } from '../components/app'
 import {
+  capsLabel,
   EntitySurfaceProvider,
   holdToastsOnTop,
   SlabLookProvider,
   tokens,
 } from '../components/index'
+import { cn } from '../lib/cn'
 import { playCopy } from '../messages/play'
 import type { PaneSpec, PlayColumn } from './playPanes.model'
 import { NOTICES_RESIZED } from './tableNotices.model'
@@ -65,6 +71,9 @@ import { NOTICES_RESIZED } from './tableNotices.model'
  * head, a unit box's band) carries it.
  */
 const SPECKLED = { texture: true } as const
+
+/** A skip link, as the site's own (`SkipLink`): off screen until focused. */
+const SKIP = cn('su-skip-link', capsLabel())
 
 /** The Tabs root: the frame's grid fills it. */
 const ROOT = { height: '100%' } satisfies CSSProperties
@@ -117,6 +126,8 @@ type PlayFrameProps<Value extends string> = {
   sheet?: ReactNode
   /** The foot (`PlayFoot`), from `lg`. */
   foot: ReactNode
+  /** Skip links ahead of the bar: each opens its pane and moves focus into it. */
+  jumps?: readonly { pane: Value; label: string }[]
 }
 
 export function PlayFrame<Value extends string>({
@@ -131,8 +142,11 @@ export function PlayFrame<Value extends string>({
   focus,
   sheet,
   foot,
+  jumps,
 }: PlayFrameProps<Value>) {
   const id = useId()
+  // A skip link was pressed: focus its pane once it is showing.
+  const [jump, setJump] = useState<Value | null>(null)
   const hostRef = useRef<HTMLElement>(null)
   const hostH = useHostHeight(hostRef)
   // Below `lg` the controls are at thumb height, where a toast at the foot
@@ -146,6 +160,11 @@ export function PlayFrame<Value extends string>({
   const open = panes.some((p) => p.value === tab) ? tab : tabbed[0]?.value
   const tabId = (value: string) => `${id}-tab-${value}`
   const paneId = (value: string) => `${id}-pane-${value}`
+  useEffect(() => {
+    if (jump === null) return
+    document.getElementById(`${id}-pane-${jump}`)?.focus()
+    setJump(null)
+  }, [jump, id])
 
   const pane = (p: PlayPane<Value>, region: string | null) => (
     // From `lg` a start or centre pane is its column's named region; below
@@ -160,6 +179,8 @@ export function PlayFrame<Value extends string>({
       role={wide ? undefined : 'tabpanel'}
       aria-label={wide ? (region ?? undefined) : undefined}
       aria-labelledby={wide ? undefined : tabId(p.value)}
+      // A skip link's target: focusable by script alone.
+      tabIndex={jumps?.some((j) => j.pane === p.value) ? -1 : undefined}
     >
       {p.node}
     </section>
@@ -173,7 +194,26 @@ export function PlayFrame<Value extends string>({
         <main ref={hostRef} className="su-play-root" style={{ height: hostH }}>
           <Tabs value={open ?? tab} onValueChange={onTab} style={ROOT}>
             <div className="su-play-frame">
-              <div className="su-play-frame__bar">{bar}</div>
+              <div className="su-play-frame__bar">
+                {jumps && jumps.length > 0 ? (
+                  <nav aria-label={playCopy('jumpTo')}>
+                    {jumps.map((j) => (
+                      <button
+                        key={j.pane}
+                        type="button"
+                        className={SKIP}
+                        onClick={() => {
+                          onTab(j.pane)
+                          setJump(j.pane)
+                        }}
+                      >
+                        {playCopy('skipTo', { name: j.label })}
+                      </button>
+                    ))}
+                  </nav>
+                ) : null}
+                {bar}
+              </div>
               {!wide && pinned ? <div className="su-play-frame__pinned">{pinned}</div> : null}
               {focused ? <div className="su-play-pane su-play-frame__focus">{focus}</div> : null}
               {inColumn('start').map((p) => pane(p, labels[0]))}
