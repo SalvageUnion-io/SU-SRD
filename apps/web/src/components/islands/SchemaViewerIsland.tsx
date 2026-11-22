@@ -302,16 +302,25 @@ function SchemaViewer({
     [sourceFilter, treeFilter, traitFilter, rangeFilter, actionFilter, nameFilter].some(
       (filter) => filter !== ''
     )
+  // A choice from a menu (or Weapons only) folds a phone's open panel, so the
+  // list it changed is in view (r5 E8); the Tech Levels are picked several at
+  // a time, so the panel stays open for them. Wider, the facets never fold.
+  const choosing =
+    <T,>(set: (value: T) => void) =>
+    (value: T) => {
+      set(value)
+      setFacetsOpen(false)
+    }
   const railActions: RailActions = {
     setName: filters.setName,
     toggleTechLevel,
     clearTechLevels: filters.clearTechLevels,
-    setSource: filters.setSource,
-    setTree: filters.setTree,
-    setTrait: filters.setTrait,
-    setRange: filters.setRange,
-    setAction: filters.setAction,
-    setWeapons: filters.setWeapons,
+    setSource: choosing(filters.setSource),
+    setTree: choosing(filters.setTree),
+    setTrait: choosing(filters.setTrait),
+    setRange: choosing(filters.setRange),
+    setAction: choosing(filters.setAction),
+    setWeapons: choosing(filters.setWeapons),
     setView,
     toggleFacets: () => setFacetsOpen((open) => !open),
   }

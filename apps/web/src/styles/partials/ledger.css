@@ -414,7 +414,13 @@
    left for its quiet line: the line gives way, as on a phone, and the cells
    sit closer, so every measure stays inside the frame (R44). */
 @media (width >= 40rem) and (not (width >= 64rem)) {
-  .su-ledger__table[data-dense] :is(th, td)[data-kind='quiet'] {
+  .su-ledger__table[data-dense]:not(:has([data-spare])) :is(th, td)[data-kind='quiet'] {
+    display: none;
+  }
+
+  /* A list with a column to spare (a cost few rows carry) drops that instead,
+     and its quiet line (the systems' traits) stays (r5 E8). */
+  .su-ledger__table[data-dense] :is(th, td)[data-spare] {
     display: none;
   }
 

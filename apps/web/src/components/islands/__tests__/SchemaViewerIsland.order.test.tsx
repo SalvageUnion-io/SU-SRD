@@ -220,7 +220,9 @@ describe('the trait filter (RR-05)', () => {
       const traitCells = Array.from(container.querySelectorAll('.su-listing__groups tbody tr')).map(
         (row) => row.children[at]?.textContent ?? ''
       )
-      expect(traitCells.every((cell) => cell.split(', ').includes('Hot'))).toBe(true)
+      expect(
+        traitCells.every((cell) => cell.split(', ').some((trait) => /^Hot( |$)/.test(trait)))
+      ).toBe(true)
       const rail = container.querySelector<HTMLElement>('.su-rail') as HTMLElement
       expect(
         (within(rail).getByRole('combobox', { name: 'Trait' }) as HTMLSelectElement).value
@@ -228,6 +230,26 @@ describe('the trait filter (RR-05)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Remove trait Hot' }))
       expect(names().length).toBe(all('systems').length)
       expect(window.location.search).toBe('')
+    },
+    HEAVY
+  )
+})
+
+describe('a phone’s filter panel (r5 E8)', () => {
+  it(
+    'folds on a menu’s choice, so the list it changed is in view; a Tech Level leaves it open',
+    () => {
+      const { container } = listing('systems')
+      const rail = container.querySelector<HTMLElement>('.su-rail') as HTMLElement
+      const filters = within(rail).getByRole('button', { name: /^Filters/ })
+      fireEvent.click(filters)
+      expect(filters.getAttribute('aria-expanded')).toBe('true')
+      fireEvent.click(within(rail).getByRole('button', { name: 'Tech Level 1' }))
+      expect(filters.getAttribute('aria-expanded')).toBe('true')
+      fireEvent.change(within(rail).getByRole('combobox', { name: 'Trait' }), {
+        target: { value: 'Hot' },
+      })
+      expect(filters.getAttribute('aria-expanded')).toBe('false')
     },
     HEAVY
   )
@@ -241,6 +263,23 @@ describe("the List's columns", () => {
     const labels = heads(container)
     expect(labels).toContain('Traits')
     expect(labels.indexOf('Traits')).toBe(labels.indexOf('DMG') + 1)
+  })
+
+  it('the Traits column shows each trait’s value, and a cost few rows carry is the column a narrow frame spares (r5 E8)', () => {
+    const { container } = render(
+      <IndexLedger schemaId="systems" noun="Systems" items={all('systems')} />
+    )
+    const at = heads(container).indexOf('Traits')
+    const row = Array.from(container.querySelectorAll('tbody tr')).find((tr) =>
+      tr.querySelector('th')?.textContent?.startsWith('Blue Mining Laser')
+    )
+    expect(row?.children[at]?.textContent).toBe('Energy, Hot 3')
+    const cost = Array.from(container.querySelectorAll('thead th')).find((th) =>
+      th.textContent?.includes('Cost')
+    )
+    expect(cost?.hasAttribute('data-spare')).toBe(true)
+    const traits = container.querySelectorAll('thead th')[at]
+    expect(traits?.hasAttribute('data-spare')).toBe(false)
   })
 
   it('a stat that repeats another on every row is left to the Page (RR-23)', () => {
