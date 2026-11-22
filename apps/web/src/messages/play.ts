@@ -226,6 +226,7 @@ export const playCopy = messages({
   hot: 'Hot',
   rolled: 'Rolled {roll}: {bandLabel}. {bandSummary}',
   resultApplied: 'Result applied',
+  rolledSays: 'Rolled {roll} · {band}',
   activated: 'Activated ✓',
   activate: 'Activate',
   commitThisResult: 'Commit this result',

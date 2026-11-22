@@ -55,6 +55,8 @@ type PlayActionRowProps = {
   resolve: Extract<ResolveModel, { kind: 'resolve' }> | null
   /** It just finished and closed itself: the row says Done. */
   done?: boolean
+  /** What a done row says it came to: "Result applied", or its roll (r6 A5). */
+  doneSays?: string
   onUse: () => void
   canWrite: boolean
   /** Why it cannot run as it stands (out of range, over the Heat Cap), or null. */
@@ -118,6 +120,7 @@ export function PlayActionRow({
   entry,
   resolve,
   done = false,
+  doneSays = playCopy('resultApplied'),
   onUse,
   canWrite,
   locked,
@@ -220,7 +223,7 @@ export function PlayActionRow({
     >
       {/* Mounted with the row, so the finish is spoken as the resolve closes. */}
       <span className="su-sr-only" role="status">
-        {done ? playCopy('resultApplied') : ''}
+        {done ? doneSays : ''}
       </span>
       <Entity
         size="mini"

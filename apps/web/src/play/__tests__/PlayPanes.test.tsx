@@ -414,11 +414,12 @@ describe('Act: resolve stays inline', () => {
     await click(within(row()).getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     expect(row().querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     // Once anything is done with it, its close reads Done: closing undoes nothing.
-    expect(within(row()).getByRole('button', { name: `Done with ${actionName}` })).toBeTruthy()
-    await click(within(row()).getByRole('button', { name: /^Apply/ }))
-    // The finished action closed itself and says Done.
+    // A Success writes nothing to a unit: no Apply, Done finishes it (r6 A5).
+    expect(within(row()).queryByRole('button', { name: /^Apply/ })).toBeNull()
+    await click(within(row()).getByRole('button', { name: `Done with ${actionName}` }))
+    // The finished action closed itself and says what it came to.
     expect(row().getAttribute('data-open')).toBeNull()
-    expect(within(row()).getByRole('status').textContent).toBe('Result applied')
+    expect(within(row()).getByRole('status').textContent).toBe('Rolled 14 · Success')
     expect(within(row()).getByRole('button', { name: `Use ${actionName}` })).toBeTruthy()
     expect(tab('Act').getAttribute('aria-selected')).toBe('true')
     expect(openPanel().contains(row())).toBe(true)

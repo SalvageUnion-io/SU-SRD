@@ -56,6 +56,7 @@ export function PlayActionEntry({
           entry={entry}
           resolve={open && resolve.kind === 'resolve' ? resolve : null}
           done={actions.doneKey === entry.key}
+          doneSays={actions.doneSays}
           onUse={() => actions.open(entry.key)}
           canWrite={play.canWrite}
           techLevel={actions.crawlerTechLevel}

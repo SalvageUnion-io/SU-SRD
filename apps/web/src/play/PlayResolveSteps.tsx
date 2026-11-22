@@ -4,6 +4,9 @@
  * Apply. Roll pays the cost where Activate has not, and a line says what it
  * will spend (r4 A1); an action with no cost has no Activate (r4 A2), nor
  * an attack, whose Roll the die is its one main button (r5 A16).
+ * A roll that writes nothing has no Apply (r6 A5): the row's own Done
+ * finishes it, and a Failure with no Push open closes itself
+ * (`useActionsDeck`); the keyboard goes to that Done.
  * After a roll the keyboard is on Apply (r4 A3), and the rolled row is clear
  * of the sticky Apply bar (r4 A4).
  * Presentational:
@@ -72,10 +75,15 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
   }
   const hostRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!rolling.current || !canWrite || controls.applyDisabled) return
+    if (!rolling.current || !canWrite) return
+    // Nothing to apply: the row's own Done finishes it (r6 A5).
+    const done = view.nothingToApply
+      ? hostRef.current?.closest('.su-play-act')?.querySelector<HTMLElement>('.su-play-act__use')
+      : null
+    if (!view.nothingToApply && controls.applyDisabled) return
     rolling.current = false
     // The bar is on screen already: the focus never moves the pane.
-    applyRef.current?.focus({ preventScroll: true })
+    ;(done ?? applyRef.current)?.focus({ preventScroll: true })
     clearOfBar(hostRef.current)
   })
   // An Area Salvage rolls only while its area has Supply to spend.
@@ -181,16 +189,19 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
 
       {/* The ways forward stay on screen under the table, however long it is (r2 I3). */}
       <div className="su-play-resolve__steps su-play-resolve__forward">
-        <Button
-          ref={applyRef}
-          size="compact"
-          style={GROW}
-          onClick={controls.onApply}
-          disabled={!canWrite || controls.applyDisabled}
-          title={playCopy('commitThisResult')}
-        >
-          {controls.applyLabel}
-        </Button>
+        {/* Only while there is something to apply (r6 A5). */}
+        {!view.nothingToApply && (
+          <Button
+            ref={applyRef}
+            size="compact"
+            style={GROW}
+            onClick={controls.onApply}
+            disabled={!canWrite || controls.applyDisabled}
+            title={playCopy('commitThisResult')}
+          >
+            {controls.applyLabel}
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="compact"
@@ -203,7 +214,8 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
           {playCopy('startOver')}
         </Button>
       </div>
-      {!view.applied && <p style={NOTE}>{playCopy('resolveStepsHint')}</p>}
+      {/* Said only while there is something to apply (r6 A5). */}
+      {!view.applied && !view.nothingToApply && <p style={NOTE}>{playCopy('resolveStepsHint')}</p>}
 
       {view.pushLog && <p style={NOTE}>{view.pushLog}</p>}
       {view.meltdown && (
