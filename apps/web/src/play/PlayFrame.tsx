@@ -51,15 +51,13 @@
 import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useRef, useState } from 'react'
-import { Tab, TabList, Tabs } from '../components/app'
+import { SkipLink, Tab, TabList, Tabs } from '../components/app'
 import {
-  capsLabel,
   EntitySurfaceProvider,
   holdToastsOnTop,
   SlabLookProvider,
   tokens,
 } from '../components/index'
-import { cn } from '../lib/cn'
 import { playCopy } from '../messages/play'
 import type { PaneSpec, PlayColumn } from './playPanes.model'
 import { NOTICES_RESIZED } from './tableNotices.model'
@@ -71,9 +69,6 @@ import { NOTICES_RESIZED } from './tableNotices.model'
  * head, a unit box's band) carries it.
  */
 const SPECKLED = { texture: true } as const
-
-/** A skip link, as the site's own (`SkipLink`): off screen until focused. */
-const SKIP = cn('su-skip-link', capsLabel())
 
 /** The Tabs root: the frame's grid fills it. */
 const ROOT = { height: '100%' } satisfies CSSProperties
@@ -198,17 +193,16 @@ export function PlayFrame<Value extends string>({
                 {jumps && jumps.length > 0 ? (
                   <nav aria-label={playCopy('jumpTo')}>
                     {jumps.map((j) => (
-                      <button
+                      <SkipLink
                         key={j.pane}
-                        type="button"
-                        className={SKIP}
-                        onClick={() => {
+                        to={paneId(j.pane)}
+                        onFollow={() => {
                           onTab(j.pane)
                           setJump(j.pane)
                         }}
                       >
                         {playCopy('skipTo', { name: j.label })}
-                      </button>
+                      </SkipLink>
                     ))}
                   </nav>
                 ) : null}

@@ -27,7 +27,7 @@ export const islandsCopy = messages({
   tree: 'Tree',
   trait: 'Trait',
   allTraits: 'All {count} traits',
-  anyRange: 'Any range',
+  anyRange: 'Any Range',
   anyAction: 'Any action',
   weaponsOnly: 'Weapons only',
   traits: 'Traits',

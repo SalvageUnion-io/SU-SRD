@@ -46,7 +46,6 @@ export const compositionsCopy = messages({
   rolled: 'Rolled {roll}',
   entry: 'Entry',
   column: '{name}, column {rollRangeLabel}',
-  searchIndex: 'search index',
   createAPilot: 'Create a Pilot',
   pickAClassAndYour:
     'Pick a class and your first ability, then add a keepsake, motto and background.',

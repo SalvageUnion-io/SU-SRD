@@ -10,20 +10,18 @@ paths:
 
 # srd social preview images (og:image)
 
-- Each entity page's `og:image` is `OgCard`, built from the page's own parts
+- An entity page's `og:image` is `OgCard`, built from its own parts
   by `ogCardForEntity`; `apps/web/src/lib/ogCard.ts` (`ogCardFor`, `ogMetaFor`,
   `ogImagePath`) is where the island, generator and pages agree.
   `apps/web/scripts/og-screenshots.ts` shoots it at 1200×630 to
-  `dist/{schemaId}/{itemId}.og.png`; patterns get their own at
-  `/{schemaId}/{itemId}/pattern/{patternId}.og.png`.
-- `og:title` is the name, `og:description` the entity's stats and summary
-  (`previewDescriptionFor`; the kind and cite where it has neither),
-  `theme-color` the band's tone. An entity with art previews as its art, the
-  artwork CDN's 880px width of it (`entityPageHead`), and the generator leaves
-  that page's `og:image` alone.
+  `dist/{schemaId}/{itemId}.og.png`; a pattern's is
+  `…/pattern/{patternId}.og.png`.
+- `og:title` is the name, `og:description` its stats and summary,
+  `theme-color` the band's tone. With art, `og:image` is the art
+  (`entityPageHead`): the generator skips it.
 - Opt-in: `bun --filter web og:generate` (chromium via `og:install-browser`);
   a plain build never renders images. The default image is
   `public/og-image.png` (`BrandCard` at `/og-card?brand`), and a skipped,
   capped or failed render falls back to it, **never failing the build**.
-- No version to bump: each PNG is cached on its entity's JSON plus
-  `apps/web/scripts/ogRenderFingerprint.ts`'s hash of what draws the card.
+- Each PNG is cached on its entity's JSON plus
+  `apps/web/scripts/ogRenderFingerprint.ts`'s hash of what draws it.

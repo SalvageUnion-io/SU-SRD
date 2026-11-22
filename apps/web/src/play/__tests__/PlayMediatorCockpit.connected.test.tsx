@@ -1264,7 +1264,7 @@ describe('below `lg`, on a phone (play.md §11)', () => {
 
   test('skip links lead the screen: each opens its tab and moves focus into its pane (r4 D6)', async () => {
     await renderCockpit()
-    const jumps = within(screen.getByRole('navigation', { name: 'Jump to' })).getAllByRole('button')
+    const jumps = within(screen.getByRole('navigation', { name: 'Jump to' })).getAllByRole('link')
     expect(jumps.map((j) => j.textContent)).toEqual([
       'Skip to The table',
       'Skip to Opposition',
@@ -1302,9 +1302,10 @@ describe('from `lg`: the Mediator’s jumps and notes', () => {
         startedAt: '2026-10-22T00:00:00.000Z',
       },
     })
-    const first = screen.getAllByRole('button')[0] as HTMLElement
+    const main = screen.getByRole('main')
+    const first = main.querySelector('a, button') as HTMLElement
     expect(first.textContent).toBe('Skip to The table')
-    await click(named('Skip to Rolls'))
+    await click(screen.getByRole('link', { name: 'Skip to Rolls' }))
     const pane = document.activeElement as HTMLElement
     expect(within(pane).getByRole('heading', { name: 'Rolls' })).toBeTruthy()
     // From `lg` the Notes stay in the end column, above the Rolls.
