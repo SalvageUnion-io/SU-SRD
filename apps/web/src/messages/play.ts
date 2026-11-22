@@ -474,7 +474,7 @@ export const playCopy = messages({
   gatherCantinaRumours: 'Gather Cantina Rumours',
   rollD20: 'Roll d20',
   rumourPlainRoll: 'The Mediator says what you hear.',
-  rumourPlainRollSolo: 'Solo, what you hear is yours to say, or roll a rumour table.',
+  openTheTable: 'Open the table',
   needsAUnionCrawler: 'Needs a Union Crawler',
   makeAUnionCrawler: 'Make a Union Crawler',
   findWordsReactor: 'Push Heat Check Vent Shutdown Shut down',

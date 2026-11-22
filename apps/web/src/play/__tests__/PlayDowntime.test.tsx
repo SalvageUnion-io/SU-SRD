@@ -20,6 +20,7 @@ import {
 } from '../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import type { PlayRoll } from '../playRolls.model'
+import { rumourRowText } from '../rumours.model'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
@@ -434,16 +435,16 @@ describe('a solo Downtime, end to end', () => {
       const picker = screen.getByRole('dialog', { name: 'Manage Abilities' })
       await click(within(picker).getByRole('button', { name: /close/i }))
       expect(screen.queryByRole('dialog', { name: 'Manage Abilities' })).toBeNull()
-      // No adventure's rumour table at a table that plays none: a plain d20.
-      expect(onHand.queryByRole('button', { name: 'Roll the die on Rumour' })).toBeNull()
-      expect(onHand.queryByText(/Vornaya/)).toBeNull()
+      // Solo the rumour rolls on the Rumour table and says its row (r6 D8).
       await click(onHand.getByRole('button', { name: 'Roll d20' }))
-      expect(heard.at(-1)).toMatchObject({ tableName: 'Gather Cantina Rumours', rolls: [14] })
+      expect(heard.at(-1)).toMatchObject({ tableName: 'Rumour', rolls: [14] })
       // Solo there is no Mediator to send the player to (r3 L2).
       expect(onHand.queryByText(/Mediator/)).toBeNull()
-      expect(
-        onHand.getByText('14 · Solo, what you hear is yours to say, or roll a rumour table.')
-      ).toBeTruthy()
+      expect(onHand.getByText(`14 · ${rumourRowText(14)}`)).toBeTruthy()
+      expect(rumourRowText(14).length).toBeGreaterThan(0)
+      expect(onHand.getByRole('link', { name: 'Open the table' }).getAttribute('href')).toBe(
+        '/roll-tables/rumour/'
+      )
       const field = screen.getByRole('button', { name: 'Expand Field actions' })
       expect(field.getAttribute('aria-expanded')).toBe('false')
       await click(field)
@@ -573,6 +574,7 @@ describe('Downtime’s dead ends say why', () => {
     expect(onHand.queryByRole('link')).toBeNull()
     await click(onHand.getByRole('button', { name: 'Roll d20' }))
     expect(onHand.getByText('14 · The Mediator says what you hear.')).toBeTruthy()
+    expect(onHand.queryByRole('link', { name: 'Open the table' })).toBeNull()
   })
 })
 
