@@ -19,7 +19,7 @@ import { nameToSlug } from 'salvageunion-reference'
 import { Button, EntitySearcher, ModalShell, Text } from '../../components/index'
 import { droppedNames, loadoutOnChassis } from '../../lib/rules/chassisSwap'
 import { mechCopy } from '../../messages/build-mech'
-import { CHASSIS_SWAP_KEEPS_OVERFLOW } from '../rulings'
+import { CHASSIS_SWAP_KEEPS_OVERFLOW } from '../rulings.model'
 import '../../styles/build/wizard.css'
 
 type MechChassisPickerModalProps = {

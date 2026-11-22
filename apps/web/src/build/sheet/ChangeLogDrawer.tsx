@@ -34,14 +34,8 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { useSync } from '../../replica/syncContext'
 import { useEntityLog } from '../../replica/useEntityLog'
 import type { LogChange, LogDefaults, LogLine, Reversal } from './changeLog.model'
-import {
-  lineText,
-  logChanges,
-  logStory,
-  reversal,
-  reversible,
-  splitJustNow,
-} from './changeLog.model'
+import { lineText, logChanges, reversal, reversible, splitJustNow } from './changeLog.model'
+import { logStory } from './changeStory.model'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']

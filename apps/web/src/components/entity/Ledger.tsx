@@ -9,11 +9,9 @@
 // (`.su-entity-compact__notch` + `__title`), notched into the head strip's
 // foot, and its sources on the card foot's cut-out (`EntityCardIdentityFooter`
 // on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
-import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react'
-import type { CSSProperties, ElementType, KeyboardEvent, MouseEvent, ReactNode } from 'react'
-import { Fragment, useContext, useId, useState } from 'react'
+import type { CSSProperties, ElementType, MouseEvent, ReactNode } from 'react'
+import { Fragment, useContext, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
-import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { entityCopy } from '../../messages/components-entity'
 import { Badge } from '../atoms/Badge'
@@ -29,6 +27,8 @@ import { CostMark } from './CostMark'
 import { useEntitySurface } from './entitySurfaceContext'
 import { Mention } from './forms/Mention'
 import { LedgerOpen } from './LedgerOpen'
+import type { LedgerSort } from './ledgerSort'
+import { sortSlot, useSortRove } from './ledgerSort'
 import type { Paint } from './parts/paint'
 import { paintFor } from './parts/paint'
 import { usePeekAttrs } from './peekContext'
@@ -162,31 +162,7 @@ const CAPS = capsLabel({ weight: 'inherit' })
 const TITLE_LINE = cn('su-ledger__title-line', CAPS)
 const NAME = cn('su-ledger__name', capsLabel({ size: 'lede', weight: 'inherit' }))
 
-export type LedgerSort = { key: string; descending: boolean }
-
-/** The sorted column's mark: a chevron at the Mini Size (K11), up for ascending. */
-function sortMark(sort: LedgerSort): ReactNode {
-  const Mark = sort.descending ? ChevronDown : ChevronUp
-  return <Mark aria-hidden="true" size={iconSize.mini} className="su-ledger__arrow" />
-}
-
-/**
- * A sortable head's caret slot: the mark where the list sorts by this column,
- * else a muted up-and-down one in the same room, so no label widens when you
- * sort and every sortable label says it sorts.
- */
-function sortSlot(sort: LedgerSort | undefined, key: string): ReactNode {
-  return sort?.key === key ? (
-    sortMark(sort)
-  ) : (
-    <ChevronsUpDown
-      aria-hidden="true"
-      size={iconSize.mini}
-      className="su-ledger__arrow"
-      data-idle=""
-    />
-  )
-}
+export type { LedgerSort } from './ledgerSort'
 
 /** A cell with nothing to say draws `—` (L5); a `0` is a value. */
 const isEmpty = (cell: ReactNode) =>
@@ -338,7 +314,6 @@ function LedgerList({
   presentation = false,
 }: LedgerListProps) {
   const group = useId()
-  const [roving, setRoving] = useState<string | undefined>(undefined)
   const surface = useEntitySurface()
   const meaning = useContext(StatMeaningContext)
   const paint = paintProp ?? paintFor(tone, { texture: surface.texture })
@@ -353,40 +328,13 @@ function LedgerList({
   const roomy = columns.some((column) => column.kind === 'quiet' || column.kind === 'line')
   const hasFill = !roomy && !hasTrailing
   const span = columns.length + 1 + (hasTrailing || hasFill ? 1 : 0)
-  // The sorting labels are one Tab stop, the arrows moving between them (r6
-  // E13), so a row's own buttons are a few Tabs away, not one a column.
-  const sortKeys = onSort
-    ? [
-        ...(sortTab ? ['name'] : []),
-        ...(rank ? [rank.key] : []),
-        ...columns.map((column) => column.key),
-        ...(trailingLabel !== undefined && !action ? ['trailing'] : []),
-      ]
-    : []
-  const stop =
-    [roving, sort?.key].find((key) => key !== undefined && sortKeys.includes(key)) ?? sortKeys[0]
-  const rove = (key: string) => ({
-    tabIndex: key === stop ? 0 : -1,
-    onFocus: () => setRoving(key),
-  })
-  const onSortKey = (event: KeyboardEvent<HTMLTableRowElement>) => {
-    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -1, ArrowDown: 1 }[event.key]
-    const edge = event.key === 'Home' ? 0 : event.key === 'End' ? -1 : undefined
-    if (step === undefined && edge === undefined) return
-    const buttons = [
-      ...event.currentTarget.querySelectorAll<HTMLButtonElement>('button.su-ledger__sort'),
-    ]
-    const at = buttons.indexOf(event.target as HTMLButtonElement)
-    if (at < 0) return
-    event.preventDefault()
-    const next =
-      edge === 0
-        ? buttons[0]
-        : edge === -1
-          ? buttons[buttons.length - 1]
-          : buttons[(at + (step ?? 0) + buttons.length) % buttons.length]
-    next?.focus()
-  }
+  // The sorting labels are one Tab stop (r6 E13).
+  const keys = onSort ? [sortTab && 'name', rank?.key, ...columns.map((c) => c.key)] : []
+  const sortRove = useSortRove(
+    [...keys, onSort && trailingLabel !== undefined && !action && 'trailing'],
+    sort?.key
+  )
+  const { rove, onKeyDown: onSortKey } = sortRove
   const stamp = (key: string, text: string, title?: string, statKey?: string) => {
     const mark = (
       <Badge shape="stamp" size="mini" surface="solid">

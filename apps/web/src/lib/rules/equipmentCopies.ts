@@ -12,7 +12,7 @@
 import type { ItemCondition, ItemConditionMap } from 'game-domain/schemas/itemCondition'
 
 /** A copy's key in the map: the slug alone for an item carried once. */
-export const copyKey = (slug: string, copy: number, count: number): string =>
+const copyKey = (slug: string, copy: number, count: number): string =>
   count > 1 ? `${slug}#${copy}` : slug
 
 /** Whether the map already keeps this slug's copies apart. */

@@ -83,7 +83,6 @@ export const buildShelvesCopy = messages({
   yourGames: 'your Games',
   exportDidNotDownload: 'That export did not download. Try again.',
   moveToAGame: 'Move to a Game…',
-  makeACopy: 'Make a copy',
   saveAsPattern: 'Save as pattern',
   buildAMechFirst: 'Build a Mech first',
   npcs: 'NPCs',

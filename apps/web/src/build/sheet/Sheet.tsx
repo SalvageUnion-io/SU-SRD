@@ -29,16 +29,14 @@ import type { HeaderMenuItem } from '../../components/index'
 import { Button, HeaderMenu, toast, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
-import { failureMessage, useServerAction } from '../../lib/connection/useServerAction'
-import { copyAsking, keptMech } from '../../lib/copiedToast'
+import { useServerAction } from '../../lib/connection/useServerAction'
+import { copyAsking } from '../../lib/copiedToast'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
-import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { runWrite } from '../../lib/runWrite'
 import { useOpenedOnce } from '../../lib/useOpenedOnce'
 import { buildExportCopy } from '../../messages/build-export'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { libGamesCopy } from '../../messages/lib-games'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
@@ -56,6 +54,7 @@ import { PilotLiveSheet } from './PilotLiveSheet'
 import { usePrinting } from './printing.model'
 import { SheetFallback } from './SheetFallback'
 import { SheetModeToggle } from './SheetModeToggle'
+import { sheetDeleteItem } from './sheetDelete.model'
 import { useSheetMode } from './sheetMode.model'
 import { useSheetUndo } from './sheetUndo.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
@@ -381,33 +380,13 @@ export function Sheet({
         : []),
     ],
     [
-      {
-        id: 'delete',
-        label: buildSheetCopy(kind === 'mech' && !inGame ? 'deleteNow' : 'delete'),
-        tone: 'danger',
-        onSelect: writable(() =>
-          kind === 'mech' && !inGame
-            ? // A Training Bay Mech asks nothing: its notice undoes it (r5 D9, r6 E3).
-              void import('../mech/deleteMech.model')
-                .then((m) => m.deleteMech(id))
-                .then(
-                  () => go(back.href),
-                  (err) =>
-                    toast.error(
-                      failureMessage(err, libGamesCopy('deleteFailed', { name: entity.name }))
-                    )
-                )
-            : confirm({
-                ...(inGame
-                  ? ROW_ACTION_COPY.deleteFromGame(entity.name, keptMech(kind, id, storeState))
-                  : ROW_ACTION_COPY.deleteBuild(entity.name, keptMech(kind, id, storeState))),
-                onConfirm: async () => {
-                  await storeState.delete(kind, id)
-                  go(back.href)
-                },
-              })
-        ),
-      },
+      sheetDeleteItem(
+        { kind, id, name: entity.name, inGame },
+        storeState,
+        confirm,
+        () => go(back.href),
+        writable
+      ),
     ],
   ]
   // The sheet's Play mode (ADR-066): a pilot's own Play, in its Game or solo;

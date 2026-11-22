@@ -13,7 +13,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Slab, SlabSection, tokens } from '../../components/index'
+import { SlabSection, tokens } from '../../components/index'
 import {
   QUICKSTART_BOOK,
   STARTER_SET_ADVENTURE,
@@ -55,14 +55,22 @@ export function StarterShelf() {
           publisher: STARTER_SET_PUBLISHER,
         })}
       </p>
-      <section aria-label={buildStarterSetCopy('quickstartCrew')} style={PANEL}>
-        <Slab as="h3" label={buildStarterSetCopy('quickstartCrew')} flush />
+      <SlabSection
+        as="h3"
+        id="shelf-starter-quickstart"
+        title={buildStarterSetCopy('quickstartCrew')}
+        bodyStyle={PANEL}
+      >
         <StarterCrewLedger roster="quickstart" as="h4" />
-      </section>
-      <section aria-label={buildStarterSetCopy('starterSet2')} style={PANEL}>
-        <Slab as="h3" label={buildStarterSetCopy('starterSet2')} flush />
+      </SlabSection>
+      <SlabSection
+        as="h3"
+        id="shelf-starter-set"
+        title={buildStarterSetCopy('starterSet2')}
+        bodyStyle={PANEL}
+      >
         <StarterCrewLedger as="h4" />
-      </section>
+      </SlabSection>
     </SlabSection>
   )
 }

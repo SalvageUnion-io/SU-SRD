@@ -8,13 +8,13 @@ import {
   lastUndoable,
   lineText,
   logChanges,
-  logStory,
   reversal,
   reverseChange,
   reversible,
   splitJustNow,
   takeBack,
 } from '../changeLog.model'
+import { logStory } from '../changeStory.model'
 
 const row = (over: Partial<EntityLogRow>): EntityLogRow => ({
   _id: 'op1:name',

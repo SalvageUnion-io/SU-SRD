@@ -18,7 +18,7 @@ import { buildShelvesCopy } from '../../messages/build-shelves'
 import { usePatterns } from '../../replica/collections'
 import { useUnits } from '../../replica/units'
 import { builtToast, deletePatternLines, mechNamesTaken } from '../mech/Pattern/buildConfirm.model'
-import { PATTERN_DELETE_SKIPS_CONFIRM } from '../rulings'
+import { PATTERN_DELETE_SKIPS_CONFIRM } from '../rulings.model'
 import { holdDelete } from './heldDeletes.model'
 import type { RenameSubject } from './shelfMenu.model'
 import { deleteItem, renameItem } from './shelfMenu.model'
@@ -55,7 +55,7 @@ export function deletePatternCopy(pattern: MechPattern) {
 }
 
 /** Delete a saved pattern: its page answers nothing after, and a mech's chip reads so at once. */
-export async function deletePattern(id: string): Promise<void> {
+async function deletePattern(id: string): Promise<void> {
   await usePatterns.getState().delete(id)
   void refreshWorkerReads(sharedPaths.sheet('pattern', id))
 }

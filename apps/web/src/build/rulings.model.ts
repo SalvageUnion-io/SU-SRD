@@ -4,13 +4,10 @@
  * switches the behaviour it names wherever it is read.
  */
 
-/**
- * E2: "Update the pattern from this Mech" writes the pattern alone. Other
- * Mechs built from it then show their own drift stamp with the same two
- * buttons. (The other choice would also offer to update every linked Mech,
- * which writes to Mechs that may be in Games: not built.)
- */
-export const UPDATE_PATTERN_ONLY = true
+// E2: "Update the pattern from this Mech" writes the pattern alone; other
+// Mechs built from it then show their own drift stamp. The other choice (also
+// update every linked Mech, which writes to Mechs that may be in Games) is
+// not built, so this ruling has no switch.
 
 /**
  * E3: a delete that has an Undo asks nothing first: a Mech, and a pattern

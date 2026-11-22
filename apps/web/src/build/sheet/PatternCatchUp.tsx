@@ -8,7 +8,7 @@
  *   own: the mech's Systems and Modules are written over the pattern, which
  *   keeps its id, links and share settings (`replacePattern`, its notice's
  *   Undo puts the old build back). The pattern alone changes
- *   (`UPDATE_PATTERN_ONLY`): other mechs built from it show their own drift.
+ *   (the E2 ruling in `build/rulings.model.ts`): other mechs built from it show their own drift.
  * - **Bring back to the pattern** (r5 D2): the pattern's Systems and Modules
  *   back on the mech, at once, with the sheet's Undo line. Damage, Heat and
  *   cargo stay.

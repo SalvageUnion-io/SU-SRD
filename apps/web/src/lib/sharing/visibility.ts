@@ -21,7 +21,7 @@
  * connected settings (`ShareSettings.tsx`) decide which write each one makes.
  */
 import type { PublicKind } from 'game-domain/entityKinds'
-import { CREDIT_EVERY_PUBLIC_PATTERN } from '../../build/rulings'
+import { CREDIT_EVERY_PUBLIC_PATTERN } from '../../build/rulings.model'
 import { libSharingCopy } from '../../messages/lib-sharing'
 import type { PatternVisibility } from '../patterns/patterns'
 

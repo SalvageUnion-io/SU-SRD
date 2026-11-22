@@ -42,14 +42,14 @@ export type UnitMenuHost = {
 type Unit = { id: string; name: string; gameId?: string | null }
 
 /** A mech's Rename…: its one name. */
-export const mechRename = (unit: { id: string; name: string }): RenameSubject => ({
+const mechRename = (unit: { id: string; name: string }): RenameSubject => ({
   name: unit.name,
   label: buildShelvesCopy('mechName'),
   save: (name) => useUnits.getState().update('mech', unit.id, { name }, LIVE_SHEET_MANUAL),
 })
 
 /** A pilot's Rename…: its callsign and its name, the two it goes by (r4 E20). */
-export const pilotRename = (pilot: Pilot): RenameSubject => ({
+const pilotRename = (pilot: Pilot): RenameSubject => ({
   title: pilotLabel(pilot),
   name: pilot.callsign,
   label: buildShelvesCopy('callsign'),
