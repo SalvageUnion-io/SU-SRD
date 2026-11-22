@@ -1,14 +1,13 @@
 /**
- * Live Sheet soft warnings (ADR-021) — the wired-in behaviour of
- * `useSoftWarnings` + `SoftWarningDialog`.
+ * Live Sheet soft warnings (ADR-021) — a BUILD edit that breaks a rule.
  *
- * Asserts the confirm-and-proceed contract on BUILD edits:
- *   1. A warning-triggering ability removal opens the dialog and persists
- *      NOTHING until confirmed; Cancel then persists nothing.
- *   2. "Save anyway" persists the previewed patch (warnings never block).
- *   3. A clean edit persists immediately with no dialog — the flow is
- *      invisible when nothing is wrong.
- *   4. Mech system removal previews (no dependency data in the SRD dataset →
+ * Pilot and mech treat it the same way (r3 B5): the edit saves at once, one
+ * line says which rule it breaks, and Undo on that line takes it back. Nothing
+ * asks first.
+ *   1. A rule-breaking ability removal saves, says the rule, and Undo writes
+ *      the abilities back.
+ *   2. A clean edit saves with no rule-break line.
+ *   3. Mech system removal previews (no dependency data in the SRD dataset →
  *      no warnings → it saves straight through).
  *
  * Real reference data only: the Engineer class's "Mechanical Knowledge" core
@@ -16,12 +15,14 @@
  * (L3), so dropping L1 while L2 is held trips ABILITY_TREE_ORDER.
  */
 
-import { describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
+import { toast } from '../../../components/index'
 import { MechSheet } from '../MechSheet'
 import { PilotSheet } from '../PilotSheet'
 
@@ -115,45 +116,45 @@ async function removeViaPicker(manage: RegExp, item: string) {
   })
 }
 
-/**
- * Each test renders a live sheet and drives its picker, so the dialog's opening
- * and its Cancel share one render rather than two. Up to 1.1 s a test inside
- * the app's 4-worker suite, and under 2.7 s with the reference site, src/components and tools
- * running beside it (junit), well under Bun's 5 s default, so they keep it.
- */
-describe('PilotSheet — soft warnings on ability edits', () => {
-  test('a tree-order-breaking removal opens the dialog; cancel persists nothing', async () => {
+/** The unit's rule-break line, as the toaster holds it. */
+type BreakLine = { title: string; action: { label: string; onClick: (e: unknown) => void } }
+
+const breakLine = (unitId: string) =>
+  toast
+    .getToasts()
+    .find((t) => t.id === `rule-break:${unitId}:build` && !('dismiss' in t && t.dismiss)) as
+    | BreakLine
+    | undefined
+
+afterEach(() => {
+  toast.dismiss()
+})
+
+describe('PilotSheet — a rule-breaking ability edit saves and says so (r3 B5)', () => {
+  test('a tree-order-breaking removal saves at once, names the rule, and Undo puts it back', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
 
     await removeViaPicker(/^Manage abilities$/i, ABILITY_L1)
 
-    // The advisory dialog names the offending rule…
-    expect(screen.getByText(/trees are taken in order/i)).toBeTruthy()
-    expect(screen.getByRole('button', { name: /save anyway/i })).toBeTruthy()
-    // …and nothing has been written yet.
-    expect(captured).toHaveLength(0)
-
-    await click(/^cancel$/i)
-
-    expect(captured).toHaveLength(0)
+    // Saved, with nothing asked first…
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
-  })
-
-  test('"Save anyway" persists the previewed patch — warnings never block', async () => {
-    const captured: CapturedUpdate[] = []
-    const pilot = makePilot()
-    render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
-
-    await removeViaPicker(/^Manage abilities$/i, ABILITY_L1)
-    await click(/save anyway/i)
-
     expect(captured).toHaveLength(1)
-    expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L2_SLUG] })
+    expect(captured[0]?.patch).toMatchObject({ abilities: [ABILITY_L2_SLUG] })
+    // …and one line names the offending rule and offers the way back.
+    const line = breakLine(pilot.id)
+    expect(line?.title).toMatch(/^Saved, rule breaking: .*trees are taken in order/i)
+    expect(line?.action.label).toBe('Undo')
+
+    await act(async () => {
+      line?.action.onClick({})
+    })
+    expect(captured).toHaveLength(2)
+    expect(captured[1]?.patch).toMatchObject({ abilities: [ABILITY_L1_SLUG, ABILITY_L2_SLUG] })
   })
 
-  test('a clean removal persists immediately with no dialog', async () => {
+  test('a clean removal saves with no rule-break line', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
@@ -161,13 +162,13 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     // Dropping the L2 leaves a well-ordered tree — nothing to warn about.
     await removeViaPicker(/^Manage abilities$/i, ABILITY_L2)
 
-    expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
+    expect(breakLine(pilot.id)).toBeUndefined()
     expect(captured).toHaveLength(1)
-    expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L1_SLUG] })
+    expect(captured[0]?.patch).toMatchObject({ abilities: [ABILITY_L1_SLUG] })
   })
 })
 
-describe('PilotSheet — advancing warns before it breaks a rule (r2 E4)', () => {
+describe('PilotSheet — advancing says what it breaks (r2 E4, r3 B5)', () => {
   /** Open Manage Abilities and read an ability's Page: its action bar. */
   async function focusAbility(name: string) {
     await click(/^Manage abilities$/i)
@@ -178,7 +179,7 @@ describe('PilotSheet — advancing warns before it breaks a rule (r2 E4)', () =>
     return within(within(dialog).getByRole('group', { name: `${name} actions` }))
   }
 
-  test('too few TP: the free Add is not the bold button, and asks before it adds', async () => {
+  test('too few TP: the free Add is not the bold button, and says so as it adds', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot({ abilities: [ABILITY_L1_SLUG], trainingPoints: 0 })
     render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
@@ -193,11 +194,8 @@ describe('PilotSheet — advancing warns before it breaks a rule (r2 E4)', () =>
     await act(async () => {
       fireEvent.click(free)
     })
-    expect(screen.getByText('Add Talk Shop without spending?')).toBeTruthy()
-    expect(screen.getByText(/costs 1 TP to train and this Pilot has 0/)).toBeTruthy()
-    expect(captured).toHaveLength(0)
-
-    await click(/save anyway/i)
+    expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
+    expect(breakLine(pilot.id)?.title).toMatch(/costs 1 TP to train and this Pilot has 0/)
     expect(captured).toHaveLength(1)
     expect(captured[0]?.patch).toMatchObject({ abilities: [ABILITY_L1_SLUG, ABILITY_L2_SLUG] })
     expect(captured[0]?.patch).not.toHaveProperty('trainingPoints')
@@ -215,11 +213,11 @@ describe('PilotSheet — advancing warns before it breaks a rule (r2 E4)', () =>
     await act(async () => {
       fireEvent.click(free)
     })
-    expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
+    expect(breakLine(pilot.id)).toBeUndefined()
     expect(captured).toHaveLength(1)
   })
 
-  test('an unmet tree requirement is said on the bar, and still added after one confirm', async () => {
+  test('an unmet tree requirement is said on the bar, and still added, with Undo', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot({ abilities: [], trainingPoints: 3 })
     render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
@@ -234,12 +232,15 @@ describe('PilotSheet — advancing warns before it breaks a rule (r2 E4)', () =>
     await act(async () => {
       fireEvent.click(bar.getByRole('button', { name: 'Spend 1 TP and add' }))
     })
-    expect(captured).toHaveLength(0)
-    await click(/save anyway/i)
     expect(captured[0]?.patch).toMatchObject({
       abilities: ['mech-acquisition'],
       trainingPoints: 2,
     })
+    // Undo gives the Training Point back with the ability.
+    await act(async () => {
+      breakLine(pilot.id)?.action.onClick({})
+    })
+    expect(captured[1]?.patch).toMatchObject({ abilities: [], trainingPoints: 3 })
   })
 })
 
@@ -256,6 +257,12 @@ describe('MechSheet — soft warnings on system removal', () => {
     )
 
     await click(/^Manage systems$/i)
+    // The Installed pane reads the build's running Scrap cost beside the slots (r3 F3).
+    const installed = screen.getByRole('region', { name: /^Installed/i })
+    const cost = within(installed).getByText('Cost in Scrap').closest('.su-stat-cell')
+    expect(cost?.textContent).toBe(
+      `Cost in Scrap${SalvageUnionReference.Systems.getBySlug('smoke-machine')?.salvageValue}`
+    )
     // Removing is the rail's ✕.
     await act(async () => {
       fireEvent.click(

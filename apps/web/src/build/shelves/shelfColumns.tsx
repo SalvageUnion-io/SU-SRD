@@ -47,7 +47,7 @@ export const MECH_COLUMNS = [
   fig(buildShelvesCopy('sys'), buildShelvesCopy('systemSlotsUsed')),
   fig(buildShelvesCopy('mod'), buildShelvesCopy('moduleSlotsUsed')),
   spare(fig(VITAL.heat, buildShelvesCopy('heat'))),
-  fig(buildShelvesCopy('scrap'), buildShelvesCopy('scrapChassisAndLoadout'), true),
+  fig(buildShelvesCopy('cost'), buildShelvesCopy('scrapChassisAndLoadout'), true),
 ]
 export const CRAWLER_COLUMNS = [
   word('type', buildShelvesCopy('type'), true),

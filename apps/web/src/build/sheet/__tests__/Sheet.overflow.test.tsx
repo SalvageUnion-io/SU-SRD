@@ -70,7 +70,7 @@ describe('the sheet’s ⋯ writes', () => {
 
     await waitFor(() => expect(useUnits.getState().pilots).toHaveLength(2))
     const copy = useUnits.getState().pilots.find((p) => p.id !== pilot.id)
-    expect(copy?.name).toBe('COPY OF Yara Voss')
+    expect(copy?.name).toBe('Yara Voss 2')
     // Its callsign reads apart from the original's (r2 G6).
     expect(copy?.callsign).toBe('Ghost 2')
   })

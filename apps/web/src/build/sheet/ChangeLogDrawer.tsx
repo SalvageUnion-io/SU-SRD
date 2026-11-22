@@ -6,8 +6,9 @@
  * history of _how_ that state got there lives one tap away. Entries are the
  * server's (`changeLog.forEntity`), newest first: edits from every device,
  * ownership changes, and the Mediator's proposals, applied or still pending.
- * The log itself is never mutated from the UI: Restore (the newest ten changes)
- * is a new write that puts a change's fields back, and is logged as one.
+ * The log itself is never mutated from the UI: a change's button (the newest
+ * ten changes) is a new write that reverses that one change on the sheet as
+ * it is now, and is logged as one (r3 B1).
  */
 
 import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
@@ -28,8 +29,8 @@ import {
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { useSync } from '../../replica/syncContext'
 import { useEntityLog } from '../../replica/useEntityLog'
-import type { LogLine } from './changeLog.model'
-import { logChanges } from './changeLog.model'
+import type { LogChange, LogDefaults, LogLine, Reversal } from './changeLog.model'
+import { lineText, logChanges, reversal } from './changeLog.model'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -38,19 +39,28 @@ type ChangeLogDrawerProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   /**
-   * Put a change's fields back as they were: each of the newest ten changes
-   * offers it. Absent where the viewer may not write.
+   * Reverse one change, and only it: each of the newest ten changes offers
+   * it, in the words of what it does. Absent where the viewer may not write.
    */
-  onRestore?: ((before: Record<string, unknown>) => void) | undefined
+  onRestore?: ((change: LogChange, did: Reversal) => void) | undefined
+  /** What an absent value stood for, by field: a full pool, an empty tally. */
+  defaults?: LogDefaults | undefined
 }
 
 /**
- * Kind → its chip, for the two kinds a rule wrote. A hand edit is the log's
- * plain case and wears none.
+ * Kind → its chip, for a cap somebody pinned. A hand edit is the log's plain
+ * case and wears none, and a rule's write says where it came from in words
+ * (`origin`), never the store's name for it (r3 B4).
  */
 const KIND_META: Partial<Record<ChangeLogKind, { label: string; tone: BadgeTone }>> = {
-  transaction: { label: buildSheetCopy('transaction'), tone: 'mech' },
   override: { label: buildSheetCopy('override'), tone: 'pilot' },
+}
+
+/** "From Play · Squeeze It In": where a rule's write came from, and what for. */
+function origin(change: LogChange): string | undefined {
+  if (!change.from) return undefined
+  const from = buildSheetCopy(change.from === 'play' ? 'logFromPlay' : 'logFromDowntime')
+  return change.did ? buildSheetCopy('logFromDid', { from, did: change.did }) : from
 }
 
 /** A kind's chip: the Badge chip, toned or quiet. */
@@ -69,8 +79,11 @@ const PUSH = { marginLeft: 'auto' } satisfies CSSProperties
 
 const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
 
-/** The change's arrow, muted and centred on the values. */
-const GLYPH = { ...MUTED, verticalAlign: 'middle' } satisfies CSSProperties
+/**
+ * The change's arrow, muted and centred on the values: inline, so the old
+ * value, the arrow and the new value read on one line (r3 B4).
+ */
+const GLYPH = { ...MUTED, display: 'inline-block', verticalAlign: 'middle' } satisfies CSSProperties
 
 const BEFORE = { ...MUTED, textDecorationLine: 'line-through' } satisfies CSSProperties
 
@@ -105,7 +118,8 @@ function ChangeLogEntries({
   entityType,
   entityId,
   onRestore,
-}: Pick<ChangeLogDrawerProps, 'entityType' | 'entityId' | 'onRestore'>) {
+  defaults,
+}: Pick<ChangeLogDrawerProps, 'entityType' | 'entityId' | 'onRestore' | 'defaults'>) {
   const entries = useEntityLog(entityType, entityId)
 
   if (entries === undefined) return <Pending />
@@ -119,14 +133,17 @@ function ChangeLogEntries({
   }
   return (
     <FeedList>
-      {logChanges(entries).map((change, i) => {
+      {logChanges(entries, defaults).map((change, i) => {
         const kind = KIND_META[change.kind]
+        const from = origin(change)
+        const did = reversal(change, defaults)
         return (
           <FeedLine
             key={change.id}
             head={
               <>
                 {kind && <KindChip label={kind.label} tone={kind.tone} />}
+                {from && <span style={MUTED}>{from}</span>}
                 {change.state === 'proposed' && <KindChip label={buildSheetCopy('proposed')} />}
                 <span style={PUSH}>
                   <FeedTime ts={change.ts} format="datetime" />
@@ -135,8 +152,16 @@ function ChangeLogEntries({
             }
             end={
               onRestore && i < RESTORABLE && change.state === 'applied' ? (
-                <Button size="compact" onClick={() => onRestore(change.before)}>
-                  {buildSheetCopy('restore')}
+                <Button
+                  size="compact"
+                  // Each button names its own change: ten "Put back" read apart.
+                  aria-label={buildSheetCopy('logReverseNamed', {
+                    action: did.label,
+                    change: change.lines.map(lineText).join(', '),
+                  })}
+                  onClick={() => onRestore(change, did)}
+                >
+                  {did.label}
                 </Button>
               ) : undefined
             }
@@ -160,6 +185,7 @@ export function ChangeLogDrawer({
   open,
   onOpenChange,
   onRestore,
+  defaults,
 }: ChangeLogDrawerProps) {
   const { status } = useSync()
   // Whether the entries MOUNT: they read the unit's room, so they render only on a live connection, as the Share dialog's
@@ -178,7 +204,12 @@ export function ChangeLogDrawer({
     >
       <div className="su-sheet-changelog-body" style={BODY}>
         {live ? (
-          <ChangeLogEntries entityType={entityType} entityId={entityId} onRestore={onRestore} />
+          <ChangeLogEntries
+            entityType={entityType}
+            entityId={entityId}
+            onRestore={onRestore}
+            defaults={defaults}
+          />
         ) : (
           <Text variant="note">{buildSheetCopy('theChangeLogIsKept')}</Text>
         )}

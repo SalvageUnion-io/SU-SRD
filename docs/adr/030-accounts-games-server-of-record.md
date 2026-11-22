@@ -52,7 +52,7 @@ An entity is in exactly one container, encoded as two nullable columns:
 | Verb     | Result |
 | -------- | ------ |
 | **Move** | The **same** entity: same id, body and history; only `gameId` changes. |
-| **Copy** | A **new** entity: new id, `COPY OF <name>`, always `gameId: null`, no relationship to the source or its Game. |
+| **Copy** | A **new** entity: new id, its name numbered past its shelf's (`Mara Voss 2`), always `gameId: null`, no relationship to the source or its Game. |
 
 `gameId` is a single nullable column, so there is nothing to fork:
 `MoveToContainerControl` re-stamps `gameId` in place and

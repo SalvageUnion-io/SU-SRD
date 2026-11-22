@@ -78,6 +78,14 @@ beforeEach(async () => {
 })
 
 describe('SavePatternDialog', () => {
+  test('the summary and Save sit above the loadout rules cards (r3 L5)', async () => {
+    renderButton()
+    await open()
+    const save = screen.getByRole('button', { name: 'Save pattern' })
+    const part = screen.getAllByText('Red Laser')[0] as HTMLElement
+    expect(save.compareDocumentPosition(part) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   test('opens on the mech’s name, and Save stores the build as a pattern', async () => {
     const onSaved = renderButton()
     await open()

@@ -15,6 +15,7 @@ import { withItemChoice } from '../../lib/wizard/itemChoices'
 import type { MechPattern, MechWizardFormState } from '../../lib/wizard/mechFormState'
 import {
   EMPTY_MECH_FORM_STATE,
+  leftoverScrapSplit,
   mechFormToCreateInput,
   withLeftoverScrap,
   withPatternPrefill,
@@ -147,7 +148,7 @@ export function MechWizard({
     draftKey,
     formDirty,
     schema: MechSchema,
-    // Unspent Scrap is carried in the new mech's hold, never dropped.
+    // Unspent Scrap is carried in the new mech's hold as far as it fits (r3 F1).
     toCreateInput: (f) =>
       mechFormToCreateInput(withLeftoverScrap(f, mechCreationBudgetFor(f).remaining)),
     failureMessage: mechCopy('theMechCouldNotBe'),
@@ -480,7 +481,7 @@ export function MechWizard({
         <MechReviewStep
           form={form}
           submitError={submitError}
-          leftoverScrap={Math.max(0, budget.remaining)}
+          leftoverScrap={leftoverScrapSplit(form, budget.remaining)}
           capacity={capacity}
           namePart={part(
             'pattern',

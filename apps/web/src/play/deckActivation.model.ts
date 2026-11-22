@@ -39,7 +39,7 @@ import { partnerDerivedStats, partnerTechLevel } from '../lib/rules/partnerStats
 import { equipmentMaxUses, resolveEquipment } from '../lib/rules/pilotInventory'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
+import { PLAY_TXN, PLAY_UNDO, playTxn } from '../replica/provenance'
 import type { PlayStore } from './play.model'
 import { recordPlayChange } from './playRolls.model'
 
@@ -123,7 +123,7 @@ function payPilot(
     return
   }
   // The resolve moves on to Roll only once the spend has landed.
-  runWrite(() => store.update('pilot', pilot.id, patch, PLAY_TXN), onPaid)
+  runWrite(() => store.update('pilot', pilot.id, patch, playTxn(action.name)), onPaid)
   const changes: UndoChange[] = []
   if (typeof patch.currentAP === 'number' && patch.currentAP !== before)
     changes.push({ key: 'currentAP', label: 'AP', from: before, to: patch.currentAP })
@@ -308,7 +308,7 @@ function payMech(
     onPaid()
     return
   }
-  runWrite(() => store.update('mech', mech.id, patch, PLAY_TXN), onPaid)
+  runWrite(() => store.update('mech', mech.id, patch, playTxn(action.name)), onPaid)
   activationUndo({
     id: `mech:${mech.id}:activation`,
     prefix: '',

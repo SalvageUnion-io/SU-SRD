@@ -47,7 +47,7 @@ import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useContext, useState } from 'react'
-import { PageShell, RosterSkeleton } from '../../components/app'
+import { PageShell, RosterSkeleton, RuleBreakMark } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import { Button, ChapterBand, HeaderMenu, toast } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
@@ -107,7 +107,8 @@ import { EncounterShelf } from './EncounterShelf'
 import { MechShelf } from './MechShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
-import { patternMenuOf } from './patternMenu.model'
+import { mechBuildFigures } from './mechShelf.model'
+import { buildFromPattern, patternMenuOf } from './patternMenu.model'
 import { RenameDialog } from './RenameDialog'
 import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
@@ -314,6 +315,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const patternMenu = (pattern: MechPattern) =>
     patternMenuOf(pattern, { go, confirm, canWrite, rename: setRenaming })
+  const patternOver = (pattern: MechPattern) => {
+    const figures = mechBuildFigures(pattern)
+    return figures.over ? <RuleBreakMark what={figures.overWhat} /> : undefined
+  }
 
   // -- the shelves ------------------------------------------------------------
 
@@ -371,6 +376,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           ),
           String(patternReading(p)?.value ?? ''),
         ],
+        // Over its slots it wears the Mechs shelf's mark (r3 I2); its one act is on the row (r3 L5).
+        under: patternOver(p),
+        act: buildFromPattern(p, { go, confirm, canWrite }),
         menu: patternMenu(p),
       }))}
     />

@@ -447,8 +447,12 @@ describe('Patterns', () => {
     expect(screen.queryByRole('region', { name: 'Mechs' })).toBeNull()
     const shelf = within(screen.getByRole('region', { name: 'Patterns' }))
     expect(shelf.getByRole('link', { name: 'Brawler' })).toBeTruthy()
+    // Build With This is the row's own button, in sight (r3 L5), not a menu row.
+    expect(shelf.getByRole('button', { name: 'Build With This: Brawler' }).textContent).toBe(
+      'Build With This'
+    )
     const menu = await openMenu('Brawler')
-    expect(within(menu).getByRole('menuitem', { name: 'Build With This' })).toBeTruthy()
+    expect(within(menu).queryByRole('menuitem', { name: 'Build With This' })).toBeNull()
     expect(within(menu).getByRole('menuitem', { name: 'Delete…' })).toBeTruthy()
     await act(async () => {
       fireEvent.keyDown(menu, { key: 'Escape' })
@@ -464,9 +468,11 @@ describe('Patterns', () => {
     )
   })
 
-  test('Build With This asks once, makes the mech and lands on it (r2 G5)', async () => {
+  test('Build With This asks once, makes the mech and lands on it (r2 G5, r3 L5)', async () => {
     await renderShelves()
-    await choose(await openMenu('Brawler'), 'Build With This')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Build With This: Brawler' }))
+    })
     await confirmDialog('Build')
     await settle(() => assigned.length > 0)
     const built = useUnits.getState().mechs.find((m) => m.name === 'Brawler')
@@ -502,9 +508,9 @@ describe('Patterns', () => {
         .getState()
         .mechPatterns.map((p) => p.name)
         .sort()
-    ).toEqual(['Brawler', 'COPY OF Brawler'])
+    ).toEqual(['Brawler', 'Brawler 2'])
     expect(await screen.findByText('Copied Brawler.')).toBeTruthy()
-    const copy = usePatterns.getState().mechPatterns.find((p) => p.name === 'COPY OF Brawler')
+    const copy = usePatterns.getState().mechPatterns.find((p) => p.name === 'Brawler 2')
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Open the copy' }))
     })

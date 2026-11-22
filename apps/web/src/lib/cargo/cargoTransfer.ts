@@ -224,6 +224,16 @@ function removeDepotLot(state: CargoBoundaryState, lotId: string): CargoTransfer
   }
 }
 
+/**
+ * The move that takes a stowed lot back (r3 F1): its Scrap out of the pool
+ * bucket it was deposited in, or the lot itself out of the bay.
+ */
+export function unstowAction(lot: CargoLot): CargoTransferAction {
+  return lot.cat === 'SCRAP' && lot.tl !== undefined
+    ? { type: 'withdraw-scrap', tl: lot.tl, qty: scrapQtyOf(lot) }
+    : { type: 'load', lotId: lot.id }
+}
+
 function stow(state: CargoBoundaryState, lotId: string): CargoTransferResult {
   const lot = state.carrierLots.find((l) => l.id === lotId)
   if (!lot)

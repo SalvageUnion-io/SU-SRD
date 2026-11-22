@@ -133,7 +133,7 @@ describe('copying a pilot (r2 G6)', () => {
     const copy = pilots.find((p) => p.id !== 'p-ghost')
     const twin = mechs.find((m) => m.id !== 'm-rig')
     expect(copy?.callsign).toBe('Ghost 2')
-    expect(twin?.name).toBe('COPY OF Rig')
+    expect(twin?.name).toBe('Rig 2')
     expect(
       softLinks.some(
         (l) => l.type === 'mech-to-pilot' && l.from.id === twin?.id && l.to.id === copy?.id
@@ -176,7 +176,7 @@ describe('copying an NPC', () => {
 
   test('the copy stays in the Game its original is in', async () => {
     const copy = await copyOf('g1')
-    expect(copy?.name).toBe('COPY OF Warlord Vex')
+    expect(copy?.name).toBe('Warlord Vex 2')
     expect(copy?.gameId).toBe('g1')
     expect((open()[0] as { title?: unknown }).title).toBe('Copied Warlord Vex.')
   })

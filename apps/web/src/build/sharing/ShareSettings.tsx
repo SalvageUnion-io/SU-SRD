@@ -296,6 +296,7 @@ function ShareLink({
               <CopiedIcon
                 copied={copied}
                 size="compact"
+                word
                 icon={<Copy aria-hidden="true" size={tokens.iconSize.compact} />}
               />
             </Button>

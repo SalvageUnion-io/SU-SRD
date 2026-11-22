@@ -20,6 +20,17 @@ describe('mechPatternStamp', () => {
     )
   })
 
+  test('a saved pattern that is gone says so, and is not a link (r3 G3)', () => {
+    expect(mechPatternStamp({ chassisRef: 'mule', sourcePattern: 'p1' }, none, true)).toEqual({
+      name: 'Deleted',
+    })
+    // One this browser holds is never gone, whatever was asked.
+    expect(
+      mechPatternStamp({ chassisRef: 'mule', sourcePattern: 'p1' }, () => 'Nimble Hauler', true)
+        ?.href
+    ).toBe('/p/pattern/p1')
+  })
+
   test('a book pattern: its name, linked under its chassis', () => {
     const chassis = resolveChassisRef('mule')
     const pattern = chassis?.patterns?.[0]

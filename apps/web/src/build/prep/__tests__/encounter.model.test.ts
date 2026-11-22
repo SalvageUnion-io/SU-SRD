@@ -62,10 +62,10 @@ describe('an encounter on the shelf', () => {
   })
 
   test('a copy keeps everything but its id, stamps and name, which still fits', () => {
-    const copy = encounterCopy(ambush)
+    const copy = encounterCopy(ambush, ['Ambush'])
     expect(copy).toMatchObject({ opposition: [band], tables: ['Morale'], notes: ambush.notes })
     expect(copy).not.toHaveProperty('id')
-    expect(copy.name).not.toBe('Ambush')
+    expect(copy.name).toBe('Ambush 2')
     const long = encounterCopy({ ...ambush, name: 'X'.repeat(ENCOUNTER_MAX_NAME) })
     expect(long.name.length).toBeLessThanOrEqual(ENCOUNTER_MAX_NAME)
   })

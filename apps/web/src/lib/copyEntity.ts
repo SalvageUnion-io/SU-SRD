@@ -5,8 +5,8 @@
  *
  * **Move** changes `gameId` on the same record — same id, same body, same
  * history. **Copy** mints a genuinely new entity that has no relationship to
- * what it came from: new id, `COPY OF <name>`, always on the shelf, never in a
- * Game. It does not track its origin, sync with it, or follow it anywhere.
+ * what it came from: new id, its name numbered past its shelf's (`Mara Voss 2`),
+ * always on the shelf, never in a Game. It does not track its origin, sync with it, or follow it anywhere.
  *
  * That absence of a relationship is what makes copying safe, and it is exactly
  * what separates it from the **fork** ADR-030 originally specified and has since
@@ -45,8 +45,6 @@
  * somebody to take it; a shelf is already somebody's.
  */
 
-import { libCopy } from '../messages/lib'
-
 /** The loosest shape this needs: an opaque body that may carry a name. */
 export type CopyableBody = Record<string, unknown>
 
@@ -62,12 +60,13 @@ export type CopyableBody = Record<string, unknown>
 const DROPPED_FIELDS = ['id', 'createdAt', 'updatedAt'] as const
 
 /**
- * How a copy announces itself. Prefixed, so it sorts beside nothing and reads
- * as derived. `taken` is the names already on the shelf it lands on: a second
- * copy of one thing is numbered (`COPY OF Leaky 2`), so no two rows read alike.
+ * A copy's name: the name it was copied from, numbered past the names `taken`
+ * on the shelf it lands on (`Mara Voss 2`), so no two rows read alike. Named
+ * once (r3 L5): a copy of `Mara Voss 2` is `Mara Voss 3`, never a copy of a
+ * copy, and a name nobody on the shelf has is kept as it is.
  */
 export function copyName(name: string, taken: readonly string[] = []): string {
-  return freeName(libCopy('copyOf', { name }), taken)
+  return freeName(numberedFrom(name, taken), taken)
 }
 
 /**
@@ -79,6 +78,16 @@ export function freeName(name: string, taken: readonly string[] = []): string {
   let n = 2
   while (taken.includes(`${name} ${n}`)) n += 1
   return `${name} ${n}`
+}
+
+/**
+ * The name a numbered one counts on from: `Ghost 2` beside a `Ghost` is the
+ * second Ghost, so its copy is `Ghost 3`, never `Ghost 2 2`. A number that is
+ * part of the name (`Unit 7`, with no `Unit` on the shelf) stays.
+ */
+function numberedFrom(name: string, taken: readonly string[]): string {
+  const numbered = /^(.*\S) \d+$/.exec(name)
+  return numbered?.[1] !== undefined && taken.includes(numbered[1]) ? numbered[1] : name
 }
 
 /** The names on a shelf, as `copyName` takes them. */
@@ -95,7 +104,7 @@ export const namesOn = (rows: readonly { name: string }[]): string[] => rows.map
  * bad write would produce.
  *
  * `fallbackName` is used when the body carries no usable name, so a copy is
- * never called `COPY OF ` with nothing after it. Callers pass the name they are
+ * never nameless. Callers pass the name they are
  * already displaying. `taken` is the names on the shelf, for the copy's number.
  *
  * The body is otherwise copied **verbatim** — conditions, damage, scrap, TP and

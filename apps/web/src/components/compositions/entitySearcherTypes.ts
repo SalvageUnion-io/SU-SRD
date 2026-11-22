@@ -33,7 +33,8 @@ export type FacetConfig = {
 export type BudgetConfig = {
   label: string
   used: number
-  max: number
+  /** The budget's cap; a running total with no cap (a build's Scrap cost) has none. */
+  max?: number | undefined
 }
 
 /** What adding an entry costs, and the act that adds it and pays (`EntitySearcher`'s `cost`). */

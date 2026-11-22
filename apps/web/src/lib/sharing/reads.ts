@@ -86,6 +86,24 @@ export function useCrewPatterns(live: boolean): CrewPattern[] | undefined {
   return useWorkerRead(live ? sharedPaths.crewPatterns() : null)
 }
 
+/**
+ * Whether a pattern the reader does not hold themselves is gone (r3 G3): its
+ * page answers nothing by link and no crew of theirs shares it, as after its
+ * maker deleted it. False while either answer is still out, and not asked
+ * with `ask` false.
+ */
+export function usePatternGone(appId: string | undefined, ask: boolean): boolean {
+  const asked = ask && appId !== undefined
+  const byLink = usePatternByLink(asked ? appId : undefined)
+  const crew = useCrewPatterns(asked)
+  if (!asked || byLink !== null || crew === undefined) return false
+  return !crew.some((pattern) => pattern.appId === appId)
+}
+
+function usePatternByLink(appId: string | undefined): PublicPatternPage | null | undefined {
+  return useWorkerRead(appId === undefined ? null : sharedPaths.sheet('pattern', appId))
+}
+
 /** Which of the reader's sheets anyone with the link may read. */
 export const useSharedByLink: () => readonly string[] | undefined = useSharedByLinkRooms
 

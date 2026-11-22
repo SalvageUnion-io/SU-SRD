@@ -18,6 +18,22 @@ import { componentsCopy } from '../messages/components'
 /** One number a line moves: its name, the value just before the change, and now. */
 export type UndoChange = { key: string; label: string; from: number; to: number }
 
+/** The lines now showing, by their key. */
+const open = new Set<string>()
+
+/**
+ * Take down every open line about one unit (r3 B3): a line's key carries its
+ * unit's id as a whole segment (`mech:<id>:currentEP`). The sheet's own call,
+ * when the player leaves it.
+ */
+export function dismissChangeUndo(unitId: string) {
+  for (const id of [...open]) {
+    if (!id.split(':').includes(unitId)) continue
+    open.delete(id)
+    toast.dismiss(id)
+  }
+}
+
 /** A value's change is a glyph at the line's Size (K11), never a text arrow. */
 const GLYPH = {
   display: 'inline-block',
@@ -95,6 +111,7 @@ export function changesUndoToast({
   if (moved.length === 0) return
   const start = Object.fromEntries(changes.map((c) => [c.key, c.from]))
   watchFocus()
+  open.add(id)
   toast(
     <span style={FIGURES}>
       {did ? `${did} · ` : ''}
@@ -117,10 +134,13 @@ export function changesUndoToast({
       action: {
         label: componentsCopy('undo'),
         onClick: () => {
+          open.delete(id)
           undo(start)
           if (lastUsed instanceof HTMLElement && lastUsed.isConnected) lastUsed.focus()
         },
       },
+      onDismiss: () => open.delete(id),
+      onAutoClose: () => open.delete(id),
     }
   )
 }

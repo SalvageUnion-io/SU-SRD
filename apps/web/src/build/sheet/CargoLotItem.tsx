@@ -11,6 +11,7 @@ import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { CargoLotLine } from './CargoLotLine'
+import { undoToast } from './undoToast.model'
 
 export type StorageManifestSide = 'mech' | 'crawler'
 
@@ -110,8 +111,22 @@ export function CargoLotControls({
   const { label, disabledReason } = moveAffordance(lot, side, cargo, linked)
 
   function handleMove() {
-    if (side === 'mech') report(cargo.stow(lot.id))
-    else report(cargo.load(lot.id))
+    if (side === 'crawler') {
+      report(cargo.load(lot.id))
+      return
+    }
+    // A stow lands at once and says so, with the way back (r3 F1): Scrap
+    // stowed twice by mistake was counted twice, and nothing had said it moved.
+    const stowed = cargo.stow(lot.id)
+    report(stowed)
+    void stowed.then((result) => {
+      if (!result.ok || cargo.carrierId === null) return
+      undoToast(
+        buildSheetCopy('stowedName', { name: lot.name }),
+        () => report(cargo.takeBack(lot)),
+        cargo.carrierId
+      )
+    })
   }
 
   return (

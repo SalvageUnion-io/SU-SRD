@@ -58,6 +58,30 @@ describe('EntitySearcher — the picker convention', () => {
   )
 
   it(
+    'Show all Tech Levels hands the cursor back to Search, so Enter still adds (r3 J3)',
+    () => {
+      const onAdd = mock((_: string) => undefined)
+      render(
+        <EntitySearcher
+          schema="systems"
+          mode="count"
+          selected={[]}
+          idOf={slug}
+          techLevel={1}
+          onAdd={onAdd}
+        />
+      )
+      const search = screen.getByRole('textbox', { name: 'Search' })
+      const all = screen.getByRole('button', { name: 'Show all Tech Levels' })
+      all.focus()
+      fireEvent.click(all)
+      expect(screen.queryByRole('button', { name: 'Show all Tech Levels' })).toBeNull()
+      expect(document.activeElement).toBe(search)
+    },
+    POOL_RENDER_MS
+  )
+
+  it(
     'Enter never removes a toggle pick already made',
     () => {
       const onToggle = mock((_: string) => undefined)

@@ -15,7 +15,7 @@ import { usePatterns } from '../replica/collections'
 import { subscribe } from '../replica/replica'
 import { useUnits } from '../replica/units'
 import { failureMessage } from './connection/useServerAction'
-import { copyBeside, copyForShelf, copyName, freeName, namesOn } from './copyEntity'
+import { copyBeside, copyForShelf, copyName, namesOn } from './copyEntity'
 import { patternCopy, savedPatternHref } from './patterns/patterns'
 
 /** How long an action toast stays: the Undo line's time (`changeUndoToast`). */
@@ -98,7 +98,8 @@ export const keptMech = (type: EntityKind, id: string, units?: Units): string | 
 
 /**
  * Copy one of your units onto the Training Bay (an NPC, into the Game its
- * original is in), named "Copy of …", numbered past the names taken. A pilot's copy takes a callsign of its own too
+ * original is in), its name numbered past the names taken (`Mara Voss 2`). A
+ * pilot's copy takes a callsign of its own too
  * (`GHOST 2`): the list leads with the callsign, so two alike read as one
  * pilot. With `mech`, the pilot's mech is copied and paired with the copy, all
  * or nothing.
@@ -118,7 +119,7 @@ function copyUnit(
       const taken = namesOn(units.list(type))
       const copy = type === 'npc' ? copyBeside(body, name, taken) : copyForShelf(body, name, taken)
       if (type === 'pilot' && typeof copy.callsign === 'string')
-        copy.callsign = freeName(
+        copy.callsign = copyName(
           copy.callsign,
           units.list('pilot').map((p) => p.callsign)
         )

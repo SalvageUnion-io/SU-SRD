@@ -20,14 +20,17 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import { isSheetKind } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import { parseMechPattern } from 'game-domain/schemas/pattern'
 import { segmentNames, shareSegment } from 'game-domain/shareAddress'
 import { useEffect } from 'react'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useMe } from '../../lib/account/accountApi'
+import { areaTitle } from '../../lib/pageTitle'
 import type { PublicPatternPage } from '../../lib/sharing/reads'
 import { usePatternSharing, usePublicPattern, usePublicSheet } from '../../lib/sharing/reads'
+import { useTabTitle } from '../../lib/useTabTitle'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
 import { useViewerId } from '../../replica/roomCalls'
@@ -75,6 +78,9 @@ function useCanonicalAddress(
 function PublicSheetQuery({ kind, appId, onAddress }: QueryProps & { kind: SheetKind }) {
   const result = usePublicSheet(kind, appId)
   useCanonicalAddress(appId, result, onAddress)
+  // The tab is named after the sheet, as a shared pattern's is (r3 L6).
+  const name = result ? nameOf(result.body) : undefined
+  useTabTitle(name ? areaTitle(PRODUCT.build, name) : null)
 
   // `undefined` is "still loading"; `null` is a real "no such public
   // sheet". Collapsing them would flash the not-found page on every load.

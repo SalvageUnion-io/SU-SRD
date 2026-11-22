@@ -22,3 +22,25 @@ export const mechNamesTaken = (): string[] => namesOn(useUnits.getState().list('
 export function builtToast(name: string): void {
   toast.success(mechCopy('builtFromThePattern', { name }))
 }
+
+/**
+ * What deleting a pattern says of the mechs built from it (r3 G3): how many
+ * of the maker's own there are and that they keep their loadout, then that
+ * the pattern's page goes with it.
+ */
+export function deletePatternLines(patternId: string): string[] {
+  const built = useUnits
+    .getState()
+    .list('mech')
+    .filter((mech) => mech.sourcePattern === patternId).length
+  return [
+    ...(built === 0
+      ? []
+      : [
+          built === 1
+            ? mechCopy('oneMechBuiltFromIt')
+            : mechCopy('mechsBuiltFromIt', { count: built }),
+        ]),
+    mechCopy('patternPageGoes'),
+  ]
+}

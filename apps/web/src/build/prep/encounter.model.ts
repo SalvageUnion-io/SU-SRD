@@ -35,8 +35,8 @@ export function blankEncounter(name = buildPrepCopy('newEncounter')): EncounterC
 }
 
 /**
- * Make a copy: everything but its name, which says it is a copy (and still
- * fits), numbered past the names `taken` on the shelf.
+ * Make a copy: everything but its name, which is numbered past the names
+ * `taken` on the shelf (`Ambush 2`) and still fits.
  */
 export function encounterCopy(
   encounter: Encounter,

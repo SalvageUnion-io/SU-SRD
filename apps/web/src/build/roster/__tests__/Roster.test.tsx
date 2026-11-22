@@ -419,7 +419,10 @@ describe('Training Bay — items', () => {
     const mech = await seedEntity('mech', 'Iron Jaw')
     await renderShelves()
     fireEvent.click(within(await openMenu('Iron Jaw')).getByRole('menuitem', { name: 'Rename…' }))
-    const field = await screen.findByRole('textbox', { name: 'Mech name' })
+    const field = (await screen.findByRole('textbox', { name: 'Mech name' })) as HTMLInputElement
+    // It opens with the old name selected, so typing replaces it (r3 J2).
+    field.focus()
+    expect([field.selectionStart, field.selectionEnd]).toEqual([0, 'Iron Jaw'.length])
     fireEvent.change(field, { target: { value: 'Iron Jaw Mk II' } })
     fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
     await waitFor(() => expect(useUnits.getState().get('mech', mech)?.name).toBe('Iron Jaw Mk II'))
@@ -437,7 +440,7 @@ describe('Training Bay — items', () => {
         .getAllByRole('link')
         .map((a) => a.textContent)
         .filter((text) => text === 'Alpha' || text === 'Bravo')
-    expect(within(mechs).getByRole('button', { name: /sort by scrap/i })).toBeTruthy()
+    expect(within(mechs).getByRole('button', { name: /sort by cost/i })).toBeTruthy()
     const byName = () => within(mechs).getByRole('button', { name: /sort by mechs/i })
     fireEvent.click(byName())
     expect(names()).toEqual(['Alpha', 'Bravo'])
@@ -465,15 +468,15 @@ describe('Training Bay — Make a copy', () => {
     })
     // A copy only adds, so nothing asks first.
     expect(screen.queryByRole('alertdialog')).toBeNull()
-    await settle(() => screen.queryByText('Ghost 2 · COPY OF Fen Oya') !== null)
+    await settle(() => screen.queryByText('Ghost 2 · Fen Oya 2') !== null)
 
-    expect(screen.getByText('Ghost 2 · COPY OF Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Ghost 2 · Fen Oya 2')).toBeTruthy()
     expect(screen.getByText('Ghost · Fen Oya')).toBeTruthy()
     const names = useUnits
       .getState()
       .list('pilot')
       .map((p) => p.name)
-    expect(names.sort()).toEqual(['COPY OF Fen Oya', 'Fen Oya'])
+    expect(names.sort()).toEqual(['Fen Oya', 'Fen Oya 2'])
   })
 })
 

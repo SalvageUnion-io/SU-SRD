@@ -22,7 +22,7 @@ import { installServerMocks, setQueryAnswers } from '../../components/__tests__/
 import { buildMechActions } from '../../lib/rules/actionList'
 import { hasCurrencyChoice } from '../../lib/rules/actionPatches'
 import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
-import { PLAY_TXN } from '../../replica/provenance'
+import { playTxn } from '../../replica/provenance'
 import { ACTION_TYPE_ORDER } from '../playActions.model'
 import type { PlayRoll } from '../playRolls.model'
 import type { Write } from './playActionsHarness'
@@ -469,8 +469,8 @@ describe('Use: the resolve, in the Compact', () => {
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('mech')
     expect(calls[0]?.patch.currentEP).toBe(Math.max(0, 6 - primary().epCost))
-    // Play's own Change Log tag.
-    expect(metas[0]).toEqual(PLAY_TXN)
+    // Play's own Change Log tag, naming the action that spent the points (r3 B4).
+    expect(metas[0]).toEqual(playTxn(primary().name))
     expect(screen.getByRole('button', { name: 'Activated ✓' })).toBeTruthy()
   })
 

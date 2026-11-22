@@ -11,6 +11,7 @@ import { mechCopy } from '../../messages/build-mech'
 import { loadoutColumns } from '../wizard/pickColumns'
 import { ReviewLedger } from '../wizard/ReviewLedger'
 import { Recap, RecapStat } from '../wizard/ReviewRecap'
+import { leftoverLine } from './leftoverLine.model'
 import { SavePatternButton } from './Pattern/SavePatternButton'
 
 /** A note's line in body type, as the crawler review's reminder. */
@@ -20,11 +21,12 @@ type MechReviewStepProps = {
   form: MechWizardFormState
   submitError: string | null
   /**
-   * Unspent Tech 1 Scrap. Create puts it in the new mech's hold as one
-   * carried line (`withLeftoverScrap`), and the review says so; with nothing
-   * left it says nothing. The mech's own record: no cross-entity write.
+   * Unspent Tech 1 Scrap, as Create will place it (`leftoverScrapSplit`):
+   * what fits goes in the new mech's hold as one carried line, and the review
+   * says how many went in and how many are left for the Union Crawler. With
+   * nothing left it says nothing. The mech's own record: no cross-entity write.
    */
-  leftoverScrap: number
+  leftoverScrap: { stowed: number; banked: number }
   /** The slot budgets, for the lists' sums. */
   capacity: {
     systemSlotsUsed: number
@@ -42,7 +44,7 @@ type MechReviewStepProps = {
  * Modules a Ledger each (the picker's own columns, a copy count, each made
  * choice under its name, the slots and Scrap summed on an ink line), and
  * beside them the chassis as its contentful card, the look as Stats, and the
- * Scrap left over, which goes into the hold.
+ * Scrap left over: into the hold as far as it fits, the rest the crawler's.
  */
 export function MechReviewStep({
   form,
@@ -130,11 +132,9 @@ export function MechReviewStep({
         )}
         {/* An unlabelled note (ruleset §5, N5), as the crawler review's reminder:
             only where there is Scrap left. */}
-        {leftoverScrap > 0 && (
+        {leftoverScrap.stowed + leftoverScrap.banked > 0 && (
           <Callout role="note">
-            <span style={NOTE}>
-              {mechCopy('scrapLeftOverGoesIntoHold', { count: leftoverScrap })}
-            </span>
+            <span style={NOTE}>{leftoverLine(leftoverScrap)}</span>
           </Callout>
         )}
         {form.chassisName && (

@@ -25,8 +25,10 @@ import {
 } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
 import { mechScrap } from '../../lib/rules/mechScrap'
+import { usePatternGone } from '../../lib/sharing/reads'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
+import { useSync } from '../../replica/syncContext'
 import { assignedRail } from './assignedRail'
 import { mechPatternStamp, mechStamp } from './bandStamps.model'
 import { LiveSheet } from './LiveSheet'
@@ -89,6 +91,17 @@ export function MechLiveSheet({
   // Related units: the pilot it carries and the crawler it docks in, both
   // its OWN links (ADR-037), each assigned, changed and unassigned on its own.
   const savedPatterns = usePatterns((s) => s.mechPatterns)
+  // A pattern this account does not hold may be a crewmate's, or one since
+  // deleted: asked only once the account's own patterns are in, on a sheet
+  // its viewer writes (a public sheet's reader asks nothing).
+  const patternsIn = usePatterns((s) => s.hydrated)
+  const notHeld =
+    mech.sourcePattern !== undefined && !savedPatterns.some((p) => p.id === mech.sourcePattern)
+  const { status } = useSync()
+  const patternGone = usePatternGone(
+    mech.sourcePattern,
+    liveInRead && patternsIn && notHeld && status === 'live'
+  )
   const rail = assignedRail(
     { kind: 'mech', entity: mech },
     { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead }
@@ -104,7 +117,11 @@ export function MechLiveSheet({
       band={band}
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
-      fromPattern={mechPatternStamp(mech, (id) => savedPatterns.find((p) => p.id === id))}
+      fromPattern={mechPatternStamp(
+        mech,
+        (id) => savedPatterns.find((p) => p.id === id),
+        patternGone
+      )}
       // Read's header strip carries TL and
       // SV with the chassis's other figures, so the band leaves them out (R59).
       rank={readOnly ? undefined : <MechBandRank mech={mech} />}

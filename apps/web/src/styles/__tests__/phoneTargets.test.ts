@@ -38,3 +38,30 @@ describe('a sheet line’s targets on a phone', () => {
     expect(rule(`${step}::after`)).toContain('var(--size-full)')
   })
 })
+
+/**
+ * A list's count on a phone (R12, r3 I4): its steps draw at a fingertip's
+ * size, 40px square in the 44px row, not only reach it with a hidden area.
+ */
+describe('a list count’s steps on a phone', () => {
+  const ledger = readFileSync(join(import.meta.dir, '../partials/ledger.css'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    ''
+  )
+  const step =
+    ledger.match(
+      /\.su-ledger__table tbody \[data-kind='trailing'\] \.su-step-btn--cell\s*\{([^}]*)\}/
+    )?.[1] ?? ''
+
+  test('draw 40px square', () => {
+    expect(step).toContain('min-height: var(--space-40)')
+    expect(step).toContain('min-width: var(--space-40)')
+  })
+
+  test('and still reach the 44px target', () => {
+    expect(ledger).toContain(
+      ".su-ledger__table tbody [data-kind='trailing'] .su-step-btn--cell::after"
+    )
+    expect(ledger).toContain('inset-block: min(0px, calc(50% - var(--size-full) / 2))')
+  })
+})
