@@ -830,21 +830,24 @@ describe('the Opposition', () => {
       ],
     })
     const line = feedLines().find((l) => l.includes('Strikebreaker · Fists')) ?? ''
-    expect(line).toContain('· Private')
+    expect(line).toContain('· Only you')
     expect(line).toContain('Only the Mediator sees this roll')
     expect(line).not.toContain('Players see the result')
     await click(named(/^Reveal to the table: /))
     expect(sent()).toEqual([{ name: 'changeLog.reveal', args: { rollId: 'e-private' } }])
   })
 
-  test('Private rolls on: the roll is logged private, reads Private on the Feed and never reaches Discord', async () => {
+  // MD6-20: on, it was only a darker button; the roll and the Rolls looked the same.
+  test('Private rolls on: the roll reads Roll privately, the Rolls carry a Private band, each line says Only you, and nothing reaches Discord (r6 B10)', async () => {
     await renderCockpit()
+    expect(screen.queryByText(/^Private: only you see these rolls/)).toBeNull()
     await click(named('Private rolls'))
     expect(named('Private rolls').getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByText(/^Private: only you see these rolls/)).toBeTruthy()
     await click(named('Strikebreaker’s actions'))
-    await click(named('Roll the die on Morale'))
+    await click(named('Roll privately on Morale'))
     await waitFor(() =>
-      expect(feedLines().some((l) => /^You · Strikebreaker · Morale · .* · Private/.test(l))).toBe(
+      expect(feedLines().some((l) => /^You · Strikebreaker · Morale · .* · Only you/.test(l))).toBe(
         true
       )
     )
@@ -863,7 +866,7 @@ describe('the Opposition', () => {
     expect(again.closest('section')?.querySelector('h2')?.textContent).toBe('Rolls')
     // And the next roll after the reload is private at once.
     await click(named('Strikebreaker’s actions'))
-    await click(named('Roll the die on Morale'))
+    await click(named('Roll privately on Morale'))
     await waitFor(() => expect(logged()).toHaveLength(1))
     expect(logged()[0]?.after.private).toBe(true)
     await click(again)
@@ -886,7 +889,7 @@ describe('the Opposition', () => {
       ],
     })
     expect(
-      feedLines().some((l) => l.startsWith('You · Strikebreaker · Morale · 4 · Holds · Private'))
+      feedLines().some((l) => l.startsWith('You · Strikebreaker · Morale · 4 · Holds · Only you'))
     ).toBe(true)
   })
 

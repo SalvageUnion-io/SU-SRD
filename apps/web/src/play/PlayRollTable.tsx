@@ -16,6 +16,7 @@ import {
 } from '../components/index'
 import { dieForTable } from '../lib/dice'
 import { playCopy } from '../messages/play'
+import { usePrivateRolls } from './privateRolls'
 
 /** Where a roll landed, and the words it reads as (the toast, the log, Copy). */
 type Landed =
@@ -62,6 +63,7 @@ export function PlayRollTable({
   onRollResult?: (text: string, key: string, dice: number[]) => void
 }) {
   const [landed, setLanded] = useState<Landed | null>(null)
+  const privately = usePrivateRolls()
   const isColumns = table.type === 'columns'
   const rows = isColumns ? [] : digestRollTable(table)
 
@@ -135,7 +137,13 @@ export function PlayRollTable({
       title={name}
       size={size}
       tone={tone}
-      stamp={isColumns ? playCopy('rollTheDiceStamp') : undefined}
+      stamp={
+        privately
+          ? playCopy('rollPrivatelyStamp')
+          : isColumns
+            ? playCopy('rollTheDiceStamp')
+            : undefined
+      }
       onRoll={roll}
       actions={
         landed ? (
