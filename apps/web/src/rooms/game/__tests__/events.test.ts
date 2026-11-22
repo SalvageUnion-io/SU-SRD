@@ -467,7 +467,9 @@ describe('the table’s events', () => {
     const [undone] = act(
       PLAYER,
       'submit',
-      { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2 })] },
+      {
+        ops: [op('p1', { currentHP: 8 }, { baseSeq: 2, kind: 'transaction', source: 'play-undo' })],
+      },
       AT + 4
     )
     expect(undone).toMatchObject({
@@ -490,6 +492,36 @@ describe('the table’s events', () => {
     )
     expect(later).toMatchObject({ kind: 'vitals' })
     expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('undone')
+  })
+
+  test('a heal back to the old value is a heal, never the proposal undone (r5 A2)', () => {
+    const { act, room } = seated()
+    act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 8 })] }, AT + 1)
+    act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 3 }, AT + 2)
+    act(PLAYER, 'ops.accept', { opId: room.proposals.pending(PLAYER)[0]?._id as string }, AT + 3)
+    // Change by amount, a repair or Downtime's Restore: Play's own write, back to 8.
+    const [healed] = act(
+      PLAYER,
+      'submit',
+      { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2, kind: 'transaction', source: 'play' })] },
+      AT + 4
+    )
+    expect(healed).toMatchObject({ kind: 'vitals', text: 'p1 · Pilot p1 · HP 3 → 8' })
+    expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('applied')
+    // A sheet's own Undo of the accepted change is an Undo too.
+    const other = seated()
+    other.act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 8 })] }, AT + 1)
+    other.act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 3 }, AT + 2)
+    const sent = other.room.proposals.pending(PLAYER)[0]?._id as string
+    other.act(PLAYER, 'ops.accept', { opId: sent }, AT + 3)
+    const [undone] = other.act(
+      PLAYER,
+      'submit',
+      { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2, source: `live-sheet-undo:${sent}` })] },
+      AT + 4
+    )
+    expect(undone).toMatchObject({ kind: 'proposal', answer: 'undone' })
+    expect(other.room.proposals.sent(MEDIATOR)[0]?.state).toBe('undone')
   })
 
   test('an accepted proposal changed to anything but what it replaced still stands', () => {

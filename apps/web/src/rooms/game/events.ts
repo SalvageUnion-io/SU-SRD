@@ -137,6 +137,9 @@ export type EventsBefore = {
   revealed?: boolean
 }
 
+/** A proposal's Undo: its Mediator's row changes with it, so every list is served again (r5 A2). */
+export const isUndone = (event: TableEvent): boolean => event.answer === 'undone'
+
 /** Whether an event goes to the bound channel as a line: never a private one, nor one with its own post. */
 export function isMirrored(event: TableEvent): boolean {
   if (event.private === true) return false
