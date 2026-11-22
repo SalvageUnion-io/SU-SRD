@@ -5,10 +5,9 @@
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
-import type { CSSProperties } from 'react'
 import { CONDITION_LABELS, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import type { LedgerColumn, LedgerRow } from '../../components/index'
-import { FOCUS_RING, Stat, TechLevel } from '../../components/index'
+import { ChipButton, Stat, TechLevel } from '../../components/index'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import {
   itemEconomy,
@@ -56,16 +55,6 @@ export type Fitted = Pick<
   Mech,
   'systems' | 'modules' | 'systemConditions' | 'moduleConditions' | 'itemUses' | 'itemChoices'
 >
-
-/** The cost as a press: no frame of its own, the cost's box is the face. */
-const SPEND = {
-  background: 'none',
-  border: 0,
-  padding: 0,
-  font: 'inherit',
-  color: 'inherit',
-  cursor: 'pointer',
-} satisfies CSSProperties
 
 export function itemRows(
   mech: Fitted,
@@ -136,11 +125,8 @@ export function itemRows(
         !model?.cost ? (
           ''
         ) : spend && entity && ep > 0 && condition !== 'destroyed' ? (
-          <button
+          <ChipButton
             key="cost"
-            type="button"
-            className={FOCUS_RING}
-            style={SPEND}
             aria-label={buildDashCopy('spendEpFor', { ep, name: entity.name })}
             title={buildDashCopy('spendEpFor', { ep, name: entity.name })}
             onClick={(event) => {
@@ -150,7 +136,7 @@ export function itemRows(
             }}
           >
             <Cost cost={model.cost} />
-          </button>
+          </ChipButton>
         ) : (
           <Cost key="cost" cost={model.cost} />
         ),
