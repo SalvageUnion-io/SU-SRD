@@ -324,6 +324,15 @@ describe('the thing named, however it is typed (r4 F1)', () => {
     })
   })
 
+  test('a trait as printed, its number in brackets, finds the trait (r5 E1)', () => {
+    for (const query of ['Hot (3)', 'hot(3)']) {
+      expect(search({ query, limit: 3 })[0]).toMatchObject({
+        entityName: 'Hot',
+        schemaName: 'traits',
+      })
+    }
+  })
+
   test("an ability's own roll table ranks under the ability", () => {
     const found = search({ query: 'system and software hacker' })
       .filter((result) => result.entityName === 'System and Software Hacker')

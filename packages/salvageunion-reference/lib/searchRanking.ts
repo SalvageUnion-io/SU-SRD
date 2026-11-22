@@ -189,7 +189,12 @@ function withoutSentenceMarks(word: string): string {
 
 /** Normalise a raw query, or `null` when it is blank (a blank query matches nothing). */
 export function tokenizeSearchQuery(query: string): SearchQuery | null {
-  const rawQuery = query.trim().toLowerCase()
+  // A value in brackets is the value as the books print it: "Hot (3)" and
+  // "hot(3)" are "hot 3". Only a number: a name's own brackets stay.
+  const rawQuery = query
+    .toLowerCase()
+    .replace(/\s*\((\d+)\)/g, ' $1')
+    .trim()
   if (!rawQuery) return null
   const words = rawQuery.split(/\s+/)
   // A whole question is cut back to the words that name something.

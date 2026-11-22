@@ -63,6 +63,18 @@ describe('matchSearchTokens', () => {
   })
 })
 
+describe('a value in brackets, as the books print it (r5 E1)', () => {
+  test("'Hot (3)' and 'hot(3)' are read as 'hot 3'", () => {
+    expect(tokenizeSearchQuery('Hot (3)')?.tokens).toEqual(['hot', '3'])
+    expect(tokenizeSearchQuery('hot(3)')?.tokens).toEqual(['hot', '3'])
+    expect(tokenizeSearchQuery('explosive (2)')?.loweredQuery).toBe('explosive 2')
+  })
+
+  test("a name's own brackets stay", () => {
+    expect(tokenizeSearchQuery('Bite (Bio-Maw)')?.loweredQuery).toBe('bite (bio-maw)')
+  })
+})
+
 describe('a number after the name (r4 F1)', () => {
   const literal = (text: string) => (token: string) => text.includes(token)
 
