@@ -31,12 +31,12 @@ import { useEffect, useRef, useState } from 'react'
 import { AREA_SALVAGE_TABLE } from 'salvageunion-reference/rules'
 import { Button, Callout, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
-import { clearOfBar } from './clearOfBar'
+import type { ResolveModel } from './actionsDeck.model'
+import { clearOfBar } from './clearOfBar.model'
 import { ResolveCost, ResolveSpend } from './PlayResolveCost'
 import { PlayRollInstrument } from './PlayRollInstrument'
 import { SalvageAreaDialog } from './SalvageAreaDialog'
 import { CORE_MECHANIC_TABLE } from './tables.model'
-import type { ResolveModel } from './useActionsDeck'
 
 type Resolving = Extract<ResolveModel, { kind: 'resolve' }>
 

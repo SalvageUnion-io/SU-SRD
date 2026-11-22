@@ -38,10 +38,10 @@ import { Button, Entity, Stat, TraitProse } from '../components/index'
 import { actionRow } from '../lib/rules/actionRow'
 import { atomsCopy } from '../messages/components-atoms'
 import { playCopy } from '../messages/play'
+import type { ResolveModel } from './actionsDeck.model'
 import { PlayResolveSteps } from './PlayResolveSteps'
 import type { ListEntry } from './playActions.model'
 import { NEED_TEXT } from './playActions.model'
-import type { ResolveModel } from './useActionsDeck'
 import { usePlayWide } from './usePlayWide'
 
 type ActionEntry = Extract<ListEntry, { kind: 'action' }>

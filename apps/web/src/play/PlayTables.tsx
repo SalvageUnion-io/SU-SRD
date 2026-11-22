@@ -102,7 +102,7 @@ export function PlayTables({
     const shown = hostRef.current?.querySelector('.su-roll')
     if (shown && typeof shown.scrollIntoView === 'function')
       shown.scrollIntoView({ block: 'nearest' })
-    hostRef.current?.querySelector<HTMLElement>('.su-roll button:not([disabled])')?.focus()
+    shown?.querySelector<HTMLElement>('button:not([disabled])')?.focus()
   }, [asked])
   const tables = SalvageUnionReference.RollTables.all()
   const found = findTables(

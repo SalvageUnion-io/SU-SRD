@@ -11,7 +11,7 @@ import { Radio } from '../components/app'
 import { ActivationCost, capsLabel, cn, Stat } from '../components/index'
 import { color, font, fontSize, space, weight } from '../design/tokens'
 import { playCopy } from '../messages/play'
-import type { ResolveModel } from './useActionsDeck'
+import type { ResolveModel } from './actionsDeck.model'
 
 const CHOICE_LABEL = cn('su-play-deck-cost-choice-lab', capsLabel())
 

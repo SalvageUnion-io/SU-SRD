@@ -43,11 +43,10 @@ const NOTE = {
 } satisfies CSSProperties
 
 /** How a unit's cost reaches its player, in the dialog's words. */
-const DELIVERY = {
-  proposed: 'exposedProposed',
-  notice: 'exposedNotice',
-  both: 'exposedBoth',
-} as const
+function deliveryNote(delivery: ReturnType<typeof hourDelivery>): string {
+  if (delivery === 'both') return mediatorCopy('exposedBoth')
+  return delivery === 'proposed' ? mediatorCopy('exposedProposed') : mediatorCopy('exposedNotice')
+}
 
 const LIST = {
   display: 'flex',
@@ -235,7 +234,7 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
                       })}
                     </span>
                     {/* How its cost reaches its player: a proposal, or a notice (r4 A9). */}
-                    <span style={NOTE}>{mediatorCopy(DELIVERY[hourDelivery(step)])}</span>
+                    <span style={NOTE}>{deliveryNote(hourDelivery(step))}</span>
                   </li>
                 ))}
               </ul>

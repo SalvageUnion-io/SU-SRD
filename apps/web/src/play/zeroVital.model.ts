@@ -17,6 +17,7 @@ import { damageTableName, overloadTableOf, resolveChassisRef } from 'salvageunio
 import { toast } from '../components/index'
 import { playCopy } from '../messages/play'
 import { recordPlayChange } from './playRolls.model'
+import { CRITICAL_INJURY_TABLE } from './tables.model'
 
 type TableListener = (name: string) => void
 
@@ -62,7 +63,8 @@ export function zeroVitalTable(
       label: 'SP',
       table: damageTableName(overloadTableOf(resolveChassisRef(at.unit.chassisRef))),
     }
-  if (at.kind === 'pilot' && field === 'currentHP') return { label: 'HP', table: 'Critical Injury' }
+  if (at.kind === 'pilot' && field === 'currentHP')
+    return { label: 'HP', table: CRITICAL_INJURY_TABLE }
   return null
 }
 

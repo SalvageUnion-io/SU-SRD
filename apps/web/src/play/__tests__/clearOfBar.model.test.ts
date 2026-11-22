@@ -4,7 +4,7 @@
  * and leaves a row that is clear of the bar where it is.
  */
 import { afterEach, describe, expect, test } from 'bun:test'
-import { clearOfBar } from '../clearOfBar'
+import { clearOfBar } from '../clearOfBar.model'
 
 afterEach(() => {
   document.body.innerHTML = ''
