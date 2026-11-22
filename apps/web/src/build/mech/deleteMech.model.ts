@@ -10,7 +10,7 @@ import { toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { mechCopy } from '../../messages/build-mech'
 import { useUnits } from '../../replica/units'
-import { RESTORE_MS } from './Pattern/buildConfirm.model'
+import { restoreToast } from './Pattern/buildConfirm.model'
 
 /** Send the Mech back, then draw its links again. */
 export async function putBack(mech: Mech, links: SoftLink[]) {
@@ -31,8 +31,5 @@ export async function deleteMech(id: string): Promise<void> {
   if (record === null) return
   const links = units.list('softLink').filter((l) => l.from.id === id || l.to.id === id)
   await units.delete('mech', id)
-  toast.success(mechCopy('mechDeleted', { name: record.name }), {
-    duration: RESTORE_MS,
-    action: { label: mechCopy('undo'), onClick: () => void putBack(record, links) },
-  })
+  restoreToast(mechCopy('mechDeleted', { name: record.name }), () => void putBack(record, links))
 }

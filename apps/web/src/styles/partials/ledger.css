@@ -643,9 +643,9 @@
   }
 }
 
-/* Below 56rem its stamps keep a caret only while it sorts by them, as on a
+/* Below 64rem its stamps keep a caret only while it sorts by them, as on a
    phone, so the Pattern column (r5 D4) leaves the make whole. */
-@container not (width >= 56rem) {
+@container not (width >= 64rem) {
   .su-shelf-ledger
     .su-ledger__table:has([data-spare])
     .su-ledger__head

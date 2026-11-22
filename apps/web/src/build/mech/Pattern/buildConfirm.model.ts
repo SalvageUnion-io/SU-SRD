@@ -18,7 +18,15 @@ import { useUnits } from '../../../replica/units'
 const UNDO_MS = 8000
 
 /** How long a notice whose Undo brings back something replaced or deleted stays (r5 C3's 20 seconds). */
-export const RESTORE_MS = 20_000
+const RESTORE_MS = 20_000
+
+/** A notice whose Undo brings back what was replaced or deleted (r5 D1, D9), for its 20 seconds. */
+export function restoreToast(message: string, undo: () => void): void {
+  toast.success(message, {
+    duration: RESTORE_MS,
+    action: { label: mechCopy('undo'), onClick: undo },
+  })
+}
 
 /** The names of the mechs in the bay now: a build under one of them is numbered. */
 export const mechNamesTaken = (): string[] => namesOn(useUnits.getState().list('mech'))

@@ -111,7 +111,7 @@ function more(want: readonly string[], have: readonly string[]): string[] {
  * What a pattern's loadout has that the mech's does not, and the other way
  * (r5 D2), by name: `pattern adds Chainsaw Arm · pattern has no Red Laser`.
  */
-export function loadoutDiffers(mech: Loadout, pattern: Loadout): string {
+function loadoutDiffers(mech: Loadout, pattern: Loadout): string {
   const adds = droppedNames([
     ...more(pattern.systems, mech.systems),
     ...more(pattern.modules, mech.modules),
