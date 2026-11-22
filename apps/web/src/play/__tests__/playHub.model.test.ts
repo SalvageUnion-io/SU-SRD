@@ -51,6 +51,12 @@ describe('its doors', () => {
     ariaLabel: 'Open table as Bonesaw in The Rust Belt Run',
   }
 
+  const PREP = {
+    label: 'Prep',
+    href: '/games/g1/prep',
+    ariaLabel: 'Prep for The Rust Belt Run',
+  }
+
   const START = {
     label: 'Start session',
     href: '/games/g1/mediate',
@@ -59,19 +65,28 @@ describe('its doors', () => {
   }
 
   test('a Mediator who also plays gets their door, then their pilot', () => {
+    // MD4-13: Start session was the only way in, and it told the whole table.
     expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }], false)).toEqual([
       START,
+      MEDIATE,
+      PREP,
       BONESAW,
     ])
     // Before the room answers, Mediate: never a Start that cannot be pressed.
     expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }])).toEqual([
       MEDIATE,
+      PREP,
       BONESAW,
     ])
   })
 
-  test('a Mediator with no pilot there gets their door alone', () => {
-    expect(gameDoors({ ...GAME, mediator: true }, [], true)).toEqual([MEDIATE])
+  test('a Mediator with no pilot there gets their doors alone', () => {
+    expect(gameDoors({ ...GAME, mediator: true }, [], true)).toEqual([MEDIATE, PREP])
+  })
+
+  test('a player is offered neither Mediate nor Prep', () => {
+    const labels = gameDoors(GAME, [{ id: 'p1', name: 'Bonesaw' }], false).map((d) => d.label)
+    expect(labels).toEqual(['Open table'])
   })
 
   test('a player gets a door for every pilot of theirs, told apart by callsign', () => {
@@ -97,6 +112,7 @@ describe('its doors', () => {
   test('once a session is live: Mediate, and the seat’s door reads Join session (r3 H3)', () => {
     expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }], true)).toEqual([
       MEDIATE,
+      PREP,
       {
         label: 'Join session',
         href: '/pilots/p1/play',

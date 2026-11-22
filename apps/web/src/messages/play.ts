@@ -316,6 +316,9 @@ export const playCopy = messages({
   couldNotEndSession: 'Could not end the session.',
   joinSession: 'Join session',
   startGroupSessionOf: 'Start a group session of {game}',
+  // The Mediator's quiet doors on a Game's row (MD4-13): neither starts a session.
+  prep: 'Prep',
+  prepOf: 'Prep for {game}',
   // One name per door (glossary §9, r3 H3): Join session while the Game's
   // session is live, else Open table, on a Game's page, its row, a pilot's
   // line and a sheet's band; the "as" forms are the accessible names.

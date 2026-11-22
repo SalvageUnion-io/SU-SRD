@@ -14,6 +14,7 @@ import type { PairSide } from '../lib/units/crewPair'
 import { crewPair, gauge, pool } from '../lib/units/crewPair'
 import { techLevelReading, VITAL } from '../lib/units/readings'
 import { playCopy } from '../messages/play'
+import { gamePrepPath } from './games/prep/gamePrep.model'
 import { sessionDoor, sessionDoorAs } from './sessionDoor.model'
 import type { CrewVitals } from './useGameFeed'
 
@@ -60,8 +61,9 @@ export function gameChips(args: {
 }
 
 /**
- * A Game's doors, in order: the table runner's first (Start group session
- * until one is live, then Mediate; Mediate while the session is unknown), then one for each pilot of yours in it
+ * A Game's doors, in order: the Mediator's first (Start group session until
+ * one is live, never while the session is unknown; then Mediate and Prep,
+ * always, so looking at the table announces nothing: MD4-13), then one for each pilot of yours in it
  * (Join session while one is live, else Open table: `sessionDoor`; with
  * several pilots each door adds its callsign), so a Mediator
  * who also plays and a player with two pilots reach every one of them. None
@@ -73,10 +75,19 @@ export function gameDoors(
   /** A group session is live; null while unknown (loading, or no connection), read as not live but with no Start. */
   live: boolean | null = null
 ): GameDoor[] {
+  // The quiet ways in: neither starts a session.
+  const quiet: GameDoor[] = [
+    { label: 'Mediate', href: mediatePath(game._id), ariaLabel: `Mediate ${game.name}` },
+    {
+      label: playCopy('prep'),
+      href: gamePrepPath(game._id),
+      ariaLabel: playCopy('prepOf', { game: game.name }),
+    },
+  ]
   const runner: GameDoor[] = !game.mediator
     ? []
     : live !== false
-      ? [{ label: 'Mediate', href: mediatePath(game._id), ariaLabel: `Mediate ${game.name}` }]
+      ? quiet
       : [
           {
             // Short on the hub's head, so the Game's name keeps its room (C2b); the
@@ -86,6 +97,7 @@ export function gameDoors(
             ariaLabel: playCopy('startGroupSessionOf', { game: game.name }),
             start: true,
           },
+          ...quiet,
         ]
   return [
     ...runner,
