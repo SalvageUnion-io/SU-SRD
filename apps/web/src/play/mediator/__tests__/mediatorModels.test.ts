@@ -12,11 +12,13 @@ import {
   clampProposalValue,
   fieldLabel,
   normalizeReason,
+  PROPOSAL_FIELDS,
   proposalTargets,
 } from 'game-domain/games/proposals'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { mediatorSeats } from '../mediatorTable.model'
 import {
+  firstToNumber,
   groupRoll,
   newTrayNpc,
   readSavedPattern,
@@ -24,7 +26,7 @@ import {
   trayEntries,
 } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
-import { proposalAfter, proposalLine } from '../proposalLine.model'
+import { hitDamageOf, hitTargets, proposalAfter, proposalLine } from '../proposalLine.model'
 import { choiceLine, runChoices } from '../runEncounter.model'
 import { setbackDraft } from '../setbacks.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
@@ -108,6 +110,40 @@ describe('proposal targets and values', () => {
   test('fields read as the sheet labels them', () => {
     expect(fieldLabel('currentHP')).toBe('HP')
     expect(fieldLabel('currentHeat')).toBe('Heat')
+    expect(fieldLabel('currentEP')).toBe('EP')
+  })
+
+  test('a Mech can be proposed EP as well as SP and Heat (r4 D2)', () => {
+    expect(PROPOSAL_FIELDS.mech.map((f) => f.label)).toEqual(['SP', 'EP', 'Heat'])
+    const spectrum = targets.find((t) => t.label === "Pickle's Spectrum")
+    expect(spectrum?.readings.currentEP).toBeDefined()
+  })
+
+  test('a hit is a plain number of HP or SP; a variable amount offers nothing', () => {
+    expect(hitDamageOf({ damage: { damageType: 'HP', amount: 3 } })).toEqual({
+      damageType: 'HP',
+      amount: 3,
+    })
+    expect(hitDamageOf({ damage: { damageType: 'SP', amount: 'X' } })).toBeNull()
+    expect(hitDamageOf({ damage: { damageType: 'SP', amount: 0 } })).toBeNull()
+    expect(hitDamageOf({})).toBeNull()
+  })
+
+  test('HP damage is offered to the Pilots, SP damage to the Mechs, each with what it leaves', () => {
+    const hp = hitTargets({ damageType: 'HP', amount: 3 }, targets)
+    expect(hp.every((h) => h.target.kind === 'pilot' && h.field === 'currentHP')).toBe(true)
+    expect(hp.every((h) => h.after === Math.max(0, h.before - 3))).toBe(true)
+    const sp = hitTargets({ damageType: 'SP', amount: 4 }, targets)
+    expect(sp.map((h) => h.target.kind)).toEqual(sp.map(() => 'mech'))
+    expect(sp.find((h) => h.target.label === "Pickle's Spectrum")).toMatchObject({
+      field: 'currentSP',
+      before: 6,
+      after: 2,
+    })
+    // A hit never takes a vital below 0.
+    expect(hitTargets({ damageType: 'SP', amount: 99 }, targets).every((h) => h.after === 0)).toBe(
+      true
+    )
   })
 })
 
@@ -184,7 +220,8 @@ describe('the Opposition tray', () => {
       refSchema: 'chassis',
       refSlug: 'mule',
       refPattern: 'hauler',
-      name: 'Hauler',
+      // The chassis first, so the field names the Mech that was picked (r4 D5).
+      name: 'Mule · Hauler',
       maxHp: mule.structurePoints,
       statKind: 'sp',
     })
@@ -244,7 +281,7 @@ describe('the Opposition tray', () => {
     const body = newTrayNpc('chassis', mule, [], NOW, { saved })
     expect(body).toMatchObject({
       refSlug: 'mule',
-      name: 'Red Leader',
+      name: 'Mule · Red Leader',
       userPattern: { name: 'Red Leader', systems: [], modules: [] },
       maxHp: mule.structurePoints,
     })
@@ -266,6 +303,23 @@ describe('the Opposition tray', () => {
   test('numbered names skip the ones taken', () => {
     expect(instanceName('Raider Band', [])).toBe('Raider Band')
     expect(instanceName('Raider Band', ['Raider Band', 'Raider Band 2'])).toBe('Raider Band 3')
+  })
+
+  test('a second on the field numbers the first: the one called Raider is to read Raider 1 (r4 D5)', () => {
+    const raider = { id: 'b', name: 'Raider' }
+    const field = [{ id: 'a', name: 'Scylla' }, raider]
+    expect(firstToNumber(field, 'Raider 2')).toEqual({ npc: raider, name: 'Raider 1' })
+    // Nothing to number: a first of its kind, or a first already numbered.
+    expect(firstToNumber(field, 'Rifle Squad')).toBeNull()
+    expect(firstToNumber([{ id: 'b', name: 'Raider 1' }], 'Raider 2')).toBeNull()
+    expect(firstToNumber([{ id: 'b', name: 'Raider' }], 'Raider')).toBeNull()
+  })
+
+  test('a named pattern on any other host keeps the pattern’s own name', () => {
+    const typhon = SalvageUnionReference.BioTitans.all().find((t) => (t.patterns?.length ?? 0) > 0)
+    const pattern = typhon?.patterns?.[0]
+    if (typhon === undefined || pattern === undefined) return
+    expect(newTrayNpc('bio-titans', typhon, [], NOW, { pattern }).name).toBe(pattern.name)
   })
 
   test('at 0 an NPC is down; a row from before the tray took instances reads by its name', () => {

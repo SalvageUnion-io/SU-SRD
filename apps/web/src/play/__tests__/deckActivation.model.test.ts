@@ -8,7 +8,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { toast } from 'sonner'
 import type { PlayAction } from '../../lib/rules/actionList'
-import { payActivation } from '../deckActivation.model'
+import { actionUsesLeft, payActivation } from '../deckActivation.model'
 import { clearPlayRolls, onPlayRoll } from '../playRolls.model'
 import { stubStore } from './stubStore'
 
@@ -257,5 +257,41 @@ describe("a pilot's gear with Uses is counted", () => {
       () => {}
     )
     expect(calls).toEqual([])
+  })
+})
+
+// r4 A2 (LG4-16): the action's Uses chip read its maximum after a Use was spent.
+describe('the Uses an action has left', () => {
+  const USES = { epCost: 0, heat: 0, maxUses: 5 }
+
+  test("a mech's: what its sheet's count says, full when never stored", () => {
+    const mortar = action({ slug: 'mini-mortar', currency: 'EP', economy: USES })
+    const mech = { id: 'm-left', itemUses: { 'mini-mortar': 4 } } as unknown as Mech
+    const { store } = stubStore(mech)
+    expect(actionUsesLeft({ store, pilot, mech, crawler: null }, mortar)).toEqual({
+      left: 4,
+      max: 5,
+    })
+    const unspent = { id: 'm-full' } as unknown as Mech
+    expect(
+      actionUsesLeft(
+        { store: stubStore(unspent).store, pilot, mech: unspent, crawler: null },
+        mortar
+      )
+    ).toEqual({ left: 5, max: 5 })
+  })
+
+  test("a pilot's carried gear: its inventory's count; an action that counts none has none", () => {
+    const kit = action({
+      slug: 'first-aid-kit',
+      kind: 'equipment',
+      currency: 'AP',
+      economy: { epCost: 0, heat: 0, maxUses: 3 },
+    })
+    const medic = { ...pilot, id: 'p-left', equipmentUses: { 'first-aid-kit': 1 } } as Pilot
+    const { store } = stubStore(medic)
+    const units = { store, pilot: medic, mech: null, crawler: null }
+    expect(actionUsesLeft(units, kit)).toEqual({ left: 1, max: 3 })
+    expect(actionUsesLeft(units, action({ currency: 'AP', economy: FREE }))).toBeNull()
   })
 })

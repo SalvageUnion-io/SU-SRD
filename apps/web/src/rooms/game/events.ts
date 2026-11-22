@@ -67,6 +67,10 @@ export type TableEventKind =
   | 'proposal'
   | 'alert'
   | 'stop'
+  /** A player ended their own turn (r4 B1): the Feed's line, and the Mediator's toast. */
+  | 'turn'
+  /** The Mediator took an alert back (r4 B4): the line left where the alert was. */
+  | 'withdrawn'
 
 /** One event as every reader gets it. */
 export type TableEvent = {
@@ -92,7 +96,7 @@ export type TableEvent = {
   revealed?: true
   /** A roll a Mediator made: the one roll a screen toasts (`tableNotices.model.ts`). */
   mediator?: true
-  /** The group session began or ended here: what "Last session" is cut by. */
+  /** The group session began or ended here: an end is what "Last time at the table" is cut by. */
   session?: 'start' | 'end'
   /**
    * A proposal's line that changed a sheet: its player accepted it, or undid
@@ -362,6 +366,10 @@ export class GameEvents {
           ? say('proposal', `Mediator withdrew: ${this.proposalLine(op)}`)
           : []
       }
+      case 'changeLog.withdrawAlert':
+        return [this.note(actor, at, { kind: 'withdrawn', text: 'Mediator withdrew an alert' })]
+      case 'scenes.endTurn':
+        return [this.note(actor, at, { kind: 'turn', text: `${unit(value)} ended their turn` })]
       case 'safety.showStop':
         // Nobody is named: who showed it stays in the room.
         return before.stop === true

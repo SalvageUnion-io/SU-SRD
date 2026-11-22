@@ -64,4 +64,31 @@ describe('undoToast', () => {
       .map((t) => t.id)
     expect(open.sort()).toEqual(['mech:m2:currentEP', 'rule-break:m2:systemSlots', 'undo:m2'])
   })
+
+  test("each quick removal keeps its own Undo, through the sheet's later writes, the newest four (r4 E3)", async () => {
+    const undone: string[] = []
+    for (const name of ['a', 'b', 'c']) {
+      undoToast(`Removed ${name}`, () => undone.push(name), 'm1', { stack: true })
+    }
+    await units.update('mech', 'm1', {}, LIVE_SHEET_MANUAL).catch(() => {})
+    const lines = () =>
+      toast
+        .getToasts()
+        .filter((t) => !('dismiss' in t && t.dismiss) && String(t.id).startsWith('undo:m1:'))
+    expect(lines()).toHaveLength(3)
+    // The FIRST removal's Undo is still there, and runs its own way back.
+    const first = lines().find(
+      (t) => (t as { title?: unknown }).title === 'Removed a'
+    ) as unknown as {
+      action: { onClick: (e: unknown) => void }
+    }
+    first.action.onClick({})
+    expect(undone).toEqual(['a'])
+    for (const name of ['d', 'e', 'f', 'g']) {
+      undoToast(`Removed ${name}`, () => {}, 'm1', { stack: true })
+    }
+    expect(lines()).toHaveLength(4)
+    leaveSheet('m1')
+    expect(lines()).toHaveLength(0)
+  })
 })

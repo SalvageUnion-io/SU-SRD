@@ -7,8 +7,8 @@
  * Under a coarse pointer with a share sheet it opens that sheet (a desktop's
  * is a detour from the clipboard, which is what a desktop reader reaches
  * for); anywhere else it copies the page's link. Copied is the control's own
- * Check swap (`data-copied`) and its polite status, never a toast (chrome
- * K5); with no React on the page, a copy that does not land says so in that
+ * Check swap with the word beside it (`data-copied`, shown by the stylesheet)
+ * and its polite status, never a toast (chrome K5); with no React on the page, a copy that does not land says so in that
  * same status, in the words the button carries (`data-share-failed`,
  * `data-copy-failed`), so the catalogue never ships with the page.
  * Closing the sheet unshared is no failure.

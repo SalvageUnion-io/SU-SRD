@@ -43,8 +43,8 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
 - **E11** A lead appears only on an SRD index, or as a Ledger's quiet line (L5).
 - **E12** Fill follows kind: "have" entities wear their tone, "do" entities the ink banner contentful or on a Page, and as a Compact but for an ability.
   An ability's Compact, track and band wear its tier: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.
-- **E13** Links, texture and user-made come from the surface and instance, once. **E16** A Peek is terminal (ruleset §1.6): no button, link, input, tab stop or nested Peek on its plate; its one link is its name, but Open page (**E27**: a term's press Peeks, a way on's opens its Page) and the app's View in the Reference, never a tab stop.
-- **E23** A Peek is one form below its trigger's (contentful Compact down to Mini), never beside a native tooltip.
+- **E13** Links, texture and user-made come from the surface and instance, once. **E16** A Peek is terminal (ruleset §1.6): no button, link, input, tab stop or Peek on its plate; its one link is its name, but Open page (**E27**: a link's press follows it; hover and focus Peek) and the app's View in the Reference, no tab stop.
+- **E23** A Peek is one form below its trigger's, to a Mini (an ability's: the Compact and its roll table); no native tooltip.
 - **E17** No "//" line: a head's chips are one group, as [chips-and-actions.md](chips-and-actions.md) lays it; on ink each chip has a paper rule.
 - **E19** A chassis ability shows only on its chassis and pattern pages, mech hero and Discord card; nested (wizard, Peek) a contentful Mini.
 - **E20** On a show page's plate: only the trail (app sheet: `corner`); stamps, chips, controls fill as E17 (`asideAt="notch"`), then Share (phone: glyph) and Build With This last (phone: chip-sized); a Page's stats lead its body as the stat column, all of them, four a row

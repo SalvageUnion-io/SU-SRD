@@ -39,6 +39,7 @@ import {
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
+import { STAYS } from '../../lib/copiedToast'
 import { copyBeside, namesOn } from '../../lib/copyEntity'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import type { NpcView } from '../../lib/npcs/npcModel'
@@ -68,6 +69,7 @@ import { npcStamp } from '../sheet/bandStamps.model'
 import { LiveSheet } from '../sheet/LiveSheet'
 import { NpcLines } from '../sheet/NpcLines'
 import { PhotoBeside } from '../sheet/PhotoBeside'
+import { usePrinting } from '../sheet/printing.model'
 import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
 import { SheetColumns } from '../sheet/SheetColumns'
 import { SheetHero } from '../sheet/SheetHero'
@@ -146,7 +148,9 @@ export function NpcSheet({
   // As on every sheet (`Sheet.tsx`): Read until Edit is pressed, and nothing
   // writes while the server of record cannot be reached.
   const writesBlocked = !canWrite && status !== 'syncing'
-  const editing = sheetMode === null || sheetMode.editing
+  // Paper is always the Read view (r4 E9).
+  const printing = usePrinting()
+  const editing = !printing && (sheetMode === null || sheetMode.editing)
   const editable = !readOnlyProp && !writesBlocked && editing
 
   function patch(fields: Partial<Npc>) {
@@ -161,10 +165,13 @@ export function NpcSheet({
         .getState()
         .create('npc', copyBeside(npc, npc.name, taken) as never)
       toast.success(npcCopy('madeACopy', { name: npc.name }), {
-        duration: COPY_TOAST_MS,
+        // With the way to the copy it stays until dismissed (r4 E19).
         ...(onOpenCopy
-          ? { action: { label: npcCopy('openTheCopy'), onClick: () => onOpenCopy(created.id) } }
-          : {}),
+          ? {
+              ...STAYS,
+              action: { label: npcCopy('openTheCopy'), onClick: () => onOpenCopy(created.id) },
+            }
+          : { duration: COPY_TOAST_MS }),
       })
     })
   }

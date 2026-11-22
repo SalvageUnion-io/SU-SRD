@@ -188,6 +188,17 @@
   padding-block: var(--space-2);
 }
 
+/* A rule-breaking mark under a name never widens its list (r4 E1): short of
+   room its words drop under its label, whole, and wrap there. */
+.su-ledger__under [data-rule-break] > .su-stat-cell--wrap {
+  flex-wrap: wrap;
+}
+
+.su-ledger__under [data-rule-break] .su-stat-plate--wrap {
+  flex: 1 1 auto;
+  overflow-wrap: break-word;
+}
+
 /* The trailing cell: the row's menu or its count, at the line's end. */
 .su-ledger__table [data-kind='trailing'] {
   text-align: right;
@@ -341,8 +352,12 @@
   box-shadow: var(--focus-ring-shadow);
 }
 
-/* A row that does not fit the budget now: the one select dim (`SELECT_DIM`). */
-.su-ledger__table tbody tr[data-blocked] > * {
+/* A row that does not fit the budget now: the one select dim (`SELECT_DIM`).
+   Its reason, marked at the name's end (`.su-ledger__why`), keeps its ink:
+   the line is dim, what says why is not (r4 E22). */
+.su-ledger__table tbody tr[data-blocked] > :not(th),
+.su-ledger__table tbody tr[data-blocked] > th > .su-ledger__under,
+.su-ledger__table tbody tr[data-blocked] > th > .su-ledger__name-line > :not(.su-ledger__why) {
   opacity: 0.45;
 }
 
@@ -364,6 +379,17 @@
 .su-ledger__table tbody tr[data-picked] .su-step-btn:disabled {
   background-color: var(--color-paper-15);
   color: var(--color-paper-60);
+}
+
+/* A count's steps (a wizard's pick) are a pointer's target too: each draws
+   24px square at the least, the count at its chip's height between them
+   (WCAG 2.5.8, r4 E22). A phone's are larger, below. */
+.su-ledger__table tbody [data-kind='trailing'] .su-step-btn--cell {
+  min-height: var(--space-24);
+}
+
+.su-ledger__table tbody [data-kind='trailing'] .su-stat-stepper > .su-stat-cell {
+  align-self: center;
 }
 
 /* The selected row's card under its line: where no column stands beside the

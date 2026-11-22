@@ -64,7 +64,8 @@ describe('assignedUnitsFor', () => {
     const inGame = build({ kind: 'pilot', entity: { ...pilot, gameId: 'g1' } }, {})
     expect(inGame.slots.map((s) => s.createHref)).toEqual([
       `/mechs/new?game=g1&pilot=${pilot.id}`,
-      '/crawlers/new?game=g1',
+      // The crawler names the pilot it was made from: it takes them and their mech (r4 E19).
+      `/crawlers/new?game=g1&pilot=${pilot.id}`,
     ])
     const onShelf = build({ kind: 'crawler', entity: { ...crawler, gameId: null } }, {})
     expect(onShelf.slots.map((s) => s.createHref)).toEqual(['/mechs/new', '/pilots/new'])

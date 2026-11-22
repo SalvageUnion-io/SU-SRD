@@ -90,8 +90,9 @@ import {
   restoredOpponent,
   setGroupWave,
   unpinTable,
+  withAdded,
 } from './encounter.model'
-import { useEncounterGame } from './useEncounterGame'
+import { useEncounterGame, useRunGames } from './useEncounterGame'
 
 const LIST = {
   display: 'flex',
@@ -186,6 +187,8 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   const [naming, setNaming] = useState<EncounterGroup | null | undefined>(undefined)
   const grouping = flagOn('encounterSheet')
   const groups = groupsOf(encounter)
+  // The Game it is prepared for, where the viewer runs it: its Pilots are the crew a threat is read against.
+  const gameCrew = useRunGames(connected).find((g) => g._id === encounter.gameId)?.pilotCount
   // Writes go one after another, each from the store's latest copy, so two
   // quick adds do not both start from the same opposition and drop one.
   const queue = useRef<Promise<unknown>>(Promise.resolve())
@@ -419,7 +422,11 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                         </ul>
                       )}
                       {grouping && encounter.opposition.length > 0 && (
-                        <ThreatReadLine encounter={encounter} editing={canWrite} />
+                        <ThreatReadLine
+                          encounter={encounter}
+                          editing={canWrite}
+                          gameCrew={gameCrew}
+                        />
                       )}
                     </Stack>
                   </SlabSection>
@@ -510,9 +517,8 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                 new Date().toISOString(),
                 name
               )
-              return {
-                opposition: [...current.opposition, opponentFrom(body, crypto.randomUUID())],
-              }
+              const added = opponentFrom(body, crypto.randomUUID())
+              return { opposition: withAdded([...current.opposition, added], added) }
             })
           }
           onAdd={(schema, entity, draw) =>
@@ -525,9 +531,8 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                 new Date().toISOString(),
                 draw
               )
-              return {
-                opposition: [...current.opposition, opponentFrom(body, crypto.randomUUID())],
-              }
+              const added = opponentFrom(body, crypto.randomUUID())
+              return { opposition: withAdded([...current.opposition, added], added) }
             })
           }
         />

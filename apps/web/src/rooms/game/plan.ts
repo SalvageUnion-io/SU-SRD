@@ -4,15 +4,18 @@
  * mediates): nobody else reads or writes it, and it rides no socket.
  *
  * Its notes are their author's: a runner reads and writes only their own, so
- * handing the table over hands over the sessions and never a note. Notes kept
+ * handing the table over hands over the sessions and never a note. Whoever
+ * wrote some can still read them back once the table is someone else's
+ * (`readOwn`), and only them. Notes kept
  * before they had authors belong to whoever ran the table then (`settle`).
  */
 
 import { hasMediator, runsTable } from 'game-domain/games/roles'
-import type { GamePlan, StoredGamePlan } from 'game-domain/schemas/gamePlan'
+import type { GamePlan, OwnPlanNotes, StoredGamePlan } from 'game-domain/schemas/gamePlan'
 import {
   EMPTY_GAME_PLAN,
   GamePlanSchema,
+  ownNotesFor,
   planFor,
   planWith,
   StoredGamePlanSchema,
@@ -28,6 +31,15 @@ export class GamePlanStore {
   read(actor: string): GamePlan {
     this.store.requireTableRunner(actor)
     return planFor(this.stored(), actor)
+  }
+
+  /**
+   * The notes a member wrote while they ran the table, to read once they no
+   * longer do (MD4-17): their own and nobody else's, or null with none.
+   */
+  readOwn(actor: string): OwnPlanNotes | null {
+    this.store.requireMember(actor)
+    return ownNotesFor(this.stored(), actor)
   }
 
   /** Keep what the actor wrote: the sessions for the Game, the notes as theirs alone. */

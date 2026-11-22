@@ -1187,6 +1187,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   min-width: 0;
 }
 
+/* A whole name in a contentful Mini (r4 E8) wraps in the room its chips
+   leave: the chips keep their one line beside it (C2b), never a line of
+   their own over it. */
+.su-entity-mini[data-contentful] .su-entity-mini__pill[data-whole-name] {
+  flex-wrap: nowrap;
+}
+
 /* Its chips fill from the corner, as a Compact's do (the bottom-right fill,
    above): the last chip takes it. Each chip keeps its place from the end
    (`--su-fill`), so the line still reads in class order. The name stays a
@@ -1618,6 +1625,21 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 .su-entity-mini__pill .su-btn--primary:not(:disabled) {
   outline: var(--bw-chrome) solid var(--color-ink);
   outline-offset: calc(-1 * (var(--su-mini-inset, 0px) + var(--bw-chrome)));
+}
+
+/* On paper every Mini's name is whole (r4 E9): nothing there can be hovered
+   or opened, so the name wraps under its chips rather than end in "…". */
+@media print {
+  .su-entity-mini__pill.su-entity-mini__pill {
+    flex-wrap: wrap;
+  }
+
+  .su-entity-mini__name.su-entity-mini__name {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
 }
 
 /* A list that keeps its Minis' names whole (`data-names-whole`: a Game's

@@ -43,4 +43,9 @@ export type CompactSearchEntry = {
    * the rules' own kinds do.
    */
   rule?: true
+  /**
+   * A ROLL TABLE printed inside another entry (an ability's, a System's):
+   * ranked under that owner (`scoreSearchMatch`'s `embedded`).
+   */
+  embedded?: true
 }

@@ -20,7 +20,7 @@ import { bandFillFor, chapterForSchema } from '../../../../../lib/chapters'
 import { componentEmbedFor } from '../../../../../lib/componentEmbed'
 import { entityTitle, META_DESCRIPTION_MAX, SITE_URL } from '../../../../../lib/constants'
 import { itemHref, patternHref, schemaHref } from '../../../../../lib/entityHref'
-import { entityPageHead } from '../../../../../lib/entityPageHead'
+import { entityPageHead, previewDescriptionFor } from '../../../../../lib/entityPageHead'
 import { getReferenceEntityData } from '../../../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../../../lib/ogCard'
 import { pageTitle } from '../../../../../lib/pageTitle'
@@ -77,6 +77,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       // The preview's words and colour come from the card its image is
       // screenshotted from.
       og: ogMetaFor(ogCardFor(schemaId, itemId, host, pattern, patternId)),
+      // A shared link says what the pattern is: its own summary.
+      previewDescription: previewDescriptionFor({
+        kind: `${hostName} Pattern`,
+        stats: [],
+        traits: [],
+        summary: firstParagraph || undefined,
+      }),
       componentEmbed: componentEmbedFor(host, pattern),
       crumbs: [
         { name: pluralName, url: `${SITE_URL}${schemaHref(schemaId)}` },

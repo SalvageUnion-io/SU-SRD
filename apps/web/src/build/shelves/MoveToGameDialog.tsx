@@ -14,6 +14,9 @@
  * by the time it opens. A move is one field on the same record, never a copy
  * (`apps/web/src/routes/CLAUDE.md`). A pilot moved into a Game brings the mech
  * assigned to them, still assigned (`bringPlan`).
+ *
+ * With nowhere to go it is no dead end (r4 E15): "+ New Game" stands under
+ * the line that says so, and the Game it makes is listed here to pick.
  */
 
 import type { Container, ContainerFields } from 'game-domain/container'
@@ -32,6 +35,7 @@ import { CONTAINER_MOVE } from '../../replica/provenance'
 import { useUnits } from '../../replica/units'
 import { ContainerPicker } from '../entityContainer/ContainerPicker'
 import { requestMove } from '../entityContainer/requestMove.model'
+import { NewGameControl } from '../games/NewGameControl'
 
 /** What "out of a Game" is called in the Training Bay. */
 const NOT_IN_A_GAME = buildShelvesCopy('notInAGame')
@@ -162,6 +166,11 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
               : buildShelvesCopy('youAreInNoGame')
           }
         />
+        {games !== undefined && destinations.length === 0 && (
+          <div>
+            <NewGameControl stay />
+          </div>
+        )}
       </div>
     </ModalShell>
   )

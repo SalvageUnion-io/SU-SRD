@@ -48,16 +48,15 @@ export function mechBuildFigures(
       })
       const systems = `${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`
       const modules = `${capacity.moduleSlotsUsed}/${capacity.moduleSlotsMax}`
-      const broken = capacity.asPrinted
-        ? []
-        : [
-            ...(capacity.systemSlotsUsed > capacity.systemSlotsMax
-              ? [buildShelvesCopy('systemSlotsOver', { count: systems })]
-              : []),
-            ...(capacity.moduleSlotsUsed > capacity.moduleSlotsMax
-              ? [buildShelvesCopy('moduleSlotsOver', { count: modules })]
-              : []),
-          ]
+      // A line the book prints over its slots is the book's, each line on its own (r4 E16).
+      const broken = [
+        ...(capacity.systemSlotsUsed > capacity.systemSlotsMax && !capacity.asPrinted?.systems
+          ? [buildShelvesCopy('systemSlotsOver', { count: systems })]
+          : []),
+        ...(capacity.moduleSlotsUsed > capacity.moduleSlotsMax && !capacity.asPrinted?.modules
+          ? [buildShelvesCopy('moduleSlotsOver', { count: modules })]
+          : []),
+      ]
       return {
         techLevel: chassis.techLevel,
         systems,

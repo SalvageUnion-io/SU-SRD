@@ -5,6 +5,7 @@
  * no Mediator and so no conditions; before the first answer the Scene is clear.
  */
 
+import { sceneConditionsOf } from 'game-domain/rules/sceneConditions'
 import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
@@ -20,6 +21,13 @@ export type SceneState = {
 }
 
 export const CLEAR_SCENE: SceneState = { conditions: [], hours: 0 }
+
+/** The conditions that are on, by name in catalogue order ("Radiation Storm, Freezing"); empty with none. */
+export function sceneConditionNames(conditions: readonly string[]): string {
+  return sceneConditionsOf(conditions)
+    .map((condition) => condition.name)
+    .join(', ')
+}
 
 export function useScene(gameId: string | null): SceneState {
   const signedIn = isSignedIn(useSync().status)

@@ -13,6 +13,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import { mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
+import { RuleBreakMark } from '../../../components/app'
 import { toast } from '../../../components/index'
 import { MechSheet } from '../MechSheet'
 import { PilotSheet } from '../PilotSheet'
@@ -74,6 +75,17 @@ describe('R71 — one rule-breaking mark', () => {
     const marked = figuresMarked(container)
     expect(marked).toHaveLength(1)
     expect(marked[0]).toMatch(/inventory/i)
+  })
+
+  test('apart from its figure it wraps, never widening the line it stands under (r4 E1)', () => {
+    const named = render(<RuleBreakMark what="System Slots 13/12 · Module Slots 9/8" />)
+    expect(named.container.querySelector('.su-stat-cell')?.className).toContain(
+      'su-stat-cell--wrap'
+    )
+    const bare = render(<RuleBreakMark />)
+    expect(bare.container.querySelector('.su-stat-cell')?.className).not.toContain(
+      'su-stat-cell--wrap'
+    )
   })
 
   test('the save says what broke and by how much', () => {

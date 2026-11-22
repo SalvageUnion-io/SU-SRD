@@ -26,6 +26,7 @@ import { PUBLISHER, SITE_URL, SRD_CRUMB, WEBSITE } from '../../../lib/constants'
 import { schemaHref } from '../../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
 import { listingEntries } from '../../../lib/listingEntries'
+import { listingFieldFacets } from '../../../lib/listingFacets'
 import type { ListingGroup, ListingShape } from '../../../lib/listingGroups'
 import { catalogGroupBy, groupEntities } from '../../../lib/listingGroups'
 import { listingPendingScript } from '../../../lib/listingPending'
@@ -64,6 +65,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
   // The weapons' and gear's traits: "which systems are Hot" is a filter.
   const traits = listingTraits(data)
+  // Range, Action and Weapons only, from the columns the Systems List prints.
+  const fields = listingFieldFacets(schemaId, data)
   const preloadSchemas = getSchemaPreloadList(schemaId)
   // Art-less tiles take the Catalog's wider columns.
   const hasArt = data.some((item) => !!artUrlFor(item as RefMetaEntity))
@@ -137,6 +140,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             sources,
             trees,
             traits,
+            fields,
             preloadSchemas,
             hasArt,
             shape,
@@ -150,6 +154,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             sources={sources}
             trees={trees}
             traits={traits}
+            fields={fields}
             hasArt={hasArt}
             entryIds={entryIds}
           />

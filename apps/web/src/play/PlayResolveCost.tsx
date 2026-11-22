@@ -11,7 +11,7 @@ import { Radio } from '../components/app'
 import { ActivationCost, capsLabel, cn, Stat } from '../components/index'
 import { color, font, fontSize, space, weight } from '../design/tokens'
 import { playCopy } from '../messages/play'
-import type { ResolveModel } from './useActionsDeck'
+import type { ResolveModel } from './actionsDeck.model'
 
 const CHOICE_LABEL = cn('su-play-deck-cost-choice-lab', capsLabel())
 
@@ -43,7 +43,14 @@ export function ResolveSpend({
   return (
     <span style={SPEND}>
       {cost.heat > 0 && <Stat size="mini" label={playCopy('heat')} value={`+${cost.heat}`} />}
-      {cost.uses > 0 && <Stat size="mini" label={playCopy('uses')} value={cost.uses} />}
+      {cost.uses > 0 && (
+        <Stat
+          size="mini"
+          label={playCopy('uses')}
+          // What is left of them, as the sheet's row says it (r4 A2).
+          value={cost.usesLeft === undefined ? cost.uses : `${cost.usesLeft}/${cost.uses}`}
+        />
+      )}
       {cost.amount > 0 && <ActivationCost cost={cost.amount} currency={currency} size="mini" />}
     </span>
   )

@@ -226,9 +226,9 @@
 }
 
 /* Share's Check stands in for its glyph while a copy has just landed
-   (`data-copied`, `lib/sharePage.ts`). */
-.su-share-page:not([data-copied]) .su-share-page__done,
-.su-share-page[data-copied] .su-share-page__rest {
+   (`data-copied`, `lib/sharePage.ts`), and "Copied" for its name (K5). */
+.su-share-page:not([data-copied]) :is(.su-share-page__done, .su-share-page__copied),
+.su-share-page[data-copied] :is(.su-share-page__rest, .su-share-page__label) {
   display: none;
 }
 
@@ -267,6 +267,12 @@
 
   .su-chapter-band__action .su-share-page__label {
     display: none;
+  }
+
+  /* The glyph's square opens for the word while a copy has just landed. */
+  .su-chapter-band__action .su-share-page[data-copied] {
+    padding-inline: var(--space-8);
+    width: auto;
   }
 }
 

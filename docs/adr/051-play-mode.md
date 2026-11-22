@@ -104,7 +104,19 @@ Up now is a marker the Mediator puts on one seat: one `change_log` row (field
 optional `upNow` of `scenes.current` and set by `scenes.setUpNow`. It orders
 nothing and gates nothing.
 
-Both are additive and optional: no table or column is added, and a room with
+**The player who is up ends their own turn (r4 B1).** `scenes.endTurn`, sent
+by the member the marked pilot is assigned to, writes that same row back to
+nobody and one `turn` event ("Pickle ended their turn"), which the Feed lists
+and a Mediator's screen toasts. Nobody is up after it: there is still no turn
+order, no rounds and no record of who has acted. The seat's button reads
+**Give the turn**.
+
+**An alert can be withdrawn (r4 B4).** `changeLog.withdrawAlert` (a
+Mediator's) deletes the alert's `change_log` row, so it leaves every strip and
+Feed, and writes one `withdrawn` event ("Mediator withdrew an alert"). What
+was posted to the bound channel stays there, followed by that line.
+
+All of it is additive and optional: no table or column is added, and a room with
 neither reads as before.
 
 ### 9b. An Opposition roll reaches players without its names (r2 B1)

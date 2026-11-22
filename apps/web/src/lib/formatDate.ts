@@ -16,6 +16,16 @@ export function formatDateTime(ts: number): string {
   return new Date(ts).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
+/** "21 Nov 2026" — a day, for when a thing was saved. */
+export function formatDate(ts: number): string {
+  return new Date(ts).toLocaleDateString(LOCALE, { dateStyle: 'medium' })
+}
+
+/** A day and a time to the second: a Change Log line, where quick edits read apart. */
+export function formatDateTimeSeconds(ts: number): string {
+  return new Date(ts).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'medium' })
+}
+
 /** Today as a calendar day, `YYYY-MM-DD`, on the viewer's own clock. */
 export function todayDay(now: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0')

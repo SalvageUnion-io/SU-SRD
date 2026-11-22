@@ -255,7 +255,16 @@ describe('the model', () => {
       { label: 'EP', value: s.ep, max: s.maxEP },
       { label: 'Heat', value: s.heat, max: s.maxHeat },
     ])
-    expect(pinnedUnits({ ...args, situation: 'downtime' })).toEqual([])
+    // r4 A10 (SB4-18): Downtime keeps the pilot's numbers, and the mech its steps restore.
+    expect(pinnedUnits({ ...args, situation: 'downtime' }).map((u) => u.kind)).toEqual(['pilot'])
+    expect(
+      pinnedUnits({ ...args, situation: 'downtime', downtimeMech: args.boardedMech }).map((u) =>
+        u.vitals.map((v) => v.label)
+      )
+    ).toEqual([
+      ['HP', 'AP'],
+      ['SP', 'EP', 'Heat'],
+    ])
     // Boarded with no mech in the store yet: the pilot alone.
     expect(pinnedUnits({ ...args, boardedMech: null, situation: 'boarded' })).toHaveLength(1)
   })
@@ -330,10 +339,19 @@ describe('pinned above every pane', () => {
     expect(bar.getByText(/Boarded/)).toBeTruthy()
   })
 
-  test('in Downtime nothing is pinned', async () => {
+  // r4 A10 (SB4-18): Downtime on a phone hid every number and the switch behind ⋯.
+  test('in Downtime the numbers stay pinned, with the Situation switch under them', async () => {
     await renderPhone({ situation: 'downtime', solo: true })
-    expect(pinned()).toEqual([])
-    expect(screen.queryByRole('region', { name: 'Pinned vitals' })).toBeNull()
+    expect(pinned().slice(0, 2)).toEqual(['HP', 'AP'])
+    const vitals = screen.getByRole('region', { name: 'Pinned vitals' })
+    const situation = screen.getByRole('group', { name: 'Situation' })
+    expect(vitals.closest('[role="tabpanel"]')).toBeNull()
+    expect(situation.closest('.su-play-frame__pinned')).toBe(
+      vitals.closest('.su-play-frame__pinned')
+    )
+    expect(
+      within(situation).getByRole('button', { name: 'Downtime' }).getAttribute('aria-pressed')
+    ).toBe('true')
   })
 
   test('the pinned row sits outside every pane, so it shows on each tab', async () => {
@@ -354,7 +372,10 @@ describe('the Situation, in the bar’s ⋯', () => {
     // The row that is so now says so.
     expect(screen.getByRole('menuitem', { name: /Board Buzzard.*Now/ })).toBeTruthy()
     expect(screen.getByRole('menuitem', { name: /^Downtime/ })).toBeTruthy()
-    expect(screen.getByRole('menuitem', { name: 'Table mode' })).toBeTruthy()
+    // Table mode says what it is (SB4-08).
+    expect(
+      screen.getByRole('menuitem', { name: /^Table mode.*One big roll and your vitals/ })
+    ).toBeTruthy()
   })
 
   test('solo, the Downtime row starts Downtime', async () => {
@@ -383,11 +404,13 @@ describe('Act: resolve stays inline', () => {
     await click(screen.getByRole('button', { name: `Use ${actionName}` }))
     const row = () =>
       document.querySelector('li.su-play-act[data-open], li.su-play-act[data-done]') as HTMLElement
-    await click(within(row()).getByRole('button', { name: /^Activate/ }))
-    // Once anything is done with it, its close reads Done: closing undoes nothing.
-    expect(within(row()).getByRole('button', { name: `Done with ${actionName}` })).toBeTruthy()
+    // An action with a cost has Activate; a free one is Roll alone (r4 A2).
+    const activate = within(row()).queryByRole('button', { name: /^Activate/ })
+    if (activate) await click(activate)
     await click(within(row()).getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     expect(row().querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
+    // Once anything is done with it, its close reads Done: closing undoes nothing.
+    expect(within(row()).getByRole('button', { name: `Done with ${actionName}` })).toBeTruthy()
     await click(within(row()).getByRole('button', { name: /^Apply/ }))
     // The finished action closed itself and says Done.
     expect(row().getAttribute('data-open')).toBeNull()

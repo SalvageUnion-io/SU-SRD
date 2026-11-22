@@ -135,6 +135,8 @@ export type WizardFlow<TStep extends string> = {
   submitError: string | null
   /** Spread onto `WizShell`. */
   shell: WizardShellProps
+  /** Signed out: open the shell's "Sign in to save" (a step's own save asks as Create does); else undefined. */
+  askSignIn: (() => void) | undefined
 }
 
 export function useWizardFlow<
@@ -337,6 +339,7 @@ export function useWizardFlow<
     step,
     gate,
     submitError: invalid ?? save.error,
+    askSignIn: signedOut ? () => setAskSignIn(true) : undefined,
     shell: {
       steps: steps.map((s) => stepLabels[s]),
       active: currentIndex,

@@ -275,6 +275,17 @@ html[data-srd-signed-in] .su-front__show-yours {
   display: none;
 }
 
+/* Its name is never cut (R56): a name longer than the strip wraps inside the
+   button, which grows to hold it. */
+.su-front__show-yours .su-front__show-game {
+  height: auto;
+  max-width: 100%;
+  min-height: var(--size-compact);
+  overflow-wrap: anywhere;
+  padding-block: var(--space-4);
+  white-space: normal;
+}
+
 .su-front__show-yours-label {
   font-size: var(--text-caption);
 }

@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import { downOf } from '../referenceEntity/card/cardChrome'
+import { drawnAnchor } from './peekAnchor'
 import type { PeekSize } from './peekContext'
 import { PEEK_DOWN_ATTRIBUTE, PEEK_SIZE_ATTRIBUTE, parsePeekAddress } from './peekContext'
 import { installPeekController } from './peekController'
@@ -67,7 +68,9 @@ export function PeekHost({
       ? installPeekHistory(window, () => controller.current?.close())
       : undefined
     controller.current = installPeekController(document, {
-      open: (anchor, address, how) => {
+      open: (pressed, address, how) => {
+        // A chip out of its head is pressed through its copy: stand beside that (PT4-04).
+        const anchor = drawnAnchor(pressed)
         const target = parsePeekAddress(address)
         const down = downOf(anchor.getAttribute(PEEK_DOWN_ATTRIBUTE) ?? undefined)
         const size = anchor.getAttribute(PEEK_SIZE_ATTRIBUTE) === 'mini' ? 'mini' : 'compact'

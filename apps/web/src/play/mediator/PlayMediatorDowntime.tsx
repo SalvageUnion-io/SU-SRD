@@ -31,6 +31,7 @@ import { ConfirmDialog } from '../../components/app'
 import { Badge, Button, Entity, rollForTable, Slab, Stat, TitledBox } from '../../components/index'
 import { rollD20 } from '../../lib/dice'
 import { unitRowModel } from '../../lib/units/unitModel'
+import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { useUnits } from '../../replica/units'
 import { DowntimeStepNav } from '../DowntimeStepNav'
@@ -39,7 +40,7 @@ import { PlayDowntimeTrack } from '../PlayDowntimeTrack'
 import { playLineModel } from '../playLine.model'
 import { naniteStatus, processDowntimeNanites } from '../playNanites.model'
 import { reportingRoll } from '../playRolls.model'
-import { payDowntimeUpkeep } from '../playUpkeep.model'
+import { payDowntimeUpkeep, upkeepShort } from '../playUpkeep.model'
 import type { PlayActions } from '../usePlayActions'
 import { doneOf, seatDone } from './mediatorTable.model'
 import type { PlayMediator } from './usePlayMediator'
@@ -67,6 +68,9 @@ export function PlayMediatorDowntime({
   const { done, of } = doneOf(seats, completedBy)
   const upkeepStep = isUpkeepStep(idx)
   const unit = crawler?.crawler ?? null
+  // A pool too small pays nothing and is never marked Paid (r4 A7).
+  const short = unit === null || upkeepSpent ? 0 : upkeepShort(unit)
+  const upkeepCost = crawlerUpkeepCost(unit?.techLevel ?? 1, unit?.type)
   const off = !canWrite
   const nanites = naniteStatus(unit)
   const craftStep = step?.name === CRAFT_STEP_NAME
@@ -174,19 +178,20 @@ export function PlayMediatorDowntime({
             state={
               <Stat
                 size="mini"
-                label={mediatorCopy('scrap', {
-                  downtimeUpkeepScrap: crawlerUpkeepCost(unit?.techLevel ?? 1, unit?.type),
-                })}
+                label={mediatorCopy('scrap', { downtimeUpkeepScrap: upkeepCost })}
                 value={unit === null ? undefined : `T${unit.techLevel}`}
               />
             }
+            {...(short > 0
+              ? { uses: <Stat size="mini" label={playCopy('shortBy', { short })} /> }
+              : {})}
             controls={
               upkeepSpent ? (
                 <Stat size="mini" label={mediatorCopy('paid')} />
               ) : (
                 <Button
                   size="mini"
-                  disabled={off || !upkeepStep || unit === null}
+                  disabled={off || !upkeepStep || unit === null || short > 0}
                   title={
                     upkeepStep
                       ? undefined
@@ -194,17 +199,18 @@ export function PlayMediatorDowntime({
                   }
                   onClick={() => void pay()}
                 >
-                  {mediatorCopy('pay')}
+                  {/* What it will take, said on the button (r4 A7). */}
+                  {playCopy('payScrap', { scrap: upkeepCost })}
                 </Button>
               )
             }
-            {...(upkeepNote
+            {...(upkeepNote || short > 0
               ? {
                   body: {
                     text: false,
                     children: (
                       <p className="su-play-resolve__note" aria-live="polite">
-                        {upkeepNote}
+                        {upkeepNote ?? playCopy('unpaidUpkeepCite')}
                       </p>
                     ),
                   },

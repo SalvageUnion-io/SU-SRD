@@ -251,12 +251,13 @@ describe('Play, one press from the shelf', () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     expect(
-      within(pilots).getByRole('link', { name: 'Open table as Nia Vale' }).getAttribute('href')
+      // In no Game there is no table to open: the door says Play solo (SB4-08).
+      within(pilots).getByRole('link', { name: 'Play solo as Nia Vale' }).getAttribute('href')
     ).toBe('/pilots/p-nia/play')
     expect(within(pilots).getByRole('link', { name: 'Open table as Rook' })).toBeTruthy()
     // Mechs play through their pilot: no door of their own.
     const mechs = screen.getByRole('region', { name: 'Mechs' })
-    expect(within(mechs).queryByRole('link', { name: /^Open table/ })).toBeNull()
+    expect(within(mechs).queryByRole('link', { name: /^(Open table|Play solo)/ })).toBeNull()
   })
 
   test('the Training Bay lists no Games: they are the Games tab’s (ADR-066)', async () => {
@@ -354,9 +355,43 @@ describe('a mech a pilot of yours flies', () => {
     const links = within(row).getAllByRole('link', { name: 'Iron Jaw' })
     expect(links).toHaveLength(2)
     expect(row.querySelector('.su-shelf-ledger__flown')?.textContent).toBe('Mech Iron Jaw')
-    // The Mechs shelf holds the rest.
+    // The Mechs shelf lists it too, its line naming and linking its pilot (r4 E20).
     const mechs = screen.getByRole('region', { name: 'Mechs' })
-    expect(within(mechs).queryByText('Iron Jaw')).toBeNull()
+    const line = within(mechs).getByRole('link', { name: 'Iron Jaw' }).closest('tr') as HTMLElement
+    expect(within(line).getByRole('link', { name: 'Nia Vale' }).getAttribute('href')).toBe(
+      '/pilots/p-nia'
+    )
+    // "+ Add a Mech" still offers only the mechs no pilot flies.
+    expect(within(pilots).queryByRole('button', { name: 'Add a Mech to Rook' })).toBeNull()
+  })
+})
+
+describe('a pilot’s Rename… (r4 E20)', () => {
+  test('changes its callsign and its name from the shelf, and writes neither blank', async () => {
+    await renderShelves()
+    await choose(await openMenu('Nia Vale'), 'Rename…')
+    const dialog = await screen.findByRole('dialog')
+    const callsign = within(dialog).getByRole('textbox', { name: 'Callsign' }) as HTMLInputElement
+    const name = within(dialog).getByRole('textbox', { name: 'Name' }) as HTMLInputElement
+    expect(name.value).toBe('Nia Vale')
+    await act(async () => {
+      fireEvent.change(name, { target: { value: ' ' } })
+    })
+    expect(within(dialog).getByRole('button', { name: 'Rename' }).hasAttribute('disabled')).toBe(
+      true
+    )
+    await act(async () => {
+      fireEvent.change(callsign, { target: { value: 'Wren' } })
+      fireEvent.change(name, { target: { value: 'Nia Vale II' } })
+    })
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Rename' }))
+    })
+    await settle(
+      () => useUnits.getState().pilots.find((p) => p.id === 'p-nia')?.callsign === 'Wren'
+    )
+    const renamed = useUnits.getState().pilots.find((p) => p.id === 'p-nia')
+    expect([renamed?.callsign, renamed?.name]).toEqual(['Wren', 'Nia Vale II'])
   })
 })
 
@@ -417,6 +452,15 @@ describe('a unit’s ⋯ menu', () => {
     expect(assigned).toEqual(['/pilots/p-nia'])
   })
 
+  test('Move to a Game… with no Game offers + New Game, never a dead end (r4 E15)', async () => {
+    setQueryAnswers({ 'games.listMine': [] })
+    await renderShelves()
+    await choose(await openMenu('Iron Jaw'), 'Move to a Game…')
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog.textContent).toContain('You are in no Game to move it to.')
+    expect(within(dialog).getByRole('button', { name: '+ New Game' })).toBeTruthy()
+  })
+
   test('a mech’s Save as pattern opens its dialog over the Hangar', async () => {
     await renderShelves()
     await choose(await openMenu('Iron Jaw'), 'Save as pattern')
@@ -427,6 +471,13 @@ describe('a unit’s ⋯ menu', () => {
 })
 
 describe('Patterns', () => {
+  test('its stamps sort; its tab, the Homebrew mark beside it, stays a title (L2)', async () => {
+    await renderShelves()
+    const shelf = document.getElementById('shelf-patterns') as HTMLElement
+    expect(shelf.querySelectorAll('thead button.su-ledger__sort').length).toBeGreaterThan(0)
+    expect(shelf.querySelector('.su-entity-compact__notch button')).toBeNull()
+  })
+
   test('+ From a mech lists the mechs to start from', async () => {
     await renderShelves()
     await act(async () => {
@@ -468,12 +519,12 @@ describe('Patterns', () => {
     )
   })
 
-  test('Build With This asks once, makes the mech and lands on it (r2 G5, r3 L5)', async () => {
+  test('Build With This makes the mech in one press and lands on it (r4 E23)', async () => {
     await renderShelves()
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Build With This: Brawler' }))
     })
-    await confirmDialog('Build')
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     await settle(() => assigned.length > 0)
     const built = useUnits.getState().mechs.find((m) => m.name === 'Brawler')
     expect(built?.chassisRef).toBe('titan')

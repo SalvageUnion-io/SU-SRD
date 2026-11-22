@@ -16,7 +16,8 @@ function whollyVisible(el: Element): boolean {
   return box.top >= top && box.bottom <= bottom
 }
 
-function prefersReducedMotion(): boolean {
+/** The reader asked for less motion: a scroll lands at once. */
+export function prefersReducedMotion(): boolean {
   return (
     typeof window.matchMedia === 'function' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches

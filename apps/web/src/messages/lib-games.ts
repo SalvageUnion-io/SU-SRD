@@ -10,11 +10,6 @@ export const libGamesCopy = messages({
   assignToMe: 'Assign to me',
   assigning: 'Assigning…',
   assignSelfFailed: '{name} could not be assigned to you. Try again.',
-  assignToTitle: 'Assign {name} to {to}?',
-  assignToFresh: '{to} will edit {name} in this Game; the rest of the crew can still read {them}.',
-  assignToFrom: '{to} will edit {name} in this Game instead of {from}, who can still read {them}.',
-  assignToUndo: 'Nothing on the sheet changes. You can reassign or unassign it again at any time.',
-  assignTo: 'Assign to {to}',
   assignToFailed: '{name} could not be assigned to {to}. Try again.',
   unassignTitle: 'Unassign {name}?',
   unassignMine:

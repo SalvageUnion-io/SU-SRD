@@ -22,7 +22,7 @@ import { linesFromBreakdown } from '../../components/app'
 import type { PhoneVital } from '../../components/index'
 import { Stat } from '../../components/index'
 import { changeUndoToast } from '../../lib/changeUndoToast'
-import { bayGate } from '../../lib/rules/crawlerEconomy'
+import { bayGate, upkeepOwed } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
@@ -135,6 +135,8 @@ export function CrawlerLiveSheet({
   const onSp = liveNumber('currentSP', SHEET_VITALS.sp.short, sp)
   const onUpgrade = liveNumber('upgradePool', buildSheetCopy('upgrade'), crawler.upgradePool ?? 0)
   // The crawler's numbers as rows (R11): the dashboard's masthead draws them.
+  // The Upkeep owed, after the type's own reduction, with its working (r4 A8).
+  const upkeep = upkeepOwed(tl, crawler.type)
   const vitalRows: PhoneVital[] = [
     {
       key: 'sp',
@@ -171,8 +173,11 @@ export function CrawlerLiveSheet({
       key: 'upkeep',
       label: buildSheetCopy('upkeep'),
       name: buildSheetCopy('upkeep'),
-      note: buildSheetCopy('tScrapEachDowntime', { tl }),
-      value: 5,
+      note:
+        upkeep.less > 0
+          ? `${buildSheetCopy('tScrapEachDowntime', { tl })} ${buildSheetCopy('upkeepWorking', upkeep)}`
+          : buildSheetCopy('tScrapEachDowntime', { tl }),
+      value: upkeep.owed,
     },
   ]
   const vitalActions = economyActions.map((action) => ({

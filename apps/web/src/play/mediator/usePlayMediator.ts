@@ -70,7 +70,13 @@ import type { MediatorSeat } from './mediatorTable.model'
 import { mediatorSeats } from './mediatorTable.model'
 import type { TrayWrites } from './OppositionPicker'
 import type { SavedPattern, TrayNpc } from './opposition.model'
-import { newBuiltTrayNpc, newTrayNpc, readSavedPattern, readTrayNpc } from './opposition.model'
+import {
+  firstToNumber,
+  newBuiltTrayNpc,
+  newTrayNpc,
+  readSavedPattern,
+  readTrayNpc,
+} from './opposition.model'
 import type { ProposeArgs } from './ProposeDock'
 import type { SentProposal } from './proposalLine.model'
 import { useWithdrawProposal } from './useWithdrawProposal'
@@ -120,6 +126,8 @@ export type PlayMediator = {
   /** Take back a proposal still awaiting its answer (r2 C7). */
   withdraw: (opId: string) => void
   broadcast: (message: string) => Promise<void>
+  /** Take an alert back off every player's strip and Feed (r4 B4); a refusal is said. */
+  withdrawAlert: (alertId: string) => void
   alerts: AlertLine[]
   rolls: RollLine[] | null
   /** The table's event stream (`changeLog.events`); null while it loads. */
@@ -227,6 +235,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const proposeMutation = useTableAct('ops.propose', gameId)
   const withdraw = useWithdrawProposal(gameId)
   const broadcastMutation = useTableAct('changeLog.broadcast', gameId)
+  const withdrawAlert = useTableAct('changeLog.withdrawAlert', gameId)
   const setConditions = useTableAct('scenes.setConditions', gameId)
   const passHour = useTableAct('scenes.passHour', gameId)
   const setUpNow = useTableAct('scenes.setUpNow', gameId)
@@ -254,17 +263,34 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
 
   const npcId = (npc: TrayNpc) => npc.id
 
+  /**
+   * Field one, then number the first of its kind ("Raider" reads "Raider 1"
+   * once "Raider 2" is out, r4 D5). `out` is who is on the field, kept in step.
+   */
+  const fieldNpc = async (
+    body: ReturnType<typeof newTrayNpc>,
+    out: { id: string; name: string }[] = (tray ?? []).map(({ id, name }) => ({ id, name }))
+  ) => {
+    const id = await addNpc({ body })
+    const first = firstToNumber(out, body.name)
+    out.push({ id: typeof id === 'string' ? id : '', name: body.name })
+    // One the room did not name back cannot be renamed: it keeps its name.
+    if (first === null || first.npc.id === '') return
+    await updateNpc({ npcId: first.npc.id, patch: { name: first.name } })
+    first.npc.name = first.name
+  }
+
   const trayWrites: TrayWrites = {
     add: (schema, entity, draw) =>
-      addNpc({
-        body: newTrayNpc(
+      fieldNpc(
+        newTrayNpc(
           schema,
           entity,
           (tray ?? []).map((n) => n.name),
           new Date().toISOString(),
           draw
-        ),
-      }),
+        )
+      ),
     setHp: (npc, next) => updateNpc({ npcId: npcId(npc), patch: { currentHp: next } }),
     morale: async (npc) => {
       // Morale is a named Salvage Union table (Core Book p.268); its die is
@@ -377,19 +403,19 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     remove: (npc) => removeNpc({ npcId: npcId(npc) }),
     clear: () => clearTray({}),
     addBuilt: (npc, name) =>
-      addNpc({
-        body: newBuiltTrayNpc(
+      fieldNpc(
+        newBuiltTrayNpc(
           npc,
           (tray ?? []).map((n) => n.name),
           new Date().toISOString(),
           name
-        ),
-      }),
+        )
+      ),
     rename: (npc, name) => updateNpc({ npcId: npcId(npc), patch: { name } }),
     field: async (lines) => {
       // One at a time, each name counted against the ones before it, so four
       // Contour Hussars come out numbered.
-      const taken = (tray ?? []).map((n) => n.name)
+      const out = (tray ?? []).map(({ id, name }) => ({ id, name }))
       let added = 0
       for (const line of lines) {
         if (line.draw === null) continue
@@ -409,12 +435,11 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
           const body = newTrayNpc(
             schema,
             entity,
-            taken,
+            out.map((n) => n.name),
             new Date().toISOString(),
             pattern ? { pattern } : {}
           )
-          await addNpc({ body })
-          taken.push(body.name)
+          await fieldNpc(body, out)
           added += 1
         }
       }
@@ -500,6 +525,9 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     broadcast: said(async (message: string) => {
       await broadcastMutation({ message })
     }),
+    withdrawAlert: (alertId: string) => {
+      withdrawAlert({ alertId }).catch(onFailure)
+    },
     alerts: alerts ?? [],
     rolls: rolls ?? null,
     events: events ?? null,

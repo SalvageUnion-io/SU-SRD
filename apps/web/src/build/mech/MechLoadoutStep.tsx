@@ -104,6 +104,9 @@ export function MechLoadoutStep({
   const slotsLeft = (kind: Kind) => Math.max(0, slots[kind].max - slots[kind].used)
   const room = (kind: Kind, item: Item) =>
     maxAddableCopies(item, { scrapRemaining, slotsRemaining: slotsLeft(kind) })
+  // Which limit it is, in a word, on the row (r4 E22): Slots first, as `blocked` reads.
+  const limit = (kind: Kind, item: Item) =>
+    item.slotsRequired > slotsLeft(kind) ? mechCopy('tooFewSlots') : mechCopy('tooLittleScrap')
   const blocked = (kind: Kind, item: Item) => {
     if (room(kind, item) > 0) return undefined
     return item.slotsRequired > slotsLeft(kind)
@@ -178,6 +181,7 @@ export function MechLoadoutStep({
             }
             under={(item) => chosenChips(item, choices?.[getEntitySlug(item)])}
             disabled={(item) => blocked(kind, item)}
+            why={(item) => limit(kind, item)}
             detail={(item) => card(kind, item, true)}
             foot={{
               cite: cites[kind],

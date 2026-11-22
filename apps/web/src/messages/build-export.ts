@@ -12,7 +12,9 @@ export const buildExportCopy = messages({
   import: 'Import…',
   importFailed: 'That backup could not be imported. Try again.',
   backupFailed: 'The backup could not be downloaded. Try again.',
-  importCompleteOne: 'Import complete — {count} entity created.',
-  importCompleteMany: 'Import complete — {count} entities created.',
+  importCompleteOne: 'Import complete: {count} sheet added.',
+  importCompleteMany: 'Import complete: {count} sheets added.',
+  importAlreadyHere: 'Nothing to import: every sheet in that backup is already here.',
   backups: 'Backups: import and export',
+  backupsMenu: 'Backups',
 })

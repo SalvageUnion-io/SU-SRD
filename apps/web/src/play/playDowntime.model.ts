@@ -34,6 +34,7 @@ import { resolveModule, resolveSystem } from '../lib/rules/mechItems'
 import { resolveEquipment } from '../lib/rules/pilotInventory'
 import { playCopy } from '../messages/play'
 import { naniteStatus } from './playNanites.model'
+import { upkeepShort } from './playUpkeep.model'
 
 /** No crawler: no Med Bay to heal HP or injuries (AP still rests). */
 const NO_MED_BAY: MedBayStatus = {
@@ -58,6 +59,8 @@ export type PlanLine = {
   skippable: boolean
   /** Why nothing on this line applies (a damaged bay), shown in place of its chips. */
   blocked?: string
+  /** A line under its chips: where the book covers what the chips say (unpaid Upkeep). */
+  note?: string
 }
 
 export type StepPlanInput = {
@@ -288,6 +291,8 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
       skippable: true,
     })
   } else if (stepName === UPKEEP_STEP_NAME && crawler) {
+    // A pool too small pays nothing: the line reads Short by N for everyone (r4 A7).
+    const short = upkeep.spent ? 0 : upkeepShort(crawler)
     lines.push({
       key: 'upkeep',
       title: 'Upkeep',
@@ -299,18 +304,50 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
         {
           label: upkeep.spent
             ? 'Paid'
-            : upkeep.canPay
-              ? 'Outstanding'
-              : playCopy('theMediatorPaysIt'),
+            : short > 0
+              ? playCopy('shortBy', { short })
+              : upkeep.canPay
+                ? 'Outstanding'
+                : playCopy('theMediatorPaysIt'),
         },
       ],
       steps: [],
-      skippable: upkeep.canPay && !upkeep.spent,
+      skippable: upkeep.canPay && !upkeep.spent && short === 0,
+      ...(short > 0 ? { note: playCopy('unpaidUpkeepCite') } : {}),
     })
   } else if (stepName === CRAFT_STEP_NAME && crawler) {
     lines.push(nanitesLine(crawler, upkeep.canPay))
   }
   return lines.filter((line): line is PlanLine => line !== null)
+}
+
+/**
+ * The steps up to `upTo` (0-based, inclusive) that preview a change this
+ * pilot has not taken: skipped, never done (r4 A6). A step that applies
+ * nothing (the table does it), and one taken with Skip or Apply, is not one.
+ */
+export function skippedSteps(
+  input: Omit<StepPlanInput, 'stepName'> & {
+    steps: readonly { name: string }[]
+    upTo: number
+    /** The steps this pilot has taken; null where no pilot takes any (the Mediator's screen). */
+    taken: readonly number[] | null
+  }
+): number[] {
+  const { steps, upTo, taken, ...units } = input
+  if (taken === null) return []
+  return steps.flatMap((step, index) =>
+    index <= upTo &&
+    !taken.includes(index) &&
+    stepPlan({ ...units, stepName: step.name }).some((line) => line.skippable)
+      ? [index]
+      : []
+  )
+}
+
+/** Steps by number and name, as a list reads them: "3 Restore your Mech & Pilot, 7 Train". */
+export function stepNames(steps: readonly { name: string }[], indexes: readonly number[]): string {
+  return indexes.map((i) => `${i + 1} ${steps[i]?.name ?? ''}`.trim()).join(', ')
 }
 
 /** The Downtime steps the ticked lines switch on. */

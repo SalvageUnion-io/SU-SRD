@@ -189,7 +189,8 @@ export function abilityColumns<T extends RefMetaEntity>(): PickColumn<T>[] {
     {
       key: 'lead',
       label: buildWizardCopy('whatItDoes'),
-      kind: 'quiet',
+      // It wraps: cut to one line it said 'Craft improv…' (r4 E8).
+      kind: 'line',
       value: (row) => modelOf(row).lead ?? '',
     },
     {

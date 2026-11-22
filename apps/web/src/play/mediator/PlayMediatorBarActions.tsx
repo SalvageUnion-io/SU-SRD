@@ -85,6 +85,7 @@ export function PlayMediatorBarActions({
                   label: session?.live
                     ? playCopy('endGroupSession')
                     : playCopy('startGroupSession'),
+                  ...(session?.live ? {} : { hint: playCopy('startGroupSessionHint') }),
                   ...(mayRun
                     ? {
                         onSelect: () => {
@@ -137,6 +138,7 @@ export function PlayMediatorBarActions({
           now={mediator.now}
           canWrite={mediator.canWrite}
           onSend={mediator.broadcast}
+          onWithdraw={mediator.withdrawAlert}
         />
       </ModalShell>
       {/* Bare: the explorer wears the dialog's head, so a category's search

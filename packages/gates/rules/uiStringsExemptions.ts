@@ -150,7 +150,7 @@ export const EXEMPTIONS: readonly StringExemption[] = [
       "A roll-table lookup key, and the dataset's activationCurrency value compared against: machine keys.",
   },
   {
-    file: 'apps/web/src/build/sheet/LiveSheet.tsx',
+    file: 'apps/web/src/build/sheet/liveSheetBarStyles.model.ts',
     strings: [
       'var(--su-kind, var(--color-wk-bg))',
       'opacity, visibility, translate',
@@ -346,8 +346,13 @@ export const EXEMPTIONS: readonly StringExemption[] = [
   },
   {
     file: 'apps/web/src/reference/layouts/BaseLayout.tsx',
-    strings: ['width=device-width, initial-scale=1.0', 'noindex, nofollow'],
-    reason: "The document's viewport and robots `<meta>` values: markup.",
+    strings: [
+      'width=device-width, initial-scale=1.0',
+      'noindex, nofollow',
+      '@media (prefers-reduced-motion:no-preference){@view-transition{navigation:auto}}',
+    ],
+    reason:
+      "The document's viewport and robots `<meta>` values, and the inline view-transition opt-in's CSS: markup.",
   },
   {
     file: 'apps/web/src/reference/pages/[schemaId]/[itemId].page.tsx',
@@ -398,7 +403,7 @@ export const EXEMPTIONS: readonly StringExemption[] = [
   },
   {
     file: 'apps/web/src/components/islands/SearchIsland.tsx',
-    strings: ['min(30rem, calc(100dvh - 7rem))', 'min(30rem, 60dvh)'],
+    strings: ['min(33rem, calc(100dvh - 7rem))', 'min(30rem, 60dvh)'],
     reason: 'CSS `max-height` values in a style object.',
   },
   {

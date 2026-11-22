@@ -19,7 +19,7 @@ import type { RefEntity, RefEnumSchemaName, SearchResult } from 'salvageunion-re
 import { getEntitySchemas, search, searchOneSlipAway } from 'salvageunion-reference'
 import { schemaPluralLabel } from '../../lib/schemaLabels'
 import { compositionsCopy } from '../../messages/components-compositions'
-import { loadingCopy } from '../containers/loadingCopy'
+import { SEARCHING } from '../containers/loadingCopy'
 import { NO_RESULTS } from './searchCopy'
 
 export type SearchComboboxResult =
@@ -52,17 +52,15 @@ export type SearchComboboxResult =
   | {
       /**
        * The row after the last result when more matched than the list holds
-       * (`moreRow`): the kind with the most left out, opening its listing
-       * filtered by the query.
+       * (`moreRow`): "Show more", which lengthens the list in place. The hook
+       * answers it itself (`submit`); a host never opens it.
        */
       kind: 'more'
       id: string
-      /** '12 more Abilities'. */
+      /** 'Show more'. */
       title: string
+      /** '12 more results'. */
       group: string
-      schemaId: RefEnumSchemaName
-      /** The query, for the listing's name filter. */
-      query: string
     }
 
 export type UseSearchComboboxOptions = {
@@ -79,8 +77,9 @@ export type UseSearchComboboxOptions = {
   /** Category rows reserved out of `limit`. Default 3. */
   schemaSlots?: number
   /**
-   * End a list that leaves matches out with a row for them (`kind: 'more'`),
-   * inside `limit`. Default false: a host must know where that row goes.
+   * End a list that leaves matches out with "Show more" (`kind: 'more'`),
+   * after `limit`'s rows; each press shows `limit` more. Default false: a
+   * host must draw that row as an act, never a link.
    */
   moreRow?: boolean
   /** Invoked on Enter (highlighted row, else first row) — and by row clicks
@@ -143,31 +142,17 @@ function matchSchemas(query: string, slots: number): SearchComboboxResult[] {
 /** Every match is counted up to here; a search this wide is not a list anyone reads. */
 const COUNT_LIMIT = 200
 
-/**
- * The row for the matches a full list left out: the kind with the most whose
- * NAME holds the query (what its listing's filter matches), or none.
- */
-function moreResult(hidden: readonly SearchHit[], query: string): SearchComboboxResult[] {
-  const q = query.toLowerCase().trim()
-  const counts = new Map<RefEnumSchemaName, number>()
-  for (const hit of hidden) {
-    // A pattern is not a row of its host's listing.
-    if (hit.pattern || !hit.entityName.toLowerCase().includes(q)) continue
-    counts.set(hit.schemaName, (counts.get(hit.schemaName) ?? 0) + 1)
+/** "Show more", for the matches a full list left out. */
+function moreResult(hidden: number): SearchComboboxResult {
+  return {
+    kind: 'more',
+    id: 'more',
+    title: compositionsCopy('showMore'),
+    // At the count's limit there may be more than were counted.
+    group: compositionsCopy('moreResults', {
+      count: `${hidden}${hidden >= COUNT_LIMIT - 1 ? '+' : ''}`,
+    }),
   }
-  const top = [...counts].sort((a, b) => b[1] - a[1])[0]
-  if (!top) return []
-  const [schemaId, count] = top
-  return [
-    {
-      kind: 'more',
-      id: `more:${schemaId}`,
-      title: `${count} more ${schemaPluralLabel(schemaId)}`,
-      group: compositionsCopy('openTheFilteredList'),
-      schemaId,
-      query: query.trim(),
-    },
-  ]
 }
 
 function toEntityResult(result: SearchHit): SearchComboboxResult {
@@ -197,6 +182,8 @@ export function useSearchCombobox({
   const [hasSearched, setHasSearched] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /** The rows "Show more" has added to `limit`, for the query in the field. */
+  const extraRef = useRef(0)
 
   const idPrefix = useId()
   const listboxId = `${idPrefix}-search-results`
@@ -207,7 +194,8 @@ export function useSearchCombobox({
   const results = useMemo(() => (ready ? rawResults : []), [ready, rawResults])
 
   const performSearch = useCallback(
-    (searchQuery: string) => {
+    (searchQuery: string, extra = 0) => {
+      extraRef.current = extra
       if (!searchQuery.trim()) {
         setRawResults([])
         setHasSearched(false)
@@ -215,19 +203,20 @@ export function useSearchCombobox({
         return
       }
       const schemaResults = matchSchemas(searchQuery, schemaSlots)
-      const room = limit - schemaResults.length
+      const room = limit + extra - schemaResults.length
       if (!moreRow) {
         const hits = ready ? searchFn({ query: searchQuery, limit: room }) : []
         setRawResults([...schemaResults, ...hits.map(toEntityResult)])
       } else {
         const all = ready ? searchFn({ query: searchQuery, limit: COUNT_LIMIT }) : []
-        // A full list gives its last line to the row for what it left out.
-        const more = all.length > room ? moreResult(all.slice(room - 1), searchQuery) : []
-        const hits = all.slice(0, room - more.length)
+        const hits = all.slice(0, room)
+        // A full list is followed by the row that lengthens it.
+        const more = all.length > room ? [moreResult(all.length - room)] : []
         setRawResults([...schemaResults, ...hits.map(toEntityResult), ...more])
       }
       setHasSearched(true)
-      setSelectedIndex(-1)
+      // Lengthened, the highlight stands on the first row added.
+      setSelectedIndex(extra > 0 ? extra : -1)
     },
     [ready, limit, schemaSlots, moreRow, searchFn]
   )
@@ -262,9 +251,11 @@ export function useSearchCombobox({
 
   const submit = useCallback(
     (result: SearchComboboxResult) => {
-      onSubmit(result)
+      // "Show more" is the list's own act: the same query, `limit` rows longer.
+      if (result.kind === 'more') performSearch(query, extraRef.current + limit)
+      else onSubmit(result)
     },
-    [onSubmit]
+    [onSubmit, performSearch, query, limit]
   )
 
   /** Arrow/Enter handling — callers chain their own Escape behavior. */
@@ -290,7 +281,7 @@ export function useSearchCombobox({
     ? null
     : !ready
       ? query.trim()
-        ? loadingCopy(compositionsCopy('referenceData'))
+        ? SEARCHING
         : null
       : results.length > 0
         ? `${results.length} result${results.length === 1 ? '' : 's'} found`
@@ -305,6 +296,7 @@ export function useSearchCombobox({
   }
 
   const clear = useCallback(() => {
+    extraRef.current = 0
     setQuery('')
     setRawResults([])
     setHasSearched(false)

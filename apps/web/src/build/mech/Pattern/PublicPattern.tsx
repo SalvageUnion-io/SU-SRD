@@ -28,7 +28,6 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefObjectPattern } from 'salvageunion-reference'
 import { getAssetUrl, toEntityModel } from 'salvageunion-reference'
-import { ConfirmDialog } from '../../../components/app'
 import {
   Button,
   ChapterBand,
@@ -68,7 +67,7 @@ import { SignInControl } from '../../account/SignInControl'
 import { HomebrewControls } from '../../homebrew/HomebrewControls'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
 import { RailActs } from '../../sheet/RailActs'
-import { buildConfirmBody, builtToast, mechNamesTaken } from './buildConfirm.model'
+import { builtToast, mechNamesTaken } from './buildConfirm.model'
 import { PatternEditControls } from './PatternEditControls'
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
@@ -139,8 +138,6 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const { status, canWrite } = useSync()
   const [busy, setBusy] = useState<'build' | 'copy' | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
-  // Build With This asks once, as it does wherever a pattern is built from (r2 D4).
-  const [confirming, setConfirming] = useState(false)
 
   // The tab is named for the pattern, as a sheet's is for its unit.
   useTabTitle(areaTitle(PRODUCT.build, `${pattern.name} · ${routesCopy('pattern')}`))
@@ -163,7 +160,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
       const mech = await useUnits
         .getState()
         .create('mech', mechFromPattern(pattern, mechNamesTaken()))
-      builtToast(mech.name)
+      builtToast(mech, pastStartingRules(pattern))
       void navigate({ to: '/mechs/$id', params: { id: mech.id } })
     } catch (err) {
       toast.error(playerMessage(err) ?? mechCopy('theMechCouldNotBe2'))
@@ -215,7 +212,8 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 variant="primary"
                 size="compact"
                 className="su-page-action"
-                onClick={() => setConfirming(true)}
+                // One press: the mech it makes is ordinary, and its notice has Undo (r4 E23).
+                onClick={() => void build()}
                 disabled={busy !== null}
                 aria-label={mechCopy('buildWithThisAMech', { name: pattern.name })}
               >
@@ -300,14 +298,6 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
           </section>
         </div>
       </article>
-      <ConfirmDialog
-        open={confirming}
-        onOpenChange={setConfirming}
-        title={mechCopy('buildAMechFrom', { name: pattern.name })}
-        body={buildConfirmBody({ book: false, past: pastStartingRules(pattern) })}
-        confirmLabel={mechCopy('build')}
-        onConfirm={() => void build()}
-      />
       {mine && (
         <ShareStatusDialog
           kind="pattern"

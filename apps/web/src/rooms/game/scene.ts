@@ -68,6 +68,24 @@ export class GameScene {
   }
 
   /**
+   * The player whose pilot is up ends their own turn (r4 B1): the marker
+   * clears, as the Mediator unmarking it would. Answers the pilot whose turn
+   * it was. Nobody else's turn is theirs to end, and no turn follows it:
+   * there is no order.
+   */
+  endTurn(actor: string, at: number): string {
+    return this.store.sql.transaction(() => {
+      this.store.requireMember(actor)
+      const pilotId = this.upNow()?.pilotId ?? null
+      if (pilotId === null || this.store.unit(pilotId)?.ownerId !== actor) {
+        throw new RoomRefusal('It is not your turn to end')
+      }
+      this.clearUpNow(at)
+      return pilotId
+    })
+  }
+
+  /**
    * Nobody is up any more (r2 E1): the room clears the marker itself when the
    * group session ends and when Downtime begins, whoever asked for either.
    */

@@ -142,6 +142,13 @@ describe('Ledger: a head stamp sorts only where the list asks (L2)', () => {
     expect(sorted?.getAttribute('aria-sort')).toBe('descending')
     expect(sorted?.textContent).toContain('Slots')
   })
+
+  test('sortTab false: the stamps sort and the tab stays a title (L2, a mark beside it)', () => {
+    const { container, getByRole, queryByRole } = draw({ onSort: () => {}, sortTab: false })
+    expect(getByRole('button', { name: 'Sort by RNG (Range)' })).toBeTruthy()
+    expect(queryByRole('button', { name: 'Sort by Systems' })).toBeNull()
+    expect(container.querySelector('.su-entity-compact__notch button')).toBeNull()
+  })
 })
 
 describe('Ledger: a picker is the same Ledger in select (L7)', () => {

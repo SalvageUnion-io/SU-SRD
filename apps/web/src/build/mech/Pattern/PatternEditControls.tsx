@@ -1,9 +1,10 @@
 /**
  * PatternEditControls — the maker's edits on their saved pattern's page:
- * Rename, and its Systems and Modules in the one picker (the count picker a
- * mech sheet's Manage opens), so a pattern is changed where it is, not by
- * building a mech from it and saving that over again. Each act's dialog is
- * titled as its button reads. The pickers open at the pattern's Tech Level and
+ * Rename, Edit description, its Systems and Modules in the one picker (the
+ * count picker a mech sheet's Manage opens), and Delete (r4 E13), so a pattern
+ * is changed where it is, not by building a mech from it and saving that over
+ * again. Each act's dialog is titled as its button reads; Delete asks first,
+ * as its shelf's does, and leaves for the Patterns page. The pickers open at the pattern's Tech Level and
  * an edit over its chassis's slots says so, both as on a mech sheet.
  *
  * The page reads the pattern from the public query, so these read the shelf's
@@ -11,17 +12,21 @@
  * hears the write back.
  */
 
+import { useNavigate } from '@tanstack/react-router'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { Button, EntitySearcher } from '../../../components/index'
+import { useConfirm } from '../../../components/shared/useConfirm'
 import { loadoutSlots, patternChassis } from '../../../lib/patterns/patterns'
 import { mechRuleBreaks, ruleBreaksMade } from '../../../lib/rules/ruleBreaks'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
 import { ruleBreakToast } from '../../sheet/ruleBreakToast.model'
 import { SheetPickerModal } from '../../sheet/SheetPickerModal'
+import { deletePattern, deletePatternCopy } from '../../shelves/patternMenu.model'
 import { RenameDialog } from '../../shelves/RenameDialog'
+import { PatternDescriptionDialog } from './PatternDescriptionDialog'
 
 type Part = 'systems' | 'modules'
 
@@ -56,6 +61,9 @@ async function patchPattern(id: string, patch: Partial<MechPattern>): Promise<vo
 
 export function PatternEditControls({ pattern }: { pattern: MechPattern }) {
   const [renaming, setRenaming] = useState(false)
+  const [describing, setDescribing] = useState(false)
+  const { confirm, dialog } = useConfirm()
+  const navigate = useNavigate()
   const [editing, setEditing] = useState<Part | null>(null)
   // The shelf's copy, live under the picker; the page's own until it arrives.
   const own = usePatterns((s) => s.mechPatterns.find((p) => p.id === pattern.id)) ?? pattern
@@ -72,11 +80,36 @@ export function PatternEditControls({ pattern }: { pattern: MechPattern }) {
       <Button className="su-page-action" onClick={() => setRenaming(true)}>
         {mechCopy('rename')}
       </Button>
+      <Button className="su-page-action" onClick={() => setDescribing(true)}>
+        {mechCopy('editDescription')}
+      </Button>
       {(['systems', 'modules'] as const).map((part) => (
         <Button key={part} className="su-page-action" onClick={() => setEditing(part)}>
           {COPY[part].act}
         </Button>
       ))}
+      <Button
+        className="su-page-action"
+        onClick={() =>
+          confirm({
+            ...deletePatternCopy(own),
+            onConfirm: async () => {
+              await deletePattern(own.id)
+              void navigate({ to: '/patterns' })
+            },
+          })
+        }
+      >
+        {mechCopy('delete')}
+      </Button>
+      {dialog}
+      <PatternDescriptionDialog
+        open={describing}
+        onClose={() => setDescribing(false)}
+        name={own.name}
+        description={own.notes ?? ''}
+        save={(notes) => patchPattern(own.id, { notes: notes || undefined })}
+      />
       <RenameDialog
         subject={
           renaming

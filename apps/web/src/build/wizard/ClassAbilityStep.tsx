@@ -56,7 +56,7 @@ type ClassAbilityStepProps = {
  * their trees the column that tells them apart; the pick's Level-1 abilities
  * are the second, a line each: its tree, its timing, its range, what it does
  * and its AP, exactly one picked (radio). The picked class stands beside the
- * lists as its contentful card, and the picked ability under its list (under
+ * lists as its contentful card, and the picked ability over it there (under
  * its line on a phone) as its own: its rules only, no lead and no flavour. An
  * option an ability asks (Bionic Senses' optics) is made on the pilot's
  * sheet: a pilot keeps no choice of an ability's yet, so the step asks none.
@@ -137,14 +137,6 @@ export function ClassAbilityStep({
                   }
                 : {})}
             />
-            {/* The picked ability's own rules under its list from lg (under
-                its line on a phone, `detail`), so the class's card beside the
-                lists has no bare column under them. */}
-            {pickedAbility && (
-              <div className="su-wiz-compare-detail--desk su-wiz-pick-under">
-                {abilityCard(pickedAbility)}
-              </div>
-            )}
             {legalPool.length === 0 && (
               <EmptyState
                 headline={buildWizardCopy('noAbilities')}
@@ -154,7 +146,10 @@ export function ClassAbilityStep({
           </div>
         )}
       </div>
-      <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky su-wiz-compare-detail--scroll">
+      {/* In the page's flow, never a column that scrolls in itself: with the
+          picked ability over the class its foot sat under the fold of its own
+          scroller, where no page scroll reached it (K14). */}
+      <div className="su-wiz-compare-detail">
         {selectedClass === undefined ? (
           <EmptyState
             variant="quiet"
@@ -162,11 +157,19 @@ export function ClassAbilityStep({
             bodyInk="inherit"
           />
         ) : (
-          <ReferenceEntityCard
-            data={selectedClass as RefClass}
-            size="compact"
-            hide={{ actions: true, choices: true }}
-          />
+          <>
+            {/* The picked ability's own rules lead the panel from lg (r4 E8:
+                under the list they sat below the fold); on a phone they open
+                under its line (`detail`). */}
+            {pickedAbility && (
+              <div className="su-wiz-compare-detail--desk">{abilityCard(pickedAbility)}</div>
+            )}
+            <ReferenceEntityCard
+              data={selectedClass as RefClass}
+              size="compact"
+              hide={{ actions: true, choices: true }}
+            />
+          </>
         )}
       </div>
     </div>

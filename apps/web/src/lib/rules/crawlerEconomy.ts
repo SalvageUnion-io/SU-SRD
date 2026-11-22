@@ -147,6 +147,20 @@ export type UpkeepPayment = {
   short: number
 }
 
+/**
+ * The Upkeep a crawler owes each Downtime, with its working where its type
+ * takes some off (Engineering, p.216): `{ owed: 3, base: 5, less: 2 }`. The
+ * sheet's tile and Pay Upkeep both read `owed`, so they agree (r4 A8).
+ */
+export function upkeepOwed(
+  crawlerTl: number,
+  typeRef?: string
+): { owed: number; base: number; less: number } {
+  const base = crawlerUpkeepCost(crawlerTl)
+  const owed = crawlerUpkeepCost(crawlerTl, typeRef)
+  return { owed, base, less: base - owed }
+}
+
 /** How much scrap the pool is short of this Downtime's Upkeep (0 = covered). */
 export function upkeepShortfall(pool: ScrapPool, crawlerTl: number, typeRef?: string): number {
   return poolShortfall(pool, crawlerTl, crawlerUpkeepCost(crawlerTl, typeRef))

@@ -13,6 +13,10 @@ export const PARAM_TREE = 'tree'
 export const PARAM_NAME = 'q'
 /** A trait every listed entity carries: `?trait=Hot`. */
 export const PARAM_TRAIT = 'trait'
+/** A range band a listed entity reaches, its action type, and weapons only: `?range=Long&action=Turn&weapons=1`. */
+export const PARAM_RANGE = 'range'
+export const PARAM_ACTION = 'action'
+export const PARAM_WEAPONS = 'weapons'
 /** The List's sort: `?sort=sp` up by that column, `?sort=-sp` down. */
 export const PARAM_SORT = 'sort'
 /** The stat columns a phone's List shows, where the reader chose them: `?cols=range,damage`. */
@@ -27,6 +31,9 @@ export const LISTING_PARAMS: readonly string[] = [
   PARAM_TREE,
   PARAM_NAME,
   PARAM_TRAIT,
+  PARAM_RANGE,
+  PARAM_ACTION,
+  PARAM_WEAPONS,
   PARAM_SORT,
   PARAM_COLUMNS,
   PARAM_VIEW,

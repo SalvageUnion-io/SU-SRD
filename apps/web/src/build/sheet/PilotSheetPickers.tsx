@@ -67,12 +67,16 @@ export function PilotSheetPickers({
             const price = abilityTrainingCost(slug)
             if (price === null) return undefined
             const left = pilot.trainingPoints ?? 0
+            const unmet = abilityRequirementsUnmet(pilot, slug)
             return {
               label: buildSheetCopy('costsTp', { cost: price, left }),
               payLabel: buildSheetCopy('spendTpAndAdd', { cost: price }),
               canPay: left >= price,
               onPay: () => actions.trainAbility(slug),
-              unmet: abilityRequirementsUnmet(pilot, slug),
+              unmet,
+              // Out of order or unaffordable: the plain add says so first (r4 E12).
+              breaks: unmet.length > 0 || price > left,
+              row: { label: buildSheetCopy('tp'), value: price },
             }
           }}
           filter={
@@ -85,6 +89,8 @@ export function PilotSheetPickers({
           }}
           railName={pilot.name}
           chosenLabel={buildSheetCopy('learned')}
+          // The balance each cost is weighed against, in the list's own pane (r4 E12).
+          budget={{ label: buildSheetCopy('trainingPointsLeft'), used: pilot.trainingPoints ?? 0 }}
           emptyMessage={buildSheetCopy('noAbilitiesMatchThoseFilters')}
         />
       </SheetPickerModal>

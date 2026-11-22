@@ -130,7 +130,7 @@ export function MechWizard({
   // The step machine + the create submit, shared with the pilot, crawler and
   // NPC wizards (`useWizardFlow`); the mech's create input is a plain projection
   // of the form.
-  const { step, gate, submitError, shell } = useWizardFlow({
+  const { step, gate, submitError, shell, askSignIn } = useWizardFlow({
     entityType: 'mech',
     noun: 'mech',
     steps: STEPS,
@@ -481,6 +481,7 @@ export function MechWizard({
         <MechReviewStep
           form={form}
           submitError={submitError}
+          askSignIn={askSignIn}
           leftoverScrap={leftoverScrapSplit(form, budget.remaining)}
           capacity={capacity}
           namePart={part(

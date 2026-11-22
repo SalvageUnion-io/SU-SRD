@@ -285,9 +285,15 @@ describe('the Crew (play.md §7)', () => {
   test('Up now: the Mediator’s marker names the crewmate, or says it is you', async () => {
     answers({ 'scenes.current': { conditions: [], hours: 0, upNow: 'mags' } })
     await renderSide()
-    expect(screen.getByText('Up now · Mags')).toBeTruthy()
+    // Said, never drawn above the first card (r4 B3): the mark is on Mags's own card.
+    expect(screen.getByText('Up now · Mags').className).toBe('su-sr-only')
     const crew = within(screen.getByRole('list', { name: 'Crew' }))
-    expect(crew.getByText('Up now')).toBeTruthy()
+    expect(
+      within(crew.getByRole('button', { name: /^Mags, / }).closest('li') as HTMLElement).getByText(
+        'Up now'
+      )
+    ).toBeTruthy()
+    expect(crew.getAllByText('Up now')).toHaveLength(1)
     expect(
       crew.getByRole('button', {
         name: 'Mags, here, Boarded · Atlas, SP 22, fine, HP 10/10, AP 5/5, SP 22/26, EP 6/6, Heat 0/9, Up now. Open their sheet',
@@ -437,7 +443,7 @@ describe('Discord (play.md §9)', () => {
     expect(postRoll).toHaveBeenCalledTimes(1)
   })
 
-  test('nothing bound: the Tables say rolls stay in Play; nothing is sent', async () => {
+  test('nothing bound: the Tables say rolls stay at the table; nothing is sent', async () => {
     answers({ 'channelBindings.current': null })
     await renderSide()
     // A player cannot bind a Game's channel: told who can, offered no control.
@@ -456,7 +462,7 @@ describe('Discord (play.md §9)', () => {
   test('nothing bound, the Mediator’s: the row sets one up, with the bot’s link and the command', async () => {
     answers({ 'channelBindings.current': null })
     await renderSide({ mediator: true })
-    expect(screen.getByText('None bound: rolls stay in Play')).toBeTruthy()
+    expect(screen.getByText('None bound: rolls stay at the table')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Set up a Discord channel' }))
     const dialog = within(await screen.findByRole('dialog'))
     expect(

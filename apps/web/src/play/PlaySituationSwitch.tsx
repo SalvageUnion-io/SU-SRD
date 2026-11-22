@@ -31,7 +31,6 @@ const ROW = {
   gap: tokens.space[8],
 } satisfies CSSProperties
 
-/** Below `lg`, pinned: the options share the screen's width (`fill`). */
 const LABEL = {
   color: 'inherit',
   fontFamily: tokens.font.cond,
@@ -50,7 +49,18 @@ const GLYPH = {
 const SET_BY_MEDIATOR = playCopy('setByTheMediator')
 const SET_BY_MEDIATOR_PHRASE = playCopy('setByTheMediatorPhrase')
 
-export function PlaySituationSwitch({ play }: { play: Play }) {
+/** Pinned below `lg`: the options share the screen's width. */
+const FILL_ROW = { ...ROW, width: '100%' } satisfies CSSProperties
+const GROW = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
+
+export function PlaySituationSwitch({
+  play,
+  fill = false,
+}: {
+  play: Play
+  /** Pinned below `lg` (Downtime on a phone, r4 A10): no leading label, the options share the row. */
+  fill?: boolean
+}) {
   const { go, dialogs } = useSituationMoves(play)
   const { situation, mechs, canWrite, canChangeDowntime } = play
   const { downtime, locked } = play.downtime
@@ -60,11 +70,18 @@ export function PlaySituationSwitch({ play }: { play: Play }) {
   const boarded = situation === 'boarded'
 
   return (
-    <div style={ROW}>
-      <span style={LABEL} aria-hidden="true">
-        {playCopy('situation')}
-      </span>
-      <Segmented label={playCopy('situation')} size="compact">
+    <div style={fill ? FILL_ROW : ROW}>
+      {!fill && (
+        <span style={LABEL} aria-hidden="true">
+          {playCopy('situation')}
+        </span>
+      )}
+      <Segmented
+        label={playCopy('situation')}
+        size="compact"
+        fill={fill}
+        style={fill ? GROW : undefined}
+      >
         <SegmentedOption
           pressed={situation === 'onFoot'}
           disabled={!canWrite}

@@ -41,12 +41,28 @@ export type GameRead = {
    * Deleting the Game can take the untouched ones with it (MD2-02).
    */
   templateUnits?: { came: number; untouched: number }
+  /**
+   * The pilots and mechs a template Game came with that are still here, by
+   * id: the Game's own, which stay when the member holding one goes (LG4-03)
+   * and which its Organiser can take off the roster while unassigned (LG4-20).
+   */
+  templateUnitIds?: string[]
 }
 
 /** What a profile shows on a roster, as the member's account room last sent it. */
 export type Profile = { displayName: string | null; avatarUrl: string | null }
 
 const DAY_MS = 24 * 60 * 60_000
+
+/**
+ * A unit a template Game came with: `seedTemplate` stamps the Game and each
+ * of its units with one time, and a unit that arrives later is stamped anew.
+ */
+const cameWithGame = (game: GameRow, unit: UnitRow) =>
+  game.templateOrigin !== null && unit.createdAt === game.createdAt
+
+/** The `change_log` row that says a unit was taken off the roster (`shelving`). */
+const shelfKey = (unitId: string) => `shelved:${unitId}`
 
 /** Nobody was handed it and nothing was applied to it: as the template left it. */
 const untouched = (unit: UnitRow) => unit.ownerId === null && unit.headSeq === 0
@@ -145,7 +161,15 @@ export class GameRoster {
       crawlerName: primary === null ? null : unitName(primary),
       primaryCrawlerId: primary?.id ?? null,
       sessionDays: this.sessionDays(new Date(at - DAY_MS).toISOString().slice(0, 10)),
-      ...(game.templateOrigin === null ? {} : { templateUnits: this.templateUnits(game) }),
+      ...(game.templateOrigin === null
+        ? {}
+        : {
+            templateUnits: this.templateUnits(game),
+            templateUnitIds: this.store
+              .units()
+              .filter((unit) => unit.kind !== 'crawler' && cameWithGame(game, unit))
+              .map((unit) => unit.id),
+          }),
     }
   }
 
@@ -156,7 +180,7 @@ export class GameRoster {
    * assignment or an edit each move its head on.
    */
   private templateUnits(game: GameRow): { came: number; untouched: number } {
-    const came = this.store.units().filter((unit) => unit.createdAt === game.createdAt)
+    const came = this.store.units().filter((unit) => cameWithGame(game, unit))
     return { came: came.length, untouched: came.filter(untouched).length }
   }
 
@@ -190,22 +214,127 @@ export class GameRoster {
    * Who may take `userId` out of the Game, and what leaves with them: a
    * member leaves on their own word, the Organiser removes anyone else, and
    * the Organiser stays (the Game is theirs to delete). Answers the ids of the
-   * member's own pilots and mechs, which go back to their Training Bay before
-   * they are forgotten (`forgetMember`); never deleted (ADR-007).
+   * pilots and mechs the member brought, which go back to their Training Bay
+   * before they are forgotten (`forgetMember`); never deleted (ADR-007).
+   *
+   * A pilot or mech the Game came with is the Game's own (LG4-03): it is
+   * unassigned here and stays on the roster for the next player, with every
+   * change made to it.
    */
-  leaving(actor: string, userId: string): string[] {
-    this.store.requireGame()
-    if (this.store.member(actor) === null) throw new RoomRefusal('Not a member of this Game')
-    const target = this.store.member(userId)
-    if (target === null) throw new RoomRefusal('That user is not a member of this Game')
-    if (actor !== userId) this.store.requireOrganizer(actor)
-    if (target.organizer) {
-      throw new RoomRefusal('The Organiser cannot leave their own Game: delete it instead')
+  leaving(actor: string, userId: string, at: number): string[] {
+    return this.store.sql.transaction(() => {
+      const game = this.store.requireGame()
+      if (this.store.member(actor) === null) throw new RoomRefusal('Not a member of this Game')
+      const target = this.store.member(userId)
+      if (target === null) throw new RoomRefusal('That user is not a member of this Game')
+      if (actor !== userId) this.store.requireOrganizer(actor)
+      if (target.organizer) {
+        throw new RoomRefusal('The Organiser cannot leave their own Game: delete it instead')
+      }
+      const held = this.store
+        .units()
+        .filter((unit) => unit.ownerId === userId && unit.kind !== 'crawler')
+      for (const unit of held) {
+        if (cameWithGame(game, unit) && unit.leaseId === null) {
+          this.units.reassign(unit, null, actor, at)
+        }
+      }
+      // One already on its way out (a retried leave) finishes the trip it started.
+      return held
+        .filter((unit) => !cameWithGame(game, unit) || unit.leaseId !== null)
+        .map((unit) => unit.id)
+    })
+  }
+
+  /**
+   * Take an unused pre-generated pilot off the roster (LG4-20): the
+   * Organiser's, for a pilot the Game came with that nobody is assigned. It
+   * is assigned to the Organiser, its unassigned mech with it, and the ids
+   * answered are what the Worker then hands to their Training Bay; nothing
+   * is deleted (ADR-007).
+   */
+  shelving(actor: string, pilotId: string, at: number): string[] {
+    return this.store.sql.transaction(() => {
+      const game = this.store.requireGame()
+      this.store.requireOrganizer(actor)
+      const pilot = this.store.requireUnit(pilotId)
+      if (pilot.kind !== 'pilot' || !cameWithGame(game, pilot)) {
+        throw new RoomRefusal('Only a Pilot this Game came with can be taken off its roster')
+      }
+      if (pilot.ownerId !== null && pilot.ownerId !== actor) {
+        throw new RoomRefusal('That Pilot is assigned to a player: unassign it first')
+      }
+      this.units.assign(actor, pilotId, at)
+      const going = this.store
+        .units()
+        .filter(
+          (unit) =>
+            unit.id === pilotId ||
+            (unit.kind === 'mech' && unit.ownerId === actor && this.fliesIt(unit.id, pilotId))
+        )
+        .filter((unit) => cameWithGame(game, unit))
+        .map((unit) => unit.id)
+      // What left this way, so the Undo can bring back these and nothing else.
+      for (const id of going) {
+        this.store.rows(
+          `insert or replace into change_log (id, field, after, source, actor_id, ts)
+             values (?, 'shelved', null, 'roster', ?, ?)`,
+          shelfKey(id),
+          actor,
+          at
+        )
+      }
+      return going
+    })
+  }
+
+  /**
+   * The Undo of `shelving` may bring back only what `shelving` took off:
+   * any other unit of the Organiser's stays theirs, never the Game's own
+   * (ADR-007). Refuses the whole Undo over one id it did not take.
+   */
+  unshelving(actor: string, unitIds: readonly string[]): void {
+    this.store.requireOrganizer(actor)
+    if (unitIds.length === 0 || !unitIds.every((id) => this.wasShelved(id))) {
+      throw new RoomRefusal('Only what was taken off this roster can be put back')
     }
+  }
+
+  private wasShelved(unitId: string): boolean {
+    return (
+      this.store.rows(
+        "select 1 from change_log where id = ? and field = 'shelved'",
+        shelfKey(unitId)
+      ).length > 0
+    )
+  }
+
+  /**
+   * Undo of `shelving`, once the Worker has brought the units back in: each
+   * is the Game's own again, unassigned, as it was before it was taken off.
+   */
+  reshelved(actor: string, unitIds: readonly string[], at: number): void {
+    this.store.sql.transaction(() => {
+      const game = this.store.requireGame()
+      this.store.requireOrganizer(actor)
+      for (const id of unitIds) {
+        const unit = this.store.unit(id)
+        if (!this.wasShelved(id)) continue
+        this.store.rows("delete from change_log where id = ? and field = 'shelved'", shelfKey(id))
+        if (unit === null || unit.kind === 'crawler' || unit.ownerId !== actor) continue
+        this.units.reassign(unit, null, actor, at)
+        // Arriving stamped it anew: it is one the Game came with again.
+        this.store.rows('update units set created_at = ? where id = ?', game.createdAt, id)
+      }
+    })
+  }
+
+  private fliesIt(mechId: string, pilotId: string): boolean {
     return this.store
-      .units()
-      .filter((unit) => unit.ownerId === userId && unit.kind !== 'crawler')
-      .map((unit) => unit.id)
+      .links()
+      .some(
+        (link) => link.type === 'mech-to-pilot' && link.from.id === mechId && link.to.id === pilotId
+      )
   }
 
   members(actor: string): Member[] {
@@ -342,10 +471,7 @@ export class GameRoster {
         this.store.rows('update game set disbanding_at = ? where id = 1', at)
       }
       const dropped = (unit: UnitRow) =>
-        opts.dropTemplateUnits === true &&
-        game.templateOrigin !== null &&
-        unit.createdAt === game.createdAt &&
-        untouched(unit)
+        opts.dropTemplateUnits === true && cameWithGame(game, unit) && untouched(unit)
       const kept = this.store.units().filter((unit) => !dropped(unit))
       const deliveries = kept.map((unit) => {
         const to = unit.kind === 'crawler' ? actor : (unit.ownerId ?? actor)

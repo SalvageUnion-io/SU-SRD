@@ -35,19 +35,27 @@ export function PatternTotals({
   const chassis = patternChassis(unit)
   if (!chassis) return null
   const slots = loadoutSlots(unit)
-  const count = (label: string, used: number, max: number) => (
+  const count = (label: string, used: number, max: number, line: 'systems' | 'modules') => (
     <span style={COUNT}>
       <Stat size="mini" label={label} value={`${used}/${max}`} />
-      {!slots.asPrinted && used > max && <RuleBreakMark />}
+      {!slots.asPrinted?.[line] && used > max && <RuleBreakMark />}
     </span>
   )
   return (
     // biome-ignore lint/a11y/useSemanticElements: a labelled group of figures, not a form's fieldset
     <div role="group" aria-label={mechCopy('usesAndCosts')} style={ROW}>
       <Stat size="mini" label={mechCopy('bookChassis')} value={chassis.name} />
-      {count(mechCopy('systemSlots'), slots.systemSlotsUsed, slots.systemSlotsMax)}
-      {count(mechCopy('moduleSlots'), slots.moduleSlotsUsed, slots.moduleSlotsMax)}
-      <Stat size="mini" label={mechCopy('scrap')} value={mechScrap(unit).total} />
+      {count(mechCopy('systemSlots'), slots.systemSlotsUsed, slots.systemSlotsMax, 'systems')}
+      {count(mechCopy('moduleSlots'), slots.moduleSlotsUsed, slots.moduleSlotsMax, 'modules')}
+      {/* Scrap by Tech Level, as the sheet's tiles say it (r4 E11). */}
+      {mechScrap(unit).byTechLevel.map(({ techLevel, scrap }) => (
+        <Stat
+          key={techLevel}
+          size="mini"
+          label={mechCopy('tScrap', { tl: techLevel })}
+          value={scrap}
+        />
+      ))}
     </div>
   )
 }

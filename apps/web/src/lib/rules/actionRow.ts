@@ -40,11 +40,13 @@ export type ActionRowOptions = {
   techLevel?: number | undefined
   /** The row sits under its action type's heading, so its head leaves the type out. */
   grouped?: boolean
+  /** Play's live count: the Uses chip reads what is left of them ("4/5"), as the sheet's row does. */
+  uses?: { left: number; max: number } | null | undefined
 }
 
 export function actionRow(
   pa: PlayAction,
-  { techLevel, grouped = false }: ActionRowOptions = {}
+  { techLevel, grouped = false, uses }: ActionRowOptions = {}
 ): ActionRow {
   const selections = pa.choices?.selections
   const base = toEntityModel(
@@ -83,7 +85,13 @@ export function actionRow(
     model: {
       ...(grouped ? withoutType(base) : base),
       ...(source ? { ref: entityRef(source) } : {}),
-      traits: base.traits.filter((trait) => !SOURCE_TRAIT.test(trait.name)),
+      traits: base.traits
+        .filter((trait) => !SOURCE_TRAIT.test(trait.name))
+        .map((trait) =>
+          uses && trait.name.toLowerCase() === 'uses'
+            ? { ...trait, param: `${uses.left}/${uses.max}` }
+            : trait
+        ),
       prose: effect,
     },
     effect,

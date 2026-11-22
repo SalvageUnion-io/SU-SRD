@@ -77,11 +77,14 @@ export function FocusPane({
   const addLabel =
     mode === 'single'
       ? compositionsCopy('choose')
-      : chosen
-        ? compositionsCopy('addAnother')
-        : railName
-          ? compositionsCopy('addTo', { name: railName })
-          : compositionsCopy('add')
+      : cost?.breaks && !chosen
+        ? // Said before the press, never only in the toast after it (r4 E12).
+          compositionsCopy('addAnywayRuleBreaking')
+        : chosen
+          ? compositionsCopy('addAnother')
+          : railName
+            ? compositionsCopy('addTo', { name: railName })
+            : compositionsCopy('add')
   const canAdd = mode === 'count' || !chosen
 
   return (

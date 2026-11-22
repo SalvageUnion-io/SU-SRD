@@ -35,9 +35,11 @@ type IndexLedgerProps = {
    */
   order?: {
     sort: LedgerSort | undefined
-    sortBy: (key: string) => void
+    sortBy: (key: string, highFirst?: boolean) => void
     clear: () => void
   }
+  /** The items come A to Z, not in the book's order (a tree listing's List): the note says so. */
+  byName?: boolean
   /**
    * The columns a phone's row shows, where the reader chose them, and the
    * choice. With it the List offers its Columns control on a phone (RR-06).
@@ -55,15 +57,12 @@ export function IndexLedger({
   order,
   phone,
   orderNote = false,
+  byName = false,
 }: IndexLedgerProps) {
   const surface = useEntitySurface()
   // The listing's own order (the book's) until the reader sorts.
   const [ownSort, setOwnSort] = useState<LedgerSort | undefined>(undefined)
   const sort = order ? order.sort : ownSort
-  const sortBy =
-    order?.sortBy ??
-    ((key: string) =>
-      setOwnSort((now) => ({ key, descending: now?.key === key ? !now.descending : false })))
   const models = useMemo(
     () => items.map((item) => ({ item, model: toEntityModel(item as RefMetaEntity) })),
     [items]
@@ -112,10 +111,19 @@ export function IndexLedger({
         ? islandsCopy('techLevel')
         : (sortColumn?.title ?? sortColumn?.label))
   // Words sort by spelling, measures by size.
-  const measured =
-    sort?.key === SORT_TECH_LEVEL ||
-    sortColumn?.kind === 'figure' ||
-    ['range', 'damage'].includes(sort?.key ?? '')
+  const measures = (key: string | undefined) =>
+    key === SORT_TECH_LEVEL ||
+    columns.find((column) => column.key === key)?.kind === 'figure' ||
+    ['range', 'damage'].includes(key ?? '')
+  const measured = measures(sort?.key)
+  // A measure's first press is highest first: the biggest is nearly always the question.
+  const sortBy = (key: string) =>
+    order
+      ? order.sortBy(key, measures(key))
+      : setOwnSort((now) => ({
+          key,
+          descending: now?.key === key ? !now.descending : measures(key),
+        }))
   const sortedLine = (column: string) =>
     sort?.descending
       ? measured
@@ -142,7 +150,7 @@ export function IndexLedger({
             sortedLine(sorted)
           ) : (
             <span>
-              {islandsCopy('bookOrder')}{' '}
+              {islandsCopy(byName ? 'azOrder' : 'bookOrder')}{' '}
               {/* A phone's row with no column beside its name has none to press (RR2-17). */}
               <span className={onPhone.length === 0 ? 'su-listing__sort-hint' : undefined}>
                 {islandsCopy('sortHint')}
@@ -151,7 +159,7 @@ export function IndexLedger({
           )}
           {sort && order && (
             <Button variant="ghost" size="compact" onClick={order.clear}>
-              {islandsCopy('backToBookOrder')}
+              {islandsCopy(byName ? 'backToAzOrder' : 'backToBookOrder')}
             </Button>
           )}
         </p>

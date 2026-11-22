@@ -54,6 +54,7 @@ export function ReferenceAbilityTrack({
             mode={{ kind: 'link', href: abilityHref(ability) }}
             omit={OMIT_KIND}
             body={ABILITY_TEXT}
+            wholeName
           />
         ) : (
           <Entity

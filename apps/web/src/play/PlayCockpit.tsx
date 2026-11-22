@@ -17,7 +17,8 @@
  * From `lg` the Situation switch (`PlaySituationSwitch`) fills the bar's
  * `situation` slot; below it, the Situation and Table mode are rows of the
  * bar's ⋯ (`situationRows`) and the live vitals for the Situation are pinned
- * above every pane (`pinnedUnits`). In table mode (`useTableMode`)
+ * above every pane (`pinnedUnits`); in Downtime the switch is pinned under
+ * them too, with the numbers its steps restore (r4 A10). In table mode (`useTableMode`)
  * the panes give way to `PlayTableMode`, which draws those vitals itself at
  * the Full Size, and the screen stays awake (`useWakeLock`).
  *
@@ -44,9 +45,9 @@ import { mayBindChannel } from 'game-domain/games/discord'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { HeaderMenuItem } from '../components/index'
-import { HeaderMenu, tokens } from '../components/index'
+import { Button, HeaderMenu, tokens } from '../components/index'
 import { changeUndoToast } from '../lib/changeUndoToast'
 import { areaTitle } from '../lib/pageTitle'
 import { runWrite } from '../lib/runWrite'
@@ -75,6 +76,7 @@ import type { PlayerPane } from './playPanes.model'
 import { PLAYER_TABS, pinnedUnits, playerPanes, playerPhonePanes } from './playPanes.model'
 import { StopSignButton } from './StopSign'
 import { tableUnits } from './tableMode.model'
+import { useFeedMark } from './useFeedMark'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
 import { ShowSheetContext } from './useOpenSheet'
@@ -92,12 +94,23 @@ import { useStopSign } from './useStopSign'
 import { useTableMode } from './useTableMode'
 import { useWakeLock } from './useWakeLock'
 import { headedVital, vitalNow, vitalSettled } from './vitalWrites.model'
+import { onPlayTableAsked, zeroUnit, zeroVitalNotice } from './zeroVital.model'
 
 /** The Rules pane holds the Reference's own frame, edge to edge. */
 const RULES = { margin: `calc(-1 * ${tokens.space[8]})` } satisfies CSSProperties
 
 /** From `lg` the Reference closes the end column, under the Tables. */
 const RULES_PANE = { value: 'rules', label: playCopy('rules'), column: 'end' } as const
+
+/** The screen's first Tab stop: past the bar and the Units, onto the first action's Use (r4 A3). */
+const SKIP_TO_ACTIONS = {
+  pane: 'act',
+  label: playCopy('skipToActions'),
+  first: '[data-action-key] button:not([disabled])',
+} as const
+
+/** The Feed section's id (`PlayFeedSection`, `idPrefix` "play"): where the bar's mark jumps. */
+const FEED_ID = 'play-feed'
 
 /** The phases as the phone's band says them. */
 const PHASE_WORDS = {
@@ -154,7 +167,9 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     crawler: units.crawler?.crawler ?? null,
     boardedMech: play.boardedMech,
     activeEffects: play.seat.seat.activeEffects,
+    downtimeMech: units.mech?.mech ?? null,
   })
+  const inDowntime = play.situation === 'downtime'
   const pilotId = play.pilot?.id ?? null
   const mechId = play.boardedMech?.id ?? null
   const writeVital = (
@@ -189,10 +204,25 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
         to,
         // An amount more than there was says it was capped (r2 C6).
         ...(note === undefined ? {} : { did: note }),
-        undo: (value) =>
-          runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO)),
+        undo: (value) => {
+          runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO))
+          zeroVitalNotice(zeroUnit(useUnits.getState(), kind, id), field, to, value)
+        },
       })
+    // At 0 SP or 0 HP: what is due, on the Feed and with its table's button (r4 A5).
+    if (from !== undefined)
+      zeroVitalNotice(zeroUnit(useUnits.getState(), kind, id), field, from, to)
   }
+  // The button on that notice: the Rolls tab, where the table opens (`PlayTables`).
+  const closeSheet = onScreen.close
+  useEffect(
+    () =>
+      onPlayTableAsked(() => {
+        closeSheet()
+        setTab('tables')
+      }),
+    [closeSheet]
+  )
   const openTab = (next: PlayerPane) => {
     onScreen.close()
     setTab(next)
@@ -229,6 +259,18 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
       : pilotWord
   // A proposal awaiting this player's answer sits in the Feed, the Rolls tab's on a phone.
   const waiting = side.entries.some((entry) => entry.kind === 'proposal')
+  // Somebody else's line landed while the Feed was out of sight (r4 B7): the
+  // bar says so, and its press goes there (on a phone, by way of the Rolls tab).
+  const feedMark = useFeedMark(side.entries, FEED_ID)
+  const [toFeed, setToFeed] = useState(0)
+  useEffect(() => {
+    if (toFeed > 0) document.getElementById(FEED_ID)?.scrollIntoView({ block: 'start' })
+  }, [toFeed])
+  const jumpToFeed = () => {
+    feedMark.clear()
+    if (!wide) openTab('tables')
+    setToFeed((n) => n + 1)
+  }
 
   return (
     <ShowSheetContext.Provider value={onScreen.show}>
@@ -261,6 +303,19 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               readOnly={play.readOnly}
               situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
               channel={channel.button}
+              mark={
+                feedMark.shown ? (
+                  <Button
+                    surface="instrument"
+                    size="compact"
+                    aria-label={playCopy('newInTheFeed')}
+                    onClick={jumpToFeed}
+                  >
+                    {wide ? playCopy('newInTheFeed') : playCopy('feed')}
+                    {!wide && <span className="su-play-tab-dot" aria-hidden="true" />}
+                  </Button>
+                ) : undefined
+              }
               stop={<StopSignButton sign={sign} compact={!wide} />}
               menu={
                 <CockpitMenu
@@ -281,11 +336,15 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
         }
         pinned={
           table ? null : (
-            <PlayPinnedVitals
-              units={pinned}
-              live={{ pilot: units.live.pilot, mech: units.live.mech }}
-              onWrite={writeVital}
-            />
+            <>
+              <PlayPinnedVitals
+                units={pinned}
+                live={{ pilot: units.live.pilot, mech: units.live.mech }}
+                onWrite={writeVital}
+              />
+              {/* In Downtime the way out of it stays on screen, with the numbers (r4 A10). */}
+              {inDowntime && <PlaySituationSwitch play={play} fill />}
+            </>
           )
         }
         panes={(wide
@@ -295,6 +354,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
         tabs={PLAYER_TABS}
         tab={tab}
         onTab={openTab}
+        skip={SKIP_TO_ACTIONS}
         sheet={
           onScreen.shown ? (
             <PlaySheetPane
@@ -309,7 +369,8 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
         focus={
           table ? (
             <PlayTableMode
-              units={tableUnits(pinned)}
+              // Table mode tracks a fight: in Downtime the tabs hold the step.
+              units={tableUnits(inDowntime ? [] : pinned)}
               live={{ pilot: units.live.pilot, mech: units.live.mech }}
               onWrite={writeVital}
             />

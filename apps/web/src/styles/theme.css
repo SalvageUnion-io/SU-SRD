@@ -464,4 +464,15 @@
   [data-print='hide']:not(#\#) {
     display: none;
   }
+
+  /* The website around a page stays off its printout (r4 E9): the Union bar,
+     the footer, a band's buttons (Share, Build With This) and a listing's
+     view switch. A sortable column keeps its label: it is the table's head. */
+  .su-union-bar:not(#\#),
+  .su-footer:not(#\#),
+  .su-chapter-band__corner:not(#\#),
+  .su-chapter-band__action:not(#\#),
+  .su-chapter-band .su-seg:not(#\#) {
+    display: none;
+  }
 }

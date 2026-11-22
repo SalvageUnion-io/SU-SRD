@@ -499,14 +499,29 @@ describe('Use: the resolve, in the Compact', () => {
     }
   })
 
-  test('Apply is gated on a roll, commits without a store write, and Clear resets', async () => {
+  // r4 A3 (LG4-11): after Roll the focus sat on Push; after Apply it fell to the body.
+  test('keyboard: a roll puts the focus on Apply, and Apply hands it back to the row’s Use', async () => {
+    renderBoarded()
+    await click(use(primary().name))
+    const roll = screen.getByRole<HTMLButtonElement>('button', {
+      name: 'Roll the die on Core Mechanic',
+    })
+    roll.focus()
+    await click(roll)
+    const apply = screen.getByRole<HTMLButtonElement>('button', { name: 'Apply' })
+    expect(document.activeElement).toBe(apply)
+    await click(apply)
+    expect(document.activeElement).toBe(use(primary().name))
+  })
+
+  test('Apply is gated on a roll, the roll pays the cost once, and Start over keeps it paid', async () => {
     const { calls } = renderBoarded()
     await click(use(primary().name))
     const apply = () => screen.getByRole<HTMLButtonElement>('button', { name: 'Apply' })
     expect(apply().disabled).toBe(true)
     await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     expect(apply().disabled).toBe(false)
-    // Start over rolls again from Activate.
+    // Start over clears the roll; what the first roll paid stays paid (r4 A1).
     await click(screen.getByRole('button', { name: 'Start over' }))
     expect(document.querySelector('.su-roll [aria-current="true"]')).toBeNull()
     await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
@@ -515,7 +530,7 @@ describe('Use: the resolve, in the Compact', () => {
     const row = rowFor(primary().name)
     expect(row.getAttribute('data-open')).toBeNull()
     expect(row.getAttribute('data-done')).toBe('true')
-    expect(calls).toHaveLength(0)
+    expect(calls).toHaveLength(1)
   })
 
   test('the roll and Apply are spoken by a live region mounted before the roll', async () => {
@@ -643,7 +658,10 @@ describe('Use: the resolve, in the Compact', () => {
     // No Push on the stamp: it stays Roll the Die.
     expect(screen.queryByRole('button', { name: 'Push on Core Mechanic' })).toBeNull()
     expect(screen.getAllByText(/No Push at Heat/).length).toBeGreaterThan(0)
-    expect(calls).toHaveLength(0)
+    // The roll paid the action's own cost; the refused Push wrote no Heat.
+    expect(
+      calls.filter((c) => 'currentHeat' in c.patch && c.patch.currentHeat === cap + 1)
+    ).toEqual([])
   })
 
   test('EP or AP: choosing AP spends the pilot’s AP, from a full pool when never stored', async () => {

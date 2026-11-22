@@ -10,13 +10,15 @@ import {
 } from '../runtime/pageJump'
 
 /**
- * A long page's way back to search and its sections, on a phone: the header
- * scrolls away with the page, so a small button floats at the screen's lower
- * right and opens a sheet, "On this page", with search at its top and the
- * page's sections under it.
+ * A page's way back to search and its sections, on a phone: the header
+ * scrolls away with the page, so two small buttons float at the screen's lower
+ * right: the search glass, which opens search in one press, and beside it the
+ * contents, which opens a sheet, "On this page", with the page's sections
+ * (a page with none floats the glass alone). The page's foot leaves them
+ * room (`pages.css`), so its last lines scroll clear of them.
  *
- * Served hidden, as static HTML. The page's script (`watchPageJump`) shows the
- * button once a long page has scrolled past its header and lists the sections
+ * Served hidden, as static HTML. The page's script (`watchPageJump`) shows
+ * them once a page has scrolled past its header and lists the sections
  * it finds; the sheet itself is the browser's popover, so it opens, closes on
  * a press outside or Escape, and holds the top layer with no script at all.
  * At `sm` and up the header's own field is a scroll away and the sections
@@ -25,10 +27,24 @@ import {
 export function PageJump() {
   return (
     <div className="su-page-jump" {...{ [PAGE_JUMP_ATTRIBUTE]: '' }} hidden>
+      {/* The glass, one press from search wherever the page has scrolled to;
+          without the script it opens the Reference's Contents, as the
+          sheet's own Search does. */}
+      <Button
+        href="/reference/"
+        linkAs="a"
+        variant="default"
+        size="iconOnly"
+        className="su-page-jump__open su-page-jump__glass"
+        aria-label={componentsCopy('searchTheReference')}
+        data-search-open=""
+      >
+        <Search aria-hidden="true" size={iconSize.full} />
+      </Button>
       <Button
         variant="default"
         size="iconOnly"
-        className="su-page-jump__open"
+        className="su-page-jump__open su-page-jump__contents"
         aria-label={componentsCopy('onThisPage')}
         popoverTarget={PAGE_JUMP_SHEET_ID}
       >

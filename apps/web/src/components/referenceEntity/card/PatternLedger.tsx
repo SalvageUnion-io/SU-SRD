@@ -176,19 +176,15 @@ export function PatternLedger({
           />
         ) : undefined,
         cells: [changesOf(pattern), ...(titans ? [] : figuresOf(model.title, pattern))],
+        // A total the book prints over its limit is the book's own: the note
+        // sits on the row it describes (r4 E16), since the figure wears no
+        // mark (R71) and a note at the list's foot belonged to no row.
+        ...(printedOver(model.title, pattern)
+          ? {
+              under: `${referenceEntityCopy('overItsLimit')} ${referenceEntityCopy('asPrintedInTheBook')}`,
+            }
+          : {}),
       }))}
-      // A total the book prints over its limit is the book's own: the list's
-      // one note says so (L6), since the figure wears no mark (R71).
-      {...(patterns.some((pattern) => printedOver(model.title, pattern))
-        ? {
-            footMeta: [
-              {
-                label: referenceEntityCopy('overItsLimit'),
-                value: referenceEntityCopy('asPrintedInTheBook'),
-              },
-            ],
-          }
-        : {})}
     />
   )
 }

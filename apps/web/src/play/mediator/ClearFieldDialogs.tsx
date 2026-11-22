@@ -56,23 +56,28 @@ export function ClearFieldDialog({
 }
 
 /**
- * "End <encounter>?": asked only while the tray holds something, so the
- * Mediator can clear the field with it. Leaving the Opposition is the default.
+ * "End <encounter>?": asked only while the tray holds something or the Scene
+ * is under a condition, so the Mediator can clear the field, the conditions
+ * or both with it (r4 A11). Leaving each as it is is the default.
  */
 export function EndEncounterDialog({
   name,
   onClose,
   onTray,
+  scene = '',
   onEnd,
 }: {
   /** The running encounter's name; null shuts the dialog. */
   name: string | null
   onClose: () => void
   onTray: number
-  onEnd: (clear: boolean) => Promise<unknown>
+  /** The Scene conditions that are on, by name ("Radiation Storm, Freezing"); empty with none. */
+  scene?: string
+  onEnd: (clear: boolean, clearScene: boolean) => Promise<unknown>
 }) {
   const id = useId()
   const [clear, setClear] = useState(false)
+  const [clearScene, setClearScene] = useState(false)
   return (
     <ConfirmDialog
       open={name !== null}
@@ -84,29 +89,51 @@ export function EndEncounterDialog({
       body={
         <>
           <span>{mediatorCopy('endLede')}</span>
-          <fieldset style={FIELDSET}>
-            <legend className={LEGEND_CAPS} style={LEGEND}>
-              {mediatorCopy('theOppositionOnTheField')}
-            </legend>
-            <Radio
-              name={`${id}-field`}
-              checked={!clear}
-              onChange={() => setClear(false)}
-              label={mediatorCopy('leaveItOnTheField')}
-            />
-            <Radio
-              name={`${id}-field`}
-              checked={clear}
-              onChange={() => setClear(true)}
-              label={mediatorCopy('clearTheFieldToo', { count: fieldCount(onTray) })}
-            />
-          </fieldset>
+          {scene !== '' && (
+            <fieldset style={FIELDSET}>
+              <legend className={LEGEND_CAPS} style={LEGEND}>
+                {mediatorCopy('theSceneConditions')}
+              </legend>
+              <Radio
+                name={`${id}-scene`}
+                checked={!clearScene}
+                onChange={() => setClearScene(false)}
+                label={mediatorCopy('keepTheScene', { scene })}
+              />
+              <Radio
+                name={`${id}-scene`}
+                checked={clearScene}
+                onChange={() => setClearScene(true)}
+                label={mediatorCopy('clearTheScene', { scene })}
+              />
+            </fieldset>
+          )}
+          {onTray > 0 && (
+            <fieldset style={FIELDSET}>
+              <legend className={LEGEND_CAPS} style={LEGEND}>
+                {mediatorCopy('theOppositionOnTheField')}
+              </legend>
+              <Radio
+                name={`${id}-field`}
+                checked={!clear}
+                onChange={() => setClear(false)}
+                label={mediatorCopy('leaveItOnTheField')}
+              />
+              <Radio
+                name={`${id}-field`}
+                checked={clear}
+                onChange={() => setClear(true)}
+                label={mediatorCopy('clearTheFieldToo', { count: fieldCount(onTray) })}
+              />
+            </fieldset>
+          )}
         </>
       }
       confirmLabel={mediatorCopy('end')}
       onConfirm={async () => {
-        await onEnd(clear)
+        await onEnd(clear, clearScene)
         setClear(false)
+        setClearScene(false)
       }}
     />
   )

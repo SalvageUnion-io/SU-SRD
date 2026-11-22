@@ -156,6 +156,11 @@ button.su-play-dt-track__step:disabled {
   color: var(--color-ink-75);
 }
 
+/* Skipped (r4 A6) keeps a step-to-do's paper ground: it is not done. */
+.su-play-dt-track [data-state='skipped'] .su-play-dt-track__step {
+  color: var(--color-ink-75);
+}
+
 .su-play-dt-track [data-state='now'] .su-play-dt-track__step {
   background: var(--color-ink);
   color: var(--color-paper);

@@ -235,6 +235,133 @@ describe('the Game room Durable Object', () => {
     })
   })
 
+  /** A Game from the Starter Set template, a player joined; its pre-gens arrive unassigned. */
+  async function fromTemplate(gameId: string) {
+    const { game, store } = room(gameId)
+    game.act(ORGANIZER, 'createFromTemplate', {
+      templateId: 'starter-set',
+      profile: profile('Org'),
+    })
+    const code = game.act(ORGANIZER, 'inviteCode', undefined as never)
+    if (!code.ok) throw new Error(code.refusal)
+    game.act(PLAYER, 'redeem', { code: code.value, profile: profile('Player') })
+    const read = () => {
+      const answer = game.act(ORGANIZER, 'read', undefined as never)
+      if (!answer.ok || answer.value === null) throw new Error('no Game')
+      return answer.value
+    }
+    /** Every pilot and mech in the room: its id, kind and holder. */
+    const units = () =>
+      (
+        store.sql
+          .exec("select id, kind, owner_id from units where kind != 'crawler'")
+          .toArray() as {
+          id: string
+          kind: string
+          owner_id: string | null
+        }[]
+      ).sort((a, b) => a.id.localeCompare(b.id))
+    const pilots = units()
+      .filter((unit) => unit.kind === 'pilot')
+      .map((unit) => unit.id)
+    return { game, read, units, pilots }
+  }
+
+  // LG4-03: removing a player took the Game's own pre-generated Pilot and Mech with them.
+  test('removing a player leaves the Game’s own Pilots here, unassigned; what they brought goes home', async () => {
+    shelves.clear()
+    const { game, read, units, pilots } = await fromTemplate('g-pregen')
+    const pregen = pilots[0] as string
+    const before = units()
+    expect(read().templateUnitIds?.slice().sort()).toEqual(before.map((unit) => unit.id))
+    expect(game.act(ORGANIZER, 'assign', { unitId: pregen, userId: PLAYER }).ok).toBe(true)
+    // The mech it came with was handed out with it.
+    expect(
+      units()
+        .filter((unit) => unit.owner_id === PLAYER)
+        .map((unit) => unit.kind)
+        .sort()
+    ).toEqual(['mech', 'pilot'])
+    const own = pilotFixture({ id: 'p-own', name: 'Own', callsign: 'OWN', classRef: 'salvager' })
+    game.act(PLAYER, 'createUnit', { id: 'p-own', kind: 'pilot', body: own })
+
+    expect(await game.dismiss(ORGANIZER, PLAYER)).toEqual({ ok: true, value: null })
+    // Only what they brought went to their Training Bay.
+    expect(shelves.get(PLAYER)?.parcels.map((p) => p.unit.id)).toEqual(['p-own'])
+    // The Game's own are all still here, and nobody holds them.
+    expect(units()).toEqual(before)
+    expect(units().every((unit) => unit.owner_id === null)).toBe(true)
+    expect(read().templateUnitIds?.slice().sort()).toEqual(before.map((unit) => unit.id))
+  })
+
+  test('a player who leaves on their own leaves the Game’s Pilots too', async () => {
+    shelves.clear()
+    const { game, units, pilots } = await fromTemplate('g-pregen-leave')
+    const before = units()
+    expect(game.act(PLAYER, 'assign', { unitId: pilots[0] as string }).ok).toBe(true)
+    expect(await game.dismiss(PLAYER, PLAYER)).toEqual({ ok: true, value: null })
+    expect(shelves.get(PLAYER)?.parcels ?? []).toEqual([])
+    expect(units()).toEqual(before)
+  })
+
+  // LG4-20: spare pre-gens stayed in the crew list and in the seats for good.
+  test('the Organiser takes an unused pre-gen and its mech off the roster, to their Training Bay', async () => {
+    shelves.clear()
+    const { game, read, units, pilots } = await fromTemplate('g-shelve')
+    const [spare, taken] = pilots as [string, string]
+    const before = read()
+    const kind = new Map(units().map((unit) => [unit.id, unit.kind]))
+    // Not a player's to do, and not one a player holds.
+    expect(await game.shelve(PLAYER, spare)).toMatchObject({ ok: false })
+    expect(game.act(ORGANIZER, 'assign', { unitId: taken, userId: PLAYER }).ok).toBe(true)
+    expect(await game.shelve(ORGANIZER, taken)).toEqual({
+      ok: false,
+      refusal: 'That Pilot is assigned to a player: unassign it first',
+    })
+
+    const went = await game.shelve(ORGANIZER, spare)
+    if (!went.ok) throw new Error(went.refusal)
+    expect(went.value.map((id) => kind.get(id)).sort()).toEqual(['mech', 'pilot'])
+    const parcels = shelves.get(ORGANIZER)?.parcels ?? []
+    expect(parcels.map((p) => p.unit.id).sort()).toEqual([...went.value].sort())
+    // Both arrive the Organiser's, still assigned to each other.
+    for (const parcel of parcels) {
+      expect(parcel.unit.ownerId).toBe(ORGANIZER)
+      expect(parcel.links.filter((l) => l.type === 'mech-to-pilot')).toHaveLength(1)
+    }
+    // Seats count only the Pilots still on the roster.
+    expect(read().pilotCount).toBe(before.pilotCount - 1)
+    expect(read().mechCount).toBe(before.mechCount - 1)
+    expect(units().some((unit) => went.value.includes(unit.id))).toBe(false)
+  })
+
+  test('Undo puts back only what was taken off this roster, never another unit by id', async () => {
+    shelves.clear()
+    const { game, units, pilots } = await fromTemplate('g-unshelve')
+    const [spare] = pilots as [string]
+    const before = units().map((unit) => unit.id)
+    const refusal = 'Only what was taken off this roster can be put back'
+    // Nothing was taken yet: no id is one the Undo may bring in.
+    expect(await game.unshelve(ORGANIZER, ['somebody-elses-pilot'])).toEqual({ ok: false, refusal })
+    const went = await game.shelve(ORGANIZER, spare)
+    if (!went.ok) throw new Error(went.refusal)
+    // One id it did not take refuses the whole Undo, and nothing moves in.
+    expect(await game.unshelve(ORGANIZER, [...went.value, 'somebody-elses-pilot'])).toEqual({
+      ok: false,
+      refusal,
+    })
+    expect(await game.unshelve(PLAYER, went.value)).toMatchObject({ ok: false })
+    expect(units().map((unit) => unit.id)).toEqual(before.filter((id) => !went.value.includes(id)))
+  })
+
+  test('a Pilot the Game did not come with is never taken off this way', async () => {
+    const { game } = await seeded('g-shelve-own')
+    expect(await game.shelve(ORGANIZER, 'p1')).toEqual({
+      ok: false,
+      refusal: 'Only a Pilot this Game came with can be taken off its roster',
+    })
+  })
+
   test('a Game whose last member leaves is wiped', async () => {
     const { game } = await seeded('g-forget')
     await game.forget(PLAYER)

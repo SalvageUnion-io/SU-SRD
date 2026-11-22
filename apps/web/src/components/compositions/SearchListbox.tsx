@@ -37,6 +37,8 @@ type SearchListboxProps = {
   style?: CSSProperties
   /** Under the empty line, the host's next step: a "Did you mean", or the ways on. */
   none?: ReactNode
+  /** "Show more" (`kind: 'more'`) pressed: the combobox's `submit`. Always an act, never a link. */
+  onMore?: (result: SearchComboboxResult) => void
 } & (
   | {
       /** In a dropdown hung under a field (the Union bar's): the entity results are a Ledger, each a link. */
@@ -126,9 +128,17 @@ export function SearchListbox({
   modelOf,
   style,
   none,
+  onMore,
   ...form
 }: SearchListboxProps) {
   const { target } = form
+  /** What a line does: "Show more" lengthens the list; another follows `target`. */
+  const actOf = (result: SearchComboboxResult) =>
+    result.kind === 'more'
+      ? () => onMore?.(result)
+      : 'open' in target
+        ? () => target.open(result)
+        : undefined
   const option = (index: number) =>
     ({
       id: optionId(index),
@@ -144,7 +154,8 @@ export function SearchListbox({
         <div style={CATEGORY_GROUP}>{result.group}</div>
       </>
     )
-    return 'href' in target ? (
+    const act = actOf(result)
+    return 'href' in target && !act ? (
       <a
         key={result.id}
         {...option(index)}
@@ -162,8 +173,8 @@ export function SearchListbox({
         tabIndex={-1}
         className="su-search__category"
         style={CATEGORY_ACT}
-        onClick={() => target.open(result)}
-        onKeyDown={activateOnKey(() => target.open(result))}
+        onClick={act}
+        onKeyDown={act && activateOnKey(act)}
       >
         {body}
       </div>
@@ -189,7 +200,7 @@ export function SearchListbox({
     <div id={id} role="listbox" aria-label={label} style={style}>
       {!ready ? (
         <div style={STATUS}>
-          <Pending label={compositionsCopy('searchIndex')} />
+          <Pending searching />
         </div>
       ) : results.length === 0 ? (
         <div style={none ? STATUS_NEXT : STATUS}>
@@ -255,9 +266,8 @@ function SearchLedger({
 }) {
   const rows = run.flatMap(({ result, index }) => {
     const model = modelOf(result)
-    if (!model) return []
-    const kind =
-      result.kind === 'entity' && result.page ? result.page.kind : schemaLabel(result.schemaId)
+    if (!model || result.kind !== 'entity') return []
+    const kind = result.page ? result.page.kind : schemaLabel(result.schemaId)
     return [
       {
         id: result.id,

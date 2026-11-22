@@ -74,6 +74,15 @@ reader.
   each unit that member assigned is handed back to its owner's Training Bay
   through the same handoff a withdrawal uses, then the membership ends.
   Nothing is deleted. The Organiser cannot leave their own Game.
+  **The Game's own stay** (amended 2026-11-22, fourth persona review). A pilot
+  or mech a template Game came with (stamped with the Game's own creation
+  time, as `templateUnits` already reads them) is the Game's, not the member's
+  who was assigned it: on leaving or removal it is unassigned and stays on the
+  roster, with every change made to it; only what the member brought goes
+  home. `games.get` names them (`templateUnitIds`, read from what is stored),
+  and the dialog lists which is which. The Organiser can take an unassigned
+  one, with the mech it came with, off the roster to their own Training Bay
+  (`games.takeOffRoster`, undone by `games.putBack`): a move, never a delete.
 - **Prep.** `/games/<gameId>/prep`, for the table runner: the Game's
   encounters in order, the NPCs moved to the Game, and the plan (§4). An
   encounter gains `gameId` and `order`. `gameId` is the owner's label on their
@@ -91,6 +100,8 @@ Scene    { id, title, note?, encounterId? }
 ```
 
 Layer 1 builds the notes and the dated session list with a private note each.
+The page calls the list **Session plans** (glossary 10): a "session" alone is the
+group session, and starting one never adds a plan.
 `scenes` is in the schema and unbuilt: the next layer adds its editor without
 a migration. A scene names an encounter by id and never copies it. The plan
 is replaced whole on save; one Mediator writes it, so there is no merge.
@@ -114,6 +125,15 @@ time a Mediator is appointed or stood down, so existing notes belong to
 whoever is Mediator now. Prepared encounters and NPCs were never the Game's
 (§3) and stay their maker's. The hand over dialog says what goes and what
 stays, and the new Mediator is told by a `role` event on the table's stream.
+
+**A former Mediator reads their notes back** (amended 2026-11-22, fourth persona
+review). The dialog promised the notes stay theirs, and no screen reached them
+once Prep left their Game page. `plan.mine` answers any member their own notes
+(`ownNotesFor`): the Game notes and each session's note with its day, never a
+title, never another author's, and null when they wrote none. It is a read of
+what is already stored; nothing is added to the row. The Game page shows it
+read-only as "Your notes from when you ran it"; taking the table back makes
+them editable in Prep again, and that dialog says so.
 
 **The session days are every member's.** A Game's read (`games.get`) carries
 `sessionDays`: the coming sessions' days, soonest first, and nothing else of

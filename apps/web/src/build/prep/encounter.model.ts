@@ -6,7 +6,7 @@
  */
 
 import type { TrayNpcBody } from 'game-domain/games/encounters'
-import { instanceName } from 'game-domain/games/encounters'
+import { instanceName, numberFirst } from 'game-domain/games/encounters'
 import type { Encounter, EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
 import {
   ENCOUNTER_MAX_GROUP_NAME,
@@ -85,7 +85,8 @@ export function restoredOpponent(
 
 /**
  * The opposition with a copy of one opponent right after it, named apart
- * ("Raider", then "Raider 2"), in the same group; unchanged with no room.
+ * ("Raider 1", then "Raider 2": `numberFirst`), in the same group; unchanged
+ * with no room.
  */
 export function duplicateOpponent(
   encounter: Pick<Encounter, 'opposition'>,
@@ -103,7 +104,18 @@ export function duplicateOpponent(
       encounter.opposition.map((o) => o.name)
     ),
   }
-  return [...encounter.opposition.slice(0, at + 1), copy, ...encounter.opposition.slice(at + 1)]
+  return withAdded(
+    [...encounter.opposition.slice(0, at + 1), copy, ...encounter.opposition.slice(at + 1)],
+    copy
+  )
+}
+
+/** The opposition once `added` has joined it: a second of a kind numbers the first ("Raider 1"). */
+export function withAdded(
+  opposition: readonly EncounterOpponent[],
+  added: Pick<EncounterOpponent, 'name'>
+): EncounterOpponent[] {
+  return [...numberFirst(opposition, added.name)]
 }
 
 /**
@@ -124,7 +136,8 @@ export function oppositionWith(
     encounter.opposition.map((o) => o.name),
     now
   )
-  return [...encounter.opposition, opponentFrom(body, id)]
+  const added = opponentFrom(body, id)
+  return withAdded([...encounter.opposition, added], added)
 }
 
 /**
@@ -183,14 +196,15 @@ export function opponentAsTray(opponent: EncounterOpponent): TrayNpc {
 /**
  * What a row is, beside its name: its kind, then what it was drawn from where
  * the name no longer says ("Bio-Titan · Scylla" for a renamed Scylla, "Mech ·
- * Hussar" for a Hussar named after its pattern, "Bio-Titan" for a design built
- * from one). A plain NPC under its own name has nothing to add.
+ * Hussar" for a Hussar renamed for its pattern alone, "Bio-Titan" for a design
+ * built from one). A plain NPC under its own name has nothing to add.
  */
 export function opponentNote(opponent: EncounterOpponent): string | undefined {
   const { entity, pattern } = opponentAsTray(opponent)
   const named = opponent.name.trim().toLowerCase()
+  // What the name already says is not said twice ("Bobcat · Mr Miner" names both).
   const source = [entity?.name, pattern?.name].filter(
-    (part): part is string => typeof part === 'string' && part.toLowerCase() !== named
+    (part): part is string => typeof part === 'string' && !named.includes(part.toLowerCase())
   )
   // A design is the kind it was built from (its own name is its source).
   const kind = { refSchema: opponent.refSchema, builtKind: opponent.built?.kind ?? null }

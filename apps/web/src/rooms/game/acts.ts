@@ -123,6 +123,8 @@ const GAME_ACTS = {
     c.room.log.append(c.actor, a.entries),
   'changeLog.broadcast': (c: ActContext, a: { message: string }) =>
     c.room.log.broadcast(c.actor, a.message, c.at),
+  'changeLog.withdrawAlert': (c: ActContext, a: { alertId: string }) =>
+    c.room.log.withdrawAlert(c.actor, a.alertId),
   'changeLog.reveal': (c: ActContext, a: { rollId: string }) =>
     c.room.log.reveal(c.actor, a.rollId),
   'changeLog.rolls': (c: ActContext) => c.room.log.rolls(c.actor),
@@ -160,6 +162,7 @@ const GAME_ACTS = {
   'scenes.passHour': (c: ActContext) => c.room.scene.passHour(c.actor, c.at),
   'scenes.setUpNow': (c: ActContext, a: { pilotId: string | null }) =>
     c.room.scene.setUpNow(c.actor, a.pilotId, c.at),
+  'scenes.endTurn': (c: ActContext) => c.room.scene.endTurn(c.actor, c.at),
   'salvageAreas.here': (c: ActContext) => c.room.scene.salvageArea(c.actor),
   'salvageAreas.set': (c: ActContext, a: { area: SalvageArea | null }) =>
     c.room.scene.setSalvageArea(c.actor, a.area, c.at),
@@ -168,6 +171,7 @@ const GAME_ACTS = {
 
   'safety.stopSign': (c: ActContext) => c.room.safety.stopSign(c.actor),
   'plan.get': (c: ActContext) => c.room.plan.read(c.actor),
+  'plan.mine': (c: ActContext) => c.room.plan.readOwn(c.actor),
   'plan.set': (c: ActContext, a: { plan: unknown }) => c.room.plan.write(c.actor, a.plan, c.at),
   'session.state': (c: ActContext) => c.room.session.session(c.actor),
   'session.start': (c: ActContext) => c.room.session.start(c.actor, c.at),
@@ -236,6 +240,7 @@ export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'safety.stopSign',
   'session.state',
   'plan.get',
+  'plan.mine',
   'plan.set',
 ])
 

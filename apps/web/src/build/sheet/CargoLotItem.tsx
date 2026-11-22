@@ -5,12 +5,14 @@
  */
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import { useState } from 'react'
 import { Button } from '../../components/index'
 import { loadableQty } from '../../lib/cargo/cargoTransfer'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { CargoLotLine } from './CargoLotLine'
+import { UnloadDialog } from './UnloadDialog'
 import { undoToast } from './undoToast.model'
 
 export type StorageManifestSide = 'mech' | 'crawler'
@@ -66,8 +68,9 @@ type CargoLotItemProps = {
   /**
    * Drop the lot out of its container entirely — rendered as 'Unload' on the
    * mech chit, 'Unstow' on the Storage Bay tile. Omitted → no remove button.
+   * A mech's stack asks how many first (r4 E10), and hands the count on.
    */
-  onRemove?: () => void
+  onRemove?: (qty?: number) => void
 }
 
 /**
@@ -129,6 +132,10 @@ export function CargoLotControls({
     })
   }
 
+  // Unload on a stack asks how many (r4 E10): the whole lot is one choice.
+  const [asking, setAsking] = useState(false)
+  const stack = side === 'mech' && lot.kind === 'bulk' && (lot.qty ?? 0) > 1
+
   return (
     <>
       <Button
@@ -153,10 +160,20 @@ export function CargoLotControls({
               ? buildSheetCopy('unloadFromTheMechHold', { name: lot.name })
               : buildSheetCopy('unstowFromTheStorageBay', { name: lot.name })
           }
-          onClick={onRemove}
+          onClick={() => (stack ? setAsking(true) : onRemove())}
         >
           {side === 'mech' ? buildSheetCopy('unload') : buildSheetCopy('unstow')}
         </Button>
+      )}
+      {onRemove && stack && asking && (
+        <UnloadDialog
+          lot={lot}
+          onClose={() => setAsking(false)}
+          onUnload={(qty) => {
+            setAsking(false)
+            onRemove(qty)
+          }}
+        />
       )}
     </>
   )

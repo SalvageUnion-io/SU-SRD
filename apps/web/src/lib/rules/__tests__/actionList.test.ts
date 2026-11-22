@@ -135,3 +135,18 @@ describe('a row names the entry its action comes from (actionSource)', () => {
     expect(ref?.slug).toBe(TURRET)
   })
 })
+
+// r4 A2 (LG4-16): Play's row said the maximum after a Use was spent.
+describe("a row's Uses chip reads what is left", () => {
+  test('with a live count the Uses trait reads left/max; without one, the printed maximum', () => {
+    const row = SalvageUnionReference.Systems.all()
+      .flatMap((sys) => buildMechActions(mechFixture({ id: 'm1', systems: [getEntitySlug(sys)] })))
+      .find((r) => r.economy.maxUses > 0)
+    if (!row) throw new Error('no action with Uses')
+    const uses = (r: ReturnType<typeof actionRow>) =>
+      r.model.traits.find((t) => t.name.toLowerCase() === 'uses')?.param
+    const max = row.economy.maxUses
+    expect(uses(actionRow(row))).toBe(String(max))
+    expect(uses(actionRow(row, { uses: { left: max - 1, max } }))).toBe(`${max - 1}/${max}`)
+  })
+})

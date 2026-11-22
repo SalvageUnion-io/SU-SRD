@@ -2,7 +2,7 @@
  * Tell the table (play.md §15): a word to every player at once.
  * Send trims what was typed and clears the box once sent; a refusal keeps the
  * message to send again; Enter sends; offline nothing sends; under the form,
- * the five newest alerts with how long ago each went.
+ * the five newest alerts with how long ago each went, each with Withdraw.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -34,13 +34,23 @@ async function renderTell({
   alerts = [],
   canWrite = true,
   send = sender(),
+  withdrawn = [],
 }: {
   alerts?: AlertLine[]
   canWrite?: boolean
   send?: Sender
+  withdrawn?: string[]
 } = {}) {
   await act(async () => {
-    render(<TellTheTable alerts={alerts} now={NOW} canWrite={canWrite} onSend={send.onSend} />)
+    render(
+      <TellTheTable
+        alerts={alerts}
+        now={NOW}
+        canWrite={canWrite}
+        onSend={send.onSend}
+        onWithdraw={(id) => withdrawn.push(id)}
+      />
+    )
   })
   return {
     box: screen.getByLabelText('Alert') as HTMLInputElement,
@@ -135,12 +145,27 @@ describe('what was sent', () => {
     const list = within(screen.getByRole('list', { name: 'Sent to the table' }))
     const rows = list.getAllByRole('listitem').map((li) => li.textContent)
     expect(rows).toEqual([
-      'Alert 1just now',
-      'Alert 25 min ago',
-      'Alert 31 h ago',
-      'Alert 41 day ago',
-      'Alert 57 min ago',
+      'Alert 1just nowWithdraw',
+      'Alert 25 min agoWithdraw',
+      'Alert 31 h agoWithdraw',
+      'Alert 41 day agoWithdraw',
+      'Alert 57 min agoWithdraw',
     ])
     expect(list.queryByText('Alert 6')).toBeNull()
+  })
+
+  test('each sent alert can be withdrawn, by name; never offline (r4 B4)', async () => {
+    const withdrawn: string[] = []
+    await renderTell({ alerts: [alert(1, 0), alert(2, 5)], withdrawn })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Withdraw: Alert 2' }))
+    })
+    expect(withdrawn).toEqual(['a2'])
+  })
+
+  test('offline, Withdraw is disabled', async () => {
+    await renderTell({ alerts: [alert(1, 0)], canWrite: false })
+    const button = screen.getByRole('button', { name: 'Withdraw: Alert 1' }) as HTMLButtonElement
+    expect(button.disabled).toBe(true)
   })
 })

@@ -315,3 +315,20 @@ describe('Search API', () => {
     })
   })
 })
+
+describe('the thing named, however it is typed (r4 F1)', () => {
+  test("a trait with its number finds the trait: 'hot 3'", () => {
+    expect(search({ query: 'hot 3', limit: 3 })[0]).toMatchObject({
+      entityName: 'Hot',
+      schemaName: 'traits',
+    })
+  })
+
+  test("an ability's own roll table ranks under the ability", () => {
+    const found = search({ query: 'system and software hacker' })
+      .filter((result) => result.entityName === 'System and Software Hacker')
+      .map((result) => result.schemaName)
+    expect(found.indexOf('abilities')).toBeLessThan(found.indexOf('roll-tables'))
+    expect(found).toContain('roll-tables')
+  })
+})

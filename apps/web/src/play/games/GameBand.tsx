@@ -15,6 +15,8 @@
  * door whether or not one is live (ruleset §3.13); the session starts from
  * the Mediator's screen. While it is live the band also holds **End group
  * session**, and everyone else reads a **SESSION LIVE** stamp before Play.
+ * While the Scene is under a condition the band names it (**SCENE · RADIATION
+ * STORM**), so one left on is never unseen.
  */
 
 import { mediatePath } from 'game-domain/entityKinds'
@@ -24,6 +26,7 @@ import { Badge, Button, ChapterBand } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { SessionControl } from '../SessionControl'
 import type { GameSession } from '../useGameSession'
 import { gamePrepPath } from './prep/gamePrep.model'
@@ -45,6 +48,7 @@ export function GameBand({
   mediator = false,
   actions,
   session,
+  scene = '',
 }: {
   gameId: string | null
   /** The Game's name; "Game" while it loads. */
@@ -55,6 +59,8 @@ export function GameBand({
   actions?: ReactNode
   /** The Game's group session (`useGameSession`); null while it loads. */
   session?: GameSession | null
+  /** The Scene conditions that are on, by name; empty with none (r4 A11). */
+  scene?: string
 }) {
   const mediates = mediator && gameId !== null
   const live = session?.live === true
@@ -65,7 +71,7 @@ export function GameBand({
       id="game-band-heading"
       asideAt="controls"
       aside={
-        mediates || actions || live ? (
+        mediates || actions || live || scene !== '' ? (
           // One cluster, so a phone's strip under the band keeps the doors on a line.
           <Cluster gap={12}>
             {mediates && (
@@ -84,6 +90,12 @@ export function GameBand({
                     are both here, as on the Mediator's bar; End asks first. */}
                 <SessionControl session={session ?? null} />
               </Cluster>
+            )}
+            {/* A condition left on says so outside Play too (r4 A11). */}
+            {scene !== '' && (
+              <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
+                {mediatorCopy('sceneUnderStamp', { scene })}
+              </Badge>
             )}
             {live && !mediates && (
               <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>

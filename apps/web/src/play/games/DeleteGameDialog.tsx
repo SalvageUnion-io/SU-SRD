@@ -30,10 +30,14 @@
  *
  * A Game made from a template arrives with units nobody built. Where any is
  * still as it came (unassigned, unchanged), the dialog asks "Also delete the
- * 13 units it came with?", ticked when every one of them is untouched, so a
- * template tried and deleted leaves nothing behind. One somebody was handed
- * or changed is theirs: it is never among those counted, and goes to a
- * Training Bay as before.
+ * 13 units it came with?". It arrives unticked, the safe side (MD4-11), and
+ * says that left unticked they move to the Organiser's Training Bay (MD4-10).
+ * One somebody was handed or changed is theirs: it is never among those
+ * counted, and goes to a Training Bay as before.
+ *
+ * What moves to the Organiser is reported once, in the toast that says the
+ * Game is deleted, never as a line per unit: their arrival is the Organiser's
+ * own doing (`handedBack`).
  *
  * The dialog itself is the UI library's `ConfirmDialog`, which owns the pending
  * state, keeps the dialog open on a failure, and starts focus on Cancel. This
@@ -42,13 +46,15 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
-import { useId, useState } from 'react'
+import { useState } from 'react'
 import { ConfirmDialog } from '../../components/app'
 import { Checkbox, Stack, Text, toast } from '../../components/index'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { handedBack } from '../../lib/games/assignmentNotices'
 import { playGamesCopy } from '../../messages/play-games'
-import { useGamesCall } from '../../replica/roomCalls'
+import { useGameListing } from '../../replica/gameListing'
+import { useGamesCall, useViewerId } from '../../replica/roomCalls'
 import { leavingOnPurpose } from '../tableNotices.model'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */
@@ -85,8 +91,6 @@ const SURVIVOR_LIST = {
   paddingLeft: space[20],
 } satisfies CSSProperties
 
-const ALSO = { alignItems: 'center', display: 'flex', gap: space[8] } satisfies CSSProperties
-
 /** "4 pilots", "1 pilot", or null when there are none to mention. */
 function countPhrase(n: number, singular: string): string | null {
   if (n === 0) return null
@@ -105,25 +109,44 @@ const unitCount = (n: number) => `${n} ${n === 1 ? 'unit' : 'units'}`
 
 export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
   const destroy = useGamesCall('games.destroy')
-  const alsoId = useId()
+  const viewerId = useViewerId()
+  // What is unassigned comes to the Organiser: counted for the one toast that says so.
+  const listing = useGameListing(game?._id ?? null)
   const came = game?.templateUnits?.came ?? 0
   const untouched = game?.templateUnits?.untouched ?? 0
-  // Ticked when none has been edited; the Organiser's own tick wins after that.
-  const [chosen, setChosen] = useState<boolean | null>(null)
-  const also = untouched > 0 && (chosen ?? untouched === came)
+  // Unticked until the Organiser ticks it: deleting more is never the default (MD4-11).
+  const [chosen, setChosen] = useState(false)
+  const also = untouched > 0 && chosen
 
   async function handleConfirm() {
     if (game === null) return
     // Their own doing: `TableNotices` does not tell them the Game is gone.
     const undo = leavingOnPurpose(game._id)
+    // Nor is each unit that comes to them announced: one toast reports the move (MD4-10).
+    const free = [...(listing?.pilots ?? []), ...(listing?.mechs ?? [])].filter(
+      (unit) => unit.ownerId === null
+    )
+    // The untouched ones a tick deletes are among the free ones, the crawler included.
+    const left = free.length + (listing?.crawlers.length ?? 0)
+    const coming = listing === undefined ? 0 : Math.max(0, left - (also ? untouched : 0))
+    const quiet = viewerId === null ? [] : free.map((unit) => handedBack(unit._id))
     try {
       await destroy({ gameId: game._id, ...(also ? { dropTemplateUnits: true } : {}) })
     } catch (err) {
       undo()
+      for (const again of quiet) again()
       throw err
     }
     // It landed, said back to whoever did it (r3 A4).
-    toast.success(playGamesCopy('gameDeleted', { game: game.name }))
+    toast.success(
+      coming > 0
+        ? playGamesCopy('gameDeletedMoved', {
+            game: game.name,
+            count: unitCount(coming),
+            build: PRODUCT.build,
+          })
+        : playGamesCopy('gameDeleted', { game: game.name })
+    )
     // The dialog then closes itself, through `onOpenChange(false)` → `onClose`.
     onDeleted?.()
   }
@@ -193,20 +216,23 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
           <Text variant="hint">{playGamesCopy('whatWasPreparedStays')}</Text>
 
           {untouched > 0 && (
-            <span style={ALSO}>
+            <>
+              {/* The words name the tick and toggle it (`Checkbox words`, R16). */}
               <Checkbox
-                id={alsoId}
                 checked={also}
                 onChange={(event) => setChosen(event.target.checked)}
-                aria-labelledby={`${alsoId}-label`}
-                hitArea
+                words={
+                  untouched === came
+                    ? playGamesCopy('alsoDeleteTemplateUnits', { count: unitCount(untouched) })
+                    : playGamesCopy('alsoDeleteUntouchedUnits', { count: unitCount(untouched) })
+                }
               />
-              <Text id={`${alsoId}-label`}>
-                {untouched === came
-                  ? playGamesCopy('alsoDeleteTemplateUnits', { count: unitCount(untouched) })
-                  : playGamesCopy('alsoDeleteUntouchedUnits', { count: unitCount(untouched) })}
-              </Text>
-            </span>
+              {!also && (
+                <Text variant="hint">
+                  {playGamesCopy('leftUntickedTheyMove', { build: PRODUCT.build })}
+                </Text>
+              )}
+            </>
           )}
         </>
       }

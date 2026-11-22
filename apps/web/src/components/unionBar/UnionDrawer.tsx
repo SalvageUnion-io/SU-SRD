@@ -56,9 +56,16 @@ type UnionDrawerProps = {
   extra?: (close: () => void) => ReactNode
   /** Link component for internal items; the app routes its own in place. */
   LinkComponent?: ElementType
+  /** On a Reference page: the book's chapters lead while nobody is signed in. */
+  reference?: boolean
 }
 
-export function UnionDrawer({ search, extra = signInFromHint(), LinkComponent }: UnionDrawerProps) {
+export function UnionDrawer({
+  search,
+  extra = signInFromHint(),
+  LinkComponent,
+  reference = false,
+}: UnionDrawerProps) {
   const path = typeof location === 'undefined' ? '/' : location.pathname
   const page = (link: { label: string; href: string }): NavDrawerItem => ({
     ...link,
@@ -75,7 +82,8 @@ export function UnionDrawer({ search, extra = signInFromHint(), LinkComponent }:
 
   // The drawer is the site's whole map, the three areas
   // in the bar's order. Your own things lead (the Training Bay, then Games);
-  // the Reference follows as the book's chapters, as before.
+  // the Reference follows as the book's chapters, as before. A reader with no
+  // account has no things of their own yet: on a Reference page the chapters lead.
   const area = (id: string, tone: NavDrawerCategory['tone'], { name, links }: AreaNav) => ({
     id,
     tone,
@@ -87,10 +95,12 @@ export function UnionDrawer({ search, extra = signInFromHint(), LinkComponent }:
     area('area-games', 'crawler', AREA_NAV.play),
   ]
 
+  const chaptersLead = reference && readAccountHint(browserStorage()) === null
+
   return (
     <NavDrawer
       brand={BRAND}
-      categories={[...AREAS, ...NAV_CATALOG]}
+      categories={chaptersLead ? [...NAV_CATALOG, ...AREAS] : [...AREAS, ...NAV_CATALOG]}
       search={search}
       navItems={navItems}
       extra={extra}

@@ -1,7 +1,7 @@
 /**
  * PlayMediatorSide — the Mediator's end column's panes (play.md §10): the running encounter's Notes, the player's Tables and Feed sections (the Tables pane), then the Propose dock (the Propose pane).
  *
- *  - **Briefing** (ADR-059 §5): the running encounter's, what the Pilots
+ *  - **Briefing** (ADR-059 §5; `RunningNotes`, on the Opposition tab below `lg`): the running encounter's, what the Pilots
  *    see, and Tell the table, which sends it as an alert. Shown only while
  *    one with a briefing is running, behind the `encounterSheet` flag.
  *  - **Notes** (ADR-059): the running encounter's, the Mediator's alone,
@@ -54,17 +54,12 @@ const NOTES = {
   whiteSpace: 'pre-line',
 } satisfies CSSProperties
 
-/** The Mediator's Tables and Feed sections: the Tables pane. */
-export function MediatorTablesAndFeed({
-  mediator,
-  side,
-  actions,
-}: {
-  mediator: PlayMediator
-  side: SideFeed
-  /** The Rolls head's own control: the Private rolls switch. */
-  actions?: ReactNode
-}) {
+/**
+ * The running encounter's Briefing and Notes. From `lg` they head the end
+ * column; on a phone they stand on the Opposition tab, under the encounter's
+ * name (r4 D3), where the Mediator looks for them.
+ */
+export function RunningNotes({ mediator }: { mediator: PlayMediator }) {
   const running = mediator.prep.running
   const briefing = flagOn('encounterSheet') ? (running?.briefing ?? '') : ''
   return (
@@ -86,6 +81,28 @@ export function MediatorTablesAndFeed({
           <p style={NOTES}>{running.notes}</p>
         </SlabSection>
       )}
+    </>
+  )
+}
+
+/** The Mediator's Tables and Feed sections: the Tables pane. */
+export function MediatorTablesAndFeed({
+  mediator,
+  side,
+  actions,
+  notes = true,
+}: {
+  mediator: PlayMediator
+  side: SideFeed
+  /** The Rolls head's own control: the Private rolls switch. */
+  actions?: ReactNode
+  /** The running encounter's Briefing and Notes head the pane (off where the Opposition tab holds them). */
+  notes?: boolean
+}) {
+  const running = mediator.prep.running
+  return (
+    <>
+      {notes ? <RunningNotes mediator={mediator} /> : null}
       <PlayTablesSection
         side={side}
         idPrefix="mediate"

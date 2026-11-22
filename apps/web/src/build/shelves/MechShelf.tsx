@@ -1,7 +1,7 @@
 /**
- * The Training Bay's Mechs shelf: the mechs no pilot of yours flies (a piloted
- * mech is on its pilot's row), each line saying what tells two builds on one
- * chassis apart (Tech Level, slots filled, Scrap), and any column sorting it.
+ * The Training Bay's Mechs shelf: every mech of yours (one a pilot flies is on
+ * that pilot's row too, and names them under its name here, r4 E20), each
+ * line saying what tells two builds on one chassis apart (Tech Level, slots filled, Scrap), and any column sorting it.
  * A build over its chassis's slots wears the rule-breaking mark under its name,
  * and the sort is remembered across a reload.
  */

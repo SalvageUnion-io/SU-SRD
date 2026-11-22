@@ -6,8 +6,8 @@
  * check (Core Book p.268; never rolled for you), and its last roll.
  *
  * Its band carries what it is (NPC, Mech, Bio-Titan, …), **Actions**, which
- * lists its actions under the Opposition (pressed while they are the ones
- * listed), and ⋯: the full reference card, Mark important, Rename and Delete.
+ * opens its actions inside its own card, under the box (r4 D1: pressed while
+ * they are open; nothing else on the screen moves), and ⋯: the full reference card, Mark important, Rename and Delete.
  * At 0 it is down: dashed, struck, and never removed for you (ADR-007); Delete
  * is offered as a chip on its band, before ⋯, behind a confirm. A downed Mech
  * or Vehicle offers its wreck's salvage under its vital (`PlayWreckSalvage`),
@@ -19,6 +19,7 @@
  * row reads under the Morale line.
  */
 
+import type { ReactNode } from 'react'
 import { heatDangerFrom, useDetailModal } from '../../components/app'
 import type { rollForTable } from '../../components/index'
 import { Button, HeaderMenu, Stat, TitledBox, Toggle } from '../../components/index'
@@ -41,9 +42,12 @@ function tableName(table: ImportantTable): string {
 
 type PlayNpcBoxProps = {
   npc: TrayNpc
-  /** Its actions are the ones listed under the Opposition. */
+  /** Its actions are open in its card. */
   chosen: boolean
+  /** Actions was pressed: open them, or shut them. */
   onChoose: () => void
+  /** Its actions (`PlayNpcActions`), while open: under the box, inside the card. */
+  actions?: ReactNode
   canWrite: boolean
   onHp: (next: number) => void
   onRename: () => void
@@ -67,6 +71,7 @@ export function PlayNpcBox({
   npc,
   chosen,
   onChoose,
+  actions,
   canWrite,
   onHp,
   onRename,
@@ -256,6 +261,7 @@ export function PlayNpcBox({
         ) : null}
         <RollResultLine roll={npc.lastRoll} empty={mediatorCopy('noMoraleRoll')} />
       </TitledBox>
+      {actions}
       {detail.modal}
     </li>
   )

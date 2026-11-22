@@ -56,10 +56,19 @@
 
 .su-play-npc {
   border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
   min-width: 0;
 }
 
-/* The NPC whose actions are listed: the ink selection ring (ruleset §3.1). */
+/* A unit with its actions open grows down, in place (r4 D1): the others on
+   its row keep their own height rather than stretching beside it. */
+.su-play-npcs:has(> .su-play-npc[data-chosen]) {
+  align-items: flex-start;
+}
+
+/* A unit whose actions are open in its card: the ink selection ring (ruleset §3.1). */
 .su-play-npc[data-chosen] {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;

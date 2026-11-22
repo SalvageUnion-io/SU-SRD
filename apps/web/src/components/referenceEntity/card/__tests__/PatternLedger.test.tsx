@@ -61,5 +61,18 @@ describe('PatternLedger', () => {
       </EntitySurfaceProvider>
     )
     expect(container.textContent).toContain('as printed in the book')
+    // On the rows it describes, and on no other (r4 E16).
+    const noted = [...container.querySelectorAll('tbody tr')].filter((row) =>
+      row.textContent?.includes('Over its limit as printed in the book')
+    )
+    expect(noted.length).toBeGreaterThan(0)
+    for (const row of noted) {
+      const over = [...row.querySelectorAll('td')].some((cell) => {
+        const [used, max] = (cell.textContent?.match(/^(\d+)\/(\d+)$/) ?? []).slice(1).map(Number)
+        return used !== undefined && max !== undefined && used > max
+      })
+      expect(over).toBe(true)
+    }
+    expect(container.querySelector('tfoot')?.textContent ?? '').not.toContain('as printed')
   })
 })

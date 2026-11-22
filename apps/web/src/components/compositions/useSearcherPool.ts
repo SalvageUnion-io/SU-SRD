@@ -21,6 +21,7 @@ import type {
   PoolEntity,
   TechLevelLike,
 } from './entitySearcherTypes'
+import { namedBy } from './searcherFacts'
 
 /** The Tech level row's label: the one row the toolbar may set inline. */
 export const TECH_LEVEL_ROW = compositionsCopy('techLevel')
@@ -71,6 +72,13 @@ type SearcherPool = {
   pool: PoolEntity[]
   /** The pool after the query and every active facet. */
   visible: PoolEntity[]
+  /**
+   * What the query NAMES in a Tech Level that is switched off (r4 E5): it
+   * passes every other facet, and is listed under "In other Tech Levels".
+   */
+  outside: PoolEntity[]
+  /** How many Tech level chips are set: the toolbar's own row, not Filters'. */
+  activeTechLevels: number
   /** Copies of pool entities in `selected`. */
   totalOnSheet: number
   /** Copies of `item` in `selected`. */
@@ -175,16 +183,16 @@ export function useSearcherPool({
 
   const categoryOf = facets?.category?.of
 
-  const visible = useMemo(() => {
+  const { visible, outside } = useMemo(() => {
     let list = pool
     if (searchOrder) {
       list = list
         .filter((i) => searchOrder.has(i.id))
         .sort((a, b) => (searchOrder.get(a.id) ?? 0) - (searchOrder.get(b.id) ?? 0))
     }
-    return list.filter((item) => {
-      if (showTl && activeTls.size && !(item.techLevel != null && activeTls.has(item.techLevel)))
-        return false
+    const inTl = (item: PoolEntity) =>
+      !(showTl && activeTls.size) || (item.techLevel != null && activeTls.has(item.techLevel))
+    const passes = (item: PoolEntity) => {
       if (showTraits && activeTraits.size) {
         const types = new Set((item.traits ?? []).map((t) => t.type))
         if (![...activeTraits].some((t) => types.has(t))) return false
@@ -199,8 +207,14 @@ export function useSearcherPool({
         if (status === 'available' && has) return false
       }
       return true
-    })
+    }
+    const q = query.trim()
+    return {
+      visible: list.filter((item) => inTl(item) && passes(item)),
+      outside: q ? list.filter((item) => !inTl(item) && passes(item) && namedBy(item, q)) : [],
+    }
   }, [
+    query,
     pool,
     searchOrder,
     showTl,
@@ -284,6 +298,8 @@ export function useSearcherPool({
     setQuery,
     pool,
     visible,
+    outside,
+    activeTechLevels: showTl ? activeTls.size : 0,
     totalOnSheet,
     countOf,
     facetRows,

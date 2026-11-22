@@ -28,6 +28,7 @@ export const PROPOSAL_FIELDS = {
   ],
   mech: [
     { field: 'currentSP', label: 'SP' },
+    { field: 'currentEP', label: 'EP' },
     { field: 'currentHeat', label: 'Heat' },
   ],
 } as const
@@ -103,6 +104,8 @@ export type TargetCrew = {
     name: string
     currentSP: number | null
     maxSP: number | null
+    currentEP: number | null
+    maxEP: number | null
     currentHeat: number | null
     maxHeat: number | null
   }>
@@ -146,6 +149,7 @@ export function proposalTargets(crew: TargetCrew | null): ProposalTarget[] {
         pilotLinkId: pilot?.linkId ?? null,
         readings: {
           currentSP: { current: m.currentSP, max: m.maxSP },
+          currentEP: { current: m.currentEP, max: m.maxEP },
           currentHeat: { current: m.currentHeat, max: m.maxHeat },
         },
       }

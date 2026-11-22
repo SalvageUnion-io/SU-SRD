@@ -33,7 +33,7 @@ describe('Mention', () => {
     expect(link.getAttribute('href')).toBe(`/traits/${ref.slug}/`)
     expect(link.getAttribute('data-peek')).toBe(`traits:${ref.id}`)
     expect(link.className).toContain('su-inline-ref--link')
-    // A term in a sentence: its first press Peeks (E27).
+    // A term in a sentence (E27): its press follows it, its Peek offers Open page.
     expect(link.hasAttribute('data-peek-press')).toBe(true)
   })
 

@@ -132,6 +132,8 @@ export function situationRows({
     {
       id: 'table-mode',
       label: playCopy(tableOn ? 'leaveTableMode' : 'tableMode'),
+      // What it is, said once: the row was unexplained (SB4-08).
+      hint: tableOn ? undefined : playCopy('tableModeHint'),
       onSelect: () => setTableOn(!tableOn),
     },
   ]

@@ -137,8 +137,9 @@ describe('the other steps', () => {
   })
 
   test('Upkeep says what it costs and whose it is to pay', () => {
-    const upkeep = (state: StepPlanInput['upkeep']) =>
-      plan({ stepName: 'Upkeep & Upgrade', crawler: crawler(2), upkeep: state })[0]
+    const funded: Crawler = { ...crawler(2), scrapPool: { tl2: 5 } }
+    const upkeep = (state: StepPlanInput['upkeep'], unit: Crawler = funded) =>
+      plan({ stepName: 'Upkeep & Upgrade', crawler: unit, upkeep: state })[0]
     const outstanding = upkeep({ spent: false, canPay: true })
     expect(outstanding?.chips[0]?.value).toMatch(/^\d+ Scrap · T2$/)
     expect(outstanding?.chips[1]?.label).toBe('Outstanding')
@@ -149,6 +150,15 @@ describe('the other steps', () => {
     const theirs = upkeep({ spent: false, canPay: false })
     expect(theirs?.chips[1]?.label).toMatch(/Mediator/)
     expect(theirs?.skippable).toBe(false)
+    // r4 A7: a pool too small reads Short by N for payer and player alike, may
+    // not be applied, and cites the book; once paid it is Paid again.
+    for (const canPay of [true, false]) {
+      const short = upkeep({ spent: false, canPay }, crawler(2))
+      expect(short?.chips[1]?.label).toBe('Short by 5')
+      expect(short?.skippable).toBe(false)
+      expect(short?.note).toBe('Unpaid Upkeep: Core Book p.218.')
+    }
+    expect(upkeep({ spent: true, canPay: true }, crawler(2))?.chips[1]?.label).toBe('Paid')
     // No crawler, no Upkeep to plan.
     expect(plan({ stepName: 'Upkeep & Upgrade' })).toEqual([])
   })

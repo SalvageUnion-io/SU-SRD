@@ -160,6 +160,35 @@ describe('BackupMenu — Import', () => {
     ).toEqual(['Imported'])
   })
 
+  test('the menu is named in words, Backups (r4 E20)', () => {
+    render(<Backups />)
+    expect(screen.getByRole('button', { name: 'Backups: import and export' }).textContent).toBe(
+      'Backups'
+    )
+  })
+
+  test('a backup whose sheets are all here already says so, and adds nothing (r4 E20)', async () => {
+    const held = await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1', name: 'Rook' }))
+    const bundle: ExportBundle = {
+      schemaVersion: 2,
+      exportedAt: FIXTURE_NOW,
+      entities: { pilots: [held], mechs: [], crawlers: [], npcs: [] },
+      softLinks: [],
+      mechPatterns: [],
+      encounterNpcs: [],
+    }
+    render(<Backups />)
+
+    choose(JSON.stringify(bundle))
+
+    await waitFor(() =>
+      expect(screen.getByRole('status').textContent).toBe(
+        'Nothing to import: every sheet in that backup is already here.'
+      )
+    )
+    expect(useUnits.getState().list('pilot')).toHaveLength(1)
+  })
+
   test('a file that is not a backup is refused on screen, and nothing is written', async () => {
     render(<Backups />)
 

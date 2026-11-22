@@ -19,6 +19,10 @@
  *    column stacks its panes in one scroller; a `dock` pane sits at its foot.
  *    A `sheet` stands in the centre column, its panes kept mounted under it.
  *
+ * A screen with a long way to its panes gives `jumps` (r4 D6, the Mediator's):
+ * skip links ahead of the bar, off screen until focused, each opening its
+ * pane (its tab below `lg`) and moving focus into it.
+ *
  * The arrangement is CSS (`styles/play/frame.css`); `wide` (`usePlayWide`,
  * the same rung) decides only what a reader is told, so crossing it re-lays
  * the panes without remounting them: a pane is a column's region from `lg`,
@@ -47,8 +51,10 @@
 import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useRef, useState } from 'react'
-import { Tab, TabList, Tabs } from '../components/app'
+import { SkipLink, Tab, TabList, Tabs } from '../components/app'
 import {
+  capsLabel,
+  cn,
   EntitySurfaceProvider,
   holdToastsOnTop,
   SlabLookProvider,
@@ -65,6 +71,9 @@ import { NOTICES_RESIZED } from './tableNotices.model'
  * head, a unit box's band) carries it.
  */
 const SPECKLED = { texture: true } as const
+
+/** Off screen until focused (`foundation.css`), as the shell's own skip link. */
+const SKIP_LINK = cn('su-skip-link', capsLabel())
 
 /** The Tabs root: the frame's grid fills it. */
 const ROOT = { height: '100%' } satisfies CSSProperties
@@ -117,6 +126,13 @@ type PlayFrameProps<Value extends string> = {
   sheet?: ReactNode
   /** The foot (`PlayFoot`), from `lg`. */
   foot: ReactNode
+  /**
+   * The screen's first Tab stop (WCAG 2.4.1, r4 A3): a skip link that opens
+   * `pane` and puts the keyboard on its first `first`, else on the pane.
+   */
+  skip?: { pane: Value; label: string; first: string }
+  /** Skip links ahead of the bar: each opens its pane and moves focus into it. */
+  jumps?: readonly { pane: Value; label: string }[]
 }
 
 export function PlayFrame<Value extends string>({
@@ -131,8 +147,12 @@ export function PlayFrame<Value extends string>({
   focus,
   sheet,
   foot,
+  skip,
+  jumps,
 }: PlayFrameProps<Value>) {
   const id = useId()
+  // A skip link was pressed: focus its pane once it is showing.
+  const [jump, setJump] = useState<Value | null>(null)
   const hostRef = useRef<HTMLElement>(null)
   const hostH = useHostHeight(hostRef)
   // Below `lg` the controls are at thumb height, where a toast at the foot
@@ -146,6 +166,11 @@ export function PlayFrame<Value extends string>({
   const open = panes.some((p) => p.value === tab) ? tab : tabbed[0]?.value
   const tabId = (value: string) => `${id}-tab-${value}`
   const paneId = (value: string) => `${id}-pane-${value}`
+  useEffect(() => {
+    if (jump === null) return
+    document.getElementById(`${id}-pane-${jump}`)?.focus()
+    setJump(null)
+  }, [jump, id])
 
   const pane = (p: PlayPane<Value>, region: string | null) => (
     // From `lg` a start or centre pane is its column's named region; below
@@ -160,20 +185,63 @@ export function PlayFrame<Value extends string>({
       role={wide ? undefined : 'tabpanel'}
       aria-label={wide ? (region ?? undefined) : undefined}
       aria-labelledby={wide ? undefined : tabId(p.value)}
+      // A skip link's target: focusable by script alone.
+      tabIndex={skip?.pane === p.value || jumps?.some((j) => j.pane === p.value) ? -1 : undefined}
     >
       {p.node}
     </section>
   )
   const inColumn = (column: PlayColumn) => panes.filter((p) => p.column === column)
+  // The skip link opens its pane first; the focus follows once it is shown.
+  const [skipped, setSkipped] = useState(0)
+  const skipTo = skip ? `${id}-pane-${skip.pane}` : null
+  const skipFirst = skip?.first
+  useEffect(() => {
+    if (skipped === 0 || skipTo === null) return
+    const target = document.getElementById(skipTo)
+    const first = skipFirst ? target?.querySelector<HTMLElement>(skipFirst) : null
+    ;(first ?? target)?.focus()
+  }, [skipped, skipTo, skipFirst])
 
   return (
     // Play keeps the section stamp it was approved with.
     <SlabLookProvider value="stamp">
       <EntitySurfaceProvider value={SPECKLED}>
         <main ref={hostRef} className="su-play-root" style={{ height: hostH }}>
+          {skip && (
+            <a
+              href={`#${paneId(skip.pane)}`}
+              className={SKIP_LINK}
+              onClick={(event) => {
+                event.preventDefault()
+                onTab(skip.pane)
+                setSkipped((n) => n + 1)
+              }}
+            >
+              {skip.label}
+            </a>
+          )}
           <Tabs value={open ?? tab} onValueChange={onTab} style={ROOT}>
             <div className="su-play-frame">
-              <div className="su-play-frame__bar">{bar}</div>
+              <div className="su-play-frame__bar">
+                {jumps && jumps.length > 0 ? (
+                  <nav aria-label={playCopy('jumpTo')}>
+                    {jumps.map((j) => (
+                      <SkipLink
+                        key={j.pane}
+                        to={paneId(j.pane)}
+                        onFollow={() => {
+                          onTab(j.pane)
+                          setJump(j.pane)
+                        }}
+                      >
+                        {playCopy('skipTo', { name: j.label })}
+                      </SkipLink>
+                    ))}
+                  </nav>
+                ) : null}
+                {bar}
+              </div>
               {!wide && pinned ? <div className="su-play-frame__pinned">{pinned}</div> : null}
               {focused ? <div className="su-play-pane su-play-frame__focus">{focus}</div> : null}
               {inColumn('start').map((p) => pane(p, labels[0]))}

@@ -21,6 +21,17 @@ import type { ProposalRead } from '../rooms/game/proposals'
 
 type Asked = Pick<ProposalRead, 'field' | 'after' | 'current'>
 
+/**
+ * A vital accepted down to 0, or back up, says what is due (`zeroVital.model`).
+ * Fetched when a proposal is answered: the root's notices read this file, and
+ * every page would otherwise carry Play's Feed and tables.
+ */
+function noticeZero(kind: 'pilot' | 'mech', id: string, field: string, from: number, to: number) {
+  void import('./zeroVital.model').then((m) =>
+    m.zeroVitalNotice(m.zeroUnit(useUnits.getState(), kind, id), field, from, to)
+  )
+}
+
 function show(value: unknown): string {
   return value === null || value === undefined ? '—' : String(value)
 }
@@ -48,7 +59,11 @@ export function acceptedUndo(
     from: current,
     to: after,
     did: playCopy('accepted'),
-    undo: (value) =>
-      runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO)),
+    undo: (value) => {
+      runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO))
+      noticeZero(kind, id, field, after, value)
+    },
   })
+  // Accepted down to 0 SP or 0 HP: what is due next (r4 A5).
+  noticeZero(kind, id, field, current, after)
 }

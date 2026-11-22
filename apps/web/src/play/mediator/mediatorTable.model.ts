@@ -38,6 +38,8 @@ export type MediatorSeat = {
   /** The player's account: whether they are done with the Downtime step. */
   ownerId: string | null
   name: string
+  /** Who plays them, by the name the Game holds (r4 B8); null when the roster has none. */
+  player: string | null
   /** Their player has the Game open. */
   present: boolean
   /** "Boarded · Buzzard", or "On foot". */
@@ -117,6 +119,7 @@ export function mediatorSeats(
       rowId: pilot._id,
       ownerId: pilot.ownerId,
       name: line.name,
+      player: line.player,
       present: line.present,
       mount: line.mount,
       mech: line.unitMech,

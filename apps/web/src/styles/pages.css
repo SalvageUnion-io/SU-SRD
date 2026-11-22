@@ -748,9 +748,22 @@ html[data-srd-signed-in] .su-mediator-acts {
   }
 }
 
+/* What a filtered list is filtered to, said on paper only (r4 E9): there the
+   rail that says it on screen is not drawn. */
+.su-listing__printed {
+  display: none;
+}
+
 @media print {
-  .su-rail {
+  .su-rail,
+  .su-listing__order:not(#\#) {
     display: none;
+  }
+
+  .su-listing__printed {
+    display: block;
+    font-weight: var(--font-weight-semibold);
+    margin: 0 0 var(--space-8);
   }
 }
 
@@ -836,15 +849,35 @@ html[data-listing-pending] .su-listing__groups {
  * header's field is a scroll away and the contents stand beside the page.
  * ══════════════════════════════════════════════════════════════════════ */
 .su-page-jump {
+  display: flex;
+  gap: var(--space-8);
   inset-block-end: var(--space-16);
   inset-inline-end: var(--space-16);
   position: fixed;
   z-index: var(--z-sticky);
 }
 
+/* `hidden` is the script's (`watchPageJump`): the flex above must not undo it. */
+.su-page-jump[hidden] {
+  display: none;
+}
+
+/* A page with one section, or none, floats the glass alone. */
+.su-page-jump:not([data-sections]) .su-page-jump__contents {
+  display: none;
+}
+
 @media (width >= 40rem) {
   .su-page-jump {
     display: none;
+  }
+}
+
+/* On a phone the page's foot leaves the floating buttons room: its last
+   lines scroll clear of them (a button's height and its two gaps). */
+@media not (width >= 40rem) {
+  body:has(.su-page-jump) .su-footer {
+    padding-block-end: calc(var(--size-full) + var(--space-32));
   }
 }
 

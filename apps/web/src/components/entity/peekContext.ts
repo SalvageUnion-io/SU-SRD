@@ -19,10 +19,10 @@ export function useInsidePeek(): boolean {
 export const PEEK_ATTRIBUTE = 'data-peek'
 
 /**
- * Set on a trigger whose press opens its Peek at once, as focus does: a
- * button with nothing else to do, and a reference TERM that links to its
- * entry (a Mention, a Tag: E27), whose first plain press opens the Peek and
- * whose next follows the link (`peekController`).
+ * Set on a button with nothing else to do: its press opens its Peek at once,
+ * as focus does. And on a reference TERM that links to its entry (a Mention,
+ * a Tag: E27): its press follows the link like any other, its Peek is hover's
+ * and focus's, and the plate offers Open page (`peekController`, `PeekPopup`).
  */
 export const PEEK_PRESS_ATTRIBUTE = 'data-peek-press'
 
@@ -77,7 +77,7 @@ export type PeekAttrs = {
 }
 
 /**
- * A linked term's attributes (E27): its Peek's, and that a press opens it.
+ * A linked term's attributes (E27): its Peek's, and that it is a term.
  * A trigger with no Peek (inside one, a synthetic ref) is a plain link.
  */
 export function termPeekAttrs(peek: PeekAttrs): PeekAttrs & { [PEEK_PRESS_ATTRIBUTE]?: '' } {

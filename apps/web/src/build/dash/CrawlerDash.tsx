@@ -49,6 +49,7 @@ import {
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { assignmentFor } from '../../lib/npcs/npcModel'
 import { crawlerTypeArt } from '../../lib/photos/defaultArt'
+import { upkeepOwed } from '../../lib/rules/crawlerEconomy'
 import { resolveCrawlerSystem } from '../../lib/rules/crawlerItems'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
@@ -257,6 +258,7 @@ export function CrawlerDash({
       )
     : undefined
 
+  const owed = upkeepOwed(tl, crawler.type)
   const figures = (
     <>
       <StripFigure
@@ -269,9 +271,14 @@ export function CrawlerDash({
       {upkeep && (
         <StripFigure
           label={STAT_LABELS.upkeepCost.short}
-          name={buildSheetCopy('tScrapEachDowntime', { tl })}
+          // The row's note carries the working where the type takes some off (r4 A8).
+          name={upkeep.note ?? buildSheetCopy('tScrapEachDowntime', { tl })}
           value={upkeep.value}
-          unit={buildSheetCopy('tScrap', { tl })}
+          unit={
+            owed.less > 0
+              ? `${buildSheetCopy('tScrap', { tl })} ${buildSheetCopy('upkeepWorking', owed)}`
+              : buildSheetCopy('tScrap', { tl })
+          }
         />
       )}
     </>

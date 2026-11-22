@@ -136,3 +136,41 @@ describe('PlayFrame — fills the window below its top', () => {
     expect(host.style.height).toBe(`${window.innerHeight}px`)
   })
 })
+
+// r4 A3 (LG4-11): the first action was the 26th Tab stop.
+describe('PlayFrame — a skip link is the screen’s first Tab stop', () => {
+  const skipping = (onTab: (tab: string) => void) => (
+    <PlayFrame
+      wide={false}
+      bar={<button type="button">Bar</button>}
+      panes={[
+        { value: 'start', label: 'Start', column: 'start', node: null },
+        {
+          value: 'centre',
+          label: 'Centre',
+          column: 'centre',
+          node: (
+            <button type="button" data-first>
+              Use
+            </button>
+          ),
+        },
+      ]}
+      tab="centre"
+      onTab={onTab}
+      foot={null}
+      labels={['Units', 'Actions', 'Side']}
+      skip={{ pane: 'centre', label: 'Skip to actions', first: '[data-first]' }}
+    />
+  )
+
+  test('it comes before the bar, opens its pane and lands on the pane’s first control', () => {
+    const opened: string[] = []
+    const { getByRole, container } = render(skipping((tab) => opened.push(tab)))
+    const link = getByRole('link', { name: 'Skip to actions' })
+    expect(container.querySelector('a, button')).toBe(link)
+    act(() => link.click())
+    expect(opened).toEqual(['centre'])
+    expect(document.activeElement).toBe(getByRole('button', { name: 'Use' }))
+  })
+})

@@ -9,7 +9,11 @@
  *  - **A sheet** (pilot, mech, crawler, NPC) lives in one container
  *    (ADR-030 §2). In a Game, its crew can see it because it is there; on the
  *    shelf, only its owner can. So the crew answer follows the container, and
- *    the one switch is "Public" (`publicSheet.setPublic`).
+ *    the one switch is "Public" (`publicSheet.setPublic`). An NPC is the
+ *    exception: in a Game it is its Mediator's alone until it is put on the
+ *    field (`rooms/game/readers.ts`), so its answer there is Only the
+ *    Mediator, as the Mediator's Kit lists it; one that crews the Union
+ *    Crawler is the crew's like any sheet.
  *  - **A pattern** never moves into a Game, so its crew answer is its own
  *    choice of Game (`shelf.setPatternVisibility`).
  *
@@ -49,9 +53,33 @@ const LABEL: Record<Visibility, string> = {
 export function sheetChoices(args: {
   inGame: boolean
   gameName: string | null
+  /** An NPC in a Game that crews no crawler: its Mediator's alone (`mediatorOnly`). */
+  mediatorOnly?: boolean
 }): VisibilityChoice[] {
   const { inGame } = args
   const game = args.gameName ?? libSharingCopy('itsGame')
+  if (inGame && args.mediatorOnly === true) {
+    return [
+      {
+        value: 'private',
+        label: libSharingCopy('onlyTheMediator'),
+        description: libSharingCopy('npcMediatorOnly', { game }),
+        disabled: false,
+      },
+      {
+        value: 'game',
+        label: LABEL.game,
+        description: libSharingCopy('npcCrewLater'),
+        disabled: true,
+      },
+      {
+        value: 'link',
+        label: LABEL.link,
+        description: libSharingCopy('sheetLink'),
+        disabled: false,
+      },
+    ]
+  }
   return [
     {
       value: 'private',
@@ -106,7 +134,19 @@ export function patternChoices(args: { gameName: string | null }): VisibilityCho
 }
 
 /** A sheet's current answer: public by link, else whoever its container lets in. */
-export function sheetVisibility(args: { isPublic: boolean; inGame: boolean }): Visibility {
+export function sheetVisibility(args: {
+  isPublic: boolean
+  inGame: boolean
+  mediatorOnly?: boolean
+}): Visibility {
   if (args.isPublic) return 'link'
-  return args.inGame ? 'game' : 'private'
+  return args.inGame && args.mediatorOnly !== true ? 'game' : 'private'
+}
+
+/**
+ * Whether a sheet in a Game is withheld from its crew: an NPC that crews no
+ * crawler (`rooms/game/readers.ts`). Pilots, mechs and crawlers never are.
+ */
+export function mediatorOnly(kind: ShareKind, inGame: boolean, crews: boolean): boolean {
+  return kind === 'npc' && inGame && !crews
 }

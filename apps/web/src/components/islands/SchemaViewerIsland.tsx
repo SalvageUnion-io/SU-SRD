@@ -1,4 +1,3 @@
-import { X } from 'lucide-react'
 import { useLayoutEffect, useMemo, useState } from 'react'
 import type { RefAbility, RefEntity } from 'salvageunion-reference'
 import {
@@ -10,18 +9,20 @@ import {
   toEntityModel,
 } from 'salvageunion-reference'
 import { itemHref, srdHrefFor } from '../../lib/entityHref'
+import type { ListingFieldFacets } from '../../lib/listingFacets'
+import { dealsDamage, entityAction, entityRanges } from '../../lib/listingFacets'
 import type { GroupBy, ListingShape, TechLevel } from '../../lib/listingGroups'
 import {
   catalogGroupBy,
   groupEntities,
   orderTechLevels,
   resolveGroupBy,
-  tlName,
 } from '../../lib/listingGroups'
 import { keepListingScroll } from '../../lib/listingScroll'
 import { entityTraitNames } from '../../lib/listingTraits'
 import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
+import { nameMatches } from '../../lib/nameMatch'
 import { classDrawingTree } from '../../lib/rules/classPath'
 import { artUrlFor } from '../../lib/sourceCovers'
 import type { SchemaList } from '../../lib/useGameData'
@@ -37,17 +38,17 @@ import {
   EntitySurfaceProvider,
   Skeleton,
   Slab,
-  tokens,
   trackForTree,
 } from '../index'
 import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
 import { IndexLedger } from './IndexLedger'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { sortIndexItems } from './indexColumns.model'
+import { ListingFilterStatus } from './ListingFilterStatus'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
 import type { RailActions } from './ListingRail'
-import { ListingRail, shortSource, tlButtonLabel } from './ListingRail'
+import { ListingPrinted, ListingRail } from './ListingRail'
 
 type RailPart = 'all' | 'view' | 'filters'
 
@@ -80,6 +81,8 @@ type SchemaViewerIslandProps = {
   trees?: string[]
   /** The traits to offer as a filter facet (`listingTraits`): the weapons' and gear's. */
   traits?: string[]
+  /** Range, Action and Weapons only, from the List's columns (`listingFieldFacets`): Systems'. */
+  fields?: ListingFieldFacets
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this listing needs. */
   preloadSchemas?: SchemaList
@@ -176,6 +179,7 @@ function SchemaViewer({
   sources,
   trees = [],
   traits = [],
+  fields,
   hasArt,
   listingView,
   serverRender = false,
@@ -212,6 +216,9 @@ function SchemaViewer({
     source: sourceFilter,
     tree: treeFilter,
     trait: traitFilter,
+    range: rangeFilter,
+    action: actionFilter,
+    weapons: weaponsOnly,
     name: nameFilter,
     toggleTechLevel,
     clear: clearFilters,
@@ -220,7 +227,6 @@ function SchemaViewer({
   const [facetsOpen, setFacetsOpen] = useState(false)
 
   const filteredData = useMemo(() => {
-    const name = nameFilter.toLowerCase()
     return initialData.filter((item) => {
       if (techLevelFilters.size > 0) {
         const itemTechLevel = getTechLevel(item)?.toString()
@@ -229,10 +235,28 @@ function SchemaViewer({
       if (sourceFilter && !getSources(item).includes(sourceFilter)) return false
       if (treeFilter && getTree(item) !== treeFilter) return false
       if (traitFilter && !entityTraitNames(toEntityModel(item)).includes(traitFilter)) return false
-      if (name && !item.name.toLowerCase().includes(name)) return false
+      // The name filter forgives the slips the site search forgives (r4 E14).
+      if (nameFilter && !nameMatches(item.name, nameFilter)) return false
+      // What the List's own columns print: a range band, the action type, a damage.
+      if (rangeFilter || actionFilter || weaponsOnly) {
+        const model = toEntityModel(item)
+        if (rangeFilter && !entityRanges(model).includes(rangeFilter)) return false
+        if (actionFilter && entityAction(model) !== actionFilter) return false
+        if (weaponsOnly && !dealsDamage(model)) return false
+      }
       return true
     })
-  }, [initialData, techLevelFilters, sourceFilter, treeFilter, traitFilter, nameFilter])
+  }, [
+    initialData,
+    techLevelFilters,
+    sourceFilter,
+    treeFilter,
+    traitFilter,
+    rangeFilter,
+    actionFilter,
+    weaponsOnly,
+    nameFilter,
+  ])
 
   // The Catalog is one flat grid, no group headings (a tree listing's by
   // name), but for the classes' Core and Hybrid headings, and the List is the
@@ -274,7 +298,10 @@ function SchemaViewer({
 
   const hasActiveFilters =
     techLevelFilters.size > 0 ||
-    [sourceFilter, treeFilter, traitFilter, nameFilter].some((filter) => filter !== '')
+    weaponsOnly ||
+    [sourceFilter, treeFilter, traitFilter, rangeFilter, actionFilter, nameFilter].some(
+      (filter) => filter !== ''
+    )
   const railActions: RailActions = {
     setName: filters.setName,
     toggleTechLevel,
@@ -282,6 +309,9 @@ function SchemaViewer({
     setSource: filters.setSource,
     setTree: filters.setTree,
     setTrait: filters.setTrait,
+    setRange: filters.setRange,
+    setAction: filters.setAction,
+    setWeapons: filters.setWeapons,
     setView,
     toggleFacets: () => setFacetsOpen((open) => !open),
   }
@@ -295,6 +325,7 @@ function SchemaViewer({
         sources,
         trees,
         traits,
+        fields,
         views,
       }}
       filters={{
@@ -302,6 +333,9 @@ function SchemaViewer({
         source: sourceFilter,
         tree: treeFilter,
         trait: traitFilter,
+        range: rangeFilter,
+        action: actionFilter,
+        weapons: weaponsOnly,
         name: nameFilter,
       }}
       facetsOpen={facetsOpen}
@@ -313,56 +347,12 @@ function SchemaViewer({
       status={
         hasActiveFilters &&
         filteredData.length > 0 && (
-          <output className="su-rail__status" aria-live="polite">
-            <span className="su-rail__tally">
-              {islandsCopy('of', { count: filteredData.length, count2: initialData.length })}
-            </span>
-            {[...techLevelFilters].map((key) => {
-              const level = orderedTechLevels.find((tl) => String(tl) === key)
-              if (level == null) return null
-              return (
-                <FilterToken
-                  key={key}
-                  label={
-                    typeof level === 'number' ? islandsCopy('tl2', { level }) : tlButtonLabel(level)
-                  }
-                  name={tlName(level)}
-                  onRemove={() => toggleTechLevel(level)}
-                />
-              )
-            })}
-            {sourceFilter && (
-              <FilterToken
-                label={shortSource(sourceFilter)}
-                name={`source ${sourceFilter}`}
-                onRemove={() => filters.setSource('')}
-              />
-            )}
-            {treeFilter && (
-              <FilterToken
-                label={treeFilter}
-                name={`tree ${treeFilter}`}
-                onRemove={() => filters.setTree('')}
-              />
-            )}
-            {traitFilter && (
-              <FilterToken
-                label={traitFilter}
-                name={`trait ${traitFilter}`}
-                onRemove={() => filters.setTrait('')}
-              />
-            )}
-            {nameFilter && (
-              <FilterToken
-                label={`“${nameFilter}”`}
-                name={islandsCopy('nameFilter')}
-                onRemove={() => filters.setName('')}
-              />
-            )}
-            <Button variant="ghost" size="compact" onClick={clearFilters}>
-              {islandsCopy('clearAll')}
-            </Button>
-          </output>
+          <ListingFilterStatus
+            shown={filteredData.length}
+            total={initialData.length}
+            techLevels={orderedTechLevels}
+            filters={filters}
+          />
         )
       }
     />
@@ -376,6 +366,23 @@ function SchemaViewer({
         data-view={view}
       >
         {!band && renderRail('all')}
+
+        {hasActiveFilters && (
+          <ListingPrinted
+            levels={orderedTechLevels.filter((tl) => techLevelFilters.has(String(tl)))}
+            words={[
+              sourceFilter,
+              treeFilter,
+              traitFilter,
+              rangeFilter,
+              actionFilter,
+              weaponsOnly ? islandsCopy('weaponsOnly') : '',
+              nameFilter && `“${nameFilter}”`,
+            ]}
+            count={filteredData.length}
+            total={initialData.length}
+          />
+        )}
 
         {filteredData.length === 0 ? (
           <EmptyState
@@ -438,6 +445,7 @@ function SchemaViewer({
                       }}
                       phone={{ columns: filters.columns, setColumns: filters.setColumns }}
                       orderNote={groupIndex === 0}
+                      byName={byName}
                     />
                   ) : treeTracks.get(group.key) ? (
                     <ReferenceAbilityTrack
@@ -486,6 +494,7 @@ function ListingSkeleton({
   sources,
   trees = [],
   traits = [],
+  fields,
   hasArt,
   shape,
   view,
@@ -511,6 +520,7 @@ function ListingSkeleton({
           sources,
           trees,
           traits,
+          fields,
           views,
         }}
         view={view}
@@ -556,24 +566,6 @@ function ListingSkeleton({
         </div>
       </div>
     </ListingFrame>
-  )
-}
-
-/** One active filter, as a Compact Button that removes it (its ✕ the line's Size). */
-function FilterToken({
-  label,
-  name,
-  onRemove,
-}: {
-  label: string
-  name: string
-  onRemove: () => void
-}) {
-  return (
-    <Button size="compact" aria-label={islandsCopy('remove', { name })} onClick={onRemove}>
-      {label}
-      <X aria-hidden="true" size={tokens.iconSize.compact} />
-    </Button>
   )
 }
 

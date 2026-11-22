@@ -62,12 +62,17 @@ export const NPC_COLUMNS = [
   // An NPC's track is HP or SP (`SP 39/39`), so the head says both (MD3-15).
   { ...fig(VITAL.hp, buildShelvesCopy('hitOrStructurePoints'), true), label: HP_OR_SP },
 ]
-// Beside the other column the panel is narrow: it spares who sees a pattern
-// (its page says), so its make and each line's menu stay inside the frame.
+// What tells two patterns of one name apart (r4 E13). Beside the other column
+// the panel is narrow: it spares all but the chassis and Systems (the Patterns
+// page and a pattern's own page say the rest), so its make and each line's
+// menu stay inside the frame.
 export const PATTERN_COLUMNS = [
   word('chassis', buildShelvesCopy('chassis'), true),
   spare(word('who', buildShelvesCopy('seenBy'))),
+  spare(fig(buildShelvesCopy('tl'), buildShelvesCopy('techLevel'))),
   fig(buildShelvesCopy('sys'), buildShelvesCopy('systemSlotsUsed')),
+  spare(fig(buildShelvesCopy('mod'), buildShelvesCopy('moduleSlotsUsed'))),
+  spare(word('saved', buildShelvesCopy('saved'))),
 ]
 
 /** One reading's figure (`8/10`) by its label; none draws the dash. */
@@ -112,6 +117,27 @@ export const underWith = (
       {labels && <span>{labels}</span>}
       <span className="su-shelf-ledger__flown">
         {buildShelvesCopy('mech')} <ShelfLink href={mech.href}>{mech.name}</ShelfLink>
+      </span>
+    </>
+  )
+}
+
+/**
+ * A mech's labels under its name, and the pilot who flies it as a link there
+ * (r4 E20): the Mechs shelf lists every mech, and a flown one says whose it is.
+ */
+export const underPilot = (
+  chips: readonly { label: string }[],
+  flownBy: readonly { name: string; href?: string | undefined }[]
+): ReactNode => {
+  const labels = under(chips)
+  const pilot = flownBy[0]
+  if (!pilot) return labels
+  return (
+    <>
+      {labels && <span>{labels}</span>}
+      <span>
+        {buildShelvesCopy('pilot')} <ShelfLink href={pilot.href}>{pilot.name}</ShelfLink>
       </span>
     </>
   )

@@ -91,4 +91,26 @@ describe('starting a Game from a template', () => {
     room.units.unassign(ORGANIZER, pair.to.id, AT + 4)
     expect(room.store.unit(pair.from.id)?.ownerId).toBe(ORGANIZER)
   })
+
+  // LG4-20's Undo: back from the Organiser's Training Bay, it is the Game's own again.
+  test('a pre-gen put back on the roster is unassigned and one the Game came with again', () => {
+    const { room } = started()
+    const pilot = room.store.units('pilot')[0]
+    if (pilot === undefined) throw new Error('no pilot')
+    // One the Organiser holds that was never taken off: the Undo leaves it theirs.
+    const other = room.store.units('pilot')[1]
+    if (other === undefined) throw new Error('no second pilot')
+    room.units.assign(ORGANIZER, other.id, AT + 1)
+    expect(() => room.roster.unshelving(ORGANIZER, [other.id])).toThrow()
+    room.roster.reshelved(ORGANIZER, [other.id], AT + 1)
+    expect(room.store.unit(other.id)?.ownerId).toBe(ORGANIZER)
+    // Taken off, then as it arrives back: the Organiser's, stamped anew.
+    expect(room.roster.shelving(ORGANIZER, pilot.id, AT + 1)).toContain(pilot.id)
+    room.roster.unshelving(ORGANIZER, [pilot.id])
+    room.store.rows('update units set created_at = ? where id = ?', AT + 2, pilot.id)
+    expect(room.roster.read(ORGANIZER)?.templateUnitIds).not.toContain(pilot.id)
+    room.roster.reshelved(ORGANIZER, [pilot.id], AT + 3)
+    expect(room.store.unit(pilot.id)?.ownerId).toBeNull()
+    expect(room.roster.read(ORGANIZER)?.templateUnitIds).toContain(pilot.id)
+  })
 })

@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { RoomDeclined } from '../../../replica/roomSocket'
 
@@ -43,10 +43,13 @@ const serverMocks = await installServerMocks({
   call: (name, args) => {
     if (mutationError !== null) throw mutationError
     mutations.push({ name, args })
+    // Taking a pre-gen off the roster answers the ids that left.
+    return name === 'games.takeOffRoster' ? ['s-free', 's-free-mech'] : undefined
   },
 })
 
 const { GameRoster } = await import('../GameRoster')
+const { ToasterMount } = await import('../../../components/index')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { useUnits } = await import('../../../replica/units')
 const { setSyncStatus } = await import('../../../replica/sync')
@@ -116,7 +119,8 @@ function listing(over: Record<string, unknown> = {}) {
 async function renderAs(
   me: unknown,
   rows: ReturnType<typeof listing>,
-  members: unknown = MEMBERS
+  members: unknown = MEMBERS,
+  pregens?: readonly string[]
 ): Promise<void> {
   // The roster, as the Game's socket serves it.
   serve('g1', { members: members as Record<string, unknown>[] })
@@ -128,7 +132,12 @@ async function renderAs(
   })
   // Async act: the roster flips its hydrated flag from a promise after mount.
   await act(async () => {
-    render(<GameRoster gameId="g1" gameName="Tenacity" />)
+    render(
+      <>
+        <ToasterMount />
+        <GameRoster gameId="g1" gameName="Tenacity" pregens={pregens} />
+      </>
+    )
   })
 }
 
@@ -228,6 +237,9 @@ describe('what a row offers', () => {
     // (only an unassigned one does).
     const line = screen.getByRole('link', { name: 'Ash' }).closest('tr')
     expect(line?.querySelector('td')?.textContent).toBe('Mediator')
+    // A phone drops that column: the holder's name is kept under the Pilot's (r4 B8).
+    expect(line?.querySelector('th .su-open__phone-only')?.textContent).toContain('Mediator')
+    expect(document.querySelectorAll('th .su-open__phone-only')).toHaveLength(1)
     // Readable: a shared table whose crew you cannot look at is not shared.
     // The same address as your own rows; `SheetView` renders it read-only.
     const row = screen.getByRole('link', { name: 'Ash' })
@@ -507,21 +519,96 @@ describe('every verb that changes who has a build asks first', () => {
     ])
   })
 
-  test('the Mediator reassigning names who edits it next, and assigns nothing until confirmed', async () => {
-    await renderAs({ ...ME, _id: 'u-med' }, listing({ pilots: [MY_PILOT] }))
-    const dialog = await press('Roach-Boy', 'Assign to me')
-
-    expect(dialog.textContent).toContain('Assign Roach-Boy to you?')
-    expect(dialog.textContent).toContain('instead of Me')
-    expect(mutations).toHaveLength(0)
-
-    await confirmWith('Assign to you')
+  // MD4-09: each pre-gen handed out was three presses, and the row read as a failed act.
+  test('the Mediator’s Assign to … assigns at once, and its toast’s Undo puts it back', async () => {
+    await renderAs({ ...ME, _id: 'u-med' }, listing({ pilots: [PRE_GEN, MY_PILOT] }))
+    await choose(await openMenu('Pre-gen'), 'Assign to Me')
+    await settle(() => mutations.length > 0)
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(mutations).toEqual([
-      {
-        name: 'ownership.assign',
-        args: { gameId: 'g1', entityId: 's-mine', userId: 'u-med' },
-      },
+      { name: 'ownership.assign', args: { gameId: 'g1', entityId: 's-free', userId: 'u-me' } },
     ])
+    expect(await screen.findByText('Pre-gen is assigned to Me.')).toBeTruthy()
+    // It was nobody's: Undo unassigns it.
+    mutations.length = 0
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    })
+    await settle(() => mutations.length > 0)
+    expect(mutations).toEqual([
+      { name: 'ownership.unassign', args: { gameId: 'g1', entityId: 's-free' } },
+    ])
+
+    // One somebody held goes back to them.
+    mutations.length = 0
+    await choose(await openMenu('Roach-Boy'), 'Assign to me')
+    await settle(() => mutations.length > 0)
+    const said = (await screen.findByText('Roach-Boy is assigned to you.')).closest(
+      'li'
+    ) as HTMLElement
+    mutations.length = 0
+    await act(async () => {
+      fireEvent.click(within(said).getByRole('button', { name: 'Undo' }))
+    })
+    await settle(() => mutations.length > 0)
+    expect(mutations).toEqual([
+      { name: 'ownership.assign', args: { gameId: 'g1', entityId: 's-mine', userId: 'u-me' } },
+    ])
+  })
+
+  test('an Assign to … that fails says so', async () => {
+    await renderAs({ ...ME, _id: 'u-med' }, listing({ pilots: [PRE_GEN] }))
+    mutationError = new Error('socket closed')
+    const errors = spyOn(console, 'error').mockImplementation(() => {})
+    await choose(await openMenu('Pre-gen'), 'Assign to Me')
+    expect(await screen.findByText('Pre-gen could not be assigned to Me. Try again.')).toBeTruthy()
+    errors.mockRestore()
+  })
+
+  // LG4-20: four spare pre-gens stayed in the crew list and in the seats.
+  test('the Organiser takes an unused pre-gen off the roster at once, with Undo', async () => {
+    const mech = {
+      _id: 's-free-mech',
+      appId: null,
+      ownerId: null,
+      body: { id: 's-free-mech', name: 'Mazona', chassisRef: 'iron-mongrel' },
+    }
+    const flies = {
+      id: 'l1',
+      type: 'mech-to-pilot',
+      from: { type: 'mech', id: 's-free-mech' },
+      to: { type: 'pilot', id: 'a-free' },
+    }
+    await renderAs(
+      { ...ME, _id: 'u-med' },
+      listing({ pilots: [PRE_GEN, MY_PILOT], mechs: [mech], softLinks: [flies] }),
+      MEMBERS,
+      ['s-free', 's-free-mech', 's-mine']
+    )
+    // Only an unassigned one: a pre-gen a player holds is not offered.
+    expect(await rowsOffering(['Pre-gen', 'Roach-Boy'], 'Take off the roster')).toEqual(['Pre-gen'])
+    await choose(await openMenu('Pre-gen'), 'Take off the roster')
+    await settle(() => mutations.length > 0)
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(mutations).toEqual([
+      { name: 'games.takeOffRoster', args: { gameId: 'g1', pilotId: 's-free' } },
+    ])
+    expect(
+      await screen.findByText('Pre-gen and Mazona are off the roster, in your Training Bay.')
+    ).toBeTruthy()
+    mutations.length = 0
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    })
+    await settle(() => mutations.length > 0)
+    expect(mutations).toEqual([
+      { name: 'games.putBack', args: { gameId: 'g1', unitIds: ['s-free', 's-free-mech'] } },
+    ])
+  })
+
+  test('nobody but the Organiser of a template Game is offered Take off the roster', async () => {
+    await renderAs(ME, listing({ pilots: [PRE_GEN] }))
+    expect(await verbsOf('Pre-gen')).not.toContain('Take off the roster')
   })
 
   test.each([

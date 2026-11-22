@@ -94,16 +94,25 @@ describe('SearchListbox', () => {
     expect(mule?.closest('tr')?.textContent).toContain('Chassis')
   })
 
-  test('the row for what a full list left out is an option like any other', () => {
+  test('"Show more" is an option that acts, never a link (r4 F1)', () => {
     const more: SearchComboboxResult = {
       kind: 'more',
-      id: 'more:chassis',
-      title: '12 more Chassis',
-      group: 'Open the filtered list',
-      schemaId: 'chassis',
-      query: 'mu',
+      id: 'more',
+      title: 'Show more',
+      group: '12 more results',
     }
-    list({ results: [MULE, more] })
-    expect(screen.getAllByRole('option')[1]?.textContent).toContain('12 more Chassis')
+    const pressed: SearchComboboxResult[] = []
+    list({ results: [MULE, more], onMore: (result) => pressed.push(result) })
+    const row = screen.getAllByRole('option')[1] as HTMLElement
+    expect(row.textContent).toContain('Show more')
+    expect(row.textContent).toContain('12 more results')
+    expect(row.tagName).not.toBe('A')
+    fireEvent.click(row)
+    expect(pressed).toEqual([more])
+  })
+
+  test('a search waiting on its index says it is searching (r4 F2)', () => {
+    list({ ready: false })
+    expect(screen.getByRole('status').textContent).toBe('Searching…')
   })
 })

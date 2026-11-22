@@ -17,7 +17,7 @@ import { SearchIsland } from './SearchIsland'
 export function MobileNavIsland() {
   return (
     <IslandErrorBoundary>
-      <UnionDrawer search={<SearchIsland />} />
+      <UnionDrawer search={<SearchIsland />} reference />
     </IslandErrorBoundary>
   )
 }

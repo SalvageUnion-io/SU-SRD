@@ -3,7 +3,7 @@
  * Propose section in Play (docs/architecture/play.md §10, §15 for the
  * fields).
  *
- * Target, Field, To, an optional Reason (at most 140 characters), a live
+ * Target, Field, Change (Take, Add or Set to) and its number, an optional Reason (at most 140 characters), a live
  * preview ("SP 6 → 4 · "Rifle Squad volley""), **Propose**, and the three
  * newest proposals with their state. The preview is the one place a before
  * shows: a sent proposal stores none (ADR-030 §4, as amended).
@@ -107,8 +107,10 @@ export function ProposeDock({
     ? chosenField
     : fields[0].field
   const [to, setTo] = useState('')
-  // Set the value itself, or take or add an amount ("you take 3 damage").
-  const [mode, setMode] = useState<ProposeMode>('set')
+  // Take or add an amount ("you take 3 damage"), or set the value itself. It
+  // opens on Take (r4 D2): a hit is the common proposal, and a damage number
+  // typed under Set to would propose "HP set to 3".
+  const [mode, setMode] = useState<ProposeMode>('take')
   const [reason, setReason] = useState('')
   const [sending, setSending] = useState(false)
   const [setbacksOpen, setSetbacksOpen] = useState(false)
@@ -213,9 +215,9 @@ export function ProposeDock({
             disabled={!canWrite}
             onChange={(e) => setMode(e.target.value as ProposeMode)}
           >
-            <option value="set">{mediatorCopy('setTo')}</option>
             <option value="take">{mediatorCopy('take')}</option>
             <option value="add">{mediatorCopy('addAmount')}</option>
+            <option value="set">{mediatorCopy('setTo')}</option>
           </Select>
         </Field>
         <Field

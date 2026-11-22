@@ -1,0 +1,71 @@
+/**
+ * The Patterns shelf: the Training Bay's panel, and the Patterns page whole.
+ * Each line says what tells two patterns of one name apart (its chassis, who
+ * sees it, Tech Level, slots filled, the day it was saved), and any column
+ * sorts it (r4 E13). A narrow panel spares all but its chassis and Systems.
+ */
+import type { MechPattern } from 'game-domain/schemas/pattern'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
+import type { HeaderMenuItem, LedgerSort } from '../../components/index'
+import { savedPatternHref } from '../../lib/patterns/patterns'
+import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
+import { buildShelvesCopy } from '../../messages/build-shelves'
+import { nextSort, sortShelfRows } from './mechShelf.model'
+import { patternLine } from './patternShelf.model'
+import { ShelfLedger } from './ShelfLedger'
+import { PATTERN_COLUMNS } from './shelfColumns'
+
+export function PatternShelf({
+  patterns,
+  sharing,
+  games,
+  action,
+  line,
+}: {
+  patterns: readonly MechPattern[]
+  /** Who can see each; undefined while it loads, or with no server to ask. */
+  sharing: readonly PatternSharing[] | undefined
+  games: readonly ShelfGame[] | undefined
+  action?: ReactNode
+  /** What the page hangs on a pattern's line: its mark, its one act, its menu. */
+  line: (
+    pattern: MechPattern,
+    over: string | undefined
+  ) => {
+    under?: ReactNode
+    act?: { label: string; onSelect: () => void } | undefined
+    menu: HeaderMenuItem[][]
+  }
+}) {
+  const [sort, setSort] = useState<LedgerSort | undefined>(undefined)
+  const rows = patterns.map((pattern) => ({
+    pattern,
+    name: pattern.name,
+    ...patternLine(pattern, sharing, games),
+  }))
+  return (
+    <ShelfLedger
+      id="shelf-patterns"
+      title={buildShelvesCopy('patterns')}
+      tone="mech"
+      homebrew
+      columns={PATTERN_COLUMNS}
+      action={action}
+      empty={buildShelvesCopy('noPatternsYet')}
+      sort={sort}
+      onSort={(key) => setSort(nextSort(sort, key))}
+      rows={sortShelfRows(rows, sort, (row, key) => row.values[key]).map(
+        ({ pattern, values, saved, over }) => ({
+          id: pattern.id,
+          name: pattern.name,
+          href: savedPatternHref(pattern.id),
+          cells: PATTERN_COLUMNS.map((column) =>
+            column.key === 'saved' ? saved : (values[column.key] ?? '')
+          ),
+          ...line(pattern, over),
+        })
+      )}
+    />
+  )
+}

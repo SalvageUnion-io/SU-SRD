@@ -56,9 +56,12 @@ export function MechSheetPickers({
   // The pickers open on the mech's Tech Level; a lettered one (Bio) shows all.
   const chassisTl = model.chassisEntity?.techLevel
   const techLevel = typeof chassisTl === 'number' ? chassisTl : undefined
-  // The build's running Scrap cost beside the slots, as the wizard's picker
-  // shows what is spent (r3 F3): the number an add moves.
-  const cost = { label: buildSheetCopy('costInScrap'), used: mechScrap(mech).total }
+  // What the build is worth beside the slots (r3 F3), by Tech Level as the
+  // sheet's tiles say it (r4 E10, E11): worth, never a cost the sheet charges.
+  const worth = mechScrap(mech).byTechLevel.map(({ techLevel, scrap }) => ({
+    label: buildSheetCopy('worthInScrap', { tl: techLevel }),
+    used: scrap,
+  }))
   return (
     <>
       <SheetPickerModal
@@ -83,14 +86,15 @@ export function MechSheetPickers({
               label: overAsPrinted(
                 capacity.systemSlotsUsed,
                 capacity.systemSlotsMax,
-                capacity.asPrinted
+                capacity.asPrinted,
+                'systems'
               )
                 ? buildSheetCopy('systemSlotsAsPrinted')
                 : buildSheetCopy('systemSlots'),
               used: capacity.systemSlotsUsed,
               max: capacity.systemSlotsMax,
             },
-            cost,
+            ...worth,
             { label: buildSheetCopy('energy'), used: model.currentEP, max: maxEP },
           ]}
         />
@@ -117,14 +121,15 @@ export function MechSheetPickers({
               label: overAsPrinted(
                 capacity.moduleSlotsUsed,
                 capacity.moduleSlotsMax,
-                capacity.asPrinted
+                capacity.asPrinted,
+                'modules'
               )
                 ? buildSheetCopy('moduleSlotsAsPrinted')
                 : buildSheetCopy('moduleSlots'),
               used: capacity.moduleSlotsUsed,
               max: capacity.moduleSlotsMax,
             },
-            cost,
+            ...worth,
             { label: buildSheetCopy('energy'), used: model.currentEP, max: maxEP },
           ]}
         />

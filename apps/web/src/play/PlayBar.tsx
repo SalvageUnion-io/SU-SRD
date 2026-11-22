@@ -104,6 +104,8 @@ export type PlayBarProps = {
   of?: number | null
   /** A stamp after the title naming the viewer's role: "Mediator". */
   stamp?: string
+  /** The Scene conditions that are on, as one stamp ("Scene · Radiation Storm"); absent with none. */
+  scene?: string | undefined
   /** A phone's bar, kept to one line: the ONLINE stamp says its count alone (`liveLabel`). */
   short?: boolean
   /**
@@ -113,6 +115,8 @@ export type PlayBarProps = {
   readOnly?: PlayReadOnly | null
   /** The Situation switch: On foot / Boarded / Downtime (from `lg`; below it, pinned under the bar). */
   situation?: ReactNode
+  /** A mark that jumps somewhere off screen ("New in the Feed", r4 B7), before the Stop Sign. */
+  mark?: ReactNode
   /** The Stop Sign's button (`StopSignButton`), in a Game. */
   stop?: ReactNode
   /** The Discord channel button: where this screen's rolls post. */
@@ -140,9 +144,11 @@ export function PlayBar({
   here = null,
   of = null,
   stamp,
+  scene,
   short = false,
   readOnly = null,
   situation,
+  mark,
   stop,
   channel,
   menu,
@@ -194,6 +200,7 @@ export function PlayBar({
           </Badge>
         )}
         <span style={SPACER} />
+        {mark}
         {stop}
         {channel}
         {menu}
@@ -238,7 +245,14 @@ export function PlayBar({
         )
       )}
       {situation && <div style={SLOT}>{situation}</div>}
+      {/* A condition left on is never unseen (r4 A11). */}
+      {scene && (
+        <Badge shape="stamp" size="compact" surface="inverse" className={STAMP} style={ONLINE}>
+          {scene}
+        </Badge>
+      )}
       <span style={SPACER} />
+      {mark}
       {stop}
       {channel}
       {menu}
