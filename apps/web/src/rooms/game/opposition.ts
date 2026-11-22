@@ -182,6 +182,20 @@ export class GameOpposition {
     return [{ appId: 'mediator', body: { running }, updatedAt }]
   }
 
+  /**
+   * The table changed hands to `to` (r6 B1): the running encounter goes
+   * across without its notes, which are the old Mediator's ("Only you") and
+   * stay on their own encounter in Prep. Its name, briefing, tables and
+   * waves are the table's, so they stay. Called after `to` is appointed;
+   * nothing changes when they already mediated.
+   */
+  handOver(to: string, wasMediator: boolean): void {
+    if (wasMediator || !this.mediates(to)) return
+    const running = this.running(to)
+    if (running === null || running.notes === '') return
+    this.putRunning({ ...running, notes: '' })
+  }
+
   /** The encounter being run, or null. */
   running(actor: string): RunningEncounter | null {
     const member = this.store.member(actor)

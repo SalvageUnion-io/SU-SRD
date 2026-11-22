@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { runAct } from '../acts'
 import { AT, MEDIATOR, ORGANIZER, PLAYER, table } from './harness'
 
 const encounter = {
@@ -65,6 +66,36 @@ describe('running an encounter', () => {
     expect(room.opposition.tray(MEDIATOR)).toHaveLength(2)
     room.opposition.runEncounter(MEDIATOR, encounter, { clear: true }, AT)
     expect(room.opposition.tray(MEDIATOR).map((n) => n.name)).toEqual(['Raider'])
+  })
+})
+
+// MD6-01: the hand-over dialog says the new Mediator starts with empty notes.
+describe('handing the table over mid-encounter (r6 B1)', () => {
+  test('the running encounter goes across without its private notes', () => {
+    const { room } = table()
+    room.opposition.runEncounter(
+      MEDIATOR,
+      { ...encounter, briefing: 'Dust on the ridge.' },
+      { clear: false },
+      AT
+    )
+    const c = { room, actor: ORGANIZER, gameId: 'g1', at: AT + 5 }
+    expect(runAct(c, 'setMediator', { userId: PLAYER, mediator: true }).ok).toBe(true)
+    expect(runAct(c, 'setMediator', { userId: MEDIATOR, mediator: false }).ok).toBe(true)
+    const running = room.opposition.running(PLAYER)
+    expect(running?.name).toBe('Ambush at the Gap')
+    expect(running?.notes).toBe('')
+    // The briefing is the table's to hear, and the fight stays on the field.
+    expect(running?.briefing).toBe('Dust on the ridge.')
+    expect(room.opposition.tray(PLAYER).map((n) => n.name)).toEqual(['Raider'])
+  })
+
+  test('appointing someone who already mediates keeps the notes', () => {
+    const { room } = table()
+    room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT)
+    const c = { room, actor: ORGANIZER, gameId: 'g1', at: AT + 5 }
+    expect(runAct(c, 'setMediator', { userId: MEDIATOR, mediator: true }).ok).toBe(true)
+    expect(room.opposition.running(MEDIATOR)?.notes).toBe('They come from the ridge.')
   })
 })
 

@@ -39,7 +39,10 @@ const GAME_ACTS = {
   setMediator: (c: ActContext, a: { userId: string; mediator: boolean }) => {
     // Notes written before they had authors stay with whoever runs the table now.
     c.room.plan.settle(c.at)
+    const already = c.room.opposition.mediates(a.userId)
     c.room.roster.setMediator(c.actor, a.userId, a.mediator)
+    // A new Mediator starts with empty notes, the running encounter's too (r6 B1).
+    if (a.mediator) c.room.opposition.handOver(a.userId, already)
   },
   updateSettings: (c: ActContext, a: { name?: string; description?: string }) =>
     c.room.roster.updateSettings(c.actor, a),
