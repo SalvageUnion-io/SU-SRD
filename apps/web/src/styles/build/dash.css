@@ -820,6 +820,20 @@
   padding-inline-start: var(--space-20);
 }
 
+/* On a phone the figures wrap to a second line before one is cut off (r3
+   I1): a Tech 2 build's four costs all read, and the sheet never slides
+   sideways. A wrapped line has no cell to rule off from, so the rules go. */
+@media not (width >= 40rem) {
+  .su-mast .su-strip__figures {
+    flex-wrap: wrap;
+  }
+
+  .su-mast .su-strip__cell--figure + .su-strip__cell--figure {
+    border-left: 0;
+    padding-inline-start: 0;
+  }
+}
+
 .su-mast .su-strip__cell--figure .su-strip__label {
   color: var(--color-ink-75);
   font-size: var(--text-chip);
@@ -868,6 +882,12 @@
 
   .su-mast__identity {
     grid-column: 2;
+  }
+
+  /* Edit's column runs the board and every field: the photo sits at its
+     top, not halfway down beside the fields (r3 I4). */
+  .su-mast[data-edit] .su-mast__art {
+    align-self: start;
   }
 }
 
