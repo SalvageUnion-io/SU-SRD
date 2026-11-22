@@ -53,7 +53,7 @@ export type EntityProps = EntitySource &
     peek?: boolean
     /** Index Compact only: its art loads at once and first (a listing's opening row). */
     priority?: boolean
-    /** Index Compact only: the catalog has art; this art-less entity's place among its art-less ones (a censor mark). */
+    /** Index Compact only: the catalog has art; this art-less entity's place among its art-less ones (a No illustration plate). */
     missingArt?: number
     /** Index Compact only: art the site holds for an entity whose data names none (a book's cover). */
     artUrl?: string

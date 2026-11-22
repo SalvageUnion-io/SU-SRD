@@ -39,7 +39,7 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
   **N7** select is level 1's, bar the in-card toggle; **N8** one level deep on a Page is an open Compact, bar a loadout or ability tree (R39).
 - **E7** Modes fill slots, never change anatomy (C9).
 - **E9** Facts and traits are chips (traits link), sections Slabs. Citations: ruleset Source 2.
-- **E10** Art appears by room, not prop; no art, no place, save an index Compact in a catalog with art (censored).
+- **E10** Art appears by room, not prop; no art, no place, save an index Compact in an art catalog (No illustration).
 - **E11** A lead appears only on an SRD index, or as a Ledger's quiet line (L5).
 - **E12** Fill follows kind: "have" entities wear their tone, "do" entities the ink banner contentful or on a Page, and as a Compact but for an ability.
   An ability's Compact, track and band wear its tier: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.

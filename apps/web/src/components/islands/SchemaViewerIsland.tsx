@@ -199,7 +199,7 @@ function SchemaViewer({
   }, [schemaId, entryIds])
 
   // A catalog with art keeps every tile's art place: an art-less entity wears a
-  // censor mark, turned by its place among the listing's art-less entities.
+  // "No illustration" plate there (`NoArtPlate`).
   const missingArt = useMemo(() => {
     if (!hasArt) return undefined
     const order = new Map<string, number>()

@@ -1,98 +1,40 @@
 /*
- * The package stylesheet: missing art (the manual's censor
- * marks) and the entity card's artwork lead. `../index.css` imports the parts
- * in cascade order.
+ * The package stylesheet: missing art (a "No illustration" plate) and the
+ * entity card's artwork lead. `../index.css` imports the parts in cascade
+ * order.
  */
 
-/* ══ Missing art: the manual's censor marks ═════════════════════════════════
+/* ══ Missing art: a "No illustration" plate ════════════════════════════════
  *
- * `CensorMark` (ruleset §1): an art-less tile in a catalog that has art wears
- * one of the Workshop Manual's three censor marks in its art place — the torn
- * ink patch (`file`), the torn strip (`row`) or a red REMOVED rubber stamp
- * (`removed`) — over a faded blueprint. The tear is a seeded `clip-path` on
- * the ink, so an entity tears the same way on every render.
+ * `NoArtPlate` (r5 E7): an art-less tile in a catalog that has art keeps its
+ * art place, quiet paper with a small plate in the middle saying there is no
+ * illustration and where the book prints the entry, so it never reads as
+ * something withheld.
  */
-.su-missing-art {
+.su-no-art {
   align-items: center;
   align-self: stretch;
   background-color: var(--color-paper);
+  color: var(--color-ink-2);
   display: flex;
   flex: 1 1 auto;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-}
-
-/* The faded blueprint behind the mark: it fills the frame and sits under the
-   ink. Doubled so `.su-entity-index__art img` cannot reach it. */
-.su-missing-art .su-missing-art__backdrop {
-  height: 100%;
-  inset: 0;
-  mix-blend-mode: normal;
-  object-fit: cover;
-  opacity: 0.16;
-  pointer-events: none;
-  position: absolute;
-  width: 100%;
-}
-
-.su-missing-art__ink {
-  background-color: var(--color-ink);
-  position: absolute;
-}
-
-/* A patch sized to the 3:4 art box, not torn edge to edge across it. */
-.su-missing-art__patch {
-  inset: 30% 14%;
-}
-
-.su-missing-art__words {
-  align-items: center;
-  display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  position: relative;
+  justify-content: center;
+  padding: var(--space-8);
+  text-align: center;
 }
 
-/* The word: paper type at the type floor, as the manual sets REDACTED. */
-.su-missing-art__word,
-.su-missing-art__code {
-  color: var(--color-paper);
+.su-no-art__label {
+  border-block: var(--bw-hairline) solid var(--color-ink-20);
   font-size: var(--text-badge);
   line-height: 1.1;
-  padding-left: var(--tracking-caps-snug);
-  position: relative;
+  padding: var(--space-4) var(--space-6);
 }
 
-.su-missing-art__strip {
-  align-items: center;
-  display: flex;
-  height: 16%;
-  justify-content: center;
-  left: -6%;
-  min-height: 1rem;
-  position: absolute;
-  right: -6%;
-  top: 36%;
-  transform: rotate(-4deg);
-}
-
-.su-missing-art__strip > .su-missing-art__ink {
-  inset: 0;
-}
-
-/* REMOVED as a rubber stamp: red ink, a ruled double frame, set askew, on the
-   paper with no fill of its own. */
-.su-missing-art__stamp {
-  border: var(--bw-chrome) solid var(--color-status-bad);
-  color: var(--color-status-bad);
-  font-size: var(--text-badge);
-  font-weight: var(--font-weight-extrabold);
-  line-height: 1;
-  outline: var(--bw-hairline) solid var(--color-status-bad);
-  outline-offset: 2px;
-  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-6);
-  transform: rotate(-8deg);
+.su-no-art__cite {
+  font-size: var(--text-chip);
+  line-height: 1.3;
 }
 
 /* ══ The entity card's artwork lead ══════════════════════════════════════════

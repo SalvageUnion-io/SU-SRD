@@ -262,11 +262,6 @@ export const EXEMPTIONS: readonly StringExemption[] = [
     reason: 'A CSS `box-shadow` value in a style object.',
   },
   {
-    file: 'apps/web/src/components/entity/parts/CensorMark.tsx',
-    strings: ['su-missing-art su-missing-art--'],
-    reason: 'CSS class names, space-separated: selectors the stylesheet matches, never drawn.',
-  },
-  {
     file: 'apps/web/src/components/entity/peekPlate.ts',
     strings: [
       'drop-shadow(4px 4px 0 var(--color-ink))',

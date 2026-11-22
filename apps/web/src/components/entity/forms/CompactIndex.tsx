@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { budgetFacts, naturalContext } from 'salvageunion-reference'
+import { budgetFacts, citeLine, naturalContext } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import { space, widthAtLeast } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
@@ -13,12 +13,11 @@ import { HomebrewStamp } from '../../referenceEntity/card/HomebrewStamp'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
-import { CensorMark } from '../parts/CensorMark'
 import { Chips } from '../parts/Chips'
-import { censorMark } from '../parts/censor'
 import { factCells } from '../parts/factCells'
 import { INDEX_NAME, INDEX_NAME_CAPS } from '../parts/indexName'
 import { Lead } from '../parts/Lead'
+import { NoArtPlate } from '../parts/NoArtPlate'
 import { bandFrame, paintFor } from '../parts/paint'
 import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
@@ -37,9 +36,9 @@ export type CompactIndexProps = {
   priority?: boolean
   /**
    * The catalog has art, so an index Compact without any keeps the art place and wears a
-   * censor mark there, keeping every index Compact one height. The number is this
-   * entity's place among the catalog's art-less entities, which turns the
-   * marks so neighbours differ. Unset, an art-less index Compact opens on its band.
+   * "No illustration" plate there with its page (`NoArtPlate`), keeping every
+   * index Compact one height. The number is this entity's place among the
+   * catalog's art-less entities. Unset, an art-less index Compact opens on its band.
    */
   missingArt?: number
   /** Art the site holds for an entity whose data names none (a book's cover). */
@@ -85,8 +84,8 @@ const MEASURE_KEY = 'ref-stat-'
 
 /**
  * INDEX COMPACT — the catalog form: the artwork is the hero. The art at 3:4 on paper
- * (the line art multiplied onto it); an entity without art wears a censor
- * mark there in a catalog that has art (`missingArt`), and elsewhere has no
+ * (the line art multiplied onto it); an entity without art wears a "No
+ * illustration" plate there in a catalog that has art (`missingArt`), and elsewhere has no
  * art place, so its index Compact opens on the band. Then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
  * Manual's chapter band at an index Compact's scale — with the facts and the cost as
@@ -135,9 +134,11 @@ export function CompactIndex({
   const art =
     model.art.kind === 'none' && artUrl ? { kind: 'image' as const, url: artUrl } : model.art
   const artWindow = art.kind === 'image' ? tileArtWindow(art.url) : undefined
+  // The book's first printing, where the plate says the entry is found.
+  const firstPrinting = model.cite?.printings[0]
   const mark =
     art.kind === 'none' && missingArt !== undefined
-      ? censorMark(`${model.ref.schemaName}/${model.ref.id}`, missingArt, model.cite?.page)
+      ? { cite: firstPrinting ? citeLine([firstPrinting]) : undefined }
       : undefined
   const image =
     art.kind === 'image' ? (
@@ -183,7 +184,7 @@ export function CompactIndex({
         )}
         {mark && (
           <span className="su-entity-index__art">
-            <CensorMark mark={mark} />
+            <NoArtPlate cite={mark.cite} />
           </span>
         )}
         <div

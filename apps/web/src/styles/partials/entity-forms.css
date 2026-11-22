@@ -848,7 +848,7 @@
    window inside it takes the line art's own aspect, as tall as the band's
    inset allows (narrower than the band for a wide ink), so the canvas's empty
    margin falls outside it and no line is cut off. Art with no measured box
-   draws whole in the band; a censor mark fills it. The band, chips and lead
+   draws whole in the band; a No illustration plate fills it. The band, chips and lead
    are unchanged. */
 @media not (width >= 40rem) {
   .su-entity-index__art {
