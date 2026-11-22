@@ -152,6 +152,25 @@ describe('SchemaViewerIsland', () => {
     cleanup()
   })
 
+  it('Skip to results follows the filters, and Enter in the name filter lands on the first result (RR6-14)', () => {
+    const entities = required(getModel('crawler-bays'), 'crawler bays model').all()
+    render(
+      <SchemaViewerIsland
+        schemaId="crawler-bays"
+        techLevels={getUniqueTechLevels(entities)}
+        sources={getUniqueSources(entities)}
+      />
+    )
+    const skip = screen.getByRole('link', { name: 'Skip to results' })
+    expect(skip.getAttribute('href')).toBe('#srd-listing-results')
+    const nameInput = screen.getByRole('searchbox', { name: 'Filter items by name' })
+    fireEvent.keyDown(nameInput, { key: 'Enter' })
+    const first = document.querySelector('#srd-listing-results a[href]')
+    expect(first).toBeTruthy()
+    expect(document.activeElement).toBe(first)
+    cleanup()
+  })
+
   it('name filter: typing a known entity name shows only matching cards', () => {
     const systemsModel = required(getModel('systems'), 'systems model')
     const entities = systemsModel.all()

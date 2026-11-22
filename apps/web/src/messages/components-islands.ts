@@ -21,6 +21,7 @@ export const islandsCopy = messages({
   tryAgain: 'Try again',
   filterByName: 'Filter {count} by name',
   filterItemsByName: 'Filter items by name',
+  skipToResults: 'Skip to results',
   view: 'View',
   active: 'active',
   techLevel: 'Tech Level',

@@ -48,7 +48,13 @@ import { ListingFilterStatus } from './ListingFilterStatus'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
 import type { RailActions } from './ListingRail'
-import { ListingPrinted, ListingRail } from './ListingRail'
+import {
+  focusFirstResult,
+  ListingPrinted,
+  ListingRail,
+  RESULTS_ID,
+  TOOLBAR_MIN_ENTRIES,
+} from './ListingRail'
 
 type RailPart = 'all' | 'view' | 'filters'
 
@@ -323,6 +329,7 @@ function SchemaViewer({
     setWeapons: choosing(filters.setWeapons),
     setView,
     toggleFacets: () => setFacetsOpen((open) => !open),
+    focusResults: () => focusFirstResult(),
   }
 
   const renderRail = (part: RailPart) => (
@@ -330,6 +337,7 @@ function SchemaViewer({
       part={part}
       facets={{
         count: initialData.length,
+        shown: filteredData.length,
         techLevels: orderedTechLevels,
         sources,
         trees,
@@ -375,6 +383,12 @@ function SchemaViewer({
         data-view={view}
       >
         {!band && renderRail('all')}
+        {/* From the filters straight to what they found (RR6-14). */}
+        {initialData.length > TOOLBAR_MIN_ENTRIES && filteredData.length > 0 && (
+          <a href={`#${RESULTS_ID}`} className="su-listing__skip">
+            {islandsCopy('skipToResults')}
+          </a>
+        )}
 
         {hasActiveFilters && (
           <ListingPrinted
@@ -407,7 +421,7 @@ function SchemaViewer({
           />
         ) : (
           <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
-            <div className="su-listing__groups">
+            <div className="su-listing__groups" id={RESULTS_ID} tabIndex={-1}>
               {groups.map((group, groupIndex) => (
                 <section key={group.key} className="su-listing__group" aria-label={group.label}>
                   {group.label && view !== 'list' && (

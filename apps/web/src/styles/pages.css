@@ -749,6 +749,19 @@ html[data-srd-signed-in] .su-mediator-acts {
   }
 }
 
+/* Skip to results (RR6-14): off the page until the keyboard reaches it, then
+   a line of its own between the filters and what they found. */
+.su-listing__skip {
+  left: -9999px;
+  position: absolute;
+}
+
+.su-listing__skip:focus {
+  display: inline-block;
+  margin: 0 0 var(--space-8);
+  position: static;
+}
+
 /* What a filtered list is filtered to, said on paper only (r4 E9): there the
    rail that says it on screen is not drawn. */
 .su-listing__printed {
