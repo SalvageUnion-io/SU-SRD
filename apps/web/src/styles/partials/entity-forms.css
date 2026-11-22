@@ -1187,6 +1187,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   min-width: 0;
 }
 
+/* A whole name in a contentful Mini (r4 E8) wraps in the room its chips
+   leave: the chips keep their one line beside it (C2b), never a line of
+   their own over it. */
+.su-entity-mini[data-contentful] .su-entity-mini__pill[data-whole-name] {
+  flex-wrap: nowrap;
+}
+
 /* Its chips fill from the corner, as a Compact's do (the bottom-right fill,
    above): the last chip takes it. Each chip keeps its place from the end
    (`--su-fill`), so the line still reads in class order. The name stays a
