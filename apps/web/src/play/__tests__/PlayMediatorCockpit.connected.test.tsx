@@ -1333,12 +1333,22 @@ describe('below `lg`, on a phone (play.md §11)', () => {
   test('skip links lead the screen: each opens its tab and moves focus into its pane (r4 D6)', async () => {
     await renderCockpit()
     const jumps = within(screen.getByRole('navigation', { name: 'Jump to' })).getAllByRole('link')
-    expect(jumps.map((j) => j.textContent)).toEqual([
+    expect(jumps.slice(0, 4).map((j) => j.textContent)).toEqual([
       'Skip to The table',
       'Skip to Opposition',
       'Skip to Rolls',
       'Skip to Propose a change',
     ])
+    // Then each unit's vitals, and Add opposition's Add (r5 A17).
+    expect(jumps.at(-1)?.textContent).toBe('Skip to Add opposition')
+    const strike = jumps.find((j) => j.textContent === 'Skip to Strikebreaker’s vitals')
+    expect(strike).toBeTruthy()
+    await click(strike as HTMLElement)
+    expect(document.activeElement?.closest('[data-npc-id]')?.textContent).toContain('Strikebreaker')
+    await click(jumps.at(-1) as HTMLElement)
+    expect(document.activeElement?.getAttribute('aria-label')).toBe(
+      'Add opposition from the reference'
+    )
     await click(jumps[1] as HTMLElement)
     expect(phoneTab('Opposition').getAttribute('aria-selected')).toBe('true')
     expect(document.activeElement?.getAttribute('role')).toBe('tabpanel')

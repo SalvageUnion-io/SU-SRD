@@ -93,7 +93,7 @@ export function PlayNpcBox({
   const critical = npc.important && npc.down && track !== null ? track.critical : null
   const lastImportant = npc.lastImportantRoll
   return (
-    <li className="su-play-npc" data-chosen={chosen || undefined}>
+    <li className="su-play-npc" data-chosen={chosen || undefined} data-npc-id={npc.id}>
       <TitledBox
         as="section"
         title={npc.name}
