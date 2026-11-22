@@ -77,6 +77,27 @@ describe('Peek size', () => {
     expect(container.querySelectorAll('.su-entity-compact__title[title]').length).toBe(1)
   })
 
+  test("an ability's row Peeks the ability: its full text and its roll table, never its row again (r4 F4)", async () => {
+    const ability = SalvageUnionReference.getByNameIn('abilities', 'System and Software Hacker')
+    if (!ability) throw new Error('ability fixture missing')
+    render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <Entity size="compact" entity={ability} mode={{ kind: 'link' }} lead peek />
+        <PeekHost />
+      </EntitySurfaceProvider>
+    )
+    const trigger = screen.getByRole('link', { name: 'System and Software Hacker' })
+    expect(trigger.getAttribute(PEEK_SIZE_ATTRIBUTE)).toBe('mini')
+    act(() => trigger.focus())
+    const peek = await screen.findByRole('tooltip')
+    await waitFor(() => expect(peek.querySelector('.su-ec-frame')).not.toBeNull())
+    // The rule itself, which the row's one-line summary leaves out.
+    expect(peek.textContent).toContain('Choose a target System or Module in Range.')
+    // And its roll table, rows open, with nothing to press (E16).
+    expect(peek.textContent).toContain('11–19')
+    expect(peek.querySelector('button, input')).toBeNull()
+  })
+
   test('a Mini Peeks as a Mini', () => {
     const entity = drill()
     const { container } = render(

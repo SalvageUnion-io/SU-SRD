@@ -1,11 +1,18 @@
-import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
-import { getChassisAbilities, isChassis, SalvageUnionReference } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectTable } from 'salvageunion-reference'
+import {
+  getChassisAbilities,
+  isChassis,
+  resolveTable,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import { conditionOf } from '../referenceEntity/card/cardChrome'
 import { schemaOf } from '../referenceEntity/card/cardHelpers'
 import { ActionMinis } from '../referenceEntity/card/NestedCards'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { Entity } from './Entity'
+import { PeekTable } from './PeekTable'
+import type { PeekSize } from './peekContext'
 import { InsidePeekContext } from './peekContext'
 
 /** What `[(CHASSIS)]` reads when more than one chassis shares the ability. */
@@ -93,7 +100,7 @@ export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: D
  * as `PeekCard` is. A Mini nests nothing (N3), so a host's children, actions
  * and table are its Page's.
  */
-export function PeekMini({ entity, down = false }: { entity: RefEntity; down?: Down }) {
+function PeekMini({ entity, down = false }: { entity: RefEntity; down?: Down }) {
   const condition = conditionOf(down)
   return (
     <InsidePeekContext.Provider value={true}>
@@ -105,5 +112,65 @@ export function PeekMini({ entity, down = false }: { entity: RefEntity; down?: D
         body={{ chassisName: peekChassisName(entity) }}
       />
     </InsidePeekContext.Provider>
+  )
+}
+
+/**
+ * Whether the entity's Mini would say only what its row already says: its
+ * rules are its actions', and its own text is a one-line summary of them (an
+ * ability). Its Peek is then never the Mini (E23, `PeekEntity`).
+ */
+function peekRepeatsRow(entity: RefEntity): boolean {
+  return (
+    'description' in entity &&
+    typeof entity.description === 'string' &&
+    'actions' in entity &&
+    Array.isArray(entity.actions) &&
+    entity.actions.length > 0
+  )
+}
+
+/** The roll table an entity's rules roll on: its own, else its first action's. */
+function peekTableOf(entity: RefEntity): { name: string; table: RefObjectTable } | undefined {
+  const sources: unknown[] = [entity, ...(SalvageUnionReference.resolveActions(entity) ?? [])]
+  for (const source of sources) {
+    const table = resolveTable(source)
+    if (!table) continue
+    const named =
+      source !== null &&
+      typeof source === 'object' &&
+      'tableName' in source &&
+      typeof source.tableName === 'string'
+        ? source.tableName
+        : entity.name
+    return { name: named, table }
+  }
+  return undefined
+}
+
+/**
+ * The PEEK of an entity at its trigger's size (E23): from a Page, a Full card
+ * or bare prose the Compact contentful; from a Compact or a Mini the
+ * contentful Mini, unless that would say the row again (`peekRepeatsRow`):
+ * then the Compact contentful and, under it, the table its rule rolls on,
+ * rows open and nothing to press (`PeekTable`).
+ */
+export function PeekEntity({
+  entity,
+  down = false,
+  size,
+}: {
+  entity: RefEntity
+  down?: Down
+  size: PeekSize
+}) {
+  if (size !== 'mini') return <PeekCard entity={entity} down={down} />
+  if (!peekRepeatsRow(entity)) return <PeekMini entity={entity} down={down} />
+  const rolls = peekTableOf(entity)
+  return (
+    <>
+      <PeekCard entity={entity} down={down} />
+      {rolls && <PeekTable name={rolls.name} table={rolls.table} />}
+    </>
   )
 }

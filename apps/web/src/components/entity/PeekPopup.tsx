@@ -19,7 +19,7 @@ import { Skeleton } from '../containers/Skeleton'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import { useEntitySurface } from './entitySurfaceContext'
 import type { PeekLoader } from './Peek'
-import { PeekCard, PeekMini } from './PeekCard'
+import { PeekEntity } from './PeekCard'
 import { PeekTable } from './PeekTable'
 import { PeekTerm } from './PeekTerm'
 import type { StatTerm } from './parts/statTerms'
@@ -219,10 +219,8 @@ export function PeekPopup({
       <PeekTerm term={subject.term} />
     ) : subject.kind === 'table' ? (
       <PeekTable name={subject.name} table={subject.table} />
-    ) : size === 'mini' ? (
-      <PeekMini entity={subject.entity} down={down} />
     ) : (
-      <PeekCard entity={subject.entity} down={down} />
+      <PeekEntity entity={subject.entity} down={down} size={size} />
     )
   ) : null
   const out =
