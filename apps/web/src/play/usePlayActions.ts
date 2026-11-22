@@ -94,6 +94,8 @@ export type PlayActions = {
   resolvingUntouched: boolean
   /** The action that just finished and closed itself: its row says Done. */
   doneKey: string | null
+  /** What that row says it came to (r6 A5). */
+  doneSays: string
   /** Open an on-hand action's resolve in its row (Use); a Down unit's asks first (r5 A1). */
   open: (key: string) => void
   /** The Act anyway question, to render. */
@@ -243,6 +245,7 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     open,
     dialog,
     doneKey: deck.doneKey,
+    doneSays: deck.doneSays,
     heatScale,
     closeOnly: closeRangeOnly(play.scene.conditions),
     rollFor,

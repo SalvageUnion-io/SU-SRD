@@ -55,6 +55,38 @@ export type Stored = {
   session?: 'start' | 'end'
   answer?: 'accepted' | 'undone'
   about?: string
+  /**
+   * The names the line was written with (r6 A9): the actor's, by name and as
+   * the table's runner, and the name of whom it is about. Read back, each is
+   * the member's name now (`namedNow`).
+   */
+  said?: { by?: [string, string]; about?: string }
+}
+
+/** How a member is named now: by name, and as the runner of the table's own acts. */
+export type NamesNow = (userId: string) => { name: string; runner: string } | null
+
+/**
+ * A line as it reads today (r6 A9): the actor and whom it is about under the
+ * names they go by now, not the ones they had. After a hand-over, the former
+ * Mediator's "Mediator ended the group session" reads under their own name.
+ */
+export function namedNow(stored: Stored, actorId: string | null, now: NamesNow): Stored {
+  const said = stored.said
+  if (said === undefined) return stored
+  let text = stored.text
+  const actor = actorId === null ? null : now(actorId)
+  if (said.by !== undefined && actor !== null) {
+    const [name, runner] = said.by
+    if (runner !== actor.runner && text.startsWith(`${runner} `))
+      text = `${actor.runner}${text.slice(runner.length)}`
+    else if (name !== actor.name && text.startsWith(`${name} `))
+      text = `${actor.name}${text.slice(name.length)}`
+  }
+  const about = stored.about === undefined ? null : now(stored.about)
+  if (said.about !== undefined && about !== null && about.name !== said.about)
+    text = text.replace(said.about, about.name)
+  return text === stored.text ? stored : { ...stored, text }
 }
 
 /** How a Mediator's screen signs the rolls it logs (`PlayMediatorCockpit`'s `rollerName`). */
@@ -157,5 +189,36 @@ export function eventOf(
     ...(stored.session === undefined ? {} : { session: stored.session }),
     ...(stored.answer === undefined ? {} : { answer: stored.answer }),
     ...(stored.about === undefined ? {} : { about: stored.about }),
+  }
+}
+
+/**
+ * How the room names a member now: by name ("Crewmate" without one), and as
+ * the runner of the table's own acts (`events.ts`'s `runnerName`); null for
+ * someone no longer a member.
+ */
+export function namesOf(store: GameStore): NamesNow {
+  return (userId) => {
+    const member = store.member(userId)
+    if (member === null) return null
+    const name = member.displayName ?? 'Crewmate'
+    const runner = member.mediator
+      ? 'Mediator'
+      : (member.displayName ?? (member.organizer ? 'Organiser' : 'Crewmate'))
+    return { name, runner }
+  }
+}
+
+/** A line with the names it is written with, kept so it reads under today's (r6 A9). */
+export function withSaid(now: NamesNow, actor: string | null, line: Stored): Stored {
+  const by = actor === null ? null : now(actor)
+  const about = line.about === undefined ? null : now(line.about)
+  if (by === null && about === null) return line
+  return {
+    ...line,
+    said: {
+      ...(by === null ? {} : { by: [by.name, by.runner] }),
+      ...(about === null ? {} : { about: about.name }),
+    },
   }
 }

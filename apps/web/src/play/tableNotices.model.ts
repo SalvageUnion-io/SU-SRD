@@ -29,14 +29,15 @@ const ROLE_PINNED_MS = 7 * 24 * 60 * 60_000
 export type Heard = ReadonlyMap<string, string>
 
 /**
- * What a toast is kept for (r2 C4): what needs a look. A proposal, the
- * Mediator's alert, the session starting and ending, Downtime beginning and
- * ending, the Mediator's role moving, and a roll the Mediator made. Every crewmate's vitals, actions,
- * boarding, assignments and rolls go to the Feed alone: a toast for each
- * stacked over the controls while three players stepped their vitals.
- * The Stop Sign and "Your turn" are pinned, never an event's toast. A player
- * ending their own turn is the Mediator's to hear (r4 B1): the crew read it
- * on the Feed.
+ * What the table's strip tells a seat of someone else's act (r2 C4, r6 A3):
+ * what matters to the whole table. A proposal, the Mediator's alert, the
+ * session and Downtime starting and ending, the Mediator's role moving, a
+ * roll the Mediator made, and a unit going Down. Every other crewmate's
+ * vitals, actions, boarding, assignments and rolls go to the Feed alone. None
+ * of it is a toast any more: a toast is for the viewer's own act (r6 A3). The
+ * Stop Sign and whose turn it is are the strip's own notices. A player ending
+ * their own turn is the Mediator's to hear (r4 B1): the crew see the strip's
+ * "… is up" change.
  */
 function needsALook(event: TableEvent, mediates: boolean): boolean {
   switch (event.kind) {
@@ -52,38 +53,63 @@ function needsALook(event: TableEvent, mediates: boolean): boolean {
       return true
     case 'roll':
       return event.mediator === true
+    case 'vitals':
+      return downOf(event) !== null
     default:
       return false
   }
 }
 
+/** A vital's line that took a unit to 0 SP or HP: "Thresher (Razor) · SP 15 → 0". */
+const TO_ZERO = /^(.+?) · (?:SP|HP) (?:\d+ )?→ 0$/
+
+/** An accepted proposal that took a unit to 0: "Ash accepted: Thresher SP 15 → 0". */
+const ACCEPTED_ZERO = / accepted: (.+?) (?:SP|HP) (?:\d+ )?→ 0$/
+
+/** The unit an event put Down (0 SP or HP), as its line names it; null for any other. */
+export function downOf(event: TableEvent): string | null {
+  if (event.kind === 'vitals') return TO_ZERO.exec(event.text)?.[1] ?? null
+  if (event.kind === 'proposal') return ACCEPTED_ZERO.exec(event.text)?.[1] ?? null
+  return null
+}
+
 /**
- * The events to toast now, oldest first, and what has been heard after them.
+ * The strip's line for a table event (r6 A3): what happened, said once. A
+ * unit going Down reads "Thresher (Razor) is Down", whatever wrote it.
+ */
+export function stripLine(event: TableEvent, downWord: (unit: string) => string): string {
+  const down = downOf(event)
+  return down === null ? event.text : downWord(down)
+}
+
+/**
+ * The events the strip tells now (r6 A3), oldest first, and what has been
+ * heard after them.
  *
- * The first answer (`heard` null) is history: nothing toasts, everything is
- * heard. After that an event toasts when it needs a look (`needsALook`) and is
- * new, or a rewrite changed its line (a revealed roll: the toast, keyed by the
- * event's id, updates in place). Never the viewer's own act, which their
+ * The first answer (`heard` null) is history: nothing is told, everything is
+ * heard. After that an event is told when it needs a look (`needsALook`) and
+ * is new, or a rewrite changed its line (a revealed roll: the line, keyed by
+ * the event's id, updates in place). Never the viewer's own act, which their
  * screen already showed them, and never a Mediator's own copy of a roll (a
  * private or veiled one): those are the Feed's, so a hand over, which serves
  * the new Mediator every earlier one at once, replays nothing (r3 A2).
  */
-export function eventsToToast(
+export function eventsToTell(
   events: readonly TableEvent[],
   heard: Heard | null,
   viewerId: string | null,
   mediates = false
-): { toast: TableEvent[]; heard: Heard } {
+): { tell: TableEvent[]; heard: Heard } {
   const next = new Map(events.map((event) => [event._id, event.text]))
-  if (heard === null) return { toast: [], heard: next }
-  const toast = events
+  if (heard === null) return { tell: [], heard: next }
+  const tell = events
     .filter((event) => heard.get(event._id) !== event.text)
     .filter((event) => event.actorId !== viewerId)
     .filter((event) => event.private !== true && event.veiled !== true)
     .filter((event) => needsALook(event, mediates))
     .sort((a, b) => a.ts - b.ts)
-  // An id the stream no longer serves stays heard: a line that scrolled off never toasts again.
-  return { toast, heard: new Map([...heard, ...next]) }
+  // An id the stream no longer serves stays heard: a line that scrolled off is never told again.
+  return { tell, heard: new Map([...heard, ...next]) }
 }
 
 /** What a Game's pinned strip is showing on this screen, as far as a toast would repeat it. */
@@ -227,49 +253,50 @@ export function gameOfPage(
 }
 
 /**
- * One pinned notice as the strip stacks it (r3 H1). `answer` is one waiting
- * on the viewer (a proposal), `turn` their turn; neither can be dismissed.
- * `alert` is the Mediator's word to the table, which nothing folds away
- * (r4 B2).
+ * One pinned notice as the strip stacks it (r3 H1, r6 A1). `stop` is the Stop
+ * Sign, which leads everything; `answer` one waiting on the viewer (a
+ * proposal), `turn` whose turn it is; neither can be dismissed. `alert` is the
+ * Mediator's word to the table, `news` everything else, `quiet` the strip's
+ * own line while a session is live and nothing else is said: never counted.
  */
 export type StackedNotice = {
   key: string
-  rank: 'alert' | 'answer' | 'turn' | 'news'
+  rank: 'stop' | 'answer' | 'alert' | 'turn' | 'news' | 'quiet'
   /** When it became news: the newest leads. */
   ts: number
   /** Whether Dismiss, and so Dismiss all, clears it. */
   dismissible: boolean
 }
 
-const RANK = { alert: 0, answer: 1, turn: 2, news: 3 } as const
+/** What leads whatever its time: the Stop Sign, then what waits on the viewer's answer. */
+const FIRST = { stop: 0, answer: 1 } as const
+
+const lead = (notice: StackedNotice): number =>
+  notice.rank === 'stop' || notice.rank === 'answer' ? FIRST[notice.rank] : 2
 
 /**
- * The notices in the order they pin (r3 H1): the Mediator's alert at the top
- * (r4 B2), then what waits on the viewer's answer, so Accept is never behind
- * anything, then their turn, then the news, newest first.
+ * The notices in the order the strip shows them (r6 A1): the Stop Sign, then
+ * what waits on the viewer's answer, so Accept is never behind anything, then
+ * the rest newest first, the Mediator's alert and the turn among them. The
+ * quiet line is never one of them.
  */
 export function stackNotices<N extends StackedNotice>(notices: readonly N[]): N[] {
-  return [...notices].sort((a, b) => RANK[a.rank] - RANK[b.rank] || b.ts - a.ts)
+  return notices
+    .filter((notice) => notice.rank !== 'quiet')
+    .sort((a, b) => lead(a) - lead(b) || b.ts - a.ts)
 }
 
 /**
- * What the pinned notices show and what waits behind the count (r4 B2): every
- * alert, each a strip of its own above the rest and never counted, for the
- * player who is up as for anyone; then the first of the others, which is the
- * one strip (r3 H1), with the rest behind its button. "Your turn" is never
- * behind the count (r5 A5): under a proposal it is a line of its own (`turns`).
+ * What the one strip shows (r6 A1): the first notice, and the rest behind its
+ * "N more"; with none, the quiet line, when there is one. Under the strip's
+ * ruling `lines` (`stripRuling.model.ts`) every notice is a line of its own instead,
+ * and `rest` is empty.
  */
 export function shownNotices<N extends StackedNotice>(
   notices: readonly N[]
-): { alerts: N[]; top: N | null; turns: N[]; rest: N[] } {
-  const ordered = stackNotices(notices)
-  const [top = null, ...others] = ordered.filter((notice) => notice.rank !== 'alert')
-  return {
-    alerts: ordered.filter((notice) => notice.rank === 'alert'),
-    top,
-    turns: others.filter((notice) => notice.rank === 'turn'),
-    rest: others.filter((notice) => notice.rank !== 'turn'),
-  }
+): { top: N | null; rest: N[] } {
+  const [top = null, ...rest] = stackNotices(notices)
+  return { top: top ?? notices.find((notice) => notice.rank === 'quiet') ?? null, rest }
 }
 
 /**

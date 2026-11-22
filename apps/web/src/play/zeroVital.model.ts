@@ -4,8 +4,9 @@
  * on Critical Injury. The change is written to the Feed (`recordPlayChange`),
  * and a toast carries a "Roll Critical Damage" button that rolls the table in
  * the Tables section in one press (r5 A1; `askPlayTable`, which `PlayTables`
- * and the Cockpit hear). The roll lands on the Feed, and its result is kept
- * on the unit (`downResult`) until its SP or HP rises.
+ * and the Cockpit hear). The roll lands on the Feed, its row marked in the
+ * table; the unit's card names it, a press away from that row (`downResult`,
+ * r6 A4), until its SP or HP rises.
  *
  * A unit at 0 is Down (`isDown`): every screen at the table marks it. Nothing
  * in the result is applied for the player (ADR-007): the press is theirs, and
@@ -46,32 +47,46 @@ export function isDown(current: number | null | undefined): boolean {
 }
 
 /** What each Down unit's Critical roll came to, by unit id, until it rises (r5 A1). */
-const results = new Map<string, string>()
+const results = new Map<string, DownResult>()
 const resultWatchers = new Set<() => void>()
 /** The unit whose Critical table the toast's press rolled, while its roll is awaited. */
-let awaited: { unitId: string; table: string } | null = null
+let awaited: { unitId: string; table: string; toastId: string } | null = null
 
-function keepResult(unitId: string, text: string | null): void {
-  if (text === null) results.delete(unitId)
-  else results.set(unitId, text)
+/** A kept Critical result: what the unit's card names, its table to open. */
+export type DownResult = { table: string; text: string }
+
+function keepResult(unitId: string, result: DownResult | null): void {
+  if (result === null) results.delete(unitId)
+  else results.set(unitId, result)
   for (const watch of resultWatchers) watch()
+}
+
+/** A row's name, never its whole text: "Core Damage: …" names "Core Damage" (r6 A4). */
+function rowName(outcome: string | undefined): string | null {
+  if (outcome === undefined) return null
+  const colon = outcome.indexOf(': ')
+  if (colon > 0) return outcome.slice(0, colon)
+  return outcome.length <= 40 ? outcome : null
 }
 
 onPlayRoll((roll) => {
   if (awaited === null || roll.tableName !== awaited.table || roll.rolls.length === 0) return
-  const text = [roll.tableName, roll.rolls.join(', '), ...(roll.outcome ? [roll.outcome] : [])]
-  keepResult(awaited.unitId, text.join(' · '))
+  const name = rowName(roll.outcome)
+  const text = [roll.tableName, roll.rolls.join(', '), ...(name === null ? [] : [name])]
+  keepResult(awaited.unitId, { table: awaited.table, text: text.join(' · ') })
+  // Rolled: the marked row is the result, and the toast has said its piece.
+  toast.dismiss(awaited.toastId)
   awaited = null
 })
 
-/** The last Critical result rolled for a Down unit, or null. */
+/** The last Critical result rolled for a Down unit, by name, or null. */
 export function downResult(unitId: string): string | null {
-  return results.get(unitId) ?? null
+  return results.get(unitId)?.text ?? null
 }
 
-/** `downResult`, kept current. */
-export function useDownResult(unitId: string | null): string | null {
-  const read = () => (unitId === null ? null : downResult(unitId))
+/** The kept result and its table, kept current. */
+export function useDownResult(unitId: string | null): DownResult | null {
+  const read = () => (unitId === null ? null : (results.get(unitId) ?? null))
   return useSyncExternalStore(
     (watch) => {
       resultWatchers.add(watch)
@@ -157,7 +172,7 @@ export function zeroVitalNotice(
             label: playCopy('rollTable', { table: due.table }),
             // One press rolls it (r5 A1): the press is the player's own.
             onClick: () => {
-              awaited = { unitId: at.unit.id, table: due.table }
+              awaited = { unitId: at.unit.id, table: due.table, toastId: id }
               askPlayTable(due.table, true)
             },
           },

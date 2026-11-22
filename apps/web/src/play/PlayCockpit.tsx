@@ -44,6 +44,7 @@ import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { mayBindChannel } from 'game-domain/games/discord'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
+import { ScrollText } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import type { HeaderMenuItem } from '../components/index'
@@ -58,6 +59,7 @@ import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
 import { useTableRead } from '../replica/useTable'
+import { useBoardOnArrival } from './boardIntent.model'
 import { hereCount } from './crew.model'
 import { SrdExplorer } from './mediator/SrdExplorer'
 import { PlayActionsColumn } from './PlayActionsColumn'
@@ -128,6 +130,7 @@ type PlayCockpitProps = {
 export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
+  useBoardOnArrival(play)
   // Callsign first, then the name, as everywhere a pilot is named.
   const pilotName = play.pilot ? pilotLabel(play.pilot) : undefined
   // A pilot in a Game is that Game's: its tab says so (glossary §9); a solo
@@ -311,7 +314,12 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
                     aria-label={playCopy('newInTheFeed')}
                     onClick={jumpToFeed}
                   >
-                    {wide ? playCopy('newInTheFeed') : playCopy('feed')}
+                    {/* A phone's is its icon and dot: the pilot's name keeps its room (r6 A12). */}
+                    {wide ? (
+                      playCopy('newInTheFeed')
+                    ) : (
+                      <ScrollText size={tokens.iconSize.mini} aria-hidden="true" />
+                    )}
                     {!wide && <span className="su-play-tab-dot" aria-hidden="true" />}
                   </Button>
                 ) : undefined

@@ -38,6 +38,7 @@ import { runWrite } from '../../lib/runWrite'
 import { useOpenedOnce } from '../../lib/useOpenedOnce'
 import { buildExportCopy } from '../../messages/build-export'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { askToBoard } from '../../play/boardIntent.model'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
@@ -406,7 +407,11 @@ export function Sheet({
       ? {
           name: playPilot.name,
           gameId: playPilot.gameId ?? null,
-          onPlay: () => go(cockpitPath(playPilot.id)),
+          onPlay: () => {
+            // From a Mech's sheet, Play opens boarded in it (r6 A10).
+            if (resolved.kind === 'mech') askToBoard(playPilot.id, resolved.entity.id)
+            go(cockpitPath(playPilot.id))
+          },
         }
       : undefined
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change

@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { act, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { EntitySurfaceProvider } from '../../components/entity/EntitySurface'
 import { useEntitySurface } from '../../components/entity/entitySurfaceContext'
@@ -93,6 +93,32 @@ describe('PlayFrame — one layout, its panes regions from `lg` and tabs below i
     expect(open.map((p) => p.getAttribute('aria-labelledby'))).toEqual([tabs[0]?.id ?? ''])
     expect(tabs[0]?.getAttribute('aria-controls')).toBe(open[0]?.id ?? '')
     expect(getByRole('tab', { name: 'Centre' }).getAttribute('aria-selected')).toBe('true')
+  })
+})
+
+describe('PlayFrame — each tab keeps its scroll (r6 A10)', () => {
+  test('narrow: back on a tab, its pane stands where it was scrolled', () => {
+    const at = (tab: 'centre' | 'start') => (
+      <PlayFrame
+        wide={false}
+        bar={null}
+        panes={PANES}
+        tab={tab}
+        onTab={() => undefined}
+        foot={null}
+        labels={['Units', 'Actions', 'Side']}
+      />
+    )
+    const { rerender } = render(at('centre'))
+    const centre = document.querySelector<HTMLElement>('[id$="-pane-centre"]')
+    if (centre === null) throw new Error('no centre pane')
+    centre.scrollTop = 120
+    fireEvent.scroll(centre)
+    rerender(at('start'))
+    // Hidden, a pane forgets its scroll, as a browser's does.
+    centre.scrollTop = 0
+    rerender(at('centre'))
+    expect(centre.scrollTop).toBe(120)
   })
 })
 

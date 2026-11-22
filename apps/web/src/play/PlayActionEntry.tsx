@@ -7,6 +7,7 @@
  */
 
 import { mechMaxHeat, resolveChassisRef, resolveGauge } from 'salvageunion-reference/rules'
+import { playCopy } from '../messages/play'
 import { actionUsesLeft } from './deckActivation.model'
 import { PlayActionRow } from './PlayActionRow'
 import { PlayDowntimeActionRow } from './PlayDowntimeActionRow'
@@ -16,6 +17,7 @@ import type { ListEntry } from './playActions.model'
 import { lockReason, NEED_TEXT } from './playActions.model'
 import type { Play } from './situation.model'
 import type { PlayActions } from './usePlayActions'
+import { isDown } from './zeroVital.model'
 
 /** Pilots carry no Heat: an AP action never meets a cap. */
 const NO_HEAT = { current: 0, cap: Number.MAX_SAFE_INTEGER }
@@ -51,11 +53,17 @@ export function PlayActionEntry({
               }
             })()
           : NO_HEAT
+      // A Down Mech's own actions are not offered (r6 A7): Down, and the way back.
+      const mechDown =
+        entry.source === 'mech' &&
+        mech !== null &&
+        isDown((actions.store.get('mech', mech.id) ?? mech).currentSP)
       return (
         <PlayActionRow
           entry={entry}
           resolve={open && resolve.kind === 'resolve' ? resolve : null}
           done={actions.doneKey === entry.key}
+          doneSays={actions.doneSays}
           onUse={() => actions.open(entry.key)}
           canWrite={play.canWrite}
           techLevel={actions.crawlerTechLevel}
@@ -70,10 +78,13 @@ export function PlayActionEntry({
             entry.action
           )}
           locked={
-            entry.need === null
-              ? lockReason(entry.action, play.seat.seat.range, heat, actions.closeOnly)
-              : null
+            mechDown
+              ? playCopy('mechDownLock')
+              : entry.need === null
+                ? lockReason(entry.action, play.seat.seat.range, heat, actions.closeOnly)
+                : null
           }
+          unavailable={mechDown}
         />
       )
     }

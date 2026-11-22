@@ -37,7 +37,7 @@ const LABELLED = {
  * The control: **Stop Sign**, by the one name on the bar and the Game page, rust, the one press anyone may make. Pressed while
  * the sign is up it does nothing more, so it says so by being disabled. On
  * the phone's bar, where the whole name would push ⋯ off the line, it is the
- * octagon and "Stop", and it fires on a hold (`STOP_HOLD_MS`), never on a
+ * octagon and "Stop · hold" (r6 A12), and it fires on a hold (`STOP_HOLD_MS`), never on a
  * brushed tap; a keyboard's or a screen reader's press, which no finger
  * brushes, fires it at once.
  *
@@ -126,7 +126,7 @@ export function StopSignButton({
       >
         <span style={LABELLED}>
           <OctagonPause size={tokens.iconSize.mini} aria-hidden="true" />
-          {playSafetyCopy('stop')}
+          {playSafetyCopy('stopHold')}
         </span>
       </Button>
       <span className="su-play-stop__fill" aria-hidden="true" />

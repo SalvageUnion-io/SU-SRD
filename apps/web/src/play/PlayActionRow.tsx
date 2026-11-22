@@ -42,6 +42,7 @@ import type { ResolveModel } from './actionsDeck.model'
 import { PlayResolveSteps } from './PlayResolveSteps'
 import type { ListEntry } from './playActions.model'
 import { NEED_TEXT } from './playActions.model'
+import { ROLL_BUTTON } from './useFindKey'
 import { usePlayWide } from './usePlayWide'
 
 type ActionEntry = Extract<ListEntry, { kind: 'action' }>
@@ -55,10 +56,14 @@ type PlayActionRowProps = {
   resolve: Extract<ResolveModel, { kind: 'resolve' }> | null
   /** It just finished and closed itself: the row says Done. */
   done?: boolean
+  /** What a done row says it came to: "Result applied", or its roll (r6 A5). */
+  doneSays?: string
   onUse: () => void
   canWrite: boolean
   /** Why it cannot run as it stands (out of range, over the Heat Cap), or null. */
   locked: string | null
+  /** Not to be used at all now (a Down Mech's, r6 A7): the lock says why, and no Use is offered. */
+  unavailable?: boolean
   /** The pilot's crawler Tech Level: an item's action scales with it (Custom Sniper Rifle damage). */
   techLevel?: number | undefined
   /** The row sits under its action type's heading, so its head leaves the type out (C10). */
@@ -118,9 +123,11 @@ export function PlayActionRow({
   entry,
   resolve,
   done = false,
+  doneSays = playCopy('resultApplied'),
   onUse,
   canWrite,
   locked,
+  unavailable = false,
   techLevel,
   grouped = false,
   uses = null,
@@ -141,20 +148,31 @@ export function PlayActionRow({
   const companion = entry.action.companion
   const open = resolve !== null
   // Closing takes the pressed control (Apply, Done) away with the resolve:
-  // the keyboard goes back to this row's Use, never to the page's top (r4 A3).
+  // the keyboard goes back to this row's Use, or End my turn while it is the
+  // player's turn, never to the page's top (r4 A3, r6 A13).
   const rowRef = useRef<HTMLLIElement>(null)
   const wasOpen = useRef(open)
   useEffect(() => {
+    const opened = !wasOpen.current && open
     const closed = wasOpen.current && !open
     wasOpen.current = open
+    const row = rowRef.current
     const active = document.activeElement
-    if (closed && (active === null || active === document.body || !active.isConnected))
-      rowRef.current?.querySelector<HTMLElement>('.su-play-act__use')?.focus()
+    // Use pressed from the keyboard: on to Roll, never left on Cancel (r6 A13).
+    if (opened && row !== null && active !== null && row.contains(active)) {
+      row.querySelector<HTMLElement>(ROLL_BUTTON)?.focus()
+      return
+    }
+    if (closed && (active === null || active === document.body || !active.isConnected)) {
+      // The player who is up goes on to End my turn, one Tab from the strip (r6 A13).
+      const end = document.querySelector<HTMLButtonElement>('[data-end-turn]:not([disabled])')
+      ;(end ?? row?.querySelector<HTMLElement>('.su-play-act__use'))?.focus()
+    }
   }, [open])
   const away = entry.need !== null
   const size = wide ? 'mini' : 'compact'
   const control =
-    away || entry.type === 'Passive' ? null : open ? (
+    away || entry.type === 'Passive' || (unavailable && !open) ? null : open ? (
       <Button
         size={size}
         className="su-play-act__use"
@@ -220,7 +238,7 @@ export function PlayActionRow({
     >
       {/* Mounted with the row, so the finish is spoken as the resolve closes. */}
       <span className="su-sr-only" role="status">
-        {done ? playCopy('resultApplied') : ''}
+        {done ? doneSays : ''}
       </span>
       <Entity
         size="mini"

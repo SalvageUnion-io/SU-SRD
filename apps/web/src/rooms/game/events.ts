@@ -3,7 +3,7 @@ import type { LinkShape } from 'game-domain/links/linkRules'
 import { downtimeStepNames } from 'game-domain/rules/downtime'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
-import type { Stored } from './eventLines'
+import type { NamesNow, Stored } from './eventLines'
 import {
   CONDITION_WORDS,
   CONDITIONS,
@@ -11,10 +11,13 @@ import {
   effectName,
   eventOf,
   mergeLine,
+  namedNow,
+  namesOf,
   signedBy,
   UNDO_SOURCE,
   VITALS,
   vitalLine,
+  withSaid,
 } from './eventLines'
 import type { EventsBefore } from './eventsBefore'
 import { downtimeStepNow, eventsBefore, unappliedOf } from './eventsBefore'
@@ -143,6 +146,7 @@ export class GameEvents {
     private readonly store: GameStore,
     private readonly newId: () => string
   ) {}
+  private readonly namesNow: NamesNow = (userId) => namesOf(this.store)(userId)
 
   /** The newest events, newest first; a private one only for a Mediator. */
   list(actor: string): TableEvent[] {
@@ -387,6 +391,7 @@ export class GameEvents {
     return this.note(actor, at, {
       kind: 'leave',
       text: `${this.memberName(userId)} was removed from the Game`,
+      about: userId,
     })
   }
 
@@ -466,7 +471,8 @@ export class GameEvents {
   }
 
   /** Write one line, or rewrite the open line it repeats. */
-  private note(actor: string | null, at: number, next: Stored): TableEvent {
+  private note(actor: string | null, at: number, line: Stored): TableEvent {
+    const next = withSaid(this.namesNow, actor, line)
     const open = next.key === undefined ? undefined : this.open(actor, next.key, at)
     if (open !== undefined) {
       const merged = mergeLine(open.stored, next)
@@ -534,7 +540,8 @@ export class GameEvents {
     const ts = Number(row.ts)
     const actorId = row.actor_id == null ? null : String(row.actor_id)
     const after = typeof row.after === 'string' ? (JSON.parse(row.after) as unknown) : null
-    if (row.field === 'event') return eventOf(id, ts, actorId, after as Stored)
+    if (row.field === 'event')
+      return eventOf(id, ts, actorId, namedNow(after as Stored, actorId, this.namesNow))
     if (row.field === 'alert') {
       return { _id: id, ts, kind: 'alert', text: `Mediator · ${String(after)}`, actorId }
     }
@@ -565,9 +572,7 @@ export class GameEvents {
    * name, or by that role when their account has none: never "Crewmate".
    */
   private runnerName(userId: string): string {
-    const member = this.store.member(userId)
-    if (member?.mediator) return 'Mediator'
-    return member?.displayName ?? (member?.organizer ? 'Organiser' : 'Crewmate')
+    return this.namesNow(userId)?.runner ?? 'Crewmate'
   }
 
   private unitLabel(unitId: string): string {

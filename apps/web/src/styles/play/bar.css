@@ -124,7 +124,8 @@
 .su-play-bar--line > .su-play-bar__notch {
   flex: 1 1 0;
   max-width: max-content;
-  min-width: 0;
+  /* Never under eight characters of the name (r6 A12): the Feed's mark is its icon. */
+  min-width: calc(8ch + 2 * var(--space-12));
   line-height: calc(var(--size-compact) + var(--space-4));
   order: 0;
   padding: 0 var(--space-12);

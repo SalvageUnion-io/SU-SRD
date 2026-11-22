@@ -271,8 +271,9 @@ describe('the resolve', () => {
     expect(live?.textContent).toBe('')
     await clickRolling('Roll the Die')
     expect(live?.textContent).toMatch(/^Rolled 14: \S/)
-    // Apply finishes the action: its resolve closes (the row says Done, `PlayActionRow`).
-    fireEvent.click(screen.getByText('Apply'))
+    // A Success writes nothing: no Apply (r6 A5); the row's close finishes it.
+    expect(screen.queryByText('Apply')).toBeNull()
+    fireEvent.click(screen.getByText('Cancel'))
     expect(container.querySelector('.su-play-resolve')).toBeNull()
   })
 
@@ -287,7 +288,8 @@ describe('the resolve', () => {
     const apply = screen.getByText<HTMLButtonElement>('Apply')
     expect(apply.disabled).toBe(true)
     await clickRolling('Roll the Die')
-    expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
+    // A roll that writes nothing has nothing to apply (r6 A5).
+    expect(screen.queryByText('Apply')).toBeNull()
     // Start over resets the resolve state (the roll readout disappears).
     fireEvent.click(screen.getByText('Start over'))
     expect(container.querySelector('.su-roll [aria-current="true"]')).toBeNull()
@@ -332,7 +334,8 @@ describe('the resolve', () => {
     expect(screen.queryByRole('button', { name: /^Activate\b/ })).toBeNull()
     expect(screen.queryByText(/^Roll the die spends/)).toBeNull()
     await clickRolling('Roll the Die')
-    expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
+    expect(screen.queryByText('Apply')).toBeNull()
+    expect(screen.getByText('Start over')).toBeTruthy()
     expect(calls).toHaveLength(0)
   })
 
@@ -366,19 +369,27 @@ describe('the resolve', () => {
     expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(true)
   })
 
-  test('Apply commits a rolled outcome without ever auto-writing a destructive condition', async () => {
+  test('Apply commits a rolled outcome without ever auto-writing a destructive condition', () => {
     const mech = makeMech()
     const { store, calls } = stubStore(mech)
-    const { container } = renderDeck(mech, store)
-    clickPrimaryAction(container)
-    await clickRolling('Roll the Die')
-    calls.length = 0
+    const action = buildMechActions(mech)[0]
+    if (!action) throw new Error('the costed system has no action')
+    // A Cascade Failure is the one Core Mechanic result Apply has to say (r6 A5).
+    render(
+      <ActionsDeck
+        mech={mech}
+        store={store}
+        initial={{
+          ref: action.key,
+          name: action.name,
+          activated: true,
+          roll: { roll: 1, band: 'cascade' },
+          applied: false,
+        }}
+      />
+    )
     fireEvent.click(screen.getByText('Apply'))
-    // Either the non-destructive auto-commit or the Cascade-Failure route note —
-    // never both, and neither writes a destructive condition through the store.
-    const applied = container.querySelector('.su-play-resolve') === null
-    const routed = screen.queryByText(/^Cascade Failure: a severe/)
-    expect(Boolean(applied) !== Boolean(routed)).toBe(true)
+    expect(screen.getByText(/^Cascade Failure: a severe/)).toBeTruthy()
     // Apply performs no store write at all (the cost lands at Activate or Roll; a
     // destructive band is the player's to take on the gauge, never auto-applied).
     expect(calls).toHaveLength(0)
@@ -583,11 +594,13 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     ...props
   }: Omit<ActionsDeckProps, 'resolving' | 'onResolving' | 'situation'> & {
     situation?: ActionsDeckProps['situation']
-    seen: { view: ResolveModel | null }
+    seen: { view: ResolveModel | null; done?: string | null; says?: string }
   }) {
     const [resolving, setResolving] = useState<SeatResolving | null>(null)
     const deck = useActionsDeck({ ...props, situation, resolving, onResolving: setResolving })
     seen.view = deck.resolve
+    seen.done = deck.doneKey
+    seen.says = deck.doneSays
     const action = props.mech
       ? buildMechActions(props.mech).find((a) => typeof a.action.activationCost === 'number')
       : undefined
@@ -610,7 +623,8 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     expect(mechMaxHeat(mech, resolveChassisRef('leviathan'))).toBe(18)
     const { store, calls } = stubStore(mech)
     const seen: { view: ResolveModel | null } = { view: null }
-    render(<Harness mech={mech} store={store} seen={seen} />)
+    // A Success: a Failure with no Push open closes itself (r6 A5).
+    render(<Harness mech={mech} store={store} seen={seen} rollFor={rollFourteen} />)
     fireEvent.click(screen.getByRole('button', { name: 'Resolve' }))
     const resolve = (): Resolving => {
       if (seen.view?.kind !== 'resolve') throw new Error('no resolve open')
@@ -628,6 +642,27 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     expect(cost.amount).toBeGreaterThan(0)
     expect(cost.heat).toBeGreaterThanOrEqual(0)
     expect(cost.uses).toBeGreaterThanOrEqual(0)
+  })
+
+  test('a Failure with no Push open closes itself, its row saying the roll (r6 A5)', async () => {
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'leviathan',
+      systems: [costedSystemId],
+      currentHeat: 17,
+    })
+    const { store } = stubStore(mech)
+    const seen: { view: ResolveModel | null; done?: string | null; says?: string } = { view: null }
+    const three: NonNullable<ActionsDeckProps['rollFor']> = async () => () => 3
+    render(<Harness mech={mech} store={store} seen={seen} rollFor={three} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Resolve' }))
+    await act(async () => {
+      if (seen.view?.kind === 'resolve') seen.view.controls.onRoll()
+    })
+    expect(seen.view?.kind).toBe('idle')
+    expect(seen.done).toBeTruthy()
+    expect(seen.says).toBe('Rolled 3 · Failure')
   })
 
   test('at Heat 17/18 Push is disabled, says why, and writes nothing', async () => {
@@ -716,7 +751,8 @@ describe('the resolve on the seat', () => {
     )
     expect(container.querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     expect(screen.getByRole('button', { name: /^Activated\b/ })).toBeTruthy()
-    expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
+    // A Success writes nothing: no Apply waits on it (r6 A5).
+    expect(screen.queryByText('Apply')).toBeNull()
     // Restoring rolls nothing and writes nothing.
     expect(calls).toHaveLength(0)
   })

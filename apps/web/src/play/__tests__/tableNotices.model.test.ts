@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 import type { TableEvent } from '../../rooms/game/events'
 import {
+  downOf,
   endedSession,
-  eventsToToast,
+  eventsToTell,
   gameOfPage,
   gamesGone,
   leavingOnPurpose,
@@ -17,6 +18,7 @@ import {
   shownNotices,
   stackNotices,
   standingDownOnPurpose,
+  stripLine,
 } from '../tableNotices.model'
 
 const event = (over: Partial<TableEvent> & { _id: string }): TableEvent => ({
@@ -27,10 +29,10 @@ const event = (over: Partial<TableEvent> & { _id: string }): TableEvent => ({
   ...over,
 })
 
-describe('eventsToToast', () => {
+describe('eventsToTell', () => {
   test('the first answer is history: nothing toasts', () => {
-    const first = eventsToToast([event({ _id: 'a' })], null, 'me')
-    expect(first.toast).toEqual([])
+    const first = eventsToTell([event({ _id: 'a' })], null, 'me')
+    expect(first.tell).toEqual([])
     expect(first.heard.get('a')).toBe('Nell · HP 8 → 5')
   })
 
@@ -38,20 +40,20 @@ describe('eventsToToast', () => {
     event({ kind: 'alert', text: 'Mediator · Raiders close in', actorId: 'gm', ...over })
 
   test('a new event that needs a look toasts once; a rewritten line toasts again under its id', () => {
-    const { heard } = eventsToToast([], null, 'me')
-    const one = eventsToToast([alert({ _id: 'a' })], heard, 'me')
-    expect(one.toast.map((e) => e._id)).toEqual(['a'])
-    expect(eventsToToast([alert({ _id: 'a' })], one.heard, 'me').toast).toEqual([])
+    const { heard } = eventsToTell([], null, 'me')
+    const one = eventsToTell([alert({ _id: 'a' })], heard, 'me')
+    expect(one.tell.map((e) => e._id)).toEqual(['a'])
+    expect(eventsToTell([alert({ _id: 'a' })], one.heard, 'me').tell).toEqual([])
     // A veiled roll revealed: its line changed, so its toast updates in place.
     const veiled = event({ _id: 'r', kind: 'roll', text: 'Mediator rolled · 9', mediator: true })
-    const rolled = eventsToToast([veiled], one.heard, 'me')
-    expect(rolled.toast).toEqual([veiled])
+    const rolled = eventsToTell([veiled], one.heard, 'me')
+    expect(rolled.tell).toEqual([veiled])
     const shown = { ...veiled, text: 'Mediator · Veteran · Rifle · 9' }
-    expect(eventsToToast([shown], rolled.heard, 'me').toast).toEqual([shown])
+    expect(eventsToTell([shown], rolled.heard, 'me').tell).toEqual([shown])
   })
 
   test('crew toasts are quiet (r2 C4): a crewmate’s vitals, actions, boarding and rolls go to the Feed alone', () => {
-    const { heard } = eventsToToast([], null, 'me')
+    const { heard } = eventsToTell([], null, 'me')
     const quiet = [
       event({ _id: 'v' }),
       event({ _id: 'a', kind: 'action', text: 'Nell uses Crush' }),
@@ -60,7 +62,7 @@ describe('eventsToToast', () => {
       event({ _id: 'j', kind: 'join', text: 'Nell joined the Game' }),
       event({ _id: 'r', kind: 'roll', text: 'Nell · Core Mechanic · 14 · Success' }),
     ]
-    expect(eventsToToast(quiet, heard, 'me').toast).toEqual([])
+    expect(eventsToTell(quiet, heard, 'me').tell).toEqual([])
     const loud = [
       event({ _id: 'p', kind: 'proposal', text: 'Mediator proposes Nell HP → 5', ts: 1 }),
       alert({ _id: 'al', ts: 2 }),
@@ -68,7 +70,7 @@ describe('eventsToToast', () => {
       event({ _id: 'd', kind: 'downtime', text: 'Med began Downtime', ts: 4 }),
       event({ _id: 'mr', kind: 'roll', text: 'Mediator rolled · 9', mediator: true, ts: 5 }),
     ]
-    expect(eventsToToast([...quiet, ...loud], heard, 'me').toast.map((e) => e._id)).toEqual([
+    expect(eventsToTell([...quiet, ...loud], heard, 'me').tell.map((e) => e._id)).toEqual([
       'p',
       'al',
       's',
@@ -78,7 +80,7 @@ describe('eventsToToast', () => {
   })
 
   test('a hand over replays nothing: a Mediator’s own copy of a private or veiled roll never toasts (r3 A2)', () => {
-    const { heard } = eventsToToast(
+    const { heard } = eventsToTell(
       [
         event({
           _id: 'v',
@@ -116,7 +118,7 @@ describe('eventsToToast', () => {
         mediator: true,
       }),
     ]
-    expect(eventsToToast(crossed, heard, 'me').toast).toEqual([])
+    expect(eventsToTell(crossed, heard, 'me').tell).toEqual([])
     // A revealed one is the table's, and toasts.
     const shown = event({
       _id: 'p',
@@ -126,17 +128,17 @@ describe('eventsToToast', () => {
       revealed: true,
       mediator: true,
     })
-    expect(eventsToToast([shown], heard, 'me').toast).toEqual([shown])
+    expect(eventsToTell([shown], heard, 'me').tell).toEqual([shown])
   })
 
   test('never my own act, and never the Stop Sign, which the banner says', () => {
-    const { heard } = eventsToToast([], null, 'me')
+    const { heard } = eventsToTell([], null, 'me')
     const events = [
       alert({ _id: 'mine', actorId: 'me' }),
       event({ _id: 'stop', kind: 'stop', actorId: null }),
       alert({ _id: 'theirs', ts: 2 }),
     ]
-    expect(eventsToToast(events, heard, 'me').toast.map((e) => e._id)).toEqual(['theirs'])
+    expect(eventsToTell(events, heard, 'me').tell.map((e) => e._id)).toEqual(['theirs'])
   })
 })
 
@@ -183,8 +185,8 @@ describe('pinnedRole (r2 B3)', () => {
   })
 
   test('whoever was handed the table is told, by toast and by a pin, until they dismiss it', () => {
-    const { heard } = eventsToToast([], null, 'nell')
-    expect(eventsToToast([made], heard, 'nell').toast).toEqual([made])
+    const { heard } = eventsToTell([], null, 'nell')
+    expect(eventsToTell([made], heard, 'nell').tell).toEqual([made])
     expect(pinnedRole([made], new Set(), 'nell', 2000)).toBe(made)
     expect(pinnedRole([made], new Set(['r1']), 'nell', 2000)).toBeNull()
     expect(pinnedRole([made], new Set(), 'ash', 2000)).toBeNull()
@@ -269,67 +271,61 @@ describe('pinnedAlert clears itself (r3 H1)', () => {
   })
 })
 
-describe('the one strip (r3 H1)', () => {
-  const n = (key: string, rank: 'alert' | 'answer' | 'turn' | 'news', ts: number) => ({
+describe('the one strip (r6 A1)', () => {
+  type Rank = 'stop' | 'alert' | 'answer' | 'turn' | 'news' | 'quiet'
+  const n = (key: string, rank: Rank, ts: number) => ({
     key,
     rank,
     ts,
     dismissible: rank === 'news' || rank === 'alert',
   })
 
-  test('what waits on an answer leads, then my turn, then the news, newest first', () => {
+  test('the Stop Sign leads, then what waits on an answer, then the rest newest first', () => {
     const stacked = stackNotices([
-      n('alert', 'news', 300),
-      n('turn', 'turn', 0),
+      n('alert', 'alert', 300),
+      n('turn', 'turn', 50),
       n('ended', 'news', 900),
       n('proposal', 'answer', 100),
-      n('role', 'news', 500),
+      n('stop', 'stop', 1),
+      n('quiet', 'quiet', 0),
     ])
     expect(stacked.map((notice) => notice.key)).toEqual([
+      'stop',
       'proposal',
-      'turn',
       'ended',
-      'role',
       'alert',
+      'turn',
     ])
   })
 
-  test('the Mediator’s alert is above "Your turn" and never one of the counted (r4 B2)', () => {
-    const shown = shownNotices([
-      n('turn', 'turn', 0),
-      n('ended', 'news', 900),
-      n('alert', 'alert', 300),
-    ])
-    expect(shown.alerts.map((notice) => notice.key)).toEqual(['alert'])
-    expect(shown.top?.key).toBe('turn')
-    expect(shown.rest.map((notice) => notice.key)).toEqual(['ended'])
-    // An alert alone is just itself; Accept still leads the strip under one.
-    expect(shownNotices([n('alert', 'alert', 300)])).toMatchObject({
-      top: null,
-      turns: [],
-      rest: [],
-    })
-    expect(shownNotices([n('alert', 'alert', 300), n('proposal', 'answer', 1)]).top?.key).toBe(
-      'proposal'
-    )
+  test('one notice shows; the rest wait behind the count, and the quiet line only when alone', () => {
+    const shown = shownNotices([n('turn', 'turn', 0), n('ended', 'news', 900), n('q', 'quiet', 0)])
+    expect(shown.top?.key).toBe('ended')
+    expect(shown.rest.map((notice) => notice.key)).toEqual(['turn'])
+    expect(shownNotices([n('q', 'quiet', 0)])).toEqual({ top: n('q', 'quiet', 0), rest: [] })
+    expect(shownNotices([])).toEqual({ top: null, rest: [] })
   })
 })
 
-test('"Your turn" is never folded behind the count: under a proposal it is its own line (r5 A5)', () => {
-  const n = (key: string, rank: 'answer' | 'turn' | 'news', ts: number) => ({
-    key,
-    rank,
-    ts,
-    dismissible: rank === 'news',
+describe('a unit Down is the table’s news (r6 A3)', () => {
+  const down = (unit: string) => `${unit} is Down`
+  test('a vital or an accepted proposal at 0 SP or HP is told, as "<unit> is Down"', () => {
+    const { heard } = eventsToTell([], null, 'me')
+    const hit = event({ _id: 'v0', text: 'Thresher (Razor) · SP 15 → 0' })
+    const accepted = event({
+      _id: 'p0',
+      kind: 'proposal',
+      text: 'Ash accepted: Thresher SP 15 → 0',
+    })
+    const scratch = event({ _id: 'v1', text: 'Thresher (Razor) · SP 15 → 10' })
+    expect(eventsToTell([hit, accepted, scratch], heard, 'me').tell.map((e) => e._id)).toEqual([
+      'v0',
+      'p0',
+    ])
+    expect(stripLine(hit, down)).toBe('Thresher (Razor) is Down')
+    expect(stripLine(accepted, down)).toBe('Thresher is Down')
+    expect(downOf(scratch)).toBeNull()
   })
-  const shown = shownNotices([
-    n('turn', 'turn', 0),
-    n('proposal', 'answer', 5),
-    n('ended', 'news', 9),
-  ])
-  expect(shown.top?.key).toBe('proposal')
-  expect(shown.turns.map((notice) => notice.key)).toEqual(['turn'])
-  expect(shown.rest.map((notice) => notice.key)).toEqual(['ended'])
 })
 
 describe('the Mediator’s role taken back (r3 A4)', () => {
@@ -346,15 +342,15 @@ describe('the Mediator’s role taken back (r3 A4)', () => {
   })
 
   test('a player ending their turn is told to the Mediator alone (r4 B1)', () => {
-    const { heard } = eventsToToast([], null, 'me')
+    const { heard } = eventsToTell([], null, 'me')
     const turn = event({ _id: 't', kind: 'turn', text: 'Pickle ended their turn', actorId: 'ada' })
-    expect(eventsToToast([turn], heard, 'gm', true).toast).toEqual([turn])
-    expect(eventsToToast([turn], heard, 'ben', false).toast).toEqual([])
-    expect(eventsToToast([turn], heard, 'ada', true).toast).toEqual([])
+    expect(eventsToTell([turn], heard, 'gm', true).tell).toEqual([turn])
+    expect(eventsToTell([turn], heard, 'ben', false).tell).toEqual([])
+    expect(eventsToTell([turn], heard, 'ada', true).tell).toEqual([])
   })
 
   test('the role moving is told to the whole table, never to whoever moved it', () => {
-    const { heard } = eventsToToast([], null, 'me')
+    const { heard } = eventsToTell([], null, 'me')
     const role = event({
       _id: 'r',
       kind: 'role',
@@ -362,9 +358,9 @@ describe('the Mediator’s role taken back (r3 A4)', () => {
       actorId: 'org',
       about: 'ash',
     })
-    expect(eventsToToast([role], heard, 'me').toast).toEqual([role])
-    expect(eventsToToast([role], heard, 'ash').toast).toEqual([role])
-    expect(eventsToToast([role], heard, 'org').toast).toEqual([])
+    expect(eventsToTell([role], heard, 'me').tell).toEqual([role])
+    expect(eventsToTell([role], heard, 'ash').tell).toEqual([role])
+    expect(eventsToTell([role], heard, 'org').tell).toEqual([])
   })
 })
 

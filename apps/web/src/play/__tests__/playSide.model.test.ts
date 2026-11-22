@@ -682,7 +682,7 @@ describe('Discord channels (play.md §9)', () => {
 // MD2-12: one Feed called the Mediator 'You', 'Mediator' and 'Crewmate'.
 describe('the Mediator on the Feed', () => {
   const event = (
-    kind: 'alert' | 'proposal' | 'session' | 'join' | 'downtime' | 'role',
+    kind: 'alert' | 'proposal' | 'session' | 'join' | 'downtime' | 'role' | 'stop' | 'leave',
     text: string,
     actorId: string,
     over: Partial<TableEvent> = {}
@@ -752,5 +752,14 @@ describe('the Mediator on the Feed', () => {
     }
     expect(tableLine(rolled, 'med')).toBe('You · Morale · 4')
     expect(tableLine(rolled, 'nell')).toBe('Mediator · Morale · 4')
+  })
+
+  test('the Stop Sign lifted and a removal read You on your own screen (r6 A9)', () => {
+    const lifted = event('stop', 'Nell lifted the Stop Sign. Play resumes.', 'nell')
+    expect(tableLine(lifted, 'nell')).toBe('You lifted the Stop Sign. Play resumes.')
+    expect(tableLine(lifted, 'med')).toBe('Nell lifted the Stop Sign. Play resumes.')
+    const removed = event('leave', 'Nell was removed from the Game', 'org', { about: 'nell' })
+    expect(tableLine(removed, 'nell')).toBe('You were removed from the Game')
+    expect(tableLine(removed, 'med')).toBe('Nell was removed from the Game')
   })
 })
