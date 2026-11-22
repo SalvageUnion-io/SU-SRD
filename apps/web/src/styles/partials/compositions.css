@@ -167,7 +167,7 @@
 
 /* The lead keeps clear of the tab. */
 .su-ability-track[data-track] > .su-ability-track__tier:has(> .su-ability-open) .su-entity-lead {
-  padding-inline-end: 4.5rem;
+  padding-inline-end: 4.5rem; /* design-tokens-ignore(raw-spacing): room for the Rules tab, a component fit */
 }
 
 .su-ability-open__summary {
