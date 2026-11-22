@@ -6,14 +6,17 @@
  * it out of those encounters the same way.
  */
 
+import type { Encounter } from 'game-domain/schemas/encounter'
 import type { Npc } from 'game-domain/schemas/npc'
+import type { Confirm } from '../../components/shared/useConfirm'
+import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import type { NpcFormState } from '../../lib/wizard/npcFormState'
 import { npcFormToPatch } from '../../lib/wizard/npcFormState'
 import { builtSnapshot } from '../../play/mediator/opposition.model'
 import { useEncounters } from '../../replica/collections'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useUnits } from '../../replica/units'
-import { redesignedOpposition, withoutDesign } from '../prep/encounter.model'
+import { encountersFielding, redesignedOpposition, withoutDesign } from '../prep/encounter.model'
 
 export async function saveNpcRedesign(npc: Npc, form: NpcFormState): Promise<void> {
   const saved = await useUnits
@@ -44,5 +47,19 @@ export async function deleteNpcDesign(npcId: string): Promise<void> {
   for (const encounter of useEncounters.getState().encounters) {
     const opposition = withoutDesign(encounter.opposition, npcId)
     if (opposition !== null) await encounters.update(encounter.id, { opposition })
+  }
+}
+
+/** The delete confirm for a saved NPC: it names the encounters that field it, and its yes clears them. */
+export function npcDeleteConfirm(
+  npc: { id: string; name: string },
+  encounters: readonly Pick<Encounter, 'name' | 'opposition'>[]
+): Parameters<Confirm>[0] {
+  return {
+    ...ROW_ACTION_COPY.deleteNpc(
+      npc.name,
+      encountersFielding(encounters, npc.id).map((encounter) => encounter.name)
+    ),
+    onConfirm: () => deleteNpcDesign(npc.id),
   }
 }

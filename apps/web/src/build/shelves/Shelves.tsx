@@ -46,11 +46,10 @@ import { cockpitPath } from 'game-domain/entityKinds'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import type { CSSProperties } from 'react'
 import { useContext, useState } from 'react'
 import { PageShell, RosterSkeleton } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
-import { Button, ChapterBand, HeaderMenu, Text, toast, tokens } from '../../components/index'
+import { Button, ChapterBand, HeaderMenu, toast } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { Tagline } from '../../components/Tagline'
@@ -98,8 +97,7 @@ import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { BackupMenu } from '../export/BackupMenu'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
-import { deleteNpcDesign } from '../npc/redesign.model'
-import { encountersFielding } from '../prep/encounter.model'
+import { npcDeleteConfirm } from '../npc/redesign.model'
 import { ShelfLead } from '../roster/FrontDoor'
 import { RailActs } from '../sheet/RailActs'
 import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
@@ -128,6 +126,7 @@ import type { RenameSubject } from './shelfMenu.model'
 import { deleteItem, renameItem } from './shelfMenu.model'
 import { showShelfRow } from './shelfRow.model'
 import { ShelvesPart } from './shelvesPart.model'
+import { TrayLeftovers } from './TrayLeftovers'
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
@@ -148,15 +147,6 @@ function ConnectedShelves() {
   const sharedByLink = useSharedByLink()
   return <ShelvesPage games={games} sharing={sharing} sharedByLink={sharedByLink} />
 }
-
-/** The Kit's line about rows left from a deleted Game's field: its words, then its one act. */
-const LEFTOVERS = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  margin: 0,
-} satisfies CSSProperties
 
 /** Shelves: the server's facts when Connected, the cached pile otherwise. */
 export function Shelves() {
@@ -293,13 +283,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           writable(() =>
             type === 'npc'
               ? // An NPC is its maker's alone: the confirm names the encounters it leaves (MD3-08).
-                confirm({
-                  ...ROW_ACTION_COPY.deleteNpc(
-                    unit.name,
-                    encountersFielding(encounters, unit.id).map((encounter) => encounter.name)
-                  ),
-                  onConfirm: () => deleteNpcDesign(unit.id),
-                })
+                confirm(npcDeleteConfirm(unit, encounters))
               : confirm({
                   ...(inGame
                     ? ROW_ACTION_COPY.deleteFromGame(unit.name, keptMech(type, unit.id))
@@ -326,38 +310,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
       ],
     ]
   }
-
-  /**
-   * What an earlier Game delete left behind (MD3-03): its field, filed here as
-   * loose Tray rows. A Game's field now ends with it, so these are only ever
-   * offered for removal, in one line, and nothing goes without the confirm.
-   */
-  const leftovers =
-    tray.length === 0 ? null : (
-      <p style={LEFTOVERS}>
-        <Text as="span" variant="note">
-          {buildShelvesCopy(tray.length === 1 ? 'leftOnTheFieldOne' : 'leftOnTheFieldMany', {
-            count: tray.length,
-          })}
-        </Text>
-        {canWrite && (
-          <Button
-            variant="ghost"
-            size="mini"
-            onClick={() =>
-              confirm({
-                ...ROW_ACTION_COPY.removeLeftovers(tray.map((npc) => npc.name)),
-                onConfirm: async () => {
-                  for (const npc of tray) await useTray.getState().delete(npc.id)
-                },
-              })
-            }
-          >
-            {buildShelvesCopy(tray.length === 1 ? 'removeIt' : 'removeThem')}
-          </Button>
-        )}
-      </p>
-    )
 
   const patternMenu = (pattern: MechPattern) =>
     patternMenuOf(pattern, { go, confirm, canWrite, rename: setRenaming })
@@ -454,7 +406,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         <div className="su-shelf-ledgers__col">
           <ShelfLedger
             id="shelf-npcs"
-            foot={leftovers}
+            foot={<TrayLeftovers tray={tray} confirm={canWrite ? confirm : undefined} />}
             title={buildShelvesCopy('npcs')}
             tone="adversary"
             homebrew
