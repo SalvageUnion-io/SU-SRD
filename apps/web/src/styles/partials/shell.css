@@ -216,7 +216,7 @@
   width: 14rem;
 }
 
-/* Below `sm` the switcher's three tabs (Reference | Build | Play) set at the
+/* Below `sm` the switcher's three tabs (Reference | Training Bay | Games) set at the
    11px type floor (ruleset §4.6), tight-tracked and closer-padded: at the
    desktop's 13px wide caps the third tab cost the row about 58px, past a
    400px phone. Their height stays the bar's one control height. */

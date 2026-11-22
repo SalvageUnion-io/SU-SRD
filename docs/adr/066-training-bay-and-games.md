@@ -73,3 +73,8 @@ descriptive names, **Reference | Builder | Games**, the current one
 underlined; each opens its landing page (`/reference/`, the book's Contents;
 `/build/`; `/games/`). The logo opens the marketing home, `/`, which marks no
 area current. Pages keep their names (the Training Bay at `/build/`).
+
+Amended (2026-11): the links read **Reference | Training Bay | Games**, the
+names of the pages they open. "Builder", then "Build" and "Play", sent two of
+three test personas looking for a page by a name no page has; one name for
+each place.

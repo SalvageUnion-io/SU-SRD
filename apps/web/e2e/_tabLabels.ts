@@ -6,7 +6,7 @@ import type { Finding } from './_findings'
  * rendered page: no tab or segment label overflows.
  *
  * A label is every `Tab` (`[role="tab"]`), every `SegmentedOption`
- * (`.su-seg__option`) and the Union bar's Reference | Build | Play
+ * (`.su-seg__option`) and the Union bar's Reference | Training Bay | Games
  * (`.su-union-bar__tab`). Each one shown must:
  *
  * - `cut`: hold its whole label, never clip it or end it in "…": its content

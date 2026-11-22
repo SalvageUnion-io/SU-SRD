@@ -310,7 +310,7 @@ export const BANNED: readonly Banned[] = [
     // a lower-case "hangar" is Play's, where spare mechs wait ("In hangar").
     pattern: /(?<![\w-])Hangar(?![\w-])/g,
     say: 'Training Bay',
-    why: "the account's page is the Training Bay, the name of Build (glossary §2, §9)",
+    why: "the account's page is the Training Bay (glossary §2, §9)",
   },
   {
     // The tool is Reference, as the header's switch names it. The site's own

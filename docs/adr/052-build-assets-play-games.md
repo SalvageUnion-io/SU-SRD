@@ -53,7 +53,8 @@ single-choice picker: one unit per add.
 
 ### 6. Navigation
 
-The header switch keeps its verbs, Reference | Build | Play; the area names go
+The header switch kept its verbs, Reference | Build | Play (since renamed for
+its pages, Reference | Training Bay | Games: ADR-066 §7); the area names go
 on the pages. In Play's nav, Games ▾ is current on the hub and any Game route, and Solo is
 an anchor on the hub. The Play bar's back goes to the Game's page (solo: the
 hub).

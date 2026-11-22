@@ -191,7 +191,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     A SQLite Durable Object per account and per Game, D1 for cross-room reads, R2 for art and backups; the Worker signs in.
     Supersedes ADR-030 §1's Convex sentence and ADR-033 §5.
 66. **ADR-066 Reference | Training Bay | Games** · [full text](adr/066-training-bay-and-games.md)
-    Header links Reference | Builder | Games, logo `/`; Play is a pilot page's mode; no Games in Builder.
+    Header links Reference | Training Bay | Games, logo `/`; Play is a pilot page's mode; no Games in Builder.
     Amends ADR-051 §1, ADR-052 §1, §4–§6, ADR-062 §1–§3.
 67. **ADR-067 Game Prep and plan** · [full text](adr/067-game-prep.md)
     Amends ADR-059.

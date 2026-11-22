@@ -25,6 +25,7 @@ import { PRODUCT } from 'game-domain/product'
 import { libGamesCopy } from '../../messages/lib-games'
 import { copyName } from '../copyEntity'
 import type { ClearedAssignment } from '../links/clearedByMove'
+import { homeName } from './gameRoster'
 
 /** Which kind of build a confirm is about. Decides the pronoun, nothing else. */
 export type RowActionKind = EntityKind
@@ -281,11 +282,11 @@ export const ROW_ACTION_COPY = {
       return {
         title: libGamesCopy('moveOutTitle', { name: args.name, from }),
         body: [
-          libGamesCopy('moveOutBody', { name: args.name, bay: PRODUCT.build, it }),
+          libGamesCopy('moveOutBody', { name: args.name, bay: homeName(args.kind), it }),
           clearedAssignments(args.kind, from),
           libGamesCopy('moveBackIntoGame', { it }),
         ],
-        confirmLabel: libGamesCopy('moveToYourBay', { bay: PRODUCT.build }),
+        confirmLabel: libGamesCopy('moveToYourBay', { bay: homeName(args.kind) }),
         pendingLabel: 'Moving…',
         tone: 'danger',
         failure,
