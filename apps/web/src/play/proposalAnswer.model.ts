@@ -18,9 +18,19 @@ import { playCopy } from '../messages/play'
 import { PLAY_UNDO } from '../replica/provenance'
 import { useUnits } from '../replica/units'
 import type { ProposalRead } from '../rooms/game/proposals'
-import { zeroUnit, zeroVitalNotice } from './zeroVital.model'
 
 type Asked = Pick<ProposalRead, 'field' | 'after' | 'current'>
+
+/**
+ * A vital accepted down to 0, or back up, says what is due (`zeroVital.model`).
+ * Fetched when a proposal is answered: the root's notices read this file, and
+ * every page would otherwise carry Play's Feed and tables.
+ */
+function noticeZero(kind: 'pilot' | 'mech', id: string, field: string, from: number, to: number) {
+  void import('./zeroVital.model').then((m) =>
+    m.zeroVitalNotice(m.zeroUnit(useUnits.getState(), kind, id), field, from, to)
+  )
+}
 
 function show(value: unknown): string {
   return value === null || value === undefined ? '—' : String(value)
@@ -51,9 +61,9 @@ export function acceptedUndo(
     did: playCopy('accepted'),
     undo: (value) => {
       runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO))
-      zeroVitalNotice(zeroUnit(useUnits.getState(), kind, id), field, after, value)
+      noticeZero(kind, id, field, after, value)
     },
   })
   // Accepted down to 0 SP or 0 HP: what is due next (r4 A5).
-  zeroVitalNotice(zeroUnit(useUnits.getState(), kind, id), field, current, after)
+  noticeZero(kind, id, field, current, after)
 }

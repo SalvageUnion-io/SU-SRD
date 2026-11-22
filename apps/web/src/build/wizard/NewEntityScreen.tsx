@@ -20,6 +20,7 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
+import { lazy, Suspense } from 'react'
 import { GameDataGate } from '../../components/GameDataGate'
 import { RoutePending } from '../../components/shared/RouteFallbacks'
 import type { CreateMode } from '../../lib/wizard/createMode'
@@ -28,8 +29,9 @@ import { sharedCopy } from '../../messages/components-shared'
 import { useSync } from '../../replica/syncContext'
 import { SignInToBuild } from '../account/SignInToBuild'
 import { showsSignedOutView } from '../account/signedOutView.model'
-import { BlankCreateDialog } from './BlankCreateDialog'
-import { CreateModeChooser } from './CreateModeChooser'
+
+/** The doors and the Blank dialog, with the pattern lists they carry: not the guided wizard's to download. */
+const CreateDoors = lazy(() => import('./CreateDoors').then((m) => ({ default: m.CreateDoors })))
 
 type NewEntityScreenProps = {
   kind: SheetKind | 'npc'
@@ -81,33 +83,25 @@ export function NewEntityScreen({
     <GameDataGate fallback={<RoutePending label={sharedCopy('referenceData')} />}>
       {kind === 'npc' ? (
         wizard
+      ) : mode === 'guided' ? (
+        <main>{wizard}</main>
       ) : (
-        <main>
-          {mode === 'guided' ? (
-            wizard
-          ) : (
-            <>
-              <CreateModeChooser
-                kind={kind}
-                onGuided={() => onModeChange('guided')}
-                onBlank={() => onModeChange('blank')}
-                onBuilt={onCreated}
-                gameId={gameId}
-                forPilot={forPilot}
-                forMech={forMech}
-                forCrew={forCrew}
-                book={book}
-              />
-              <BlankCreateDialog
-                kind={kind}
-                open={mode === 'blank'}
-                onClose={() => onModeChange(undefined)}
-                onCreated={onCreated}
-                gameId={gameId}
-              />
-            </>
-          )}
-        </main>
+        // The wait is its own `<main>`, so it stands in for this one.
+        <Suspense fallback={<RoutePending />}>
+          <main>
+            <CreateDoors
+              kind={kind}
+              mode={mode}
+              onModeChange={onModeChange}
+              onCreated={onCreated}
+              gameId={gameId}
+              forPilot={forPilot}
+              forMech={forMech}
+              forCrew={forCrew}
+              book={book}
+            />
+          </main>
+        </Suspense>
       )}
     </GameDataGate>
   )
