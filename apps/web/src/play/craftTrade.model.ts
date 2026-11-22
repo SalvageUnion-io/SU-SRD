@@ -24,6 +24,9 @@ import { isNumericTechLevel } from 'salvageunion-reference/rules'
 import type { PoolDraw, TradingAvailability } from '../lib/rules/crawlerEconomy'
 import { drawFromPool, poolShortfall } from '../lib/rules/crawlerEconomy'
 
+/** The Trading Bay Table (Core Book p.223), by its reference name. */
+export const TRADING_BAY_TABLE = 'Trading Bay'
+
 /** What a bay makes or sells. */
 export type WareKind = 'system' | 'module' | 'chassis'
 
@@ -100,7 +103,7 @@ export function spendFor(pool: ScrapPool, ware: Pick<Ware, 'tl' | 'salvageValue'
 }
 
 /** The kinds the Trading Bay Table's band offers (p.223), in the order it names them. */
-export function offeredKinds(availability: TradingAvailability): WareKind[] {
+function offeredKinds(availability: TradingAvailability): WareKind[] {
   switch (availability) {
     case 'chassis':
       return ['chassis']
@@ -134,7 +137,7 @@ export function tradeOffers(
 }
 
 /** A ware in the Storage Bay: a lot in the crawler's hold, its Salvage Value in Slots. */
-export function storedLot(ware: Ware): CargoLot {
+function storedLot(ware: Ware): CargoLot {
   return makeUnitLot(ware.name, {
     cat: 'SYSTEM',
     units: Math.max(1, ware.salvageValue),

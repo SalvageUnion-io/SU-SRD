@@ -28,8 +28,16 @@ describe('scrapMove', () => {
           tl: 1,
           qty: 3,
           units: 3,
+          code: 'S',
         },
-        { id: 'b', kind: 'unit' as const, name: 'Crate', cat: 'SEALED' as const, units: 2 },
+        {
+          id: 'b',
+          kind: 'unit' as const,
+          name: 'Crate',
+          cat: 'SEALED' as const,
+          units: 2,
+          code: 'C',
+        },
       ],
     }
     const move = scrapMove(pilot, mech, { scrapPool: { tl1: 1, bio: 2 } })

@@ -41,6 +41,7 @@ import {
   installPatch,
   spendFor,
   storePatch,
+  TRADING_BAY_TABLE,
   tradeOffers,
   waresAt,
 } from './craftTrade.model'
@@ -131,7 +132,7 @@ function WareLine({ ware, children }: { ware: Ware; children: ReactNode }) {
         <Mention entityRef={ware.ref}>{ware.name}</Mention>
       </strong>
       <span className="su-play-dt-line__chips">
-        <Stat size="mini" label={`T${ware.tl}`} />
+        <Stat size="mini" label={playCopy('techShort', { tl: ware.tl })} />
         <Stat
           size="mini"
           label={playCopy('craftCost')}
@@ -227,7 +228,7 @@ function TradingBay({
   const [note, setNote] = useState<string | null>(null)
 
   async function roll() {
-    const die = await rollFor('Trading Bay', playCopy('tradingBay'))
+    const die = await rollFor(TRADING_BAY_TABLE, playCopy('tradingBay'))
     const result = performTradingRoll({ crawlerTl: crawler.techLevel, roll: die })
     // What is for sale is picked at random at the rolled Tech Level (p.223).
     setOffers(

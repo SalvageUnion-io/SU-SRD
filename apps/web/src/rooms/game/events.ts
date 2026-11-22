@@ -288,18 +288,11 @@ export class GameEvents {
               }),
             ]
           : []
-      // Tally Salvage's move is said, so the Mediator hears whose Scrap is in (r6 D1).
-      case 'downtime.moveScrap': {
-        const moved = value as Record<string, number> | null
-        if (moved === null) return []
-        const count = Object.values(moved).reduce((sum, n) => sum + n, 0)
-        return say('downtime', `${unit(a.pilotId)} moved ${count} Scrap to the crawler`)
-      }
-      // An area opened to salvage is said to the table (r6 D3); its Supply is the Mediator's.
+      // Tally Salvage's move and an opened area are said to the table (r6 D1, D3).
+      case 'downtime.moveScrap':
+        return value === null ? [] : say('downtime', `${unit(a.pilotId)} moved their Scrap`)
       case 'salvageAreas.set':
-        return a.area !== null && a.area !== undefined && before.area !== true
-          ? say('action', 'A salvage area is open')
-          : []
+        return a.area && !before.area ? say('action', 'A salvage area is open') : []
       case 'ops.propose': {
         const op = this.store.op(String(value))
         if (op === null) return []

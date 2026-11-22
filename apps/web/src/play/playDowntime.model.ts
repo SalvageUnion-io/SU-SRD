@@ -446,7 +446,7 @@ export function stepsFor(lines: readonly PlanLine[], unticked: ReadonlySet<strin
 }
 
 /** Scrap by Tech Level as chips, lowest first: `T1 | 2`, `T2 | 3`. */
-export function scrapChips(tally: ScrapByTl): PlanChip[] {
+function scrapChips(tally: ScrapByTl): PlanChip[] {
   return Object.entries(tally)
     .filter(([, n]) => (n ?? 0) > 0)
     .sort(([a], [b]) => Number(a) - Number(b))

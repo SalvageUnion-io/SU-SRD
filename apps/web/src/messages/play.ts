@@ -495,6 +495,7 @@ export const playCopy = messages({
   tradeScrap: 'Trade Scrap',
   craftShort: 'Short by {short} Tech {tl}+ Scrap: nothing spent.',
   craftCost: 'Scrap',
+  techShort: 'T{tl}',
   craftFind: 'Find a System or Module to craft',
   craftables: 'Craftable',
   craftStorageBay: 'the Storage Bay',
