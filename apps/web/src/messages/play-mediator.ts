@@ -204,6 +204,8 @@ export const mediatorCopy = messages({
   proposalsAreOnTheirWay: 'Proposals are on their way.',
   proposals: 'Proposals',
   showMore: 'Show {proposalsPage} more',
+  crawlerIsYours: '{name} is yours to change: it takes no proposal. Change its SP on the Table.',
+  toItsSp: 'Go to its SP',
   proposeAChange: 'Propose a change',
   thePlayerDecides: 'The player decides.',
   target: 'Target',

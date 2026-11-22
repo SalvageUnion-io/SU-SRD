@@ -136,6 +136,17 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     toRef.current?.focus()
     setFocusTo(false)
   }, [focusTo, tab, wide])
+  // Propose's "Go to its SP": the crawler's own vital on the Table (r6 B13).
+  const [toCrawler, setToCrawler] = useState(false)
+  const crawlerName = mediator.crawler?.crawler.name
+  useEffect(() => {
+    if (!toCrawler || (!wide && tab !== 'table') || crawlerName === undefined) return
+    const box = document.querySelector(
+      `[aria-label="${playCopy('crawler', { name: crawlerName })}"]`
+    )
+    box?.querySelector<HTMLElement>('.su-vital-gauge__value-button, button')?.focus()
+    setToCrawler(false)
+  }, [toCrawler, tab, wide, crawlerName])
 
   const nodes: Record<MediatorPane, ReactNode> = {
     // The Feed under the Table, on a phone and a desk alike:
@@ -195,6 +206,10 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
         targetId={picked}
         onTarget={setPicked}
         toRef={toRef}
+        onCrawler={() => {
+          setTab('table')
+          setToCrawler(true)
+        }}
       />
     ),
   }

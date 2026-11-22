@@ -590,6 +590,18 @@ describe('the table', () => {
     expect((dock.getByLabelText('To') as HTMLInputElement).value).not.toBe('')
   })
 
+  // LG6-28: the crawler was missing from Propose's targets with no word why.
+  test('Propose says the crawler is the Mediator’s own and leads to its SP (r6 B13)', async () => {
+    await renderCockpit()
+    const propose = within(screen.getByRole('region', { name: 'Propose' }))
+    expect(propose.getByText(/Tenacity is yours to change/)).toBeTruthy()
+    const options = propose.getAllByRole('option').map((o) => o.textContent)
+    expect(options).not.toContain('Tenacity')
+    await click(propose.getByRole('button', { name: 'Go to its SP' }))
+    const crawler = screen.getByRole('region', { name: 'Crawler: Tenacity' })
+    expect(crawler.contains(document.activeElement)).toBe(true)
+  })
+
   test('the crawler is the Units column’s box, live for the Mediator', async () => {
     await renderCockpit()
     const crawler = within(screen.getByRole('region', { name: 'Crawler: Tenacity' }))
