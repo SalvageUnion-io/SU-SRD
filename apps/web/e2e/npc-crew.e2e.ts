@@ -28,15 +28,14 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   await expect(page.getByText('Design an NPC', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { level: 1, name: /Template/ })).toBeVisible()
   await page.getByRole('radio', { name: 'Start from Veteran' }).click()
-  await page.getByRole('button', { name: 'Next: Stats' }).click()
+  // A template is one page after Template: the name first, its stats and actions below (r6 B3).
+  await page.getByRole('button', { name: 'Next: Design' }).click()
+  await expect(page.getByLabel(/^Name/)).toBeFocused()
   await expect(page.getByLabel(/Hit Points/)).toHaveValue('9')
-  await page.getByRole('button', { name: 'Next: Actions & traits' }).click()
   await expect(
     page.getByRole('button', { name: 'Carry Green Laser Rifle (Veteran)' })
   ).toHaveAttribute('aria-pressed', 'true')
-  await page.getByRole('button', { name: 'Next: Identity' }).click()
   await page.getByLabel(/^Name/).fill('Sergeant Kessler')
-  await page.getByRole('button', { name: 'Next: Review' }).click()
   await expect(page.getByText('From Veteran').first()).toBeVisible()
   await page.getByRole('button', { name: 'Save NPC' }).click()
   await page.waitForURL(/\/build\/npcs\/(?!new)/, { timeout: 20_000 })

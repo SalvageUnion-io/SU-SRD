@@ -27,7 +27,8 @@
  * A screen with a long way to its panes gives `jumps` (r4 D6, the Mediator's):
  * skip links ahead of the bar, off screen until focused, each opening its
  * pane (its tab below `lg`) and moving focus into it, onto its `first` where
- * it names one (r5 A17: a unit's vitals, Add).
+ * it names one (a heading takes focus by script; r6 B11: Mediate's are four,
+ * whatever the fight, and Opposition's units are its own heading's list).
  *
  * The arrangement is CSS (`styles/play/frame.css`); `wide` (`usePlayWide`,
  * the same rung) decides only what a reader is told, so crossing it re-lays
@@ -184,6 +185,10 @@ export function PlayFrame<Value extends string>({
     if (jump === null) return
     const pane = document.getElementById(`${id}-pane-${jump.pane}`)
     const first = jump.first ? pane?.querySelector<HTMLElement>(jump.first) : null
+    // A heading named as `first` takes focus by script alone (r6 B11).
+    if (first && first.tabIndex < 0 && !first.hasAttribute('tabindex')) {
+      first.setAttribute('tabindex', '-1')
+    }
     ;(first ?? pane)?.focus()
     setJump(null)
   }, [jump, id])

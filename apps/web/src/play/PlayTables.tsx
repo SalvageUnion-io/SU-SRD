@@ -27,6 +27,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { OverloadTable } from 'salvageunion-reference/rules'
+import { Banner } from '../components/app'
 import { RollMini } from '../components/entity/forms/RollMini'
 import {
   Button,
@@ -42,6 +43,7 @@ import { readRoster } from './mediator/encounterRoster.model'
 import { PlayChannelRow } from './PlayChannelRow'
 import { PlayRollTable } from './PlayRollTable'
 import { recordPlayRoll } from './playRolls.model'
+import { usePrivateRolls } from './privateRolls.model'
 import { findTables, pinnedTables } from './tables.model'
 import { onPlayTableAsked } from './zeroVital.model'
 
@@ -80,6 +82,8 @@ export function PlayTables({
   prepared = [],
   onField,
 }: PlayTablesProps) {
+  // The Mediator's Private rolls is on: a band heads the tables (r6 B10).
+  const privately = usePrivateRolls()
   const [open, setOpen] = useState<string | null>(null)
   // The row the open table last landed on, by its range key.
   const [landed, setLanded] = useState<string | null>(null)
@@ -126,6 +130,9 @@ export function PlayTables({
 
   return (
     <div ref={hostRef} style={STACK}>
+      {privately && (
+        <Banner warnings={[{ severity: 'info', message: playCopy('privateRollsBand') }]} />
+      )}
       <SearchField
         type="search"
         placeholder={playCopy('rollATable')}

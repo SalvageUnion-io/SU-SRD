@@ -4,7 +4,8 @@
  * every player reads on their Feed. Under the form, the last five alerts
  * sent, each with Withdraw (r4 B4, `changeLog.withdrawAlert`): it comes off
  * every player's strip and the Feed says it was withdrawn. To correct one,
- * withdraw it and send again.
+ * withdraw it and send again. Once sent, the dialog closes (`onSent`, r6 B9):
+ * a mid-fight shout costs no Esc, and focus goes back where it was opened from.
  *
  * Presentational: the Mediator's screen sends, and says why when the server
  * refuses.
@@ -44,6 +45,7 @@ export function TellTheTable({
   canWrite,
   onSend,
   onWithdraw,
+  onSent,
   field,
 }: {
   alerts: readonly AlertLine[]
@@ -53,6 +55,8 @@ export function TellTheTable({
   onSend: (message: string) => Promise<void>
   /** Take one back (the caller says a refusal). */
   onWithdraw: (alertId: string) => void
+  /** Sent: the dialog around it closes (r6 B9). */
+  onSent?: () => void
   /** The alert's field, for the dialog around it to open on (MD2-04). */
   field?: RefObject<HTMLInputElement | null>
 }) {
@@ -62,7 +66,10 @@ export function TellTheTable({
   const send = () => {
     setSending(true)
     void onSend(message.trim())
-      .then(() => setMessage(''))
+      .then(() => {
+        setMessage('')
+        onSent?.()
+      })
       // The caller has already said why; the message stays to send again.
       .catch(() => undefined)
       .finally(() => setSending(false))

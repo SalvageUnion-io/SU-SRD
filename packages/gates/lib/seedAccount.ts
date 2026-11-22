@@ -184,11 +184,8 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   // An NPC, from the Veteran.
   await openApp(page, '/npcs/new', base)
   await page.getByRole('radio', { name: 'Start from Veteran' }).click()
-  await page.getByRole('button', { name: 'Next: Stats' }).click()
-  await page.getByRole('button', { name: 'Next: Actions & traits' }).click()
-  await page.getByRole('button', { name: 'Next: Identity' }).click()
+  await page.getByRole('button', { name: 'Next: Design' }).click()
   await page.getByLabel(/^Name/).fill('Sergeant Kessler')
-  await page.getByRole('button', { name: 'Next: Review' }).click()
   await page.getByRole('button', { name: 'Save NPC' }).click()
   await page.waitForURL(/\/build\/npcs\/(?!new)/, LONG)
   const npc = new URL(page.url()).pathname

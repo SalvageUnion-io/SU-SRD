@@ -99,7 +99,7 @@ export type WizardFlowOptions<
    */
   gameId?: string | undefined
   /**
-   * The saved unit this run redesigns (the NPC designer's Edit design): Save
+   * The saved unit this run redesigns (the NPC designer's Redesign from a template): Save
    * validates the form the same way, then hands it to `save`, which writes
    * that unit in place, and nothing is created. The unit is already whole, so
    * every step is reached from the start and each one saves (MD3-06).

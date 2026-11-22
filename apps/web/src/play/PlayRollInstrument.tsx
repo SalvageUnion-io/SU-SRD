@@ -15,6 +15,8 @@ import type { CSSProperties } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import { digestRollTable, RollTableInstrument, TraitProse } from '../components/index'
+import { playCopy } from '../messages/play'
+import { usePrivateRolls } from './privateRolls.model'
 
 export type PlayRollInstrumentProps = {
   /** The table rolled on, by its name ("Core Mechanic"): its bands and its accessible name. */
@@ -39,6 +41,8 @@ export function PlayRollInstrument({
   off,
   pressAs,
 }: PlayRollInstrumentProps) {
+  // The Mediator's Private rolls is on: a plain roll says it stays theirs (r6 B10).
+  const privately = usePrivateRolls()
   const data = SalvageUnionReference.RollTables.getByName(table)?.table as
     | RefObjectTable
     | undefined
@@ -48,7 +52,7 @@ export function PlayRollInstrument({
     <RollTableInstrument
       name={table}
       size="mini"
-      stamp={stamp}
+      stamp={privately && stamp === undefined ? playCopy('rollPrivatelyStamp') : stamp}
       onRoll={onRoll}
       off={off}
       // The bar names the table it rolls on, as the Tables column's does.

@@ -215,11 +215,12 @@ describe('the model', () => {
       ['Rolls', 'end', false],
       ['Propose', 'end', true],
     ])
-    // From `lg` the Rules stand beside the board, under the Rolls and above the dock.
+    // From `lg` the Plan (r6 B7) and the Rules stand beside the board, under the Rolls and above the dock.
     expect(mediatorPanes(false, true).map((p) => [p.value, p.column])).toEqual([
       ['table', 'start'],
       ['opposition', 'centre'],
       ['tables', 'end'],
+      ['plan', 'end'],
       ['rules', 'end'],
       ['propose', 'end'],
     ])

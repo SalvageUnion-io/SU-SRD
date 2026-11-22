@@ -190,7 +190,6 @@ describe("an encounter's briefing", () => {
   test('saves what the Pilots see, apart from the notes', async () => {
     await renderPage()
     expect(screen.getByText('Players see this')).toBeTruthy()
-    await click(screen.getByRole('button', { name: 'Edit what the pilots see' }))
     const input = screen.getByLabelText(/what the pilots see/i, {
       selector: 'textarea',
     }) as HTMLTextAreaElement

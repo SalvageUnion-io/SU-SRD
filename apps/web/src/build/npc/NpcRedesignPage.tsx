@@ -1,7 +1,7 @@
 /**
  * NpcRedesignPage — `/npcs/:id/design`, the NPC designer opened on a saved
- * NPC (its sheet's "Edit design"): Stats, Actions & traits, Identity and
- * Review, saved onto that NPC in place (`NpcRedesigner`). Every encounter of
+ * NPC (its sheet's "Redesign from a template", r6 B12): Template, then its
+ * one page of name, stats, actions and identity, saved onto that NPC in place (`NpcRedesigner`). Every encounter of
  * the maker's that fields it takes the change (ADR-067 §1, as amended).
  *
  * Only its maker redesigns it, and only one designed as any NPC: a crawler's

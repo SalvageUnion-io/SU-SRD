@@ -378,8 +378,8 @@ describe('the Feed (play.md §8)', () => {
       rollerName: 'Mediator',
     })
     expect(entries.map((e) => e.text)).toEqual([
-      'You · Core Mechanic · 14 · Success · Private',
-      'You · Morale · 4 · Private',
+      'You · Core Mechanic · 14 · Success · Only you',
+      'You · Morale · 4 · Only you',
     ])
   })
 
@@ -450,8 +450,8 @@ describe('the Feed (play.md §8)', () => {
         { ...older, private: true },
       ])
     ).toEqual([
-      ['You · Warlord Vex · Rifle · 14 · Success · Private', 'e2', 'roll'],
-      ['You · Morale · 4 · Private', 'e1', 'roll'],
+      ['You · Warlord Vex · Rifle · 14 · Success · Only you', 'e2', 'roll'],
+      ['You · Morale · 4 · Only you', 'e1', 'roll'],
     ])
     expect(
       feed([
@@ -487,7 +487,7 @@ describe('the Feed (play.md §8)', () => {
     })
     expect(entries.map((e) => e.text)).toEqual([
       'You · Morale · 4',
-      'Old · Vex · Rifle · 3 · Private',
+      'Old · Vex · Rifle · 3 · Only you',
       'Mediator · Vex · Rifle · 9',
     ])
   })
@@ -631,6 +631,7 @@ describe('the Tables (play.md §8)', () => {
       'Critical Damage',
       'Reactor Overload',
       'Critical Injury',
+      'Group Initiative',
     ])
     // An adventure's rumour table is never pinned for every table (False Flag p.8).
     expect(pinnedTables(true)).toEqual(['Core Mechanic', 'Critical Injury'])
@@ -642,6 +643,7 @@ describe('the Tables (play.md §8)', () => {
       'Bio-Chassis Damage Table',
       'Bio-Chassis Overload Table',
       'Critical Injury',
+      'Group Initiative',
     ])
     expect(pinnedTables(true, 'bio')).toEqual(['Core Mechanic', 'Critical Injury'])
   })

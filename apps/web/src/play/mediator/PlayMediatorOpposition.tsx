@@ -30,23 +30,27 @@ import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { SheetPickerModal } from '../../build/sheet/SheetPickerModal'
+import { undoToast } from '../../build/sheet/undoToast.model'
+import { SkipLink } from '../../components/app'
 import type { rollForTable } from '../../components/index'
 import { Button, EmptyState, Slab, Stat, toast, tokens } from '../../components/index'
 import { flagOn } from '../../lib/flags'
 import { moraleDue } from '../../lib/rules/opposition'
+import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { SalvageAreaDialog } from '../SalvageAreaDialog'
 import { sceneConditionNames } from '../useScene'
 import { ClearFieldDialog, EndEncounterDialog } from './ClearFieldDialogs'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
-import { trayEntries } from './opposition.model'
+import { sinkDowned, trayEntries } from './opposition.model'
 import { PlayMediatorScene } from './PlayMediatorScene'
 import type { NpcHit } from './PlayNpcActions'
 import { PlayNpcActions } from './PlayNpcActions'
 import { PlayNpcBox } from './PlayNpcBox'
 import { PlayNpcGroup } from './PlayNpcGroup'
 import { RunEncounterDialog } from './RunEncounterDialog'
+import { useInitiative } from './useInitiative'
 import type { PlayMediator } from './usePlayMediator'
 
 /** The encounter running: its chip, then End, on one line. */
@@ -84,12 +88,30 @@ export function PlayMediatorOpposition({
   const [clearing, setClearing] = useState(false)
   const [ending, setEnding] = useState(false)
   const { area } = mediator
+  // Each unit standing carries its Group Initiative mark while one is kept (r6 B4).
+  const { initiative, setActed } = useInitiative(mediator.gameId, onFailure)
   // The Scene's conditions that are on: End asks whether to clear them (r4 A11).
   const sceneOn = sceneConditionNames(mediator.scene.conditions)
   const fail = (write: Promise<unknown>) => void write.catch(onFailure)
+  const clearDowned = () =>
+    fail(
+      tray
+        .clearDowned()
+        .then(({ removed, undo }) =>
+          undoToast(
+            mediatorCopy('clearedTheDowned', { count: removed }),
+            () => fail(undo()),
+            `opposition-${mediator.gameId}`
+          )
+        )
+    )
   const grouping = flagOn('encounterSheet')
   const entries: TrayEntry[] =
-    npcs === null ? [] : grouping ? trayEntries(npcs) : npcs.map((npc) => ({ kind: 'alone', npc }))
+    npcs === null
+      ? []
+      : sinkDowned(
+          grouping ? trayEntries(npcs) : npcs.map((npc) => ({ kind: 'alone' as const, npc }))
+        )
   const held = grouping && prep.running !== null ? heldWaves(prep.running) : []
   // The crew's Mechs, whose holds a wreck's haul can be proposed to (r5 B2).
   const wreckMechs = proposalTargets(mediator.crew)
@@ -132,6 +154,16 @@ export function PlayMediatorOpposition({
       onHeatCheck={() => fail(tray.heatCheck(npc))}
       moraleDue={grouping && moraleDue(npc)}
       onMorale={() => fail(tray.morale(npc))}
+      acted={
+        initiative === null || npc.down
+          ? undefined
+          : {
+              acted: initiative.acted.includes(npc.id),
+              onToggle: canWrite
+                ? () => setActed(npc.id, !initiative.acted.includes(npc.id))
+                : undefined,
+            }
+      }
     />
   )
 
@@ -140,6 +172,7 @@ export function PlayMediatorOpposition({
       <PlayMediatorScene mediator={mediator} rollFor={rollFor} />
       <Slab
         as="h2"
+        id="mediate-opposition"
         label={mediatorCopy('opposition')}
         flush
         actions={
@@ -174,6 +207,7 @@ export function PlayMediatorOpposition({
           </>
         }
       />
+      <OppositionJumps npcs={npcs ?? []} />
       {prep.running !== null && (
         <div style={RUNNING} role="status">
           <Stat label={mediatorCopy('running')} value={prep.running.name} size="mini" />
@@ -261,6 +295,12 @@ export function PlayMediatorOpposition({
       )}
       {npcs !== null && npcs.length > 0 && (
         <div style={RUNNING}>
+          {/* One press for every downed unit, with Undo, never a confirm each (r6 B8). */}
+          {npcs.some((npc) => npc.down) && (
+            <Button variant="ghost" size="mini" disabled={!canWrite} onClick={clearDowned}>
+              {mediatorCopy('clearTheDowned')}
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="mini"
@@ -336,5 +376,31 @@ export function PlayMediatorOpposition({
         writes={tray}
       />
     </>
+  )
+}
+
+/**
+ * The Opposition heading's own list of units (r6 B11): off screen until
+ * focused, a jump to each unit's vitals, then Add. The screen's skip links
+ * stay four whatever the size of the fight; this list follows the heading
+ * the Opposition jump lands on.
+ */
+function OppositionJumps({ npcs }: { npcs: readonly TrayNpc[] }) {
+  const focus = (selector: string) => document.querySelector<HTMLElement>(selector)?.focus()
+  return (
+    <nav aria-label={mediatorCopy('oppositionUnits')} data-opposition-units="">
+      {npcs.map((npc) => (
+        <SkipLink
+          key={npc.id}
+          to="mediate-opposition"
+          onFollow={() => focus(`[data-npc-id="${npc.id}"] .su-vital-gauge__value-button`)}
+        >
+          {playCopy('skipTo', { name: mediatorCopy('vitalsOf', { name: npc.name }) })}
+        </SkipLink>
+      ))}
+      <SkipLink to="mediate-opposition" onFollow={() => focus('[data-opposition-add]')}>
+        {playCopy('skipTo', { name: mediatorCopy('addOpposition') })}
+      </SkipLink>
+    </nav>
   )
 }

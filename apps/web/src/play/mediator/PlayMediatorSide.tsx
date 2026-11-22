@@ -31,6 +31,7 @@ import { flagOn } from '../../lib/flags'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayTablesSection } from '../PlaySideColumn'
 import type { SideFeed } from '../usePlaySide'
+import { MUTED } from './mediatorStyles.model'
 import { ProposalsList } from './ProposalsList'
 import { ProposeDock } from './ProposeDock'
 import { RunningBriefing } from './RunningBriefing'
@@ -42,6 +43,16 @@ const SECTION = {
   gap: tokens.space[8],
   minWidth: 0,
 } satisfies CSSProperties
+
+/** The crawler's line in Propose: why it is not a target, then the way to its SP. */
+const CRAWLER_NOTE = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const MUTED_NOTE = { ...MUTED, margin: 0 } satisfies CSSProperties
 
 /** The running encounter's notes (ADR-059), as the Mediator wrote them. */
 const NOTES = {
@@ -125,11 +136,21 @@ type ProposeProps = {
   onTarget: (id: string | null) => void
   /** Propose's To field, which picking a seat focuses. */
   toRef: RefObject<HTMLInputElement | null>
+  /** Go to the crawler's SP on the Table, for a direct change (r6 B13). */
+  onCrawler?: () => void
 }
 
 /** The Propose dock, and every proposal sent a press away. */
-export function PlayMediatorProposeSection({ mediator, targetId, onTarget, toRef }: ProposeProps) {
+export function PlayMediatorProposeSection({
+  mediator,
+  targetId,
+  onTarget,
+  toRef,
+  onCrawler,
+}: ProposeProps) {
   const [allOpen, setAllOpen] = useState(false)
+  // The crawler is the table runner's to write, never a player's to answer (ADR-038 §5).
+  const crawler = mediator.crawler?.held ? mediator.crawler.crawler : null
   return (
     <section aria-label={mediatorCopy('propose')} style={SECTION}>
       <ProposeDock
@@ -142,6 +163,18 @@ export function PlayMediatorProposeSection({ mediator, targetId, onTarget, toRef
         onPropose={mediator.propose}
         onWithdraw={mediator.withdraw}
         toRef={toRef}
+        note={
+          crawler !== null ? (
+            <div style={CRAWLER_NOTE}>
+              <p style={MUTED_NOTE}>{mediatorCopy('crawlerIsYours', { name: crawler.name })}</p>
+              {onCrawler && (
+                <Button size="mini" onClick={onCrawler}>
+                  {mediatorCopy('toItsSp')}
+                </Button>
+              )}
+            </div>
+          ) : undefined
+        }
         // The dock's last chip (C8), never a line under it.
         controls={
           <Button size="mini" onClick={() => setAllOpen(true)}>

@@ -64,6 +64,20 @@ async function renderSheet(props: Partial<Parameters<typeof NpcSheet>[0]> = {}) 
   })
 }
 
+/** The sheet in Sheet view (`editing: false`) or Edit, as `LiveSheet`'s toggle sets it. */
+async function renderInMode(editing: boolean) {
+  const { SheetModeContext } = await import('../../sheet/sheetMode.model')
+  await act(async () => {
+    render(
+      <SyncContext.Provider value={CONNECTED}>
+        <SheetModeContext.Provider value={{ editing, setEditing: () => undefined } as never}>
+          <NpcSheet npc={KESSLER} madeBy="alxjrvs" readOnly={false} confirm={() => undefined} />
+        </SheetModeContext.Provider>
+      </SyncContext.Provider>
+    )
+  })
+}
+
 beforeEach(async () => {
   useUnits.setState({
     npcs: [],
@@ -120,12 +134,12 @@ describe('the sheet', () => {
   })
 
   test('its actions are Minis under an Actions slab, their rules the book’s', async () => {
-    await renderSheet()
+    await renderInMode(false)
     expect(screen.getAllByText('Green Laser Rifle (Veteran)').length).toBeGreaterThan(0)
   })
 
   test('its HP is the sheet’s one vital gauge, in full words', async () => {
-    await renderSheet()
+    await renderInMode(false)
     expect(screen.getByText('Hit Points')).toBeTruthy()
   })
 
@@ -252,10 +266,10 @@ describe('edits', () => {
   })
 })
 
-// MD2-03: Edit reached only the name and flavour.
-describe('Edit design', () => {
+// MD2-03: Edit reached only the name and flavour. MD6-15: two Edits, one on the band.
+describe('Redesign from a template', () => {
   // MD3-06: a fresh copy opens in Sheet view, where the door was missing.
-  test('Edit and Sheet view both offer the designer for an NPC designed as any NPC', async () => {
+  test('the ⋯ offers it in Edit and Sheet view, for an NPC designed as any NPC', async () => {
     const { SheetModeContext } = await import('../../sheet/sheetMode.model')
     const mode = (editing: boolean) => ({ editing, setEditing: () => undefined })
     const sheet = (editing: boolean, npc = KESSLER) => (
@@ -269,7 +283,11 @@ describe('Edit design', () => {
     await act(async () => {
       view = render(sheet(false))
     })
-    const design = () => screen.queryByRole('link', { name: 'Edit the design of Sergeant Kessler' })
+    const design = () =>
+      screen.queryByRole('link', { name: 'Redesign Sergeant Kessler from a template' })
+    // Not on the band: under "⋯".
+    expect(design()).toBeNull()
+    await openMenu()
     expect(design()?.getAttribute('href')).toBe('/npcs/n1/design')
     await act(async () => {
       view.rerender(sheet(true))
@@ -282,5 +300,41 @@ describe('Edit design', () => {
       )
     })
     expect(design()).toBeNull()
+  })
+})
+
+describe('one Edit (r6 B12)', () => {
+  async function renderEditing() {
+    await renderInMode(true)
+    await waitFor(() => expect(screen.getByLabelText(/Hit Points/)).toBeTruthy())
+  }
+
+  test('edits its stats: a new HP saves when the field is left', async () => {
+    await renderEditing()
+    const hp = screen.getByLabelText(/Hit Points/)
+    await act(async () => {
+      fireEvent.change(hp, { target: { value: '14' } })
+    })
+    expect(useUnits.getState().npcs[0]?.hitPoints).not.toBe(14)
+    await act(async () => {
+      fireEvent.blur(hp)
+    })
+    await waitFor(() => expect(useUnits.getState().npcs[0]?.hitPoints).toBe(14))
+    // The rest of it stands: the name is the sheet's own field.
+    expect(useUnits.getState().npcs[0]?.name).toBe('Sergeant Kessler')
+  })
+
+  test('edits its actions: setting one down saves at once', async () => {
+    await renderEditing()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Carry Green Laser Rifle (Veteran)' }))
+    })
+    await waitFor(() => expect(useUnits.getState().npcs[0]?.actions).toEqual([]))
+  })
+
+  test('Sheet view keeps the printed actions and no stat fields', async () => {
+    await renderInMode(false)
+    expect(screen.queryByLabelText(/Hit Points/)).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Carry / })).toBeNull()
   })
 })

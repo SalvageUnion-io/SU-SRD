@@ -31,6 +31,7 @@ import { Button, Entity, Stat, Toggle, tokens } from '../../components/index'
 import { crewPair } from '../../lib/units/crewPair'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { mediatorCopy } from '../../messages/play-mediator'
+import { ActedMark } from './MediatorInitiative'
 import { NOTE, NOTE_MUTED } from './mediatorStyles.model'
 import type { MediatorSeat } from './mediatorTable.model'
 
@@ -58,6 +59,8 @@ type PlayMediatorSeatProps = {
   upNow: boolean
   /** Mark, or unmark, this pilot as up now; absent while Play is read-only. */
   onUpNow?: () => void
+  /** While Group Initiative is kept (r6 B4): whether they acted this round, and the toggle. */
+  acted?: { acted: boolean; onToggle?: (() => void) | undefined } | undefined
 }
 
 export function PlayMediatorSeat({
@@ -68,6 +71,7 @@ export function PlayMediatorSeat({
   stepLine,
   upNow,
   onUpNow,
+  acted,
 }: PlayMediatorSeatProps) {
   const away = !seat.present
   // A step line is Downtime's: there the mechs are in the Mech Bay, nobody Boarded.
@@ -158,17 +162,22 @@ export function PlayMediatorSeat({
                 ))}
               </div>
               <SeatLine seat={seat} mount={mount} stepLine={stepLine} />
-              {onUpNow ? (
+              {onUpNow || acted ? (
                 <div style={CHIPS}>
-                  <Toggle
-                    size="compact"
-                    pressed={upNow}
-                    glyph={upNow ? '✓' : undefined}
-                    aria-label={mediatorCopy('upNowFor', { name: seat.name })}
-                    onClick={onUpNow}
-                  >
-                    {upNow ? mediatorCopy('upNow') : mediatorCopy('markUpNow')}
-                  </Toggle>
+                  {acted && (
+                    <ActedMark name={seat.name} acted={acted.acted} onToggle={acted.onToggle} />
+                  )}
+                  {onUpNow && (
+                    <Toggle
+                      size="compact"
+                      pressed={upNow}
+                      glyph={upNow ? '✓' : undefined}
+                      aria-label={mediatorCopy('upNowFor', { name: seat.name })}
+                      onClick={onUpNow}
+                    >
+                      {upNow ? mediatorCopy('upNow') : mediatorCopy('markUpNow')}
+                    </Toggle>
+                  )}
                 </div>
               ) : null}
             </>

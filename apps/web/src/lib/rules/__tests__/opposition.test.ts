@@ -6,6 +6,8 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
+  checksMoraleAlone,
+  groupedInOneGo,
   groupMoraleDue,
   importantTrackOf,
   isDown,
@@ -103,6 +105,43 @@ const faces =
   (...rolls: number[]) =>
   () =>
     rolls.shift() ?? 1
+
+// MD6-06: three Raiders added together never formed a group, so its Morale prompt never came.
+describe('units added in one go (r6 B5)', () => {
+  const raider = (n: number) => ({
+    refSchema: 'npcs',
+    refSlug: 'raider',
+    refName: 'Raider',
+    name: `Raider ${n}`,
+  })
+  test('two or more of one kind form one group, named for what they are', () => {
+    let ids = 0
+    const out = groupedInOneGo(
+      [raider(1), raider(2), { refSchema: 'chassis', refSlug: 'mule', name: 'Mule' }, raider(3)],
+      () => `g${++ids}`
+    )
+    expect(out.map((b) => (b as { group?: { id: string } }).group?.id ?? null)).toEqual([
+      'g1',
+      'g1',
+      null,
+      'g1',
+    ])
+    expect((out[0] as { group?: { name: string } }).group?.name).toBe('Raider')
+  })
+
+  test('one of a kind, or one already in a group, is left alone', () => {
+    const grouped = { ...raider(2), group: { id: 'band', name: 'Band' } }
+    const out = groupedInOneGo([raider(1), grouped], () => 'new')
+    expect(out).toEqual([raider(1), grouped])
+  })
+
+  test('only Mechs and Creatures check Morale alone (Core Book p.268)', () => {
+    expect(checksMoraleAlone('chassis')).toBe(true)
+    expect(checksMoraleAlone('creatures')).toBe(true)
+    expect(checksMoraleAlone('npcs')).toBe(false)
+    expect(checksMoraleAlone(null)).toBe(false)
+  })
+})
 
 describe('importantTrackOf (Workshop Manual p.255)', () => {
   test('a chassis drawn with a loadout tracks what a mech of that pattern would (Composite Armour)', () => {

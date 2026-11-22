@@ -15,6 +15,7 @@ import {
 } from '../components/index'
 import { dieForTable } from '../lib/dice'
 import { playCopy } from '../messages/play'
+import { useFoldRolledTables, usePrivateRolls } from './privateRolls.model'
 
 /** Where a roll landed, and the words it reads as (the log, Copy). */
 type Landed =
@@ -61,6 +62,10 @@ export function PlayRollTable({
   onRollResult?: (text: string, key: string, dice: number[]) => void
 }) {
   const [landed, setLanded] = useState<Landed | null>(null)
+  const privately = usePrivateRolls()
+  // The Mediator's: rolled, the table folds to the row it landed on (r6 B6).
+  const fold = useFoldRolledTables()
+  const [whole, setWhole] = useState(false)
   const isColumns = table.type === 'columns'
   const rows = isColumns ? [] : digestRollTable(table)
 
@@ -70,6 +75,7 @@ export function PlayRollTable({
    * a roll that lands on no row (`NO_EFFECT`), which is still a roll.
    */
   const roll = () => {
+    setWhole(false)
     dieForTable(name)
       .then((d20) => {
         const outcome = rollOnTable(table as RefObjectTable, d20)
@@ -114,17 +120,37 @@ export function PlayRollTable({
     navigator.clipboard.writeText(text).then(flash, () => toast(playCopy('copyFailed')))
   }
 
+  const landedKey = landed?.kind === 'bands' ? landed.key : null
+  const folded = fold && !whole && landedKey !== null
+  const bands = folded ? rows.filter((row) => row.key === landedKey) : rows
+
   return (
     <RollTableInstrument
       name={name}
       title={name}
       size={size}
       tone={tone}
-      stamp={isColumns ? playCopy('rollTheDiceStamp') : undefined}
+      stamp={
+        privately
+          ? playCopy('rollPrivatelyStamp')
+          : isColumns
+            ? playCopy('rollTheDiceStamp')
+            : undefined
+      }
       onRoll={roll}
       actions={
         landed ? (
           <>
+            {fold && landed.kind === 'bands' && (
+              <Button
+                size="compact"
+                className="su-roll__control"
+                aria-expanded={!folded}
+                onClick={() => setWhole(folded)}
+              >
+                {folded ? playCopy('wholeTable') : playCopy('foldTable')}
+              </Button>
+            )}
             <Button
               size="compact"
               className="su-roll__control"
@@ -154,7 +180,7 @@ export function PlayRollTable({
             }
           : {
               kind: 'bands',
-              rows: rows.map((row) => ({ ...row, value: <TraitProse text={row.value} /> })),
+              rows: bands.map((row) => ({ ...row, value: <TraitProse text={row.value} /> })),
               mark: landed?.kind === 'bands' ? { key: landed.key, roll: landed.roll } : undefined,
             }
       }

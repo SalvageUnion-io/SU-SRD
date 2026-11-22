@@ -167,6 +167,22 @@ reader's own. A Mediator's own copy of a roll (`private` or `veiled`) is
 never toasted, so nothing replays when the role moves. The Hand over dialog
 says private rolls go across.
 
+### 9c. Group Initiative is a tracker the Mediator moves (r6 B4)
+
+Mediate's table keeps the round, the sides (the Pilots, each opposition
+group, the ungrouped units as one) and who has acted (Core Book p.235–236).
+The Mediator presses Next side and New round; New round asks who acts first,
+answered by a choice or a Group Initiative Table roll (pinned in Rolls for
+everyone). A pilot's mark fills when their turn ends or is given to another.
+Nothing is refused or moved on its own, so it is not a turn system
+(ARCHITECTURE.md#combat). The rules and the one switch (`rounds` or `acted`
+only) are `lib/rules/initiative.ts`.
+
+The room keeps it as one `change_log` row (field `initiative`), the
+Mediator's only, served on their `mediator` record and ended when the group
+session ends or Downtime begins. Additive and optional: no table or column;
+a Game with no row has no tracker.
+
 ### 10. Phones get tabs, not a second layout
 
 Below `lg` the panes are four tabs at the foot (Act, Units, Tables, Crew; the

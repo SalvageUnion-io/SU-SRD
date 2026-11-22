@@ -71,6 +71,11 @@ export type TrayWrites = {
   remove: (npc: TrayNpc) => Promise<unknown>
   /** Clear the field: every NPC leaves the tray at once. */
   clear: () => Promise<unknown>
+  /**
+   * Clear the downed (r6 B8): every downed NPC leaves the tray in one press;
+   * `undo` puts each back as it was.
+   */
+  clearDowned: () => Promise<{ removed: number; undo: () => Promise<void> }>
   rename: (npc: TrayNpc, name: string) => Promise<unknown>
   /** Field an encounter row's roster (p.270): every line it names, how many it says. */
   field: (lines: readonly RosterLine[]) => Promise<number>

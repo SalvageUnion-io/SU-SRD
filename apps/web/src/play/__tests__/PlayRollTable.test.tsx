@@ -322,3 +322,40 @@ describe('the columns variant', () => {
     expect(document.querySelectorAll('tbody td.su-roll__cell')).toHaveLength(100)
   })
 })
+
+// MD6-08: an opened table stayed whole after a roll, pushing the encounter's notes off screen.
+describe('on Mediate (r6 B6, B10)', () => {
+  test('rolled, the table folds to the row it landed on; Whole table opens it again', async () => {
+    const { FoldRolledTables } = await import('../privateRolls.model')
+    queued = [7, 15]
+    render(
+      <FoldRolledTables.Provider value={true}>
+        <PlayRollTable table={RANGE_TABLE} name="Core Mechanic" />
+      </FoldRolledTables.Provider>
+    )
+    const rows = () => document.querySelectorAll('.su-roll__row')
+    expect(rows()).toHaveLength(4)
+    await roll()
+    expect(rows()).toHaveLength(1)
+    expect(rows()[0]?.textContent).toContain('Tough Choice')
+    const whole = screen.getByRole('button', { name: 'Whole table' })
+    expect(whole.getAttribute('aria-expanded')).toBe('false')
+    await act(async () => {
+      fireEvent.click(whole)
+    })
+    expect(rows()).toHaveLength(4)
+    await roll()
+    expect(rows()).toHaveLength(1)
+    expect(rows()[0]?.textContent).toContain('Success')
+  })
+
+  test('with Private rolls on, the roll reads Roll privately', async () => {
+    const { PrivateRolls } = await import('../privateRolls.model')
+    render(
+      <PrivateRolls.Provider value={true}>
+        <PlayRollTable table={RANGE_TABLE} name="Core Mechanic" />
+      </PrivateRolls.Provider>
+    )
+    expect(screen.getByRole('button', { name: 'Roll privately on Core Mechanic' })).toBeTruthy()
+  })
+})

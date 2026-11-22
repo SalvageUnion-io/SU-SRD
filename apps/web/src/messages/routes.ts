@@ -15,7 +15,7 @@ export const routesCopy = messages({
   encounter: 'Encounter',
   npc: 'NPC',
   designAnNpc: 'Design an NPC',
-  editDesign: 'Edit design',
+  editDesign: 'Redesign',
   /** The area an NPC's and an encounter's pages are titled with (ADR-067 §5). */
   mediatorsKit: 'Mediator’s Kit',
   newPilot: 'New Pilot',

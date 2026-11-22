@@ -8,7 +8,9 @@
  * newest proposals with their state. The preview is the one place a before
  * shows: a sent proposal stores none (ADR-030 §4, as amended).
  *
- * Targets are claimed pilots and mechs; a mech is labelled by its pilot
+ * Targets are claimed pilots and mechs; the Game's crawler is the Mediator's
+ * own (the table runner writes it), so `note` says so and leads to its SP on
+ * the Table for a direct change (r6 B13). A mech is labelled by its pilot
  * ("Pickle's Spectrum"). The value is a whole number from 0 to the field's
  * derived maximum, clamped here; `ops.accept` still parses it on the
  * server. Tapping a seat card picks its pilot, or the Mech a boarded pilot
@@ -87,6 +89,7 @@ export function ProposeDock({
   onWithdraw,
   toRef,
   controls,
+  note,
 }: {
   targets: readonly ProposalTarget[]
   targetId: string | null
@@ -103,6 +106,8 @@ export function ProposeDock({
   toRef: RefObject<HTMLInputElement | null>
   /** The head's controls, its chip group's last slot (C8): All proposals. */
   controls?: ReactNode
+  /** Under "The player decides.": what is not a target here and why (the Mediator's own crawler, r6 B13). */
+  note?: ReactNode
 }) {
   const id = useId()
   const target = targets.find((t) => t.id === targetId) ?? null
@@ -188,6 +193,7 @@ export function ProposeDock({
           {mediatorCopy('setbacks')}
         </Button>
       </div>
+      {note}
       <form
         style={FORM}
         onSubmit={(e) => {

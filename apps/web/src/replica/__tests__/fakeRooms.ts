@@ -224,7 +224,13 @@ export function serveReads(
       downtime === null ? [] : [{ ...downtime, doneSteps: { [pilotId]: downtime.doneSteps ?? [] } }]
   }
   if (answers['mediator.amMediator'] === true || answers['mediator.running'] != null) {
-    tables.mediator = [{ id: 'mediator', running: answers['mediator.running'] ?? null }]
+    tables.mediator = [
+      {
+        id: 'mediator',
+        running: answers['mediator.running'] ?? null,
+        initiative: answers['mediator.initiative'] ?? null,
+      },
+    ]
   }
   // As the room serves them: its rolls and alerts are events too (`rooms/game/events.ts`).
   tables.events ??= [
