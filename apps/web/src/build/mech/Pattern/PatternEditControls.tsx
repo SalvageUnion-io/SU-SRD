@@ -1,6 +1,6 @@
 /**
- * PatternEditControls — the maker's edits on their saved pattern's page:
- * Rename, Edit description, its Systems and Modules in the one picker (the
+ * PatternEditControls — the maker's edits on their saved pattern's page, in
+ * its ⋯ menu as a sheet's are (r5 D7): Rename, Edit description, its Systems and Modules in the one picker (the
  * count picker a mech sheet's Manage opens), and Delete (r4 E13), so a pattern
  * is changed where it is, not by building a mech from it and saving that over
  * again. Each act's dialog is titled as its button reads; Delete asks first,
@@ -16,7 +16,7 @@ import { useNavigate } from '@tanstack/react-router'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { Button, EntitySearcher } from '../../../components/index'
+import { EntitySearcher, HeaderMenu } from '../../../components/index'
 import { useConfirm } from '../../../components/shared/useConfirm'
 import { loadoutSlots, patternChassis } from '../../../lib/patterns/patterns'
 import { mechRuleBreaks, ruleBreaksMade } from '../../../lib/rules/ruleBreaks'
@@ -77,31 +77,44 @@ export function PatternEditControls({ pattern }: { pattern: MechPattern }) {
   }
   return (
     <>
-      <Button className="su-page-action" onClick={() => setRenaming(true)}>
-        {mechCopy('rename')}
-      </Button>
-      <Button className="su-page-action" onClick={() => setDescribing(true)}>
-        {mechCopy('editDescription')}
-      </Button>
-      {(['systems', 'modules'] as const).map((part) => (
-        <Button key={part} className="su-page-action" onClick={() => setEditing(part)}>
-          {COPY[part].act}
-        </Button>
-      ))}
-      <Button
+      {/* The maker's edits fold into the ⋯ menu, Delete in its own group, as on a sheet (r5 D7). */}
+      <HeaderMenu
+        variant="overflow"
+        size="compact"
         className="su-page-action"
-        onClick={() =>
-          confirm({
-            ...deletePatternCopy(own),
-            onConfirm: async () => {
-              await deletePattern(own.id)
-              void navigate({ to: '/patterns' })
+        trigger={null}
+        label={mechCopy('moreActions')}
+        sections={[
+          [
+            { id: 'rename', label: mechCopy('rename'), onSelect: () => setRenaming(true) },
+            {
+              id: 'describe',
+              label: mechCopy('editDescription'),
+              onSelect: () => setDescribing(true),
             },
-          })
-        }
-      >
-        {mechCopy('delete')}
-      </Button>
+            ...(['systems', 'modules'] as const).map((part) => ({
+              id: part,
+              label: COPY[part].act,
+              onSelect: () => setEditing(part),
+            })),
+          ],
+          [
+            {
+              id: 'delete',
+              label: mechCopy('delete'),
+              tone: 'danger' as const,
+              onSelect: () =>
+                confirm({
+                  ...deletePatternCopy(own),
+                  onConfirm: async () => {
+                    await deletePattern(own.id)
+                    void navigate({ to: '/patterns' })
+                  },
+                }),
+            },
+          ],
+        ]}
+      />
       {dialog}
       <PatternDescriptionDialog
         open={describing}

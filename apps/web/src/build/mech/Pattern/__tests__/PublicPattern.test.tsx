@@ -175,6 +175,16 @@ describe('a shared pattern reads like the book and says a player made it', () =>
   })
 })
 
+/** Pick one of the maker's edits from the page's ⋯ menu (r5 D7). */
+async function fromMenu(item: string) {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+  })
+  await act(async () => {
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: item }))
+  })
+}
+
 describe('signed in', () => {
   test('its maker renames it on its page, and the tab is named for it (U11)', async () => {
     answerRoutes({
@@ -184,10 +194,18 @@ describe('signed in', () => {
     usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
     renderAs(CONNECTED)
     expect(document.title).toContain('Tow Rig')
-    expect(screen.getByRole('button', { name: 'Edit Systems' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Edit Modules' })).toBeTruthy()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
+    // Share and Build With This stay out; the edits fold into ⋯ (r5 D7).
+    expect(screen.queryByRole('button', { name: 'Edit Systems' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    })
+    const menu = screen.getByRole('menu')
+    expect(within(menu).getByRole('menuitem', { name: 'Edit Systems' })).toBeTruthy()
+    expect(within(menu).getByRole('menuitem', { name: 'Edit Modules' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(within(menu).getByRole('menuitem', { name: 'Rename' }))
+    })
     const field = await screen.findByRole('textbox', { name: 'Pattern name' })
     fireEvent.change(field, { target: { value: 'Tow Rig Mk II' } })
     await act(async () => {
@@ -208,7 +226,7 @@ describe('signed in', () => {
     })
     usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
     renderAs(CONNECTED)
-    fireEvent.click(screen.getByRole('button', { name: 'Edit description' }))
+    await fromMenu('Edit description')
     const field = (await screen.findByRole('textbox', {
       name: 'Pattern description',
     })) as HTMLTextAreaElement
@@ -232,7 +250,7 @@ describe('signed in', () => {
     })
     usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
     renderAs(CONNECTED)
-    fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    await fromMenu('Delete')
     const ask = await screen.findByRole('alertdialog')
     expect(ask.textContent).toContain('Delete Tow Rig?')
     expect(usePatterns.getState().mechPatterns).toHaveLength(1)
@@ -248,6 +266,7 @@ describe('signed in', () => {
   test('a reader who did not make it gets no edit', () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(CONNECTED)
+    expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Rename' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Edit description' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull()

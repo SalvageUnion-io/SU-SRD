@@ -87,6 +87,7 @@ export const mechCopy = messages({
   patternOf: 'Pattern of',
   copying: 'Copying…',
   makeACopy: 'Make a copy',
+  moreActions: 'More actions',
   share: 'Share',
   share2: 'Share {name}',
   lineArt: '{name} line art',
