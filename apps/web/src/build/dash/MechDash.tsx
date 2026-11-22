@@ -71,12 +71,12 @@ import { overSlots, slotCount } from '../sheet/mechSlots.model'
 import { usePrinting } from '../sheet/printing.model'
 import { cargoBreakToast } from '../sheet/ruleBreakToast.model'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
-import { useShownSheet } from '../sheet/shownSheet'
+import { useShownSheet } from '../sheet/useShownSheet'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
 import { ITEM_COLUMNS, itemRows } from './itemRows'
 import { RowRules } from './RowRules'
-import { unloadLot } from './unloadLot'
+import { unloadLot } from './unloadLot.model'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })

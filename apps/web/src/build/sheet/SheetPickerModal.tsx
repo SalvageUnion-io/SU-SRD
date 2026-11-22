@@ -11,7 +11,7 @@
 import type { CSSProperties, ReactElement, ReactNode } from 'react'
 import { cloneElement, isValidElement } from 'react'
 import { ModalShell, tokens } from '../../components/index'
-import { usePickerHistory } from './pickerHistory'
+import { usePickerHistory } from './usePickerHistory'
 
 // ---------------------------------------------------------------------------
 // The ONE shared picker modal (collections + single-select pickers)

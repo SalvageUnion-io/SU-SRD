@@ -3,7 +3,7 @@
 import { describe, expect, test } from 'bun:test'
 import { act, render } from '@testing-library/react'
 import { useState } from 'react'
-import { usePickerHistory } from '../pickerHistory'
+import { usePickerHistory } from '../usePickerHistory'
 
 let close: (() => void) | undefined
 
