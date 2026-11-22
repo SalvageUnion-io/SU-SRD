@@ -1,5 +1,6 @@
 /**
- * The copy notice leaves like every other (r2 C3): it has a timer, and it
+ * The copy notice is the one way to the copy, so it stays until it is
+ * dismissed, with a close of its own (r4 E19, over r2 C3's timer), and it
  * closes at once when its copy is gone (deleted, or the account signed out).
  */
 
@@ -41,12 +42,13 @@ async function copied() {
 }
 
 describe('makeACopy', () => {
-  test('its notice has a timer, as every action toast has', async () => {
+  test('its notice stays until dismissed, and carries its own close (r4 E19)', async () => {
     await copied()
     const [line] = open()
     // It says what was copied, by the original's name (MD3-15).
     expect((line as { title?: unknown }).title).toBe('Copied Leaky.')
-    expect((line as { duration?: number }).duration).toBe(8000)
+    expect((line as { duration?: number }).duration).toBe(Number.POSITIVE_INFINITY)
+    expect((line as { closeButton?: boolean }).closeButton).toBe(true)
   })
 
   test('its notice closes at once when the copy is gone', async () => {

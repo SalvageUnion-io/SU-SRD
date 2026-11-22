@@ -201,10 +201,56 @@ describe('signed in', () => {
     expect(usePatterns.getState().mechPatterns[0]?.name).toBe('Tow Rig Mk II')
   })
 
+  test('its maker edits its description on its page (r4 E13)', async () => {
+    answerRoutes({
+      [STATUS]: NOT_LISTED,
+      [PAGE]: answer({ mine: true, visibility: 'private' }),
+    })
+    usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
+    renderAs(CONNECTED)
+    fireEvent.click(screen.getByRole('button', { name: 'Edit description' }))
+    const field = (await screen.findByRole('textbox', {
+      name: 'Pattern description',
+    })) as HTMLTextAreaElement
+    expect(field.value).toBe('Rig first, rivet later.')
+    fireEvent.change(field, { target: { value: 'Tow, then weld.' } })
+    await act(async () => {
+      fireEvent.click(
+        within(field.closest('[role="dialog"]') as HTMLElement).getByRole('button', {
+          name: 'Save',
+        })
+      )
+    })
+    await settle(() => usePatterns.getState().mechPatterns[0]?.notes === 'Tow, then weld.')
+    expect(usePatterns.getState().mechPatterns[0]?.notes).toBe('Tow, then weld.')
+  })
+
+  test('its maker deletes it from its page: it asks first, then leaves for Patterns (r4 E13)', async () => {
+    answerRoutes({
+      [STATUS]: NOT_LISTED,
+      [PAGE]: answer({ mine: true, visibility: 'private' }),
+    })
+    usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
+    renderAs(CONNECTED)
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    const ask = await screen.findByRole('alertdialog')
+    expect(ask.textContent).toContain('Delete Tow Rig?')
+    expect(usePatterns.getState().mechPatterns).toHaveLength(1)
+    await act(async () => {
+      fireEvent.click(within(ask).getByRole('button', { name: 'Delete' }))
+    })
+    await settle(() => usePatterns.getState().mechPatterns.length === 0)
+    expect(usePatterns.getState().mechPatterns).toHaveLength(0)
+    await settle(() => serverMocks.navigations.length > 0)
+    expect(JSON.stringify(serverMocks.navigations)).toContain('/patterns')
+  })
+
   test('a reader who did not make it gets no edit', () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(CONNECTED)
     expect(screen.queryByRole('button', { name: 'Rename' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Edit description' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Edit Systems' })).toBeNull()
   })
 

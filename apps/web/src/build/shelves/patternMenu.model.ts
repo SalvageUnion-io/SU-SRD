@@ -54,9 +54,15 @@ export function buildFromPattern(
 }
 
 /** The delete confirm, naming the mechs built from the pattern (r3 G3). */
-function deletePatternCopy(pattern: MechPattern) {
+export function deletePatternCopy(pattern: MechPattern) {
   const copy = ROW_ACTION_COPY.deleteBuild(pattern.name)
   return { ...copy, body: [...copy.body, ...deletePatternLines(pattern.id)] }
+}
+
+/** Delete a saved pattern: its page answers nothing after, and a mech's chip reads so at once. */
+export async function deletePattern(id: string): Promise<void> {
+  await usePatterns.getState().delete(id)
+  void refreshWorkerReads(sharedPaths.sheet('pattern', id))
 }
 
 export function patternMenuOf(
@@ -99,14 +105,7 @@ export function patternMenuOf(
     [
       deleteItem(
         writable(() =>
-          confirm({
-            ...deletePatternCopy(pattern),
-            onConfirm: async () => {
-              await usePatterns.getState().delete(pattern.id)
-              // Its page answers nothing now: a mech's chip reads so at once.
-              void refreshWorkerReads(sharedPaths.sheet('pattern', pattern.id))
-            },
-          })
+          confirm({ ...deletePatternCopy(pattern), onConfirm: () => deletePattern(pattern.id) })
         )
       ),
     ],

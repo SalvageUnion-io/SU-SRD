@@ -39,6 +39,7 @@ import {
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
+import { STAYS } from '../../lib/copiedToast'
 import { copyBeside, namesOn } from '../../lib/copyEntity'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import type { NpcView } from '../../lib/npcs/npcModel'
@@ -161,10 +162,13 @@ export function NpcSheet({
         .getState()
         .create('npc', copyBeside(npc, npc.name, taken) as never)
       toast.success(npcCopy('madeACopy', { name: npc.name }), {
-        duration: COPY_TOAST_MS,
+        // With the way to the copy it stays until dismissed (r4 E19).
         ...(onOpenCopy
-          ? { action: { label: npcCopy('openTheCopy'), onClick: () => onOpenCopy(created.id) } }
-          : {}),
+          ? {
+              ...STAYS,
+              action: { label: npcCopy('openTheCopy'), onClick: () => onOpenCopy(created.id) },
+            }
+          : { duration: COPY_TOAST_MS }),
       })
     })
   }

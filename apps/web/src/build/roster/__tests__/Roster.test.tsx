@@ -388,10 +388,11 @@ describe('Training Bay — items', () => {
       `/mechs/${mech.id}`,
       `/mechs/${mech.id}`,
     ])
-    // A mech a pilot flies is on that pilot's line, not again on the Mechs ledger.
+    // The Mechs ledger lists it too, as a line that names its pilot (r4 E20): never "None".
     const mechs = screen.getByRole('region', { name: 'Mechs' })
-    expect(within(mechs).queryByRole('link', { name: 'Iron Fist' })).toBeNull()
-    expect(within(mechs).getByText('None. A Mech with a Pilot is on its Pilot’s row.')).toBeTruthy()
+    const line = within(mechs).getByRole('link', { name: 'Iron Fist' }).closest('tr') as HTMLElement
+    expect(within(line).getByRole('link', { name: 'Ghost · Mara Vex' })).toBeTruthy()
+    expect(within(mechs).queryByText(/^None/)).toBeNull()
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 

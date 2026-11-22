@@ -354,9 +354,43 @@ describe('a mech a pilot of yours flies', () => {
     const links = within(row).getAllByRole('link', { name: 'Iron Jaw' })
     expect(links).toHaveLength(2)
     expect(row.querySelector('.su-shelf-ledger__flown')?.textContent).toBe('Mech Iron Jaw')
-    // The Mechs shelf holds the rest.
+    // The Mechs shelf lists it too, its line naming and linking its pilot (r4 E20).
     const mechs = screen.getByRole('region', { name: 'Mechs' })
-    expect(within(mechs).queryByText('Iron Jaw')).toBeNull()
+    const line = within(mechs).getByRole('link', { name: 'Iron Jaw' }).closest('tr') as HTMLElement
+    expect(within(line).getByRole('link', { name: 'Nia Vale' }).getAttribute('href')).toBe(
+      '/pilots/p-nia'
+    )
+    // "+ Add a Mech" still offers only the mechs no pilot flies.
+    expect(within(pilots).queryByRole('button', { name: 'Add a Mech to Rook' })).toBeNull()
+  })
+})
+
+describe('a pilot’s Rename… (r4 E20)', () => {
+  test('changes its callsign and its name from the shelf, and writes neither blank', async () => {
+    await renderShelves()
+    await choose(await openMenu('Nia Vale'), 'Rename…')
+    const dialog = await screen.findByRole('dialog')
+    const callsign = within(dialog).getByRole('textbox', { name: 'Callsign' }) as HTMLInputElement
+    const name = within(dialog).getByRole('textbox', { name: 'Name' }) as HTMLInputElement
+    expect(name.value).toBe('Nia Vale')
+    await act(async () => {
+      fireEvent.change(name, { target: { value: ' ' } })
+    })
+    expect(within(dialog).getByRole('button', { name: 'Rename' }).hasAttribute('disabled')).toBe(
+      true
+    )
+    await act(async () => {
+      fireEvent.change(callsign, { target: { value: 'Wren' } })
+      fireEvent.change(name, { target: { value: 'Nia Vale II' } })
+    })
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Rename' }))
+    })
+    await settle(
+      () => useUnits.getState().pilots.find((p) => p.id === 'p-nia')?.callsign === 'Wren'
+    )
+    const renamed = useUnits.getState().pilots.find((p) => p.id === 'p-nia')
+    expect([renamed?.callsign, renamed?.name]).toEqual(['Wren', 'Nia Vale II'])
   })
 })
 
@@ -415,6 +449,15 @@ describe('a unit’s ⋯ menu', () => {
     await renderShelves()
     await choose(await openMenu('Nia Vale'), 'Open')
     expect(assigned).toEqual(['/pilots/p-nia'])
+  })
+
+  test('Move to a Game… with no Game offers + New Game, never a dead end (r4 E15)', async () => {
+    setQueryAnswers({ 'games.listMine': [] })
+    await renderShelves()
+    await choose(await openMenu('Iron Jaw'), 'Move to a Game…')
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog.textContent).toContain('You are in no Game to move it to.')
+    expect(within(dialog).getByRole('button', { name: '+ New Game' })).toBeTruthy()
   })
 
   test('a mech’s Save as pattern opens its dialog over the Hangar', async () => {

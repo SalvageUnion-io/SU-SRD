@@ -1,9 +1,10 @@
 /**
  * "Make a copy" without a confirm: a copy only adds, and deleting it is the
- * way back, so the act runs at once and says what it made. The notice is an
- * action toast like any other: it leaves on its timer, its one action opens
- * the copy, and it closes at once when the copy is gone (deleted, or the
- * account signed out), since its action would then open nothing.
+ * way back, so the act runs at once and says what it made. The notice is the
+ * one way to what was made, so it stays until it is dismissed (r4 E19): its
+ * one action opens the copy, its close takes it down, and it closes at once
+ * when the copy is gone (deleted, or the account signed out), since its action
+ * would then open nothing.
  */
 
 import type { EntityKind } from 'game-domain/entityKinds'
@@ -18,24 +19,26 @@ import { failureMessage } from './connection/useServerAction'
 import { copyBeside, copyForShelf, copyName, namesOn } from './copyEntity'
 import { patternCopy, savedPatternHref } from './patterns/patterns'
 
-/** How long an action toast stays: the Undo line's time (`changeUndoToast`). */
-const ACTION_TOAST_MS = 8000
+/** A notice that opens what an act made stays until dismissed, with a close of its own. */
+export const STAYS = { duration: Number.POSITIVE_INFINITY, closeButton: true } as const
 
 /** What a copy answers: its name, where it opens, whether it is still there, and the mech copied with it. */
 type Made = { name: string; href: string; exists?: () => boolean; mech?: string }
 
 /**
- * Says what was copied, by the original's name (`of`), with the way to the
- * copy, for as long as there is a copy to open.
+ * Says what an act made (`said`), with the way to it (`open`), for as long as
+ * it is there to open or until the notice is dismissed.
  */
-function copiedToast(of: string, made: Made, go: (href: string) => void): void {
+export function madeToast(
+  said: string,
+  open: string,
+  made: Pick<Made, 'href' | 'exists'>,
+  go: (href: string) => void
+): void {
   let unwatch: (() => void) | undefined
-  const said = made.mech
-    ? componentsCopy('madeCopyWithMech', { name: of, mech: made.mech })
-    : componentsCopy('madeCopy', { name: of })
   const id = toast.success(said, {
-    duration: ACTION_TOAST_MS,
-    action: { label: componentsCopy('openTheCopy'), onClick: () => go(made.href) },
+    ...STAYS,
+    action: { label: open, onClick: () => go(made.href) },
     onDismiss: () => unwatch?.(),
     onAutoClose: () => unwatch?.(),
   })
@@ -46,6 +49,14 @@ function copiedToast(of: string, made: Made, go: (href: string) => void): void {
     unwatch?.()
     toast.dismiss(id)
   })
+}
+
+/** Says what was copied, by the original's name (`of`), with the way to the copy. */
+function copiedToast(of: string, made: Made, go: (href: string) => void): void {
+  const said = made.mech
+    ? componentsCopy('madeCopyWithMech', { name: of, mech: made.mech })
+    : componentsCopy('madeCopy', { name: of })
+  madeToast(said, componentsCopy('openTheCopy'), made, go)
 }
 
 /**

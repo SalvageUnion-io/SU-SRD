@@ -44,3 +44,9 @@ export function deletePatternLines(patternId: string): string[] {
     mechCopy('patternPageGoes'),
   ]
 }
+
+/** Whether a saved pattern already wears this name, however it is cased or spaced (r4 E13). */
+export function patternNameTaken(name: string, held: readonly { name: string }[]): boolean {
+  const wanted = name.trim().toLowerCase()
+  return wanted !== '' && held.some((pattern) => pattern.name.trim().toLowerCase() === wanted)
+}

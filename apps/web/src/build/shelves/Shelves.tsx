@@ -13,7 +13,7 @@
  * Games, the header's Games tab (ADR-066).
  *
  *  - **The band** (ink, paper flecks): the notched title and, in the band's
- *    top-right corner, one "⋯" (`BackupMenu`: **Import…** and **Export all**).
+ *    top-right corner, **Backups** (`BackupMenu`: **Import…** and **Export all**).
  *  - **Two columns of shelves**: Pilots (each with its mech and a Play door),
  *    Mechs and Crawlers; then the user-made, dashed Patterns (where a mech is
  *    planned), NPCs and Encounters (ruleset §3.9, `EncounterShelf`); then,
@@ -69,11 +69,9 @@ import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { crewLinkOf } from '../../lib/npcs/npcModel'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
-import { savedPatternHref } from '../../lib/patterns/patterns'
 import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
 import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
-  chassisFact,
   crewLinked,
   encounterNpcChips,
   encounterNpcReading,
@@ -82,8 +80,6 @@ import {
   linkChip,
   npcChips,
   npcReading,
-  patternChips,
-  patternReading,
   pilotFact,
 } from '../../lib/shelves/shelfItems'
 import { VITAL } from '../../lib/units/readings'
@@ -105,7 +101,7 @@ import { EncounterShelf } from './EncounterShelf'
 import { MechShelf } from './MechShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
-import { mechBuildFigures } from './mechShelf.model'
+import { PatternShelf } from './PatternShelf'
 import { buildFromPattern, patternMenuOf } from './patternMenu.model'
 import { RenameDialog } from './RenameDialog'
 import { ShelfLedger } from './ShelfLedger'
@@ -113,11 +109,10 @@ import { StarterShelf } from './StarterShelf'
 import {
   inGame,
   NPC_COLUMNS,
-  PATTERN_COLUMNS,
   PILOT_COLUMNS,
   paired,
   read,
-  under,
+  underPilot,
   underWith,
   who,
 } from './shelfColumns'
@@ -199,8 +194,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const anyCrawlers = useCrawlers()
   const { pilotReadings, mechReadings } = crewReadings(pilots, mechs, anyCrawlers, softLinks)
   const patternSource = mechs.find((m) => m.id === savingPattern)
-  // A mech a pilot of yours flies rides that pilot's line; the Mechs shelf
-  // holds the rest (ADR-066: the pilot is the anchor).
+  // A mech a pilot of yours flies rides that pilot's line (ADR-066: the pilot
+  // is the anchor); the rest are the ones "+ Add a Mech" offers.
   const flown = new Set(
     softLinks
       .filter((l) => l.type === 'mech-to-pilot' && pilotNames.has(l.to.id))
@@ -253,6 +248,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               })
           ),
         },
+        ...(type === 'pilot' ? pilots.filter((p) => p.id === unit.id).map(renamePilot) : []),
         ...(type === 'mech'
           ? [
               renameItem(
@@ -295,6 +291,22 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     ]
   }
 
+  /** A pilot's Rename…: its callsign and its name, the two it goes by (r4 E20). */
+  const renamePilot = (pilot: (typeof pilots)[number]): HeaderMenuItem =>
+    renameItem(
+      {
+        title: pilotLabel(pilot),
+        name: pilot.callsign,
+        label: buildShelvesCopy('callsign'),
+        also: { name: pilot.name, label: buildShelvesCopy('pilotName') },
+        save: (callsign, name) =>
+          useUnits
+            .getState()
+            .update('pilot', pilot.id, { callsign, name: name ?? pilot.name }, LIVE_SHEET_MANUAL),
+      },
+      canWrite ? setRenaming : undefined
+    )
+
   function trayMenu(npc: { id: string; name: string }): HeaderMenuItem[][] {
     return [
       [
@@ -312,10 +324,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const patternMenu = (pattern: MechPattern) =>
     patternMenuOf(pattern, { go, confirm, canWrite, rename: setRenaming })
-  const patternOver = (pattern: MechPattern) => {
-    const figures = mechBuildFigures(pattern)
-    return figures.over ? <RuleBreakMark what={figures.overWhat} /> : undefined
-  }
 
   // -- the shelves ------------------------------------------------------------
 
@@ -340,12 +348,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   // The Patterns shelf: the Training Bay's panel, and the Patterns page whole.
   const patternShelf = (
-    <ShelfLedger
-      id="shelf-patterns"
-      title={buildShelvesCopy('patterns')}
-      tone="mech"
-      homebrew
-      columns={PATTERN_COLUMNS}
+    <PatternShelf
+      patterns={patterns}
+      sharing={sharing}
+      games={games}
       action={
         canWrite ? (
           <HeaderMenu
@@ -358,26 +364,12 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           />
         ) : undefined
       }
-      empty={buildShelvesCopy('noPatternsYet')}
-      rows={patterns.map((p) => ({
-        id: p.id,
-        name: p.name,
-        href: savedPatternHref(p.id),
-        cells: [
-          chassisFact(p.chassisRef) ?? '',
-          who(
-            patternChips(
-              sharing?.find((s) => s.appId === p.id),
-              games
-            )
-          ),
-          String(patternReading(p)?.value ?? ''),
-        ],
+      line={(p, over) => ({
         // Over its slots it wears the Mechs shelf's mark (r3 I2); its one act is on the row (r3 L5).
-        under: patternOver(p),
+        under: over === undefined ? undefined : <RuleBreakMark what={over} />,
         act: buildFromPattern(p, { go, confirm, canWrite }),
         menu: patternMenu(p),
-      }))}
+      })}
     />
   )
   const patternDialogs = (
@@ -548,17 +540,18 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   }
                 })}
               />
+              {/* Every mech of yours: one a pilot flies is on that pilot's row
+                  too, and says here whose it is (r4 E20). */}
               <MechShelf
-                mechs={spareMechs}
+                mechs={mechs}
                 readings={mechReadings}
                 action={newLink('/mechs/new', buildShelvesCopy('newMech'))}
-                empty={
-                  mechs.length === 0
-                    ? buildShelvesCopy('noMechsYet')
-                    : buildShelvesCopy('everyMechHasItsPilot')
-                }
+                empty={buildShelvesCopy('noMechsYet')}
                 line={(m) => ({
-                  under: under(linkChip(sharedByLink, m.id)),
+                  under: underPilot(
+                    linkChip(sharedByLink, m.id),
+                    crewLinked({ kind: 'mech', id: m.id, softLinks, names: pilotNames })
+                  ),
                   game: gameRelation(m, games),
                   menu: unitMenu('mech', m, m),
                 })}

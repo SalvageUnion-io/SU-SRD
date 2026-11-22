@@ -1,5 +1,6 @@
 /**
- * BackupMenu — the Training Bay band's one "⋯": **Import…** (a JSON export
+ * BackupMenu — the Training Bay band's **Backups** menu, named in words (the
+ * wizard says "Backups in the Training Bay loads it", r4 E20): **Import…** (a JSON export
  * bundle, merged into the store under fresh ids) and **Export all** (your own
  * units, `ownUnits`, never a crewmate's the device holds for Play, as one
  * dated backup file). Two rare acts behind one control, so the band's line
@@ -28,6 +29,19 @@ function summaryText(summary: MergeSummary): string {
   return `Imported: ${summary.created.pilots} pilot(s), ${summary.created.mechs} mech(s), ${summary.created.crawlers} crawler(s), ${summary.created.softLinks} link(s).${
     summary.skippedDuplicates > 0 ? ` Skipped ${summary.skippedDuplicates} duplicate(s).` : ''
   }`
+}
+
+/**
+ * What an import says as it lands, in sheets (r4 E20): how many it added, and
+ * where it added none because they were all here already, that.
+ */
+function importToast(summary: MergeSummary): string {
+  const made = Object.values(summary.created).reduce((sum, count) => sum + count, 0)
+  if (made === 0 && summary.skippedDuplicates > 0) return buildExportCopy('importAlreadyHere')
+  const sheets = summary.created.pilots + summary.created.mechs + summary.created.crawlers
+  return buildExportCopy(sheets === 1 ? 'importCompleteOne' : 'importCompleteMany', {
+    count: sheets,
+  })
 }
 
 const IMPORT_PLAYER_ERRORS = [ImportRefused]
@@ -76,11 +90,10 @@ export function BackupMenu({ canImport, onResult }: BackupMenuProps) {
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (!result.ok) return refuse(result.error)
     const merged = result.value
-    onResult(summaryText(merged))
-    const total = merged.created.pilots + merged.created.mechs + merged.created.crawlers
-    toast.success(
-      buildExportCopy(total === 1 ? 'importCompleteOne' : 'importCompleteMany', { count: total })
-    )
+    const said = importToast(merged)
+    // With nothing added the one line says why; else the status line counts what came in.
+    onResult(said === buildExportCopy('importAlreadyHere') ? said : summaryText(merged))
+    toast.success(said)
   }
 
   async function handleExportAll() {
@@ -93,9 +106,9 @@ export function BackupMenu({ canImport, onResult }: BackupMenuProps) {
   return (
     <>
       <HeaderMenu
-        variant="overflow"
+        variant="button"
         size="compact"
-        trigger={null}
+        trigger={buildExportCopy('backupsMenu')}
         label={buildExportCopy('backups')}
         disabled={busy}
         sections={[

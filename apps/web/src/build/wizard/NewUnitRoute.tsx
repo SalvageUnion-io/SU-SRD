@@ -6,6 +6,7 @@ import { toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { assignLink } from '../../lib/links/assignLink'
 import { pairNewMechInGame } from '../../lib/links/mechlessPilot'
+import { crewNewCrawler } from '../../lib/links/newCrawlerCrew'
 import type { NewUnitSearch } from '../../lib/newUnitRoute'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { useUnits } from '../../replica/units'
@@ -100,6 +101,28 @@ export function NewUnitRoute({
   // otherwise the new sheet opens, its Related units offering Assign.
   const handleComplete = (id?: string) => {
     if (id === undefined) return goBack()
+    if (kind === 'crawler') {
+      // A crawler made from a pilot's or mech's "+ Create" takes that unit and
+      // its pair, and the sheet it was asked from shows them assigned (r4 E19).
+      const origin =
+        pilot !== undefined
+          ? ({ type: 'pilot', id: pilot.id } as const)
+          : mech !== undefined
+            ? ({ type: 'mech', id: mech.id } as const)
+            : undefined
+      if (origin === undefined) {
+        if (search.game !== undefined) return goBack()
+        return void navigate({ to: '/crawlers/$id', params: { id } })
+      }
+      crewNewCrawler(id, origin).then(
+        () => void navigate({ to: SHEET_PATH[origin.type], params: { id: origin.id } }),
+        (err: unknown) => {
+          toast.error(failureMessage(err, buildWizardCopy('crawlerNotCrewed')))
+          void navigate({ to: '/crawlers/$id', params: { id } })
+        }
+      )
+      return
+    }
     if (mech !== undefined) {
       // The pilot made for a mech takes its seat, and the mech's page shows the pair.
       assignLink({ type: 'mech', id: mech.id }, { type: 'pilot', id }).then(
@@ -131,8 +154,17 @@ export function NewUnitRoute({
       mode={mode}
       returnTo={returnTo}
       gameId={game}
-      forPilot={pilot?.name}
-      forMech={mech?.name}
+      forPilot={kind === 'crawler' ? undefined : pilot?.name}
+      forMech={kind === 'crawler' ? undefined : mech?.name}
+      forCrew={
+        kind !== 'crawler'
+          ? undefined
+          : pilot !== undefined
+            ? buildWizardCopy('forCrewPilot', { name: pilotLabel(pilot) })
+            : mech !== undefined
+              ? buildWizardCopy('forCrewMech', { name: mech.name })
+              : undefined
+      }
       book={book}
       wizard={
         // A link's pick against a kept draft's is asked before the wizard opens.
