@@ -32,6 +32,7 @@ import {
   SlabSection,
   Stat,
   Text,
+  toast,
   tokens,
 } from '../../components/index'
 import { cn } from '../../lib/cn'
@@ -42,6 +43,7 @@ import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { CREWMATE, useTableRead } from '../../replica/useTable'
+import { standingDownOnPurpose } from '../tableNotices.model'
 import { GameChannelRow } from './GameChannelRow'
 import { GameSettingsDialog, LeaveGameDialog } from './GameSettings'
 import { HUB_BODY } from './hubStyles.model'
@@ -294,12 +296,30 @@ export function TheGame({
         describeError={(err) => failureMessage(err, playGamesCopy('tableHandOverFailed'))}
         onConfirm={async () => {
           if (chosen === '') return
-          // Appoint first, so the table is never left without a Mediator.
-          await setMediator({ gameId, userId: chosen, mediator: true })
-          for (const m of mediators) {
-            if (m.userId !== chosen)
-              await setMediator({ gameId, userId: m.userId, mediator: false })
+          // Standing down by this hand over is the Organiser's own doing: no notice of it.
+          const mine = mediators.some((m) => m.userId === viewerId) && chosen !== viewerId
+          const undo = mine ? standingDownOnPurpose(gameId) : null
+          try {
+            // Appoint first, so the table is never left without a Mediator.
+            await setMediator({ gameId, userId: chosen, mediator: true })
+            for (const m of mediators) {
+              if (m.userId !== chosen)
+                await setMediator({ gameId, userId: m.userId, mediator: false })
+            }
+          } catch (err) {
+            undo?.()
+            throw err
           }
+          // It landed, said back to whoever did it (r3 A4).
+          const to = candidates.find((m) => m.userId === chosen)
+          toast.success(
+            chosen === viewerId
+              ? playGamesCopy('youMediateNow', { game: game.name })
+              : playGamesCopy('handedOverTo', {
+                  name: to === undefined ? CREWMATE : to.displayName,
+                  game: game.name,
+                })
+          )
         }}
       />
     </SlabSection>

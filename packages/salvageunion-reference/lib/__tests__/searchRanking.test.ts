@@ -3,8 +3,10 @@ import {
   matchSearchTokens,
   scoreSearchMatch,
   searchNameWords,
+  searchOneSlipAway,
   searchSquashedName,
   searchWordStem,
+  suggestSearchQuery,
   tokenizeSearchQuery,
 } from '../searchRanking'
 
@@ -76,8 +78,34 @@ describe('scoreSearchMatch', () => {
     expect(score('rifle', 'laser')).toBe(0)
   })
 
-  test('a typo-assisted match loses 15', () => {
-    expect(score('hellfire', 'hellfyre', { usedTypo: true })).toBe(-15)
+  test('a typo of the whole name ranks under every literal name tier, over prose (r3 D1)', () => {
+    // 30 for the name read through its slip, less the typo's 15.
+    expect(score('hellfire', 'hellfyre', { usedTypo: true })).toBe(15)
+    expect(score('heat', 'heet', { usedTypo: true })).toBe(15)
+    // Under "every token in the name" (20), with a rules kind's boost too.
+    expect(score('heat', 'heet', { usedTypo: true, schemaName: 'guides' })).toBeLessThan(20)
+    // Over a hit in the prose alone ("sheet" holds "heet").
+    expect(score('heat', 'heet', { usedTypo: true })).toBeGreaterThan(
+      score('create a mech', 'heet', { schemaName: 'guides' })
+    )
+  })
+
+  test('a typo of one word of a longer name stays under every literal hit', () => {
+    expect(score('hellfire missiles', 'hellfyre', { usedTypo: true })).toBe(-15)
+  })
+
+  test('a phrase players say leads to the page it names (r3 D2)', () => {
+    expect(score('long', 'long range')).toBe(90)
+    expect(score('close', 'close range')).toBe(90)
+    expect(score('medium', 'range bands')).toBe(90)
+    expect(score('group initiative', 'who goes first')).toBe(90)
+    expect(score('group initiative', 'Who goes first?')).toBe(90)
+    expect(score('turn action', 'can i shoot twice')).toBe(90)
+    expect(score('mech damage', 'my mech hits 0 sp')).toBe(90)
+    // Asked as a whole question, it is the same phrase.
+    expect(score('mech damage', 'what happens when my mech hits 0 sp')).toBe(90)
+    // One word of a phrase is not the phrase.
+    expect(score('group initiative', 'first')).toBe(0)
   })
 
   test('ORM-only refinements apply only when supplied', () => {
@@ -157,5 +185,48 @@ describe('question filler and word forms', () => {
 
   test('a name without its punctuation', () => {
     expect(searchSquashedName('bio-titan')).toBe('biotitan')
+  })
+})
+
+describe('searchOneSlipAway (r3 D1)', () => {
+  test('two neighbours swapped is one slip', () => {
+    expect(searchOneSlipAway('exlposive', 'explosive')).toBe(true)
+    expect(searchOneSlipAway('hackre', 'hacker')).toBe(true)
+  })
+
+  test('a double letter missing or one too many is one slip', () => {
+    expect(searchOneSlipAway('chasis', 'chassis')).toBe(true)
+    expect(searchOneSlipAway('hackker', 'hacker')).toBe(true)
+  })
+
+  test('a swap and another edit are two', () => {
+    expect(searchOneSlipAway('hellfyer', 'hellfire')).toBe(false)
+    expect(searchOneSlipAway('exlposve', 'explosive')).toBe(false)
+  })
+
+  test('matchSearchTokens forgives a swap in a name word', () => {
+    expect(matchSearchTokens(['exlposive'], ['explosive'], () => false)).toEqual({
+      matches: true,
+      usedTypo: true,
+    })
+  })
+})
+
+describe('suggestSearchQuery (r3 D1)', () => {
+  const names = ['Railgun', 'Damage', 'Explosive', 'Heat Sink', 'Hacker']
+
+  test('a word no name holds is put right from the names', () => {
+    expect(suggestSearchQuery('railgun damge', names)).toBe('railgun damage')
+    expect(suggestSearchQuery('explsoiev', names)).toBe('explosive')
+  })
+
+  test('a query whose words are all known, or none close, suggests nothing', () => {
+    expect(suggestSearchQuery('railgun damage', names)).toBeNull()
+    expect(suggestSearchQuery('zzzzzz', names)).toBeNull()
+    expect(suggestSearchQuery('   ', names)).toBeNull()
+  })
+
+  test('a short word is left alone', () => {
+    expect(suggestSearchQuery('het', names)).toBeNull()
   })
 })

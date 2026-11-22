@@ -12,6 +12,11 @@
 /** A vital's key (`<unit id>:<field>`), where it is heading, and how many writes are out. */
 const heading = new Map<string, { value: number; writes: number }>()
 
+/** Where `key` stands before the next press: where it is heading, else what is `shown`. */
+export function vitalNow(key: string, shown: number): number {
+  return heading.get(key)?.value ?? shown
+}
+
 /**
  * The value to write for a press that asked for `next` while `shown` was on
  * screen: the same step taken from where the vital is heading, kept in

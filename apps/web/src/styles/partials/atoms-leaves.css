@@ -69,6 +69,14 @@
   }
 }
 
+/* Nor does a phone's width, whatever points at it (MD3-15): the field is
+   short there, and the cap took room from what is typed. */
+@media not (width >= 40rem) {
+  .su-search-field__shortcut {
+    display: none;
+  }
+}
+
 /* ── Toaster ── */
 /* components/containers/Toaster.tsx — a success or error toast's status icon takes
  * the status colour. Sonner renders the icon, so only a descendant rule
@@ -78,8 +86,13 @@
  * `--su-foot-clear` (Play's frame, `styles/play/frame.css`). */
 :root {
   --su-toast-bottom: calc(var(--su-foot-clear, 0px) + env(safe-area-inset-bottom, 0px) + 1rem);
-  /* Held at the top (a phone's Play screen, `toastPlacement.ts`): under the status bar. */
-  --su-toast-top: calc(env(safe-area-inset-top, 0px) + var(--space-8));
+  /* Held at the top (a phone's Play screen, `toastPlacement.ts`): under the
+     status bar, and under Play's bar and pinned row, whose foot the frame
+     publishes (`--su-toast-head`, `PlayFrame`; r3 H2). */
+  --su-toast-top: calc(
+    max(env(safe-area-inset-top, 0px), var(--su-toast-head, 0px)) +
+    var(--space-8)
+  );
 }
 
 .su-toast--ok > [data-icon] {

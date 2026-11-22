@@ -51,4 +51,15 @@ describe('PatternLedger', () => {
     )
     expect(phone.join(' ')).toMatch(/Sys.*Mod.*Scrap/)
   })
+
+  test('a book pattern over its chassis’s slots says it is as printed (r3 C5)', () => {
+    const atlas = SalvageUnionReference.Chassis.getByName('Atlas')
+    if (!atlas || !('patterns' in atlas)) throw new Error('atlas fixture missing')
+    const { container } = render(
+      <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
+        <PatternLedger chassis={atlas} patterns={atlas.patterns as RefObjectAnyPattern[]} />
+      </EntitySurfaceProvider>
+    )
+    expect(container.textContent).toContain('as printed in the book')
+  })
 })

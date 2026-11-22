@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { ServerMessageSchema } from '../../protocol'
+import { runAct } from '../acts'
 import {
   appliedMessages,
   batchAnswer,
@@ -8,6 +9,7 @@ import {
   gameSnapshot,
   readClientMessage,
 } from '../feed'
+import { readerOf } from '../readers'
 import { AT, bodies, MEDIATOR, op, PLAYER, STRANGER, table } from './harness'
 
 /** A Game with a pilot boarded in a mech and one NPC on the tray. */
@@ -42,6 +44,44 @@ describe('what a Game room tells a socket', () => {
     expect(snapshot.records.game).toEqual([
       { appId: 'game', body: { primaryCrawlerId: null }, updatedAt: 0 },
     ])
+  })
+
+  test('an NPC in a Game is its Mediator’s: the room serves a player nothing of it, by snapshot, by address or by its log (r3 A3)', () => {
+    const { room, gameId } = wired()
+    room.units.create(MEDIATOR, { id: 'n1', kind: 'npc', body: bodies.npc('n1'), at: AT })
+    room.units.create(PLAYER, { id: 'n2', kind: 'npc', body: bodies.npc('n2'), at: AT })
+    const ids = (actor: string) => {
+      const snapshot = gameSnapshot(room, actor, 'g1')
+      if (snapshot.type !== 'snapshot') throw new Error(snapshot.type)
+      return snapshot.units.map((u) => u.appId).sort()
+    }
+    expect(ids(MEDIATOR)).toEqual(['m1', 'n1', 'n2', 'p1'])
+    // A player reads their own NPC, never the Mediator's.
+    expect(ids(PLAYER)).toEqual(['m1', 'n2', 'p1'])
+    expect(JSON.stringify(gameSnapshot(room, PLAYER, 'g1'))).not.toContain('n1')
+    const opened = (actor: string) =>
+      runAct({ room, actor, gameId, at: AT }, 'unit', { unitId: 'n1' })
+    expect(opened(PLAYER)).toEqual({ ok: true, value: null })
+    expect(opened(MEDIATOR)).toMatchObject({ ok: true, value: { id: 'n1' } })
+    runAct({ room, actor: MEDIATOR, gameId, at: AT }, 'submit', {
+      ops: [op('n1', { currentHP: 1 })],
+    })
+    expect(room.units.history(PLAYER, 'n1')).toEqual([])
+    expect(room.units.history(MEDIATOR, 'n1').length).toBeGreaterThan(0)
+    expect(readerOf(room.store, STRANGER)(room.store.requireUnit('p1'))).toBe(false)
+    // One that crews a crawler is on that crawler's sheet, which the table reads.
+    room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
+    room.store.putLink({
+      type: 'npc-to-crawler',
+      from: { type: 'npc', id: 'n1' },
+      to: { type: 'crawler', id: 'c1' },
+      slot: { kind: 'type' },
+    })
+    expect(ids(PLAYER)).toEqual(['c1', 'm1', 'n1', 'n2', 'p1'])
+    const snapshot = gameSnapshot(room, PLAYER, 'g1')
+    expect(snapshot.type === 'snapshot' && snapshot.links.some((l) => l.from.id === 'n1')).toBe(
+      true
+    )
   })
 
   test('the primary crawler rides as the `game` record', () => {

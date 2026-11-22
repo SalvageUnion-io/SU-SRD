@@ -175,14 +175,28 @@ const CALLS = {
     )
     return reads.flatMap((read) => (read === null ? [] : [gameView(read)]))
   },
-  /** The caller's Games with a session running: a Reference page's session bar holds no socket. */
+  /**
+   * The caller's Games with a session running: a Reference page's session bar
+   * holds no socket. Each says whose door it is (r3 H3): the caller mediates,
+   * or the one pilot assigned to them there, whose seat the door opens.
+   */
   'games.liveSessions': async (who: Caller, _: object, deps: CallDeps) => {
     const games = await gamesOf(deps.db, who.discordId)
     const live = games.map(async ({ gameId }) => {
       const room = deps.game(gameId)
       const session = await act(room, who.discordId, 'session.state', undefined as never)
       const read = session.live ? await act(room, who.discordId, 'read', undefined as never) : null
-      return read === null ? null : { gameId, name: read.name, startedAt: session.startedAt }
+      if (read === null) return null
+      const units = await act(room, who.discordId, 'units', undefined as never)
+      const mine = units.filter((unit) => unit.kind === 'pilot' && unit.ownerId === who.discordId)
+      const seat = mine.length === 1 ? mine[0] : undefined
+      return {
+        gameId,
+        name: read.name,
+        startedAt: session.startedAt,
+        ...(read.mediator ? { mediator: true as const } : {}),
+        ...(seat === undefined ? {} : { pilotId: seat.id }),
+      }
     })
     return (await Promise.all(live)).filter((game) => game !== null)
   },

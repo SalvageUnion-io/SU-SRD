@@ -56,7 +56,7 @@ describe('UnionBarSlots', () => {
     ).toEqual(['Phone search', 'Avatar', 'Open menu'])
   })
 
-  test('marks the tab you are under: Play on Your Games and every Game route, Build everywhere else', () => {
+  test('marks the tab you are under: Games on Your Games and every Game route, Training Bay everywhere else', () => {
     const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     const current = () =>
       tools()
@@ -68,14 +68,14 @@ describe('UnionBarSlots', () => {
       tools()
         .getAllByRole('link')
         .map((tab) => tab.textContent)
-    ).toEqual(['Reference', 'Build', 'Play', 'Buy the game (opens in a new tab)'])
-    expect(current()).toEqual(['Play'])
+    ).toEqual(['Reference', 'Training Bay', 'Games', 'Buy the game (opens in a new tab)'])
+    expect(current()).toEqual(['Games'])
     rerender(<UnionBarSlots pathname="/starter/" />)
-    expect(current()).toEqual(['Build'])
+    expect(current()).toEqual(['Training Bay'])
     rerender(<UnionBarSlots pathname="/pilots/p1/play" />)
-    expect(current()).toEqual(['Build'])
+    expect(current()).toEqual(['Training Bay'])
     rerender(<UnionBarSlots pathname="/games/g1" />)
-    expect(current()).toEqual(['Play'])
+    expect(current()).toEqual(['Games'])
   })
 
   test('a page that says its own tab holds it while it is on screen: a pilot in a Game is under Play', () => {
@@ -96,12 +96,12 @@ describe('UnionBarSlots', () => {
       </>
     )
     const { rerender } = render(page(true))
-    expect(current()).toEqual(['Play'])
+    expect(current()).toEqual(['Games'])
     rerender(page(false))
-    expect(current()).toEqual(['Build'])
+    expect(current()).toEqual(['Training Bay'])
     rerender(page(true))
     rerender(page(null))
-    expect(current()).toEqual(['Build'])
+    expect(current()).toEqual(['Training Bay'])
   })
 
   test('the bar wears its tab’s colour as you route', () => {

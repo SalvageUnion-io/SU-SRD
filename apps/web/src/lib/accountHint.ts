@@ -101,6 +101,19 @@ export function writeLastGame(game: LastGameHint, storage: Storage | null): void
   }
 }
 
+/**
+ * The Game the home names on a device (r3 I4): the one last opened here while
+ * the account is still in it, under its current name; else the first of the
+ * account's Games, so a phone that has only signed in names one too. Null
+ * with no Games: Games stays the way in.
+ */
+export function lastGameAmong(
+  remembered: LastGameHint | null,
+  games: readonly LastGameHint[]
+): LastGameHint | null {
+  return games.find((game) => game.id === remembered?.id) ?? games[0] ?? null
+}
+
 /** Forgets who was signed in, and the Game they last opened. */
 export function clearAccountHint(storage: Storage | null): void {
   try {

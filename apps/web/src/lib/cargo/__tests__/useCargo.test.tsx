@@ -112,6 +112,36 @@ describe('useCargo — persistence', () => {
     expect(captured[1]?.patch.scrapPool).toEqual({})
   })
 
+  test('a stowed lot is taken back from the bay as it now stands (r3 F1)', async () => {
+    const captured: CapturedUpdate[] = []
+    // After the stow: the hold is empty and the bay holds the lot.
+    const { result } = renderHook(() =>
+      useCargo({
+        mech: makeMech([]),
+        crawler: makeCrawler([unitLot], { tl1: 2 }),
+        store: makeStore(captured),
+      })
+    )
+    expect((await result.current.takeBack(unitLot)).ok).toBe(true)
+    expect(captured[0]?.patch.cargoLots).toEqual([unitLot])
+    expect(captured[1]?.patch).toMatchObject({ cargoLots: [], scrapPool: { tl1: 2 } })
+  })
+
+  test('stowed Scrap is taken back out of its pool bucket, and only that much', async () => {
+    const captured: CapturedUpdate[] = []
+    const scrap = makeScrapLot(1, 6)
+    const { result } = renderHook(() =>
+      useCargo({
+        mech: makeMech([]),
+        crawler: makeCrawler([], { tl1: 12 }),
+        store: makeStore(captured),
+      })
+    )
+    expect((await result.current.takeBack(scrap)).ok).toBe(true)
+    expect(captured[0]?.patch.cargoLots).toMatchObject([{ cat: 'SCRAP', tl: 1, qty: 6 }])
+    expect(captured[1]?.patch.scrapPool).toEqual({ tl1: 6 })
+  })
+
   test('scrap stow round-trips through the crawler TL bucket', async () => {
     const captured: CapturedUpdate[] = []
     const scrap = makeScrapLot(3, 2)

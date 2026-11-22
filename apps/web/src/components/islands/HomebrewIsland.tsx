@@ -2,7 +2,8 @@
  * HomebrewIsland — the players' own mech patterns on the SRD (ADR-061).
  *
  * - **On a chassis page** (`chassisRef`): a "Show Homebrew" switch under the
- *   book's patterns, reading "Hide Homebrew" while on. On, it lists the patterns players built on this chassis
+ *   book's patterns, reading "Hide Homebrew" while on, and gone once the
+ *   chassis is known to have none. On, it lists the patterns players built on this chassis
  *   and share with everyone on the Reference. The switch is the reader's, held
  *   in this browser, so it stays as set from one chassis to the next.
  * - **On `/homebrew/`** (no `chassisRef`): every one, newest share first.
@@ -154,6 +155,10 @@ function ChassisHomebrew({ chassisRef }: { chassisRef: string }) {
   // After mount: the server's render has no storage to read.
   useEffect(() => setOn(readShowHomebrew()), [])
   const load = useHomebrew(on, chassisRef)
+  // Known to hold none, the switch has nothing to show or hide: it steps
+  // aside and the note stands alone (RR2-17). Before a first press nothing
+  // has been asked for, so it cannot be known.
+  const none = on && load.state === 'ready' && load.rows.length === 0
   return (
     <SlabSection
       id="homebrew-patterns"
@@ -161,15 +166,17 @@ function ChassisHomebrew({ chassisRef }: { chassisRef: string }) {
       page
       className="su-homebrew"
       actions={
-        <Toggle
-          pressed={on}
-          onClick={() => {
-            writeShowHomebrew(!on)
-            setOn(!on)
-          }}
-        >
-          {on ? islandsCopy('hideHomebrew') : islandsCopy('showHomebrew')}
-        </Toggle>
+        none ? undefined : (
+          <Toggle
+            pressed={on}
+            onClick={() => {
+              writeShowHomebrew(!on)
+              setOn(!on)
+            }}
+          >
+            {on ? islandsCopy('hideHomebrew') : islandsCopy('showHomebrew')}
+          </Toggle>
+        )
       }
     >
       {on ? (

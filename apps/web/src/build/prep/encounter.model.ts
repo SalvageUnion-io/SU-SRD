@@ -35,8 +35,8 @@ export function blankEncounter(name = buildPrepCopy('newEncounter')): EncounterC
 }
 
 /**
- * Make a copy: everything but its name, which says it is a copy (and still
- * fits), numbered past the names `taken` on the shelf.
+ * Make a copy: everything but its name, which is numbered past the names
+ * `taken` on the shelf (`Ambush 2`) and still fits.
  */
 export function encounterCopy(
   encounter: Encounter,
@@ -147,6 +147,27 @@ export function redesignedOpposition(
     return updated
   })
   return changed ? next : null
+}
+
+/** The encounters that field the saved NPC `npcId`, in the order given (MD3-08). */
+export function encountersFielding<E extends Pick<Encounter, 'opposition'>>(
+  encounters: readonly E[],
+  npcId: string
+): E[] {
+  return encounters.filter((e) => e.opposition.some((o) => o.built?.npcId === npcId))
+}
+
+/**
+ * The opposition without the saved NPC `npcId`, whatever name each copy went
+ * by: deleting a design takes it out of what was prepared with it. Null when
+ * it fields none, so the encounter is not written.
+ */
+export function withoutDesign(
+  opposition: readonly EncounterOpponent[],
+  npcId: string
+): EncounterOpponent[] | null {
+  const next = opposition.filter((o) => o.built?.npcId !== npcId)
+  return next.length === opposition.length ? null : next
 }
 
 /** Whether another opponent fits. */

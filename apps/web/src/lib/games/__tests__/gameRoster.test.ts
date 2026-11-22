@@ -308,6 +308,14 @@ describe('moveDestinations — the move control lists only what the server accep
     ).toEqual(['Run by someone else'])
   })
 
+  test('an NPC in no Game is in the Mediator’s Kit, never the Training Bay (r3 K7)', () => {
+    expect(labels(moveDestinations({ kind: 'npc', current: { kind: 'shelf' }, games }))).toEqual([
+      'Mediator’s Kit',
+      'Run by me',
+      'Run by someone else',
+    ])
+  })
+
   test('a Game I am not in is named, not passed off as Training Bay', () => {
     const [here] = moveDestinations({
       kind: 'pilot',

@@ -5,22 +5,27 @@
  *
  * Per Game (the rooms' sockets are open site-wide, `RoomFeed`):
  *
- *  - **Pinned**, until answered or dismissed: the Stop Sign (which also
- *    renames the tab, and turns Play's band, `PlayBar`), each proposal
+ *  - **Pinned**, until answered or dismissed: the Stop Sign on a strip of its
+ *    own (which also renames the tab, and turns Play's band, `PlayBar`); and
+ *    one strip for everything else (r3 H1, `NoticeStack`): each proposal
  *    awaiting this player with Accept and Decline, "Your turn" while the
  *    Mediator has one of the viewer's pilots up, the Mediator's newest alert,
- *    "You now mediate" after a hand over, and "Session live" with its door,
- *    then "Session ended"; and a Game the viewer was removed from, which would
- *    otherwise just vanish.
+ *    "You now mediate" after a hand over with its door, "Session live" with
+ *    its door, then "Session ended"; and a Game the viewer was removed from,
+ *    which would otherwise just vanish. The strip shows one (what waits on an
+ *    answer first, then the newest), counts the rest behind a button that
+ *    lists them, and offers Dismiss all.
  *  - **Toasts**: what needs a look, off the table's event stream
  *    (`tableNotices.model.ts`, the Feed's own source): a proposal, an alert,
- *    the session and Downtime starting and ending, the Mediator's roll, and
- *    "Your turn". A crewmate's vitals and acts are the Feed's alone.
+ *    the session and Downtime starting and ending, the Mediator's role
+ *    moving and the Mediator's roll. A crewmate's vitals and acts are the
+ *    Feed's alone, and nothing the pinned strip is already saying is toasted
+ *    too (`pinnedSays`, r3 H2).
  */
 
 import { cockpitPath, gamePath, mediatePath, sheetPath } from 'game-domain/entityKinds'
 import { pilotLabel } from 'game-domain/pilotLabel'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Callout, Text, toast, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { useOwnUnits } from '../lib/entities'
@@ -32,18 +37,22 @@ import { useTableAct, useTableRead } from '../replica/useTable'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { gamePilots } from './play.model'
 import { acceptedUndo, proposalChange } from './proposalAnswer.model'
-import type { Heard, KnownGame } from './tableNotices.model'
+import type { Heard, KnownGame, StackedNotice } from './tableNotices.model'
 import {
   endedSession,
   eventsToToast,
+  gameOfPage,
   gamesGone,
+  lostRole,
   myTurn,
   NOTICES_RESIZED,
   onGamePages,
   pausedTitle,
   pinnedAlert,
   pinnedRole,
+  pinnedSays,
   resumedTitle,
+  stackNotices,
 } from './tableNotices.model'
 import { useGameSession } from './useGameSession'
 import { useStopSign } from './useStopSign'
@@ -102,6 +111,24 @@ function useNoticesHeight() {
   }, [])
 }
 
+/** One pinned notice, as the strip draws it. */
+type Notice = StackedNotice & {
+  /** What `data-table-notice` names it. */
+  kind: 'removed' | 'turn' | 'proposal' | 'alert' | 'role' | 'session' | 'session-ended'
+  tone: 'ink' | 'pilot' | 'crawler'
+  title: string
+  body?: string
+  /** Its own controls, before Dismiss: Accept and Decline, a door. */
+  actions?: React.ReactNode
+  /** Take it down; absent on one that waits on the viewer. */
+  dismiss?: () => void
+  /** What makes it a different notice to draw: its words and what its controls allow. */
+  sig: string
+}
+
+/** A Game the viewer was removed from, with when this screen learned of it. */
+type GoneGame = KnownGame & { at: number }
+
 export function TableNotices({ pathname }: { pathname: string }) {
   const measured = useNoticesHeight()
   const { status } = useSync()
@@ -109,18 +136,60 @@ export function TableNotices({ pathname }: { pathname: string }) {
   const games = useGamesQuery('games.listMine', status === 'live' && person !== null ? {} : 'skip')
   // A Game the viewer was in and is in no longer, not by their own doing (r2 B4).
   const known = useRef<readonly KnownGame[] | null>(null)
-  const [gone, setGone] = useState<readonly KnownGame[]>([])
+  const [gone, setGone] = useState<readonly GoneGame[]>([])
   useEffect(() => {
     if (games === undefined) return
     const now = games.map((game) => ({ _id: game._id, name: game.name }))
     const lost = known.current === null ? [] : gamesGone(known.current, now)
     known.current = now
-    if (lost.length > 0) setGone((prev) => [...prev, ...lost])
+    if (lost.length > 0) {
+      const at = Date.now()
+      setGone((prev) => [...prev, ...lost.map((game) => ({ ...game, at }))])
+    }
   }, [games])
+  // Each Game's notices, as its own reads make them (`GameNotices`), for the one strip.
+  const reported = useRef(new Map<string, readonly Notice[]>())
+  const [, redraw] = useState(0)
+  const report = useCallback((gameId: string, notices: readonly Notice[]) => {
+    const sig = (list: readonly Notice[]) => list.map((n) => n.sig).join('\n')
+    const changed = sig(reported.current.get(gameId) ?? []) !== sig(notices)
+    if (notices.length === 0) reported.current.delete(gameId)
+    else reported.current.set(gameId, notices)
+    if (changed) redraw((n) => n + 1)
+  }, [])
+  // The viewer's own pilots, to tell which Game's pages this is (the replica holds the crew's too).
+  const pilots = useOwnUnits('pilot')
   if (person === null || games === undefined || (games.length === 0 && gone.length === 0)) {
     return null
   }
   const inPlay = hidesUnionBar(pathname)
+  const pageGame = gameOfPage(
+    pathname,
+    games.map((game) => ({
+      id: game._id,
+      root: gamePath(game._id),
+      pilotRoots: gamePilots(pilots, game._id).map((pilot) => sheetPath('pilot', pilot.id)),
+    }))
+  )
+  const removed = gone.map((game): Notice => {
+    const title = playCopy('noLongerIn', { game: game.name })
+    return {
+      key: `gone:${game._id}`,
+      kind: 'removed',
+      rank: 'news',
+      ts: game.at,
+      dismissible: true,
+      tone: 'ink',
+      title,
+      body: playCopy('noLongerInBody'),
+      dismiss: () => setGone((prev) => prev.filter((g) => g._id !== game._id)),
+      sig: title,
+    }
+  })
+  const still = new Set(games.map((game) => game._id))
+  const theirs = [...reported.current].flatMap(([gameId, notices]) =>
+    still.has(gameId) ? notices : []
+  )
   return (
     <section
       ref={measured}
@@ -128,27 +197,6 @@ export function TableNotices({ pathname }: { pathname: string }) {
       data-under-bar={inPlay ? undefined : ''}
       aria-label={playCopy('tableNotices')}
     >
-      {gone.map((game) => (
-        <div key={game._id} role="status" data-table-notice="removed">
-          <Callout tone="ink">
-            <div className="su-table-notice">
-              <div className="su-table-notice__text">
-                <Text style={STRONG}>{playCopy('noLongerIn', { game: game.name })}</Text>
-                <Text>{playCopy('noLongerInBody')}</Text>
-              </div>
-              <Button
-                size="compact"
-                aria-label={playCopy('dismissWhat', {
-                  what: playCopy('noLongerIn', { game: game.name }),
-                })}
-                onClick={() => setGone((prev) => prev.filter((g) => g._id !== game._id))}
-              >
-                {playCopy('dismiss')}
-              </Button>
-            </div>
-          </Callout>
-        </div>
-      ))}
       {games.map((game) => (
         <GameNotices
           key={game._id}
@@ -159,9 +207,86 @@ export function TableNotices({ pathname }: { pathname: string }) {
           inPlay={inPlay}
           pathname={pathname}
           ownPage={pathname.replace(/\/$/, '') === gamePath(game._id)}
+          elsewhere={pageGame !== null && pageGame !== game._id}
+          report={report}
         />
       ))}
+      <NoticeStack notices={[...removed, ...theirs]} />
     </section>
+  )
+}
+
+/**
+ * The one strip the notices share (r3 H1): the first of them (`stackNotices`),
+ * with how many more wait behind a button that lists them, and Dismiss all
+ * for those that can be dismissed. One notice is just itself.
+ */
+function NoticeStack({ notices }: { notices: readonly Notice[] }) {
+  const [open, setOpen] = useState(false)
+  const ordered = stackNotices(notices)
+  const [top, ...rest] = ordered
+  if (top === undefined) return null
+  const clearable = ordered.filter((notice) => notice.dismiss !== undefined)
+  const more =
+    rest.length === 0 ? null : (
+      <>
+        <Button
+          size="compact"
+          aria-expanded={open}
+          aria-label={
+            open
+              ? playCopy('showFewerNotices')
+              : playCopy('showMoreNotices', { count: rest.length })
+          }
+          onClick={() => setOpen(!open)}
+        >
+          {open ? playCopy('showFewer') : playCopy('moreNotices', { count: rest.length })}
+        </Button>
+        {clearable.length > 0 && (
+          <Button
+            size="compact"
+            onClick={() => {
+              for (const notice of clearable) notice.dismiss?.()
+            }}
+          >
+            {playCopy('dismissAll')}
+          </Button>
+        )}
+      </>
+    )
+  return (
+    <>
+      <NoticeStrip notice={top} more={more} />
+      {open && rest.map((notice) => <NoticeStrip key={notice.key} notice={notice} />)}
+    </>
+  )
+}
+
+function NoticeStrip({ notice, more }: { notice: Notice; more?: React.ReactNode }) {
+  return (
+    <div role="status" data-table-notice={notice.kind}>
+      <Callout tone={notice.tone}>
+        <div className="su-table-notice">
+          <div className="su-table-notice__text">
+            <Text style={STRONG}>{notice.title}</Text>
+            {notice.body !== undefined && <Text>{notice.body}</Text>}
+          </div>
+          <span className="su-table-notice__actions">
+            {notice.actions}
+            {notice.dismiss !== undefined && (
+              <Button
+                size="compact"
+                aria-label={playCopy('dismissWhat', { what: notice.title })}
+                onClick={notice.dismiss}
+              >
+                {playCopy('dismiss')}
+              </Button>
+            )}
+            {more}
+          </span>
+        </div>
+      </Callout>
+    </div>
   )
 }
 
@@ -173,6 +298,8 @@ function GameNotices({
   inPlay,
   pathname,
   ownPage,
+  elsewhere,
+  report,
 }: {
   gameId: string
   gameName: string
@@ -184,6 +311,10 @@ function GameNotices({
   pathname: string
   /** The Game's own page is open: its band says the session is live, and has the door. */
   ownPage: boolean
+  /** One of another Game's pages is open: this Game's alert is not pinned over it (r3 H1). */
+  elsewhere: boolean
+  /** Hand the strip this Game's notices (`TableNotices`). */
+  report: (gameId: string, notices: readonly Notice[]) => void
 }) {
   const { canWrite } = useSync()
   const sign = useStopSign(gameId)
@@ -198,6 +329,12 @@ function GameNotices({
   })
   // The viewer's own: the replica holds every crewmate's pilot too (LG-02).
   const pilots = gamePilots(useOwnUnits('pilot'), gameId)
+  // The viewer's pilots' pages, as one value: an effect below reads them.
+  const pilotRootsKey = pilots.map((pilot) => sheetPath('pilot', pilot.id)).join('\n')
+  const pilotRoots = useMemo(
+    () => (pilotRootsKey === '' ? [] : pilotRootsKey.split('\n')),
+    [pilotRootsKey]
+  )
   const [, redraw] = useState(0)
   const dismiss = (key: string) => {
     dismissed.add(key)
@@ -210,7 +347,18 @@ function GameNotices({
     if (events === undefined) return
     const next = eventsToToast(events, heard.current, viewerId)
     heard.current = next.heard
+    // What the pinned strip is saying is not toasted too (r3 H2).
+    const now = Date.now()
+    const pinned = {
+      alertId: pinnedAlert(events, dismissed, viewerId, now)?._id ?? null,
+      roleId: mediator
+        ? (pinnedRole(events, new Set([...dismissed, ...seenRoles()]), viewerId, now)?._id ?? null)
+        : null,
+      sessionLive: !inPlay && !ownPage && !dismissed.has(`session:${gameId}:live`),
+      sessionEnded: onGamePages(pathname, gamePath(gameId), pilotRoots),
+    }
     for (const event of next.toast) {
+      if (pinnedSays(event, pinned, viewerId)) continue
       // A hand over to the viewer is said to them, not about them.
       const mine = event.kind === 'role' && event.about === viewerId
       toast(mine ? playCopy('youNowMediate') : event.text, {
@@ -218,26 +366,23 @@ function GameNotices({
         description: gameName,
       })
     }
-  }, [events, viewerId, gameName])
+  }, [events, viewerId, gameName, mediator, inPlay, ownPage, pathname, gameId, pilotRoots])
+
+  // The role taken from the viewer, by the Organiser (r3 A4): said once, as it happens.
+  const mediated = useRef<boolean | null>(null)
+  useEffect(() => {
+    const before = mediated.current
+    mediated.current = mediator
+    if (!lostRole(before, mediator, gameId)) return
+    toast(playCopy('youNoLongerMediate'), { id: `table-role-${gameId}`, description: gameName })
+  }, [mediator, gameId, gameName])
 
   // Whose turn the Mediator marked (r2 E1): mine is pinned on every screen
-  // (every Play tab, my sheet), and said once as it becomes mine.
+  // (every Play tab, my sheet). The strip is a live region and says it as it
+  // becomes mine, so no toast repeats it (r3 H2).
   const scene = useTableRead('scenes.current', { gameId })
   const turn = myTurn(scene?.upNow, pilots)
-  const turnId = turn?.id ?? null
   const turnName = turn === null ? null : pilotLabel(turn)
-  const toldTurn = useRef<string | null | undefined>(undefined)
-  useEffect(() => {
-    // The first reading is history: a screen opened mid-turn has the strip, no toast.
-    if (scene === undefined) return
-    const before = toldTurn.current
-    toldTurn.current = turnId
-    if (before === undefined || turnId === null || turnId === before) return
-    toast(playCopy('yourTurnNamed', { name: turnName ?? '' }), {
-      id: `table-turn-${gameId}`,
-      description: gameName,
-    })
-  }, [scene, turnId, turnName, gameId, gameName])
 
   // The Stop Sign names the tab, whatever screen set its title.
   const paused = sign?.shown === true
@@ -263,14 +408,11 @@ function GameNotices({
   // A session that just ended says so (the events' own record), until dismissed.
   const live = session?.live === true
   // Said to the other members, on this Game's pages alone (r2 C5).
-  const here = onGamePages(
-    pathname,
-    gamePath(gameId),
-    pilots.map((pilot) => sheetPath('pilot', pilot.id))
-  )
+  const here = onGamePages(pathname, gamePath(gameId), pilotRoots)
   const endedAt = here ? endedSession(events ?? [], Date.now(), viewerId) : null
 
-  const alert = pinnedAlert(events ?? [], dismissed, viewerId, Date.now())
+  // Never over another Game's pages (r3 H1).
+  const alert = elsewhere ? null : pinnedAlert(events ?? [], dismissed, viewerId, Date.now())
   // A hand over made the viewer the Mediator: pinned while they still are.
   const role = mediator
     ? pinnedRole(events ?? [], new Set([...dismissed, ...seenRoles()]), viewerId, Date.now())
@@ -284,171 +426,157 @@ function GameNotices({
       ? { href: cockpitPath(onePilot.id), label: playCopy('joinSession') }
       : { href: gamePath(gameId), label: playCopy('joinSession') }
 
+  const notices: Notice[] = []
+  if (turn !== null) {
+    const title = playCopy('yourTurnNamed', { name: turnName ?? '' })
+    notices.push({
+      key: `turn:${gameId}`,
+      kind: 'turn',
+      rank: 'turn',
+      ts: 0,
+      dismissible: false,
+      tone: 'pilot',
+      title,
+      body: playCopy('yourTurnIn', { game: gameName }),
+      sig: `turn:${gameId}:${title}`,
+    })
+  }
+  for (const p of pending ?? []) {
+    // From and to: the size of it, before they answer (r2 C7).
+    const what = `${p.targetName ?? p.entityType} ${proposalChange(p)}`
+    const body = `${playCopy('mediatorProposes', { what })}${p.reason === null ? '' : ` · “${p.reason}”`}`
+    notices.push({
+      key: `proposal:${p._id}`,
+      kind: 'proposal',
+      rank: 'answer',
+      ts: p.ts,
+      dismissible: false,
+      tone: 'pilot',
+      title: playCopy('proposalIn', { game: gameName }),
+      body,
+      actions: (
+        <>
+          <Button
+            variant="primary"
+            size="compact"
+            disabled={!canWrite}
+            aria-label={playCopy('accept2', { text: what })}
+            onClick={() =>
+              void reply
+                .run(() => apply({ opId: p._id }))
+                .then((result) => {
+                  if (result.ok) acceptedUndo(p)
+                })
+            }
+          >
+            {playCopy('accept')}
+          </Button>
+          <Button
+            size="compact"
+            disabled={!canWrite}
+            aria-label={playCopy('decline2', { text: what })}
+            onClick={() => void reply.run(() => decline({ opId: p._id }))}
+          >
+            {playCopy('decline')}
+          </Button>
+        </>
+      ),
+      sig: `proposal:${p._id}:${body}:${canWrite}`,
+    })
+  }
+  if (alert !== null) {
+    const body = alert.text.replace(/^Mediator · /, '')
+    notices.push({
+      key: `alert:${alert._id}`,
+      kind: 'alert',
+      rank: 'news',
+      ts: alert.ts,
+      dismissible: true,
+      tone: 'ink',
+      title: playCopy('fromTheMediatorIn', { game: gameName }),
+      body,
+      dismiss: () => dismiss(alert._id),
+      sig: `alert:${alert._id}:${body}`,
+    })
+  }
+  if (role !== null) {
+    // The screen it is about, one press away (r3 A4); not on that screen itself.
+    const there = pathname.replace(/\/$/, '') === mediatePath(gameId)
+    notices.push({
+      key: `role:${role._id}`,
+      kind: 'role',
+      rank: 'news',
+      ts: role.ts,
+      dismissible: true,
+      tone: 'ink',
+      title: playCopy('youNowMediateIn', { game: gameName }),
+      body: playCopy('youNowMediateBody'),
+      actions: there ? undefined : (
+        <Button variant="primary" size="compact" href={mediatePath(gameId)}>
+          {playCopy('mediate')}
+        </Button>
+      ),
+      dismiss: () => {
+        rememberRole(role._id)
+        dismiss(role._id)
+      },
+      sig: `role:${role._id}:${there}`,
+    })
+  }
+  if (live && !inPlay && !ownPage && !dismissed.has(`${sessionKey}:live`)) {
+    notices.push({
+      key: `${sessionKey}:live`,
+      kind: 'session',
+      rank: 'news',
+      ts: Math.max(0, ...(events ?? []).filter((e) => e.session === 'start').map((e) => e.ts)),
+      dismissible: true,
+      tone: 'crawler',
+      title: playCopy('sessionLiveIn', { game: gameName }),
+      actions: (
+        <Button variant="primary" size="compact" href={door.href}>
+          {door.label}
+        </Button>
+      ),
+      dismiss: () => dismiss(`${sessionKey}:live`),
+      sig: `${sessionKey}:live:${door.href}:${gameName}`,
+    })
+  }
+  if (!live && endedAt !== null && !dismissed.has(`${sessionKey}:ended:${endedAt}`)) {
+    notices.push({
+      key: `${sessionKey}:ended:${endedAt}`,
+      kind: 'session-ended',
+      rank: 'news',
+      ts: endedAt,
+      dismissible: true,
+      tone: 'ink',
+      title: playCopy('sessionEndedIn', { game: gameName }),
+      dismiss: () => dismiss(`${sessionKey}:ended:${endedAt}`),
+      sig: `${sessionKey}:ended:${endedAt}:${gameName}`,
+    })
+  }
+  // After every render: the strip redraws only when a notice's `sig` changed.
+  useEffect(() => {
+    report(gameId, notices)
+  })
+  useEffect(() => () => report(gameId, []), [gameId, report])
+
+  // The Stop Sign keeps a strip of its own: it is the table's state, never one of the stack.
+  if (sign === null || !paused) return null
   return (
-    <>
-      {sign !== null && paused && (
-        <div role="status" data-table-notice="stop">
-          <Callout tone="bad">
-            <div className="su-table-notice">
-              <div className="su-table-notice__text">
-                <Text style={STRONG}>{playCopy('pausedIn', { game: gameName })}</Text>
-                <Text>
-                  {sign.mine ? playSafetyCopy('pausedYours') : playSafetyCopy('pausedBody')}
-                </Text>
-              </div>
-              {sign.mayLift && (
-                <Button
-                  size="compact"
-                  disabled={!sign.canWrite || sign.pending}
-                  onClick={sign.lift}
-                >
-                  {playSafetyCopy('resume')}
-                </Button>
-              )}
-            </div>
-          </Callout>
-        </div>
-      )}
-      {turn !== null && (
-        <div role="status" data-table-notice="turn">
-          <Callout tone="pilot">
-            <div className="su-table-notice">
-              <div className="su-table-notice__text">
-                <Text style={STRONG}>{playCopy('yourTurnNamed', { name: turnName ?? '' })}</Text>
-                <Text>{playCopy('yourTurnIn', { game: gameName })}</Text>
-              </div>
-            </div>
-          </Callout>
-        </div>
-      )}
-      {(pending ?? []).map((p) => {
-        // From and to: the size of it, before they answer (r2 C7).
-        const what = `${p.targetName ?? p.entityType} ${proposalChange(p)}`
-        return (
-          <div key={p._id} role="status" data-table-notice="proposal">
-            <Callout tone="pilot">
-              <div className="su-table-notice">
-                <div className="su-table-notice__text">
-                  <Text style={STRONG}>{playCopy('proposalIn', { game: gameName })}</Text>
-                  <Text>
-                    {playCopy('mediatorProposes', { what })}
-                    {p.reason !== null && ` · “${p.reason}”`}
-                  </Text>
-                </div>
-                <span className="su-table-notice__actions">
-                  <Button
-                    variant="primary"
-                    size="compact"
-                    disabled={!canWrite}
-                    aria-label={playCopy('accept2', { text: what })}
-                    onClick={() =>
-                      void reply
-                        .run(() => apply({ opId: p._id }))
-                        .then((result) => {
-                          if (result.ok) acceptedUndo(p)
-                        })
-                    }
-                  >
-                    {playCopy('accept')}
-                  </Button>
-                  <Button
-                    size="compact"
-                    disabled={!canWrite}
-                    aria-label={playCopy('decline2', { text: what })}
-                    onClick={() => void reply.run(() => decline({ opId: p._id }))}
-                  >
-                    {playCopy('decline')}
-                  </Button>
-                </span>
-              </div>
-            </Callout>
+    <div role="status" data-table-notice="stop">
+      <Callout tone="bad">
+        <div className="su-table-notice">
+          <div className="su-table-notice__text">
+            <Text style={STRONG}>{playCopy('pausedIn', { game: gameName })}</Text>
+            <Text>{sign.mine ? playSafetyCopy('pausedYours') : playSafetyCopy('pausedBody')}</Text>
           </div>
-        )
-      })}
-      {alert !== null && (
-        <div role="status" data-table-notice="alert">
-          <Callout tone="ink">
-            <div className="su-table-notice">
-              <div className="su-table-notice__text">
-                <Text style={STRONG}>{playCopy('fromTheMediatorIn', { game: gameName })}</Text>
-                <Text>{alert.text.replace(/^Mediator · /, '')}</Text>
-              </div>
-              <Button
-                size="compact"
-                aria-label={playCopy('dismissWhat', { what: alert.text })}
-                onClick={() => dismiss(alert._id)}
-              >
-                {playCopy('dismiss')}
-              </Button>
-            </div>
-          </Callout>
+          {sign.mayLift && (
+            <Button size="compact" disabled={!sign.canWrite || sign.pending} onClick={sign.lift}>
+              {playSafetyCopy('resume')}
+            </Button>
+          )}
         </div>
-      )}
-      {role !== null && (
-        <div role="status" data-table-notice="role">
-          <Callout tone="ink">
-            <div className="su-table-notice">
-              <div className="su-table-notice__text">
-                <Text style={STRONG}>{playCopy('youNowMediateIn', { game: gameName })}</Text>
-                <Text>{playCopy('youNowMediateBody')}</Text>
-              </div>
-              <Button
-                size="compact"
-                aria-label={playCopy('dismissWhat', {
-                  what: playCopy('youNowMediateIn', { game: gameName }),
-                })}
-                onClick={() => {
-                  rememberRole(role._id)
-                  dismiss(role._id)
-                }}
-              >
-                {playCopy('dismiss')}
-              </Button>
-            </div>
-          </Callout>
-        </div>
-      )}
-      {live && !inPlay && !ownPage && !dismissed.has(`${sessionKey}:live`) && (
-        <div role="status" data-table-notice="session">
-          <Callout tone="crawler">
-            <div className="su-table-notice">
-              <Text style={STRONG}>{playCopy('sessionLiveIn', { game: gameName })}</Text>
-              <span className="su-table-notice__actions">
-                <Button variant="primary" size="compact" href={door.href}>
-                  {door.label}
-                </Button>
-                <Button
-                  size="compact"
-                  aria-label={playCopy('dismissWhat', {
-                    what: playCopy('sessionLiveIn', { game: gameName }),
-                  })}
-                  onClick={() => dismiss(`${sessionKey}:live`)}
-                >
-                  {playCopy('dismiss')}
-                </Button>
-              </span>
-            </div>
-          </Callout>
-        </div>
-      )}
-      {!live && endedAt !== null && !dismissed.has(`${sessionKey}:ended:${endedAt}`) && (
-        <div role="status" data-table-notice="session-ended">
-          <Callout tone="ink">
-            <div className="su-table-notice">
-              <Text style={STRONG}>{playCopy('sessionEndedIn', { game: gameName })}</Text>
-              <Button
-                size="compact"
-                aria-label={playCopy('dismissWhat', {
-                  what: playCopy('sessionEndedIn', { game: gameName }),
-                })}
-                onClick={() => dismiss(`${sessionKey}:ended:${endedAt}`)}
-              >
-                {playCopy('dismiss')}
-              </Button>
-            </div>
-          </Callout>
-        </div>
-      )}
-    </>
+      </Callout>
+    </div>
   )
 }

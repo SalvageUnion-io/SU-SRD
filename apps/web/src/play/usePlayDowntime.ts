@@ -28,7 +28,7 @@
 import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { sendStep } from '../replica/outbox'
-import { PLAY_TXN } from '../replica/provenance'
+import { DOWNTIME_TXN } from '../replica/provenance'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
@@ -99,7 +99,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
                 unitId,
                 baseSeq: null,
                 at: Date.now(),
-                ...PLAY_TXN,
+                ...DOWNTIME_TXN,
                 patch: opPatch,
               })
               // A step already taken is acked again, and changes nothing:
@@ -117,7 +117,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
           unitId: crawlerId,
           baseSeq: null,
           at: Date.now(),
-          ...PLAY_TXN,
+          ...DOWNTIME_TXN,
           patch,
         }
         return (await claim({ ...place, claim: kind, op })) === true

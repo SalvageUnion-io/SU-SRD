@@ -36,7 +36,7 @@ export function HeaderActions() {
       </>
     )
   }
-  return <SignInControl inBar />
+  return <SignInControl inBar returnHere />
 }
 
 /** Mobile header row: the avatar-only account menu, the sync badge a dot on it. Nothing when signed out. */
@@ -55,5 +55,5 @@ export function HeaderMobileActions() {
 export function HeaderDrawerAccount() {
   const { status } = useSync()
   if (status === 'live' || status === 'offline') return null
-  return <SignInControl />
+  return <SignInControl returnHere />
 }

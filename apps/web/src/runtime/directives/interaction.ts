@@ -5,14 +5,14 @@
  * island has swapped in over its stand-in (`../clientSwap.tsx`).
  *
  * An island that cannot wait (`../mountNow.ts`) hydrates as soon as it is in
- * view. Registered by `astro/build/islandDirectives.ts`; Astro inlines it into
+ * view; a listing, at once. Registered by `astro/build/islandDirectives.ts`; Astro inlines it into
  * every page that uses it, so it stays free of React.
  */
 
 import type { ClientDirective } from 'astro'
 import { replayInteraction, watchInteraction } from '../interaction'
 import { ISLAND_COMMIT } from '../islandCommit'
-import { mountsNow } from '../mountNow'
+import { mountsNow, mountsUnseen } from '../mountNow'
 
 /** The directive's value: `client:interaction={{ … }}` (`Islands.astro`). */
 export type InteractionOptions = {
@@ -63,6 +63,12 @@ const interaction: ClientDirective = (load, options, el) => {
     const settle = () => el.removeAttribute(PENDING_ATTRIBUTE)
     el.addEventListener(ISLAND_COMMIT, settle, { once: true })
     setTimeout(settle, PENDING_LIMIT_MS)
+    // A listing mounts at once: the browser restores Back's scroll over the
+    // served rows, held in place, and the listing's own rows replace them.
+    if (mountsUnseen(name)) {
+      hydrate().catch(settle)
+      return
+    }
     const observer = new IntersectionObserver((entries) => {
       if (!entries.some((entry) => entry.isIntersecting)) return
       observer.disconnect()

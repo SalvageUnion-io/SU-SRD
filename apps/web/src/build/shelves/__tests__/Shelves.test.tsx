@@ -18,6 +18,7 @@ import {
   crawlerFixture,
   FIXTURE_NOW,
   mechFixture,
+  npcFixture,
   pilotFixture,
   softLinkFixture,
 } from '../../../components/__tests__/fixtures'
@@ -36,7 +37,7 @@ afterAll(() => serverMocks.restore())
 const { ToasterMount, toast } = await import('../../../components/index')
 const { SyncContext } = await import('../../../replica/syncContext')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
-const { useTray } = await import('../../../replica/collections')
+const { useEncounters, useTray } = await import('../../../replica/collections')
 const { useUnits } = await import('../../../replica/units')
 const { usePatterns } = await import('../../../replica/collections')
 const { Shelves } = await import('../Shelves')
@@ -249,13 +250,13 @@ describe('Play, one press from the shelf', () => {
   test('each pilot line carries its Play door, to that pilot’s Play mode', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    expect(within(pilots).getByRole('link', { name: 'Play Nia Vale' }).getAttribute('href')).toBe(
-      '/pilots/p-nia/play'
-    )
-    expect(within(pilots).getByRole('link', { name: 'Play Rook' })).toBeTruthy()
+    expect(
+      within(pilots).getByRole('link', { name: 'Open table as Nia Vale' }).getAttribute('href')
+    ).toBe('/pilots/p-nia/play')
+    expect(within(pilots).getByRole('link', { name: 'Open table as Rook' })).toBeTruthy()
     // Mechs play through their pilot: no door of their own.
     const mechs = screen.getByRole('region', { name: 'Mechs' })
-    expect(within(mechs).queryByRole('link', { name: /^Play / })).toBeNull()
+    expect(within(mechs).queryByRole('link', { name: /^Open table/ })).toBeNull()
   })
 
   test('the Training Bay lists no Games: they are the Games tab’s (ADR-066)', async () => {
@@ -446,8 +447,12 @@ describe('Patterns', () => {
     expect(screen.queryByRole('region', { name: 'Mechs' })).toBeNull()
     const shelf = within(screen.getByRole('region', { name: 'Patterns' }))
     expect(shelf.getByRole('link', { name: 'Brawler' })).toBeTruthy()
+    // Build With This is the row's own button, in sight (r3 L5), not a menu row.
+    expect(shelf.getByRole('button', { name: 'Build With This: Brawler' }).textContent).toBe(
+      'Build With This'
+    )
     const menu = await openMenu('Brawler')
-    expect(within(menu).getByRole('menuitem', { name: 'Build With This' })).toBeTruthy()
+    expect(within(menu).queryByRole('menuitem', { name: 'Build With This' })).toBeNull()
     expect(within(menu).getByRole('menuitem', { name: 'Delete…' })).toBeTruthy()
     await act(async () => {
       fireEvent.keyDown(menu, { key: 'Escape' })
@@ -463,9 +468,11 @@ describe('Patterns', () => {
     )
   })
 
-  test('Build With This asks once, makes the mech and lands on it (r2 G5)', async () => {
+  test('Build With This asks once, makes the mech and lands on it (r2 G5, r3 L5)', async () => {
     await renderShelves()
-    await choose(await openMenu('Brawler'), 'Build With This')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Build With This: Brawler' }))
+    })
     await confirmDialog('Build')
     await settle(() => assigned.length > 0)
     const built = useUnits.getState().mechs.find((m) => m.name === 'Brawler')
@@ -501,9 +508,9 @@ describe('Patterns', () => {
         .getState()
         .mechPatterns.map((p) => p.name)
         .sort()
-    ).toEqual(['Brawler', 'COPY OF Brawler'])
-    expect(await screen.findByText('Made COPY OF Brawler.')).toBeTruthy()
-    const copy = usePatterns.getState().mechPatterns.find((p) => p.name === 'COPY OF Brawler')
+    ).toEqual(['Brawler', 'Brawler 2'])
+    expect(await screen.findByText('Copied Brawler.')).toBeTruthy()
+    const copy = usePatterns.getState().mechPatterns.find((p) => p.name === 'Brawler 2')
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Open the copy' }))
     })
@@ -538,6 +545,104 @@ describe('the encounter tray on the NPC shelf', () => {
     await confirmDialog('Delete')
     await settle(() => useTray.getState().encounterNpcs.length === 0)
     expect(useTray.getState().encounterNpcs).toHaveLength(0)
+  })
+})
+
+// MD3-03: an earlier Game delete left its field in the Kit as loose Tray rows.
+describe('rows left over from a deleted Game’s field', () => {
+  const SECOND: EncounterNpc = { ...GRUNT, id: 'enc-2', name: 'Tray Mauler' }
+
+  test('the Kit says what they are in one line, and Remove them asks first', async () => {
+    useTray.setState({ encounterNpcs: [GRUNT, SECOND], hydrated: true })
+    await renderShelves('live', 'kit')
+    const npcs = screen.getByRole('region', { name: 'NPCs' })
+    expect(
+      within(npcs).getByText('The 2 units marked Tray were on the field of a Game deleted earlier.')
+    ).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(within(npcs).getByRole('button', { name: 'Remove them' }))
+    })
+    // Nothing is destroyed without the Mediator: the rows stand until confirmed.
+    expect(useTray.getState().encounterNpcs).toHaveLength(2)
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('Tray Grunt and Tray Mauler')
+    await confirmDialog('Remove')
+    await settle(() => useTray.getState().encounterNpcs.length === 0)
+    expect(useTray.getState().encounterNpcs).toHaveLength(0)
+    await settle(() => screen.queryByRole('button', { name: 'Remove them' }) === null)
+    expect(screen.queryByText(/marked Tray/)).toBeNull()
+  })
+
+  test('one row reads in the singular; with none, there is no notice', async () => {
+    await renderShelves('live', 'kit')
+    expect(
+      screen.getByText('The 1 unit marked Tray was on the field of a Game deleted earlier.')
+    ).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Remove it' })).toBeTruthy()
+    cleanup()
+    useTray.setState({ encounterNpcs: [], hydrated: true })
+    await renderShelves('live', 'kit')
+    expect(screen.queryByText(/marked Tray/)).toBeNull()
+  })
+
+  test('where nothing can be written the line stands, with no button', async () => {
+    await renderShelves('offline', 'kit')
+    expect(screen.getByText(/marked Tray/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Remove it' })).toBeNull()
+  })
+})
+
+// MD3-08: an NPC's delete spoke of crews and browsers, and left it in its encounters.
+describe('deleting an NPC from the Kit', () => {
+  test('the confirm names the encounters that use it, and it leaves them', async () => {
+    const now = FIXTURE_NOW
+    const vex = npcFixture({ id: 'n-vex', name: 'Warlord Vex', gameId: 'g1' })
+    await act(async () => {
+      await useUnits.getState().adopt('npc', vex)
+    })
+    const fielded = {
+      id: 'o-vex',
+      refSchema: 'npcs' as const,
+      refSlug: '',
+      name: 'Warlord Vex',
+      maxHp: 6,
+      statKind: 'hp' as const,
+      built: { npcId: 'n-vex', name: 'Warlord Vex', actions: [], traits: [] },
+    }
+    const raider = { ...fielded, id: 'o-raider', refSlug: 'raider', name: 'Raider' }
+    const { built: _built, ...bookRaider } = raider
+    const encounter = (id: string, name: string, opposition: unknown[]) => ({
+      id,
+      schemaVersion: 1,
+      name,
+      opposition,
+      tables: [],
+      notes: '',
+      createdAt: now,
+      updatedAt: now,
+    })
+    useEncounters.setState({
+      encounters: [
+        encounter('e1', 'The Relay', [fielded, bookRaider]),
+        encounter('e2', 'The Gap', [fielded]),
+        encounter('e3', 'Elsewhere', [bookRaider]),
+      ],
+      hydrated: true,
+    } as never)
+    await renderShelves('live', 'kit')
+    await choose(await openMenu('Warlord Vex'), 'Delete…')
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain(
+      'Warlord Vex is in The Relay and The Gap, and will be removed from them.'
+    )
+    expect(dialog.textContent).not.toMatch(/crew|browser|for everyone/i)
+    await confirmDialog('Delete')
+    await settle(() => useUnits.getState().npcs.length === 0)
+    await settle(() => useEncounters.getState().get('e2')?.opposition.length === 0)
+    expect(useUnits.getState().npcs).toHaveLength(0)
+    expect(useEncounters.getState().encounters.map((e) => e.opposition.map((o) => o.name))).toEqual(
+      [['Raider'], [], ['Raider']]
+    )
   })
 })
 

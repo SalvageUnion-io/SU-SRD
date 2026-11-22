@@ -1,3 +1,4 @@
+import { PRODUCT } from 'game-domain/product'
 import { ArrowUpRight } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { iconSize, layer, space } from '../../design/tokens'
@@ -24,7 +25,7 @@ const TAB_CAPS = capsLabel({ tracking: 'inherit' })
  * one preset, `unionBar/UnionBar.tsx`.
  *
  * One lockup (the SU mark alone, no wordmark), then the areas as plain
- * header links, **Reference | Build | Play** (a phone reads REF for the
+ * header links, **Reference | Training Bay | Games** (a phone reads REF for the
  * first), "Buy the game" after them (off-site: a new tab, its arrow), the
  * search slot and the app's account controls; under the bar, the open area's
  * rail. A page's own modes (a pilot's Read | Edit | Play) live on that page.
@@ -82,9 +83,9 @@ type AppBarProps = {
   railCurrent?: { href: string; page: boolean }
   /** Where "Reference" goes — the SRD's home. */
   referenceHref: string
-  /** Where "Build" goes — the app's home. */
+  /** Where "Training Bay" goes — the app's home. */
   buildHref: string
-  /** Where "Play" goes — Your Games. */
+  /** Where "Games" goes — Your Games. */
   playHref: string
   /**
    * The SU mark's URL. The app's own copy: the app serves its files under
@@ -165,8 +166,9 @@ export function AppBar({
       short: compositionsCopy('ref'),
       href: referenceHref,
     },
-    { key: 'build', label: compositionsCopy('build'), href: buildHref },
-    { key: 'play', label: compositionsCopy('play'), href: playHref },
+    // Each tab is the name of the page it opens (glossary §9), spelled once.
+    { key: 'build', label: PRODUCT.build, href: buildHref },
+    { key: 'play', label: PRODUCT.play, href: playHref },
   ]
 
   return (

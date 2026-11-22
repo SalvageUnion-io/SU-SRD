@@ -9,8 +9,9 @@
  *    switch), and the tabs along the foot at thumb height, in the order the
  *    screen gives them. Closed panes stay mounted, `hidden`, so a
  *    half-typed Find, an open filter or a resolve in hand survives a switch.
- *    Toasts stand over the bar (`holdToastsOnTop`), never on a pane's
- *    controls. Table mode's `focus` takes the panes' place, the panes kept under it;
+ *    Toasts stand under the bar and the pinned row (`holdToastsOnTop`,
+ *    `useToastsUnderHead`), so the bar's ‹ Sheet and Stop stay in reach and
+ *    no toast lands on the tabs' thumb-height controls (r3 H2). Table mode's `focus` takes the panes' place, the panes kept under it;
  *    a `sheet` (play.md §18) takes the open pane's, the tabs kept under it.
  *  - **From `lg`**: the same panes as three columns, start | centre | end
  *    (the player's Units | Actions | Crew, Tables and Feed; the Mediator's
@@ -135,8 +136,10 @@ export function PlayFrame<Value extends string>({
   const hostRef = useRef<HTMLElement>(null)
   const hostH = useHostHeight(hostRef)
   // Below `lg` the controls are at thumb height, where a toast at the foot
-  // lands: the toasts stand over the bar instead, above the pinned strip (r2 C4).
+  // lands: the toasts are held at the top instead (r2 C4), under the bar and
+  // the pinned row, whose buttons stay in reach (r3 H2).
   useEffect(() => (wide ? undefined : holdToastsOnTop()), [wide])
+  useToastsUnderHead(hostRef, !wide)
   const focused = !wide && focus !== undefined && focus !== null
   const sheetOn = !focused && sheet !== undefined && sheet !== null
   const tabbed = tabs ? tabs.flatMap((value) => panes.filter((p) => p.value === value)) : panes
@@ -220,6 +223,44 @@ export function PlayFrame<Value extends string>({
       </EntitySurfaceProvider>
     </SlabLookProvider>
   )
+}
+
+/** Where a held toast starts, on the document: the foot of the frame's head (`atoms-leaves.css`). */
+const HEAD_BOTTOM = '--su-toast-head'
+
+/** The frame's head rows, either of which ends it. */
+const HEAD_ROWS = ['.su-play-frame__bar', '.su-play-frame__pinned'].join()
+
+/**
+ * Publishes where the frame's head ends (the pinned row, else the bar) while
+ * `on`, so a toast held at the top stands under it: never over ‹ Sheet, Stop
+ * or a pinned vital's − / + (r3 H2).
+ */
+function useToastsUnderHead(hostRef: { current: HTMLElement | null }, on: boolean): void {
+  useEffect(() => {
+    const host = hostRef.current
+    if (!on || !host) return
+    const root = document.documentElement
+    const publish = () => {
+      const head =
+        host.querySelector('.su-play-frame__pinned') ?? host.querySelector('.su-play-frame__bar')
+      if (head === null) return
+      root.style.setProperty(HEAD_BOTTOM, `${Math.max(0, head.getBoundingClientRect().bottom)}px`)
+    }
+    publish()
+    window.addEventListener('resize', publish)
+    window.addEventListener(NOTICES_RESIZED, publish)
+    // The bar's line wrapping, the pinned row arriving or leaving (table mode).
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
+    ro?.observe(host)
+    for (const part of host.querySelectorAll(HEAD_ROWS)) ro?.observe(part)
+    return () => {
+      window.removeEventListener('resize', publish)
+      window.removeEventListener(NOTICES_RESIZED, publish)
+      ro?.disconnect()
+      root.style.removeProperty(HEAD_BOTTOM)
+    }
+  })
 }
 
 /**

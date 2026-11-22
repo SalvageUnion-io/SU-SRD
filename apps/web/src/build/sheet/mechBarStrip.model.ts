@@ -41,7 +41,8 @@ export function mechBarStrip(args: {
       value: slots.moduleSlotsUsed,
       max: slots.moduleSlotsMax,
     },
-    { key: 'scrap', label: buildSheetCopy('scrap'), value: mechScrap(args.mech).total },
+    // The build's cost, never a bare Scrap beside Cargo: the hold carries Scrap too (r3 F2).
+    { key: 'scrap', label: buildSheetCopy('cost'), value: mechScrap(args.mech).total },
     cargo,
   ]
 }

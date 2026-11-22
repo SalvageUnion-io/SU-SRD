@@ -19,7 +19,7 @@ export const crawlerCopy = messages({
   whatTheCrawlerIsIts: 'What the crawler is, its build and history.',
   scrapPool: 'Scrap Pool',
   theGroupsBankedScrapBucketed:
-    'The group’s banked Scrap, bucketed by Tech Level: add the Tech 1 Scrap each Mech’s review said it banks here.',
+    'The group’s banked Scrap, bucketed by Tech Level. Add only Scrap that is not already in a Mech’s hold: what a Mech’s review said is for the Union Crawler.',
   scrapT: 'Scrap T{value}',
   t: 'T{slice}',
   sp: 'SP',
@@ -81,6 +81,7 @@ export const crawlerCopy = messages({
   typeChangedMountsMany:
     'Type changed — this type mounts {slots} Weapons Systems; removed {removed}.',
   youHaveSavedSoFar: '(You have {pilots} and {mechs} saved so far.)',
+  thisGameHasSoFar: '(This Game has {pilots} and {mechs} so far.)',
   pilotCountOne: '{count} Pilot',
   pilotCountMany: '{count} Pilots',
   mechCountOne: '{count} Mech',

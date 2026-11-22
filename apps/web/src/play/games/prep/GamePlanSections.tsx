@@ -6,7 +6,8 @@
  * Typing edits a draft; leaving a field saves it. Adding or removing a
  * session saves at once, and removing asks first (ADR-007). The sessions are
  * numbered and listed by day, and a session whose day changes takes its new
- * place only once its form is left, never under the cursor.
+ * place only once its form is left, never under the cursor. A new session is
+ * dated after the last, so it is added below it and numbered next.
  */
 
 import type { GamePlan } from 'game-domain/schemas/gamePlan'
@@ -18,7 +19,7 @@ import {
   GAME_PLAN_MAX_TITLE,
 } from 'game-domain/schemas/gamePlan'
 import type { CSSProperties } from 'react'
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import {
   Button,
   capsLabel,
@@ -37,6 +38,7 @@ import { useGamesCall, useGamesQuery } from '../../../replica/roomCalls'
 import {
   addSession,
   heldSessions,
+  nextSessionDay,
   patchSession,
   removeSession,
   sessionName,
@@ -104,6 +106,13 @@ export function GamePlanSections({
   const sessions = heldSessions(plan, held)
   const hold = () => setHeld(sessions.map((session) => session.id))
   const settle = () => setHeld(null)
+  // A session just added, brought into view: on a phone its form lands off screen (MD3-07).
+  const [added, setAdded] = useState<string | null>(null)
+  useEffect(() => {
+    if (added !== null) {
+      document.getElementById(`${id}-${added}`)?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [added, id])
 
   return (
     <>
@@ -134,6 +143,7 @@ export function GamePlanSections({
           {sessions.map((session, at) => (
             <li
               key={session.id}
+              id={`${id}-${session.id}`}
               style={SESSION}
               // Hold the order while this form has the cursor; sort again on leaving it.
               onFocus={hold}
@@ -226,7 +236,11 @@ export function GamePlanSections({
           <Button
             size="compact"
             disabled={!canWrite || loading || plan.sessions.length >= GAME_PLAN_MAX_SESSIONS}
-            onClick={() => write(addSession(plan, crypto.randomUUID(), todayDay()))}
+            onClick={() => {
+              const session = crypto.randomUUID()
+              write(addSession(plan, session, nextSessionDay(plan, todayDay())))
+              setAdded(session)
+            }}
           >
             {playGamesCopy('addSession')}
           </Button>

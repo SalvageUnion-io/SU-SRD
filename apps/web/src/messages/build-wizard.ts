@@ -76,6 +76,9 @@ export const buildWizardCopy = messages({
   download: 'Download',
   print: 'Print',
   keepWithoutAnAccount: 'Keep it without an account',
+  downloadIsADataFile:
+    'Download saves {file}: the build as a data file, not a sheet to read. Once you sign in, Backups in the Training Bay loads it. Print is the copy you can read.',
+  downloadedFile: 'Downloaded {file}.',
   blank2: 'Blank',
   anEmptySheetNoSteps2: 'An empty sheet. No steps, no limits. Fill it in on the live sheet.',
   forVeteransImportsAndHomebrew: 'For veterans, imports, and homebrew.',

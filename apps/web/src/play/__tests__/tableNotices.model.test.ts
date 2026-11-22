@@ -3,14 +3,19 @@ import type { TableEvent } from '../../rooms/game/events'
 import {
   endedSession,
   eventsToToast,
+  gameOfPage,
   gamesGone,
   leavingOnPurpose,
+  lostRole,
   myTurn,
   onGamePages,
   pausedTitle,
   pinnedAlert,
   pinnedRole,
+  pinnedSays,
   resumedTitle,
+  stackNotices,
+  standingDownOnPurpose,
 } from '../tableNotices.model'
 
 const event = (over: Partial<TableEvent> & { _id: string }): TableEvent => ({
@@ -71,6 +76,58 @@ describe('eventsToToast', () => {
     ])
   })
 
+  test('a hand over replays nothing: a Mediator’s own copy of a private or veiled roll never toasts (r3 A2)', () => {
+    const { heard } = eventsToToast(
+      [
+        event({
+          _id: 'v',
+          kind: 'roll',
+          text: 'Mediator rolled · 9',
+          actorId: 'old',
+          mediator: true,
+        }),
+      ],
+      null,
+      'me'
+    )
+    // The role arrives, and with it every earlier roll as a Mediator reads it.
+    const crossed = [
+      event({
+        _id: 'v',
+        kind: 'roll',
+        text: 'Old · Veteran · Rifle · 9',
+        actorId: 'old',
+        veiled: true,
+      }),
+      event({
+        _id: 'p',
+        kind: 'roll',
+        text: 'Old · Vex · Rifle · 3',
+        actorId: 'old',
+        private: true,
+      }),
+      event({
+        _id: 'p2',
+        kind: 'roll',
+        text: 'Mediator · Vex · 15',
+        actorId: 'old',
+        private: true,
+        mediator: true,
+      }),
+    ]
+    expect(eventsToToast(crossed, heard, 'me').toast).toEqual([])
+    // A revealed one is the table's, and toasts.
+    const shown = event({
+      _id: 'p',
+      kind: 'roll',
+      text: 'Old · Vex · Rifle · 3',
+      actorId: 'old',
+      revealed: true,
+      mediator: true,
+    })
+    expect(eventsToToast([shown], heard, 'me').toast).toEqual([shown])
+  })
+
   test('never my own act, and never the Stop Sign, which the banner says', () => {
     const { heard } = eventsToToast([], null, 'me')
     const events = [
@@ -79,6 +136,38 @@ describe('eventsToToast', () => {
       alert({ _id: 'theirs', ts: 2 }),
     ]
     expect(eventsToToast(events, heard, 'me').toast.map((e) => e._id)).toEqual(['theirs'])
+  })
+})
+
+describe('pinnedSays (r3 H2): no toast for what the pinned strip is saying', () => {
+  const none = { alertId: null, roleId: null, sessionLive: false, sessionEnded: false }
+  const alert = event({ _id: 'al', kind: 'alert', text: 'Mediator · Raiders close in' })
+
+  test('the pinned alert and the pinned hand over, by id', () => {
+    expect(pinnedSays(alert, { ...none, alertId: 'al' }, 'me')).toBe(true)
+    expect(pinnedSays(alert, { ...none, alertId: 'other' }, 'me')).toBe(false)
+    const role = event({ _id: 'r', kind: 'role', text: 'Me now mediates this Game', about: 'me' })
+    expect(pinnedSays(role, { ...none, roleId: 'r' }, 'me')).toBe(true)
+    expect(pinnedSays(role, none, 'me')).toBe(false)
+  })
+
+  test('a proposal that is mine to answer is pinned; a crewmate’s still toasts', () => {
+    const mine = event({ _id: 'p', kind: 'proposal', text: 'Mediator proposes X', about: 'me' })
+    expect(pinnedSays(mine, none, 'me')).toBe(true)
+    expect(pinnedSays({ ...mine, about: 'nell' }, none, 'me')).toBe(false)
+    // A proposal accepted or declined is about nobody: the table hears it.
+    const answered = event({ _id: 'a', kind: 'proposal', text: 'Nell accepted: X' })
+    expect(pinnedSays(answered, none, 'me')).toBe(false)
+  })
+
+  test('the session starting and ending, where the strip says it', () => {
+    const start = event({ _id: 's', kind: 'session', session: 'start', text: 'started' })
+    const end = event({ _id: 'e', kind: 'session', session: 'end', text: 'ended' })
+    expect(pinnedSays(start, { ...none, sessionLive: true }, 'me')).toBe(true)
+    expect(pinnedSays(start, { ...none, sessionEnded: true }, 'me')).toBe(false)
+    expect(pinnedSays(end, { ...none, sessionEnded: true }, 'me')).toBe(true)
+    expect(pinnedSays(end, none, 'me')).toBe(false)
+    expect(pinnedSays(event({ _id: 'v' }), { ...none, sessionLive: true }, 'me')).toBe(false)
   })
 })
 
@@ -130,6 +219,106 @@ describe('pinnedAlert', () => {
     expect(pinnedAlert([start(500), alert], new Set(), 'me', 2000)).toBe(alert)
     // The next session began after it: last session's, so gone.
     expect(pinnedAlert([start(500), alert, start(1500)], new Set(), 'me', 2000)).toBeNull()
+  })
+})
+
+describe('pinnedAlert clears itself (r3 H1)', () => {
+  const alert = event({
+    _id: 'al',
+    kind: 'alert',
+    text: 'Mediator · Dust',
+    actorId: 'gm',
+    ts: 1000,
+  })
+  const session = (ts: number, session: 'start' | 'end') =>
+    event({ _id: `s${ts}`, kind: 'session', session, actorId: 'gm', ts })
+
+  test('it unpins when the session ends; one sent after the end pins', () => {
+    const during = [session(500, 'start'), alert, session(1500, 'end')]
+    expect(pinnedAlert(during, new Set(), 'me', 2000)).toBeNull()
+    expect(
+      pinnedAlert([session(500, 'start'), session(900, 'end'), alert], new Set(), 'me', 2000)
+    ).toBe(alert)
+  })
+
+  test('it is not shown to someone who joined after it was sent', () => {
+    const joined = (ts: number, actorId: string) =>
+      event({ _id: `j${ts}`, kind: 'join', text: 'Pip joined the Game', actorId, ts })
+    expect(pinnedAlert([alert, joined(1500, 'me')], new Set(), 'me', 2000)).toBeNull()
+    expect(pinnedAlert([joined(500, 'me'), alert], new Set(), 'me', 2000)).toBe(alert)
+    // Somebody else joining, or a member removed by the viewer, changes nothing.
+    const removed = event({
+      _id: 'l',
+      kind: 'leave',
+      text: 'Pip was removed',
+      actorId: 'me',
+      ts: 1500,
+    })
+    expect(pinnedAlert([alert, joined(1500, 'pip'), removed], new Set(), 'me', 2000)).toBe(alert)
+  })
+
+  test('which Game a page is, so an alert is never pinned over another Game’s', () => {
+    const games = [
+      { id: 'g1', root: '/games/g1', pilotRoots: ['/pilots/p1'] },
+      { id: 'g2', root: '/games/g2', pilotRoots: [] },
+    ]
+    expect(gameOfPage('/games/g2/mediate', games)).toBe('g2')
+    expect(gameOfPage('/pilots/p1/play', games)).toBe('g1')
+    expect(gameOfPage('/chassis/mule/', games)).toBeNull()
+  })
+})
+
+describe('the one strip (r3 H1)', () => {
+  const n = (key: string, rank: 'answer' | 'turn' | 'news', ts: number) => ({
+    key,
+    rank,
+    ts,
+    dismissible: rank === 'news',
+  })
+
+  test('what waits on an answer leads, then my turn, then the news, newest first', () => {
+    const stacked = stackNotices([
+      n('alert', 'news', 300),
+      n('turn', 'turn', 0),
+      n('ended', 'news', 900),
+      n('proposal', 'answer', 100),
+      n('role', 'news', 500),
+    ])
+    expect(stacked.map((notice) => notice.key)).toEqual([
+      'proposal',
+      'turn',
+      'ended',
+      'role',
+      'alert',
+    ])
+  })
+})
+
+describe('the Mediator’s role taken back (r3 A4)', () => {
+  test('whoever loses it is told once, never for their own hand over, never at first sight', () => {
+    expect(lostRole(true, false, 'g1')).toBe(true)
+    expect(lostRole(null, false, 'g1')).toBe(false)
+    expect(lostRole(false, false, 'g1')).toBe(false)
+    expect(lostRole(true, true, 'g1')).toBe(false)
+    standingDownOnPurpose('g1')
+    expect(lostRole(true, false, 'g1')).toBe(false)
+    expect(lostRole(true, false, 'g1')).toBe(true)
+    standingDownOnPurpose('g1')()
+    expect(lostRole(true, false, 'g1')).toBe(true)
+  })
+
+  test('the role moving is told to the whole table, never to whoever moved it', () => {
+    const { heard } = eventsToToast([], null, 'me')
+    const role = event({
+      _id: 'r',
+      kind: 'role',
+      text: 'Ash now mediates this Game',
+      actorId: 'org',
+      about: 'ash',
+    })
+    expect(eventsToToast([role], heard, 'me').toast).toEqual([role])
+    expect(eventsToToast([role], heard, 'ash').toast).toEqual([role])
+    expect(eventsToToast([role], heard, 'org').toast).toEqual([])
   })
 })
 

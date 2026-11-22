@@ -53,9 +53,9 @@ export function choiceLine(choice: RunChoice<Pick<Encounter, 'opposition' | 'tab
     : `${line} · ${mediatorCopy('preparedFor', { game: choice.otherGame })}`
 }
 
-/** "1 NPC", "4 NPCs": what is on the field, counted. */
+/** "1 unit", "4 units": what is on the field, counted. A mech or a Bio-Titan is no NPC (MD3-15). */
 export function fieldCount(onTray: number): string {
-  return count(onTray, 'NPC', 'NPCs')
+  return count(onTray, 'unit', 'units')
 }
 
 /** The clear-first choice, naming what it removes. */

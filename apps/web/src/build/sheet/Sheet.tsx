@@ -24,7 +24,7 @@ import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { HeaderMenuItem } from '../../components/index'
 import { Button, HeaderMenu, toast, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
@@ -50,6 +50,7 @@ import { MoveToGameDialog } from '../shelves/MoveToGameDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { ChangeLogDrawer } from './ChangeLogDrawer'
 import { CrawlerLiveSheet } from './CrawlerLiveSheet'
+import { logDefaults, reverseChange } from './changeLog.model'
 import type { EntityLookup } from './composition.model'
 import { resolveSheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
@@ -59,6 +60,7 @@ import { SheetFallback } from './SheetFallback'
 import { SheetModeToggle } from './SheetModeToggle'
 import { useSheetMode } from './sheetMode.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
+import { leaveSheet, undoToast } from './undoToast.model'
 import type { OwnerOf } from './unitOwners.model'
 
 /**
@@ -201,6 +203,10 @@ export function Sheet({
   const [savePatternOpen, setSavePatternOpen] = useState(false)
   const [moving, setMoving] = useState<MoveSubject | null>(null)
   const go = useGo()
+  // An Undo stays with its sheet (r3 B3): leaving takes the sheet's lines down.
+  // A read-only rendering (Play's sheet pane, a public sheet) raised none, and
+  // Play's own lines about the same unit are not this sheet's to take.
+  useEffect(() => (readOnlyProp ? undefined : () => leaveSheet(id)), [id, readOnlyProp])
   // A menu row has no line of its own, so a failed export is a toast.
   const exportOne = useServerAction(
     async (name: string) => {
@@ -374,7 +380,11 @@ export function Sheet({
         : null
   const play =
     playPilot && status !== 'signedOut'
-      ? { name: playPilot.name, onPlay: () => go(cockpitPath(playPilot.id)) }
+      ? {
+          name: playPilot.name,
+          gameId: playPilot.gameId ?? null,
+          onPlay: () => go(cockpitPath(playPilot.id)),
+        }
       : undefined
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local
@@ -426,7 +436,7 @@ export function Sheet({
     for (const { key, label, unit } of counterparts) {
       const href = unit ? hrefFor(key, unit.id) : undefined
       if (unit && href !== undefined) {
-        segments.push({ key, label, name: unit.name, href, active: kind === key })
+        segments.push({ key, label, name: unit.name, id: unit.id, href, active: kind === key })
       }
     }
   }
@@ -512,12 +522,28 @@ export function Sheet({
             entityName={entity.name}
             open={changeLogOpen}
             onOpenChange={setChangeLogOpen}
+            defaults={logDefaults(
+              resolved.kind === 'pilot'
+                ? { ...resolved, crawler: composition.crawler }
+                : resolved.kind === 'mech'
+                  ? {
+                      ...resolved,
+                      pilotAbilities: pilotAbilities ?? composition.pilot?.abilities,
+                    }
+                  : resolved
+            )}
             onRestore={
               writesBlocked
                 ? undefined
-                : (before) => {
-                    patch(before)
-                    toast(buildSheetCopy('restored'))
+                : (change, did) => {
+                    // The one change, reversed on the sheet as it is now (r3 B1).
+                    const now: Record<string, unknown> = storeState.get(kind, id) ?? entity
+                    const back = reverseChange(change, now)
+                    const prior = Object.fromEntries(
+                      Object.keys(back).map((field) => [field, now[field]])
+                    )
+                    patch(back)
+                    undoToast(did.done, () => patch(prior), id)
                   }
             }
           />

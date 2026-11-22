@@ -92,6 +92,7 @@ export function PlayActionEntry({
           rollFor={actions.rollFor}
           need={need}
           canWrite={play.canWrite}
+          solo={play.target.gameId === null}
         />
       )
   }

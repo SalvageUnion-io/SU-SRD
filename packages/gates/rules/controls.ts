@@ -34,7 +34,7 @@
  *   state that another rule owns (a picker card's select is R15's).
  *
  * Both `zero`, read from the AST, so a comment may name what it bans. The
- * Union bar's Reference | Build | Play is navigation (links, `aria-current`),
+ * Union bar's Reference | Training Bay | Games is navigation (links, `aria-current`),
  * neither.
  */
 

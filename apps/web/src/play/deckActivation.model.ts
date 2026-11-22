@@ -3,7 +3,10 @@
  * bookkeeping write of a resolve (ADR-007; `useActionsDeck` drives it). What
  * is spent follows whose action it is:
  *
- *  - on the pilot's AP: the AP spend (`pilotActivationPatch`);
+ *  - on the pilot's AP: the AP spend (`pilotActivationPatch`), and, for a
+ *    carried item with Uses (a First Aid Kit), one Use off the sheet's own
+ *    count (`equipmentUses`, r3 L1), said on the Feed too. What the item then
+ *    does (how much it heals) is the player's own change: nothing is worked out;
  *  - a companion's: its own EP, Heat and Uses, on its host's record ("uses
  *    the same rules as Mechs": `companionNow`, `replacePartner`);
  *  - the mech's: EP, Hot Heat and Uses (`activationPatch`).
@@ -27,16 +30,18 @@ import {
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
 import type { UndoChange } from '../lib/changeUndoToast'
-import { changesUndoToast, changeUndoToast } from '../lib/changeUndoToast'
+import { changesUndoToast } from '../lib/changeUndoToast'
 import { replacePartner } from '../lib/partnerLookup'
 import type { PlayAction, PlayActionCompanion, PlayActionCurrency } from '../lib/rules/actionList'
 import { activationPatch, pilotActivationPatch } from '../lib/rules/actionPatches'
 import type { MechItemEconomy } from '../lib/rules/mechItems'
 import { partnerDerivedStats, partnerTechLevel } from '../lib/rules/partnerStats'
+import { equipmentMaxUses, resolveEquipment } from '../lib/rules/pilotInventory'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../replica/provenance'
+import { PLAY_TXN, PLAY_UNDO, playTxn } from '../replica/provenance'
 import type { PlayStore } from './play.model'
+import { recordPlayChange } from './playRolls.model'
 
 /** Whose numbers an activation reads and writes. */
 export type ActivationUnits = {
@@ -106,23 +111,57 @@ function payPilot(
     fresh.currentAP,
     pilotMaxAP({ ...fresh, crawlerTechLevel: resolveEffectiveCrawlerLevel(fresh, crawler) })
   )
-  const patch = pilotActivationPatch({ apCost: economy.epCost, currentAP: before })
+  const patch: Partial<Pilot> = pilotActivationPatch({ apCost: economy.epCost, currentAP: before })
+  // A carried item with Uses: one off the count the sheet's inventory shows (r3 L1).
+  const maxUses = gearMaxUses(action, economy)
+  const usesBefore =
+    maxUses > 0 ? Math.min(fresh.equipmentUses?.[action.slug] ?? maxUses, maxUses) : 0
+  if (usesBefore > 0)
+    patch.equipmentUses = { ...fresh.equipmentUses, [action.slug]: usesBefore - 1 }
   if (Object.keys(patch).length === 0) {
     onPaid()
     return
   }
   // The resolve moves on to Roll only once the spend has landed.
-  runWrite(() => store.update('pilot', pilot.id, patch, PLAY_TXN), onPaid)
+  runWrite(() => store.update('pilot', pilot.id, patch, playTxn(action.name)), onPaid)
+  const changes: UndoChange[] = []
   if (typeof patch.currentAP === 'number' && patch.currentAP !== before)
-    changeUndoToast({
-      id: `pilot:${pilot.id}:currentAP`,
-      label: 'AP',
-      did: playCopy('usedAction', { name: action.name }),
-      from: before,
-      to: patch.currentAP,
-      undo: (value) =>
-        runWrite(() => store.update('pilot', pilot.id, { currentAP: value }, PLAY_TXN)),
-    })
+    changes.push({ key: 'currentAP', label: 'AP', from: before, to: patch.currentAP })
+  if (usesBefore > 0) {
+    changes.push({ key: 'uses', label: playCopy('uses'), from: usesBefore, to: usesBefore - 1 })
+    recordPlayChange(
+      `${playCopy('usedAction', { name: action.name })} · ${playCopy('uses')} ${usesBefore}→${usesBefore - 1}`
+    )
+  }
+  if (changes.length === 0) return
+  changesUndoToast({
+    // An AP-only spend keeps the AP's own line; gear with Uses has the activation's.
+    id: usesBefore > 0 ? `pilot:${pilot.id}:activation` : `pilot:${pilot.id}:currentAP`,
+    did: playCopy('usedAction', { name: action.name }),
+    changes,
+    undo: (start) => {
+      // Read again, so Undo never drops a count another item moved since.
+      const now = store.get('pilot', pilot.id) ?? fresh
+      const fields: Partial<Pilot> = {}
+      if (start.currentAP !== undefined) fields.currentAP = start.currentAP
+      if (start.uses !== undefined) {
+        fields.equipmentUses = { ...now.equipmentUses, [action.slug]: start.uses }
+        recordPlayChange(
+          `${playCopy('undoOf', { name: action.name })} · ${playCopy('uses')} ${usesBefore - 1}→${start.uses}`
+        )
+      }
+      runWrite(() => store.update('pilot', pilot.id, fields, PLAY_UNDO))
+    },
+  })
+}
+
+/**
+ * The Uses a pilot's carried item counts, as its sheet's inventory does
+ * (`equipmentMaxUses`): 0 for anything but gear whose action spends a Use.
+ */
+function gearMaxUses(action: PlayAction, economy: MechItemEconomy): number {
+  if (action.kind !== 'equipment' || economy.maxUses <= 0) return 0
+  return equipmentMaxUses(resolveEquipment(action.slug)) ?? economy.maxUses
 }
 
 function payCompanion(
@@ -269,7 +308,7 @@ function payMech(
     onPaid()
     return
   }
-  runWrite(() => store.update('mech', mech.id, patch, PLAY_TXN), onPaid)
+  runWrite(() => store.update('mech', mech.id, patch, playTxn(action.name)), onPaid)
   activationUndo({
     id: `mech:${mech.id}:activation`,
     prefix: '',
@@ -286,7 +325,7 @@ function payMech(
         'mech',
         mech.id,
         fields(store.get('mech', mech.id)?.itemUses ?? fresh.itemUses),
-        PLAY_TXN
+        PLAY_UNDO
       ),
   })
 }

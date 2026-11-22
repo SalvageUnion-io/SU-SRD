@@ -39,7 +39,8 @@ import {
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { copyForShelf } from '../../lib/copyEntity'
+import { copyBeside, namesOn } from '../../lib/copyEntity'
+import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import {
   isNpcDown,
@@ -54,11 +55,13 @@ import { npcTemplateArt } from '../../lib/photos/defaultArt'
 import { runWrite } from '../../lib/runWrite'
 import { npcCopy } from '../../messages/build-npc'
 import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
+import { useEncounters } from '../../replica/collections'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { isSignedIn } from '../../replica/sync'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
+import { encountersFielding } from '../prep/encounter.model'
 import { useEncounterGame } from '../prep/useEncounterGame'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import { npcStamp } from '../sheet/bandStamps.model'
@@ -72,6 +75,7 @@ import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetVitalGauge } from '../sheet/SheetVitalGauge'
 import { useSheetMode } from '../sheet/sheetMode.model'
 import { NOTE } from './npcStyles.model'
+import { deleteNpcDesign } from './redesign.model'
 
 /** Where the NPC crews, when it does. */
 export type NpcCrewing = {
@@ -149,11 +153,14 @@ export function NpcSheet({
     runWrite(() => useUnits.getState().update('npc', npc.id, fields, LIVE_SHEET_MANUAL))
   }
 
-  /** Make a copy: a new, separate NPC in the maker's Kit, in no Game (glossary 5). */
+  /** Make a copy: a new, separate NPC (glossary 5), in the Game this one is in (MD3-12). */
   function copy() {
     runWrite(async () => {
-      const created = await useUnits.getState().create('npc', copyForShelf(npc, npc.name) as never)
-      toast.success(npcCopy('madeACopy', { name: created.name }), {
+      const taken = namesOn(useUnits.getState().list('npc'))
+      const created = await useUnits
+        .getState()
+        .create('npc', copyBeside(npc, npc.name, taken) as never)
+      toast.success(npcCopy('madeACopy', { name: npc.name }), {
         duration: COPY_TOAST_MS,
         ...(onOpenCopy
           ? { action: { label: npcCopy('openTheCopy'), onClick: () => onOpenCopy(created.id) } }
@@ -162,24 +169,32 @@ export function NpcSheet({
     })
   }
 
-  function remove() {
+  /** Delete asks once, naming the encounters the NPC leaves with it (MD3-08). */
+  async function remove() {
+    // A list that will not load names none; the delete still clears what it finds.
+    await useEncounters
+      .getState()
+      .hydrate()
+      .catch(() => undefined)
+    const fielding = encountersFielding(useEncounters.getState().encounters, npc.id)
+    const asked = ROW_ACTION_COPY.deleteNpc(
+      npc.name,
+      fielding.map((encounter) => encounter.name)
+    )
     confirm?.({
-      title: npcCopy('delete', { name: npc.name }),
-      body: [
-        crewing
-          ? npcCopy('deleteBodyCrewing', {
+      ...asked,
+      body: crewing
+        ? [
+            npcCopy('deleteBodyCrewing', {
               name: npc.name,
               slot: slotPhrase(crewing.slot),
               crawler: crewing.crawlerName,
-            })
-          : npcCopy('deleteBody', { name: npc.name }),
-      ],
-      confirmLabel: npcCopy('delete2'),
-      pendingLabel: npcCopy('deleting'),
-      tone: 'danger',
-      failure: npcCopy('notDeleted', { name: npc.name }),
+            }),
+            ...asked.body.slice(1),
+          ]
+        : asked.body,
       onConfirm: async () => {
-        await useUnits.getState().delete('npc', npc.id)
+        await deleteNpcDesign(npc.id)
         onDeleted?.()
       },
     })
@@ -195,8 +210,9 @@ export function NpcSheet({
         <Button href={inGame?.href ?? KIT_PATH} back variant="ink" size="compact">
           {inGame ? npcCopy('gamePrep') : npcCopy('mediatorsKit')}
         </Button>
-        {/* Edit's way into the designer: its stats, role and actions (MD2-03). */}
-        {sheetMode.editing && isRedesignable(npc) && (
+        {/* The way into the designer, its stats, role and actions (MD2-03), in
+            Sheet view too: a fresh copy opens there (MD3-06). */}
+        {isRedesignable(npc) && (
           <Button
             href={npcDesignHref(npc.id)}
             size="compact"
@@ -240,7 +256,7 @@ export function NpcSheet({
           )}
           <Button
             variant="ghost"
-            onClick={remove}
+            onClick={() => void remove()}
             aria-label={npcCopy('delete3', { name: npc.name })}
           >
             {npcCopy('delete2')}

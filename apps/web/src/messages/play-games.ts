@@ -19,7 +19,9 @@ export const playGamesCopy = messages({
   andAnythingUnassignedComeTo:
     '{crawlerName} and anything unassigned come to you, in your {build}.',
   theCrewItsInviteLink:
-    "The crew, its invite link, the opposition tray and the assignments between everyone's builds go with the Game.",
+    "The crew, its invite link, the Opposition on the field and the assignments between everyone's builds go with the Game.",
+  whatWasPreparedStays:
+    'The NPCs and encounters prepared for it stay in the Mediator’s Kit of whoever made them.',
   theRestGoesHome:
     'Anything somebody built, was handed or changed is kept: it goes back to whoever holds it, in their {build}.',
   alsoDeleteTemplateUnits: 'Also delete the {count} it came with?',
@@ -97,13 +99,14 @@ export const playGamesCopy = messages({
   chooseThePilotToPlay: 'Choose the Pilot to play.',
   noneOfThisGamesPilots:
     'No Pilot in this Game is assigned to you. Add one of yours, or use Assign to me on a free one in the Crew list, then play.',
-  assignThisToYou: '{label} — assign this to you',
+  assignToMeNamed: 'Assign to me: {name}',
   awaitingYourAnswer: 'Awaiting your answer',
   lastSession: 'Last session',
   thisSession: 'This session',
   sessionSince: 'Started {start}.',
   sessionFromTo: '{start} to {end}.',
   sessionCounts: ' Rolls: {rolls}. Vitals changes: {changes}.',
+  sessionPrivateRolls: ' Private rolls: {count}.',
   showAllLines: 'Show all {count}',
   proposalsAwaitingYourAnswer: 'Proposals awaiting your answer',
   apply: 'Apply',
@@ -149,10 +152,13 @@ export const playGamesCopy = messages({
   handTheTableOver: 'Hand the table over?',
   whoeverMediatesNowStandsDown: ' Whoever mediates now stands down.',
   handOverGoes:
-    'Goes across: the table, the opposition on its field, and the session list with its days and titles.',
+    'Goes across: the table, the opposition on its field, the private rolls on the Feed, and the session list with its days and titles.',
   handOverStays:
     'Stays with you: your Game notes and private session notes, and the encounters and NPCs in your Mediator’s Kit. The new Mediator starts with empty notes.',
   whoMediates: 'Who mediates',
+  handedOverTo: '{name} now mediates {game}.',
+  youMediateNow: 'You now mediate {game}.',
+  gameDeleted: '{game} is deleted.',
   yourPrep: 'Prep',
   encounters: 'Encounters',
   npcs: 'NPCs',

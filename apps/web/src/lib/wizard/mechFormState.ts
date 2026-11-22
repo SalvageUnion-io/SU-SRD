@@ -17,6 +17,8 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { startingPatternRef } from 'game-domain/startingPattern'
 import type { ChoiceSelections, RefChassis } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
+import { mechMaxCargo } from 'salvageunion-reference/rules'
+import { carrierCargoUsage } from '../cargo/cargoTransfer'
 import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
 import { madeChoices } from './itemChoices'
 
@@ -83,16 +85,38 @@ export function withPatternPrefill(
 }
 
 /**
+ * Where unspent starting Scrap goes (r3 F1): into the hold up to its free
+ * Cargo Slots, each Scrap taking one (Core Book p.246), and the rest to the
+ * Union Crawler, which stores spare Scrap (Workshop Manual p.94). The hold's
+ * capacity is the build's own: its chassis and whatever it installed.
+ */
+export function leftoverScrapSplit(
+  form: MechWizardFormState,
+  leftover: number
+): { stowed: number; banked: number } {
+  const left = Math.max(0, leftover)
+  if (form.chassisName === '') return { stowed: 0, banked: left }
+  const cap = mechMaxCargo({
+    chassisRef: form.chassisName,
+    systems: form.systems,
+    modules: form.modules,
+  })
+  const stowed = Math.min(left, carrierCargoUsage(form.cargoLots, cap).free)
+  return { stowed, banked: left - stowed }
+}
+
+/**
  * The form with its unspent starting Scrap carried in the hold: one Tech 1
- * Scrap line of `leftover` (Workshop Manual p.94: spare Scrap is kept, and a
- * solo builder has no crawler to store it on). Unchanged with none left.
+ * Scrap line of what fits (`leftoverScrapSplit`), never more than the hold's
+ * free Cargo Slots. Unchanged where none is left or none fits.
  */
 export function withLeftoverScrap(
   form: MechWizardFormState,
   leftover: number
 ): MechWizardFormState {
-  if (leftover <= 0) return form
-  return { ...form, cargoLots: [...form.cargoLots, makeScrapLot(1, leftover)] }
+  const { stowed } = leftoverScrapSplit(form, leftover)
+  if (stowed <= 0) return form
+  return { ...form, cargoLots: [...form.cargoLots, makeScrapLot(1, stowed)] }
 }
 
 /** Wizard-owned mech fields — the ones the form captures. */

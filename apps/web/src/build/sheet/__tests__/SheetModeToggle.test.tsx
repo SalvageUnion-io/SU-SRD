@@ -1,7 +1,9 @@
 /**
  * One page per unit (ADR-066, hard rule R11): the sheet's modes are one
- * Segmented, Read | Edit | Play. Play is a third option of the same control,
- * never a second button or page; a viewer who may not write sees Play alone.
+ * Segmented, Read | Edit and the door into Play, a third option of the same
+ * control, never a second button or page; a viewer who may not write sees the
+ * door alone. The door has its one name (glossary §9, r3 H3): Open table,
+ * or Join session while the pilot's Game has a session live.
  */
 
 import { describe, expect, mock, test } from 'bun:test'
@@ -16,9 +18,9 @@ describe('Read | Edit | Play', () => {
     render(<SheetModeToggle mode={mode(false)} kind="pilot" play={{ name: 'Rook', onPlay }} />)
     const group = screen.getByRole('group', { name: /pilot/i })
     const options = within(group).getAllByRole('button')
-    expect(options.map((o) => o.textContent)).toEqual(['Sheet', 'Edit', 'Play'])
+    expect(options.map((o) => o.textContent)).toEqual(['Sheet', 'Edit', 'Open table'])
     expect(options.map((o) => o.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false'])
-    fireEvent.click(within(group).getByRole('button', { name: 'Play as Rook' }))
+    fireEvent.click(within(group).getByRole('button', { name: 'Open table as Rook' }))
     expect(onPlay).toHaveBeenCalledTimes(1)
   })
 
@@ -27,6 +29,6 @@ describe('Read | Edit | Play', () => {
     expect(screen.getAllByRole('button').map((o) => o.textContent)).toEqual(['Sheet', 'Edit'])
     unmount()
     render(<SheetModeToggle mode={null} kind="pilot" play={{ name: 'Rook', onPlay: () => {} }} />)
-    expect(screen.getAllByRole('button').map((o) => o.textContent)).toEqual(['Play'])
+    expect(screen.getAllByRole('button').map((o) => o.textContent)).toEqual(['Open table'])
   })
 })

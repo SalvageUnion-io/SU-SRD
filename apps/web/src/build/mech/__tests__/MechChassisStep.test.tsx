@@ -13,8 +13,9 @@ import { MechChassisStep } from '../MechChassisStep'
 const cargoBays = (container: HTMLElement) =>
   (container.textContent ?? '').split('Integrated Cargo Bay').length - 1
 
-const step = (chassisName: string) => (
+const step = (chassisName: string, gameId?: string) => (
   <MechChassisStep
+    gameId={gameId}
     chassisName={chassisName}
     patternName=""
     onSelectChassis={() => {}}
@@ -67,6 +68,18 @@ describe('MechChassisStep', () => {
     // Its way on builds that pattern as printed: the New Mech screen, on its confirm.
     expect(within(why).getByRole('link').getAttribute('href')).toBe(
       '/mechs/new?chassis=mule&pattern=crusher'
+    )
+  })
+
+  it('in a Game, both links keep the Game in the address (r3 L4)', () => {
+    const { getByRole } = render(step('mule', 'game-1'))
+    expect(getByRole('link', { name: 'New Mech, From a pattern' }).getAttribute('href')).toBe(
+      '/mechs/new?game=game-1'
+    )
+    const patterns = getByRole('table', { name: 'Or start from a Pattern' })
+    fireEvent.click(within(patterns).getByRole('radio', { name: 'Crusher' }))
+    expect(within(getByRole('status')).getByRole('link').getAttribute('href')).toBe(
+      '/mechs/new?chassis=mule&pattern=crusher&game=game-1'
     )
   })
 })

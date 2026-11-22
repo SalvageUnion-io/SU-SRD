@@ -145,7 +145,7 @@ describe('the Play landing', () => {
     expect(queryCalls()).toHaveLength(0)
   })
 
-  test('Your Games: each a Compact opening its page, your role, and its doors: Mediate, then Play <pilot>', async () => {
+  test('Your Games: each a Compact opening its page, your role, and its doors: Mediate, then the seat’s', async () => {
     answerReads({
       'games.listMine': [TENACITY, WASTES],
       'downtime.state': IN_DOWNTIME,
@@ -157,10 +157,10 @@ describe('the Play landing', () => {
     expect(tenacity.getByRole('link', { name: 'Tenacity' }).getAttribute('href')).toBe(
       '/games/land-g1'
     )
-    // A pilot's door says Play and the callsign (glossary §9).
-    const play = tenacity.getByRole('link', { name: 'Play CASTLE in Tenacity' })
+    // The seat's door has the door's one name (glossary §9, r3 H3).
+    const play = tenacity.getByRole('link', { name: 'Open table as CASTLE in Tenacity' })
     expect(play.getAttribute('href')).toBe('/pilots/land-rook/play')
-    expect(play.textContent).toBe('Play CASTLE')
+    expect(play.textContent).toBe('Open table')
     expect(tenacity.getByText('Player')).toBeTruthy()
     expect(tenacity.queryByRole('link', { name: /^Mediate/ })).toBeNull()
     // Presence, not a member count; Downtime as a chip with its step.
@@ -174,9 +174,9 @@ describe('the Play landing', () => {
     expect(mediate.getAttribute('href')).toBe('/games/land-g2/mediate')
     expect(mediate.textContent).toBe('Mediate')
     // A Mediator who also plays reaches their pilot too.
-    expect(wastes.getByRole('link', { name: 'Play Vane in Wastes' }).getAttribute('href')).toBe(
-      '/pilots/land-vane/play'
-    )
+    expect(
+      wastes.getByRole('link', { name: 'Open table as Vane in Wastes' }).getAttribute('href')
+    ).toBe('/pilots/land-vane/play')
 
     // R56: a Game's name is kept whole: on a phone its doors are the body's
     // first row rather than a cut name (the fit itself: chipFill.test.ts).
@@ -200,6 +200,23 @@ describe('the Play landing', () => {
     for (const id of anchors) expect(document.getElementById(id)).not.toBeNull()
   })
 
+  test('signed out, pressing the sub-nav’s "Join with a link" goes to sign-in and back to the Join dialog (r3 E3)', async () => {
+    answerReads({})
+    serverMocks.signIns.length = 0
+    await renderAs('signedOut')
+    const nav = document.createElement('a')
+    nav.href = '/build/games/#join'
+    document.body.append(nav)
+    try {
+      const press = new MouseEvent('click', { bubbles: true, cancelable: true })
+      nav.dispatchEvent(press)
+      expect(press.defaultPrevented).toBe(true)
+      expect(serverMocks.signIns).toEqual([['/games/#join']])
+    } finally {
+      nav.remove()
+    }
+  })
+
   test('arriving on #join opens Join a Game', async () => {
     window.location.hash = '#join'
     try {
@@ -208,6 +225,24 @@ describe('the Play landing', () => {
       expect(screen.getByRole('dialog', { name: 'Join a Game' })).toBeTruthy()
     } finally {
       window.location.hash = ''
+    }
+  })
+
+  // MD3-04: a paste on arrival lands in the dialog's only field.
+  test('Join a Game opens with the cursor in Invite link', async () => {
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
+    window.location.hash = '#join'
+    try {
+      answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
+      await renderAs('live')
+      await act(async () => undefined)
+      expect(document.activeElement === screen.getByLabelText('Invite link')).toBe(true)
+    } finally {
+      window.location.hash = ''
+      frame.mockRestore()
     }
   })
 
@@ -252,12 +287,12 @@ describe('the Play landing', () => {
     answerReads({ 'games.listMine': [TENACITY], 'downtime.state': IN_DOWNTIME, ...QUIET })
     await renderAs('live')
     const tenacity = card('Tenacity')
-    expect(tenacity.getByRole('link', { name: 'Play CASTLE in Tenacity' })).toBeTruthy()
+    expect(tenacity.getByRole('link', { name: 'Open table as CASTLE in Tenacity' })).toBeTruthy()
     expect(tenacity.queryByRole('link', { name: /Nell Vance/ })).toBeNull()
     act(() => drop('pilot', 'land-nell'))
   })
 
-  test('a live group session: a chip says so, and your pilot’s door still says Play and the pilot', async () => {
+  test('a live group session: a chip says so, and your pilot’s door reads Join session', async () => {
     answerReads({
       'games.listMine': [TENACITY],
       'downtime.state': IN_DOWNTIME,
@@ -267,11 +302,10 @@ describe('the Play landing', () => {
     await renderAs('live')
     const tenacity = card('Tenacity')
     expect(tenacity.getByText('Session live')).toBeTruthy()
-    // Join session is the Game's own door, on its page: a pilot's door has one meaning.
-    const play = tenacity.getByRole('link', { name: 'Play CASTLE in Tenacity' })
+    // Live, the same door reads Join session, and still opens the seat (r3 H3).
+    const play = tenacity.getByRole('link', { name: 'Join session as CASTLE in Tenacity' })
     expect(play.getAttribute('href')).toBe('/pilots/land-rook/play')
-    expect(play.textContent).toBe('Play CASTLE')
-    expect(tenacity.queryByRole('link', { name: /^Join/ })).toBeNull()
+    expect(play.textContent).toBe('Join session')
   })
 
   test('a Game between Downtimes shows no Downtime chip; one with none of your pilots has no door', async () => {
@@ -300,15 +334,15 @@ describe('the Play landing', () => {
     ).toBeTruthy()
     const pilots = section('Your Pilots')
     // Every pilot of yours, in a Game or not, each door naming who it plays.
-    const wren = pilots.getByRole('link', { name: 'Play Wren' })
+    const wren = pilots.getByRole('link', { name: 'Open table as Wren' })
     expect(wren.getAttribute('href')).toBe('/pilots/land-wren/play')
-    expect(wren.textContent).toBe('Play Wren')
-    expect(pilots.getByRole('link', { name: 'Play Kestrel' })).toBeTruthy()
+    expect(wren.textContent).toBe('Open table')
+    expect(pilots.getByRole('link', { name: 'Open table as Kestrel' })).toBeTruthy()
     // Callsign first, then the name; the door takes the callsign.
     const rook = pilots.getByRole('link', { name: 'CASTLE · Rook' }).closest('tr') as HTMLElement
-    expect(within(rook).getByRole('link', { name: 'Play CASTLE · Rook' }).textContent).toBe(
-      'Play CASTLE'
-    )
+    expect(
+      within(rook).getByRole('link', { name: 'Open table as CASTLE · Rook' }).textContent
+    ).toBe('Open table')
     // The mech a pilot flies rides its line.
     const row = pilots.getByRole('link', { name: 'Wren' }).closest('tr') as HTMLElement
     expect(within(row).getByRole('link', { name: 'Scrapper' })).toBeTruthy()

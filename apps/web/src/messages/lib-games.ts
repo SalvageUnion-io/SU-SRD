@@ -29,6 +29,7 @@ export const libGamesCopy = messages({
   unassignedFromYou:
     '{name} is no longer assigned to you: whoever runs the table unassigned it. You can still read it.',
   assignedToACrewmate: '{name} is now assigned to a crewmate. You can still read it.',
+  assignedToYou: '{name} is now assigned to you.',
 
   thisGame: 'this Game',
   clearedPilot:
@@ -59,9 +60,17 @@ export const libGamesCopy = messages({
   deleteFromGameBody:
     'This cannot be undone. {name} will be removed from this Game for everyone, and from this browser.',
   deleteFromGameInstead:
-    'Only leaving the table? “Offer to the crew” hands them back instead — they stay in the Game for somebody else to pick up.',
+    'Only leaving the table? “Unassign” hands them back instead: they stay in the Game for a crewmate to take with “Assign to me”.',
   deleteFailed: '{name} could not be deleted. Try again.',
   deleteBuildBody: 'This action cannot be undone. {name} will be permanently removed.',
+  removeLeftoversOne: 'Remove {names}?',
+  removeLeftoversMany: 'Remove {count} units?',
+  removeLeftoversBody:
+    'This cannot be undone. {names} will be removed from your Mediator’s Kit. The NPCs you designed are not touched.',
+  removeLeftoversFailed: 'They could not all be removed. Try again.',
+  deleteNpcBody: 'This cannot be undone. {name} will be removed from your Mediator’s Kit.',
+  deleteNpcFromOne: '{name} is in {encounters}, and will be removed from it.',
+  deleteNpcFromMany: '{name} is in {encounters}, and will be removed from them.',
   mechIsKept: 'Their Mech, {mech}, is kept, with no Pilot.',
   scrapBody: "This deletes {name} for everyone in the Game and can't be undone.",
   moveFailed: '{name} could not be moved. Try again.',
@@ -80,5 +89,6 @@ export const libGamesCopy = messages({
     "You can move {them} back to your {bay} later, but you'll need to make those assignments again.",
   onlyMembersCanBring: 'Only members of this Game can bring builds into it.',
   unknownGame: 'Unknown Game',
+  mediatorsKit: 'Mediator’s Kit',
   unionCrawler: 'Union Crawler',
 })

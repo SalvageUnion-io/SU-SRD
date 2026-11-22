@@ -1,0 +1,152 @@
+import { pilotCallsign } from 'game-domain/pilotLabel'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import {
+  resolveInstalledRef,
+  resolveModuleRef,
+  resolveSystemRef,
+} from 'salvageunion-reference/rules'
+import { seatOf } from '../seats'
+import type { TableEvent, TableEventKind } from './events'
+import type { GameStore, Member } from './store'
+
+/**
+ * The words and the stored shape of the table's event lines (`events.ts`):
+ * what a row keeps beside its line, how a repeat folds into the line it
+ * follows, and how a line is signed and served.
+ */
+
+/** The vitals whose changes the table hears, by their sheet field. */
+export const VITALS: Readonly<Record<string, string>> = {
+  currentHP: 'HP',
+  currentAP: 'AP',
+  currentSP: 'SP',
+  currentEP: 'EP',
+  currentHeat: 'Heat',
+}
+
+/** A mech's item conditions, by the sheet field that holds them (`ItemConditionMapSchema`). */
+export const CONDITIONS = {
+  systemConditions: resolveSystemRef,
+  moduleConditions: resolveModuleRef,
+} as const
+
+/** A system or module's new condition, in the line's words. */
+export const CONDITION_WORDS: Readonly<Record<string, string>> = {
+  intact: 'is repaired',
+  damaged: 'is damaged',
+  destroyed: 'is destroyed',
+}
+
+/** What a stored event row carries beside its line. */
+export type Stored = {
+  kind: TableEventKind
+  text: string
+  /** What a repeat is matched on; absent once sealed, or for a line that never merges. */
+  key?: string
+  /** The key whose open line this one ends: a hit on a vital, which no nudge folds across. */
+  ends?: string
+  /** A vital's line, kept apart so a repeat can rewrite it. */
+  vital?: VitalChange
+  /** How many times the line repeated. */
+  n?: number
+  /** The line before its count. */
+  base?: string
+  private?: true
+  session?: 'start' | 'end'
+  answer?: 'accepted' | 'undone'
+  about?: string
+}
+
+/** How a Mediator's screen signs the rolls it logs (`PlayMediatorCockpit`'s `rollerName`). */
+const MEDIATOR_SIGNED = 'Mediator · '
+
+/**
+ * A roll's line under the name of whoever rolled it (r3 A2): one signed
+ * "Mediator" by somebody who mediates no longer reads as theirs, by name, so
+ * the Mediator of today is never taken for its roller. Their own screen is
+ * served the line as logged, and says "You" (`feed.model.ts`).
+ */
+export function signedBy(line: string, roller: Member | null): string {
+  if (!line.startsWith(MEDIATOR_SIGNED) || roller?.mediator === true) return line
+  return `${roller?.displayName ?? 'Previous Mediator'} · ${line.slice(MEDIATOR_SIGNED.length)}`
+}
+
+/** What a switched effect is called: the system, module or ability that declares it. */
+export function effectName(ref: string): string {
+  try {
+    const item = resolveInstalledRef(ref) as { name?: string } | null
+    return item?.name ?? SalvageUnionReference.Abilities.getBySlug(ref)?.name ?? ref
+  } catch {
+    return ref
+  }
+}
+
+/**
+ * The source of an op a toast's Undo wrote (`replica/provenance.ts`'s
+ * `PLAY_UNDO`): its line says so, so the table reads a hit taken back as
+ * taken back, never as a second change (r3 B2).
+ */
+export const UNDO_SOURCE = 'play-undo'
+
+/** A vital's change as an event stores it. */
+export type VitalChange = {
+  who: string
+  label: string
+  from: number | null
+  to: number
+  undo?: true
+}
+
+export function vitalLine(v: VitalChange): string {
+  const line =
+    v.from === null
+      ? `${v.who} · ${v.label} → ${v.to}`
+      : `${v.who} · ${v.label} ${v.from} → ${v.to}`
+  return v.undo === true ? `${line} · Undo` : line
+}
+
+/**
+ * A unit as a vital's line names it: a mech (`label`) with its pilot, "Reaper
+ * (GHOST)", whoever is aboard, else whoever it is assigned to (r3 B2).
+ */
+export function crewedLabel(store: GameStore, unitId: string, label: string): string {
+  if (store.unit(unitId)?.kind !== 'mech') return label
+  const aboard = store
+    .rows('select * from seats')
+    .map(seatOf)
+    .find((seat) => seat.mount.kind === 'boarded' && seat.mount.mechId === unitId)?.pilotId
+  const pilotId =
+    aboard ?? store.linksTouching(unitId).find((link) => link.type === 'mech-to-pilot')?.to.id
+  const pilot = pilotId === undefined ? null : store.unit(pilotId)
+  return pilot === null ? label : `${label} (${pilotCallsign(pilot.body)})`
+}
+
+/** A repeat folded into the line it follows: a vital keeps where it started, any other line counts. */
+export function mergeLine(open: Stored, next: Stored): Stored {
+  if (open.vital !== undefined && next.vital !== undefined) {
+    const vital = { ...next.vital, from: open.vital.from }
+    return { ...open, vital, text: vitalLine(vital) }
+  }
+  const n = (open.n ?? 1) + 1
+  const base = open.base ?? open.text
+  return { ...open, n, base, text: `${base} ×${n}` }
+}
+
+export function eventOf(
+  id: string,
+  ts: number,
+  actorId: string | null,
+  stored: Stored
+): TableEvent {
+  return {
+    _id: id,
+    ts,
+    kind: stored.kind,
+    text: stored.text,
+    actorId,
+    ...(stored.private === true ? { private: true as const } : {}),
+    ...(stored.session === undefined ? {} : { session: stored.session }),
+    ...(stored.answer === undefined ? {} : { answer: stored.answer }),
+    ...(stored.about === undefined ? {} : { about: stored.about }),
+  }
+}

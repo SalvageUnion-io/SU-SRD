@@ -32,6 +32,7 @@ import {
   refusedBatch,
 } from '../rooms/game/feed'
 import { GameRoomLogic } from '../rooms/game/gameRoomLogic'
+import { readerOf } from '../rooms/game/readers'
 import {
   ACCOUNT_SOCKET_ACTS,
   actAnswer,
@@ -114,12 +115,6 @@ export class AccountRoom extends Room {
     const unit = this.logic.shelf.list(actor).find((u) => u.id === unitId)
     if (unit === undefined) return null
     return { ...unit, vitals: await unitVitals(this.logic.shelf.store, unitId) }
-  }
-
-  /** A disbanded Game's Opposition, filed in its Organizer's NPC tray once per lease. */
-  fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): void {
-    this.logic.transit.fileTray(leaseId, npcs, at)
-    this.broadcastSnapshots()
   }
 
   /** The player's socket, which the Worker let through: their Shelf, then its changes. */
@@ -427,8 +422,8 @@ export class GameRoom extends Room {
 
   /**
    * End the Game (Organizer only): every unit goes to its holder's Training
-   * Bay, the rest and the tray to the Organizer's, each member's room drops
-   * the Game from its list, then the room is wiped.
+   * Bay, the rest to the Organizer's, each member's room drops the Game from
+   * its list, then the room is wiped, the Opposition on its field with it.
    * A retry after a failed delivery delivers only what had not landed.
    * `dropTemplateUnits`: a template Game's untouched units end with it.
    */
@@ -443,7 +438,6 @@ export class GameRoom extends Room {
     for (const { to, parcel } of ended.deliveries) {
       await accountHome(to).accept(parcel, to, at)
     }
-    await accountHome(ended.tray.to).fileTray(`disband-tray:${this.gameId}`, ended.tray.npcs, at)
     for (const { userId } of this.logic.store.members()) {
       await accountHome(userId).leftGame(this.gameId)
     }
@@ -476,9 +470,12 @@ export class GameRoom extends Room {
         at,
       }))
     )
+    // The table is told of a removal, as it was of the joining (r3 A4); leaving is one's own.
+    const told = actor === userId ? [] : [this.logic.events.removed(actor, userId, at)]
     this.logic.roster.forgetMember(userId)
     await accountHome(userId).leftGame(this.gameId)
     this.dropStrangers()
+    this.mirror(told)
     return { ok: true, value: null }
   }
 
@@ -562,9 +559,17 @@ export class GameRoom extends Room {
     this.published()
   }
 
-  /** The same messages to every member's open socket. */
+  /**
+   * The same messages to every member's open socket; a unit's `applied` only
+   * to the members the room serves that unit (`readerOf`, r3 A3).
+   */
   private broadcast(messages: readonly ServerMessage[]): void {
-    sendEach(this.ctx, messages, (member) => this.isMember(member))
+    const { store } = this.logic
+    for (const message of messages) {
+      const unit = message.type === 'applied' ? store.unit(message.unit.appId) : null
+      const hears = (m: string) => this.isMember(m) && (unit === null || readerOf(store, m)(unit))
+      sendEach(this.ctx, [message], hears)
+    }
   }
 
   /** Who is here, to every open socket but `gone` (the one closing). */

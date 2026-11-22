@@ -20,6 +20,7 @@ import {
 } from '../../components/index'
 import { cn } from '../../lib/cn'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
+import { newInGameHref } from '../../lib/wizard/fromGame'
 import { mechCopy } from '../../messages/build-mech'
 import { PickList } from '../wizard/PickList'
 import type { PickColumn } from '../wizard/pickLedger.model'
@@ -70,6 +71,8 @@ type MechChassisStepProps = {
   onSelectPattern: (pattern: ChassisPattern) => void
   /** Custom build — no prefill; craft manually in step 2. */
   onSelectCustom: () => void
+  /** The Game this mech is being built in: the step's own links keep it (r3 L4). */
+  gameId?: string | undefined
 }
 
 /**
@@ -89,7 +92,10 @@ export function MechChassisStep({
   onSelectChassis,
   onSelectPattern,
   onSelectCustom,
+  gameId,
 }: MechChassisStepProps) {
+  // Both links start the wizard again: in a Game, in that Game still.
+  const inGame = gameId === undefined ? '' : `&game=${encodeURIComponent(gameId)}`
   const chassisPool = useMemo(
     () =>
       SalvageUnionReference.Chassis.all()
@@ -180,7 +186,7 @@ export function MechChassisStep({
               <Text variant="hint" role="status">
                 {mechCopy('patternNotStarting', { name: asked })}{' '}
                 <InlineRef
-                  href={`/mechs/new?chassis=${chassisName}&pattern=${nameToSlug(asked)}`}
+                  href={`/mechs/new?chassis=${chassisName}&pattern=${nameToSlug(asked)}${inGame}`}
                   style={NO_WRAP}
                 >
                   {mechCopy('buildNameAsPrinted', { name: asked })}
@@ -191,7 +197,10 @@ export function MechChassisStep({
                 <Text variant="hint">
                   {mechCopy('dimmedPatternsAreBuilt')}{' '}
                   {/* One line, so a press on its middle lands on it wherever the hint wraps. */}
-                  <InlineRef href="/mechs/new" style={NO_WRAP}>
+                  <InlineRef
+                    href={gameId === undefined ? '/mechs/new' : newInGameHref('/mechs/new', gameId)}
+                    style={NO_WRAP}
+                  >
                     {mechCopy('newMechFromAPattern')}
                   </InlineRef>
                 </Text>

@@ -29,7 +29,12 @@ import { useHydrateOnMount } from '../../../lib/entities/useHydrateEntities'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import { areaTitle } from '../../../lib/pageTitle'
 import { runWrite } from '../../../lib/runWrite'
-import { encounterReading, hpColumnCell, npcReading } from '../../../lib/shelves/shelfItems'
+import {
+  encounterReading,
+  HP_OR_SP,
+  hpColumnCell,
+  npcReading,
+} from '../../../lib/shelves/shelfItems'
 import { useTabTitle } from '../../../lib/useTabTitle'
 import { playGamesCopy } from '../../../messages/play-games'
 import { useEncounters } from '../../../replica/collections'
@@ -235,7 +240,7 @@ function PrepSections({ gameId }: { gameId: string }) {
           homebrew
           columns={[
             { key: 'position', label: 'Position', kind: 'text' },
-            { key: 'hp', label: 'HP', kind: 'figure' },
+            { key: 'hp', label: HP_OR_SP, kind: 'figure' },
           ]}
           action={
             <Button

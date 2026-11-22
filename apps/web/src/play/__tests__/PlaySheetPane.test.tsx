@@ -67,4 +67,22 @@ describe('PlaySheetPane — a companion (play.md §18)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Back to Actions' }))
     expect(closed).toEqual([1])
   })
+
+  test('a unit’s sheet adds no main of its own: Play holds the page’s one (r3 I3)', async () => {
+    const WREN: SheetChoice = { kind: 'pilot', id: 'pane-wren', name: 'Wren', yours: true }
+    let view: ReturnType<typeof render> | undefined
+    await act(async () => {
+      view = render(
+        <PlaySheetPane
+          shown={WREN}
+          sections={[[WREN]]}
+          gameId={null}
+          onShow={() => undefined}
+          onClose={() => undefined}
+        />
+      )
+    })
+    expect(view?.container.querySelector('h1')?.textContent).toContain('Wren')
+    expect(view?.container.querySelector('main')).toBeNull()
+  })
 })

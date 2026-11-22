@@ -48,6 +48,12 @@
   min-width: 0;
 }
 
+/* Beside a group, a unit alone keeps its own height (MD3-16): the group is
+   as tall as its members' list, and a stretched box is mostly empty. */
+.su-play-npcs:has(> .su-play-group) {
+  align-items: flex-start;
+}
+
 .su-play-npc {
   border-radius: var(--radius-card);
   min-width: 0;

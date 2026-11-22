@@ -1,7 +1,9 @@
 /** Unit tests for the mech wizard form-state mappers. */
 import { describe, expect, it } from 'bun:test'
+import { mechMaxCargo } from 'salvageunion-reference/rules'
 import {
   EMPTY_MECH_FORM_STATE,
+  leftoverScrapSplit,
   mechFormToCreateInput,
   mechFormToUpdatePatch,
   withLeftoverScrap,
@@ -94,7 +96,7 @@ describe('mechFormToCreateInput', () => {
   })
 })
 
-describe('withLeftoverScrap (r2 E7)', () => {
+describe('withLeftoverScrap (r2 E7, r3 F1)', () => {
   it('carries unspent Scrap in the hold as one Tech 1 line', () => {
     const form = withLeftoverScrap({ ...EMPTY_MECH_FORM_STATE, chassisName: 'mule' }, 6)
     expect(form.cargoLots).toHaveLength(1)
@@ -111,5 +113,25 @@ describe('withLeftoverScrap (r2 E7)', () => {
   it('adds nothing when it is all spent', () => {
     expect(withLeftoverScrap(EMPTY_MECH_FORM_STATE, 0)).toBe(EMPTY_MECH_FORM_STATE)
     expect(withLeftoverScrap(EMPTY_MECH_FORM_STATE, -2)).toBe(EMPTY_MECH_FORM_STATE)
+  })
+
+  it('fills the hold only to its free Cargo Slots, and the rest is the crawler’s (Core Book p.246)', () => {
+    const cap = mechMaxCargo({ chassisRef: 'mazona', systems: [], modules: [] })
+    expect(cap).toBeGreaterThan(0)
+    const form = { ...EMPTY_MECH_FORM_STATE, chassisName: 'mazona' }
+    expect(leftoverScrapSplit(form, cap + 10)).toEqual({ stowed: cap, banked: 10 })
+    const made = withLeftoverScrap(form, cap + 10)
+    expect(made.cargoLots.map((lot) => lot.units)).toEqual([cap])
+  })
+
+  it('counts what the hold already carries, and a full hold takes none', () => {
+    const cap = mechMaxCargo({ chassisRef: 'mazona', systems: [], modules: [] })
+    const carried = withLeftoverScrap({ ...EMPTY_MECH_FORM_STATE, chassisName: 'mazona' }, cap)
+    expect(leftoverScrapSplit(carried, 4)).toEqual({ stowed: 0, banked: 4 })
+    expect(withLeftoverScrap(carried, 4)).toBe(carried)
+  })
+
+  it('with no chassis yet nothing is stowed', () => {
+    expect(leftoverScrapSplit(EMPTY_MECH_FORM_STATE, 5)).toEqual({ stowed: 0, banked: 5 })
   })
 })

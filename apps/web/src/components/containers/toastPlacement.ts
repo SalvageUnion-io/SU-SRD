@@ -4,8 +4,9 @@
  *
  * A phone's Play screen does (r2 C4): its controls are at thumb height, an
  * action's button and a roll's outcome just above the tab row, which is where
- * a toast at the foot lands. Held, the toasts stand over the Play bar, above
- * the pinned strip, and never over what is being pressed.
+ * a toast at the foot lands. Held, the toasts stand under the Play bar and
+ * the pinned strip (`PlayFrame` says where, r3 H2), never over what is being
+ * pressed.
  *
  * Counted, so two screens that hold (a route changing) never fight; no React
  * here but the one hook.

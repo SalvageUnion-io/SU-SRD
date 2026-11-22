@@ -18,7 +18,7 @@
 
 import type { Container } from 'game-domain/container'
 import { sameContainer } from 'game-domain/container'
-import type { SheetKind } from 'game-domain/entityKinds'
+import type { EntityKind, SheetKind } from 'game-domain/entityKinds'
 import { sheetPath } from 'game-domain/entityKinds'
 import { hasMediator, runsTable } from 'game-domain/games/roles'
 import { pilotLabel } from 'game-domain/pilotLabel'
@@ -176,6 +176,14 @@ export const MEDIATORS_KIT_ANCHOR = 'mediators-kit'
 /** A Game as `games.listMine` returns it, as far as moving goes. */
 export type MoveTargetGame = { _id: string; name: string; tableRunner: boolean }
 
+/**
+ * What "in no Game" is called for a kind: an NPC is kept in the Mediator's
+ * Kit (on the Games page), everything else in the Training Bay (glossary §2).
+ */
+export function homeName(kind: EntityKind): string {
+  return kind === 'npc' ? libGamesCopy('mediatorsKit') : PRODUCT.build
+}
+
 /** One option in a move control: where it goes, and what it is called. */
 export type MoveDestination = { container: Container; label: string }
 
@@ -199,7 +207,7 @@ export function moveDestinations(args: {
   current: Container
   games: readonly MoveTargetGame[]
 }): MoveDestination[] {
-  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: PRODUCT.build }
+  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: homeName(args.kind) }
   const toGame = (g: MoveTargetGame): MoveDestination => ({
     container: { kind: 'game', gameId: g._id },
     label: g.name,

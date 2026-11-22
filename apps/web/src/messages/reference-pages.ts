@@ -12,6 +12,7 @@ export const pagesCopy = messages({
   scrap: 'Scrap',
   salvageValue: 'Salvage Value, in Scrap',
   total: 'Total',
+  totalAsPrinted: 'Total, as printed in the book',
   thePageYouAreLooking: 'The page you are looking for could not be found.',
   patternOf: 'Pattern of',
   aboutSalvageunionIoAnOpen:

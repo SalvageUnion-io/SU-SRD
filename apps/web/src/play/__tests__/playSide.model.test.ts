@@ -5,9 +5,10 @@
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
+import type { TableEvent } from '../../rooms/game/events'
 import { channelButtonLabel, channelTag, postsToLabel } from '../channels.model'
 import { crewLineLabel, crewSeatLines, hereCount, pairedMech } from '../crew.model'
-import { mineText, playFeedEntries } from '../feed.model'
+import { mineText, playFeedEntries, tableLine } from '../feed.model'
 import { liveLabel, playReadOnly } from '../play.model'
 import type { PlayRoll } from '../playRolls.model'
 import {
@@ -303,6 +304,88 @@ describe('the Feed (play.md §8)', () => {
     ])
   })
 
+  test('a private roll says the players miss all of it; revealed, it stops saying Private and offers no Reveal (r3 A1)', () => {
+    const mine = {
+      ...roll({ id: 'm1', at: 400, label: 'Warlord Vex · Rifle' }),
+      private: true as const,
+      veiled: true as const,
+    }
+    const copy = {
+      _id: 'e2',
+      ts: 400,
+      kind: 'roll' as const,
+      text: playRollDescription('Mediator', mine),
+      actorId: 'gm',
+    }
+    const older = {
+      _id: 'e1',
+      ts: 300,
+      kind: 'roll' as const,
+      text: 'Mediator · Morale · 4',
+      actorId: 'gm',
+    }
+    const feed = (events: TableEvent[]) =>
+      playFeedEntries({
+        rolls: null,
+        alerts: [],
+        events,
+        proposals: [],
+        mine: [mine],
+        rollerName: 'Mediator',
+        viewerId: 'gm',
+      }).map((e) => [
+        e.text,
+        'reveal' in e ? e.reveal : undefined,
+        'kept' in e ? e.kept : undefined,
+      ])
+    expect(
+      feed([
+        { ...copy, private: true, veiled: true },
+        { ...older, private: true },
+      ])
+    ).toEqual([
+      ['You · Warlord Vex · Rifle · 14 · Success · Private', 'e2', 'roll'],
+      ['You · Morale · 4 · Private', 'e1', 'roll'],
+    ])
+    expect(
+      feed([
+        { ...copy, revealed: true },
+        { ...older, revealed: true },
+      ])
+    ).toEqual([
+      ['You · Warlord Vex · Rifle · 14 · Success', undefined, undefined],
+      ['You · Morale · 4', undefined, undefined],
+    ])
+  })
+
+  test('another Mediator’s roll is never signed You, though this screen rolls as Mediator too (r3 A2)', () => {
+    const entries = playFeedEntries({
+      rolls: null,
+      alerts: [],
+      events: [
+        { _id: 'e2', ts: 400, kind: 'roll', text: 'Mediator · Morale · 4', actorId: 'me' },
+        {
+          _id: 'e1',
+          ts: 300,
+          kind: 'roll',
+          text: 'Old · Vex · Rifle · 3',
+          actorId: 'old',
+          private: true,
+        },
+        { _id: 'e0', ts: 200, kind: 'roll', text: 'Mediator · Vex · Rifle · 9', actorId: 'co' },
+      ],
+      proposals: [],
+      mine: [],
+      rollerName: 'Mediator',
+      viewerId: 'me',
+    })
+    expect(entries.map((e) => e.text)).toEqual([
+      'You · Morale · 4',
+      'Old · Vex · Rifle · 3 · Private',
+      'Mediator · Vex · Rifle · 9',
+    ])
+  })
+
   test('what the players read of a veiled roll names nothing that rolled (r2 B1)', () => {
     const veteran = roll({ id: 'v', at: 1, rolls: [9], label: 'Veteran · Green Laser Rifle' })
     expect(veiledRollDescription({ ...veteran, outcome: 'Tough Choice' })).toBe(
@@ -477,8 +560,12 @@ describe('Discord channels (play.md §9)', () => {
 
 // MD2-12: one Feed called the Mediator 'You', 'Mediator' and 'Crewmate'.
 describe('the Mediator on the Feed', () => {
-  const event = (kind: 'alert' | 'proposal' | 'session' | 'join', text: string, actorId: string) =>
-    ({ _id: text, ts: 1, kind, text, actorId }) as never
+  const event = (
+    kind: 'alert' | 'proposal' | 'session' | 'join' | 'downtime' | 'role',
+    text: string,
+    actorId: string,
+    over: Partial<TableEvent> = {}
+  ): TableEvent => ({ _id: text, ts: 1, kind, text, actorId, ...over })
   const lines = (viewerId: string) =>
     playFeedEntries({
       rolls: null,
@@ -507,5 +594,42 @@ describe('the Mediator on the Feed', () => {
       'Mediator proposes Bonesaw HP → 5',
       'Mediator started the group session',
     ])
+  })
+
+  test('Downtime, the role and my own answer are named like every other line (r3 A6)', () => {
+    const events = [
+      event('downtime', 'Mediator began Downtime', 'med'),
+      event('downtime', 'Mediator ended Downtime', 'med'),
+      event('role', 'Crewmate now mediates this Game', 'org', { about: 'med' }),
+      event('proposal', 'Crewmate accepted: Bonesaw HP → 5', 'nell', { answer: 'accepted' }),
+      event('proposal', 'Crewmate undid: Bonesaw HP → 5', 'nell', { answer: 'undone' }),
+      event('join', 'Crewmate joined the Game', 'nell'),
+    ]
+    expect(events.map((e) => tableLine(e, 'med'))).toEqual([
+      'You began Downtime',
+      'You ended Downtime',
+      'You now mediate this Game',
+      'Crewmate accepted: Bonesaw HP → 5',
+      'Crewmate undid: Bonesaw HP → 5',
+      'Crewmate joined the Game',
+    ])
+    expect(events.map((e) => tableLine(e, 'nell'))).toEqual([
+      'Mediator began Downtime',
+      'Mediator ended Downtime',
+      'Crewmate now mediates this Game',
+      'You accepted: Bonesaw HP → 5',
+      'You undid: Bonesaw HP → 5',
+      'You joined the Game',
+    ])
+    // A Mediator's roll on a list that knows no roller's name ("Last session").
+    const rolled = {
+      _id: 'r',
+      ts: 1,
+      kind: 'roll' as const,
+      text: 'Mediator · Morale · 4',
+      actorId: 'med',
+    }
+    expect(tableLine(rolled, 'med')).toBe('You · Morale · 4')
+    expect(tableLine(rolled, 'nell')).toBe('Mediator · Morale · 4')
   })
 })

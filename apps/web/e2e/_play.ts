@@ -65,7 +65,7 @@ export async function playDoor(page: Page, name: string | RegExp): Promise<strin
  */
 export async function pilotPlayPath(page: Page, name: string): Promise<string> {
   await openApp(page, '/')
-  // Its sheet link, not the Play door beside it ("Play <callsign> · <name>").
+  // Its sheet link, not the Play door beside it ("Open table as <callsign> · <name>").
   const row = page
     .getByRole('region', { name: 'Pilots' })
     .getByRole('link', { name: unitNamed(name) })

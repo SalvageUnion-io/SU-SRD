@@ -27,9 +27,9 @@
 
 import type { Encounter, EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
 import { ENCOUNTER_MAX_BRIEFING, ENCOUNTER_MAX_NOTES } from 'game-domain/schemas/encounter'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
-import { Grid } from '../../components/app'
+import { Grid, useDetailModal } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
@@ -126,6 +126,35 @@ export function EncounterPage({ id }: { id: string }) {
   return <EncounterBody encounter={encounter} />
 }
 
+/**
+ * One opponent in the list: its name opens its card over the page (MD3-10),
+ * the book's or the Mediator's own design, so what it does is read where it
+ * is prepped. A Compact never expands under itself (ruleset §1, C8): its
+ * details are its Page. Its chip says what it is, so no kind follows its name.
+ */
+function OpponentRow({ opponent, menu }: { opponent: EncounterOpponent; menu: ReactNode }) {
+  const { entity, pattern } = opponentAsTray(opponent)
+  const detail = useDetailModal(entity ?? undefined, {
+    pattern: pattern ?? undefined,
+    forceModal: true,
+  })
+  const open = detail.control.onClick
+  return (
+    <>
+      <UnitRow
+        kind="npc"
+        name={opponent.name}
+        note={opponentNote(opponent)}
+        unkinded
+        readings={[{ label: opponent.statKind === 'sp' ? 'SP' : 'HP', value: opponent.maxHp }]}
+        trailing={menu}
+        {...(entity !== null && open ? { mode: { kind: 'link', onOpen: () => open() } } : {})}
+      />
+      {detail.modal}
+    </>
+  )
+}
+
 function EncounterBody({ encounter }: { encounter: Encounter }) {
   // The tab names the encounter, in the Mediator's Kit (MD-02); the route's head cannot.
   useTabTitle(areaTitle(routesCopy('mediatorsKit'), encounter.name || routesCopy('encounter')))
@@ -220,12 +249,9 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   }
 
   const opponentRow = (opponent: EncounterOpponent) => (
-    <UnitRow
-      kind="npc"
-      name={opponent.name}
-      note={opponentNote(opponent)}
-      readings={[{ label: opponent.statKind === 'sp' ? 'SP' : 'HP', value: opponent.maxHp }]}
-      trailing={
+    <OpponentRow
+      opponent={opponent}
+      menu={
         canWrite ? (
           <HeaderMenu
             variant="overflow"

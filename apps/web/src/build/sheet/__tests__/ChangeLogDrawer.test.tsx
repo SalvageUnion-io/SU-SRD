@@ -95,6 +95,8 @@ describe('ChangeLogDrawer', () => {
     await waitFor(() => expect(screen.getByText(/Callsign:/)).toBeTruthy())
     expect(screen.getByText('Wraith')).toBeTruthy()
     expect(screen.getByText('Override')).toBeTruthy()
+    // A rule's write wears no store word (r3 B4).
+    expect(screen.queryByText('Transaction')).toBeNull()
     // A hand edit is the plain case: no label, and never the field's code name (r2 C2).
     expect(screen.queryByText('Manual')).toBeNull()
     expect(screen.queryByText('callsign')).toBeNull()
@@ -103,7 +105,7 @@ describe('ChangeLogDrawer', () => {
     expect(acts).toEqual([{ gameId: null, name: 'changeLog.forEntity', args: { entityId: 'p1' } }])
   })
 
-  test("a chassis swap is one change in the sheet's words, and Restore puts all of it back", async () => {
+  test("a chassis swap is one change in the sheet's words, and each button reverses its own change", async () => {
     await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1' }))
     openRooms(null)
     const systems = [
@@ -120,7 +122,7 @@ describe('ChangeLogDrawer', () => {
       row({ _id: 'op0:currentHP', ts: 1_500_000_000_000, state: 'proposed', field: 'currentHP' }),
     ]
     answerActs(({ name }) => (name === 'changeLog.forEntity' ? entries : undefined))
-    const restored: Record<string, unknown>[] = []
+    const restored: string[][] = []
 
     connected(
       <ChangeLogDrawer
@@ -129,18 +131,19 @@ describe('ChangeLogDrawer', () => {
         entityName="Leaky"
         open
         onOpenChange={() => {}}
-        onRestore={(before) => restored.push(before)}
+        onRestore={(change) => restored.push(change.fields.map((f) => f.field))}
       />
     )
 
     await waitFor(() => expect(screen.getByText('Removed Rigging Arm, Red Laser')).toBeTruthy())
     expect(screen.getByText('Scrapper')).toBeTruthy()
     expect(screen.getByText('Mazona')).toBeTruthy()
-    // One Restore a change, and none for a proposal still unanswered.
-    const buttons = screen.getAllByRole('button', { name: 'Restore' })
-    expect(buttons).toHaveLength(2)
-    fireEvent.click(buttons[0] as HTMLElement)
-    expect(restored).toEqual([{ chassisRef: 'scrapper', systems }])
+    // One button a change, in the words of what it does (r3 B1), and none
+    // for a proposal still unanswered.
+    expect(screen.getAllByRole('button', { name: /^(Undo this change|Set back)/ })).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: /^Set back to A: Name/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Undo this change: Chassis/ }))
+    expect(restored).toEqual([['name'], ['chassisRef', 'systems']])
   })
 
   test('shows an empty state when the entity has no logged changes', async () => {

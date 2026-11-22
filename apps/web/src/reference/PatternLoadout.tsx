@@ -86,9 +86,10 @@ export function PatternLoadout({
   // A count over its chassis wears the one mark (R71); a loadout the book prints over wears none.
   const slots = (used: number, max: number) =>
     !capacity.asPrinted && used > max ? (
-      <>
+      // On a phone the mark sits under the figure (`.su-ledger__over`), so Scrap stays on screen.
+      <span className="su-ledger__over">
         {used}/{max} <RuleBreakMark />
-      </>
+      </span>
     ) : (
       `${used}/${max}`
     )
@@ -114,7 +115,13 @@ export function PatternLoadout({
       columns={COLUMNS}
       rows={rows}
       total={{
-        label: pagesCopy('total'),
+        // A printed total over its limit is the book's own, and says so.
+        label:
+          capacity.asPrinted &&
+          (capacity.systemSlotsUsed > capacity.systemSlotsMax ||
+            capacity.moduleSlotsUsed > capacity.moduleSlotsMax)
+            ? pagesCopy('totalAsPrinted')
+            : pagesCopy('total'),
         cells: [
           slots(capacity.systemSlotsUsed, capacity.systemSlotsMax),
           slots(capacity.moduleSlotsUsed, capacity.moduleSlotsMax),

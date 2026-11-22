@@ -6,13 +6,15 @@
  *
  * It waits for the player: the line stands until it is answered, dismissed, or
  * the sheet changes again (after which its Undo would write over the newer
- * change). One sheet holds one such line; the Change Log's Restore is the way
- * back after that.
+ * change), or the player leaves the sheet (`leaveSheet`, r3 B3). One sheet
+ * holds one such line; the Change Log is the way back after that.
  */
 
 import { toast } from '../../components/index'
+import { dismissChangeUndo } from '../../lib/changeUndoToast'
 import { componentsCopy } from '../../messages/components'
 import { onUnitWrite } from '../../replica/units'
+import { dismissRuleBreaks } from './ruleBreakToast.model'
 
 /** Sheets with a standing Undo line, by unit id. */
 const standing = new Set<string>()
@@ -50,4 +52,15 @@ export function undoToast(message: string, undo: () => void, sheetId: string) {
     },
     onDismiss: () => standing.delete(sheetId),
   })
+}
+
+/**
+ * The player left a sheet: every line that is about it goes with it (r3 B3).
+ * Its Undo, pressed from another page, would change a sheet nobody is looking
+ * at, and a rule-break line would read as the sheet now on screen.
+ */
+export function leaveSheet(sheetId: string): void {
+  sheetChanged(sheetId)
+  dismissChangeUndo(sheetId)
+  dismissRuleBreaks(sheetId)
 }

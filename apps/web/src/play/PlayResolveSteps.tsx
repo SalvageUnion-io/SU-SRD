@@ -57,7 +57,16 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
   const push = roll && controls.push && !controls.push.disabled ? controls.push : null
   const [settingArea, setSettingArea] = useState(false)
   // An Area Salvage rolls only while its area has Supply to spend.
-  const salvageOpen = salvage === undefined || (salvage.area !== null && salvage.area.supply > 0)
+  // Why Area Salvage has nothing to roll on: said in its note, and on the roll, which stands off.
+  const salvageShut =
+    salvage === undefined
+      ? undefined
+      : salvage.area === null
+        ? playCopy(salvage.onSetArea ? 'salvageNoAreaSolo' : 'salvageNoArea')
+        : salvage.area.supply <= 0
+          ? playCopy('salvagePickedClean')
+          : undefined
+  const salvageOpen = salvageShut === undefined
   return (
     <div className="su-play-resolve">
       {/* Mounted before the first roll, so the d20, its band and Apply are
@@ -106,15 +115,14 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
       {salvage && (
         <div style={AREA}>
           <p style={NOTE}>
-            {salvage.area === null
-              ? playCopy(salvage.onSetArea ? 'salvageNoAreaSolo' : 'salvageNoArea')
-              : salvage.area.supply <= 0
-                ? playCopy('salvagePickedClean')
+            {salvageShut ??
+              (salvage.area === null
+                ? ''
                 : playCopy('salvageArea', {
                     name: salvage.area.name === '' ? '' : `${salvage.area.name} · `,
                     tl: salvage.area.techLevel,
                     supply: salvage.area.supply,
-                  })}
+                  }))}
           </p>
           {salvage.onSetArea && (
             <Button
@@ -134,6 +142,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         roll={salvage ? salvage.roll : (roll?.roll ?? null)}
         stamp={push ? 'Push:' : undefined}
         onRoll={canWrite && salvageOpen ? (push ? push.onPush : controls.onRoll) : undefined}
+        off={salvageShut}
       />
       {controls.push?.lockedReason && <p style={NOTE}>{controls.push.lockedReason}</p>}
 

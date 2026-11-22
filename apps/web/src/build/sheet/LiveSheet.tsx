@@ -42,6 +42,7 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import type { BandStamp, PatternStamp } from './bandStamps.model'
 import { RailActs } from './RailActs'
 import { SheetBarStrip } from './SheetBarStrip'
+import { swapHere, useSheetEmbed } from './sheetEmbed.model'
 import type { SheetBand } from './sheetViewProps.model'
 
 /** The band's strip draws only the host's stamps: the unit's own chips are its body's. */
@@ -83,6 +84,7 @@ export type LiveSheetSegment = {
   label: string
   /** The unit's own name: its Mini in the condensed bar. */
   name: string
+  id?: string | undefined
   href: string
   /** The segment matching the sheet being viewed — rust fill, no nav. */
   active: boolean
@@ -337,13 +339,16 @@ export function LiveSheet({
 
   const title = quoted ? `“${name}”` : name
   const game = band?.game
+  // Inside another screen (Play's sheet pane): no `<main>`, and the phone switch swaps there.
+  const embed = useSheetEmbed()
+  const Root = embed ? 'div' : 'main'
 
   return (
     // The page's one `<main>` landmark, on every surface that draws a sheet
     // (the live, public and Starter Set sheets): none of their routes wraps
     // one, and `Sheet`'s not-found state is itself a `<main>`, so the landmark
     // belongs here rather than around `Sheet`.
-    <main
+    <Root
       className={cn(`su-sheet--${variant}`, 'su-page-gutters')}
       style={ROOT}
       data-variant={variant}
@@ -543,7 +548,7 @@ export function LiveSheet({
                   ) : (
                     <Button
                       key={segment.key}
-                      href={segment.href}
+                      {...(swapHere(embed, segment.key, segment.id) ?? { href: segment.href })}
                       size="compact"
                       className="su-page-action"
                       style={SEGMENT}
@@ -587,6 +592,6 @@ export function LiveSheet({
           </EntitySurfaceProvider>
         </div>
       </div>
-    </main>
+    </Root>
   )
 }

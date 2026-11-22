@@ -4,7 +4,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { mechFixture, npcFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { resetStores } from '../../replica/__tests__/resetStores'
@@ -44,6 +44,8 @@ describe('makeACopy', () => {
   test('its notice has a timer, as every action toast has', async () => {
     await copied()
     const [line] = open()
+    // It says what was copied, by the original's name (MD3-15).
+    expect((line as { title?: unknown }).title).toBe('Copied Leaky.')
     expect((line as { duration?: number }).duration).toBe(8000)
   })
 
@@ -131,13 +133,13 @@ describe('copying a pilot (r2 G6)', () => {
     const copy = pilots.find((p) => p.id !== 'p-ghost')
     const twin = mechs.find((m) => m.id !== 'm-rig')
     expect(copy?.callsign).toBe('Ghost 2')
-    expect(twin?.name).toBe('COPY OF Rig')
+    expect(twin?.name).toBe('Rig 2')
     expect(
       softLinks.some(
         (l) => l.type === 'mech-to-pilot' && l.from.id === twin?.id && l.to.id === copy?.id
       )
     ).toBe(true)
-    expect(String((open()[0] as { title?: unknown }).title)).toContain('with COPY OF Rig')
+    expect(String((open()[0] as { title?: unknown }).title)).toContain('with Rig.')
   })
 
   test('Pilot only leaves the mech alone', async () => {
@@ -153,6 +155,34 @@ describe('copying a pilot (r2 G6)', () => {
     await asked[0]?.alternate?.onConfirm()
     expect(useUnits.getState().pilots).toHaveLength(2)
     expect(useUnits.getState().mechs).toHaveLength(1)
+  })
+})
+
+// MD3-12: a copy of an NPC in a Game was made outside the Game.
+describe('copying an NPC', () => {
+  const copyOf = async (gameId: string | null) => {
+    const npc = await useUnits
+      .getState()
+      .adopt('npc', npcFixture({ id: 'n-vex', name: 'Warlord Vex', gameId }))
+    await copyAsking(
+      () => {},
+      'npc',
+      npc.name,
+      npc,
+      () => {}
+    )
+    return useUnits.getState().npcs.find((n) => n.id !== 'n-vex')
+  }
+
+  test('the copy stays in the Game its original is in', async () => {
+    const copy = await copyOf('g1')
+    expect(copy?.name).toBe('Warlord Vex 2')
+    expect(copy?.gameId).toBe('g1')
+    expect((open()[0] as { title?: unknown }).title).toBe('Copied Warlord Vex.')
+  })
+
+  test('one in no Game is copied into none', async () => {
+    expect((await copyOf(null))?.gameId ?? null).toBeNull()
   })
 })
 

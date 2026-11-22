@@ -28,7 +28,7 @@ export type Heard = ReadonlyMap<string, string>
 /**
  * What a toast is kept for (r2 C4): what needs a look. A proposal, the
  * Mediator's alert, the session starting and ending, Downtime beginning and
- * ending, and a roll the Mediator made. Every crewmate's vitals, actions,
+ * ending, the Mediator's role moving, and a roll the Mediator made. Every crewmate's vitals, actions,
  * boarding, assignments and rolls go to the Feed alone: a toast for each
  * stacked over the controls while three players stepped their vitals.
  * The Stop Sign and "Your turn" are pinned, never an event's toast.
@@ -39,6 +39,9 @@ function needsALook(event: TableEvent): boolean {
     case 'alert':
     case 'session':
     case 'downtime':
+    // Who runs the table, for everyone at it (r3 A4): the notices word it
+    // "You now mediate" for whoever it names.
+    case 'role':
       return true
     case 'roll':
       return event.mediator === true
@@ -54,7 +57,9 @@ function needsALook(event: TableEvent): boolean {
  * heard. After that an event toasts when it needs a look (`needsALook`) and is
  * new, or a rewrite changed its line (a revealed roll: the toast, keyed by the
  * event's id, updates in place). Never the viewer's own act, which their
- * screen already showed them.
+ * screen already showed them, and never a Mediator's own copy of a roll (a
+ * private or veiled one): those are the Feed's, so a hand over, which serves
+ * the new Mediator every earlier one at once, replays nothing (r3 A2).
  */
 export function eventsToToast(
   events: readonly TableEvent[],
@@ -66,11 +71,46 @@ export function eventsToToast(
   const toast = events
     .filter((event) => heard.get(event._id) !== event.text)
     .filter((event) => event.actorId !== viewerId)
-    // A hand over to the viewer needs their look: the notices word it ("You now mediate").
-    .filter((event) => needsALook(event) || (event.kind === 'role' && event.about === viewerId))
+    .filter((event) => event.private !== true && event.veiled !== true)
+    .filter(needsALook)
     .sort((a, b) => a.ts - b.ts)
   // An id the stream no longer serves stays heard: a line that scrolled off never toasts again.
   return { toast, heard: new Map([...heard, ...next]) }
+}
+
+/** What a Game's pinned strip is showing on this screen, as far as a toast would repeat it. */
+export type PinnedNow = {
+  /** The pinned alert's event id (`pinnedAlert`). */
+  alertId: string | null
+  /** The pinned hand over's event id (`pinnedRole`). */
+  roleId: string | null
+  /** "Session live" and its door are pinned: any screen but Play and the Game's own page. */
+  sessionLive: boolean
+  /** "Session ended" is pinned: on the Game's own pages (`onGamePages`). */
+  sessionEnded: boolean
+}
+
+/**
+ * Whether the pinned strip already says `event` to this viewer (r3 H2, chrome
+ * K5: a notice has one job): then it is not toasted too, where on a phone the
+ * toast landed over the strip with the same words. A proposal that is the
+ * viewer's to answer is always pinned, with Accept and Decline.
+ */
+export function pinnedSays(event: TableEvent, pinned: PinnedNow, viewerId: string | null): boolean {
+  switch (event.kind) {
+    case 'alert':
+      return event._id === pinned.alertId
+    case 'role':
+      return event._id === pinned.roleId
+    case 'proposal':
+      return viewerId !== null && event.about === viewerId
+    case 'session':
+      return event.session === 'start'
+        ? pinned.sessionLive
+        : event.session === 'end' && pinned.sessionEnded
+    default:
+      return false
+  }
 }
 
 /** When the newest group session the stream holds began; 0 with none. */
@@ -78,10 +118,23 @@ function sessionStart(events: readonly TableEvent[]): number {
   return Math.max(0, ...events.filter((event) => event.session === 'start').map((e) => e.ts))
 }
 
+/** When the newest group session the stream holds ended; 0 with none. */
+function sessionEnd(events: readonly TableEvent[]): number {
+  return Math.max(0, ...events.filter((event) => event.session === 'end').map((e) => e.ts))
+}
+
+/** When the viewer joined the Game, as the stream says it; 0 when that line is gone. */
+function joinedAt(events: readonly TableEvent[], viewerId: string | null): number {
+  const joins = events.filter((event) => event.kind === 'join' && event.actorId === viewerId)
+  return Math.max(0, ...joins.map((e) => e.ts))
+}
+
 /**
  * The Mediator's newest alert still worth pinning: recent, not dismissed, not
- * the viewer's own, and of the session now running: one sent before the newest
- * session began ended with its own (r2 C5).
+ * the viewer's own, and of the session now running. One sent before the newest
+ * session began ended with its own (r2 C5); one the session has ended since is
+ * done with it; and one sent before the viewer joined was never said to them
+ * (r3 H1).
  */
 export function pinnedAlert(
   events: readonly TableEvent[],
@@ -89,7 +142,7 @@ export function pinnedAlert(
   viewerId: string | null,
   now: number
 ): TableEvent | null {
-  const since = sessionStart(events)
+  const since = Math.max(sessionStart(events), sessionEnd(events), joinedAt(events, viewerId))
   const alerts = events
     .filter((event) => event.kind === 'alert' && event.actorId !== viewerId)
     .filter((event) => event.ts >= since)
@@ -146,6 +199,43 @@ export function onGamePages(
 }
 
 /**
+ * The Game whose pages `pathname` is one of (`onGamePages`), or null on a
+ * page that is no Game's: a Game's alert is never pinned over another Game's
+ * pages (r3 H1).
+ */
+export function gameOfPage(
+  pathname: string,
+  games: readonly { id: string; root: string; pilotRoots: readonly string[] }[]
+): string | null {
+  return games.find((game) => onGamePages(pathname, game.root, game.pilotRoots))?.id ?? null
+}
+
+/**
+ * One pinned notice as the strip stacks it (r3 H1). `answer` is one waiting
+ * on the viewer (a proposal), `turn` their turn; neither can be dismissed.
+ */
+export type StackedNotice = {
+  key: string
+  rank: 'answer' | 'turn' | 'news'
+  /** When it became news: the newest leads. */
+  ts: number
+  /** Whether Dismiss, and so Dismiss all, clears it. */
+  dismissible: boolean
+}
+
+const RANK = { answer: 0, turn: 1, news: 2 } as const
+
+/**
+ * The notices in the order the one strip shows them (r3 H1): what waits on
+ * the viewer's answer first, so Accept is never behind anything, then their
+ * turn, then the news, newest first. The strip shows the first and counts the
+ * rest.
+ */
+export function stackNotices<N extends StackedNotice>(notices: readonly N[]): N[] {
+  return [...notices].sort((a, b) => RANK[a.rank] - RANK[b.rank] || b.ts - a.ts)
+}
+
+/**
  * Which of the viewer's pilots the Mediator marked as up now, or null (r2
  * E1): the pinned "Your turn" strip, on every Play tab and on their sheet.
  */
@@ -188,4 +278,25 @@ export function leavingOnPurpose(gameId: string): () => void {
 export function gamesGone(before: readonly KnownGame[], now: readonly KnownGame[]): KnownGame[] {
   const still = new Set(now.map((game) => game._id))
   return before.filter((game) => !still.has(game._id) && !ownLeaving.delete(game._id))
+}
+
+/** Games whose Mediator role the viewer is handing on themselves: their own doing, so not announced. */
+const ownStandingDown = new Set<string>()
+
+/** The viewer is handing `gameId`'s Mediator role on themselves; call the answer if it did not happen. */
+export function standingDownOnPurpose(gameId: string): () => void {
+  ownStandingDown.add(gameId)
+  return () => {
+    ownStandingDown.delete(gameId)
+  }
+}
+
+/**
+ * Whether the viewer just stopped mediating `gameId`, not by their own doing
+ * (r3 A4): the Organiser took the role back or handed it on. Without this
+ * their Mediate screen just turns into "Only this Game's Mediator".
+ */
+export function lostRole(before: boolean | null, now: boolean, gameId: string): boolean {
+  if (before !== true || now) return false
+  return !ownStandingDown.delete(gameId)
 }

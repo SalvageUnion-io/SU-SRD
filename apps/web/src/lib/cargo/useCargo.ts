@@ -26,7 +26,7 @@ import type {
   CargoTransferResult,
   CargoUsage,
 } from './cargoTransfer'
-import { cargoTransfer, carrierCargoUsage, scrapPoolBucket } from './cargoTransfer'
+import { cargoTransfer, carrierCargoUsage, scrapPoolBucket, unstowAction } from './cargoTransfer'
 
 type UseCargoOptions = {
   /** The mech side of the boundary (null/undefined when no mech is docked). */
@@ -80,6 +80,13 @@ export type UseCargoResult = {
   poolBucket: (tl: number) => number
   /** Mech → crawler, whole lot. SCRAP lots deposit the TL pool bucket. */
   stow: (lotId: string) => Promise<CargoTransferResult>
+  /**
+   * Undo a stow (r3 F1): the lot back out of the bay, or its Scrap back out of
+   * its pool bucket, reduced against both sides as they now stand.
+   */
+  takeBack: (lot: CargoLot) => Promise<CargoTransferResult>
+  /** The mech whose hold this is, or null: the sheet a stow's Undo belongs to. */
+  carrierId: string | null
   /** Crawler → mech, cap-checked; bulk lots split and mint a new lot. */
   load: (lotId: string, qty?: number) => Promise<CargoTransferResult>
   /** Pool → mech as a bulk SCRAP lot (merges into a same-TL lot). */
@@ -135,7 +142,24 @@ export function useCargo({
     scrapPool: crawler?.scrapPool ?? {},
   }
 
-  async function dispatch(action: CargoTransferAction): Promise<CargoTransferResult> {
+  /** Both sides as the store holds them now, not as this render saw them. */
+  function freshState(): CargoBoundaryState {
+    const freshMech = (mech && storeState.get('mech', mech.id)) ?? mech
+    const freshCrawler = (crawler && storeState.get('crawler', crawler.id)) ?? crawler
+    return {
+      carrierLots: freshMech?.cargoLots ?? [],
+      carrierCargoCap: freshMech
+        ? mechMaxCargo(freshMech, undefined, { abilities: pilotAbilities })
+        : 0,
+      depotLots: freshCrawler?.cargoLots ?? [],
+      scrapPool: freshCrawler?.scrapPool ?? {},
+    }
+  }
+
+  async function dispatch(
+    action: CargoTransferAction,
+    from: CargoBoundaryState = state
+  ): Promise<CargoTransferResult> {
     if (readOnly) return { ok: false, reason: libCargoCopy('sheetIsReadOnly') }
     if (!mech)
       return {
@@ -150,7 +174,7 @@ export function useCargo({
     }
     if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
 
-    const result = cargoTransfer(state, action)
+    const result = cargoTransfer(from, action)
     if (!result.ok) return result
 
     // Both sides of the boundary commit together, in one server mutation, so a
@@ -255,6 +279,9 @@ export function useCargo({
     usage: carrierCargoUsage(state.carrierLots, state.carrierCargoCap),
     poolBucket: (tl) => scrapPoolBucket(state.scrapPool, tl),
     stow: (lotId) => dispatch({ type: 'stow', lotId }),
+    // Pressed from a toast, after the stow re-rendered nothing it holds: a fresh read.
+    takeBack: (lot) => dispatch(unstowAction(lot), freshState()),
+    carrierId: mech?.id ?? null,
     load: (lotId, qty) => dispatch({ type: 'load', lotId, qty }),
     withdrawScrap: (tl, qty) => dispatch({ type: 'withdraw-scrap', tl, qty }),
     addMechLot: (lot) => dispatchMechLocal({ type: 'add-carrier-lot', lot }),

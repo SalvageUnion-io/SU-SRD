@@ -8,11 +8,24 @@
 import { componentsCopy } from '../../messages/components'
 import { Stat } from './Stat'
 
-export function RuleBreakMark() {
+export function RuleBreakMark({
+  what,
+}: {
+  /**
+   * Which limit is broken, where the mark stands apart from its figure (a
+   * shelf's line, under the unit's name): "System Slots 13/12".
+   */
+  what?: string | undefined
+}) {
   return (
     // `data-rule-break` finds the mark on a rendered sheet (the R71 gate reads it).
     <span data-rule-break="">
-      <Stat size="mini" label={componentsCopy('ruleBreaking')} state="critical" />
+      <Stat
+        size="mini"
+        label={componentsCopy('ruleBreaking')}
+        {...(what === undefined ? {} : { value: what })}
+        state="critical"
+      />
     </span>
   )
 }

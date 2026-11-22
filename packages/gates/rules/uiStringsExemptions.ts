@@ -93,11 +93,6 @@ export const EXEMPTIONS: readonly StringExemption[] = [
     reason: 'The tail of a CSS `border-top` value in a style object.',
   },
   {
-    file: 'apps/web/src/play/games/OwnerSeal.tsx',
-    strings: ['transform, translate, scale, rotate'],
-    reason: 'A CSS `transition-property` value in a style object.',
-  },
-  {
     file: 'apps/web/src/play/tables.model.ts',
     strings: ['Core Mechanic', 'Critical Damage', 'Reactor Overload', 'Critical Injury'],
     reason:

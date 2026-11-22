@@ -2,7 +2,7 @@
  * LaunchPlay — a member's way into Play for a pilot from the Game hub: the
  * Game's door in its band (`GameBand`'s `actions`), **Open table**, or **Join
  * session** while a group session is live, and a dialog that asks which pilot
- * to play, its act **Play** and the pilot. The Mediator's own way in is the band's
+ * to play, its act the door and the pilot ("Open table as GHOST"). The Mediator's own way in is the band's
  * **Mediate** link; a Mediator who also plays a pilot here gets Play beside it,
  * and one who plays none sees no Play (`onlyWithPilots`).
  *
@@ -38,11 +38,11 @@ import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { ownableRows } from '../../lib/games/gameRoster'
 import { unitRowModel } from '../../lib/units/unitModel'
-import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
 import { useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
+import { sessionDoor, sessionDoorAs } from '../sessionDoor.model'
 import { OwnerSeal } from './OwnerSeal'
 
 /** The pilot a viewer is offered first: their first, in the roster's order. */
@@ -117,9 +117,9 @@ export function LaunchPlay({
   if (members === undefined) return null
   if (onlyWithPilots && pilots.length === 0) return null
 
-  // The Game's own door: Join session while one is live, else Open table. A
-  // pilot's door, here the dialog's act, says Play (glossary §9).
-  const door = live ? playCopy('joinSession') : playCopy('openTable')
+  // The door's one name (glossary §9): Join session while one is live, else
+  // Open table; the dialog's act adds the pilot.
+  const door = sessionDoor(live)
 
   function openPicker() {
     if (only !== null) return play(only)
@@ -176,12 +176,8 @@ export function LaunchPlay({
         empty={playGamesCopy('noneOfThisGamesPilots')}
         selected={selected}
         onSelect={setPicked}
-        // The pick is a pilot, so its act says Play and who (glossary §9).
-        confirmLabel={
-          chosen === null
-            ? playGamesCopy('play')
-            : playCopy('playPilot', { name: pilotCallsign(chosen.body) })
-        }
+        // The pick is a pilot, so its act says the door and who (glossary §9).
+        confirmLabel={chosen === null ? door : sessionDoorAs(live, pilotCallsign(chosen.body))}
         confirm={chosen === null ? undefined : launch}
       />
     </>

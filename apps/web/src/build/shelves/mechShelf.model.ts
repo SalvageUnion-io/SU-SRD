@@ -9,6 +9,7 @@ import type { LedgerSort } from '../../components/index'
 import { readReference } from '../../lib/readReference'
 import { mechScrap } from '../../lib/rules/mechScrap'
 import { localStore } from '../../lib/safeLocalStorage'
+import { buildShelvesCopy } from '../../messages/build-shelves'
 
 export type MechBuildFigures = {
   /** The chassis's Tech Level; none without a chassis. */
@@ -20,6 +21,8 @@ export type MechBuildFigures = {
   scrap: number
   /** A slot count is over its chassis's (the book's own printed loadout never is). */
   over: boolean
+  /** Which counts are over, in words: "System Slots 13/12" (r3 L5). */
+  overWhat?: string | undefined
 }
 
 const NONE: MechBuildFigures = {
@@ -43,15 +46,25 @@ export function mechBuildFigures(
         systems: mech.systems.map((ref) => ({ ref })),
         modules: mech.modules.map((ref) => ({ ref })),
       })
+      const systems = `${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`
+      const modules = `${capacity.moduleSlotsUsed}/${capacity.moduleSlotsMax}`
+      const broken = capacity.asPrinted
+        ? []
+        : [
+            ...(capacity.systemSlotsUsed > capacity.systemSlotsMax
+              ? [buildShelvesCopy('systemSlotsOver', { count: systems })]
+              : []),
+            ...(capacity.moduleSlotsUsed > capacity.moduleSlotsMax
+              ? [buildShelvesCopy('moduleSlotsOver', { count: modules })]
+              : []),
+          ]
       return {
         techLevel: chassis.techLevel,
-        systems: `${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`,
-        modules: `${capacity.moduleSlotsUsed}/${capacity.moduleSlotsMax}`,
+        systems,
+        modules,
         scrap: mechScrap(mech).total,
-        over:
-          !capacity.asPrinted &&
-          (capacity.systemSlotsUsed > capacity.systemSlotsMax ||
-            capacity.moduleSlotsUsed > capacity.moduleSlotsMax),
+        over: broken.length > 0,
+        ...(broken.length > 0 ? { overWhat: broken.join(' · ') } : {}),
       }
     },
     NONE

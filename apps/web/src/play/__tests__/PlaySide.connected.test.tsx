@@ -322,7 +322,7 @@ describe('the Feed (play.md §8)', () => {
     ])
   })
 
-  test('Accept applies the proposal and lands on the Feed as a change', async () => {
+  test('Accept applies the proposal; the table’s own line says it, so this screen adds none (r3 A5)', async () => {
     answers()
     await renderSide()
     await act(async () => {
@@ -331,7 +331,7 @@ describe('the Feed (play.md §8)', () => {
     await waitFor(() =>
       expect(acts).toEqual([{ gameId: GAME, name: 'ops.accept', args: { opId: 'p-1' } }])
     )
-    await waitFor(() => expect(feed().getByText('You · Applied · Bonesaw HP → 5')).toBeTruthy())
+    expect(feedLines().some((line) => line.includes('Applied'))).toBe(false)
   })
 
   test('solo shows only my own', async () => {

@@ -10,6 +10,7 @@ import { parseUnit } from 'game-domain/ops/applyOp'
 import { pilotLabelOf } from 'game-domain/pilotLabel'
 import type { ApplyOp, OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
+import { hiddenFrom, readerOf } from './readers'
 import type { GameStore, Member, StoredOp, UnitRow } from './store'
 
 /**
@@ -279,21 +280,23 @@ export class GameUnits {
     })
   }
 
-  /** Every unit, for any member to read. Non-members read nothing (ADR-030 §5). */
+  /** Every unit `actor` may read (`readerOf`): an NPC is not every member's (r3 A3). */
   list(actor: string): UnitRow[] {
-    if (this.store.member(actor) === null) return []
-    return this.store.units()
+    return this.store.units().filter(readerOf(this.store, actor))
   }
 
-  /** The Game's wiring, for any member. */
+  /** The Game's wiring, for any member: never a link to a unit they may not read. */
   links(actor: string): LinkShape[] {
     if (this.store.member(actor) === null) return []
-    return this.store.links()
+    const hidden = hiddenFrom(this.store, actor)
+    return this.store.links().filter((l) => !hidden.has(l.from.id) && !hidden.has(l.to.id))
   }
 
   /** One unit's op log, newest first, for its Change Log. */
   history(actor: string, unitId: string): StoredOp[] {
+    const unit = this.store.unit(unitId)
     if (this.store.member(actor) === null) return []
+    if (unit !== null && !readerOf(this.store, actor)(unit)) return []
     return this.store.opsOf(unitId).reverse()
   }
 

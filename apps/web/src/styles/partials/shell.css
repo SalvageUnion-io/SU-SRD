@@ -144,6 +144,17 @@
   }
 }
 
+/* Each tab's name on one line: centred from the bar's middle, the switcher
+   is offered only half the row, which broke "Training Bay" in two on a 320px
+   phone. It stops short of the logo and the menu button either side, so
+   under that (a phone zoomed to 200%) the names wrap, as they must. */
+@media not (width >= 40rem) {
+  .su-union-bar__switch {
+    max-width: calc(100% - 2 * (var(--su-union-bar-control) + var(--space-16)));
+    width: max-content;
+  }
+}
+
 /* Below `sm` "Reference" is "Ref" (`data-short`; its `aria-label` keeps
    its name), centred in a square of the bar's control height. The tracking
    trails its last letter, so the word takes it back to sit centred. */
@@ -216,7 +227,7 @@
   width: 14rem;
 }
 
-/* Below `sm` the switcher's three tabs (Reference | Build | Play) set at the
+/* Below `sm` the switcher's three tabs (Reference | Training Bay | Games) set at the
    11px type floor (ruleset §4.6), tight-tracked and closer-padded: at the
    desktop's 13px wide caps the third tab cost the row about 58px, past a
    400px phone. Their height stays the bar's one control height. */

@@ -24,9 +24,11 @@ export type PlayRollInstrumentProps = {
   stamp?: string
   /** Roll it; absent, the stamp only reads. */
   onRoll?: () => void
+  /** Why there is nothing to roll now (no area to salvage): the roll stands as a Button, off. */
+  off?: string | undefined
 }
 
-export function PlayRollInstrument({ table, roll, stamp, onRoll }: PlayRollInstrumentProps) {
+export function PlayRollInstrument({ table, roll, stamp, onRoll, off }: PlayRollInstrumentProps) {
   const data = SalvageUnionReference.RollTables.getByName(table)?.table as
     | RefObjectTable
     | undefined
@@ -38,6 +40,7 @@ export function PlayRollInstrument({ table, roll, stamp, onRoll }: PlayRollInstr
       size="mini"
       stamp={stamp}
       onRoll={onRoll}
+      off={off}
       // The bar names the table it rolls on, as the Tables column's does.
       title={table}
       table={{

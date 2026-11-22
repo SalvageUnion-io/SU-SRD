@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { RefEntity, RefEnumSchemaName, SearchResult } from 'salvageunion-reference'
-import { getEntitySchemas, search } from 'salvageunion-reference'
+import { getEntitySchemas, search, searchOneSlipAway } from 'salvageunion-reference'
 import { schemaPluralLabel } from '../../lib/schemaLabels'
 import { compositionsCopy } from '../../messages/components-compositions'
 import { loadingCopy } from '../containers/loadingCopy'
@@ -104,28 +104,40 @@ function squashed(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '')
 }
 
+/** The shortest query a slip is forgiven in, as an entity's name is. */
+const SLIP_MIN_LENGTH = 4
+
 function matchSchemas(query: string, slots: number): SearchComboboxResult[] {
   const q = query.toLowerCase().trim()
   if (!q) return []
   // A kind is found without its punctuation too: "biotitan" finds Bio-Titans.
   const bare = squashed(q)
 
-  return getEntitySchemas()
-    .filter(
-      (s) =>
-        s.displayName.toLowerCase().includes(q) ||
-        s.displayNamePlural.toLowerCase().includes(q) ||
-        s.id.includes(q) ||
-        (bare.length > 2 && squashed(s.displayNamePlural).includes(bare))
-    )
-    .slice(0, slots)
-    .map((s) => ({
-      kind: 'schema' as const,
-      id: `schema:${s.id}`,
-      title: s.displayNamePlural,
-      group: 'Category',
-      schemaId: s.id as RefEnumSchemaName,
-    }))
+  const literal = getEntitySchemas().filter(
+    (s) =>
+      s.displayName.toLowerCase().includes(q) ||
+      s.displayNamePlural.toLowerCase().includes(q) ||
+      s.id.includes(q) ||
+      (bare.length > 2 && squashed(s.displayNamePlural).includes(bare))
+  )
+  // With no kind named as typed, one a slip away ("chasis" finds Chassis):
+  // the forgiveness an entity's name gets (`searchOneSlipAway`).
+  const found =
+    literal.length > 0 || q.length < SLIP_MIN_LENGTH
+      ? literal
+      : getEntitySchemas().filter((s) =>
+          [s.displayName, s.displayNamePlural].some((name) =>
+            searchOneSlipAway(q, name.toLowerCase())
+          )
+        )
+
+  return found.slice(0, slots).map((s) => ({
+    kind: 'schema' as const,
+    id: `schema:${s.id}`,
+    title: s.displayNamePlural,
+    group: 'Category',
+    schemaId: s.id as RefEnumSchemaName,
+  }))
 }
 
 /** Every match is counted up to here; a search this wide is not a list anyone reads. */

@@ -15,7 +15,7 @@ import { crawlerFixture, mechFixture, pilotFixture } from '../../components/__te
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
 import { ToasterMount } from '../../components/index'
-import { PLAY_TXN } from '../../replica/provenance'
+import { PLAY_TXN, PLAY_UNDO } from '../../replica/provenance'
 import type { ChangeMeta, EntityType } from '../../replica/units'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from '../PlayUnits'
 
@@ -59,7 +59,8 @@ describe('a live pilot', () => {
   })
 
   // r2 C6: the phone's pinned strip said "HP 10 → 8 · Undo"; the desktop box said nothing.
-  test('a change says itself with Undo, and Undo writes back what the run started from', async () => {
+  // r3 B2: each change has its own Undo; a second press replaces the line.
+  test('a change says itself with Undo, and Undo takes back the last change alone', async () => {
     const { store, updates } = recordingStore()
     render(
       <>
@@ -72,14 +73,16 @@ describe('a live pilot', () => {
     fireEvent.click(minus)
     const undo = await screen.findByRole('button', { name: 'Undo' })
     const line = undo.closest('[data-sonner-toast]')?.textContent ?? ''
-    expect(line).toContain('HP 7')
+    expect(line).toContain('HP 6')
     expect(line).toContain('5')
     fireEvent.click(undo)
     expect(updates.map((u) => u.patch)).toEqual([
       { currentHP: 6 },
       { currentHP: 5 },
-      { currentHP: 7 },
+      { currentHP: 6 },
     ])
+    // The write Undo makes says it is one, so the table's line is marked.
+    expect(updates.at(-1)?.meta).toEqual(PLAY_UNDO)
   })
 
   // LG-03: the gauge shows what the server last answered, so three presses
@@ -112,10 +115,11 @@ describe('a live pilot', () => {
     expect(updates.map((u) => u.patch)).toEqual([{ currentAP: 0 }, { currentAP: 0 }])
   })
 
+  // In Play ← / → move between a vital's controls (r3 J4): ↑ / ↓ set the slider.
   test('the gauge is a slider too: an arrow key is the same write', () => {
     const { store, updates } = recordingStore()
     render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
-    fireEvent.keyDown(screen.getByRole('slider', { name: 'HP' }), { key: 'ArrowRight' })
+    fireEvent.keyDown(screen.getByRole('slider', { name: 'HP' }), { key: 'ArrowUp' })
     expect(updates.map((u) => u.patch)).toEqual([{ currentHP: 8 }])
   })
 

@@ -97,10 +97,11 @@ describe('the Mechs shelf columns', () => {
       'EP',
       'Heat',
     ])
-    // A phone keeps the chassis and the Scrap.
+    // A phone keeps the chassis and the build's cost: Cost, never a bare
+    // Scrap that reads as what the hold carries (r3 F2).
     expect(MECH_COLUMNS.filter((column) => column.phone).map((column) => column.key)).toEqual([
       'chassis',
-      'Scrap',
+      'Cost',
     ])
   })
 })

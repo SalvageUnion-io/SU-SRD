@@ -271,6 +271,17 @@
   justify-content: flex-end;
 }
 
+/* A line's end keeps each control whole, and its column the room for them:
+   its ⋯ never gives its width to the button before it, nor the button runs
+   over the figure beside it (a pattern's Build With This, r3 L5). */
+.su-ledger__trailing-line {
+  min-width: max-content;
+}
+
+.su-ledger__trailing-line > :is(a, button) {
+  flex-shrink: 0;
+}
+
 /* The list's name keeps to one line from sm (in a Box a title wraps): it
    stands over the name column, which its rows' names set. */
 @media (width >= 40rem) {
@@ -409,6 +420,12 @@
     width: auto;
   }
 
+  /* A figure over its cap: its mark drops under it, so the column stays a
+     figure wide and the table keeps the ones after it on screen. */
+  .su-ledger__over > [data-rule-break] {
+    display: block;
+  }
+
   /* A list with no phone column: its quiet line drops under the name. */
   .su-ledger__table[data-phone-line] tr {
     display: block;
@@ -462,12 +479,18 @@
     padding-inline: var(--space-4);
   }
 
-  /* A count's steps take a 44px target on a phone, each its own (SB-17): a
-     step draws 40px wide at its chip's height (R12), in a 44px row, and its
-     hit area reaches the 44px, the − over the count's edge and the + over
-     the cell's padding, so neither passes the frame (R44). */
+  /* A count's steps are a fingertip's on a phone, each its own (SB-17, r3 I4):
+     a step draws 40px square in a 44px row (R12), the count at its chip's
+     height between them, and its hit area reaches the 44px, the − over the
+     count's edge and the + over the cell's padding, so neither passes the
+     frame (R44). */
   .su-ledger__table tbody [data-kind='trailing'] .su-step-btn--cell {
+    min-height: var(--space-40);
     min-width: var(--space-40);
+  }
+
+  .su-ledger__table tbody [data-kind='trailing'] .su-stat-stepper > .su-stat-cell {
+    align-self: center;
   }
 
   .su-ledger__table tbody [data-kind='trailing'] .su-step-btn--cell::after {

@@ -46,9 +46,9 @@ describe('its doors', () => {
     ariaLabel: 'Mediate The Rust Belt Run',
   }
   const BONESAW = {
-    label: 'Play Bonesaw',
+    label: 'Open table',
     href: '/pilots/p1/play',
-    ariaLabel: 'Play Bonesaw in The Rust Belt Run',
+    ariaLabel: 'Open table as Bonesaw in The Rust Belt Run',
   }
 
   const START = {
@@ -74,18 +74,18 @@ describe('its doors', () => {
     expect(gameDoors({ ...GAME, mediator: true }, [], true)).toEqual([MEDIATE])
   })
 
-  test('a player gets a door for every pilot of theirs', () => {
+  test('a player gets a door for every pilot of theirs, told apart by callsign', () => {
     expect(
       gameDoors(GAME, [
         { id: 'p1', name: 'Bonesaw' },
         { id: 'p2', name: 'Driftwood' },
       ])
     ).toEqual([
-      BONESAW,
+      { ...BONESAW, label: 'Open table · Bonesaw' },
       {
-        label: 'Play Driftwood',
+        label: 'Open table · Driftwood',
         href: '/pilots/p2/play',
-        ariaLabel: 'Play Driftwood in The Rust Belt Run',
+        ariaLabel: 'Open table as Driftwood in The Rust Belt Run',
       },
     ])
   })
@@ -94,10 +94,14 @@ describe('its doors', () => {
     expect(gameDoors(GAME, [])).toEqual([])
   })
 
-  test('once a session is live: Mediate, and a pilot’s door still says Play and the pilot', () => {
+  test('once a session is live: Mediate, and the seat’s door reads Join session (r3 H3)', () => {
     expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }], true)).toEqual([
       MEDIATE,
-      BONESAW,
+      {
+        label: 'Join session',
+        href: '/pilots/p1/play',
+        ariaLabel: 'Join session as Bonesaw in The Rust Belt Run',
+      },
     ])
   })
 })

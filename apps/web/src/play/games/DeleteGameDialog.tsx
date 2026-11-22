@@ -20,8 +20,11 @@
  * clicked.
  *
  * What genuinely does not survive is named too — the invite link, the
- * opposition tray, and the crew's wiring. Softening that would be the failure
- * mode of a confirm dialog: it exists to be read once, correctly.
+ * Opposition on the field, and the crew's wiring. Softening that would be the
+ * failure mode of a confirm dialog: it exists to be read once, correctly. The
+ * field's units are copies made for a fight and end with the Game
+ * (`roster.disband`); the NPCs and encounters they were drawn from stay with
+ * their maker, and the dialog says that too (MD3-03).
  *
  * ## A template's untouched units can go with it (MD2-02)
  *
@@ -41,7 +44,7 @@ import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { ConfirmDialog } from '../../components/app'
-import { Checkbox, Stack, Text } from '../../components/index'
+import { Checkbox, Stack, Text, toast } from '../../components/index'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
@@ -119,6 +122,8 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       undo()
       throw err
     }
+    // It landed, said back to whoever did it (r3 A4).
+    toast.success(playGamesCopy('gameDeleted', { game: game.name }))
     // The dialog then closes itself, through `onOpenChange(false)` → `onClose`.
     onDeleted?.()
   }
@@ -184,6 +189,8 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
           )}
 
           <Text variant="hint">{playGamesCopy('theCrewItsInviteLink')}</Text>
+          {/* What stays (MD3-03): a fielded unit is a copy, and goes; its design does not. */}
+          <Text variant="hint">{playGamesCopy('whatWasPreparedStays')}</Text>
 
           {untouched > 0 && (
             <span style={ALSO}>

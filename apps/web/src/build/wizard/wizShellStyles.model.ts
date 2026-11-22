@@ -39,35 +39,13 @@ export const ctaLockedStyle = {
   opacity: 1,
 } satisfies CSSProperties
 
-export const shellStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-} satisfies CSSProperties
-
-/** Under a page's own band: the shell's column, as tall as its content. */
-export const shellUnderBandStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-} satisfies CSSProperties
-
-/** A column on a phone, a row from lg (`.su-wiz-body`). */
-export const bodyStyle = { display: 'flex', flex: '1 1 0%' } satisfies CSSProperties
-
-/** Its padding grows at lg (`.su-wiz-main`). */
-export const mainStyle = {
-  display: 'flex',
-  flex: '1 1 0%',
-  flexDirection: 'column',
-  minWidth: 0,
-} satisfies CSSProperties
-
-/** The step's frame, over the action bar's strip. */
-export const stepFrameStyle = {
-  flex: '1 1 0%',
-  minHeight: 0,
-  // The action bar is a reserved strip under the step, so this is a block gap.
-  paddingBottom: tokens.space[24],
-} satisfies CSSProperties
+/*
+ * The shell's own layout (its column, the rail-and-pane row, the pane's
+ * column, the step's frame, the action bar's strip) is `wizard.css`'s
+ * `.su-wiz-shell`, `.su-wiz-body`, `.su-wiz-main`, `.su-wiz-step-frame` and
+ * `.su-wiz-footer`: paper lays the step out as a plain block (`print.css`, r3
+ * E1), and a style object's `display` beats every stylesheet rule.
+ */
 
 /** The step's head: its number stamp and its title on one line, over the frame. */
 export const stepHeadStyle = {
@@ -116,9 +94,9 @@ export const stepNoteStyle = {
 
 /** The Review step's keep-as-a-file row, ruled off under the build. */
 export const keepRowStyle = {
-  borderTop: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
-  margin: `${tokens.space[20]} 0 0`,
-  paddingTop: tokens.space[12],
+  borderBottom: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
+  margin: `0 0 ${tokens.space[16]}`,
+  paddingBottom: tokens.space[12],
 } satisfies CSSProperties
 
 /** The line under a step's title (signed out: saving needs a sign-in). */
@@ -127,15 +105,6 @@ export const tryNoteStyle = {
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.body,
   margin: `0 0 ${tokens.space[12]}`,
-} satisfies CSSProperties
-
-/** Pinned to the viewport's foot; its ground, rule and bleed are `.su-wiz-footer`'s. */
-export const footerPillStyle = {
-  alignItems: 'flex-end',
-  display: 'flex',
-  flexDirection: 'column',
-  position: 'sticky',
-  zIndex: tokens.layer.sticky,
 } satisfies CSSProperties
 
 /** The action bar's prompt: one line over the bar, the footer's width. */

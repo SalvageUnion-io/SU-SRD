@@ -746,7 +746,13 @@ describe('Area Salvage (Core Book p.248)', () => {
     )
     clickActionByName(container, 'Area Salvage')
     expect(screen.getByText(/No area to salvage/)).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Roll the die on Area Salvage' })).toBeNull()
+    // The roll stands as a Button, off, saying why: never a heading that looks pressable (r3 L4).
+    const off = screen.getByRole<HTMLButtonElement>('button', {
+      name: 'Roll the die on Area Salvage',
+    })
+    expect(off.disabled).toBe(true)
+    expect(off.title).toMatch(/No area to salvage/)
+    expect(container.querySelector('.su-play-resolve .su-roll__stamp')).toBeNull()
     rerender(
       <ActionsDeck
         mech={null}
@@ -757,5 +763,8 @@ describe('Area Salvage (Core Book p.248)', () => {
       />
     )
     expect(screen.getByText('This area is picked clean.')).toBeTruthy()
+    expect(
+      screen.getByRole<HTMLButtonElement>('button', { name: 'Roll the die on Area Salvage' }).title
+    ).toBe('This area is picked clean.')
   })
 })

@@ -49,10 +49,10 @@ export async function joinByInvite(page: Page, token: string): Promise<string> {
  * naming it that still offers its seal.
  */
 async function assignToMe(page: Page, name: string): Promise<void> {
-  const seal = page.getByRole('button', { name: /— assign this to you$/ })
+  const seal = page.getByRole('button', { name: /^Assign to me: / })
   const crew = page.getByRole('table', { name: 'Crew' })
   const row = crew.locator('tr', { hasText: name }).filter({ has: seal }).last()
-  await row.getByRole('button', { name: /— assign this to you$/ }).click()
+  await row.getByRole('button', { name: /^Assign to me: / }).click()
   const confirm = page.getByRole('alertdialog')
   await confirm.getByRole('button', { name: 'Assign to me' }).click()
   await expect(confirm).toBeHidden({ timeout: 15_000 })
@@ -61,7 +61,7 @@ async function assignToMe(page: Page, name: string): Promise<void> {
 /**
  * Start a Starter Set Game, mediate it, take Bonesaw and, with him, his Scrapper. Leaves
  * the page on the Game's own page; resolves to the Game's id and name, which
- * the Play landing's doors are named by ("Play Bonesaw in <name>").
+ * the Play landing's doors are named by ("Open table as Bonesaw in <name>").
  *
  * The Mediator is waited for by the band's Mediate door: it alone says who
  * mediates, with no stamp beside it.

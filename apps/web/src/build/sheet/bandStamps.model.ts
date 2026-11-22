@@ -116,7 +116,13 @@ export function mechPatternStamp(
     systems?: readonly string[]
     modules?: readonly string[]
   },
-  saved: (patternId: string) => SavedPattern | undefined
+  saved: (patternId: string) => SavedPattern | undefined,
+  /**
+   * The saved pattern is known to be gone (r3 G3): nobody holds it and its
+   * page answers nothing, as after its maker deleted it. The chip then says
+   * so and links nowhere, where a link would open "not available".
+   */
+  gone = false
 ): PatternStamp | undefined {
   const differs = (systems: readonly string[], modules: readonly string[]) =>
     mech.systems !== undefined &&
@@ -125,7 +131,11 @@ export function mechPatternStamp(
   if (mech.sourcePattern) {
     const held = saved(mech.sourcePattern)
     const href = savedPatternHref(mech.sourcePattern)
-    if (held === undefined) return { name: buildSheetCopy('aSavedPattern'), href }
+    if (held === undefined) {
+      return gone
+        ? { name: buildSheetCopy('patternDeleted') }
+        : { name: buildSheetCopy('aSavedPattern'), href }
+    }
     if (typeof held === 'string') return { name: held, href }
     if (held.chassisRef !== mech.chassisRef) return undefined
     return {

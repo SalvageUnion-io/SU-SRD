@@ -1,3 +1,4 @@
+import { PRODUCT } from 'game-domain/product'
 import { appPath } from '../../lib/appBase'
 import { unionBarCopy } from '../../messages/components-union-bar'
 
@@ -29,7 +30,7 @@ export const AREA_NAV = {
     ],
   },
   build: {
-    name: unionBarCopy('navBuild'),
+    name: PRODUCT.build,
     links: [
       // In-page links: each `#id` is on the Training Bay signed in (its
       // shelves) and on its front door signed out (`areaAnchors` is checked
@@ -42,7 +43,7 @@ export const AREA_NAV = {
     ],
   },
   play: {
-    name: unionBarCopy('navPlay'),
+    name: PRODUCT.play,
     links: [
       { label: unionBarCopy('navYourGames'), href: appPath('/games/') },
       { label: unionBarCopy('navJoin'), href: appPath('/games/#join') },

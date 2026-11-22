@@ -3,6 +3,7 @@ import {
   ACCOUNT_HINT_KEY,
   clearAccountHint,
   LAST_GAME_KEY,
+  lastGameAmong,
   readAccountHint,
   readLastGame,
   STORED_SESSION_KEY,
@@ -109,5 +110,28 @@ describe('account hint', () => {
     expect(link.textContent).toBe('Rust Run')
     expect(link.getAttribute('href')).toBe('/build/games/g1')
     document.body.replaceChildren()
+  })
+})
+
+describe('the Game the home names (r3 I4)', () => {
+  const games = [
+    { id: 'g1', name: 'Rust Belt' },
+    { id: 'g2', name: 'Deep Salvage' },
+  ]
+
+  test('a device that has opened none names the account’s first Game', () => {
+    expect(lastGameAmong(null, games)).toEqual({ id: 'g1', name: 'Rust Belt' })
+  })
+
+  test('the one last opened here stays, under its current name', () => {
+    expect(lastGameAmong({ id: 'g2', name: 'Old name' }, games)).toEqual({
+      id: 'g2',
+      name: 'Deep Salvage',
+    })
+  })
+
+  test('a Game the account has left gives way to one it is in; with none, nothing is named', () => {
+    expect(lastGameAmong({ id: 'gone', name: 'Gone' }, games)?.id).toBe('g1')
+    expect(lastGameAmong(null, [])).toBeNull()
   })
 })

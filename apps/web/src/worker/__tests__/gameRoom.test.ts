@@ -56,16 +56,15 @@ function room(gameId: string, env: Record<string, unknown> = {}) {
 }
 
 /** Shelves the Game room hands units to, recording what each was given. */
-const shelves = new Map<string, { parcels: UnitParcel[]; trays: unknown[]; left: string[] }>()
+const shelves = new Map<string, { parcels: UnitParcel[]; left: string[] }>()
 Object.assign(exports, {
   GameRoom: { getByName: (name: string) => made.get(name) },
   AccountRoom: {
     getByName: (userId: string) => {
-      const shelf = shelves.get(userId) ?? { parcels: [], trays: [], left: [] }
+      const shelf = shelves.get(userId) ?? { parcels: [], left: [] }
       shelves.set(userId, shelf)
       return {
         accept: async (parcel: UnitParcel) => void shelf.parcels.push(parcel),
-        fileTray: async (_lease: string, npcs: unknown[]) => void shelf.trays.push(npcs),
         leftGame: async (gameId: string) => void shelf.left.push(gameId),
       }
     },
@@ -165,10 +164,9 @@ describe('the Game room Durable Object', () => {
     })
     expect(await game.disband(ORGANIZER)).toEqual({ ok: true, value: null })
     expect(shelves.get(PLAYER)?.parcels.map((p) => p.unit.id)).toEqual(['p1'])
-    // Each NPC keeps its id, which the shelf files it by.
-    expect(shelves.get(ORGANIZER)?.trays).toMatchObject([
-      [{ id: expect.any(String), name: 'Raider' }],
-    ])
+    // What was on the field went with the Game (MD3-03): a shelf here has no
+    // act that takes a tray, so handing one over would have failed the ending.
+    expect(shelves.get(ORGANIZER)?.parcels.map((p) => p.unit.kind)).not.toContain('npc')
     // Each member's room drops the Game from its list.
     expect(shelves.get(ORGANIZER)?.left).toEqual(['g-end'])
     expect(shelves.get(PLAYER)?.left).toEqual(['g-end'])

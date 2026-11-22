@@ -393,7 +393,11 @@ describe('a solo Downtime, end to end', () => {
       expect(onHand.queryByText(/Vornaya/)).toBeNull()
       await click(onHand.getByRole('button', { name: 'Roll d20' }))
       expect(heard.at(-1)).toMatchObject({ tableName: 'Gather Cantina Rumours', rolls: [14] })
-      expect(onHand.getByText('14 · The Mediator says what you hear.')).toBeTruthy()
+      // Solo there is no Mediator to send the player to (r3 L2).
+      expect(onHand.queryByText(/Mediator/)).toBeNull()
+      expect(
+        onHand.getByText('14 · Solo, what you hear is yours to say, or roll a rumour table.')
+      ).toBeTruthy()
       const field = screen.getByRole('button', { name: 'Expand Field actions' })
       expect(field.getAttribute('aria-expanded')).toBe('false')
       await click(field)
@@ -404,6 +408,51 @@ describe('a solo Downtime, end to end', () => {
     } finally {
       stop()
     }
+  })
+})
+
+// r3 L2 (SB3-06): a greyed Open said nothing about why, or what to make first.
+describe('Downtime’s dead ends say why', () => {
+  test('solo with no crawler: Craft · Trade needs a Union Crawler, and links to making one', () => {
+    const { pilot, mech } = units()
+    const { store } = stubStore(pilot, mech)
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={store}
+        writes={[]}
+        downtime={{ stepIndex: 0 }}
+      />
+    )
+    const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
+    expect(onHand.queryByRole('button', { name: 'Open' })).toBeNull()
+    expect(onHand.getByText('Needs a Union Crawler')).toBeTruthy()
+    expect(onHand.getByRole('link', { name: 'Make a Union Crawler' }).getAttribute('href')).toBe(
+      '/crawlers/new'
+    )
+  })
+
+  test('in a Game the rumour is the Mediator’s to answer, and a missing crawler offers no wizard', async () => {
+    const { pilot, mech } = units()
+    const { store } = stubStore(pilot, mech)
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        gameId="g1"
+        store={store}
+        writes={[]}
+        downtime={{ stepIndex: 0 }}
+      />
+    )
+    const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
+    expect(onHand.getByText('Needs a Union Crawler')).toBeTruthy()
+    expect(onHand.queryByRole('link')).toBeNull()
+    await click(onHand.getByRole('button', { name: 'Roll d20' }))
+    expect(onHand.getByText('14 · The Mediator says what you hear.')).toBeTruthy()
   })
 })
 

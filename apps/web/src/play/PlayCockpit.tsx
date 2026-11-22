@@ -53,7 +53,7 @@ import { runWrite } from '../lib/runWrite'
 import { useTabTitle } from '../lib/useTabTitle'
 import { playCopy } from '../messages/play'
 import { routesCopy } from '../messages/routes'
-import { PLAY_TXN } from '../replica/provenance'
+import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
 import { useTableRead } from '../replica/useTable'
@@ -91,7 +91,7 @@ import { situationRows, useSituationMoves } from './useSituationMoves'
 import { useStopSign } from './useStopSign'
 import { useTableMode } from './useTableMode'
 import { useWakeLock } from './useWakeLock'
-import { headedVital, vitalSettled } from './vitalWrites.model'
+import { headedVital, vitalNow, vitalSettled } from './vitalWrites.model'
 
 /** The Rules pane holds the Reference's own frame, edge to edge. */
 const RULES = { margin: `calc(-1 * ${tokens.space[8]})` } satisfies CSSProperties
@@ -170,9 +170,10 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     const shown = tableUnits(pinned)
       .find((u) => u.kind === kind)
       ?.vitals.find((v) => v.field === field)
-    const from = label === undefined ? undefined : shown?.value
     // A press steps from where the vital is heading, so quick ones all apply (LG-03).
     const key = `${id}:${field}`
+    // Undo takes back this change alone: from where the vital stood just before it (r3 B2).
+    const from = label === undefined || shown === undefined ? undefined : vitalNow(key, shown.value)
     const to = shown === undefined ? next : headedVital(key, shown.value, next, shown.max)
     runWrite(() =>
       useUnits
@@ -189,7 +190,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
         // An amount more than there was says it was capped (r2 C6).
         ...(note === undefined ? {} : { did: note }),
         undo: (value) =>
-          runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_TXN)),
+          runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_UNDO)),
       })
   }
   const openTab = (next: PlayerPane) => {

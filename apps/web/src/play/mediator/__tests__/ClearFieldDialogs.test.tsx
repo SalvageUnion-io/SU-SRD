@@ -25,7 +25,7 @@ describe('Clear the field (MD-19)', () => {
       />
     )
     const dialog = within(screen.getByRole('alertdialog', { name: 'Clear the field?' }))
-    expect(dialog.getByText(/removes 4 NPCs from the Opposition/)).toBeTruthy()
+    expect(dialog.getByText(/removes 4 units from the Opposition/)).toBeTruthy()
     await click(dialog.getByRole('button', { name: 'Clear the field' }))
     await waitFor(() => expect(closed).toBe(1))
     expect(cleared).toBe(1)
@@ -55,7 +55,7 @@ describe('End offers to clear the field (MD-19)', () => {
     const dialog = open(async (clear) => {
       ended.push(clear)
     })
-    await click(dialog.getByRole('radio', { name: 'Clear the field (removes 1 NPC)' }))
+    await click(dialog.getByRole('radio', { name: 'Clear the field (removes 1 unit)' }))
     await click(dialog.getByRole('button', { name: 'End' }))
     await waitFor(() => expect(ended).toEqual([true]))
   })

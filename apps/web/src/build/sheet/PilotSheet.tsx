@@ -19,7 +19,6 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { MiniGrid, SlabSection, tokens } from '../../components/index'
-import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
@@ -154,15 +153,6 @@ export function PilotSheet({
         model={model}
         actions={actions}
         store={store}
-      />
-
-      {/* Advisory confirm — only mounts when a build edit tripped a rule. */}
-      <SoftWarningDialog
-        open={actions.warningSubtitle !== null}
-        warnings={actions.warnings}
-        subtitle={actions.warningSubtitle ?? undefined}
-        onCancel={actions.cancelBuildEdit}
-        onSaveAnyway={actions.confirmBuildEdit}
       />
     </section>
   )

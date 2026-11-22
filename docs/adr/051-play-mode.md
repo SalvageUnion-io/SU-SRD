@@ -129,6 +129,23 @@ card of a Mediator's roll names its table and never the NPC.
 Additive and optional: two optional keys in a roll row's `after`; a row with
 neither reads as before.
 
+**Reveal is the way out of private too (r3 A1).** `changeLog.reveal` takes a
+`private` roll as well as a veiled one. A row with `revealed: true` is
+neither private nor veiled for anyone: the room serves it whole to every
+member on `changeLog.events` and `changeLog.rolls`, marked `revealed`, so the
+players' Feed, their toast and "Last session" get it, and the room mirrors
+its line to the bound channel once, since a private roll never posted a card
+and a veiled one posted without its names. Until then a private roll's line
+on the Mediator's Feed says only the Mediator sees it. No key is added.
+
+**A hand over (r3 A2).** The new Mediator reads the earlier private and
+veiled rolls in the Mediate Feed, because they now run the Game. A roll
+signed "Mediator" whose roller no longer mediates is served to everyone else
+under the roller's name ("Previous Mediator" for one with none), never as the
+reader's own. A Mediator's own copy of a roll (`private` or `veiled`) is
+never toasted, so nothing replays when the role moves. The Hand over dialog
+says private rolls go across.
+
 ### 10. Phones get tabs, not a second layout
 
 Below `lg` the panes are four tabs at the foot (Act, Units, Tables, Crew; the

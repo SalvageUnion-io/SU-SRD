@@ -59,12 +59,12 @@ export function MechShelf({
       [buildShelvesCopy('tl')]: figures.techLevel ?? '',
       [buildShelvesCopy('sys')]: figures.systems,
       [buildShelvesCopy('mod')]: figures.modules,
-      [buildShelvesCopy('scrap')]: figures.scrap > 0 ? figures.scrap : '',
+      [buildShelvesCopy('cost')]: figures.scrap > 0 ? figures.scrap : '',
       [VITAL.sp]: read(r, VITAL.sp),
       [VITAL.ep]: read(r, VITAL.ep),
       [VITAL.heat]: read(r, VITAL.heat),
     }
-    return { mech, name: mech.name, own, values, over: figures.over }
+    return { mech, name: mech.name, own, values, over: figures.over, what: figures.overWhat }
   })
   return (
     <ShelfLedger
@@ -81,15 +81,16 @@ export function MechShelf({
         setSort(next)
       }}
       rows={sortShelfRows(rows, sort, (row, key) => row.values[key]).map(
-        ({ mech, own, values, over }) => ({
+        ({ mech, own, values, over, what }) => ({
           id: mech.id,
           name: mech.name,
           href: `/mechs/${mech.id}`,
-          // A build over its chassis's slots says so in words, under its name (R71).
+          // A build over its chassis's slots says so in words, and which limit
+          // it is over, under its name (R71, r3 L5).
           under: over ? (
             <>
               {own.under}
-              <RuleBreakMark />
+              <RuleBreakMark what={what} />
             </>
           ) : (
             own.under

@@ -27,6 +27,7 @@ import {
   pickRadio,
   withWizardStore,
 } from '../../__tests__/wizardHarness'
+import { leftoverLine } from '../leftoverLine.model'
 import { MechWizard } from '../MechWizard'
 
 withWizardStore('mech')
@@ -119,7 +120,9 @@ describe('MechWizard — book-order happy path (custom build)', () => {
       afterChassis -
       cargoPod.salvageValue -
       (SalvageUnionReference.Modules.getByName('Comms Module')?.salvageValue ?? 0)
-    expect(screen.getByText(`${leftover} Scrap left over goes into the hold.`)).toBeTruthy()
+    expect(
+      screen.getByText(new RegExp(`^${leftover} Scrap left over goes into this Mech’s hold\\.`))
+    ).toBeTruthy()
     await clickButton(/Create Mech/i)
 
     await waitFor(() => {
@@ -335,7 +338,18 @@ describe('MechWizard — leftover Scrap (U12, r2 E7)', () => {
   it('says how much goes into the hold, crawler or none', async () => {
     await toReview()
     const leftover = MECH_CREATION_SCRAP_CAP - mule().salvageValue
-    expect(screen.getByText(`${leftover} Scrap left over goes into the hold.`)).toBeTruthy()
+    expect(
+      screen.getByText(new RegExp(`^${leftover} Scrap left over goes into this Mech’s hold\\.`))
+    ).toBeTruthy()
     expect(screen.queryByText(/banks to your Union Crawler/)).toBeNull()
+  })
+
+  it('says how many went in and how many are left for the crawler when the hold fills (r3 F1)', () => {
+    expect(leftoverLine({ stowed: 7, banked: 9 })).toBe(
+      '16 Scrap left over: 7 goes into this Mech’s hold, which is then full (each Scrap takes one Cargo Slot, Core Book p.246). The other 9 is for your Union Crawler’s Scrap Pool.'
+    )
+    expect(leftoverLine({ stowed: 0, banked: 4 })).toBe(
+      '4 Scrap left over. The hold is full, so it is for your Union Crawler’s Scrap Pool.'
+    )
   })
 })

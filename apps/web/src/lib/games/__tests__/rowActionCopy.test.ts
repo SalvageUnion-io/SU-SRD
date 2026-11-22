@@ -117,7 +117,7 @@ describe('rowActionCopy', () => {
   })
 
   test('a copy names the build it will make', () => {
-    expect(said(ROW_ACTION_COPY.copyOnShelf('Vex Arlo'))).toContain('“COPY OF Vex Arlo”')
+    expect(said(ROW_ACTION_COPY.copyOnShelf('Vex Arlo'))).toContain('“Vex Arlo”')
   })
 
   test('a move out of a game the reader cannot name still reads as a sentence', () => {
@@ -137,6 +137,38 @@ describe('rowActionCopy', () => {
     expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'Mara', 'you').body[0]).toContain(
       'instead of you, who can still read them'
     )
+  })
+
+  // MD3-15: assigned to yourself, the confirm began "you will edit …".
+  test('the Assign confirm starts with a capital', () => {
+    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'you', null).body[0]).toStartWith(
+      'You will edit Vex Arlo'
+    )
+    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'you', 'Mara').body[0]).toStartWith(
+      'You will edit Vex Arlo in this Game instead of Mara'
+    )
+    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'you', null).title).toBe(
+      'Assign Vex Arlo to you?'
+    )
+  })
+
+  // MD3-08: an NPC's delete spoke of crews, browsers and "Offer to the crew".
+  test('deleting an NPC names the encounters it leaves, and nothing of crews or browsers', () => {
+    const alone = ROW_ACTION_COPY.deleteNpc('Warlord Vex', [])
+    expect(alone.title).toBe('Delete Warlord Vex?')
+    expect(alone.tone).toBe('danger')
+    expect(alone.body).toEqual([
+      'This cannot be undone. Warlord Vex will be removed from your Mediator’s Kit.',
+    ])
+    const one = ROW_ACTION_COPY.deleteNpc('Warlord Vex', ['The Relay'])
+    expect(one.body[1]).toBe('Warlord Vex is in The Relay, and will be removed from it.')
+    const two = ROW_ACTION_COPY.deleteNpc('Warlord Vex', ['The Relay', 'The Gap', 'Ambush'])
+    expect(two.body[1]).toBe(
+      'Warlord Vex is in The Relay, The Gap and Ambush, and will be removed from them.'
+    )
+    for (const copy of [alone, one, two]) {
+      expect(copy.body.join(' ')).not.toMatch(/crew|browser|for everyone/i)
+    }
   })
 
   test('only the constructive verbs are not danger-toned', () => {

@@ -4,6 +4,7 @@ import {
   heldGroups,
   heldWaves,
   instanceName,
+  preppedOrder,
   runningFrom,
   splitWaves,
   trayNpcsFor,
@@ -73,6 +74,25 @@ describe('the tray NPCs an encounter fields', () => {
   })
 })
 
+describe('the order an encounter is fielded in (MD3-05)', () => {
+  test('alone first, then each group by wave, each as it was made', () => {
+    const groups = [
+      { id: 'late', name: 'Reinforcements', wave: 2 },
+      { id: 'band', name: 'Raider Band', wave: 1 },
+    ]
+    const opposition = [
+      { ...raider, id: 'a', groupId: 'late' },
+      { ...raider, id: 'b', groupId: 'band' },
+      { ...raider, id: 'c' },
+      { ...raider, id: 'd', groupId: 'band' },
+      { ...raider, id: 'e' },
+    ]
+    expect(preppedOrder({ groups, opposition }).map((o) => o.id)).toEqual(['c', 'e', 'b', 'd', 'a'])
+    // Read, never reordered in place.
+    expect(opposition.map((o) => o.id)).toEqual(['a', 'b', 'c', 'd', 'e'])
+  })
+})
+
 describe('what a Game keeps of a running encounter', () => {
   test('its name, a copy of its tables, its notes, and when it started', () => {
     const encounter: Encounter = {
@@ -138,7 +158,8 @@ describe('waves (ADR-059 §5)', () => {
 
   test('the first wave is those alone and in wave 1 groups; the rest are held', () => {
     const { first, held } = splitWaves(encounter)
-    expect(first.map((o) => o.id)).toEqual(['o1', 'o2'])
+    // In the page's order (MD3-05): the one alone, then the wave 1 group.
+    expect(first.map((o) => o.id)).toEqual(['o2', 'o1'])
     expect(held.map((o) => o.id)).toEqual(['o3', 'o4'])
   })
 

@@ -11,6 +11,7 @@ import {
   duplicateOpponent,
   encounterCopy,
   encounterHref,
+  encountersFielding,
   hasRoomFor,
   opponentAsTray,
   opponentFrom,
@@ -20,6 +21,7 @@ import {
   redesignedOpposition,
   restoredOpponent,
   unpinTable,
+  withoutDesign,
 } from '../encounter.model'
 
 const NOW = '2026-10-22T00:00:00.000Z'
@@ -60,10 +62,10 @@ describe('an encounter on the shelf', () => {
   })
 
   test('a copy keeps everything but its id, stamps and name, which still fits', () => {
-    const copy = encounterCopy(ambush)
+    const copy = encounterCopy(ambush, ['Ambush'])
     expect(copy).toMatchObject({ opposition: [band], tables: ['Morale'], notes: ambush.notes })
     expect(copy).not.toHaveProperty('id')
-    expect(copy.name).not.toBe('Ambush')
+    expect(copy.name).toBe('Ambush 2')
     const long = encounterCopy({ ...ambush, name: 'X'.repeat(ENCOUNTER_MAX_NAME) })
     expect(long.name.length).toBeLessThanOrEqual(ENCOUNTER_MAX_NAME)
   })
@@ -116,8 +118,8 @@ describe('running one from Play', () => {
   })
 
   test('the clear-first choice names what it removes', () => {
-    expect(trayChoiceLabel(1)).toBe('Clear it first (removes 1 NPC on the tray)')
-    expect(trayChoiceLabel(3)).toBe('Clear it first (removes 3 NPCs on the tray)')
+    expect(trayChoiceLabel(1)).toBe('Clear it first (removes 1 unit on the field)')
+    expect(trayChoiceLabel(3)).toBe('Clear it first (removes 3 units on the field)')
   })
 })
 
@@ -271,5 +273,41 @@ describe('restoredOpponent', () => {
     expect(restoredOpponent({ opposition: rest }, o('b', 'gone'), 0)[0]).not.toHaveProperty(
       'groupId'
     )
+  })
+})
+
+// MD3-08: a deleted NPC stayed in every encounter that fielded it.
+describe('deleting a design', () => {
+  const built = { npcId: 'n1', name: 'Warlord Vex', actions: [], traits: [] }
+  const vex: EncounterOpponent = {
+    id: 'o-vex',
+    refSchema: 'npcs',
+    refSlug: '',
+    name: 'Warlord Vex',
+    maxHp: 6,
+    statKind: 'hp',
+    built,
+  }
+  const relay = { ...ambush, id: 'enc-2', name: 'The Relay', opposition: [band, vex] }
+  const gap = {
+    ...ambush,
+    id: 'enc-3',
+    name: 'The Gap',
+    opposition: [vex, { ...vex, id: 'o-vex-2', name: 'Red Leader' }],
+  }
+
+  test('the encounters that field it are named, each once, in their order', () => {
+    expect(encountersFielding([ambush, relay, gap], 'n1').map((e) => e.name)).toEqual([
+      'The Relay',
+      'The Gap',
+    ])
+    expect(encountersFielding([ambush, relay], 'n2')).toEqual([])
+  })
+
+  test('it leaves an encounter, under whatever name it went by; the rest stay', () => {
+    expect(withoutDesign(relay.opposition, 'n1')).toEqual([band])
+    expect(withoutDesign(gap.opposition, 'n1')).toEqual([])
+    // An encounter that fields none of it is not written.
+    expect(withoutDesign(ambush.opposition, 'n1')).toBeNull()
   })
 })

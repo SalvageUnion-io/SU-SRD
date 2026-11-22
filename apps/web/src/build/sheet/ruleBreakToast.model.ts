@@ -11,6 +11,7 @@ import { carrierCargoUsage } from '../../lib/cargo/cargoTransfer'
 import type { RuleBreak, RuleBreakStat } from '../../lib/rules/ruleBreaks'
 import { cargoRuleBreaks, ruleBreaksMade } from '../../lib/rules/ruleBreaks'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { componentsCopy } from '../../messages/components'
 
 const STAT_NAME: Record<RuleBreakStat, () => string> = {
   systemSlots: () => buildSheetCopy('systemSlots'),
@@ -29,10 +30,34 @@ export function ruleBreakLine(made: RuleBreak): string {
   })
 }
 
+const toastId = (unitId: string, stat: RuleBreakStat) => `rule-break:${unitId}:${stat}`
+
 /** Say each break an edit made, on the document's one toaster. */
 export function ruleBreakToast(unitId: string, made: readonly RuleBreak[]) {
-  for (const one of made)
-    toast.warning(ruleBreakLine(one), { id: `rule-break:${unitId}:${one.stat}` })
+  for (const one of made) toast.warning(ruleBreakLine(one), { id: toastId(unitId, one.stat) })
+}
+
+const buildToastId = (unitId: string) => `rule-break:${unitId}:build`
+
+/**
+ * A build edit that saved against the book's advice (an ability out of its
+ * tree's order, one added with too few Training Points): one line says what
+ * it breaks, and Undo takes the edit back (r3 B5). It stands until answered,
+ * as a removal's Undo does, and leaves with its sheet.
+ */
+export function buildBreakToast(unitId: string, broken: readonly string[], undo: () => void) {
+  toast.warning(buildSheetCopy('savedBreaking', { rules: broken.join(' ') }), {
+    id: buildToastId(unitId),
+    duration: Number.POSITIVE_INFINITY,
+    closeButton: true,
+    action: { label: componentsCopy('undo'), onClick: undo },
+  })
+}
+
+/** Take down a unit's rule-break lines: its sheet is no longer on screen (r3 B3). */
+export function dismissRuleBreaks(unitId: string) {
+  for (const stat of Object.keys(STAT_NAME) as RuleBreakStat[]) toast.dismiss(toastId(unitId, stat))
+  toast.dismiss(buildToastId(unitId))
 }
 
 /**

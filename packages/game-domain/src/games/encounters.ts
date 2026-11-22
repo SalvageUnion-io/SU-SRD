@@ -63,14 +63,30 @@ export function waveOf(
   return groups.find((g) => g.id === opponent.groupId)?.wave ?? 1
 }
 
+/**
+ * The opposition in the order its page lists it (MD3-05): those fighting alone
+ * first, then each group by wave, groups and opponents otherwise in the order
+ * they were made. An encounter is fielded in this order, so the live
+ * Opposition reads as it was prepped.
+ */
+export function preppedOrder(
+  encounter: Pick<Encounter, 'groups' | 'opposition'>
+): EncounterOpponent[] {
+  const groups = [...(encounter.groups ?? [])].sort((a, b) => a.wave - b.wave)
+  const place = new Map(groups.map((g, i) => [g.id, i + 1]))
+  const rank = (o: EncounterOpponent) => (o.groupId === undefined ? 0 : (place.get(o.groupId) ?? 0))
+  return [...encounter.opposition].sort((a, b) => rank(a) - rank(b))
+}
+
 /** An encounter's opposition split by wave: who arrives with it, and who is held back. */
 export function splitWaves(encounter: Encounter): {
   first: EncounterOpponent[]
   held: EncounterOpponent[]
 } {
   const groups = encounter.groups ?? []
-  const first = encounter.opposition.filter((o) => waveOf(o, groups) === 1)
-  const held = encounter.opposition.filter((o) => waveOf(o, groups) !== 1)
+  const opposition = preppedOrder(encounter)
+  const first = opposition.filter((o) => waveOf(o, groups) === 1)
+  const held = opposition.filter((o) => waveOf(o, groups) !== 1)
   return { first, held }
 }
 

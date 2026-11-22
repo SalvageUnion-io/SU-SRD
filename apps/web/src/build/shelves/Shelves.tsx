@@ -47,7 +47,7 @@ import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useContext, useState } from 'react'
-import { PageShell, RosterSkeleton } from '../../components/app'
+import { PageShell, RosterSkeleton, RuleBreakMark } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import { Button, ChapterBand, HeaderMenu, toast } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
@@ -67,15 +67,13 @@ import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { crewLinkOf } from '../../lib/npcs/npcModel'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { savedPatternHref } from '../../lib/patterns/patterns'
 import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
 import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
   chassisFact,
-  crawlerChips,
-  crawlerFact,
-  crawlerReading,
   crewLinked,
   encounterNpcChips,
   encounterNpcReading,
@@ -90,27 +88,29 @@ import {
 } from '../../lib/shelves/shelfItems'
 import { VITAL } from '../../lib/units/readings'
 import { buildShelvesCopy } from '../../messages/build-shelves'
-import { usePatterns, useTray } from '../../replica/collections'
+import { useEncounters, usePatterns, useTray } from '../../replica/collections'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { BackupMenu } from '../export/BackupMenu'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
+import { npcDeleteConfirm } from '../npc/redesign.model'
 import { ShelfLead } from '../roster/FrontDoor'
 import { RailActs } from '../sheet/RailActs'
-import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
+import { crewReadings } from '../sheet/railStats.model'
 import { AddAMech } from './AddAMech'
+import { CrawlerShelf } from './CrawlerShelf'
 import { EncounterShelf } from './EncounterShelf'
 import { MechShelf } from './MechShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
-import { patternMenuOf } from './patternMenu.model'
+import { mechBuildFigures } from './mechShelf.model'
+import { buildFromPattern, patternMenuOf } from './patternMenu.model'
 import { RenameDialog } from './RenameDialog'
 import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
 import {
-  CRAWLER_COLUMNS,
   inGame,
   NPC_COLUMNS,
   PATTERN_COLUMNS,
@@ -125,6 +125,7 @@ import type { RenameSubject } from './shelfMenu.model'
 import { deleteItem, renameItem } from './shelfMenu.model'
 import { showShelfRow } from './shelfRow.model'
 import { ShelvesPart } from './shelvesPart.model'
+import { TrayLeftovers } from './TrayLeftovers'
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
@@ -187,6 +188,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const softLinks = useSoftLinkList()
   const patterns = usePatterns((s) => s.mechPatterns)
   const trayNpcs = useTray((s) => s.encounterNpcs)
+  // The Kit's own list (`EncounterShelf` loads it): what an NPC's delete names.
+  const encounters = useEncounters((s) => s.encounters)
 
   // Chip names from your own units alone: a link to a crewmate's names nothing here.
   const pilotNames = new Map(pilots.map((p) => [p.id, pilotLabel(p)]))
@@ -277,12 +280,15 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
       [
         deleteItem(
           writable(() =>
-            confirm({
-              ...(inGame
-                ? ROW_ACTION_COPY.deleteFromGame(unit.name, keptMech(type, unit.id))
-                : ROW_ACTION_COPY.deleteBuild(unit.name, keptMech(type, unit.id))),
-              onConfirm: () => useUnits.getState().delete(type, unit.id),
-            })
+            type === 'npc'
+              ? // An NPC is its maker's alone: the confirm names the encounters it leaves (MD3-08).
+                confirm(npcDeleteConfirm(unit, encounters))
+              : confirm({
+                  ...(inGame
+                    ? ROW_ACTION_COPY.deleteFromGame(unit.name, keptMech(type, unit.id))
+                    : ROW_ACTION_COPY.deleteBuild(unit.name, keptMech(type, unit.id))),
+                  onConfirm: () => useUnits.getState().delete(type, unit.id),
+                })
           )
         ),
       ],
@@ -306,6 +312,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const patternMenu = (pattern: MechPattern) =>
     patternMenuOf(pattern, { go, confirm, canWrite, rename: setRenaming })
+  const patternOver = (pattern: MechPattern) => {
+    const figures = mechBuildFigures(pattern)
+    return figures.over ? <RuleBreakMark what={figures.overWhat} /> : undefined
+  }
 
   // -- the shelves ------------------------------------------------------------
 
@@ -363,6 +373,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           ),
           String(patternReading(p)?.value ?? ''),
         ],
+        // Over its slots it wears the Mechs shelf's mark (r3 I2); its one act is on the row (r3 L5).
+        under: patternOver(p),
+        act: buildFromPattern(p, { go, confirm, canWrite }),
         menu: patternMenu(p),
       }))}
     />
@@ -399,6 +412,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         <div className="su-shelf-ledgers__col">
           <ShelfLedger
             id="shelf-npcs"
+            foot={<TrayLeftovers tray={tray} confirm={canWrite ? confirm : undefined} />}
             title={buildShelvesCopy('npcs')}
             tone="adversary"
             homebrew
@@ -412,7 +426,13 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 href: `/npcs/${n.id}`,
                 cells: [
                   n.position ?? '',
-                  who(npcChips({ npc: n, sharedByLink: sharedByLink?.includes(n.id) ?? false })),
+                  who(
+                    npcChips({
+                      npc: n,
+                      sharedByLink: sharedByLink?.includes(n.id) ?? false,
+                      crews: crewLinkOf(softLinks, n.id) !== undefined,
+                    })
+                  ),
                   inGame(gameRelation(n, games)),
                   hpColumnCell(npcReading(n)),
                 ],
@@ -522,7 +542,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     ],
                     menu: unitMenu('pilot', { id: p.id, name, gameId: p.gameId }, p),
                     // Play runs a pilot (ADR-066): one press from the Training Bay.
-                    ...(status === 'signedOut' ? {} : { play: cockpitPath(p.id) }),
+                    ...(status === 'signedOut'
+                      ? {}
+                      : { play: cockpitPath(p.id), playGameId: p.gameId ?? null }),
                   }
                 })}
               />
@@ -541,32 +563,12 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   menu: unitMenu('mech', m, m),
                 })}
               />
-              <ShelfLedger
-                id="shelf-crawlers"
-                title={buildShelvesCopy('crawlers')}
-                tone="crawler"
-                columns={CRAWLER_COLUMNS}
+              <CrawlerShelf
+                crawlers={crawlers}
+                games={games}
+                sharedByLink={sharedByLink}
                 action={newLink('/crawlers/new', buildShelvesCopy('newCrawler'))}
-                empty={buildShelvesCopy('noCrawlersYet')}
-                rows={crawlers.map((c) => {
-                  const r = rowStats(crawlerRailItems(c))
-                  return {
-                    id: c.id,
-                    name: c.name,
-                    href: `/crawlers/${c.id}`,
-                    under: under([
-                      ...crawlerChips({ crawler: c, games }),
-                      ...linkChip(sharedByLink, c.id),
-                    ]),
-                    cells: [
-                      crawlerFact(c) ?? '',
-                      inGame(gameRelation(c, games)),
-                      String(crawlerReading(c).value),
-                      read(r, VITAL.sp),
-                    ],
-                    menu: unitMenu('crawler', c, c),
-                  }
-                })}
+                menu={(c) => unitMenu('crawler', c, c)}
               />
             </div>
             <div className="su-shelf-ledgers__col">

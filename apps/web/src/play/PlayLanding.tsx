@@ -40,7 +40,7 @@ import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
 import { gamePath, invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties, FormEvent } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { FrontDoor } from '../build/roster/FrontDoor'
@@ -64,6 +64,7 @@ import {
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
+import { signIn } from '../lib/auth/session'
 import { cn } from '../lib/cn'
 import { useOwnUnits } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
@@ -163,6 +164,9 @@ function tileArt(key: string, alt: string) {
 }
 
 /** Each "At the table" tile's art, in the tiles' order. */
+/** Where the sub-nav's "Join with a link" points, as a route in the app. */
+const JOIN_ROUTE = '/games/#join'
+
 const AT_THE_TABLE_ART = [
   tileArt('classes/scout.webp', playCopy('artScout')),
   tileArt('chassis/mazona.webp', playCopy('artMazona')),
@@ -174,6 +178,21 @@ const AT_THE_TABLE_ART = [
  * with art.
  */
 function PlayFrontDoor() {
+  // Signed out there is no Join dialog to open: the sub-nav's "Join with a
+  // link" goes to sign-in, and comes back to `/games/#join`, where the dialog
+  // opens itself (r3 E3, MD-03). Heard before the router, which would only
+  // scroll to the card that wears the id.
+  useEffect(() => {
+    const pressed = (event: MouseEvent) => {
+      const link = event.target instanceof Element ? event.target.closest('a[href$="#join"]') : null
+      if (link === null) return
+      event.preventDefault()
+      event.stopPropagation()
+      signIn(JOIN_ROUTE)
+    }
+    document.addEventListener('click', pressed, true)
+    return () => document.removeEventListener('click', pressed, true)
+  }, [])
   const steps = AT_THE_TABLE.map((step, index) => ({ ...step, art: AT_THE_TABLE_ART[index] }))
   return (
     <FrontDoor
@@ -260,7 +279,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             <PlayGameItem
               key={game._id}
               game={game}
-              // A door names its pilot by callsign: "Play GHOST".
+              // The seat's door is told apart by callsign when there are several (`gameDoors`).
               pilots={gamePilots(pilots, game._id).map((p) => ({
                 id: p.id,
                 name: pilotCallsign(p),
@@ -305,6 +324,8 @@ function JoinGame() {
   const [open, setOpen] = useState(false)
   const [pasted, setPasted] = useState('')
   const [wrong, setWrong] = useState(false)
+  // A paste on arrival lands in the only field, never on Close (MD3-04).
+  const linkField = useRef<HTMLInputElement | null>(null)
   // The sub-nav's "Join with a link" (`/games/#join`) lands here and opens it.
   // A router link changes the hash with no `hashchange`, and a second press
   // changes nothing at all, so the press itself is heard too (MD-03).
@@ -343,11 +364,17 @@ function JoinGame() {
       <Button id="join" variant="default" size="compact" onClick={() => setOpen(true)}>
         {playCopy('joinWithALink')}
       </Button>
-      <ModalShell open={open} onOpenChange={setOpen} title={playCopy('joinAGame')}>
+      <ModalShell
+        open={open}
+        onOpenChange={setOpen}
+        title={playCopy('joinAGame')}
+        initialFocus={linkField}
+      >
         <form style={JOIN} onSubmit={join} aria-label={playCopy('joinAGame')}>
           <div style={JOIN_ROW}>
             <div style={JOIN_FIELD}>
               <Input
+                ref={linkField}
                 aria-label={playCopy('inviteLink')}
                 placeholder={playCopy('pasteAnInviteLink')}
                 value={pasted}
