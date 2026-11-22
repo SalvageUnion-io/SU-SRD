@@ -34,7 +34,7 @@ import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
  * a box of their own (play.md §12).
  */
 
-import { downtimeMechPatch, downtimePilotPatch } from 'game-domain/rules/downtime'
+import { downtimeMechPatch, downtimePilotPatch, isSeatFreeStep } from 'game-domain/rules/downtime'
 import { useId, useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
 import { ConfirmDialog } from '../components/app'
@@ -58,6 +58,7 @@ import {
   mechBayOf,
   medBayOf,
   restoreAgainLine,
+  restoreLead,
   skippedSteps,
   stepNames,
   stepPlan,
@@ -72,6 +73,9 @@ import type { PlayActions } from './usePlayActions'
 
 /** A line's title is a caps label; its weight is the `strong`'s. */
 const LINE_LABEL = cn('su-play-dt-line__label', capsLabel({ weight: 'inherit' }))
+
+/** The caption over the step's quoted text where the step's own line says otherwise (r6 D7). */
+const GENERAL_RULE = capsLabel()
 
 type PlayDowntimeStepProps = {
   play: Play
@@ -111,6 +115,10 @@ export function PlayDowntimeStep({
   }
   const plan = stepPlan(planInput)
   const applicable = plan.filter((line) => line.skippable)
+  // Why a hurt pilot cannot heal, said first, with its page (r6 D7).
+  const lead = restoreLead(planInput)
+  // A Game's step with nothing for this seat counts as done for it (r6 D2).
+  const seatFree = inGame && isSeatFreeStep(stepIndex)
   const members = downtime.downtime.members
   const doneCount = downtime.downtime.completedBy.filter((m) =>
     members.some((member) => member.userId === m.userId)
@@ -258,9 +266,13 @@ export function PlayDowntimeStep({
 
   return (
     <TitledBox title={step.name} as="section" chips={chip}>
+      {lead && <p className="su-play-act__need">{lead}</p>}
       {shown.length > 0 ? (
         <>
-          {!claimed && <p className="su-play-resolve__note">{playCopy('appliesEachLineCanBe')}</p>}
+          {/* The ticks the words promise: said only where a line has one (r6 D2). */}
+          {!claimed && applicable.length > 0 && (
+            <p className="su-play-resolve__note">{playCopy('appliesEachLineCanBe')}</p>
+          )}
           <ul className="su-play-dt-lines" aria-label={playCopy(claimed ? 'applied' : 'willApply')}>
             {shown.map((line) => (
               <PlanLineItem
@@ -275,7 +287,10 @@ export function PlayDowntimeStep({
           </ul>
         </>
       ) : step.content && step.content.length > 0 ? (
-        <Content body={step.content} grouped />
+        <>
+          {lead && <p className={GENERAL_RULE}>{playCopy('generalRule')}</p>}
+          <Content body={step.content} grouped />
+        </>
       ) : null}
       {note && (
         <p className="su-play-resolve__note" aria-live="polite">
@@ -301,6 +316,8 @@ export function PlayDowntimeStep({
               {playCopy('applyMarkDone')}
             </Button>
           </>
+        ) : seatFree ? (
+          <span className="su-play-act__state">{playCopy('nothingForYourSeat')}</span>
         ) : inGame ? (
           <Button size="compact" onClick={() => void skip()} disabled={off}>
             {playCopy('markDone')}

@@ -13,6 +13,7 @@ import {
   leftOnMove,
   mechBayOf,
   restoreAgainLine,
+  restoreLead,
   stepPlan,
   stepsFor,
 } from '../playDowntime.model'
@@ -118,7 +119,7 @@ describe('a hurt pilot with no Med Bay (r5 A12)', () => {
     expect(line).toMatchObject({
       key: 'pilot',
       skippable: false,
-      blocked: 'HP stays 0: healing needs a Med Bay',
+      blocked: 'HP stays 0',
       needsCrawler: true,
     })
   })
@@ -130,13 +131,29 @@ describe('a hurt pilot with no Med Bay (r5 A12)', () => {
       crawlerBays: [{ bayRef: 'med-bay', condition: 'damaged' }],
     })
     const line = plan({ pilot: hurt(), crawler: site }).find((l) => l.key === 'pilot')
-    expect(line?.blocked).toBe('HP stays 0: the Med Bay is damaged')
+    expect(line?.blocked).toBe('HP stays 0')
     expect(line?.needsCrawler).toBe(false)
+  })
+
+  // r6 D7 (SB6-06): the step's own line gives the reason, with its page.
+  test('Restore leads with why a hurt pilot cannot heal, and only then', () => {
+    expect(restoreLead(input({ pilot: hurt() }))).toBe(
+      'Healing in Downtime needs your crawler’s Med Bay (Core Book p.242).'
+    )
+    const damaged = crawlerFixture({
+      id: 'c',
+      techLevel: 1,
+      crawlerBays: [{ bayRef: 'med-bay', condition: 'damaged' }],
+    })
+    expect(restoreLead(input({ pilot: hurt(), crawler: damaged }))).toMatch(/damaged/)
+    expect(restoreLead(input({ pilot: hurt(), crawler: crawler(1) }))).toBeNull()
+    expect(restoreLead(input({ pilot: pilotFixture({ id: 'p' }) }))).toBeNull()
+    expect(restoreLead(input({ pilot: hurt(), stepName: 'Train your Pilot' }))).toBeNull()
   })
 
   test('once taken, the step keeps saying why until a crawler with a Med Bay arrives', () => {
     const pilot = hurt()
-    expect(restoreAgainLine(input({ pilot }))?.blocked).toBe('HP stays 0: healing needs a Med Bay')
+    expect(restoreAgainLine(input({ pilot }))?.blocked).toBe('HP stays 0')
     const again = restoreAgainLine(input({ pilot, crawler: crawler(1) }))
     expect(again?.skippable).toBe(true)
     expect(again?.chips.map((c) => c.label)).toEqual(['HP'])

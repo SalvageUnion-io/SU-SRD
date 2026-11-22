@@ -1,4 +1,5 @@
 import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
+import { isSeatFreeStep } from 'game-domain/rules/downtime'
 import type { Running } from '../downtime'
 import { beginDowntime, claimed, claimInStep, doneSteps, moveDowntime } from '../downtime'
 import type { OpInput } from '../ops'
@@ -21,7 +22,8 @@ export type DowntimeRead = {
   startedAt: number | null
   /**
    * The members done with the current step: each has a pilot here and every
-   * one of them took it (their step ops, `doneSteps`). Read, never stored.
+   * one of them took it (their step ops, `doneSteps`), every member on a
+   * seat-free step (`isSeatFreeStep`). Read, never stored.
    */
   completedBy: { userId: string; displayName: string }[]
   upkeepSpent: boolean
@@ -72,7 +74,10 @@ export class GamePlay extends SeatTable {
     if (running === null) return NOT_RUNNING
     const pilots = this.store.units('pilot')
     const steps = new Map(pilots.map((p) => [p.id, doneSteps(this.store, running.runId, p.id)]))
-    const tookIt = (pilotId: string) => steps.get(pilotId)?.includes(running.stepIndex) ?? false
+    // A step with nothing for a seat (Upkeep, the Mediator's) is done for every seat (r6 D2).
+    const seatFree = isSeatFreeStep(running.stepIndex)
+    const tookIt = (pilotId: string) =>
+      seatFree || (steps.get(pilotId)?.includes(running.stepIndex) ?? false)
     return {
       running: true,
       ...running,

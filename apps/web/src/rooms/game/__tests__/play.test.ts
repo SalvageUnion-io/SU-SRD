@@ -99,8 +99,8 @@ describe('Downtime', () => {
     expect(room.play.downtime(PLAYER)?.completedBy).toEqual([
       { userId: PLAYER, displayName: 'Player' },
     ])
-    room.play.advanceDowntime(MEDIATOR)
-    expect(room.play.downtime(PLAYER)).toMatchObject({ stepIndex: 1, completedBy: [] })
+    room.play.setDowntimeStep(MEDIATOR, 2)
+    expect(room.play.downtime(PLAYER)).toMatchObject({ stepIndex: 2, completedBy: [] })
     // Back to a step already taken: still done, never offered again.
     room.play.setDowntimeStep(MEDIATOR, 0)
     expect(room.play.downtime(PLAYER)?.completedBy.map((m) => m.userId)).toEqual([PLAYER])
@@ -120,6 +120,20 @@ describe('Downtime', () => {
     expect(room.play.downtime(PLAYER)?.completedBy).toEqual([])
     room.units.submit(PLAYER, [take('p3')])
     expect(room.play.downtime(PLAYER)?.completedBy.map((m) => m.userId)).toEqual([PLAYER])
+  })
+
+  // r6 D2 (LG6-13): Upkeep has nothing for a player's seat, so nobody presses Mark done on it.
+  test('a seat-free step counts as done for every member with a pilot', () => {
+    const { room } = seated()
+    room.play.beginDowntime(MEDIATOR, AT)
+    const upkeep = Array.from({ length: downtimeStepCount() }, (_, i) => i).find(isUpkeepStep)
+    if (upkeep === undefined) throw new Error('the guide has no upkeep step')
+    room.play.setDowntimeStep(MEDIATOR, upkeep)
+    expect(room.play.downtime(PLAYER)?.completedBy.map((m) => m.userId)).toEqual(
+      [ORGANIZER, PLAYER].sort()
+    )
+    room.play.advanceDowntime(MEDIATOR)
+    expect(room.play.downtime(PLAYER)?.completedBy).toEqual([])
   })
 
   /** The run's claim op on the crawler: its id names the run and the claim. */

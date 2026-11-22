@@ -524,7 +524,13 @@ describe('Downtime’s dead ends say why', () => {
         downtime={{ stepIndex: restore, doneSteps: [restore] }}
       />
     )
-    expect(within(stepBox()).getByText('HP stays 3: healing needs a Med Bay')).toBeTruthy()
+    expect(within(stepBox()).getByText('HP stays 3')).toBeTruthy()
+    // The reason, with its page, comes first (r6 D7).
+    expect(
+      within(stepBox()).getByText(
+        'Healing in Downtime needs your crawler’s Med Bay (Core Book p.242).'
+      )
+    ).toBeTruthy()
     expect(
       within(stepBox()).getByRole('link', { name: 'Make a Union Crawler' }).getAttribute('href')
     ).toBe('/crawlers/new?pilot=dt-p&back=play')
@@ -719,7 +725,7 @@ describe('a Game’s step', () => {
     expect(writes).toContainEqual({ name: 'downtime.advance' })
   })
 
-  test('Upkeep in a Game is the Mediator’s: read, not ticked; the player marks done', async () => {
+  test('Upkeep in a Game is the Mediator’s: read, not ticked; nothing for the seat (r6 D2)', async () => {
     const { pilot, mech, crawler } = units()
     const { store, calls } = stubStore(pilot, mech, crawler)
     const writes: Write[] = []
@@ -736,13 +742,13 @@ describe('a Game’s step', () => {
     )
     expect(within(stepBox()).getByText('The Mediator pays it')).toBeTruthy()
     expect(within(stepBox()).queryByRole('checkbox')).toBeNull()
-    await click(button('Mark done'))
-    // Marking done takes the step for this pilot, applying nothing.
-    expect(writes).toContainEqual({
-      name: 'downtime.markStepDone',
-      args: { stepIndex: STEPS.indexOf('Upkeep & Upgrade'), patch: {} },
-    })
-    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
+    // The step has nothing for this seat: it counts as done, with no press and no words promising ticks.
+    expect(within(stepBox()).queryByRole('button', { name: 'Mark done' })).toBeNull()
+    expect(within(stepBox()).queryByText(/each line can be unticked/)).toBeNull()
+    expect(
+      within(stepBox()).getByText('Nothing for your seat: the Mediator runs this step')
+    ).toBeTruthy()
+    expect(writes.some((w) => w.name === 'downtime.markStepDone')).toBe(false)
     expect(writes.some((w) => w.name === 'downtime.claim')).toBe(false)
     expect(calls).toHaveLength(0)
   })

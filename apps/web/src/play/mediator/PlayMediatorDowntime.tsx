@@ -82,6 +82,7 @@ export function PlayMediatorDowntime({
   const off = !canWrite
   const nanites = naniteStatus(unit)
   const craftStep = step?.name === CRAFT_STEP_NAME
+  const working = seats.filter((seat) => !seatDone(seat, completedBy)).map((s) => s.name)
 
   const rollFor: PlayActions['rollFor'] = async (tableName, label, options) =>
     reportingRoll(
@@ -99,7 +100,6 @@ export function PlayMediatorDowntime({
   /** Move to `to`, noting what is passed over: the steps jumped, and this one with a seat still working. */
   function moveTo(to: number, move: () => void) {
     if (to > idx) {
-      const working = seats.filter((seat) => !seatDone(seat, completedBy)).map((s) => s.name)
       const here = `${idx + 1} ${step?.name ?? ''}`.trim()
       const jumped = steps.slice(idx + 1, to).map((s, i) => `${idx + 2 + i} ${s.name}`)
       setPassed((was) => [
@@ -185,6 +185,12 @@ export function PlayMediatorDowntime({
               )
             })}
           </ul>
+          {/* The Mediator may always move on; the note names who has not finished (r6 D2). */}
+          {working.length > 0 && (
+            <p className="su-play-resolve__note">
+              {mediatorCopy('notFinished', { who: working.join(', ') })}
+            </p>
+          )}
           {passed.length > 0 && (
             <p className="su-play-resolve__note">
               {mediatorCopy('passedOver', { steps: passed.join(', ') })}

@@ -205,10 +205,21 @@ function unhealedNote(
   const maxHP = pilotMaxHP({ ...pilot, crawlerTechLevel: tl })
   const hp = resolvePool(pilot.currentHP, maxHP)
   if (hp >= maxHP) return null
-  return {
-    blocked: playCopy(medBay.damaged ? 'hpStaysMedBayDamaged' : 'hpStaysNeedsMedBay', { hp }),
-    needsCrawler: crawler === null,
-  }
+  return { blocked: playCopy('hpStays', { hp }), needsCrawler: crawler === null }
+}
+
+/**
+ * Restore's own first line where a hurt pilot cannot heal (r6 D7): why, with
+ * its page, before the lines and above the quoted general rule. Null on any
+ * other step, with an operational Med Bay, or a pilot at full HP.
+ */
+export function restoreLead(
+  input: Pick<StepPlanInput, 'stepName' | 'pilot' | 'crawler' | 'pilotCrawlerTl'>
+): string | null {
+  const { stepName, pilot, crawler, pilotCrawlerTl } = input
+  if (stepName !== RESTORE_STEP_NAME || pilot === null) return null
+  if (unhealedNote(pilot, crawler, pilotCrawlerTl) === null) return null
+  return playCopy(medBayOf(crawler).damaged ? 'healingMedBayDamaged' : 'healingNeedsMedBay')
 }
 
 /** The steps a second Restore runs: the Med Bay's healing, and nothing else. */

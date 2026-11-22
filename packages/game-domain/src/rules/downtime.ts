@@ -141,6 +141,24 @@ export function isUpkeepStep(stepIndex: number | null): boolean {
   return downtimeGuideSteps()[stepIndex]?.name === UPKEEP_STEP_NAME
 }
 
+/** The first Crawler Downtime step, where the haul is tallied and its Scrap moved (p.227). */
+export const TALLY_STEP_NAME = 'Tally Salvage'
+
+/** Whether the step at `stepIndex` is Tally Salvage. */
+export function isTallyStep(stepIndex: number | null): boolean {
+  if (stepIndex === null) return false
+  return downtimeGuideSteps()[stepIndex]?.name === TALLY_STEP_NAME
+}
+
+/**
+ * Whether a Game's step has nothing for a player's seat (r6 D2): Upkeep, which
+ * the Mediator pays. Such a step counts as done for every seat, so nobody
+ * presses Mark done on it.
+ */
+export function isSeatFreeStep(stepIndex: number | null): boolean {
+  return isUpkeepStep(stepIndex)
+}
+
 // ---------------------------------------------------------------------------
 // Med Bay gate (p.223)
 // ---------------------------------------------------------------------------
