@@ -6,18 +6,20 @@
  *
  * Solo (or for the Game's Mediator) the track puts Downtime on any step
  * (`setStep`, `PlayDowntimeTrack`); for a player in a Game it only shows
- * where the table is. The heading is a Slab,
+ * where the table is; when the Mediator moves it past a step this pilot left
+ * unfinished, the player is told which (r5 A3). The heading is a Slab,
  * so the step box and every row stay level 1 (play.md §12).
  */
 
 import { currentDowntimeStep } from 'game-domain/rules/downtime'
-import { Slab } from '../components/index'
+import { useEffect, useRef } from 'react'
+import { Slab, toast } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayAwayGroup, PlayEntryList, PlayOrphanResolve } from './PlayActionsList'
 import { PlayDowntimeStep } from './PlayDowntimeStep'
 import { PlayDowntimeTrack } from './PlayDowntimeTrack'
 import { splitOnHand } from './playActions.model'
-import { skippedSteps, stepNames } from './playDowntime.model'
+import { leftOnMove, skippedSteps, stepNames } from './playDowntime.model'
 import type { Play } from './situation.model'
 import type { PlayActions } from './usePlayActions'
 
@@ -36,6 +38,21 @@ export function PlayDowntimeColumn({ play, actions }: { play: Play; actions: Pla
     pilotCrawlerTl: actions.crawlerTechLevel,
     upkeep: { spent: play.downtime.downtime.upkeepSpent, canPay: !play.downtime.locked },
   })
+
+  // In a Game, a move on by the Mediator past a step left unfinished is said to the player.
+  const was = useRef(idx)
+  const moverIsMe = !play.downtime.locked
+  const leftKey = skipped.join(',')
+  useEffect(() => {
+    const from = was.current
+    was.current = idx
+    if (moverIsMe) return
+    const left = leftOnMove(from, idx, leftKey === '' ? [] : leftKey.split(',').map(Number))
+    if (left.length === 0) return
+    toast(playCopy('leftUnfinished', { steps: stepNames(steps, left) }), {
+      id: `downtime-left-${idx}`,
+    })
+  }, [idx, moverIsMe, leftKey, steps])
 
   return (
     <>

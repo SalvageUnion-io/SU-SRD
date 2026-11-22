@@ -16,6 +16,8 @@ export type EventsBefore = {
   session?: boolean
   /** Whether a Downtime was running. */
   downtime?: boolean
+  /** The step a running Downtime stood on, before the Mediator moved it (r5 A3). */
+  downtimeStep?: number | null
   stop?: boolean
   /** Who showed the Stop Sign: lifted by anyone else, the Feed names who lifted it (r5 A8). */
   stopBy?: string | null
@@ -55,6 +57,9 @@ export function eventsBefore(store: GameStore, name: GameActName, args: unknown)
     case 'session.start':
     case 'session.end':
       return { session: store.rows('select 1 from session where id = 1').length > 0 }
+    case 'downtime.advance':
+    case 'downtime.setStep':
+      return { downtimeStep: downtimeStepNow(store) }
     case 'downtime.begin':
     case 'downtime.end':
       return {
@@ -80,4 +85,10 @@ export function eventsBefore(store: GameStore, name: GameActName, args: unknown)
     default:
       return {}
   }
+}
+
+/** The step the Game's Downtime stands on, or null when none runs. */
+export function downtimeStepNow(store: GameStore): number | null {
+  const row = store.rows('select step_index from downtime_run where id = 1')[0]
+  return row === undefined ? null : Number(row.step_index)
 }

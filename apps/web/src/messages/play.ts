@@ -319,6 +319,7 @@ export const playCopy = messages({
   endAnyway: 'End anyway',
   goBack: 'Go back',
   skippedSteps: 'Skipped, nothing applied: {steps}.',
+  leftUnfinished: 'The Mediator moved Downtime on. Left unfinished: {steps}.',
   endDowntimeBodySolo:
     'You are on step {step} of {count}. A new Downtime starts from the first step.',
   rollTheDie: 'Roll the die',

@@ -335,6 +335,20 @@ describe('the bar', () => {
     expect(names()).toEqual(['downtime.end'])
   })
 
+  // r5 A3 (MD5-17): a jump from step 1 to 7 took one click, and the Mediator saw nothing skipped.
+  test('a Downtime jump past more than one step asks first, and lists what was passed over', async () => {
+    await renderCockpit(downtimeAt(0))
+    await click(named(/^Step 5: /))
+    expect(names()).toEqual([])
+    const ask = within(screen.getByRole('alertdialog', { name: /^Jump to step 5 / }))
+    await click(ask.getByRole('button', { name: 'Jump' }))
+    expect(sent()).toEqual([{ name: 'downtime.setStep', args: { stepIndex: 4 } }])
+    // The step left with seats still working, then each step jumped over.
+    expect(
+      screen.getByText(/^Passed over: 1 Tally Salvage \(Bonesaw, Wren still working\), 2 .*, 4 /)
+    ).toBeTruthy()
+  })
+
   test('Tell the table sends one word to every player', async () => {
     await renderCockpit()
     // The dialog focuses on the next frame; the frame is run here, so the

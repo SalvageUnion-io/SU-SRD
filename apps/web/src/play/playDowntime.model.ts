@@ -414,6 +414,14 @@ export function skippedSteps(
   )
 }
 
+/**
+ * The steps a move on from `from` to `to` left this pilot unfinished: the
+ * skipped ones from `from` up. None on a Back, or a move that stayed (r5 A3).
+ */
+export function leftOnMove(from: number, to: number, skipped: readonly number[]): number[] {
+  return to <= from ? [] : skipped.filter((i) => i >= from && i < to)
+}
+
 /** Steps by number and name, as a list reads them: "3 Restore your Mech & Pilot, 7 Train". */
 export function stepNames(steps: readonly { name: string }[], indexes: readonly number[]): string {
   return indexes.map((i) => `${i + 1} ${steps[i]?.name ?? ''}`.trim()).join(', ')

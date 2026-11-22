@@ -1,5 +1,6 @@
 import { fieldLabel } from 'game-domain/games/proposals'
 import type { LinkShape } from 'game-domain/links/linkRules'
+import { downtimeStepNames } from 'game-domain/rules/downtime'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
 import type { Stored } from './eventLines'
@@ -16,7 +17,7 @@ import {
   vitalLine,
 } from './eventLines'
 import type { EventsBefore } from './eventsBefore'
-import { eventsBefore } from './eventsBefore'
+import { downtimeStepNow, eventsBefore } from './eventsBefore'
 import { isPrivateRoll, isRevealedRoll, rollLineFor } from './log'
 import { undoes } from './proposals'
 import type { GameStore, StoredOp } from './store'
@@ -249,6 +250,15 @@ export class GameEvents {
               }),
             ]
           : []
+      // Moved, the table is told where to, and which steps were passed over (r5 A3).
+      case 'downtime.advance':
+      case 'downtime.setStep': {
+        const from = before.downtimeStep ?? null
+        const to = downtimeStepNow(this.store)
+        if (from === null || to === null || to === from) return []
+        const text = downtimeMoveLine(this.runnerName(actor), from, to)
+        return [this.note(actor, at, { kind: 'downtime', text })]
+      }
       case 'downtime.end':
         return before.downtime === true
           ? [
@@ -530,6 +540,16 @@ export class GameEvents {
 }
 
 /** Whose the unit was before an assignment moved it to `to`: nobody, when it stays theirs or was free. */
+/** "Mediator moved Downtime to 7 Train your Pilot, past 2–6": a step is said by its number and name. */
+function downtimeMoveLine(who: string, from: number, to: number): string {
+  const names = downtimeStepNames()
+  const where = `${to + 1} ${names[to] ?? ''}`.trim()
+  if (to < from) return `${who} moved Downtime back to ${where}`
+  const passed = to - from - 1
+  const past = passed === 0 ? '' : passed === 1 ? `, past ${from + 2}` : `, past ${from + 2}–${to}`
+  return `${who} moved Downtime to ${where}${past}`
+}
+
 function lost(before: EventsBefore, to: string | null): { about?: string } {
   const holder = before.holder ?? null
   return holder === null || holder === to ? {} : { about: holder }

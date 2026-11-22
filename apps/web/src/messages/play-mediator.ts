@@ -73,6 +73,12 @@ export const mediatorCopy = messages({
   downtimeStepOf: 'Downtime · Step {value} of {count}',
   ofDone: '{done} of {of} done',
   whoIsDone: 'Who is done',
+  jumpToStepAsk: 'Jump to step {step}?',
+  jumpToStepBody:
+    'Steps {from}–{to} are passed over for everyone: nothing in them is applied, and each player is told.',
+  jumpToStep: 'Jump',
+  passedOver: 'Passed over: {steps}.',
+  leftWorking: '{step} ({who} still working)',
   done: 'Done',
   working: 'Working',
   away: 'Away',
