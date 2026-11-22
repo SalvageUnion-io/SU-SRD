@@ -310,7 +310,11 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
               // stamp has the room to say "Online" as the canvas's does.
               short={!wide && channel.button !== null}
               readOnly={play.readOnly}
-              situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
+              situation={
+                wide ? (
+                  <PlaySituationSwitch play={play} downtimeMech={units.mech?.mech ?? null} />
+                ) : undefined
+              }
               channel={channel.button}
               mark={
                 feedMark.shown ? (
@@ -358,7 +362,7 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
               />
               {/* On foot, Board and Downtime stay on screen in every Situation,
                   boarded too (r5 A15); in Downtime with the numbers (r4 A10). */}
-              <PlaySituationSwitch play={play} fill />
+              <PlaySituationSwitch play={play} fill downtimeMech={units.mech?.mech ?? null} />
             </>
           )
         }

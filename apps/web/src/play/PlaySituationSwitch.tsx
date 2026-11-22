@@ -16,6 +16,7 @@
  * each press does is `Play`'s (`usePlaySituation`); this only draws it.
  */
 
+import type { Mech } from 'game-domain/schemas/mech'
 import { ChevronDown, Lock } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { HeaderMenu, Segmented, SegmentedOption, tokens } from '../components/index'
@@ -57,8 +58,11 @@ const GROW = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 export function PlaySituationSwitch({
   play,
   fill = false,
+  downtimeMech = null,
 }: {
   play: Play
+  /** The mech the pilot has in the Mech Bay during Downtime, as the Units show it. */
+  downtimeMech?: Mech | null
   /** Pinned below `lg` (Downtime on a phone, r4 A10): no leading label, the options share the row. */
   fill?: boolean
 }) {
@@ -69,11 +73,14 @@ export function PlaySituationSwitch({
 
   const boardedName = boardedMechName(play)
   const boarded = situation === 'boarded'
-  // A Down Mech is never offered as boarded (r6 A7): where it is, and that it is Down.
+  // A Down Mech is never offered as boarded (r6 A7): that it is Down, and where:
+  // in the field, or in Downtime the Mech Bay.
+  const watched = boarded ? play.boardedMech : situation === 'downtime' ? downtimeMech : null
+  const downMech = watched !== null && isDown(watched.currentSP) ? watched.name : null
   const downName =
-    boarded && play.boardedMech !== null && isDown(play.boardedMech.currentSP)
-      ? play.boardedMech.name
-      : null
+    downMech === null
+      ? null
+      : playCopy(boarded ? 'mechIsDownHere' : 'mechIsDownInBay', { name: downMech })
 
   return (
     <div style={fill ? FILL_ROW : ROW}>
@@ -143,7 +150,7 @@ function BoardOptionControl({
   mechs: readonly BoardOption[]
   pressed: boolean
   boardedName: string | null
-  /** The boarded Mech, while it is Down at 0 SP (r6 A7). */
+  /** What the option says of the boarded Mech, while it is Down at 0 SP (r6 A7). */
   downName?: string | null
   disabled: boolean
   onChoose: (option: BoardOption) => void
@@ -151,7 +158,7 @@ function BoardOptionControl({
   const only = mechs.length === 1 ? mechs[0] : undefined
   const label =
     downName !== null
-      ? playCopy('mechIsDownHere', { name: downName })
+      ? downName
       : pressed
         ? boardedName === null
           ? 'Boarded'

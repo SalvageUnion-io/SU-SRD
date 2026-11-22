@@ -145,6 +145,7 @@ export const playCopy = messages({
   downActAnywayBody: 'A unit at 0 is Down. What it may still do is the table’s call.',
   actAnyway: 'Act anyway',
   mechIsDownHere: '{name} is Down, in the field',
+  mechIsDownInBay: '{name} is Down, in the Mech Bay',
   mechDownLock: 'Down · repair it in Downtime',
   upNowYou: 'Up now · You',
   upNowName: 'Up now · {name}',
