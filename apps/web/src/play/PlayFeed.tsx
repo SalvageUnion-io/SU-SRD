@@ -46,12 +46,13 @@ const ACTIONS = { display: 'flex', gap: tokens.space[6] } satisfies CSSPropertie
 /** What an action spent, under its line (r5 A9). */
 const DETAIL = { display: 'block' } satisfies CSSProperties
 
-/** An action's use and cost around its line (r5 A9). */
+/** An action's use and cost around its line (r5 A9), each its own line, the roll's too. */
 function Grouped({ entry, children }: { entry: FeedEntry; children: React.ReactNode }) {
+  if (entry.lead === undefined && !entry.detail?.length) return children
   return (
     <>
       {entry.lead !== undefined && <span style={HEAD}>{entry.lead}</span>}
-      {children}
+      <span style={DETAIL}>{children}</span>
       {entry.detail?.map((line) => (
         <span key={line} style={DETAIL}>
           {line}
