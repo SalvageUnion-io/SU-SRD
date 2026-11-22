@@ -26,6 +26,7 @@
  */
 
 import { downtimeClaimOpId, downtimeHealOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import { DOWNTIME_RULINGS } from 'game-domain/rules/downtimeRulings'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { sendStep } from '../replica/outbox'
 import { DOWNTIME_TXN } from '../replica/provenance'
@@ -60,6 +61,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const setStep = useTableAct('downtime.setStep', gameId)
   const end = useTableAct('downtime.end', gameId)
   const claim = useTableAct('downtime.claim', gameId)
+  const moveScrap = useTableAct('downtime.moveScrap', gameId)
   // The room names the run (a solo one kept from Convex is named on the server).
   const run = state?.runId ?? ''
 
@@ -76,6 +78,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
           members: (members ?? [])
             .filter((m) => !m.mediator)
             .map((m) => ({ userId: m.userId, displayName: m.displayName })),
+          scrapMoved: state.scrapMoved ?? [],
         }
   const solo = gameId === null
   const mayMove = solo || target.mediator
@@ -125,6 +128,11 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
                 patch,
               })
             ),
+    // A player's for their pilot; the Mediator's for every pilot only under the other ruling (r6 D1).
+    moveScrap:
+      pilotId !== null || (target.mediator && DOWNTIME_RULINGS.scrapMove === 'mediator-at-upkeep')
+        ? (move) => guarded.ask(async () => (await moveScrap(move)) !== null)
+        : null,
     claim: (kind, crawlerId, patch) =>
       guarded.ask(async () => {
         const op = {

@@ -120,6 +120,10 @@ const GAME_ACTS = {
   'downtime.end': (c: ActContext) => c.room.play.endDowntime(c.actor),
   'downtime.claim': (c: ActContext, a: { claim: DowntimeClaim; op: OpInput }) =>
     c.room.play.claim(c.actor, a.claim, a.op),
+  'downtime.moveScrap': (
+    c: ActContext,
+    a: { pilotId: string; mechId: string | null; crawlerId: string }
+  ) => c.room.play.moveScrap(c.actor, a, c.at),
 
   'changeLog.appendChangeLog': (c: ActContext, a: { entries: LogEntry[] }) =>
     c.room.log.append(c.actor, a.entries),

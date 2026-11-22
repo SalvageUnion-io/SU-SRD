@@ -416,6 +416,21 @@ describe('the solo table’s seats and Downtime', () => {
     expect(room.solo.claim(PLAYER, 'p1', 'nanites', next)).toBe(true)
     expect(room.solo.claim(PLAYER, 'p1', 'nanites', next)).toBe(false)
   })
+
+  // r6 D1 (LG6-12): solo, the player's own press moves their Scrap into their crawler.
+  test('a solo Tally Salvage moves the pilot’s carried Scrap into the crawler once', () => {
+    const { room } = shelf()
+    room.shelf.create(PLAYER, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
+    room.shelf.submit(PLAYER, [
+      op('p1', { genericInventory: [{ id: 'a', name: 'Tech 1 Scrap', slotCost: 3, qty: 4 }] }),
+    ])
+    room.solo.beginDowntime(PLAYER, 'p1', AT)
+    const args = { pilotId: 'p1', mechId: null, crawlerId: 'c1' }
+    expect(room.solo.moveScrap(PLAYER, args, AT)).toEqual({ 1: 4 })
+    expect(room.shelf.store.unit('c1')?.body).toMatchObject({ scrapPool: { tl1: 4 } })
+    expect(room.solo.moveScrap(PLAYER, args, AT)).toBeNull()
+    expect(room.solo.soloSeats(PLAYER)[0]?.downtime?.doneSteps).toEqual([0])
+  })
 })
 
 describe('the player’s profile and export', () => {

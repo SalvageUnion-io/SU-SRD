@@ -128,6 +128,11 @@ export const EXEMPTIONS: readonly StringExemption[] = [
     reason: 'Roll-table names passed to rollFor: lookup keys into the dataset, never drawn.',
   },
   {
+    file: 'apps/web/src/play/craftTrade.model.ts',
+    strings: ['Trading Bay'],
+    reason: 'Roll-table name passed to rollFor: a lookup key into the dataset, never drawn.',
+  },
+  {
     file: 'apps/web/src/build/sheet/crawlerEconomyDialogState.model.ts',
     strings: ['Crawler Deterioration'],
     reason: 'Roll-table name passed to RollTables.getByName: a lookup key into the dataset.',

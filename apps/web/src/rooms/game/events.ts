@@ -288,6 +288,11 @@ export class GameEvents {
               }),
             ]
           : []
+      // Tally Salvage's move and an opened area are said to the table (r6 D1, D3).
+      case 'downtime.moveScrap':
+        return value === null ? [] : say('downtime', `${unit(a.pilotId)} moved their Scrap`)
+      case 'salvageAreas.set':
+        return a.area && !before.area ? say('action', 'A salvage area is open') : []
       case 'ops.propose': {
         const op = this.store.op(String(value))
         if (op === null) return []

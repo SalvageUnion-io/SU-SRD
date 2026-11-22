@@ -6,7 +6,8 @@
  * "Roll a table…" search away (`findTables`).
  *
  * A rumour table is an adventure's own (False Flag p.8), never the core
- * book's, so it is never pinned: Gather Cantina Rumours rolls a plain d20.
+ * book's, so it is never pinned: Gather Cantina Rumours rolls it itself
+ * (`rumours.model.ts`).
  *
  * Boarded in a Bio-Chassis, the fight pins its own Damage and Overload tables
  * in place of Critical Damage and Reactor Overload (We Were Here First

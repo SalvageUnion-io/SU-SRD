@@ -28,6 +28,8 @@ export type EventsBefore = {
   revealed?: boolean
   /** Who was up: giving the same pilot the turn again tells nobody. */
   upNow?: string | null
+  /** Whether an area with Supply left stood to salvage: setting another says nothing new (r6 D3). */
+  area?: boolean
   /** The resolves nobody applied that the act may close (r5 A7). */
   unapplied?: { pilotId: string; name: string }[]
 }
@@ -67,6 +69,8 @@ export function eventsBefore(store: GameStore, name: GameActName, args: unknown)
     case 'downtime.advance':
     case 'downtime.setStep':
       return { downtimeStep: downtimeStepNow(store) }
+    case 'salvageAreas.set':
+      return { area: store.rows('select 1 from salvage_area where supply > 0').length > 0 }
     case 'downtime.begin':
     case 'downtime.end': {
       const was = name === 'downtime.begin' ? upNowOf(store) : null

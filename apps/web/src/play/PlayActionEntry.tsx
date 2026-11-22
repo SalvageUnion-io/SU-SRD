@@ -99,6 +99,8 @@ export function PlayActionEntry({
           name={entry.name}
           pilot={actions.pilot}
           crawler={actions.crawler}
+          mech={actions.mech}
+          store={actions.store}
           rollFor={actions.rollFor}
           need={need}
           canWrite={play.canWrite}

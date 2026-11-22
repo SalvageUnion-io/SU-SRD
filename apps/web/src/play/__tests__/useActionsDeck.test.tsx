@@ -35,6 +35,8 @@ import { actionEconomy, itemEconomy, resolveModule, resolveSystem } from '../../
 import type { ActionsDeckProps, ResolveModel } from '../actionsDeck.model'
 import { PlayResolveSteps } from '../PlayResolveSteps'
 import type { PlayStore } from '../play.model'
+import type { PlayRoll } from '../playRolls.model'
+import { onPlayRoll } from '../playRolls.model'
 import { useActionsDeck } from '../useActionsDeck'
 import type { StoreCall as Call } from './stubStore'
 import { stubStore } from './stubStore'
@@ -801,6 +803,8 @@ describe('Area Salvage (Core Book p.248)', () => {
   })
 
   test('on foot, the Scrap goes into the pilot’s inventory at three Slots each', async () => {
+    const heard: PlayRoll[] = []
+    const stop = onPlayRoll((roll) => heard.push(roll))
     const pilot = pilotFixture({ id: 'p1', name: 'Rook', callsign: 'Rook' })
     const { store, calls } = stubStore(pilot)
     const { container } = render(
@@ -827,6 +831,12 @@ describe('Area Salvage (Core Book p.248)', () => {
       await screen.findByText(/1 more stays in the area: there is no room for it\./)
     ).toBeTruthy()
     expect(container.querySelector('.su-play-resolve')).toBeNull()
+    // The Feed hears what was found and where it went, in a slot so the Game's log does too (r6 D3).
+    stop()
+    const line = heard.at(-1)
+    expect(line).toMatchObject({ rolls: [], label: 'Area Salvage' })
+    expect(line?.outcome).toMatch(/^\d+: 2 T2 Scrap to inventory, 1 left in the area$/)
+    expect(line?.slot).toMatch(/^area-salvage:/)
   })
 
   test('with no area, or a picked-clean one, there is no roll', () => {

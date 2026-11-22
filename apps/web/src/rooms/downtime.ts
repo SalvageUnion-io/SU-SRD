@@ -1,13 +1,23 @@
 import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
-import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import {
+  downtimeClaimOpId,
+  downtimeScrapOpId,
+  downtimeStepOpId,
+} from 'game-domain/ops/downtimeStep'
 import {
   CRAFT_STEP_NAME,
   currentDowntimeStep,
   downtimeGuideSteps,
   downtimeStepCount,
+  isTallyStep,
   isUpkeepStep,
+  TALLY_STEP_NAME,
   UPKEEP_STEP_NAME,
 } from 'game-domain/rules/downtime'
+import type { ScrapByTl } from 'game-domain/rules/tallyScrap'
+import { scrapCount, scrapMove } from 'game-domain/rules/tallyScrap'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import type { ScrapPool } from 'game-domain/schemas/crawler'
 import type { GameStore, UnitRow } from './game/store'
 import type { GameUnits } from './game/units'
 import { BatchRefused } from './game/units'
@@ -109,6 +119,68 @@ export function claimInStep(
 export function claimed(store: GameStore, running: Running, claim: DowntimeClaim): boolean {
   if (running.legacyClaims.includes(claim)) return true
   return store.op(downtimeClaimOpId(running.runId, claim))?.state === 'applied'
+}
+
+/**
+ * Tally Salvage (Core Book p.227, r6 D1): move the Scrap a pilot carries, in
+ * their inventory and their mech's Cargo, into the crawler's pool, and take
+ * the step for them, in one write. The room builds every patch from the
+ * bodies it holds, so nobody but the move itself writes the crawler here.
+ * Once per run and pilot (`downtimeScrapOpId`): the Scrap moved, or null
+ * when it had been (or there was none, which is refused in words).
+ */
+export function moveScrapInStep(
+  room: { store: GameStore; units: GameUnits; place: DowntimePlace },
+  units: { pilot: UnitRow; mech: UnitRow | null; crawler: UnitRow },
+  author: string,
+  at: number
+): ScrapByTl | null {
+  const { store, place } = room
+  const { pilot, mech, crawler } = units
+  const running = requireRunning(place)
+  if (!isTallyStep(running.stepIndex)) {
+    throw new RoomRefusal(`Scrap is moved in the ${TALLY_STEP_NAME} step`)
+  }
+  const id = downtimeScrapOpId(running.runId, pilot.id)
+  if (store.op(id) !== null) return null
+  const move = scrapMove(
+    pilot.body as { genericInventory?: { name: string; qty?: number }[] },
+    mech === null ? null : (mech.body as { cargoLots?: CargoLot[] }),
+    crawler.body as { scrapPool?: ScrapPool }
+  )
+  if (scrapCount(move.moved) === 0) throw new RoomRefusal('There is no Scrap to move')
+  const op = (unit: UnitRow, opId: string, patch: Record<string, unknown>) => ({
+    id: opId,
+    unitId: unit.id,
+    baseSeq: unit.headSeq,
+    at,
+    kind: 'transaction' as const,
+    source: 'downtime',
+    patch,
+  })
+  const step = downtimeStepOpId(running.runId, pilot.id, running.stepIndex)
+  try {
+    room.units.applyTo(crawler, op(crawler, id, move.crawlerPatch), author)
+    let pilotRow = store.unit(pilot.id) ?? pilot
+    if (move.pilotPatch !== null) {
+      room.units.applyTo(pilotRow, op(pilotRow, `${id}:pilot`, move.pilotPatch), author)
+      pilotRow = store.unit(pilot.id) ?? pilotRow
+    }
+    if (mech !== null && move.mechPatch !== null) {
+      room.units.applyTo(mech, op(mech, `${id}:mech`, move.mechPatch), author)
+    }
+    // The move takes the step: one press, not two.
+    if (store.op(step) === null) room.units.applyTo(pilotRow, op(pilotRow, step, {}), author)
+  } catch (error) {
+    if (error instanceof BatchRefused) throw new RoomRefusal('The crawler could not take that')
+    throw error
+  }
+  return move.moved
+}
+
+/** The pilots whose Scrap the running Downtime has moved to the crawler (r6 D1). */
+export function scrapMoved(store: GameStore, runId: string, pilotIds: readonly string[]): string[] {
+  return pilotIds.filter((p) => store.op(downtimeScrapOpId(runId, p))?.state === 'applied')
 }
 
 function requireRunning(place: DowntimePlace): Running {
