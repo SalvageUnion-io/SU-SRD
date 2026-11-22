@@ -209,6 +209,7 @@ export const mediatorCopy = messages({
   field: 'Field',
   to: 'To',
   change: 'Change',
+  changeSceneConditions: 'Change the Scene conditions',
   setTo: 'Set to',
   take: 'Take',
   addAmount: 'Add',

@@ -385,6 +385,22 @@ describe('the Scene', () => {
     ])
   })
 
+  // MD6-08: six condition buttons took 180 px over the Opposition all fight.
+  test('once one is on, the chooser folds to what is on, with Change for the rest (r6 B6)', async () => {
+    await renderCockpit(STORM)
+    const grid = () => within(screen.getByRole('list', { name: 'Scene conditions' }))
+    expect(
+      grid()
+        .getAllByRole('button')
+        .map((b) => b.getAttribute('aria-label'))
+    ).toEqual(['The Scene is under Radiation Storm'])
+    await click(named('Change the Scene conditions'))
+    expect(grid().getAllByRole('button').length).toBeGreaterThan(1)
+    expect(named('Done').getAttribute('aria-expanded')).toBe('true')
+    await click(named('Done'))
+    expect(grid().getAllByRole('button')).toHaveLength(1)
+  })
+
   test('pressed again, it lifts', async () => {
     await renderCockpit(STORM)
     const storm = named('The Scene is under Radiation Storm')

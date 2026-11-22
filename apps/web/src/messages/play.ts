@@ -118,6 +118,8 @@ export const playCopy = messages({
   privateRoll: 'Only you',
   privateRolls: 'Private rolls',
   rollPrivatelyStamp: 'Roll privately:',
+  wholeTable: 'Whole table',
+  foldTable: 'Result only',
   privateRollsBand: 'Private: only you see these rolls, and none posts to Discord.',
   mediatorRolled: 'Mediator rolled',
   namesHidden: 'Players see the result, not the names',
