@@ -389,7 +389,14 @@ describe('Discord (play.md §9)', () => {
     await act(async () => {
       recordPlayChange('Vent · Heat 6→0, Vulnerable')
     })
-    expect(feedLines()).toContain('You · Vent · Heat 6→0, Vulnerable')
+    // My own line carries its time, as the table's do (r5 A9).
+    expect(feedLines().some((line) => line.startsWith('You · Vent · Heat 6→0, Vulnerable'))).toBe(
+      true
+    )
+    const vent = feed()
+      .getAllByRole('listitem')
+      .find((li) => li.textContent?.startsWith('You · Vent'))
+    expect(vent?.querySelector('time')).not.toBeNull()
     expect(postRoll).not.toHaveBeenCalled()
   })
 

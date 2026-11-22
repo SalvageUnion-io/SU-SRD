@@ -18,6 +18,10 @@
  * §9b), and a private one not at all: its line here says which and offers
  * Reveal, which shows the table the whole line (`changeLog.reveal`).
  *
+ * An action's use and cost read inside its roll's line (r5 A9): the use
+ * first, in bold, then the roll, then what it spent. My own lines carry
+ * their time, as the table's do.
+ *
  * Feed lines are level 1 (play.md §12): plain text and buttons inside, no
  * frame inside a frame.
  */
@@ -38,6 +42,24 @@ const HEAD = { display: 'block', fontWeight: tokens.weight.bold } satisfies CSSP
 const REASON = { display: 'block', color: tokens.color.wkMuted } satisfies CSSProperties
 
 const ACTIONS = { display: 'flex', gap: tokens.space[6] } satisfies CSSProperties
+
+/** What an action spent, under its line (r5 A9). */
+const DETAIL = { display: 'block' } satisfies CSSProperties
+
+/** An action's use and cost around its line (r5 A9). */
+function Grouped({ entry, children }: { entry: FeedEntry; children: React.ReactNode }) {
+  return (
+    <>
+      {entry.lead !== undefined && <span style={HEAD}>{entry.lead}</span>}
+      {children}
+      {entry.detail?.map((line) => (
+        <span key={line} style={DETAIL}>
+          {line}
+        </span>
+      ))}
+    </>
+  )
+}
 
 /** A veiled roll's own row under its line: what the players miss, and Reveal. */
 const VEIL = {
@@ -152,10 +174,18 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
               <FeedLine
                 key={entry.key}
                 end={
-                  <PostState post={post} roll={entry.roll} postNow={postNow} canWrite={canWrite} />
+                  <span style={ACTIONS}>
+                    <PostState
+                      post={post}
+                      roll={entry.roll}
+                      postNow={postNow}
+                      canWrite={canWrite}
+                    />
+                    <FeedTime ts={entry.ts} format="clock" />
+                  </span>
                 }
               >
-                {entry.text}
+                <Grouped entry={entry}>{entry.text}</Grouped>
                 {veil(entry.reveal, entry.text, entry.kept)}
                 {post?.kind === 'failed' && (
                   <FieldError>
@@ -169,7 +199,7 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
             // The table's log reads with its times (a session's record).
             return (
               <FeedLine key={entry.key} end={<FeedTime ts={entry.ts} format="clock" />}>
-                {entry.text}
+                <Grouped entry={entry}>{entry.text}</Grouped>
                 {entry.kind === 'roll' && veil(entry.reveal, entry.text, entry.kept)}
               </FeedLine>
             )
