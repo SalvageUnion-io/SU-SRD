@@ -33,7 +33,7 @@ describe('a pattern’s line on its shelf (r4 E13)', () => {
 
   test('Seen by reads In the Reference once it is switched on there, whatever its link says', () => {
     expect(patternLine(pattern({}), sharing({ visibility: 'link' }), []).values.who).toBe(
-      'Shared by link'
+      'Public (anyone with the link)'
     )
     expect(
       patternLine(pattern({}), sharing({ visibility: 'link', homebrew: true }), []).values.who

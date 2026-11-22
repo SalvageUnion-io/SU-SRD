@@ -197,7 +197,7 @@ describe('Training Bay: everything you own', () => {
 
     const patterns = screen.getByRole('region', { name: 'Patterns' })
     expect(within(patterns).getByRole('link', { name: 'Tow Rig' })).toBeTruthy()
-    expect(within(patterns).getByText('Shared by link')).toBeTruthy()
+    expect(within(patterns).getByText('Public (anyone with the link)')).toBeTruthy()
     expect(within(patterns).queryByText('Built twice')).toBeNull()
   })
 })

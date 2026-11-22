@@ -176,6 +176,14 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     ])
   })
 
+  test('a public pattern names its maker in its band: MADE BY | their display name (r6 E11)', () => {
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    const { container } = renderAs(SIGNED_OUT)
+    const band = container.querySelector('.su-entity-stamps')
+    expect(band?.textContent).toContain('Made by')
+    expect(band?.textContent).toContain('alxjrvs')
+  })
+
   test('signed out, it offers sign-in rather than a build that would be refused', () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(SIGNED_OUT)
@@ -202,6 +210,26 @@ async function fromMenu(item: string) {
 }
 
 describe('signed in', () => {
+  test('its maker’s own page leads back to Training Bay // Patterns, and private it credits no one in its band (r6 E11)', () => {
+    answerRoutes({
+      [STATUS]: NOT_LISTED,
+      [PAGE]: answer({ mine: true, visibility: 'private' }),
+    })
+    usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
+    const { container } = renderAs(CONNECTED)
+    const trail = container.querySelector('.su-crumbs--band')
+    expect(
+      [...(trail?.querySelectorAll('a[href]') ?? [])].map((a) => [
+        a.textContent,
+        a.getAttribute('href'),
+      ])
+    ).toEqual([
+      ['Training Bay', '/'],
+      ['Patterns', '/patterns'],
+    ])
+    expect(container.querySelector('.su-entity-stamps')?.textContent).not.toContain('Made by')
+  })
+
   test('its maker renames it on its page, and the tab is named for it (U11)', async () => {
     answerRoutes({
       [STATUS]: NOT_LISTED,

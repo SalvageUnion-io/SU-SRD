@@ -42,6 +42,7 @@ import {
   toast,
   tokens,
 } from '../../../components/index'
+import { AppLink } from '../../../components/shared/AppLink'
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { chapterForSchema } from '../../../lib/chapters'
 import { playerMessage } from '../../../lib/connection/useServerAction'
@@ -62,6 +63,7 @@ import {
 } from '../../../lib/patterns/patterns'
 import { useTabTitle } from '../../../lib/useTabTitle'
 import { mechCopy } from '../../../messages/build-mech'
+import { buildShelvesCopy } from '../../../messages/build-shelves'
 import { componentsCopy } from '../../../messages/components'
 import { routesCopy } from '../../../messages/routes'
 import { PatternLoadout } from '../../../reference/PatternLoadout'
@@ -71,6 +73,7 @@ import { useUnits } from '../../../replica/units'
 import { useCitePageCredit } from '../../../stores/pageCredit'
 import { SignInControl } from '../../account/SignInControl'
 import { HomebrewControls } from '../../homebrew/HomebrewControls'
+import { CREDIT_EVERY_PUBLIC_PATTERN } from '../../rulings'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
 import { RailActs } from '../../sheet/RailActs'
 import { builtToast, mechNamesTaken } from './buildConfirm.model'
@@ -141,6 +144,15 @@ function referenceTrail(chassis: RefChassis, pattern: string) {
   ]
 }
 
+/** Your own pattern's way back (r6 E11): Training Bay // Patterns // the pattern. */
+function patternsTrail(pattern: string) {
+  return [
+    { name: PRODUCT.build, url: '/' },
+    { name: buildShelvesCopy('patterns'), url: '/patterns' },
+    { name: pattern, url: '' },
+  ]
+}
+
 /**
  * Write the maker's photo onto their own pattern. The page reads the pattern
  * from the public query, so the shelf's copy may not have arrived yet: wait
@@ -165,6 +177,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   // Where a book page cites its printings, this one credits its maker.
   useCitePageCredit(mechCopy('homebrewMadeBy', { madeBy }))
 
+  // Public: read by link (not its maker), or its maker's set so. With the
+  // other ruling only a pattern on the Reference credits, as its foot does.
+  const credited = CREDIT_EVERY_PUBLIC_PATTERN && (!mine || visibility === 'link')
   const chassis = patternChassis(pattern)
   const refPattern = pagePattern(pattern)
   const meta = chassis ? resolveEntityPageMeta(chassis, refPattern) : undefined
@@ -219,10 +234,19 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
         <ChapterBandTrail.Provider
           value={
             chassis ? (
-              <BreadcrumbTrail
-                breadcrumbs={referenceTrail(chassis, pattern.name)}
-                placement="band"
-              />
+              mine ? (
+                // Your own pattern leads back to your Patterns (r6 E11).
+                <BreadcrumbTrail
+                  breadcrumbs={patternsTrail(pattern.name)}
+                  placement="band"
+                  link={AppLink}
+                />
+              ) : (
+                <BreadcrumbTrail
+                  breadcrumbs={referenceTrail(chassis, pattern.name)}
+                  placement="band"
+                />
+              )
             ) : null
           }
         >
@@ -235,6 +259,8 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 <EntityPageStamps
                   meta={meta}
                   homebrew
+                  // A public pattern names its maker in sight (r6 E11).
+                  madeBy={credited ? madeBy : undefined}
                   parent={{
                     label: mechCopy('patternOf'),
                     ref: toEntityModel(chassis).ref,

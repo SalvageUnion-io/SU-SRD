@@ -107,7 +107,7 @@ export const buildShelvesCopy = messages({
   mechNotBuilt: 'The Mech could not be built. Try again.',
   noPatternsYet: 'No patterns yet. Save one from a Mech.',
 
-  sharedByLink: 'Shared by link',
+  sharedByLink: 'Public (anyone with the link)',
   inTheReference: 'In the Reference',
   onlyMe: 'Only me',
   onlyTheMediator: 'Only the Mediator',
