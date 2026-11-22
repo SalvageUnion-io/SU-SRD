@@ -30,6 +30,7 @@ import { Button, toast } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { useOwnUnits, usePilots } from '../lib/entities'
 import { playCopy } from '../messages/play'
+import { playDoorCopy } from '../messages/play-door'
 import { playSafetyCopy } from '../messages/play-safety'
 import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
@@ -221,8 +222,8 @@ export function GameNotices({
   const door = mediator
     ? { href: mediatePath(gameId), label: playCopy('mediate') }
     : onePilot !== undefined
-      ? { href: cockpitPath(onePilot.id), label: playCopy('joinSession') }
-      : { href: gamePath(gameId), label: playCopy('joinSession') }
+      ? { href: cockpitPath(onePilot.id), label: playDoorCopy('joinSession') }
+      : { href: gamePath(gameId), label: playDoorCopy('joinSession') }
 
   const notices: Notice[] = []
   // The Stop Sign leads the strip (r6 A1): the table's state, never folded.
@@ -303,7 +304,7 @@ export function GameNotices({
           {/* Seen off this Game's pages, the way to its table (r5 A4). */}
           {here ? null : (
             <Button size="compact" href={cockpitPath(turn.id)}>
-              {playCopy('openTable')}
+              {playDoorCopy('openTable')}
             </Button>
           )}
           {end}

@@ -383,22 +383,10 @@ export const playCopy = messages({
   couldNotStartSession: 'Could not start the session.',
   sessionStarted: 'The group session has started.',
   couldNotEndSession: 'Could not end the session.',
-  joinSession: 'Join session',
   startGroupSessionOf: 'Start a group session of {game}',
   // The Mediator's quiet doors on a Game's row (MD4-13): neither starts a session.
   prep: 'Prep',
   prepOf: 'Prep for {game}',
-  // One name per door (glossary §9, r3 H3): Join session while the Game's
-  // session is live, else Open table, on a Game's page, its row, a pilot's
-  // line and a sheet's band; the "as" forms are the accessible names.
-  openTable: 'Open table',
-  // A pilot in no Game (r4 C7): there is no table to open, so the door says play.
-  playSolo: 'Play solo',
-  playSoloAs: 'Play solo as {name}',
-  joinSessionAs: 'Join session as {name}',
-  openTableAs: 'Open table as {name}',
-  joinSessionAsIn: 'Join session as {name} in {game}',
-  openTableAsIn: 'Open table as {name} in {game}',
   noGamesYet:
     'You’re in no Games yet. Start one with + New Game, or join one with its invite link. Play works solo too: your Pilots are below.',
   yourPilots: 'Your Pilots',

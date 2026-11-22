@@ -9,12 +9,12 @@
  * reads **Play solo** (r4 C7), on its sheet and on its line.
  */
 
-import { playCopy } from '../messages/play'
+import { playDoorCopy } from '../messages/play-door'
 
 /** The door's words. */
 export function sessionDoor(live: boolean, solo = false): string {
-  if (solo) return playCopy('playSolo')
-  return live ? playCopy('joinSession') : playCopy('openTable')
+  if (solo) return playDoorCopy('playSolo')
+  return live ? playDoorCopy('joinSession') : playDoorCopy('openTable')
 }
 
 /** The door's accessible name where several stand together: who it seats, and in which Game. */
@@ -24,7 +24,7 @@ export function sessionDoorAs(
   game?: string | null,
   solo = false
 ): string {
-  if (solo) return playCopy('playSoloAs', { name: pilot })
-  if (game == null) return playCopy(live ? 'joinSessionAs' : 'openTableAs', { name: pilot })
-  return playCopy(live ? 'joinSessionAsIn' : 'openTableAsIn', { name: pilot, game })
+  if (solo) return playDoorCopy('playSoloAs', { name: pilot })
+  if (game == null) return playDoorCopy(live ? 'joinSessionAs' : 'openTableAs', { name: pilot })
+  return playDoorCopy(live ? 'joinSessionAsIn' : 'openTableAsIn', { name: pilot, game })
 }

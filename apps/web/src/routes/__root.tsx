@@ -1,6 +1,6 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import { useLayoutEffect } from 'react'
+import { lazy, Suspense, useLayoutEffect } from 'react'
 import { AccountHintSync } from '../build/account/AccountHintSync'
 import {
   HeaderActions,
@@ -22,8 +22,8 @@ import { srdEntityExternalLink } from '../components/shared/srdEntityExternalLin
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { areaTitle } from '../lib/pageTitle'
 import { preloadGameData } from '../lib/useGameData'
-import { TableNotices } from '../play/TableNotices'
 import { ReplicaSync } from '../replica/ReplicaSync'
+import { useViewerId } from '../replica/roomCalls'
 import { SyncProvider } from '../replica/SyncProvider'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
 import '../styles/app.css'
@@ -88,6 +88,22 @@ function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: bool
   )
 }
 
+/** The strip and its Games' reads, loaded only for a signed-in reader: a
+ *  signed-out one has no Games, and the strip waits on their read anyway. */
+const TableNotices = lazy(() =>
+  import('../play/TableNotices').then((m) => ({ default: m.TableNotices }))
+)
+
+function TableNoticesMount({ pathname }: { pathname: string }) {
+  const person = useViewerId()
+  if (person === null) return null
+  return (
+    <Suspense fallback={null}>
+      <TableNotices pathname={pathname} />
+    </Suspense>
+  )
+}
+
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   // A Play screen draws its own bar at every width, so it has no masthead
@@ -140,7 +156,7 @@ function RootComponent() {
                 next Tab lands in the content instead of back in the bar. */}
           {/* What the reader's Games tell them, pinned over every screen:
                 the Stop Sign, a proposal, the Mediator's alert, a live session. */}
-          <TableNotices pathname={pathname} />
+          <TableNoticesMount pathname={pathname} />
           <div id="main-content" tabIndex={-1}>
             <GameDataReady schemas={routeSchemas(pathname)}>
               <Outlet />
