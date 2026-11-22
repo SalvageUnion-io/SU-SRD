@@ -339,6 +339,52 @@ describe('a solo Downtime, end to end', () => {
     expect(within(stepBox()).queryByText('3→4')).toBeNull()
   })
 
+  // r4 A6 (SB4-02): walking past Restore and Train greyed them as done, and End Downtime did not warn.
+  test('steps walked past unapplied read Skipped, and End Downtime lists them and asks', async () => {
+    const { pilot, mech, crawler } = units()
+    const { store } = stubStore(pilot, mech, crawler)
+    const writes: Write[] = []
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={store}
+        writes={writes}
+        downtime={{ stepIndex: STEPS.indexOf('Restore your Mech & Pilot') }}
+      />
+    )
+    const restore = STEPS.indexOf('Restore your Mech & Pilot')
+    const train = STEPS.indexOf('Train your Pilot')
+    while (currentStep() < STEPS.length - 1) await click(button(/^Next: Step \d+$/))
+    const track = within(screen.getByRole('list', { name: 'Downtime steps' }))
+    expect(
+      track.getByRole('button', { name: `Step ${restore + 1}: ${STEPS[restore]}, skipped` })
+    ).toBeTruthy()
+    expect(
+      track.getByRole('button', { name: `Step ${train + 1}: ${STEPS[train]}, skipped` })
+    ).toBeTruthy()
+    // A step that previews nothing is done, as before.
+    expect(
+      track.getByRole('button', { name: `Step ${train}: ${STEPS[train - 1]}, done` })
+    ).toBeTruthy()
+    expect(screen.getByText(/^Skipped, nothing applied: /).textContent).toContain(
+      `${train + 1} ${STEPS[train]}`
+    )
+
+    await click(button('End Downtime'))
+    const dialog = within(screen.getByRole('alertdialog'))
+    expect(writes).not.toContainEqual({ name: 'endDowntime' })
+    expect(dialog.getByText(/Nothing was applied for these steps/).textContent).toContain(
+      `${restore + 1} ${STEPS[restore]}`
+    )
+    await click(dialog.getByRole('button', { name: 'Go back' }))
+    expect(writes).not.toContainEqual({ name: 'endDowntime' })
+    await click(button('End Downtime'))
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'End anyway' }))
+    expect(writes).toContainEqual({ name: 'endDowntime' })
+  })
+
   test('Skip marks the step done and writes nothing; the track moves to any step', async () => {
     const { pilot, mech, crawler } = units()
     const { store, calls } = stubStore(pilot, mech, crawler)

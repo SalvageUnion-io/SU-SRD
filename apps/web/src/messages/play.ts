@@ -303,6 +303,11 @@ export const playCopy = messages({
   setByTheMediator: 'Set by the Mediator',
   endDowntimeBodyGame:
     'The table is on step {step} of {count}. Everyone goes back to their seat, and a new Downtime starts from the first step.',
+  endDowntimeSkipped:
+    'Nothing was applied for these steps: {steps}. Ending Downtime leaves them unapplied.',
+  endAnyway: 'End anyway',
+  goBack: 'Go back',
+  skippedSteps: 'Skipped, nothing applied: {steps}.',
   endDowntimeBodySolo:
     'You are on step {step} of {count}. A new Downtime starts from the first step.',
   rollTheDie: 'Roll the die',

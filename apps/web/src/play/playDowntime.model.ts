@@ -313,6 +313,35 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
   return lines.filter((line): line is PlanLine => line !== null)
 }
 
+/**
+ * The steps up to `upTo` (0-based, inclusive) that preview a change this
+ * pilot has not taken: skipped, never done (r4 A6). A step that applies
+ * nothing (the table does it), and one taken with Skip or Apply, is not one.
+ */
+export function skippedSteps(
+  input: Omit<StepPlanInput, 'stepName'> & {
+    steps: readonly { name: string }[]
+    upTo: number
+    /** The steps this pilot has taken; null where no pilot takes any (the Mediator's screen). */
+    taken: readonly number[] | null
+  }
+): number[] {
+  const { steps, upTo, taken, ...units } = input
+  if (taken === null) return []
+  return steps.flatMap((step, index) =>
+    index <= upTo &&
+    !taken.includes(index) &&
+    stepPlan({ ...units, stepName: step.name }).some((line) => line.skippable)
+      ? [index]
+      : []
+  )
+}
+
+/** Steps by number and name, as a list reads them: "3 Restore your Mech & Pilot, 7 Train". */
+export function stepNames(steps: readonly { name: string }[], indexes: readonly number[]): string {
+  return indexes.map((i) => `${i + 1} ${steps[i]?.name ?? ''}`.trim()).join(', ')
+}
+
 /** The Downtime steps the ticked lines switch on. */
 export function stepsFor(lines: readonly PlanLine[], unticked: ReadonlySet<string>): DowntimeSteps {
   return onlySteps(lines.filter((l) => !unticked.has(l.key)).flatMap((l) => l.steps))

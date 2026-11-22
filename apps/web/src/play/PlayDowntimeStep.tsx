@@ -26,6 +26,9 @@ import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
  * Restore never confirms: its patches only heal, repair and recharge, and
  * refuse a Destroyed mech: nothing destructive, so nothing to confirm (ADR-007).
  *
+ * End Downtime with a step walked past unapplied (`skippedSteps`) lists them
+ * and asks "End anyway" or "Go back" (r4 A6).
+ *
  * What it applies lands on the Feed as a change (`recordPlayChange`).
  * Inside the box, the lines are plain content (labels and Stat chips), never
  * a box of their own (play.md §12).
@@ -34,6 +37,7 @@ import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
 import { downtimeMechPatch, downtimePilotPatch } from 'game-domain/rules/downtime'
 import { useId, useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
+import { ConfirmDialog } from '../components/app'
 import {
   Badge,
   Button,
@@ -49,7 +53,14 @@ import { rollD20 } from '../lib/dice'
 import { playCopy } from '../messages/play'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
-import { mechBayOf, medBayOf, stepPlan, stepsFor } from './playDowntime.model'
+import {
+  mechBayOf,
+  medBayOf,
+  skippedSteps,
+  stepNames,
+  stepPlan,
+  stepsFor,
+} from './playDowntime.model'
 import { processDowntimeNanites } from './playNanites.model'
 import { recordPlayChange } from './playRolls.model'
 import { payDowntimeUpkeep } from './playUpkeep.model'
@@ -65,6 +76,8 @@ type PlayDowntimeStepProps = {
   step: RefObjectGuideStep
   stepIndex: number
   stepCount: number
+  /** Every step of the Downtime, for End Downtime's list of the skipped ones. */
+  steps: readonly RefObjectGuideStep[]
 }
 
 export function PlayDowntimeStep({
@@ -73,6 +86,7 @@ export function PlayDowntimeStep({
   step,
   stepIndex,
   stepCount,
+  steps,
 }: PlayDowntimeStepProps) {
   const { downtime } = play
   const inGame = play.target.gameId !== null
@@ -103,6 +117,24 @@ export function PlayDowntimeStep({
   // reads a state (Upkeep, Nanites) stays live.
   const shown = claimed ? [...plan.filter((line) => line.steps.length === 0), ...applied] : plan
   const off = !play.canWrite
+  // End Downtime with steps walked past unapplied asks first (r4 A6), as
+  // leaving mid-way does (`useSituationMoves`).
+  const [ending, setEnding] = useState<readonly number[] | null>(null)
+  function end() {
+    const skipped = skippedSteps({
+      steps,
+      upTo: stepIndex,
+      // This step, taken a moment ago, may not have been read back yet.
+      taken: [...(downtime.doneSteps ?? []), ...(claimed ? [stepIndex] : [])],
+      pilot,
+      mech,
+      crawler,
+      pilotCrawlerTl: actions.crawlerTechLevel,
+      upkeep: { spent: downtime.downtime.upkeepSpent, canPay },
+    })
+    if (pilot === null || skipped.length === 0) play.endDowntime()
+    else setEnding(skipped)
+  }
 
   function toggle(key: string) {
     const next = new Set(unticked)
@@ -245,11 +277,25 @@ export function PlayDowntimeStep({
             step={stepIndex}
             count={stepCount}
             off={off}
-            onEnd={play.endDowntime}
+            onEnd={end}
             onAdvance={downtime.advance}
           />
         )}
       </div>
+      <ConfirmDialog
+        open={ending !== null}
+        onOpenChange={(open) => {
+          if (!open) setEnding(null)
+        }}
+        title={playCopy('endDowntime2')}
+        body={playCopy('endDowntimeSkipped', { steps: stepNames(steps, ending ?? []) })}
+        confirmLabel={playCopy('endAnyway')}
+        cancelLabel={playCopy('goBack')}
+        onConfirm={() => {
+          setEnding(null)
+          play.endDowntime()
+        }}
+      />
     </TitledBox>
   )
 }
