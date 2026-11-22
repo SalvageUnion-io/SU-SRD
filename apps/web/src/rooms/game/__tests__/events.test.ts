@@ -344,6 +344,88 @@ describe('the table’s events', () => {
     expect(room.events.list(MEDIATOR)[0]).not.toHaveProperty('veiled')
   })
 
+  test('Reveal sends a private roll to the players: their Feed, the log they read and the bound channel (r3 A1)', () => {
+    const { room, act, texts } = seated()
+    const full = 'Mediator · Warlord Vex · Rifle · 15 · Success'
+    room.log.append(MEDIATOR, [
+      {
+        entityType: 'game',
+        field: 'roll',
+        after: { description: full, private: true, veiled: 'Mediator rolled · 15 · Success' },
+        source: 'play',
+        ts: AT + 1,
+      },
+    ])
+    // Private: a player is served nothing of it, not even its veiled line.
+    expect(texts(PLAYER)).toEqual([])
+    expect(room.log.rolls(PLAYER)).toEqual([])
+    const [own] = room.events.list(MEDIATOR)
+    expect(own).toMatchObject({ text: full, private: true, veiled: true })
+    const told = act(MEDIATOR, 'changeLog.reveal', { rollId: String(own?._id) }, AT + 2)
+    // The room now serves it to everyone whole, no longer private or veiled.
+    expect(told).toMatchObject([{ _id: own?._id, kind: 'roll', text: full, revealed: true }])
+    expect(told[0]).not.toHaveProperty('private')
+    expect(told.filter(isMirrored)).toHaveLength(1)
+    expect(room.events.list(PLAYER)).toMatchObject([{ text: full, revealed: true, mediator: true }])
+    expect(room.log.rolls(PLAYER).map((r) => r.description)).toEqual([full])
+    const [after] = room.events.list(MEDIATOR)
+    expect(after).not.toHaveProperty('private')
+    expect(after).not.toHaveProperty('veiled')
+    expect(room.log.rolls(MEDIATOR)[0]).not.toHaveProperty('private')
+    // A second Reveal tells nobody again.
+    expect(act(MEDIATOR, 'changeLog.reveal', { rollId: String(own?._id) }, AT + 3)).toEqual([])
+  })
+
+  test('a private roll with no names to veil is revealed the same way; a table roll is not one to reveal (r3 A1)', () => {
+    const { room, act, texts } = seated()
+    const entry = (description: string, extra: object, ts: number) => ({
+      entityType: 'game',
+      field: 'roll',
+      after: { description, ...extra },
+      source: 'play',
+      ts,
+    })
+    room.log.append(MEDIATOR, [
+      entry('Mediator · Core Mechanic · 13 · Success', { private: true }, AT + 1),
+    ])
+    room.log.append(MEDIATOR, [entry('Mediator · Core Mechanic · 4 · Failure', {}, AT + 2)])
+    const [open, hidden] = room.events.list(MEDIATOR)
+    expect(() => act(MEDIATOR, 'changeLog.reveal', { rollId: String(open?._id) })).toThrow(
+      'not a roll to reveal'
+    )
+    act(MEDIATOR, 'changeLog.reveal', { rollId: String(hidden?._id) }, AT + 3)
+    expect(texts(PLAYER)).toEqual([
+      'Mediator · Core Mechanic · 4 · Failure',
+      'Mediator · Core Mechanic · 13 · Success',
+    ])
+  })
+
+  test('after a hand over the new Mediator reads earlier private rolls under their roller’s name, never as the Mediator’s of today (r3 A2)', () => {
+    const { room, act } = seated()
+    room.log.append(MEDIATOR, [
+      {
+        entityType: 'game',
+        field: 'roll',
+        after: { description: 'Mediator · Warlord Vex · Rifle · 3 · Failure', private: true },
+        source: 'play',
+        ts: AT + 1,
+      },
+    ])
+    act('d-org', 'setMediator', { userId: PLAYER, mediator: true }, AT + 2)
+    act('d-org', 'setMediator', { userId: MEDIATOR, mediator: false }, AT + 3)
+    const name = room.store.member(MEDIATOR)?.displayName
+    expect(name).toBeTruthy()
+    const [crossed] = room.events.list(PLAYER).filter((e) => e.kind === 'roll')
+    expect(crossed).toMatchObject({
+      text: `${name} · Warlord Vex · Rifle · 3 · Failure`,
+      private: true,
+      actorId: MEDIATOR,
+    })
+    expect(crossed).not.toHaveProperty('mediator')
+    // Whoever rolled it no longer mediates, so the room serves them nothing of it.
+    expect(room.events.list(MEDIATOR).filter((e) => e.kind === 'roll')).toEqual([])
+  })
+
   test('a player’s roll is never veiled, whatever the client sent (r2 B1)', () => {
     const { room, texts } = seated()
     room.log.append(PLAYER, [
@@ -368,8 +450,69 @@ describe('the table’s events', () => {
     const [ended] = act(MEDIATOR, 'downtime.end', undefined as never, AT + 3)
     expect(ended?.kind).toBe('downtime')
     expect(act(MEDIATOR, 'downtime.end', undefined as never, AT + 4)).toEqual([])
-    expect(texts(PLAYER)).toEqual(['Med ended Downtime', 'Med began Downtime'])
+    // By role, as the session's lines are: one screen never has two words for one person (r3 A6).
+    expect(texts(PLAYER)).toEqual(['Mediator ended Downtime', 'Mediator began Downtime'])
     expect(isMirrored(began as never)).toBe(true)
+  })
+
+  test('an accepted proposal undone says so, on the table’s line and on the Mediator’s row (r3 A5)', () => {
+    const { act, room, texts } = seated()
+    act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 8 })] }, AT + 1)
+    act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 3 }, AT + 2)
+    const pending = room.proposals.pending(PLAYER)[0]
+    const [accepted] = act(PLAYER, 'ops.accept', { opId: pending?._id as string }, AT + 3)
+    expect(accepted).toMatchObject({ kind: 'proposal', answer: 'accepted' })
+    expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('applied')
+    // The player's Undo writes back what the sheet held (`acceptedUndo`).
+    const [undone] = act(
+      PLAYER,
+      'submit',
+      { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2 })] },
+      AT + 4
+    )
+    expect(undone).toMatchObject({
+      kind: 'proposal',
+      answer: 'undone',
+      text: 'Player undid: p1 · Pilot p1 HP → 3',
+      actorId: PLAYER,
+    })
+    expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('undone')
+    expect(texts().slice(0, 2)).toEqual([
+      'Player undid: p1 · Pilot p1 HP → 3',
+      'Player accepted: p1 · Pilot p1 HP → 3',
+    ])
+    // A later change is its own: the row stays Undone, and the line is a vital's.
+    const [later] = act(
+      PLAYER,
+      'submit',
+      { ops: [op('p1', { currentHP: 6 }, { baseSeq: 3 })] },
+      AT + 5
+    )
+    expect(later).toMatchObject({ kind: 'vitals' })
+    expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('undone')
+  })
+
+  test('an accepted proposal changed to anything but what it replaced still stands', () => {
+    const { act, room } = seated()
+    act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 8 })] }, AT + 1)
+    act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 3 }, AT + 2)
+    act(PLAYER, 'ops.accept', { opId: room.proposals.pending(PLAYER)[0]?._id as string }, AT + 3)
+    const [stepped] = act(
+      PLAYER,
+      'submit',
+      { ops: [op('p1', { currentHP: 4 }, { baseSeq: 2 })] },
+      AT + 4
+    )
+    expect(stepped).toMatchObject({ kind: 'vitals' })
+    expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('applied')
+  })
+
+  test('a member removed is a line for the table, as their joining was (r3 A4)', () => {
+    const { room, texts } = seated()
+    const told = room.events.removed('d-org', PLAYER, AT + 1)
+    expect(told).toMatchObject({ kind: 'leave', text: 'Player was removed from the Game' })
+    expect(isMirrored(told)).toBe(true)
+    expect(texts(MEDIATOR)).toEqual(['Player was removed from the Game'])
   })
 
   test('Up now clears when the session ends and when Downtime begins (r2 E1)', () => {

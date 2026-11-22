@@ -95,6 +95,8 @@ export const buildShelvesCopy = messages({
 
   sharedByLink: 'Shared by link',
   onlyMe: 'Only me',
+  onlyTheMediator: 'Only the Mediator',
+  theTable: 'The table',
   sharedWithACrew: 'Shared with a crew',
   sharedWith: 'Shared with {game}',
 })

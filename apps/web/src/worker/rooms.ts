@@ -32,6 +32,7 @@ import {
   refusedBatch,
 } from '../rooms/game/feed'
 import { GameRoomLogic } from '../rooms/game/gameRoomLogic'
+import { readerOf } from '../rooms/game/readers'
 import {
   ACCOUNT_SOCKET_ACTS,
   actAnswer,
@@ -469,9 +470,12 @@ export class GameRoom extends Room {
         at,
       }))
     )
+    // The table is told of a removal, as it was of the joining (r3 A4); leaving is one's own.
+    const told = actor === userId ? [] : [this.logic.events.removed(actor, userId, at)]
     this.logic.roster.forgetMember(userId)
     await accountHome(userId).leftGame(this.gameId)
     this.dropStrangers()
+    this.mirror(told)
     return { ok: true, value: null }
   }
 
@@ -555,9 +559,17 @@ export class GameRoom extends Room {
     this.published()
   }
 
-  /** The same messages to every member's open socket. */
+  /**
+   * The same messages to every member's open socket; a unit's `applied` only
+   * to the members the room serves that unit (`readerOf`, r3 A3).
+   */
   private broadcast(messages: readonly ServerMessage[]): void {
-    sendEach(this.ctx, messages, (member) => this.isMember(member))
+    const { store } = this.logic
+    for (const message of messages) {
+      const unit = message.type === 'applied' ? store.unit(message.unit.appId) : null
+      const hears = (m: string) => this.isMember(m) && (unit === null || readerOf(store, m)(unit))
+      sendEach(this.ctx, [message], hears)
+    }
   }
 
   /** Who is here, to every open socket but `gone` (the one closing). */

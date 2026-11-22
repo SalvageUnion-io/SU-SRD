@@ -1,17 +1,23 @@
 import { fieldLabel } from 'game-domain/games/proposals'
 import type { LinkShape } from 'game-domain/links/linkRules'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import {
-  resolveInstalledRef,
-  resolveModuleRef,
-  resolveSystemRef,
-} from 'salvageunion-reference/rules'
 import { seatOf } from '../seats'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
-import type { VitalChange } from './eventLines'
-import { crewedLabel, UNDO_SOURCE, vitalLine } from './eventLines'
-import { rollLineFor } from './log'
+import type { Stored } from './eventLines'
+import {
+  CONDITION_WORDS,
+  CONDITIONS,
+  crewedLabel,
+  effectName,
+  eventOf,
+  mergeLine,
+  signedBy,
+  UNDO_SOURCE,
+  VITALS,
+  vitalLine,
+} from './eventLines'
+import { isPrivateRoll, isRevealedRoll, rollLineFor } from './log'
+import { undoes } from './proposals'
 import type { GameStore, StoredOp } from './store'
 import type { SubmitResult } from './units'
 import { unitName } from './units'
@@ -37,19 +43,24 @@ import { unitName } from './units'
  * - **A mech's line names its pilot:** "Reaper (GHOST) · Heat 2 → 3", whoever
  *   is aboard, else whoever it is assigned to (r3 B2).
  * - **Private:** a row marked `private` (the Mediator's private roll) is
- *   served to Mediators only and is never mirrored (`isMirrored`).
+ *   served to Mediators only and is never mirrored (`isMirrored`), until a
+ *   Mediator reveals it.
  * - **Veiled:** an Opposition roll is served to a player as its veiled line,
  *   without the NPC's or the weapon's name, until a Mediator reveals it
  *   (`log.ts`, ADR-051 §9b).
+ * - **Revealed:** a roll a Mediator revealed is everyone's, whole, wherever
+ *   the stream is read: the Feed, a toast, "Last session", and the bound
+ *   channel, which gets its line once (r3 A1).
  */
 
-type TableEventKind =
+export type TableEventKind =
   | 'vitals'
   | 'action'
   | 'roll'
   | 'board'
   | 'assign'
   | 'join'
+  | 'leave'
   | 'role'
   | 'session'
   | 'downtime'
@@ -73,10 +84,21 @@ export type TableEvent = {
    * (ADR-051 §9b): theirs to reveal. Never set on what a player is served.
    */
   veiled?: true
+  /**
+   * A roll a Mediator showed the table (`changeLog.reveal`): no longer private
+   * or veiled for anyone. A player's screen toasts it as it arrives, and the
+   * bound channel is sent its line (`isMirrored`).
+   */
+  revealed?: true
   /** A roll a Mediator made: the one roll a screen toasts (`tableNotices.model.ts`). */
   mediator?: true
   /** The group session began or ended here: what "Last session" is cut by. */
   session?: 'start' | 'end'
+  /**
+   * A proposal's line that changed a sheet: its player accepted it, or undid
+   * that (r3 A5). "Last session" counts both as changes to vitals (r3 K6).
+   */
+  answer?: 'accepted' | 'undone'
   /**
    * The member the event is about. An assignment taken from them: their
    * screen says so itself (`assignmentNotices`). A `role` event: who mediates
@@ -95,47 +117,6 @@ const KEPT = 600
 /** The most events a read returns: the stream's newest page. */
 const SERVED = 200
 
-/** The vitals whose changes the table hears, by their sheet field. */
-const VITALS: Readonly<Record<string, string>> = {
-  currentHP: 'HP',
-  currentAP: 'AP',
-  currentSP: 'SP',
-  currentEP: 'EP',
-  currentHeat: 'Heat',
-}
-
-/** A mech's item conditions, by the sheet field that holds them (`ItemConditionMapSchema`). */
-const CONDITIONS = {
-  systemConditions: resolveSystemRef,
-  moduleConditions: resolveModuleRef,
-} as const
-
-/** A system or module's new condition, in the line's words. */
-const CONDITION_WORDS: Readonly<Record<string, string>> = {
-  intact: 'is repaired',
-  damaged: 'is damaged',
-  destroyed: 'is destroyed',
-}
-
-/** What a stored event row carries beside its line. */
-type Stored = {
-  kind: TableEventKind
-  text: string
-  /** What a repeat is matched on; absent once sealed, or for a line that never merges. */
-  key?: string
-  /** The key whose open line this one ends: a hit on a vital, which no nudge folds across. */
-  ends?: string
-  /** A vital's line, kept apart so a repeat can rewrite it. */
-  vital?: VitalChange
-  /** How many times the line repeated. */
-  n?: number
-  /** The line before its count. */
-  base?: string
-  private?: true
-  session?: 'start' | 'end'
-  about?: string
-}
-
 /** What an act needs remembered from before it ran, to say what changed. */
 export type EventsBefore = {
   resolving?: string | null
@@ -148,14 +129,18 @@ export type EventsBefore = {
   effectOn?: boolean
   /** Who held the unit an assignment moves. */
   holder?: string | null
+  /** Whether the roll was already revealed: a second Reveal tells nobody again. */
+  revealed?: boolean
 }
 
 /** Whether an event goes to the bound channel as a line: never a private one, nor one with its own post. */
 export function isMirrored(event: TableEvent): boolean {
   if (event.private === true) return false
-  // A roll posts as its card (`channelBindings.postRoll`); an alert and the
-  // Stop Sign as theirs (`stopSign.ts`).
-  return event.kind !== 'roll' && event.kind !== 'alert' && !event._id.startsWith('stop-up:')
+  // A roll posts as its card (`channelBindings.postRoll`), which a private one
+  // never did and a veiled one did without its names: the reveal is its line.
+  if (event.kind === 'roll') return event.revealed === true
+  // An alert and the Stop Sign post as their own (`stopSign.ts`).
+  return event.kind !== 'alert' && !event._id.startsWith('stop-up:')
 }
 
 export class GameEvents {
@@ -174,7 +159,7 @@ export class GameEvents {
          order by ts desc, id limit ?`,
         SERVED
       )
-      .map((row) => this.read(row, member.mediator))
+      .map((row) => this.read(row, member.mediator, actor))
       .filter((event) => event.private !== true || member.mediator)
   }
 
@@ -214,6 +199,16 @@ export class GameEvents {
         return {
           downtime: this.store.rows('select 1 from downtime_run where id = 1').length > 0,
         }
+      case 'changeLog.reveal': {
+        const row = this.store.rows(
+          'select after from change_log where id = ?',
+          String(a.rollId)
+        )[0]
+        return {
+          revealed:
+            typeof row?.after === 'string' && isRevealedRoll(JSON.parse(row.after) as unknown),
+        }
+      }
       case 'safety.showStop':
       case 'safety.liftStop':
         return {
@@ -309,11 +304,21 @@ export class GameEvents {
       // The whole table's screens change with these, so each is said (r2 E2).
       case 'downtime.begin':
         return value === true
-          ? [this.note(actor, at, { kind: 'downtime', text: `${who} began Downtime` })]
+          ? [
+              this.note(actor, at, {
+                kind: 'downtime',
+                text: `${this.runnerName(actor)} began Downtime`,
+              }),
+            ]
           : []
       case 'downtime.end':
         return before.downtime === true
-          ? [this.note(actor, at, { kind: 'downtime', text: `${who} ended Downtime` })]
+          ? [
+              this.note(actor, at, {
+                kind: 'downtime',
+                text: `${this.runnerName(actor)} ended Downtime`,
+              }),
+            ]
           : []
       case 'ops.propose': {
         const op = this.store.op(String(value))
@@ -334,11 +339,20 @@ export class GameEvents {
       case 'ops.decline': {
         const op = before.proposal
         if (op == null || op.state !== 'proposed') return []
-        const verb = name === 'ops.accept' ? 'accepted' : 'declined'
-        return say('proposal', `${who} ${verb}: ${this.proposalLine(op)}`)
+        const text = `${who} ${name === 'ops.accept' ? 'accepted' : 'declined'}: ${this.proposalLine(op)}`
+        return [
+          this.note(actor, at, {
+            kind: 'proposal',
+            text,
+            key: text,
+            ...(name === 'ops.accept' ? { answer: 'accepted' as const } : {}),
+          }),
+        ]
       }
       case 'changeLog.reveal': {
-        // The roll's own line, now whole for everyone: its toast and Feed line rewrite in place.
+        // The roll's own line, now whole for everyone: a veiled one's toast and
+        // Feed line rewrite in place, a private one's arrive (r3 A1).
+        if (before.revealed === true) return []
         const row = this.store.rows('select * from change_log where id = ?', String(a.rollId))[0]
         return row === undefined ? [] : [this.read(row, false)]
       }
@@ -360,6 +374,17 @@ export class GameEvents {
       default:
         return []
     }
+  }
+
+  /**
+   * The Organiser removed a member (ADR-067 §3): a line for the table, as
+   * their joining was (r3 A4). Written while the roster still names them.
+   */
+  removed(actor: string, userId: string, at: number): TableEvent {
+    return this.note(actor, at, {
+      kind: 'leave',
+      text: `${this.memberName(userId)} was removed from the Game`,
+    })
   }
 
   /**
@@ -394,6 +419,13 @@ export class GameEvents {
         const was = op.before?.[field]
         const from = typeof was === 'number' ? was : unsetVital(this.store, op.unitId, field)
         if (from === to) continue
+        // An accepted proposal written back is said as that, for its Mediator (r3 A5).
+        const undone = undoes(this.store, op, field)
+        if (undone !== null) {
+          const text = `${this.memberName(actor)} undid: ${this.proposalLine(undone)}`
+          out.push(this.note(actor, at, { kind: 'proposal', text, answer: 'undone' }))
+          continue
+        }
         // A − / + nudge folds into the line before it; a hit (any larger
         // change) is its own line, and ends the nudged line it follows (r2 I3).
         const key = `v:${op.unitId}:${field}`
@@ -486,8 +518,15 @@ export class GameEvents {
     )
   }
 
-  /** One row as `mediates` reads it: a veiled roll whole only for a Mediator. */
-  private read(row: Record<string, unknown>, mediates: boolean): TableEvent {
+  /**
+   * One row as `mediates` reads it: a veiled roll whole only for a Mediator.
+   * `reader` is whose screen it is for; null for the line the table is told.
+   */
+  private read(
+    row: Record<string, unknown>,
+    mediates: boolean,
+    reader: string | null = null
+  ): TableEvent {
     const id = String(row.id)
     const ts = Number(row.ts)
     const actorId = row.actor_id == null ? null : String(row.actor_id)
@@ -496,19 +535,18 @@ export class GameEvents {
     if (row.field === 'alert') {
       return { _id: id, ts, kind: 'alert', text: `Mediator · ${String(after)}`, actorId }
     }
-    const roll = after as { private?: unknown } | null
     const line = rollLineFor(after, mediates)
+    const roller = actorId === null ? null : this.store.member(actorId)
     return {
       _id: id,
       ts,
       kind: 'roll',
-      text: line.description,
+      text: actorId === reader ? line.description : signedBy(line.description, roller),
       actorId,
-      ...(roll?.private === true ? { private: true as const } : {}),
+      ...(isPrivateRoll(after) ? { private: true as const } : {}),
       ...(line.veiled === true ? { veiled: true as const } : {}),
-      ...(actorId !== null && this.store.member(actorId)?.mediator === true
-        ? { mediator: true as const }
-        : {}),
+      ...(isRevealedRoll(after) ? { revealed: true as const } : {}),
+      ...(roller?.mediator === true ? { mediator: true as const } : {}),
     }
   }
 
@@ -517,7 +555,7 @@ export class GameEvents {
   }
 
   /**
-   * Who ran the table's own act (the session), as every Feed names them: the
+   * Who ran the table's own act (the session, Downtime), as every Feed names them: the
    * Mediator by role, as their alerts and proposals do, so one screen never
    * has three words for one person (MD2-12); their own screen says "You"
    * (`feed.model.ts`). An Organiser running a table with no Mediator goes by
@@ -541,42 +579,8 @@ export class GameEvents {
   }
 }
 
-/** What a switched effect is called: the system, module or ability that declares it. */
-function effectName(ref: string): string {
-  try {
-    const item = resolveInstalledRef(ref) as { name?: string } | null
-    return item?.name ?? SalvageUnionReference.Abilities.getBySlug(ref)?.name ?? ref
-  } catch {
-    return ref
-  }
-}
-
 /** Whose the unit was before an assignment moved it to `to`: nobody, when it stays theirs or was free. */
 function lost(before: EventsBefore, to: string | null): { about?: string } {
   const holder = before.holder ?? null
   return holder === null || holder === to ? {} : { about: holder }
-}
-
-/** A repeat folded into the line it follows: a vital keeps where it started, any other line counts. */
-function mergeLine(open: Stored, next: Stored): Stored {
-  if (open.vital !== undefined && next.vital !== undefined) {
-    const vital = { ...next.vital, from: open.vital.from }
-    return { ...open, vital, text: vitalLine(vital) }
-  }
-  const n = (open.n ?? 1) + 1
-  const base = open.base ?? open.text
-  return { ...open, n, base, text: `${base} ×${n}` }
-}
-
-function eventOf(id: string, ts: number, actorId: string | null, stored: Stored): TableEvent {
-  return {
-    _id: id,
-    ts,
-    kind: stored.kind,
-    text: stored.text,
-    actorId,
-    ...(stored.private === true ? { private: true as const } : {}),
-    ...(stored.session === undefined ? {} : { session: stored.session }),
-    ...(stored.about === undefined ? {} : { about: stored.about }),
-  }
 }

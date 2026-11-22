@@ -62,7 +62,12 @@ export type ShelfRelation = {
 }
 
 /** Who can see an item, in the words its chip wears. */
-const WHO = { link: buildShelvesCopy('sharedByLink'), me: buildShelvesCopy('onlyMe') } as const
+const WHO = {
+  link: buildShelvesCopy('sharedByLink'),
+  me: buildShelvesCopy('onlyMe'),
+  mediator: buildShelvesCopy('onlyTheMediator'),
+  table: buildShelvesCopy('theTable'),
+} as const
 
 /** The class a pilot is, by the name the book gives it. */
 export function pilotFact(pilot: Pick<Pilot, 'classRef'>): string | undefined {
@@ -216,14 +221,21 @@ export function linkChip(sharedByLink: readonly string[] | undefined, id: string
 }
 
 /**
- * Who can see an NPC: anyone with the link once its owner shares it so; else
- * nobody but you while it is in your Training Bay. In a Game the table sees it, which
- * its Game relation (`gameRelation`) already says, so no chip repeats it.
+ * Who can see an NPC, always said, so the column never comes and goes (r3
+ * A3): anyone with the link once its owner shares it so; nobody but you while
+ * it is in your Training Bay; in a Game only its Mediator (the room withholds
+ * it from the players, `rooms/game/readers.ts`), unless it crews a crawler,
+ * whose sheet shows it to the table.
  */
-export function npcChips(args: { npc: Pick<Npc, 'gameId'>; sharedByLink?: boolean }): ShelfChip[] {
+export function npcChips(args: {
+  npc: Pick<Npc, 'gameId'>
+  sharedByLink?: boolean
+  /** It fills a crawler's crew slot (`crewLinkOf`). */
+  crews?: boolean
+}): ShelfChip[] {
   if (args.sharedByLink) return [{ key: 'who', label: WHO.link }]
   if (typeof args.npc.gameId !== 'string') return [{ key: 'who', label: WHO.me }]
-  return []
+  return [{ key: 'who', label: args.crews ? WHO.table : WHO.mediator }]
 }
 
 /** The personal tray's NPCs live in the Training Bay alone, so only the owner sees them. */

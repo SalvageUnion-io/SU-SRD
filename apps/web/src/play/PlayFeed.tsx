@@ -7,15 +7,15 @@
  * A proposal answers inline: Accept writes it (`ops.accept`, the owner's
  * own write) and Decline records the answer (`ops.decline`); Decline is
  * a peer of Accept, as on the Game page's inbox (`ProposalInbox`). An accepted
- * one lands on the Feed as an applied change.
+ * one lands on the Feed as the table's line for it, "You accepted: …".
  *
  * Each of my rolls says what became of its Discord post (§9): Posting…,
  * Posted, a Post button for one the toggle kept private (the per-roll
  * override), or Not posted with the reason and Try again. Never silent.
  *
  * A Mediator's Opposition roll reaches the players without its names (ADR-051
- * §9b): its line here says so and offers Reveal, which shows the table the
- * whole line (`changeLog.reveal`).
+ * §9b), and a private one not at all: its line here says which and offers
+ * Reveal, which shows the table the whole line (`changeLog.reveal`).
  *
  * Feed lines are level 1 (play.md §12): plain text and buttons inside, no
  * frame inside a frame.
@@ -27,9 +27,8 @@ import { Button, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
 import { useTableAct } from '../replica/useTable'
-import type { FeedEntry } from './feed.model'
+import type { FeedEntry, Kept } from './feed.model'
 import type { PlayRoll } from './playRolls.model'
-import { recordPlayChange } from './playRolls.model'
 import { acceptedUndo } from './proposalAnswer.model'
 import type { PlayPostState } from './usePlayChannel'
 
@@ -78,11 +77,13 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
     failure: playCopy('revealDidNotLand'),
     toastId: 'play-roll-reveal',
   })
-  /** What a veiled roll's line says of itself, and the control that shows it to the table. */
-  const veil = (rollId: string | undefined, text: string) =>
+  /** What a kept roll's line says the players miss, and the control that shows it to the table. */
+  const veil = (rollId: string | undefined, text: string, kept: Kept | undefined) =>
     rollId === undefined ? null : (
       <span style={VEIL}>
-        <span style={STATE}>{playCopy('namesHidden')}</span>
+        <span style={STATE}>
+          {kept === 'roll' ? playCopy('onlyMediatorSees') : playCopy('namesHidden')}
+        </span>
         <Button
           variant="default"
           size="mini"
@@ -103,7 +104,7 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
       .run(() => apply({ opId: entry.proposalId }))
       .then((result) => {
         if (!result.ok) return
-        recordPlayChange(`Applied · ${entry.change}`)
+        // The table's own line says it ("You accepted: …"), once (r3 A5).
         // Theirs to undo, as any change of a live number is (r2 C6).
         acceptedUndo(entry.proposal)
       })
@@ -154,7 +155,7 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
                 }
               >
                 {entry.text}
-                {veil(entry.reveal, entry.text)}
+                {veil(entry.reveal, entry.text, entry.kept)}
                 {post?.kind === 'failed' && (
                   <FieldError>
                     {playCopy('notPostedToDiscord', { message: post.message })}
@@ -168,7 +169,7 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
             return (
               <FeedLine key={entry.key} end={<FeedTime ts={entry.ts} format="clock" />}>
                 {entry.text}
-                {entry.kind === 'roll' && veil(entry.reveal, entry.text)}
+                {entry.kind === 'roll' && veil(entry.reveal, entry.text, entry.kept)}
               </FeedLine>
             )
         }

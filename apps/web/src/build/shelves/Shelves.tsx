@@ -67,6 +67,7 @@ import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { crewLinkOf } from '../../lib/npcs/npcModel'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { savedPatternHref } from '../../lib/patterns/patterns'
 import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
@@ -420,7 +421,13 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 href: `/npcs/${n.id}`,
                 cells: [
                   n.position ?? '',
-                  who(npcChips({ npc: n, sharedByLink: sharedByLink?.includes(n.id) ?? false })),
+                  who(
+                    npcChips({
+                      npc: n,
+                      sharedByLink: sharedByLink?.includes(n.id) ?? false,
+                      crews: crewLinkOf(softLinks, n.id) !== undefined,
+                    })
+                  ),
                   inGame(gameRelation(n, games)),
                   hpColumnCell(npcReading(n)),
                 ],

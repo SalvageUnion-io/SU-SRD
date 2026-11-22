@@ -119,11 +119,12 @@ describe('shared by link', () => {
     expect(linkChip(undefined, 'p1')).toEqual([])
   })
 
-  test('an NPC says who can see it: by link first, else only you; in a Game its relation says', () => {
+  test('an NPC always says who can see it: by link first, else only you; in a Game only its Mediator, or the table for crawler crew (r3 A3)', () => {
     const shelf = { gameId: null }
     const inGame = { gameId: 'g1' }
     expect(chipLabels(npcChips({ npc: shelf }))).toEqual(['Only me'])
-    expect(npcChips({ npc: inGame })).toEqual([])
+    expect(chipLabels(npcChips({ npc: inGame }))).toEqual(['Only the Mediator'])
+    expect(chipLabels(npcChips({ npc: inGame, crews: true }))).toEqual(['The table'])
     expect(chipLabels(npcChips({ npc: shelf, sharedByLink: true }))).toEqual(['Shared by link'])
     expect(chipLabels(npcChips({ npc: inGame, sharedByLink: true }))).toEqual(['Shared by link'])
   })

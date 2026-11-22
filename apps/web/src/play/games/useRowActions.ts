@@ -57,9 +57,13 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
     if (row.localId !== null) await useUnits.getState().forget(row.kind, row.localId)
   }
 
-  /** Give up a unit of the viewer's own without being told of it (`assignmentNotices`). */
-  async function ownDoing(row: RosterRow, act: () => Promise<unknown>): Promise<void> {
-    const undo = row.owner?.mine === true ? handedBack(row.appId ?? row.serverId) : null
+  /** Give up a unit of the viewer's own, or take one (`taking`), without being told of it (`assignmentNotices`). */
+  async function ownDoing(
+    row: RosterRow,
+    act: () => Promise<unknown>,
+    taking = false
+  ): Promise<void> {
+    const undo = row.owner?.mine === true || taking ? handedBack(row.appId ?? row.serverId) : null
     try {
       await act()
     } catch (err) {
@@ -76,7 +80,7 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
           // Nothing to pull down by hand: it is yours now, so it is in
           // `listMine`, and `RoomFeed` caches it from there — the row's View
           // opens it editable as soon as it lands.
-          await assign({ entityId: row.serverId })
+          await ownDoing(row, () => assign({ entityId: row.serverId }), true)
         },
       }),
 
@@ -96,7 +100,7 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
           // Their own doing, so no notice of it (`assignmentNotices`). The
           // copy here stays: the room serves it with its new holder, and a
           // sheet that is not yours opens read-only (MD-10).
-          await ownDoing(row, () => assign({ entityId: row.serverId, userId: member.userId }))
+          await ownDoing(row, () => assign({ entityId: row.serverId, userId: member.userId }), self)
         },
       }),
 

@@ -5,6 +5,7 @@
  * it tells the table that play has begun.
  */
 
+import { toast } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
 import { useSync } from '../replica/syncContext'
@@ -40,7 +41,14 @@ export function useGameSession(gameId: string | null): GameSession | null {
   return {
     live: read.live,
     canWrite,
-    start: async () => (await start.run({})).ok,
+    start: async () => {
+      const result = await start.run({})
+      // It began, said back to whoever started it (r3 A4): the table hears its own line.
+      if (result.ok && result.value === true) {
+        toast.success(playCopy('sessionStarted'), { id: 'group-session' })
+      }
+      return result.ok
+    },
     end: () => void end.run({}),
     pending: start.pending || end.pending,
   }

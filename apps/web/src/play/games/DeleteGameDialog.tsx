@@ -44,7 +44,7 @@ import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { ConfirmDialog } from '../../components/app'
-import { Checkbox, Stack, Text } from '../../components/index'
+import { Checkbox, Stack, Text, toast } from '../../components/index'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
@@ -122,6 +122,8 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       undo()
       throw err
     }
+    // It landed, said back to whoever did it (r3 A4).
+    toast.success(playGamesCopy('gameDeleted', { game: game.name }))
     // The dialog then closes itself, through `onOpenChange(false)` → `onClose`.
     onDeleted?.()
   }

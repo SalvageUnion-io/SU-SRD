@@ -33,9 +33,10 @@ export type ProposalRead = {
 export type SentProposal = ProposalRead & {
   /**
    * The op's state; `superseded` for a declined one a newer proposal replaced,
-   * `withdrawn` for one its Mediator took back.
+   * `withdrawn` for one its Mediator took back, `undone` for an applied one
+   * its player wrote back (`undoneBy`, r3 A5).
    */
-  state: OpState | 'superseded' | 'withdrawn'
+  state: OpState | 'superseded' | 'withdrawn' | 'undone'
   mine: boolean
   actorName: string | null
 }
@@ -142,7 +143,9 @@ export class GameProposals {
             ? 'withdrawn'
             : op.supersededBy !== null
               ? 'superseded'
-              : op.state,
+              : undoneBy(this.store, op) !== null
+                ? 'undone'
+                : op.state,
         mine: op.author === actor,
         actorName: this.store.member(op.author)?.displayName ?? null,
       })
@@ -214,6 +217,51 @@ export class GameProposals {
       this.store.putOp({ ...proposal, state: 'declined' })
     })
   }
+}
+
+/** What `field` held before `op` applied: its stored before, or what a vital never written reads. */
+function heldBefore(store: GameStore, op: StoredOp, field: string): number | null {
+  const was = op.before?.[field]
+  return typeof was === 'number' ? was : unsetVital(store, op.unitId, field)
+}
+
+/**
+ * The applied proposal `op` writes back, when it does (r3 A5): the change to
+ * the same field of the same unit just before it was a Mediator's proposal,
+ * and `op` puts back what the sheet held before that. It is how the player's
+ * Undo lands (`acceptedUndo`), read off the op log, so nothing more is stored.
+ */
+export function undoes(store: GameStore, op: StoredOp, field: string): StoredOp | null {
+  if (op.state !== 'applied' || op.seq === null) return null
+  const earlier = store
+    .opsOf(op.unitId)
+    .filter(
+      (o) =>
+        o.state === 'applied' &&
+        o.seq !== null &&
+        o.seq < (op.seq ?? 0) &&
+        Object.hasOwn(o.patch, field)
+    )
+  const last = earlier[earlier.length - 1]
+  if (last === undefined || last.source !== PROPOSAL_SOURCE) return null
+  return heldBefore(store, last, field) === op.patch[field] ? last : null
+}
+
+/** The op that undid an applied `proposal` (`undoes`), or null while it stands. */
+function undoneBy(store: GameStore, proposal: StoredOp): StoredOp | null {
+  if (proposal.state !== 'applied' || proposal.seq === null) return null
+  const [field] = Object.keys(proposal.patch)
+  if (field === undefined) return null
+  const next = store
+    .opsOf(proposal.unitId)
+    .find(
+      (o) =>
+        o.state === 'applied' &&
+        o.seq !== null &&
+        o.seq > (proposal.seq ?? 0) &&
+        Object.hasOwn(o.patch, field)
+    )
+  return next !== undefined && undoes(store, next, field)?.id === proposal.id ? next : null
 }
 
 function proposalRead(op: StoredOp, unit: UnitRow | null): ProposalRead {

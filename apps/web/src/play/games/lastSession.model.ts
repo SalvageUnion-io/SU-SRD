@@ -12,8 +12,11 @@ export type SessionRecord = {
   endedAt: number | null
   /** What happened in it, newest first, its own start and end left out. */
   lines: TableEvent[]
+  /** The rolls the whole table reads: the same count on every screen (r3 K6). */
   rolls: number
-  /** Vitals changes. */
+  /** Rolls only a Mediator is served: private ones, never counted with the table's. */
+  privateRolls: number
+  /** Vitals changes, an accepted proposal and its undoing among them. */
   changes: number
 }
 
@@ -30,7 +33,8 @@ export function lastSession(events: readonly TableEvent[]): SessionRecord | null
     startedAt: start.ts,
     endedAt: endAt === -1 ? null : (after[endAt]?.ts ?? null),
     lines: within.reverse(),
-    rolls: within.filter((event) => event.kind === 'roll').length,
-    changes: within.filter((event) => event.kind === 'vitals').length,
+    rolls: within.filter((event) => event.kind === 'roll' && event.private !== true).length,
+    privateRolls: within.filter((event) => event.kind === 'roll' && event.private === true).length,
+    changes: within.filter((event) => event.kind === 'vitals' || event.answer !== undefined).length,
   }
 }
