@@ -6,7 +6,10 @@
  * A stretch is everything since the previous group session ended, up to this
  * one's end: play counts whether or not Start group session was pressed
  * (MD4-04). A stretch with no play in it (a session started and ended by
- * accident) never replaces one that has some.
+ * accident) never replaces one that has some. Nor does play with no group
+ * session around it, once a group session holds some (r5 A10): Mediate opened
+ * for a moment, a roll or a hand over after the session ended, waits for the
+ * next session, as play before Start does.
  */
 
 import type { TableEvent, TableEventKind } from '../../rooms/game/events'
@@ -57,8 +60,13 @@ export function lastSession(events: readonly TableEvent[]): SessionRecord | null
   const ordered = [...events].sort((a, b) => a.ts - b.ts)
   const cut = stretches(ordered)
   const started = (stretch: Stretch) => stretch.events.some((event) => event.session === 'start')
-  // The newest with play in it; with none anywhere, the newest session, empty as it is.
-  const shown = cut.findLast((s) => s.events.some(isPlay)) ?? cut.findLast(started)
+  const played = (stretch: Stretch) => stretch.events.some(isPlay)
+  // A group session's stretch: started, or cut by its end (its start may have scrolled off).
+  const held = (stretch: Stretch) => started(stretch) || stretch.end !== null
+  // The newest group session with play in it; with none, the newest play;
+  // with none anywhere, the newest session, empty as it is.
+  const shown =
+    cut.findLast((s) => held(s) && played(s)) ?? cut.findLast(played) ?? cut.findLast(started)
   if (shown === undefined) return null
   // It opens at its first play or its session's start, whichever came first.
   const first = shown.events.find((event) => isPlay(event) || event.session === 'start')

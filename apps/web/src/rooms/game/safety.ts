@@ -6,7 +6,7 @@ import type { GameStore } from './store'
  * rules.
  *
  * - **The Stop Sign:** any member shows it, with no reason asked, and every
- *   screen shows the game is paused without saying who. Whoever showed it, or
+ *   screen asks the table to pause without saying who. Whoever showed it, or
  *   the table runner, lifts it.
  * - **Discord:** showing it posts the bot's fixed words to the Game's bound
  *   channel, at most once a minute; there is no opt-in, and unbinding the

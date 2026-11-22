@@ -364,9 +364,13 @@ describe('pinned above every pane', () => {
 })
 
 describe('the Situation, in the bar’s ⋯', () => {
-  test('no switch on a phone: On foot, Board, Downtime and Table mode are rows', async () => {
+  // r5 A15 (SB5-10): boarded on a phone, the switch was gone, its moves only in ⋯.
+  test('boarded on a phone the switch stays pinned; On foot, Board, Downtime and Table mode are rows too', async () => {
     await renderPhone({ situation: 'boarded' })
-    expect(screen.queryByRole('group', { name: 'Situation' })).toBeNull()
+    const situation = screen.getByRole('group', { name: 'Situation' })
+    expect(situation.closest('.su-play-frame__pinned')).not.toBeNull()
+    expect(within(situation).getByRole('button', { name: 'On foot' })).toBeTruthy()
+    expect(within(situation).getByRole('button', { name: /^Downtime/ })).toBeTruthy()
     await openMore()
     expect(await screen.findByRole('menuitem', { name: /^On foot/ })).toBeTruthy()
     // The row that is so now says so.

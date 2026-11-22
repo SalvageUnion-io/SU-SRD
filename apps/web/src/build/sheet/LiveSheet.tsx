@@ -37,6 +37,7 @@ import {
   relation,
   Stat,
   Tag,
+  Text,
   tokens,
 } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -449,6 +450,7 @@ export function LiveSheet({
               }}
               state={out && <Stat label={out.stamp} state="critical" wrap />}
             />
+            {band?.doorNote && <Text variant="note">{band.doorNote}</Text>}
             {/* The phone's segmented Pilot/Mech/Crawler switch, full width
                 under the name so it stays thumb-reachable. The active segment
                 is the sheet being viewed (an ink plate, never rust: a

@@ -15,7 +15,11 @@ export type EventsBefore = {
   session?: boolean
   /** Whether a Downtime was running. */
   downtime?: boolean
+  /** The step a running Downtime stood on, before the Mediator moved it (r5 A3). */
+  downtimeStep?: number | null
   stop?: boolean
+  /** Who showed the Stop Sign: lifted by anyone else, the Feed names who lifted it (r5 A8). */
+  stopBy?: string | null
   /** Whether the effect was switched on. */
   effectOn?: boolean
   /** Who held the unit an assignment moves. */
@@ -60,6 +64,9 @@ export function eventsBefore(store: GameStore, name: GameActName, args: unknown)
         session: store.rows('select 1 from session where id = 1').length > 0,
         unapplied: unappliedOf(store, null),
       }
+    case 'downtime.advance':
+    case 'downtime.setStep':
+      return { downtimeStep: downtimeStepNow(store) }
     case 'downtime.begin':
     case 'downtime.end': {
       const was = name === 'downtime.begin' ? upNowOf(store) : null
@@ -84,11 +91,15 @@ export function eventsBefore(store: GameStore, name: GameActName, args: unknown)
       return { unapplied: was === null ? [] : unappliedOf(store, [was]) }
     }
     case 'safety.showStop':
-    case 'safety.liftStop':
+    case 'safety.liftStop': {
+      const row = store.rows(
+        'select shown_by from stop_sign where id = 1 and shown_at is not null'
+      )[0]
       return {
-        stop:
-          store.rows('select 1 from stop_sign where id = 1 and shown_at is not null').length > 0,
+        stop: row !== undefined,
+        stopBy: (row?.shown_by as string | null | undefined) ?? null,
       }
+    }
     default:
       return {}
   }
@@ -116,4 +127,10 @@ export function unappliedOf(
       (s) => (pilotIds === null || pilotIds.includes(s.pilotId)) && s.resolving.applied !== true
     )
     .map((s) => ({ pilotId: s.pilotId, name: s.resolving.name ?? '' }))
+}
+
+/** The step the Game's Downtime stands on, or null when none runs. */
+export function downtimeStepNow(store: GameStore): number | null {
+  const row = store.rows('select step_index from downtime_run where id = 1')[0]
+  return row === undefined ? null : Number(row.step_index)
 }

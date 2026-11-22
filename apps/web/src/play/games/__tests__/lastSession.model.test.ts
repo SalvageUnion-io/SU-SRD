@@ -53,6 +53,29 @@ test('a session with nothing in it does not replace a real one', () => {
   expect(live).toMatchObject({ startedAt: 1, endedAt: 3, rolls: 1 })
 })
 
+// r5 A10 (MD5-18): three minutes in Mediate after the session replaced it.
+test('play after the session ended, with none started, does not replace it', () => {
+  const record = lastSession([
+    e(1, { kind: 'session', session: 'start' }),
+    e(2, { kind: 'roll' }),
+    e(3),
+    e(4, { kind: 'session', session: 'end' }),
+    e(10, { kind: 'role' }),
+    e(11, { kind: 'roll' }),
+    e(12, { kind: 'role' }),
+  ])
+  expect(record).toMatchObject({ startedAt: 1, endedAt: 4, rolls: 1, changes: 1 })
+  // Started again, that play belongs to the new session.
+  const next = lastSession([
+    e(1, { kind: 'session', session: 'start' }),
+    e(2, { kind: 'roll' }),
+    e(4, { kind: 'session', session: 'end' }),
+    e(11, { kind: 'roll' }),
+    e(20, { kind: 'session', session: 'start' }),
+  ])
+  expect(next).toMatchObject({ startedAt: 11, endedAt: null, rolls: 1 })
+})
+
 test('with no play anywhere, the newest session shows, empty as it is', () => {
   const record = lastSession([
     e(1, { kind: 'session', session: 'start' }),

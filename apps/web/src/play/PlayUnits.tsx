@@ -313,7 +313,7 @@ export function PlayMechUnit({
       controls={
         <>
           {stamp(destroyed ? 'Destroyed' : down ? playCopy('down') : MECH_STAMP[place])}
-          {place === 'boarded' && onOpenSheet ? (
+          {(place === 'boarded' || place === 'downtime') && onOpenSheet ? (
             <SheetButton name={mech.name} onOpen={onOpenSheet} />
           ) : null}
           {place === 'parked' && onBoard !== undefined ? (

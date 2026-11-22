@@ -49,6 +49,7 @@ describe('ProposalInbox', () => {
           after: 6,
           reason: 'Rifle Squad volley',
           ts: 1,
+          byName: 'Ash',
         },
       ],
     })
@@ -56,6 +57,8 @@ describe('ProposalInbox', () => {
 
     expect(screen.getByText('Spectrum · SP → 6')).toBeTruthy()
     expect(screen.getByText('“Rifle Squad volley”')).toBeTruthy()
+    // Signed by whoever sent it (r5 A11).
+    expect(screen.getByText('From Ash')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Apply Spectrum · SP → 6' })).toBeTruthy()
     // Decline is a peer, not a dismissal.
     expect(screen.getByRole('button', { name: 'Decline Spectrum · SP → 6' })).toBeTruthy()

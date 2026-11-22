@@ -380,6 +380,7 @@ export const buildSheetCopy = messages({
   uses2: '{name} uses: {remaining}',
   remove: 'Remove {name}',
   readOrEditThis: 'Read or edit this {kind}',
+  soloIsNowTable: 'Solo play is now {game}’s table: Open table plays here.',
   read: 'Sheet',
   edit: 'Edit',
   theSheet: 'the sheet',

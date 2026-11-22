@@ -11,6 +11,14 @@ export function downtimeStepOpId(run: string, pilotId: string, stepIndex: number
   return `${PREFIX}${run}:${pilotId}:${stepIndex}`
 }
 
+/**
+ * Restore's healing run again for a pilot who took the step before their
+ * crawler had a Med Bay (r5 A12): its own op, once per run, pilot and step.
+ */
+export function downtimeHealOpId(run: string, pilotId: string, stepIndex: number): string {
+  return `${downtimeStepOpId(run, pilotId, stepIndex)}:heal`
+}
+
 /** What a Downtime does once to its crawler, in its own step: pay the Upkeep, process the Nanites. */
 export type DowntimeClaim = 'upkeep' | 'nanites'
 

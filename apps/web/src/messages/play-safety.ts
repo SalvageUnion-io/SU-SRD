@@ -9,11 +9,12 @@ export const playSafetyCopy = messages({
   stop: 'Stop',
   holdToShow: 'Hold to show the Stop Sign',
   stopSignMeans:
-    'Anyone can show the Stop Sign at any time, from here or from Play, with no reason needed. The game pauses on every screen, without saying who, and it posts to the Discord channel while one is bound.',
+    'Anyone can show the Stop Sign at any time, from here or from Play, with no reason needed. It asks the table to pause, on every screen and without saying who; sheets stay usable. It posts to the Discord channel while one is bound.',
   pausedBody:
-    'Someone has shown the Stop Sign. Step out of character and talk it through. Nobody needs to justify it.',
+    'Someone has shown the Stop Sign: the table is asked to pause, step out of character and talk it through. Nobody needs to justify it. Sheets stay usable.',
   pausedYours: 'You showed the Stop Sign. The table sees it without your name.',
   resume: 'Resume play',
+  liftedYours: 'The Mediator lifted your Stop Sign. Play resumes.',
   couldNotShow: 'The Stop Sign could not be shown. Say so out loud.',
   couldNotResume: 'Play could not be resumed. Try again.',
 })

@@ -277,6 +277,22 @@ describe('/crawlers/new', () => {
     expect(at(router).pathname).toBe('/pilots/p1')
   })
 
+  test('made from a solo Downtime: the pilot and their mech are crew, and Downtime opens again (r5 A13)', async () => {
+    const { mechFixture, pilotFixture, softLinkFixture } = await import(
+      '../../components/__tests__/fixtures'
+    )
+    const { useUnits } = await import('../../replica/units')
+    const store = useUnits.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'p3', name: 'Tessa', gameId: null }))
+    await store.adopt('mech', mechFixture({ id: 'm3', name: 'Old Dobbin', gameId: null }))
+    await store.adopt('softLink', softLinkFixture('mech-to-pilot', 'm3', 'p3'))
+    const router = await mountAt('/crawlers/new?mode=guided&pilot=p3&back=play')
+    assignedPairs.length = 0
+    await press('Crawler builder: complete')
+    expect(assignedPairs).toEqual(['p3 → new-id', 'm3 → new-id'])
+    expect(at(router).pathname).toBe('/pilots/p3/play')
+  })
+
   test('made from a mech’s + Create: the mech is assigned, and the mech opens (r4 E19)', async () => {
     const { mechFixture } = await import('../../components/__tests__/fixtures')
     const { useUnits } = await import('../../replica/units')

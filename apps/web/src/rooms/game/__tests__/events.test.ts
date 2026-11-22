@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { downtimeStepNames } from 'game-domain/rules/downtime'
 import type { GameActArgs, GameActName } from '../acts'
 import { runAct } from '../acts'
 import { isMirrored, MERGE_MS } from '../events'
@@ -298,8 +299,18 @@ describe('the table’s events', () => {
     const [up] = act(PLAYER, 'safety.showStop', undefined as never)
     expect(up).toMatchObject({ kind: 'stop', actorId: null })
     expect(isMirrored(up as never)).toBe(false)
-    const [down] = act(MEDIATOR, 'safety.liftStop', undefined as never, AT + 1)
-    expect(down?.actorId).toBeNull()
+    // Lifted by its own shower: nobody named.
+    const [own] = act(PLAYER, 'safety.liftStop', undefined as never, AT + 1)
+    expect(own).toMatchObject({ actorId: null, text: 'The Stop Sign is lifted. Play resumes.' })
+    expect(isMirrored(own as never)).toBe(true)
+    // Lifted by the Mediator for someone else: the Feed says who lifted it (r5 A8).
+    act(PLAYER, 'safety.showStop', undefined as never, AT + 2)
+    const [down] = act(MEDIATOR, 'safety.liftStop', undefined as never, AT + 3)
+    expect(down).toMatchObject({
+      actorId: MEDIATOR,
+      text: 'Med lifted the Stop Sign. Play resumes.',
+    })
+    expect(down?.about).toBeUndefined()
     expect(isMirrored(down as never)).toBe(true)
   })
 
@@ -473,6 +484,24 @@ describe('the table’s events', () => {
     ])
     expect(texts(MEDIATOR)).toEqual(['p1 · Core Mechanic · 14 · Success'])
     expect(room.events.list(MEDIATOR)[0]).not.toHaveProperty('veiled')
+  })
+
+  // r5 A3 (LG5-03, MD5-17): the Mediator moved Downtime on and the players heard nothing.
+  test('Downtime moving is a line for everyone, naming the step and what was passed over', () => {
+    const { act, texts } = seated()
+    act(MEDIATOR, 'downtime.begin', undefined as never, AT + 1)
+    const [next] = act(MEDIATOR, 'downtime.advance', undefined as never, AT + 2)
+    expect(next).toMatchObject({ kind: 'downtime', actorId: MEDIATOR })
+    act(MEDIATOR, 'downtime.setStep', { stepIndex: 6 }, AT + 3)
+    act(MEDIATOR, 'downtime.setStep', { stepIndex: 2 }, AT + 4)
+    // Put on the step it is already on, nothing moved, and nothing is said.
+    expect(act(MEDIATOR, 'downtime.setStep', { stepIndex: 2 }, AT + 5)).toEqual([])
+    const names = downtimeStepNames()
+    expect(texts(PLAYER).slice(0, 3)).toEqual([
+      `Mediator moved Downtime back to 3 ${names[2]}`,
+      `Mediator moved Downtime to 7 ${names[6]}, past 3–6`,
+      `Mediator moved Downtime to 2 ${names[1]}`,
+    ])
   })
 
   test('Downtime beginning and ending are each one line for everyone (r2 E2)', () => {

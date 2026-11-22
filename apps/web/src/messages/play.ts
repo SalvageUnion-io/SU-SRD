@@ -330,6 +330,7 @@ export const playCopy = messages({
   endAnyway: 'End anyway',
   goBack: 'Go back',
   skippedSteps: 'Skipped, nothing applied: {steps}.',
+  leftUnfinished: 'The Mediator moved Downtime on. Left unfinished: {steps}.',
   endDowntimeBodySolo:
     'You are on step {step} of {count}. A new Downtime starts from the first step.',
   rollTheDie: 'Roll the die',
@@ -410,7 +411,7 @@ export const playCopy = messages({
   answerDidNotLand: 'Your answer did not land. Try again.',
   tableNotices: 'Your Games',
   pausedTitlePrefix: 'Paused · ',
-  pausedIn: 'Stop Sign · {game}: the game is paused',
+  pausedIn: 'Stop Sign · {game}: the table is asked to pause',
   endGroupSessionTitle: 'End the group session?',
   endGroupSessionBody:
     'The table is told the session has ended. Play stays open for everyone, and you can start another at any time.',
@@ -480,6 +481,9 @@ export const playCopy = messages({
   outOfRangeAt: 'Out of Range at {range}',
   overTheHeatCapacity: 'Over the Heat Capacity',
   mechBayDamagedNoRestore: 'Mech Bay damaged: no restore or repair this Downtime',
+  hpStaysNeedsMedBay: 'HP stays {hp}: healing needs a Med Bay',
+  hpStaysMedBayDamaged: 'HP stays {hp}: the Med Bay is damaged',
+  healAtTheMedBay: 'Heal at the Med Bay',
   injuriesHealed: 'Injuries healed',
   usesRecharge: 'Uses recharge',
   abilitiesUsed: 'Abilities used',

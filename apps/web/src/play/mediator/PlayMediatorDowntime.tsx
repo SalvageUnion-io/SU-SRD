@@ -11,6 +11,11 @@
  * Processing Bay, **Process Nanites** joins them, live in the Craft step
  * (`processDowntimeNanites`).
  *
+ * Moving on is said to the table (the room's Feed line, r5 A3); a jump past
+ * more than one step asks first, and what the table passed over this visit
+ * (a step jumped over, one left with a seat still working) is listed under
+ * the step (`passed`).
+ *
  * Next stops at the
  * last step, and ending before it asks first, because ending and beginning
  * again resets the upkeep and a mis-tap could charge the crew twice
@@ -61,6 +66,9 @@ export function PlayMediatorDowntime({
   const store = useUnits()
   const { downtime, seats, canWrite, crawler } = mediator
   const [confirmEnd, setConfirmEnd] = useState(false)
+  // A jump past more than one step, waiting on its confirm; and what moving on passed over.
+  const [jumpTo, setJumpTo] = useState<number | null>(null)
+  const [passed, setPassed] = useState<readonly string[]>([])
   const [upkeepNote, setUpkeepNote] = useState<string | null>(null)
   const [naniteNote, setNaniteNote] = useState<string | null>(null)
   const { steps, index: idx, step, count, last } = currentDowntimeStep(downtime.downtime.stepIndex)
@@ -88,6 +96,31 @@ export function PlayMediatorDowntime({
       }
     )
 
+  /** Move to `to`, noting what is passed over: the steps jumped, and this one with a seat still working. */
+  function moveTo(to: number, move: () => void) {
+    if (to > idx) {
+      const working = seats.filter((seat) => !seatDone(seat, completedBy)).map((s) => s.name)
+      const here = `${idx + 1} ${step?.name ?? ''}`.trim()
+      const jumped = steps.slice(idx + 1, to).map((s, i) => `${idx + 2 + i} ${s.name}`)
+      setPassed((was) => [
+        ...was,
+        ...(working.length > 0
+          ? [mediatorCopy('leftWorking', { step: here, who: working.join(', ') })]
+          : []),
+        ...jumped,
+      ])
+    }
+    move()
+  }
+
+  /** The track's press: one step either way at once, a jump past more after its confirm. */
+  function onStep(to: number) {
+    const setStep = downtime.setStep
+    if (setStep === null) return
+    if (to - idx > 1) setJumpTo(to)
+    else moveTo(to, () => setStep(to))
+  }
+
   async function pay() {
     setUpkeepNote(await payDowntimeUpkeep({ crawler: unit, store, claim: downtime.claim }))
   }
@@ -110,7 +143,7 @@ export function PlayMediatorDowntime({
       <PlayDowntimeTrack
         steps={steps}
         current={idx}
-        onStep={downtime.setStep}
+        onStep={downtime.setStep === null ? null : onStep}
         canWrite={canWrite}
       />
       {step && (
@@ -152,6 +185,11 @@ export function PlayMediatorDowntime({
               )
             })}
           </ul>
+          {passed.length > 0 && (
+            <p className="su-play-resolve__note">
+              {mediatorCopy('passedOver', { steps: passed.join(', ') })}
+            </p>
+          )}
           <div className="su-play-dt-controls">
             <DowntimeStepNav
               step={idx}
@@ -159,7 +197,7 @@ export function PlayMediatorDowntime({
               off={off}
               onBack={downtime.setStep === null ? null : () => downtime.setStep?.(idx - 1)}
               onEnd={last ? downtime.end : () => setConfirmEnd(true)}
-              onAdvance={downtime.advance}
+              onAdvance={() => moveTo(idx + 1, downtime.advance)}
               endEarly
             />
           </div>
@@ -274,6 +312,21 @@ export function PlayMediatorDowntime({
           canWrite={canWrite}
         />
       </ul>
+      <ConfirmDialog
+        open={jumpTo !== null}
+        onOpenChange={(open) => {
+          if (!open) setJumpTo(null)
+        }}
+        title={mediatorCopy('jumpToStepAsk', {
+          step: `${(jumpTo ?? 0) + 1} ${steps[jumpTo ?? 0]?.name ?? ''}`.trim(),
+        })}
+        body={mediatorCopy('jumpToStepBody', { from: idx + 2, to: jumpTo ?? 0 })}
+        confirmLabel={mediatorCopy('jumpToStep')}
+        onConfirm={() => {
+          const to = jumpTo
+          if (to !== null && downtime.setStep !== null) moveTo(to, () => downtime.setStep?.(to))
+        }}
+      />
       <ConfirmDialog
         open={confirmEnd}
         onOpenChange={setConfirmEnd}
