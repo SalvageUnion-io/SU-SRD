@@ -120,6 +120,30 @@ export function sparseRailFor(schema: RefEnumSchemaName, entity: RefEntity): Spa
   }
 }
 
+/**
+ * A roll table's side column: who sends a reader to it. A record does that
+ * through an action that names the table (`tableName`), or in its own words
+ * ("roll on the Reactor Overload Table"). The table's name alone is no link:
+ * the Shield table is not every shield.
+ */
+export function tableRailFor(table: RefEntity): SparseRail {
+  const name = table.name.toLowerCase()
+  const named = `"tablename":${JSON.stringify(name)}`
+  const phrase = /\btable\b/.test(name) ? name : `${name} table`
+  const said = new RegExp(`(^|[^a-z])${escapeRegExp(phrase)}([^a-z]|$)`)
+  const users = index().filter(
+    ({ entity: other, words }) =>
+      other.id !== table.id && (words.includes(named) || said.test(words))
+  )
+  const kinds = new Map(getSchemaCatalog().schemas.map((meta) => [meta.id, meta.displayName]))
+  return {
+    usedBy: users
+      .filter(({ schema }) => schema !== 'guides')
+      .map(({ schema, entity }) => ({ ...linked(entity), kind: kinds.get(schema) ?? '' })),
+    rules: users.filter(({ schema }) => schema === 'guides').map(({ entity }) => linked(entity)),
+  }
+}
+
 /** A Page's lists of what links to it, as `relationsFor` gives them. */
 type RelationList = { key: string; rows: readonly { ref: EntityRef; name: string }[] }
 
