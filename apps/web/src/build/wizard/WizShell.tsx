@@ -101,6 +101,12 @@ type WizShellProps = {
   confirmCancel?: boolean
   /** Advances to the next step, or submits on the last step. */
   onNext: () => void
+  /**
+   * A saved unit's redesign (`useWizardFlow`'s `existing`): every step's
+   * action is the save, and Next steps on beside Back (from sm; a phone
+   * steps by the rail's notches).
+   */
+  saveNow?: (() => void) | undefined
   nextDisabled?: boolean
   /** Disables all footer actions while a submit is in flight. */
   busy?: boolean
@@ -359,6 +365,7 @@ export function WizShell({
   onBack,
   onCancel,
   onNext,
+  saveNow,
   nextDisabled = false,
   busy = false,
   submitLabel,
@@ -383,13 +390,17 @@ export function WizShell({
   }, [active])
   const isLast = active >= steps.length - 1
   // From sm the Next names its step in words ("Next: Systems & modules").
-  const ctaLabel = isLast ? (
-    submitLabel
-  ) : (
-    // One "Next:", read at every width and seen from sm (`wizard.css`): a
-    // second, hidden copy beside it was read out twice by a text reader.
+  // A redesign saves from any step; its Next is a ghost beside Back.
+  const savesHere = saveNow !== undefined && !isLast
+  const nextLabel = (
     <NextLabel to={steps[active + 1]} size="full" wordClassName="su-wiz-pill-next" />
   )
+  const ctaLabel =
+    isLast || savesHere
+      ? submitLabel
+      : // One "Next:", read at every width and seen from sm (`wizard.css`): a
+        // second, hidden copy beside it was read out twice by a text reader.
+        nextLabel
   const askCancel = () => (confirmCancel ? setConfirmingCancel(true) : onCancel())
   // The prompt's line: gone once pressed, and while its target is on screen.
   const promptTargetId = prompt?.targetId ?? noteTargetId ?? STEP_NOTE_ID
@@ -419,6 +430,17 @@ export function WizShell({
             disabled={busy}
           >
             {buildWizardCopy('back')}
+          </Button>
+        )}
+        {savesHere && (
+          <Button
+            variant="ghost"
+            size="full"
+            className="su-wiz-pill-step"
+            onClick={onNext}
+            disabled={nextDisabled || busy}
+          >
+            {nextLabel}
           </Button>
         )}
         <Button
@@ -465,7 +487,7 @@ export function WizShell({
         size="full"
         className="su-wiz-pill-cta"
         style={nextDisabled && !busy ? ctaLockedStyle : ctaStyle}
-        onClick={onNext}
+        onClick={savesHere ? saveNow : onNext}
         disabled={nextDisabled || busy}
       >
         {busy ? buildWizardCopy('saving') : ctaLabel}

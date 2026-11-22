@@ -96,7 +96,8 @@ export type WizardFlowOptions<
   /**
    * The saved unit this run redesigns (the NPC designer's Edit design): Save
    * validates the form the same way, then hands it to `save`, which writes
-   * that unit in place, and nothing is created.
+   * that unit in place, and nothing is created. The unit is already whole, so
+   * every step is reached from the start and each one saves (MD3-06).
    */
   existing?: { id: string; save: (form: TForm) => Promise<unknown> } | undefined
 }
@@ -114,6 +115,8 @@ type WizardShellProps = {
   confirmCancel: boolean
   /** Advance, or submit when already on `submitStep`. */
   onNext: () => void
+  /** Redesigning a saved unit: save from the step it is on, whichever that is. */
+  saveNow: (() => void) | undefined
   nextDisabled: boolean
   busy: boolean
   /** Saving signed out asks for an account; the draft is kept (`SaveSignInDialog`). */
@@ -169,7 +172,9 @@ export function useWizardFlow<
     }
     return steps[at] ?? initialStep
   })
-  const [reached, setReached] = useState(() => Math.max(steps.indexOf(step), 0))
+  const [reached, setReached] = useState(() =>
+    existing === undefined ? Math.max(steps.indexOf(step), 0) : steps.length - 1
+  )
   // The form's own words for what it is missing; a failed write is `save.error`.
   const [invalid, setInvalid] = useState<string | null>(null)
   // A wizard runs signed out; Save is where an account is asked for. The form
@@ -349,6 +354,7 @@ export function useWizardFlow<
       },
       confirmCancel: formDirty,
       onNext: goNext,
+      saveNow: existing === undefined ? undefined : () => void handleSubmit(),
       nextDisabled: !gate.ok,
       busy: save.pending,
       signIn: { open: askSignIn, onClose: () => setAskSignIn(false) },

@@ -195,8 +195,9 @@ export function NpcSheet({
         <Button href={inGame?.href ?? KIT_PATH} back variant="ink" size="compact">
           {inGame ? npcCopy('gamePrep') : npcCopy('mediatorsKit')}
         </Button>
-        {/* Edit's way into the designer: its stats, role and actions (MD2-03). */}
-        {sheetMode.editing && isRedesignable(npc) && (
+        {/* The way into the designer, its stats, role and actions (MD2-03), in
+            Sheet view too: a fresh copy opens there (MD3-06). */}
+        {isRedesignable(npc) && (
           <Button
             href={npcDesignHref(npc.id)}
             size="compact"

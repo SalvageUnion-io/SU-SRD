@@ -5,7 +5,7 @@
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { acceptingRooms, roomActs } from '../../../../test/roomsStub'
 import { npcFixture } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
@@ -352,5 +352,34 @@ describe('redesigning a saved NPC', () => {
       // One the Mediator named apart keeps its name.
       ['Red Leader', 12, 'Warlord Vex'],
     ])
+  })
+  // MD3-06: a finished NPC walked every step to change one field.
+  test('every step is a way in from the start, and each one saves', async () => {
+    await renderRedesign()
+    const rail = within(screen.getByRole('navigation', { name: 'Steps' }))
+    for (const step of ['Actions & traits', 'Identity', 'Review']) {
+      expect(rail.getByRole('button', { name: step })).toHaveProperty('disabled', false)
+    }
+    // Straight to the name, passing no other step, and saved from there.
+    await act(async () => {
+      fireEvent.click(rail.getByRole('button', { name: 'Identity' }))
+    })
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'Warlord Vex' } })
+    })
+    expect(screen.getByRole('button', { name: 'Next: Review' })).toBeTruthy()
+    await click('Save changes')
+    await waitFor(() => expect(saved).toEqual(['n-vex']))
+    expect(useUnits.getState().npcs[0]).toMatchObject({ id: 'n-vex', name: 'Warlord Vex' })
+  })
+
+  test('Save changes is on the first step too', async () => {
+    await renderRedesign()
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Hit Points/), { target: { value: '9' } })
+    })
+    await click('Save changes')
+    await waitFor(() => expect(saved).toEqual(['n-vex']))
+    expect(useUnits.getState().npcs[0]?.hitPoints).toBe(9)
   })
 })

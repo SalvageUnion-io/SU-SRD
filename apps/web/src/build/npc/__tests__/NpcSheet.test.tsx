@@ -204,7 +204,8 @@ describe('edits', () => {
 
 // MD2-03: Edit reached only the name and flavour.
 describe('Edit design', () => {
-  test('Edit offers the designer for an NPC designed as any NPC, and Read does not', async () => {
+  // MD3-06: a fresh copy opens in Sheet view, where the door was missing.
+  test('Edit and Sheet view both offer the designer for an NPC designed as any NPC', async () => {
     const { SheetModeContext } = await import('../../sheet/sheetMode.model')
     const mode = (editing: boolean) => ({ editing, setEditing: () => undefined })
     const sheet = (editing: boolean, npc = KESSLER) => (
@@ -219,7 +220,7 @@ describe('Edit design', () => {
       view = render(sheet(false))
     })
     const design = () => screen.queryByRole('link', { name: 'Edit the design of Sergeant Kessler' })
-    expect(design()).toBeNull()
+    expect(design()?.getAttribute('href')).toBe('/npcs/n1/design')
     await act(async () => {
       view.rerender(sheet(true))
     })
