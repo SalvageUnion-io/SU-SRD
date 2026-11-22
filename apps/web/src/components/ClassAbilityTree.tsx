@@ -42,7 +42,8 @@ const classHref = (c: RefClass) => itemHref('classes', getEntitySlug(c))
 const RULES_LABEL = cn('su-ability-open__label', capsLabel({ tracking: 'snug' }))
 
 /** The rules card under an Ability lists no lead: the row above it has said it. */
-const RULES_HIDE = { lead: true } as const
+// No Roll: the class page stays a document, its card no island (`cardNeedsHydration`).
+const RULES_HIDE = { lead: true, roll: true } as const
 
 /**
  * An Ability's full rules, opening in place under its row (r5 E5), as nested
