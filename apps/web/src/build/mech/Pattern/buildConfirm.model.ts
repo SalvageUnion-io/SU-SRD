@@ -7,12 +7,18 @@
 
 import { toast } from '../../../components/index'
 import { failureMessage } from '../../../lib/connection/useServerAction'
+import { refreshWorkerReads } from '../../../lib/connection/workerRead'
 import { namesOn } from '../../../lib/copyEntity'
+import { sharedPaths } from '../../../lib/sharing/paths'
 import { mechCopy } from '../../../messages/build-mech'
+import { usePatterns } from '../../../replica/collections'
 import { useUnits } from '../../../replica/units'
 
 /** How long the notice and its Undo stay: the Undo line's time (`changeUndoToast`). */
 const UNDO_MS = 8000
+
+/** How long a notice whose Undo brings back something replaced or deleted stays (r5 C3's 20 seconds). */
+export const RESTORE_MS = 20_000
 
 /** The names of the mechs in the bay now: a build under one of them is numbered. */
 export const mechNamesTaken = (): string[] => namesOn(useUnits.getState().list('mech'))
@@ -67,4 +73,57 @@ export function deletePatternLines(patternId: string): string[] {
 export function patternNameTaken(name: string, held: readonly { name: string }[]): boolean {
   const wanted = name.trim().toLowerCase()
   return wanted !== '' && held.some((pattern) => pattern.name.trim().toLowerCase() === wanted)
+}
+
+/**
+ * The pattern a save under a taken name may replace (r5 D1): the one of that
+ * name the mech was built from, else the only one of that name. Two of a name
+ * and neither the mech's own: none, since the press could not say which.
+ */
+export function patternToReplace<T extends { id: string; name: string }>(
+  name: string,
+  held: readonly T[],
+  builtFrom: string | undefined
+): T | undefined {
+  const wanted = name.trim().toLowerCase()
+  if (wanted === '') return undefined
+  const named = held.filter((pattern) => pattern.name.trim().toLowerCase() === wanted)
+  return (
+    named.find((pattern) => pattern.id === builtFrom) ?? (named.length === 1 ? named[0] : undefined)
+  )
+}
+
+type Build = { chassisRef: string; systems: readonly string[]; modules: readonly string[] }
+
+async function writeBuild(id: string, build: Build): Promise<void> {
+  await usePatterns.getState().update(id, {
+    chassisRef: build.chassisRef,
+    systems: [...build.systems],
+    modules: [...build.modules],
+  })
+  void refreshWorkerReads(sharedPaths.sheet('pattern', id))
+}
+
+/**
+ * Write a mech's build over a saved pattern (r5 D1): the pattern keeps its id
+ * (so its link), its name, description and picture; the mechs built from it
+ * keep their loadouts. The notice's Undo puts the old build back.
+ */
+export async function replacePattern(id: string, build: Build): Promise<void> {
+  const before = usePatterns.getState().mechPatterns.find((pattern) => pattern.id === id)
+  if (!before) throw new Error(mechCopy('patternNotReplaced'))
+  await writeBuild(id, build)
+  const { name } = before
+  toast.success(mechCopy('replacedPattern', { name }), {
+    duration: RESTORE_MS,
+    action: {
+      label: mechCopy('undo'),
+      onClick: () =>
+        void writeBuild(id, before).then(
+          () => toast.success(mechCopy('patternPutBack', { name })),
+          (err: unknown) =>
+            toast.error(failureMessage(err, mechCopy('patternNotPutBack', { name })))
+        ),
+    },
+  })
 }

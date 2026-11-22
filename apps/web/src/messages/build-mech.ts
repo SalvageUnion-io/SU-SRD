@@ -100,6 +100,14 @@ export const mechCopy = messages({
   saveAsASecondPattern:
     'You already have a pattern named “{name}”. Save as a second pattern with this name?',
   saveASecond: 'Save a second',
+  replaceOrSaveASecond:
+    'You already have a pattern named “{name}”. Replace it with this build (its link and description stay), or save a second pattern with this name?',
+  replaceNamed: 'Replace {name}',
+  replacing: 'Replacing…',
+  replacedPattern: 'Replaced pattern {name}.',
+  patternNotReplaced: 'The pattern could not be replaced. Try again.',
+  patternPutBack: 'Pattern {name} is as it was.',
+  patternNotPutBack: 'Pattern {name} could not be put back. Try again.',
   patternName: 'Pattern name',
   patternDescription: 'Pattern description',
   whatItIsForAnd: 'What it is for, and how to drive it.',

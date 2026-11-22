@@ -25,6 +25,7 @@ const { resetStores } = await import('../../../../replica/__tests__/resetStores'
 const { usePatterns } = await import('../../../../replica/collections')
 const { SavePatternButton } = await import('../SavePatternButton')
 const { SavePatternDialog } = await import('../SavePatternDialog')
+const { patternToReplace } = await import('../buildConfirm.model')
 
 withSignedInBackend()
 
@@ -133,14 +134,12 @@ describe('SavePatternDialog', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
     })
     expect(
-      screen.getByText(
-        'You already have a pattern named “Iron Jaw”. Save as a second pattern with this name?'
-      )
+      screen.getByText(/You already have a pattern named “Iron Jaw”\..*save a second/)
     ).toBeTruthy()
     expect(usePatterns.getState().mechPatterns).toHaveLength(1)
     // A changed name withdraws the ask; back on the taken one, it is asked again.
     await typeName('Iron Jaw Mk II')
-    expect(screen.queryByText(/Save as a second pattern/)).toBeNull()
+    expect(screen.queryByText(/save a second pattern/i)).toBeNull()
     await typeName('iron jaw ')
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
@@ -149,6 +148,59 @@ describe('SavePatternDialog', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save a second' }))
     })
     await waitFor(() => expect(usePatterns.getState().mechPatterns).toHaveLength(2))
+  })
+
+  test('a taken name offers Replace: the pattern keeps its id and description, and Undo puts it back (r5 D1)', async () => {
+    render(<ToasterMount />)
+    const held = await usePatterns.getState().create({
+      schemaVersion: 1,
+      name: 'Iron Jaw',
+      chassisRef: 'mule',
+      systems: [],
+      modules: [],
+      notes: 'The first cut.',
+    })
+    renderButton()
+    await open()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Replace Iron Jaw' }))
+    })
+    await waitFor(() =>
+      expect(usePatterns.getState().mechPatterns[0]?.systems).toEqual(['red-laser'])
+    )
+    expect(usePatterns.getState().mechPatterns).toHaveLength(1)
+    expect(usePatterns.getState().mechPatterns[0]).toMatchObject({
+      id: held.id,
+      notes: 'The first cut.',
+      modules: ['comms-module'],
+    })
+    expect(await screen.findByText('Replaced pattern Iron Jaw.')).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    })
+    await waitFor(() => expect(usePatterns.getState().mechPatterns[0]?.systems).toEqual([]))
+  })
+
+  test('two patterns of the name: Replace is offered only for the one the mech was built from (r5 D1)', async () => {
+    const make = () =>
+      usePatterns.getState().create({
+        schemaVersion: 1,
+        name: 'Iron Jaw',
+        chassisRef: 'mule',
+        systems: [],
+        modules: [],
+      })
+    await make()
+    const second = await make()
+    expect(patternToReplace('iron jaw', usePatterns.getState().mechPatterns, undefined)).toBe(
+      undefined
+    )
+    expect(patternToReplace(' Iron Jaw', usePatterns.getState().mechPatterns, second.id)?.id).toBe(
+      second.id
+    )
   })
 
   test('saving stays where it was asked, and its notice opens the pattern (r4 E19)', async () => {
