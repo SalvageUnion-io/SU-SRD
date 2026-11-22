@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { createElement } from 'react'
 
@@ -39,7 +39,13 @@ const navigations: unknown[] = []
 // Module scope, before the imports below (see `serverMock.ts`). The router is
 // replaced with one whose `navigate` records, so the canonical-id redirect can
 // be observed without mounting a RouterProvider.
+/** Every Games write the view made, by name, with its args. */
+const calls: { name: string; args: unknown }[] = []
+
 const serverMocks = await installServerMocks({
+  call: (name, args) => {
+    calls.push({ name, args })
+  },
   also: {
     '@tanstack/react-router': () => ({
       Link: ({ children, to, ...rest }: { children: ReactNode; to: string }) =>
@@ -71,6 +77,7 @@ beforeEach(async () => {
   await hydrateStores()
   serve(GAME, { members: MEMBERS })
   navigations.length = 0
+  calls.length = 0
   useSheetModeStore.setState({ editing: false })
 })
 
@@ -197,6 +204,41 @@ describe("a crewmate's sheet", () => {
 
     expect(screen.getByRole('note', { name: 'Read-only crew sheet' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Share this pilot$/ })).toBeNull()
+  })
+})
+
+describe('an unassigned pre-gen’s sheet (r6 C8)', () => {
+  test('its banner carries Assign to me, which assigns at once', async () => {
+    const PRE_GEN = pilotFixture({ id: 'p-free', name: 'Pickle', gameId: GAME })
+    setQueryAnswers({
+      'entities.locate': { id: PRE_GEN.id, gameId: GAME, mayEdit: false },
+      'games.get': runsTable(false),
+      'games.listing': listing({
+        pilots: [{ _id: 'row-free', appId: PRE_GEN.id, ownerId: null, body: PRE_GEN }],
+      }),
+      'account.me': ME,
+    })
+    await view('pilot', PRE_GEN.id)
+    const banner = screen.getByRole('note', { name: 'Read-only crew sheet' })
+    const take = within(banner).getByRole('button', { name: 'Assign to me: Pickle' })
+    expect(take.textContent).toBe('Assign to me')
+    await act(async () => {
+      fireEvent.click(take)
+    })
+    expect(calls).toEqual([
+      { name: 'ownership.assign', args: { gameId: GAME, entityId: 'row-free' } },
+    ])
+  })
+
+  test("a crewmate's sheet offers no Assign to me", async () => {
+    setQueryAnswers({
+      'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games.get': runsTable(false),
+      'games.listing': listing(),
+      'account.me': ME,
+    })
+    await view('pilot', THEIR_PILOT.id)
+    expect(screen.queryByRole('button', { name: /^Assign to me/ })).toBeNull()
   })
 })
 

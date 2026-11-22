@@ -33,7 +33,9 @@
 import { containerOf } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { gamePath } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { useMemo } from 'react'
+import { AssignSelfButton } from '../../play/games/AssignSelfButton'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { CrewSheetBanner } from './CrewSheetBanner'
@@ -105,10 +107,23 @@ export function SheetView({ kind, id }: SheetViewProps) {
   if (store.getState().get(kind, id) === null) {
     return <SheetFallback kind={kind} status="unreadable" back={crew} />
   }
+  const row = listedRow as { _id?: string; ownerId?: string | null; body?: unknown }
+  const unassigned = kind !== 'crawler' && row.ownerId === null
   return (
     <CrewSheetBanner
       kind={kind}
-      unassigned={kind !== 'crawler' && (listedRow as { ownerId?: string | null }).ownerId === null}
+      unassigned={unassigned}
+      // Claimed in place, no trip Back to the Game's page (r6 C8).
+      assign={
+        unassigned && tableId !== null && row._id !== undefined ? (
+          <AssignSelfButton
+            gameId={tableId}
+            entityId={row._id}
+            appId={id}
+            name={pilotLabel(row.body as { callsign?: unknown; name?: unknown })}
+          />
+        ) : undefined
+      }
     >
       <Sheet kind={kind} id={id} store={store} back={crew} readOnly ownerOf={ownerOf} game={game} />
     </CrewSheetBanner>

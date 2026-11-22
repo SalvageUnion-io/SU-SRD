@@ -52,10 +52,11 @@ async function assignToMe(page: Page, name: string): Promise<void> {
   const seal = page.getByRole('button', { name: /^Assign to me: / })
   const crew = page.getByRole('table', { name: 'Crew' })
   const row = crew.locator('tr', { hasText: name }).filter({ has: seal }).last()
+  // At once, with Undo in its toast (r6 C8): the row's seal goes once it lands.
   await row.getByRole('button', { name: /^Assign to me: / }).click()
-  const confirm = page.getByRole('alertdialog')
-  await confirm.getByRole('button', { name: 'Assign to me' }).click()
-  await expect(confirm).toBeHidden({ timeout: 15_000 })
+  await expect(row.getByRole('button', { name: /^Assign to me: / })).toBeHidden({
+    timeout: 15_000,
+  })
 }
 
 /**

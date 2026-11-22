@@ -271,16 +271,12 @@ describe('assigning yourself what nobody holds', () => {
     expect(await verbsOf('Pre-gen')).toContain('Assign to me')
   })
 
-  test('pressing the seal asks before it assigns', async () => {
+  // r6 C8 (LG6-08): a reversible act asks nothing; its toast carries the Undo.
+  test('pressing the seal assigns at once, with no confirm', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
     fireEvent.click(screen.getByRole('button', { name: /^Assign to me: / }))
-
-    // Taking a character is a commitment at the table, so the seal opens a
-    // confirm that says what happens next rather than assigning on one click.
-    // The dialog carries its title twice — visible heading plus the sr-only
-    // accessible label — so this counts rather than demanding a single match.
-    expect(screen.getAllByText(/Assign Pre-gen to you\?/i).length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: 'Assign to me' })).toBeTruthy()
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(screen.queryByText(/Assign Pre-gen to you\?/i)).toBeNull()
   })
 })
 
@@ -508,14 +504,21 @@ describe('every verb that changes who has a build asks first', () => {
     ])
   })
 
-  test('Assign to me assigns nothing until confirmed', async () => {
+  test('Assign to me assigns at once, and its toast’s Undo unassigns (r6 C8)', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
     fireEvent.click(screen.getByRole('button', { name: /^Assign to me: / }))
-    expect(mutations).toHaveLength(0)
-
-    await confirmWith('Assign to me')
+    await settle(() => mutations.length > 0)
     expect(mutations).toEqual([
       { name: 'ownership.assign', args: { gameId: 'g1', entityId: 's-free' } },
+    ])
+    expect(await screen.findByText('Pre-gen is assigned to you.')).toBeTruthy()
+    mutations.length = 0
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    })
+    await settle(() => mutations.length > 0)
+    expect(mutations).toEqual([
+      { name: 'ownership.unassign', args: { gameId: 'g1', entityId: 's-free' } },
     ])
   })
 

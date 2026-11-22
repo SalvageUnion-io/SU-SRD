@@ -22,11 +22,14 @@ const WHY: Record<EntityKind, string> = {
 export function CrewSheetBanner({
   kind,
   unassigned = false,
+  assign,
   children,
 }: {
   kind: EntityKind
   /** A pilot or mech assigned to nobody: no crewmate holds it (MD-23). */
   unassigned?: boolean
+  /** An unassigned one's Assign to me, in the banner that says so (r6 C8). */
+  assign?: ReactNode
   children: ReactNode
 }) {
   return (
@@ -39,6 +42,7 @@ export function CrewSheetBanner({
         style={READ_ONLY_BANNER}
       >
         {unassigned ? buildSheetCopy('readOnlyUnassignedSheet') : WHY[kind]}
+        {unassigned && assign ? <> {assign}</> : null}
       </div>
       {children}
     </div>
