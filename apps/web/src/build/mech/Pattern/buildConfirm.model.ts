@@ -6,6 +6,7 @@
  */
 
 import { toast } from '../../../components/index'
+import { focusHeadingOnArrival } from '../../../lib/arrivalFocus'
 import { failureMessage } from '../../../lib/connection/useServerAction'
 import { refreshWorkerReads } from '../../../lib/connection/workerRead'
 import { namesOn } from '../../../lib/copyEntity'
@@ -48,6 +49,8 @@ export async function undoBuild(mech: { id: string; name: string }): Promise<voi
  * loadout exceeds the starting rules, which the notice says in a second line.
  */
 export function builtToast(mech: { id: string; name: string }, past = false): void {
+  // The page it lands on takes focus on its heading (r6 F7).
+  focusHeadingOnArrival()
   toast.success(mechCopy('builtFromThePattern', { name: mech.name }), {
     duration: UNDO_MS,
     ...(past ? { description: mechCopy('pastTheStartingRules') } : {}),

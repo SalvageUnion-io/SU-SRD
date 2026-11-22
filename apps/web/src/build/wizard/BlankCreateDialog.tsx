@@ -20,6 +20,7 @@ import { useMemo, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { DialogActions, FieldError } from '../../components/app'
 import { Button, Field, Input, ModalShell, Select } from '../../components/index'
+import { focusHeadingOnArrival } from '../../lib/arrivalFocus'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { readReference } from '../../lib/readReference'
 import { createBlank } from '../../lib/wizard/blankCreate'
@@ -147,6 +148,7 @@ export function BlankCreateDialog({
     if (!result.ok) return
     // A blank sheet has nothing to read: it opens in Edit, on its prompts.
     useSheetModeStore.getState().setEditing(true)
+    focusHeadingOnArrival()
     onCreated(result.value)
   }
 

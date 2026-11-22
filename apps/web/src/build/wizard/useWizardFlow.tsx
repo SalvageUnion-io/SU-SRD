@@ -25,6 +25,7 @@ import { moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { startTransition, useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/index'
+import { focusHeadingOnArrival } from '../../lib/arrivalFocus'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import { draftExportBundle } from '../../lib/export/draftExport'
@@ -286,6 +287,8 @@ export function useWizardFlow<
     toast.success(buildWizardCopy('saved', { value: form.name.trim() || noun }))
     leaving.current.settled = true
     clearWizardDraft(draftKey)
+    // What was made takes focus on its page's heading (r6 F7).
+    if (existing === undefined) focusHeadingOnArrival()
     onComplete(result.value.id)
   }
 
