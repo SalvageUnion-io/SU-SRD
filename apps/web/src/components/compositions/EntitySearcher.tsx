@@ -158,7 +158,8 @@ type EntitySearcherProps = {
   onClose?: () => void
   /**
    * Extra `hide` config for the focused Page, merged OVER the searcher's
-   * own defaults (actions/choices are always suppressed). Big entities — a
+   * own defaults (choices are always suppressed, actions unless
+   * `actions: false` asks for them). Big entities — a
    * chassis, a crawler type — carry sections a picker has no room for
    * (`{ patterns: true }`), and that is a property of the entity, not of the
    * surface, so it is the caller's call rather than a schema check in here.
@@ -234,9 +235,10 @@ export function EntitySearcher({
   userMade,
   frame,
 }: EntitySearcherProps) {
-  // Actions/choices are never pickable inside a picker; anything else is the
-  // caller's to suppress.
-  const cardHide: ReferenceEntityCardHideConfig = { ...hide, actions: true, choices: true }
+  // Actions/choices are never pickable inside a picker, so they are hidden
+  // unless the caller asks for them (`hide.actions: false`: a denizen's
+  // weapons are what the Mediator picks it by); anything else is its to suppress.
+  const cardHide: ReferenceEntityCardHideConfig = { actions: true, ...hide, choices: true }
   const browse = mode === 'browse'
   const {
     query,

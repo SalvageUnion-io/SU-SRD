@@ -14,7 +14,11 @@ import type { Npc } from 'game-domain/schemas/npc'
 import { useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SheetPickerModal } from '../../../build/sheet/SheetPickerModal'
-import { pickInSearcher, searcherMini } from '../../../components/__tests__/searcherPick'
+import {
+  openInSearcher,
+  pickInSearcher,
+  searcherMini,
+} from '../../../components/__tests__/searcherPick'
 import type { TrayWrites } from '../OppositionPicker'
 import { OppositionDialogs, OppositionPicker } from '../OppositionPicker'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from '../opposition.model'
@@ -369,5 +373,24 @@ describe('+ From the reference', () => {
     const picker = await openPicker()
     await click(picker.getByRole('button', { name: 'Close' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+})
+
+describe('the preview says what a denizen can do (r4 D4)', () => {
+  test('an NPC’s Page lists its weapon, as its Reference page does', async () => {
+    await renderTab([])
+    await click(screen.getByRole('button', { name: '+ Add' }))
+    await openInSearcher('Raider')
+    const page = within(screen.getByRole('article', { name: 'Raider' }))
+    expect(page.getAllByText('Improvised Firearm').length).toBeGreaterThan(0)
+  })
+
+  test('a Squad’s Page lists its weapon too', async () => {
+    await renderTab([])
+    await click(screen.getByRole('button', { name: '+ Add' }))
+    await click(screen.getByRole('button', { name: 'Squads' }))
+    await openInSearcher('Rifle Squad')
+    const page = within(screen.getByRole('article', { name: 'Rifle Squad' }))
+    expect(page.getAllByText(/Rifle/).length).toBeGreaterThan(1)
   })
 })
