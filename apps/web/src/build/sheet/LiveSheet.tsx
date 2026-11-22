@@ -152,7 +152,7 @@ type LiveSheetProps = {
   fromPattern?: PatternStamp | undefined
   /**
    * Where it came from, when not a blank build (R49): the
-   * Starter Set (`seedRef`) is a STARTER KIT chip, a saved pattern
+   * Starter Set (`seedRef`) is a STARTER SET chip, a saved pattern
    * (`sourcePattern`) the HOMEBREW stamp.
    */
   source?: 'starter' | 'homebrew' | undefined

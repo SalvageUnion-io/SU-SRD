@@ -223,7 +223,7 @@
   --cutout-ground: var(--color-paper);
 }
 
-/* On a phone the band's overflow chips (Starter Kit) stand between the plate
+/* On a phone the band's overflow chips (Starter Set) stand between the plate
    and the masthead: they take the masthead's paper, so the plate still opens
    into one body. */
 .su-page-gutters:has(.su-mast) > .su-chapter-band__overflow {

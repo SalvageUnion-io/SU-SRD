@@ -184,7 +184,7 @@ export const buildSheetCopy = messages({
   newCargoSlotCost: 'New cargo slot cost',
   intoThe: '{verb} {kind} into the {containerLabel}',
   sheetControls: 'Sheet controls',
-  starterKit: 'Starter Kit',
+  starterKit: 'Starter Set',
   pattern: 'Pattern',
   basedOn: 'Based on',
   aSavedPattern: 'A saved pattern',
