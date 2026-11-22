@@ -29,6 +29,8 @@ export const compositionsCopy = messages({
   rowSys: 'SYS',
   rowMod: 'MOD',
   addAnywayRuleBreaking: 'Add anyway (rule breaking)',
+  addWithoutSpending: 'Add without spending',
+  freeEditOverride: 'Free Edit override',
   rowAction: 'Action',
   rowRange: 'RNG',
   rowDamage: 'DMG',
