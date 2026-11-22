@@ -68,6 +68,14 @@ import { useStopSign } from './useStopSign'
 
 const STRONG = { fontWeight: tokens.weight.bold } satisfies React.CSSProperties
 
+/** A running Downtime whose current step this pilot has not taken (r6 C5). */
+function downtimeWaits(
+  downtime: { running: boolean; stepIndex: number | null; doneSteps: readonly number[] } | null
+): boolean {
+  if (downtime === null || !downtime.running) return false
+  return !downtime.doneSteps.includes(downtime.stepIndex ?? 0)
+}
+
 /** The Games page: each Game's card carries its one Join session (r6 C4). */
 const GAMES_HUB = /^\/games\/?$/
 
@@ -401,6 +409,12 @@ function GameNotices({
     : null
   const sessionKey = `session:${gameId}`
   const onePilot = pilots.length === 1 ? pilots[0] : undefined
+  // Off Play, the Downtime's step this pilot has still to take (r6 C5).
+  const downtime =
+    useTableRead(
+      'downtime.state',
+      onePilot === undefined ? 'skip' : { gameId, pilotId: onePilot.id }
+    ) ?? null
   // One name a door (glossary §9): the Mediator's is Mediate, wherever it is.
   const door = mediator
     ? { href: mediatePath(gameId), label: playCopy('mediate') }
@@ -551,6 +565,25 @@ function GameNotices({
       ),
       dismiss: () => dismiss(`${sessionKey}:live`),
       sig: `${sessionKey}:live:${door.href}:${gameName}`,
+    })
+  }
+  // A Downtime step waiting on the viewer reaches them off the Play screen (r6 C5).
+  if (!mediator && !inPlay && onePilot !== undefined && downtimeWaits(downtime)) {
+    const title = playCopy('downtimeHasBegunIn', { game: gameName })
+    notices.push({
+      key: `downtime:${gameId}:${downtime?.runId ?? ''}:${downtime?.stepIndex ?? 0}`,
+      kind: 'downtime',
+      rank: 'answer',
+      ts: downtime?.startedAt ?? 0,
+      dismissible: false,
+      tone: 'pilot',
+      title,
+      actions: (
+        <Button variant="primary" size="compact" href={cockpitPath(onePilot.id)}>
+          {playCopy('yourStep')}
+        </Button>
+      ),
+      sig: `downtime:${gameId}:${downtime?.stepIndex ?? 0}:${onePilot.id}:${title}`,
     })
   }
   // Said once (r6 C1): the Game's page leads with the recap, so the strip never pins it for days.

@@ -280,6 +280,35 @@ describe('the pinned notices', () => {
     act(() => drop('pilot', 'tn-up'))
   })
 
+  // r6 C5 (LG6-19): what waits for a player reaches them off the Play screen.
+  test('a Downtime step waiting on my pilot pins its door off Play, and none on Play', async () => {
+    const { useUnits } = await import('../../replica/units')
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const { drop } = await import('../../replica/replica')
+    await act(async () => {
+      await useUnits.getState().adopt('pilot', pilotFixture({ id: 'tn-dt', gameId: 'g1' }))
+    })
+    const running = {
+      'downtime.state': {
+        running: true,
+        runId: 'r1',
+        stepIndex: 0,
+        startedAt: 5,
+        completedBy: [],
+        upkeepSpent: false,
+        doneSteps: [],
+      },
+    }
+    await renderNotices(running, '/games/')
+    expect(notice('downtime')?.textContent).toContain('Downtime has begun · Tenacity')
+    const door = screen.getByRole('link', { name: 'Your step' }) as HTMLAnchorElement
+    expect(door.getAttribute('href')).toBe('/pilots/tn-dt/play')
+    cleanup()
+    await renderNotices(running, '/pilots/tn-dt/play')
+    expect(notice('downtime')).toBeNull()
+    act(() => drop('pilot', 'tn-dt'))
+  })
+
   // LG-02: the replica holds every crewmate's pilot too; the door is for the
   // viewer's own pilot, never the one pilot of somebody else's it finds.
   test('the session’s door opens the viewer’s own pilot, never a crewmate’s', async () => {

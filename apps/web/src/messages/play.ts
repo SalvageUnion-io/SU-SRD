@@ -340,6 +340,9 @@ export const playCopy = messages({
   unitVitals: '{name}’s vitals',
   sessionLive: 'Session live',
   startGroupSession: 'Start group session',
+  // A Downtime step waiting, off the Play screen (r6 C5).
+  downtimeHasBegunIn: 'Downtime has begun · {game}',
+  yourStep: 'Your step',
   // The one tidy step between phases (r6 C2).
   tidyEndEncounter: 'End {name}',
   tidyClearTheDowned: 'Clear the downed',

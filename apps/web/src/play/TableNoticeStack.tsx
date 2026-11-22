@@ -19,7 +19,16 @@ const STRONG = { fontWeight: tokens.weight.bold } satisfies React.CSSProperties
 /** One pinned notice, as the strip draws it. */
 export type Notice = StackedNotice & {
   /** What `data-table-notice` names it. */
-  kind: 'removed' | 'turn' | 'proposal' | 'alert' | 'role' | 'session' | 'session-ended'
+  kind:
+    | 'removed'
+    | 'turn'
+    | 'proposal'
+    | 'alert'
+    | 'role'
+    | 'session'
+    | 'session-ended'
+    // A Downtime step waiting on the viewer, off the Play screen (r6 C5).
+    | 'downtime'
   tone: 'ink' | 'pilot' | 'crawler'
   title: string
   body?: string
