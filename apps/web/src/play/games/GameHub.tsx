@@ -64,6 +64,7 @@ import { MediatorPrep } from './MediatorPrep'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
 import { TheGame } from './TheGame'
+import { useNextSession } from './useNextSession'
 
 type Game = NonNullable<GameCallResult<'games.get'>>
 
@@ -104,6 +105,7 @@ function GameSections({ game }: { game: Game }) {
   const router = useRouter({ warn: false })
   const viewerId = useViewerId()
   const sign = useStopSign(gameId)
+  const next = useNextSession(game)
 
   return (
     // Its crew is one manifest (`GameRoster`).
@@ -114,6 +116,8 @@ function GameSections({ game }: { game: Game }) {
               page — what the table is made of — and everything that runs the
               table (its people, the prep, the invite, safety) is the column
               beside it. */}
+          {/* An ended session's recap leads the page until the next one starts (r6 C1). */}
+          <LastSession gameId={gameId} place="lead" next={next} />
           <GameRoster
             gameId={gameId}
             gameName={game.name}
@@ -124,7 +128,7 @@ function GameSections({ game }: { game: Game }) {
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
           {/* The table's record, outside Play: nothing until the Game has been played. */}
-          <LastSession gameId={gameId} />
+          <LastSession gameId={gameId} place="after" />
         </div>
         <aside aria-labelledby="the-game-heading" style={HUB_SIDEBAR}>
           <TheGame

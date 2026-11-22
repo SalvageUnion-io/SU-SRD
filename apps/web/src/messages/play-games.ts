@@ -118,6 +118,13 @@ export const playGamesCopy = messages({
   sessionCounts: ' Rolls: {rolls}. Vitals changes: {changes}.',
   sessionPrivateRolls: ' Private rolls: {count}.',
   showAllLines: 'Show all {count}',
+  // An ended session's recap (r6 C1).
+  recapHurt: 'Hurt and Down',
+  recapVital: '{who} · {label} {from} → {to}',
+  recapChangedHands: 'Changed hands',
+  recapDowntime: 'A Downtime was held.',
+  recapNext: 'Next session: {next}',
+  fullLog: 'Full log',
   proposalsAwaitingYourAnswer: 'Proposals awaiting your answer',
   apply: 'Apply',
   apply2: 'Apply {what}',

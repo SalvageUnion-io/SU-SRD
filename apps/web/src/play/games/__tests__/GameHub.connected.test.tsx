@@ -143,6 +143,8 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'channelBindings.current': null,
     // A member's own notes from when they ran the table: none, for most.
     'plan.mine': null,
+    // The table runner's plan, for the recap's next session (r6 C1).
+    'plan.get': null,
     ...over,
   }
 }

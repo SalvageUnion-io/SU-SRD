@@ -3,7 +3,7 @@ import type { LinkShape } from 'game-domain/links/linkRules'
 import { downtimeStepNames } from 'game-domain/rules/downtime'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
-import type { Stored } from './eventLines'
+import type { Stored, VitalChange } from './eventLines'
 import {
   CONDITION_WORDS,
   CONDITIONS,
@@ -115,6 +115,8 @@ export type TableEvent = {
    * screen pins it.
    */
   about?: string
+  /** A vitals line's change, unit and from and to: what a session's recap adds up (r6 C1). */
+  vital?: VitalChange
 }
 
 /** How long a line stays open to a repeat. */

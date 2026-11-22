@@ -21,9 +21,26 @@ function event(minute: number, text: string, more: Partial<TableEvent> = {}): Ta
   return { _id: `e${n++}`, ts: T0 + minute * 60_000, kind: 'action', text, actorId: 'u1', ...more }
 }
 
-function renderWith(events: TableEvent[] | null) {
+/** Both of the page's places, as the Game page stands them (r6 C1). */
+function Both({ next }: { next?: string | null }) {
+  return (
+    <>
+      <LastSession gameId="g1" place="lead" next={next ?? null} />
+      <LastSession gameId="g1" place="after" />
+    </>
+  )
+}
+
+function renderWith(events: TableEvent[] | null, next?: string | null) {
   if (events !== null) serve('g1', { events: events as never })
-  return render(<LastSession gameId="g1" />)
+  return render(<Both next={next ?? null} />)
+}
+
+/** An ended session's raw lines wait under Full log (r6 C1). */
+function openFullLog() {
+  act(() => {
+    fireEvent.click(screen.getByRole('button', { name: 'Full log' }))
+  })
 }
 
 describe('Last time at the table', () => {
@@ -52,7 +69,7 @@ describe('Last time at the table', () => {
       events: [event(1, 'Roach rolled 14', { kind: 'roll' })] as never,
       mediator: { running: { name: 'Toll Gate' } },
     })
-    const mediators = render(<LastSession gameId="g1" />)
+    const mediators = render(<Both />)
     expect(
       screen.getByText('An encounter is still running: Toll Gate. Mediate opens it.')
     ).toBeTruthy()
@@ -64,7 +81,7 @@ describe('Last time at the table', () => {
 
   test('an encounter running before anything is played is said on its own', () => {
     serve('g1', { events: [] as never, mediator: { running: { name: 'Toll Gate' } } })
-    render(<LastSession gameId="g1" />)
+    render(<Both />)
     expect(screen.getByRole('heading', { level: 2, name: 'Last time at the table' })).toBeTruthy()
     expect(screen.getByText(/still running: Toll Gate/)).toBeTruthy()
   })
@@ -85,6 +102,8 @@ describe('Last time at the table', () => {
     const start = formatDateTime(T0 + 10 * 60_000)
     const end = formatDateTime(T0 + 20 * 60_000)
     expect(screen.getByText(`${start} to ${end}. Rolls: 2. Vitals changes: 1.`)).toBeTruthy()
+    expect(screen.queryByRole('list', { name: 'Last time at the table' })).toBeNull()
+    openFullLog()
     const lines = within(screen.getByRole('list', { name: 'Last time at the table' }))
       .getAllByRole('listitem')
       .map((li) => li.textContent)
@@ -116,6 +135,8 @@ describe('Last time at the table', () => {
       event(0, 'Session began', { kind: 'session', session: 'start' }),
       ...Array.from({ length: 15 }, (_, i) => event(i + 1, `Roll ${i + 1}`, { kind: 'roll' })),
     ])
+    // Still running: the lines are the session, not folded under Full log.
+    expect(screen.queryByRole('button', { name: 'Full log' })).toBeNull()
     const list = () =>
       within(screen.getByRole('list', { name: 'Last time at the table' })).getAllByRole('listitem')
     expect(list()).toHaveLength(12)
@@ -126,5 +147,33 @@ describe('Last time at the table', () => {
     })
     expect(list()).toHaveLength(15)
     expect(screen.queryByRole('button', { name: /Show all/ })).toBeNull()
+  })
+
+  // r6 C1 (LG6-16, MD6-09): ending the session writes what it came to.
+  test('an ended session leads with its recap: who is Down, what changed hands, what is next', () => {
+    const vital = (who: string, label: string, from: number | null, to: number) => ({
+      kind: 'vitals' as const,
+      vital: { who, label, from, to },
+    })
+    renderWith(
+      [
+        event(0, 'Session began', { kind: 'session', session: 'start' }),
+        event(1, 'Thresher · SP 15 → 9', vital('Thresher (RAZOR)', 'SP', 15, 9)),
+        event(2, 'GHOST · HP 10 → 8', vital('GHOST', 'HP', 10, 8)),
+        event(3, 'Thresher · SP 9 → 0', vital('Thresher (RAZOR)', 'SP', 9, 0)),
+        event(4, 'Ash accepted: Rigging Arm to Spectrum', { kind: 'proposal', answer: 'accepted' }),
+        event(5, 'Mediator began Downtime', { kind: 'downtime' }),
+        event(9, 'Session ended', { kind: 'session', session: 'end' }),
+      ],
+      'The Pylon and after'
+    )
+    const hurt = within(screen.getByRole('list', { name: 'Hurt and Down' }))
+      .getAllByRole('listitem')
+      .map((li) => li.textContent)
+    expect(hurt[0]).toBe('Thresher (RAZOR) · SP 15 → 0Downneeds repair')
+    expect(hurt[1]).toBe('GHOST · HP 10 → 8')
+    expect(screen.getByText('Rigging Arm to Spectrum')).toBeTruthy()
+    expect(screen.getByText('A Downtime was held.')).toBeTruthy()
+    expect(screen.getByText('Next session: The Pylon and after')).toBeTruthy()
   })
 })

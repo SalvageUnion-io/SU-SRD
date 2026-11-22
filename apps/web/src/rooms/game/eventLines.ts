@@ -157,5 +157,7 @@ export function eventOf(
     ...(stored.session === undefined ? {} : { session: stored.session }),
     ...(stored.answer === undefined ? {} : { answer: stored.answer }),
     ...(stored.about === undefined ? {} : { about: stored.about }),
+    // What a vital's line changed, for a session's recap (r6 C1).
+    ...(stored.vital === undefined ? {} : { vital: stored.vital }),
   }
 }

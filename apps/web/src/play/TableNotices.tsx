@@ -101,6 +101,30 @@ function rememberRole(id: string): void {
   }
 }
 
+/** Where the session ends this browser has been told of are remembered (r6 C1). */
+const ENDED_SEEN = 'su-session-ended-seen'
+
+/** The ends shown in this tab: they stay up until it moves on or dismisses them. */
+const showingEnded = new Set<string>()
+
+/**
+ * "Session ended" is news the first time it is seen, never again (r6 C1): it
+ * stays in the tab that first showed it, and no other visit pins it.
+ */
+function firstSight(key: string): boolean {
+  if (showingEnded.has(key)) return true
+  try {
+    const kept: unknown = JSON.parse(localStorage.getItem(ENDED_SEEN) ?? '[]')
+    const seen = Array.isArray(kept) ? kept.filter((k) => typeof k === 'string') : []
+    if (seen.includes(key)) return false
+    localStorage.setItem(ENDED_SEEN, JSON.stringify([...seen, key].slice(-20)))
+  } catch {
+    // Storage is off: it is said in this tab alone.
+  }
+  showingEnded.add(key)
+  return true
+}
+
 /**
  * The notices' height, published as `--su-table-notices-h` on the document:
  * under the Union bar a page's band starts behind the header's rail, so from
@@ -529,7 +553,9 @@ function GameNotices({
       sig: `${sessionKey}:live:${door.href}:${gameName}`,
     })
   }
-  if (!live && endedAt !== null && !dismissed.has(`${sessionKey}:ended:${endedAt}`)) {
+  // Said once (r6 C1): the Game's page leads with the recap, so the strip never pins it for days.
+  const endedKey = `${sessionKey}:ended:${endedAt}`
+  if (!live && endedAt !== null && !dismissed.has(endedKey) && firstSight(endedKey)) {
     notices.push({
       key: `${sessionKey}:ended:${endedAt}`,
       kind: 'session-ended',
@@ -538,7 +564,7 @@ function GameNotices({
       dismissible: true,
       tone: 'ink',
       title: playCopy('sessionEndedIn', { game: gameName }),
-      dismiss: () => dismiss(`${sessionKey}:ended:${endedAt}`),
+      dismiss: () => dismiss(endedKey),
       sig: `${sessionKey}:ended:${endedAt}:${gameName}`,
     })
   }

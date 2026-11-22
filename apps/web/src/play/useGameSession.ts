@@ -18,8 +18,11 @@ export type GameSession = {
   canWrite: boolean
   /** Start it; resolves true once the room has it running. */
   start: () => Promise<boolean>
-  end: () => void
+  /** End it; resolves true once the room has it ended. */
+  end: () => Promise<boolean> | void
   pending: boolean
+  /** Its Game: ending lands its Mediator on the Game's page and its recap (r6 C1). */
+  gameId?: string
 }
 
 /** The Game's session, or null solo, signed out or while it loads. */
@@ -49,7 +52,8 @@ export function useGameSession(gameId: string | null): GameSession | null {
       }
       return result.ok
     },
-    end: () => void end.run({}),
+    end: async () => (await end.run({})).ok,
     pending: start.pending || end.pending,
+    gameId,
   }
 }

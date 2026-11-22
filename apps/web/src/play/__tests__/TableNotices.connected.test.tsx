@@ -239,6 +239,28 @@ describe('the pinned notices', () => {
     expect(notice('session-ended')).toBeNull()
   })
 
+  test('Session ended is said once: a later visit does not pin it again (r6 C1)', async () => {
+    const at = Date.now() - 60_000
+    localStorage.setItem('su-session-ended-seen', JSON.stringify([`session:g1:ended:${at}`]))
+    await renderNotices(
+      {
+        'changeLog.events': [
+          {
+            _id: 'e-end-seen',
+            ts: at,
+            kind: 'session',
+            text: 'Ash ended the group session',
+            actorId: 'gm',
+            session: 'end',
+          },
+        ],
+      },
+      '/games/g1'
+    )
+    expect(notice('session-ended')).toBeNull()
+    localStorage.removeItem('su-session-ended-seen')
+  })
+
   test('Your turn pins on every screen while the Mediator has my pilot up (r2 E1)', async () => {
     const { useUnits } = await import('../../replica/units')
     const { pilotFixture } = await import('../../components/__tests__/fixtures')
