@@ -682,7 +682,7 @@ describe('Discord channels (play.md §9)', () => {
 // MD2-12: one Feed called the Mediator 'You', 'Mediator' and 'Crewmate'.
 describe('the Mediator on the Feed', () => {
   const event = (
-    kind: 'alert' | 'proposal' | 'session' | 'join' | 'downtime' | 'role',
+    kind: 'alert' | 'proposal' | 'session' | 'join' | 'downtime' | 'role' | 'stop' | 'leave',
     text: string,
     actorId: string,
     over: Partial<TableEvent> = {}
