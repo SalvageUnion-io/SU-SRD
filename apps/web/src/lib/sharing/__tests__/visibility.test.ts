@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { patternChoices, sheetChoices, sheetVisibility } from '../visibility'
+import { mediatorOnly, patternChoices, sheetChoices, sheetVisibility } from '../visibility'
 
 /**
  * Who can see it: one question, the same three answers and the same words for
@@ -36,6 +36,32 @@ describe('a sheet', () => {
     expect(sheetVisibility({ isPublic: true, inGame: true })).toBe('link')
     expect(sheetVisibility({ isPublic: false, inGame: true })).toBe('game')
     expect(sheetVisibility({ isPublic: false, inGame: false })).toBe('private')
+  })
+})
+
+// MD4-02: the dialog said the Game's crew can see a Mediator's NPC; the room serves them nothing of it.
+describe('an NPC in a Game', () => {
+  test('is withheld from the crew unless it crews the crawler; no other kind ever is', () => {
+    expect(mediatorOnly('npc', true, false)).toBe(true)
+    expect(mediatorOnly('npc', true, true)).toBe(false)
+    expect(mediatorOnly('npc', false, false)).toBe(false)
+    for (const kind of ['pilot', 'mech', 'crawler'] as const) {
+      expect(mediatorOnly(kind, true, false)).toBe(false)
+    }
+  })
+
+  test('says only the Mediator can see it until it is put on the field, as the Kit lists it', () => {
+    const choices = sheetChoices({ inGame: true, gameName: 'Rust Coast', mediatorOnly: true })
+    expect(labels(choices)).toEqual(['Only the Mediator', 'My Game’s crew', 'Public'])
+    expect(open(choices)).toEqual(['private', 'link'])
+    expect(choices[0]?.description).toBe(
+      'It is in Rust Coast. Only its Mediator can see it, until it is put on the field.'
+    )
+    expect(choices.map((c) => c.description).join(' ')).not.toMatch(
+      /crew can see it|Everyone in Rust Coast/
+    )
+    expect(sheetVisibility({ isPublic: false, inGame: true, mediatorOnly: true })).toBe('private')
+    expect(sheetVisibility({ isPublic: true, inGame: true, mediatorOnly: true })).toBe('link')
   })
 })
 

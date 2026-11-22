@@ -10,6 +10,10 @@ export const libSharingCopy = messages({
     'It is in {game}, so its crew can see it. Move it to your Training Bay to keep it to yourself.',
   sheetPrivateOnShelf: 'Kept in your Training Bay. Nobody else can open it.',
   sheetGameInGame: 'Everyone in {game} can see it, because it is there.',
+  // An NPC in a Game is its Mediator's (r3 A3): the dialog says what the Kit's list says (MD4-02).
+  onlyTheMediator: 'Only the Mediator',
+  npcMediatorOnly: 'It is in {game}. Only its Mediator can see it, until it is put on the field.',
+  npcCrewLater: 'The crew sees an NPC once it is put on the field.',
   sheetGameOnShelf: 'Move it into a Game to share it with that Game’s crew.',
   sheetLink:
     'One live, read-only page anyone can open with no account. It follows every edit, and everything on it goes too, bio and appearance text included.',
