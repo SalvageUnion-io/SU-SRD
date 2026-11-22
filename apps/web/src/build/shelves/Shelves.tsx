@@ -74,9 +74,6 @@ import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
 import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
   chassisFact,
-  crawlerChips,
-  crawlerFact,
-  crawlerReading,
   crewLinked,
   encounterNpcChips,
   encounterNpcReading,
@@ -101,8 +98,9 @@ import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { npcDeleteConfirm } from '../npc/redesign.model'
 import { ShelfLead } from '../roster/FrontDoor'
 import { RailActs } from '../sheet/RailActs'
-import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
+import { crewReadings } from '../sheet/railStats.model'
 import { AddAMech } from './AddAMech'
+import { CrawlerShelf } from './CrawlerShelf'
 import { EncounterShelf } from './EncounterShelf'
 import { MechShelf } from './MechShelf'
 import type { MoveSubject } from './MoveToGameDialog'
@@ -113,7 +111,6 @@ import { RenameDialog } from './RenameDialog'
 import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
 import {
-  CRAWLER_COLUMNS,
   inGame,
   NPC_COLUMNS,
   PATTERN_COLUMNS,
@@ -566,32 +563,12 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   menu: unitMenu('mech', m, m),
                 })}
               />
-              <ShelfLedger
-                id="shelf-crawlers"
-                title={buildShelvesCopy('crawlers')}
-                tone="crawler"
-                columns={CRAWLER_COLUMNS}
+              <CrawlerShelf
+                crawlers={crawlers}
+                games={games}
+                sharedByLink={sharedByLink}
                 action={newLink('/crawlers/new', buildShelvesCopy('newCrawler'))}
-                empty={buildShelvesCopy('noCrawlersYet')}
-                rows={crawlers.map((c) => {
-                  const r = rowStats(crawlerRailItems(c))
-                  return {
-                    id: c.id,
-                    name: c.name,
-                    href: `/crawlers/${c.id}`,
-                    under: under([
-                      ...crawlerChips({ crawler: c, games }),
-                      ...linkChip(sharedByLink, c.id),
-                    ]),
-                    cells: [
-                      crawlerFact(c) ?? '',
-                      inGame(gameRelation(c, games)),
-                      String(crawlerReading(c).value),
-                      read(r, VITAL.sp),
-                    ],
-                    menu: unitMenu('crawler', c, c),
-                  }
-                })}
+                menu={(c) => unitMenu('crawler', c, c)}
               />
             </div>
             <div className="su-shelf-ledgers__col">
