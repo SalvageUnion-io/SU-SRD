@@ -6,7 +6,9 @@
  * session and the Stop Sign), the proposals awaiting my answer, and the rolls and
  * applied changes this screen recorded (`playRolls`). Solo there is no Game
  * log, so only my own. Proposals awaiting an answer come first, so Accept is
- * never scrolled away; everything else is newest first.
+ * never scrolled away; everything else is newest first. A proposal still
+ * awaiting my answer is that one entry: the table's line for it ("Mediator
+ * proposes …") is left out until it is answered (r4 B5).
  *
  * My own rolls reach the Game's log too (the dispatch writes them, stamped
  * with the roll's own time), so the log's copy of a roll this screen holds is
@@ -34,16 +36,28 @@ export type FeedEntry =
       /** The proposal itself: what an accepted one's Undo writes back. */
       proposal: PendingProposal
     }
-  | { kind: 'alert'; key: string; ts: number; text: string }
-  /** What a member did at the table (`rooms/game/events.ts`): a vital, an action, boarding, the session. */
-  | { kind: 'event'; key: string; ts: number; text: string }
+  | { kind: 'alert'; key: string; ts: number; text: string; own?: true }
+  /**
+   * What a member did at the table (`rooms/game/events.ts`): a vital, an
+   * action, boarding, the session. `own` on the reader's own act, here and on
+   * an alert and a roll: no news to them (`feedMark.model.ts`).
+   */
+  | { kind: 'event'; key: string; ts: number; text: string; own?: true }
   /**
    * A crewmate's roll, from the Game's log. `reveal` is the roll's id on a
    * Mediator's copy of one the players do not read whole (ADR-051 §9b): theirs
    * to show the table. `kept` says what the players miss: all of it (a private
    * roll), or its names (a veiled one).
    */
-  | { kind: 'roll'; key: string; ts: number; text: string; reveal?: string; kept?: Kept }
+  | {
+      kind: 'roll'
+      key: string
+      ts: number
+      text: string
+      reveal?: string
+      kept?: Kept
+      own?: true
+    }
   /** A roll or a change made on this screen: "You · Core Mechanic · 14 · Success". */
   | {
       kind: 'mine'
@@ -84,6 +98,7 @@ export type FeedSources = {
  */
 const OWN: ReadonlySet<TableEvent['kind']> = new Set([
   'alert',
+  'withdrawn',
   'proposal',
   'session',
   'downtime',
@@ -210,9 +225,16 @@ export function playFeedEntries({
     hidden
       ? `${mineAs(description, actorId)} · ${playCopy('privateRoll')}`
       : mineAs(description, actorId)
+  // The table's line for a proposal still awaiting my answer: the entry with
+  // Accept and Decline says it (r4 B5). The room stamps both with one time.
+  const awaiting = new Set(proposals.map((p) => p.ts))
+  const proposes = playCopy('mediatorProposes', { what: '' })
+  const asked = (e: TableEvent) =>
+    e.kind === 'proposal' && awaiting.has(e.ts) && e.text.startsWith(proposes)
   const logged: FeedEntry[] =
     events !== null
       ? events
+          .filter((e) => !asked(e))
           .filter((e) => e.kind !== 'roll' || !echoes.has(`${e.ts}|${e.text}`))
           .map(
             (e): FeedEntry => ({
@@ -221,6 +243,7 @@ export function playFeedEntries({
               ts: e.ts,
               text: e.kind === 'roll' ? rollText(e.text, e.private, e.actorId) : said(e),
               ...keptOf(e),
+              ...(viewerId !== null && e.actorId === viewerId ? { own: true as const } : {}),
             })
           )
       : [

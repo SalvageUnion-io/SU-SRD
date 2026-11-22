@@ -7,14 +7,17 @@
  *
  *  - **Pinned**, until answered or dismissed: the Stop Sign on a strip of its
  *    own (which also renames the tab, and turns Play's band, `PlayBar`); and
- *    one strip for everything else (r3 H1, `NoticeStack`): each proposal
+ *    one strip for everything else (r3 H1, `TableNoticeStack.tsx`): each proposal
  *    awaiting this player with Accept and Decline, "Your turn" while the
  *    Mediator has one of the viewer's pilots up, the Mediator's newest alert,
  *    "You now mediate" after a hand over with its door, "Session live" with
  *    its door, then "Session ended"; and a Game the viewer was removed from,
  *    which would otherwise just vanish. The strip shows one (what waits on an
  *    answer first, then the newest), counts the rest behind a button that
- *    lists them, and offers Dismiss all.
+ *    lists them, and offers Dismiss all. The Mediator's alert is never one
+ *    of the counted: it is a strip of its own above that one, for the player
+ *    who is up too (r4 B2). "Your turn" carries End my turn (r4 B1,
+ *    `scenes.endTurn`).
  *  - **Toasts**: what needs a look, off the table's event stream
  *    (`tableNotices.model.ts`, the Feed's own source): a proposal, an alert,
  *    the session and Downtime starting and ending, the Mediator's role
@@ -37,7 +40,9 @@ import { useTableAct, useTableRead } from '../replica/useTable'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { gamePilots } from './play.model'
 import { acceptedUndo, proposalChange } from './proposalAnswer.model'
-import type { Heard, KnownGame, StackedNotice } from './tableNotices.model'
+import type { Notice } from './TableNoticeStack'
+import { NoticeStack } from './TableNoticeStack'
+import type { Heard, KnownGame } from './tableNotices.model'
 import {
   endedSession,
   eventsToToast,
@@ -52,7 +57,6 @@ import {
   pinnedRole,
   pinnedSays,
   resumedTitle,
-  stackNotices,
 } from './tableNotices.model'
 import { useGameSession } from './useGameSession'
 import { useStopSign } from './useStopSign'
@@ -109,21 +113,6 @@ function useNoticesHeight() {
     observer.current.observe(node)
     publish()
   }, [])
-}
-
-/** One pinned notice, as the strip draws it. */
-type Notice = StackedNotice & {
-  /** What `data-table-notice` names it. */
-  kind: 'removed' | 'turn' | 'proposal' | 'alert' | 'role' | 'session' | 'session-ended'
-  tone: 'ink' | 'pilot' | 'crawler'
-  title: string
-  body?: string
-  /** Its own controls, before Dismiss: Accept and Decline, a door. */
-  actions?: React.ReactNode
-  /** Take it down; absent on one that waits on the viewer. */
-  dismiss?: () => void
-  /** What makes it a different notice to draw: its words and what its controls allow. */
-  sig: string
 }
 
 /** A Game the viewer was removed from, with when this screen learned of it. */
@@ -216,80 +205,6 @@ export function TableNotices({ pathname }: { pathname: string }) {
   )
 }
 
-/**
- * The one strip the notices share (r3 H1): the first of them (`stackNotices`),
- * with how many more wait behind a button that lists them, and Dismiss all
- * for those that can be dismissed. One notice is just itself.
- */
-function NoticeStack({ notices }: { notices: readonly Notice[] }) {
-  const [open, setOpen] = useState(false)
-  const ordered = stackNotices(notices)
-  const [top, ...rest] = ordered
-  if (top === undefined) return null
-  const clearable = ordered.filter((notice) => notice.dismiss !== undefined)
-  const more =
-    rest.length === 0 ? null : (
-      <>
-        <Button
-          size="compact"
-          aria-expanded={open}
-          aria-label={
-            open
-              ? playCopy('showFewerNotices')
-              : playCopy('showMoreNotices', { count: rest.length })
-          }
-          onClick={() => setOpen(!open)}
-        >
-          {open ? playCopy('showFewer') : playCopy('moreNotices', { count: rest.length })}
-        </Button>
-        {clearable.length > 0 && (
-          <Button
-            size="compact"
-            onClick={() => {
-              for (const notice of clearable) notice.dismiss?.()
-            }}
-          >
-            {playCopy('dismissAll')}
-          </Button>
-        )}
-      </>
-    )
-  return (
-    <>
-      <NoticeStrip notice={top} more={more} />
-      {open && rest.map((notice) => <NoticeStrip key={notice.key} notice={notice} />)}
-    </>
-  )
-}
-
-function NoticeStrip({ notice, more }: { notice: Notice; more?: React.ReactNode }) {
-  return (
-    <div role="status" data-table-notice={notice.kind}>
-      <Callout tone={notice.tone}>
-        <div className="su-table-notice">
-          <div className="su-table-notice__text">
-            <Text style={STRONG}>{notice.title}</Text>
-            {notice.body !== undefined && <Text>{notice.body}</Text>}
-          </div>
-          <span className="su-table-notice__actions">
-            {notice.actions}
-            {notice.dismiss !== undefined && (
-              <Button
-                size="compact"
-                aria-label={playCopy('dismissWhat', { what: notice.title })}
-                onClick={notice.dismiss}
-              >
-                {playCopy('dismiss')}
-              </Button>
-            )}
-            {more}
-          </span>
-        </div>
-      </Callout>
-    </div>
-  )
-}
-
 function GameNotices({
   gameId,
   gameName,
@@ -327,6 +242,11 @@ function GameNotices({
     failure: playCopy('answerDidNotLand'),
     toastId: 'table-proposal-answer',
   })
+  // The player who is up says they are done (r4 B1): the marker clears for the table.
+  const endTurn = useServerAction(useTableAct('scenes.endTurn', gameId), {
+    failure: playCopy('turnDidNotEnd'),
+    toastId: 'table-end-turn',
+  })
   // The viewer's own: the replica holds every crewmate's pilot too (LG-02).
   const pilots = gamePilots(useOwnUnits('pilot'), gameId)
   // The viewer's pilots' pages, as one value: an effect below reads them.
@@ -345,7 +265,7 @@ function GameNotices({
   const heard = useRef<Heard | null>(null)
   useEffect(() => {
     if (events === undefined) return
-    const next = eventsToToast(events, heard.current, viewerId)
+    const next = eventsToToast(events, heard.current, viewerId, mediator)
     heard.current = next.heard
     // What the pinned strip is saying is not toasted too (r3 H2).
     const now = Date.now()
@@ -438,7 +358,17 @@ function GameNotices({
       tone: 'pilot',
       title,
       body: playCopy('yourTurnIn', { game: gameName }),
-      sig: `turn:${gameId}:${title}`,
+      actions: (
+        <Button
+          variant="primary"
+          size="compact"
+          disabled={!canWrite || endTurn.pending}
+          onClick={() => void endTurn.run({})}
+        >
+          {playCopy('endMyTurn')}
+        </Button>
+      ),
+      sig: `turn:${gameId}:${title}:${canWrite}:${endTurn.pending}`,
     })
   }
   for (const p of pending ?? []) {
@@ -489,7 +419,7 @@ function GameNotices({
     notices.push({
       key: `alert:${alert._id}`,
       kind: 'alert',
-      rank: 'news',
+      rank: 'alert',
       ts: alert.ts,
       dismissible: true,
       tone: 'ink',

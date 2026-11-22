@@ -123,6 +123,8 @@ const GAME_ACTS = {
     c.room.log.append(c.actor, a.entries),
   'changeLog.broadcast': (c: ActContext, a: { message: string }) =>
     c.room.log.broadcast(c.actor, a.message, c.at),
+  'changeLog.withdrawAlert': (c: ActContext, a: { alertId: string }) =>
+    c.room.log.withdrawAlert(c.actor, a.alertId),
   'changeLog.reveal': (c: ActContext, a: { rollId: string }) =>
     c.room.log.reveal(c.actor, a.rollId),
   'changeLog.rolls': (c: ActContext) => c.room.log.rolls(c.actor),
@@ -160,6 +162,7 @@ const GAME_ACTS = {
   'scenes.passHour': (c: ActContext) => c.room.scene.passHour(c.actor, c.at),
   'scenes.setUpNow': (c: ActContext, a: { pilotId: string | null }) =>
     c.room.scene.setUpNow(c.actor, a.pilotId, c.at),
+  'scenes.endTurn': (c: ActContext) => c.room.scene.endTurn(c.actor, c.at),
   'salvageAreas.here': (c: ActContext) => c.room.scene.salvageArea(c.actor),
   'salvageAreas.set': (c: ActContext, a: { area: SalvageArea | null }) =>
     c.room.scene.setSalvageArea(c.actor, a.area, c.at),

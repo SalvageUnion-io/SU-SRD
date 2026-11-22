@@ -14,6 +14,7 @@ import {
   pinnedRole,
   pinnedSays,
   resumedTitle,
+  shownNotices,
   stackNotices,
   standingDownOnPurpose,
 } from '../tableNotices.model'
@@ -269,11 +270,11 @@ describe('pinnedAlert clears itself (r3 H1)', () => {
 })
 
 describe('the one strip (r3 H1)', () => {
-  const n = (key: string, rank: 'answer' | 'turn' | 'news', ts: number) => ({
+  const n = (key: string, rank: 'alert' | 'answer' | 'turn' | 'news', ts: number) => ({
     key,
     rank,
     ts,
-    dismissible: rank === 'news',
+    dismissible: rank === 'news' || rank === 'alert',
   })
 
   test('what waits on an answer leads, then my turn, then the news, newest first', () => {
@@ -292,6 +293,22 @@ describe('the one strip (r3 H1)', () => {
       'alert',
     ])
   })
+
+  test('the Mediator’s alert is above "Your turn" and never one of the counted (r4 B2)', () => {
+    const shown = shownNotices([
+      n('turn', 'turn', 0),
+      n('ended', 'news', 900),
+      n('alert', 'alert', 300),
+    ])
+    expect(shown.alerts.map((notice) => notice.key)).toEqual(['alert'])
+    expect(shown.top?.key).toBe('turn')
+    expect(shown.rest.map((notice) => notice.key)).toEqual(['ended'])
+    // An alert alone is just itself; Accept still leads the strip under one.
+    expect(shownNotices([n('alert', 'alert', 300)])).toMatchObject({ top: null, rest: [] })
+    expect(shownNotices([n('alert', 'alert', 300), n('proposal', 'answer', 1)]).top?.key).toBe(
+      'proposal'
+    )
+  })
 })
 
 describe('the Mediator’s role taken back (r3 A4)', () => {
@@ -305,6 +322,14 @@ describe('the Mediator’s role taken back (r3 A4)', () => {
     expect(lostRole(true, false, 'g1')).toBe(true)
     standingDownOnPurpose('g1')()
     expect(lostRole(true, false, 'g1')).toBe(true)
+  })
+
+  test('a player ending their turn is told to the Mediator alone (r4 B1)', () => {
+    const { heard } = eventsToToast([], null, 'me')
+    const turn = event({ _id: 't', kind: 'turn', text: 'Pickle ended their turn', actorId: 'ada' })
+    expect(eventsToToast([turn], heard, 'gm', true).toast).toEqual([turn])
+    expect(eventsToToast([turn], heard, 'ben', false).toast).toEqual([])
+    expect(eventsToToast([turn], heard, 'ada', true).toast).toEqual([])
   })
 
   test('the role moving is told to the whole table, never to whoever moved it', () => {
@@ -329,6 +354,18 @@ describe('the session’s end (r2 C5)', () => {
     expect(endedSession([end], 2000, 'me')).toBe(1000)
     expect(endedSession([end], 2000, 'gm')).toBeNull()
     expect(endedSession([end], 1000 + 10 * 60_000, 'me')).toBeNull()
+  })
+
+  test('never to someone who joined after it ended, nor on a later day (r4 B5)', () => {
+    const joined = (ts: number) =>
+      event({ _id: `j${ts}`, kind: 'join', text: 'Pip joined the Game', actorId: 'me', ts })
+    expect(endedSession([end, joined(1500)], 2000, 'me')).toBeNull()
+    expect(endedSession([joined(500), end], 2000, 'me')).toBe(1000)
+    // Ended two minutes before midnight, opened three minutes after it.
+    const late = new Date(2026, 10, 21, 23, 58).getTime()
+    const night = event({ _id: 'n', kind: 'session', session: 'end', actorId: 'gm', ts: late })
+    expect(endedSession([night], late + 60_000, 'me')).toBe(late)
+    expect(endedSession([night], late + 5 * 60_000, 'me')).toBeNull()
   })
 
   test('and only on that Game’s pages', () => {

@@ -1,7 +1,10 @@
 /**
  * TellTheTable — a word to every player at once, from the Mediator's Play bar
  * (docs/architecture/play.md §15): `changeLog.broadcast`, which
- * every player reads on their Feed. Under the form, the last five alerts sent.
+ * every player reads on their Feed. Under the form, the last five alerts
+ * sent, each with Withdraw (r4 B4, `changeLog.withdrawAlert`): it comes off
+ * every player's strip and the Feed says it was withdrawn. To correct one,
+ * withdraw it and send again.
  *
  * Presentational: the Mediator's screen sends, and says why when the server
  * refuses.
@@ -25,6 +28,9 @@ const SCROLL = {
   gap: space[12],
 } satisfies CSSProperties
 
+/** A sent alert's end: when, then Withdraw. */
+const END = { alignItems: 'center', display: 'inline-flex', gap: space[8] } satisfies CSSProperties
+
 const FORM = {
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) auto',
@@ -37,6 +43,7 @@ export function TellTheTable({
   now,
   canWrite,
   onSend,
+  onWithdraw,
   field,
 }: {
   alerts: readonly AlertLine[]
@@ -44,6 +51,8 @@ export function TellTheTable({
   canWrite: boolean
   /** Resolves once sent; rejects with the server's refusal (already explained). */
   onSend: (message: string) => Promise<void>
+  /** Take one back (the caller says a refusal). */
+  onWithdraw: (alertId: string) => void
   /** The alert's field, for the dialog around it to open on (MD2-04). */
   field?: RefObject<HTMLInputElement | null>
 }) {
@@ -92,7 +101,22 @@ export function TellTheTable({
       ) : (
         <FeedList label={mediatorCopy('sentToTheTable')}>
           {alerts.slice(0, 5).map((a) => (
-            <FeedLine key={a._id} end={<FeedTime ts={a.ts} format="ago" now={now} />}>
+            <FeedLine
+              key={a._id}
+              end={
+                <span style={END}>
+                  <FeedTime ts={a.ts} format="ago" now={now} />
+                  <Button
+                    size="mini"
+                    disabled={!canWrite}
+                    aria-label={mediatorCopy('withdrawWhat', { what: a.message })}
+                    onClick={() => onWithdraw(a._id)}
+                  >
+                    {mediatorCopy('withdraw')}
+                  </Button>
+                </span>
+              }
+            >
               {a.message}
             </FeedLine>
           ))}

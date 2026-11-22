@@ -31,10 +31,14 @@ export type Heard = ReadonlyMap<string, string>
  * ending, the Mediator's role moving, and a roll the Mediator made. Every crewmate's vitals, actions,
  * boarding, assignments and rolls go to the Feed alone: a toast for each
  * stacked over the controls while three players stepped their vitals.
- * The Stop Sign and "Your turn" are pinned, never an event's toast.
+ * The Stop Sign and "Your turn" are pinned, never an event's toast. A player
+ * ending their own turn is the Mediator's to hear (r4 B1): the crew read it
+ * on the Feed.
  */
-function needsALook(event: TableEvent): boolean {
+function needsALook(event: TableEvent, mediates: boolean): boolean {
   switch (event.kind) {
+    case 'turn':
+      return mediates
     case 'proposal':
     case 'alert':
     case 'session':
@@ -64,7 +68,8 @@ function needsALook(event: TableEvent): boolean {
 export function eventsToToast(
   events: readonly TableEvent[],
   heard: Heard | null,
-  viewerId: string | null
+  viewerId: string | null,
+  mediates = false
 ): { toast: TableEvent[]; heard: Heard } {
   const next = new Map(events.map((event) => [event._id, event.text]))
   if (heard === null) return { toast: [], heard: next }
@@ -72,7 +77,7 @@ export function eventsToToast(
     .filter((event) => heard.get(event._id) !== event.text)
     .filter((event) => event.actorId !== viewerId)
     .filter((event) => event.private !== true && event.veiled !== true)
-    .filter(needsALook)
+    .filter((event) => needsALook(event, mediates))
     .sort((a, b) => a.ts - b.ts)
   // An id the stream no longer serves stays heard: a line that scrolled off never toasts again.
   return { toast, heard: new Map([...heard, ...next]) }
@@ -171,7 +176,9 @@ export function pinnedRole(
  * When the Game's last group session ended, while that is still news: the
  * newest session event is its end, and recent. Read off the events, so a
  * screen opened just after the end says so too. Never for whoever ended it
- * (r2 C5): it is about something they did.
+ * (r2 C5): it is about something they did. Never for someone who joined
+ * after it ended, who was not there for it, and never on a later day than
+ * it ended (r4 B5): it does not outstay the night.
  */
 export function endedSession(
   events: readonly TableEvent[],
@@ -181,7 +188,13 @@ export function endedSession(
   const last = events.filter((event) => event.session !== undefined).sort((a, b) => b.ts - a.ts)[0]
   if (last === undefined || last.session !== 'end') return null
   if (viewerId !== null && last.actorId === viewerId) return null
+  if (joinedAt(events, viewerId) > last.ts || !sameDay(last.ts, now)) return null
   return now - last.ts < ALERT_PINNED_MS ? last.ts : null
+}
+
+/** Whether two moments fall on one calendar day, as the viewer's clock reads them. */
+function sameDay(a: number, b: number): boolean {
+  return new Date(a).toDateString() === new Date(b).toDateString()
 }
 
 /**
@@ -213,26 +226,41 @@ export function gameOfPage(
 /**
  * One pinned notice as the strip stacks it (r3 H1). `answer` is one waiting
  * on the viewer (a proposal), `turn` their turn; neither can be dismissed.
+ * `alert` is the Mediator's word to the table, which nothing folds away
+ * (r4 B2).
  */
 export type StackedNotice = {
   key: string
-  rank: 'answer' | 'turn' | 'news'
+  rank: 'alert' | 'answer' | 'turn' | 'news'
   /** When it became news: the newest leads. */
   ts: number
   /** Whether Dismiss, and so Dismiss all, clears it. */
   dismissible: boolean
 }
 
-const RANK = { answer: 0, turn: 1, news: 2 } as const
+const RANK = { alert: 0, answer: 1, turn: 2, news: 3 } as const
 
 /**
- * The notices in the order the one strip shows them (r3 H1): what waits on
- * the viewer's answer first, so Accept is never behind anything, then their
- * turn, then the news, newest first. The strip shows the first and counts the
- * rest.
+ * The notices in the order they pin (r3 H1): the Mediator's alert at the top
+ * (r4 B2), then what waits on the viewer's answer, so Accept is never behind
+ * anything, then their turn, then the news, newest first.
  */
 export function stackNotices<N extends StackedNotice>(notices: readonly N[]): N[] {
   return [...notices].sort((a, b) => RANK[a.rank] - RANK[b.rank] || b.ts - a.ts)
+}
+
+/**
+ * What the pinned notices show and what waits behind the count (r4 B2): every
+ * alert, each a strip of its own above the rest and never counted, for the
+ * player who is up as for anyone; then the first of the others, which is the
+ * one strip (r3 H1), with the rest behind its button.
+ */
+export function shownNotices<N extends StackedNotice>(
+  notices: readonly N[]
+): { alerts: N[]; top: N | null; rest: N[] } {
+  const ordered = stackNotices(notices)
+  const [top = null, ...rest] = ordered.filter((notice) => notice.rank !== 'alert')
+  return { alerts: ordered.filter((notice) => notice.rank === 'alert'), top, rest }
 }
 
 /**

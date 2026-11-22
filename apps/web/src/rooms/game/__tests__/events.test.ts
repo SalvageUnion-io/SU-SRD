@@ -528,6 +528,38 @@ describe('the table’s events', () => {
     expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
   })
 
+  test('the player who is up ends their own turn: the marker clears and the table is told (r4 B1)', () => {
+    const { act, room, texts } = seated()
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    // Nobody else's turn is theirs to end, the Mediator's included: theirs is the seat's button.
+    expect(() => act(MEDIATOR, 'scenes.endTurn', undefined as never, AT + 2)).toThrow(
+      'It is not your turn to end'
+    )
+    const [told] = act(PLAYER, 'scenes.endTurn', undefined as never, AT + 3)
+    expect(told).toMatchObject({ kind: 'turn', actorId: PLAYER })
+    expect(told?.text).toEndWith('ended their turn')
+    expect(room.scene.scene(MEDIATOR)).not.toHaveProperty('upNow')
+    expect(texts(MEDIATOR)[0]).toBe(told?.text as string)
+    // With nobody up there is no turn to end.
+    expect(() => act(PLAYER, 'scenes.endTurn', undefined as never, AT + 4)).toThrow(
+      'It is not your turn to end'
+    )
+  })
+
+  test('an alert is withdrawn by a Mediator: it leaves the stream and a line says so (r4 B4)', () => {
+    const { act, room, texts } = seated()
+    act(MEDIATOR, 'changeLog.broadcast', { message: 'Reinforcments arive' }, AT + 1)
+    const alertId = String(room.log.alerts(PLAYER)[0]?._id)
+    expect(() => act(PLAYER, 'changeLog.withdrawAlert', { alertId })).toThrow('Only the Mediator')
+    const [told] = act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 2)
+    expect(told).toMatchObject({ kind: 'withdrawn', text: 'Mediator withdrew an alert' })
+    expect(room.log.alerts(PLAYER)).toEqual([])
+    expect(texts()).toEqual(['Mediator withdrew an alert'])
+    expect(() => act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 3)).toThrow(
+      'That alert is no longer there'
+    )
+  })
+
   test('a sent proposal is withdrawn by a Mediator: it leaves the player’s list and reads Withdrawn (r2 C7)', () => {
     const { act, room, texts } = seated()
     act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 7 })] }, AT)
