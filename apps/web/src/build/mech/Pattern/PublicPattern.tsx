@@ -44,6 +44,7 @@ import {
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { chapterForSchema } from '../../../lib/chapters'
 import { playerMessage } from '../../../lib/connection/useServerAction'
+import { hereInApp } from '../../../lib/hereInApp'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import { areaTitle } from '../../../lib/pageTitle'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
@@ -221,7 +222,11 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 {busy === 'build' ? mechCopy('building') : mechCopy('buildWithThis')}
               </Button>
             ) : signedOut ? (
-              <SignInControl className="su-page-action" />
+              <SignInControl
+                className="su-page-action"
+                label={mechCopy('signInToBuildFromThis')}
+                redirectTo={hereInApp()}
+              />
             ) : undefined
           }
           corner={

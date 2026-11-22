@@ -64,6 +64,7 @@ import {
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
+import { signIn } from '../lib/auth/session'
 import { cn } from '../lib/cn'
 import { useOwnUnits } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
@@ -163,6 +164,9 @@ function tileArt(key: string, alt: string) {
 }
 
 /** Each "At the table" tile's art, in the tiles' order. */
+/** Where the sub-nav's "Join with a link" points, as a route in the app. */
+const JOIN_ROUTE = '/games/#join'
+
 const AT_THE_TABLE_ART = [
   tileArt('classes/scout.webp', playCopy('artScout')),
   tileArt('chassis/mazona.webp', playCopy('artMazona')),
@@ -174,6 +178,21 @@ const AT_THE_TABLE_ART = [
  * with art.
  */
 function PlayFrontDoor() {
+  // Signed out there is no Join dialog to open: the sub-nav's "Join with a
+  // link" goes to sign-in, and comes back to `/games/#join`, where the dialog
+  // opens itself (r3 E3, MD-03). Heard before the router, which would only
+  // scroll to the card that wears the id.
+  useEffect(() => {
+    const pressed = (event: MouseEvent) => {
+      const link = event.target instanceof Element ? event.target.closest('a[href$="#join"]') : null
+      if (link === null) return
+      event.preventDefault()
+      event.stopPropagation()
+      signIn(JOIN_ROUTE)
+    }
+    document.addEventListener('click', pressed, true)
+    return () => document.removeEventListener('click', pressed, true)
+  }, [])
   const steps = AT_THE_TABLE.map((step, index) => ({ ...step, art: AT_THE_TABLE_ART[index] }))
   return (
     <FrontDoor

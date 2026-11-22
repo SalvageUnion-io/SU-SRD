@@ -200,6 +200,23 @@ describe('the Play landing', () => {
     for (const id of anchors) expect(document.getElementById(id)).not.toBeNull()
   })
 
+  test('signed out, pressing the sub-nav’s "Join with a link" goes to sign-in and back to the Join dialog (r3 E3)', async () => {
+    answerReads({})
+    serverMocks.signIns.length = 0
+    await renderAs('signedOut')
+    const nav = document.createElement('a')
+    nav.href = '/build/games/#join'
+    document.body.append(nav)
+    try {
+      const press = new MouseEvent('click', { bubbles: true, cancelable: true })
+      nav.dispatchEvent(press)
+      expect(press.defaultPrevented).toBe(true)
+      expect(serverMocks.signIns).toEqual([['/games/#join']])
+    } finally {
+      nav.remove()
+    }
+  })
+
   test('arriving on #join opens Join a Game', async () => {
     window.location.hash = '#join'
     try {
