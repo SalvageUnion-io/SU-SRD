@@ -220,6 +220,14 @@ export const ROW_ACTION_COPY = {
     }
   },
 
+  /** Deleting a Mech of the Training Bay (r5 D9): one confirm, and the notice after it undoes. */
+  deleteMech(name: string): ConfirmCopy {
+    return {
+      ...ROW_ACTION_COPY.deleteBuild(name),
+      body: [libGamesCopy('deleteMechBody', { name })],
+    }
+  },
+
   /**
    * Deleting an NPC the Mediator designed (MD3-08): theirs alone, so nothing
    * of crews, browsers or handing back. `encounters` are the names of those

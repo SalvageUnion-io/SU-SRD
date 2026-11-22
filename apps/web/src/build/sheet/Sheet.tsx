@@ -43,6 +43,7 @@ import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { exportToFoundry } from '../export/exportToFoundry.model'
+import { deleteMech } from '../mech/deleteMech.model'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import type { MoveSubject } from '../shelves/MoveToGameDialog'
@@ -386,9 +387,12 @@ export function Sheet({
           confirm({
             ...(inGame
               ? ROW_ACTION_COPY.deleteFromGame(entity.name, keptMech(kind, id, storeState))
-              : ROW_ACTION_COPY.deleteBuild(entity.name, keptMech(kind, id, storeState))),
+              : kind === 'mech'
+                ? ROW_ACTION_COPY.deleteMech(entity.name)
+                : ROW_ACTION_COPY.deleteBuild(entity.name, keptMech(kind, id, storeState))),
             onConfirm: async () => {
-              await storeState.delete(kind, id)
+              // A Training Bay Mech's notice undoes it (r5 D9).
+              await (kind === 'mech' && !inGame ? deleteMech(id) : storeState.delete(kind, id))
               go(back.href)
             },
           })

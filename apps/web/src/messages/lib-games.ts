@@ -58,6 +58,7 @@ export const libGamesCopy = messages({
     'Only leaving the table? “Unassign” hands them back instead: they stay in the Game for a crewmate to take with “Assign to me”.',
   deleteFailed: '{name} could not be deleted. Try again.',
   deleteBuildBody: 'This action cannot be undone. {name} will be permanently removed.',
+  deleteMechBody: '{name} will be removed. The notice that follows can undo it.',
   removeLeftoversOne: 'Remove {names}?',
   removeLeftoversMany: 'Remove {count} units?',
   removeLeftoversBody:

@@ -90,6 +90,7 @@ import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { BackupMenu } from '../export/BackupMenu'
+import { deleteMech } from '../mech/deleteMech.model'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { npcDeleteConfirm } from '../npc/redesign.model'
 import { ShelfLead } from '../roster/FrontDoor'
@@ -279,12 +280,18 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             type === 'npc'
               ? // An NPC is its maker's alone: the confirm names the encounters it leaves (MD3-08).
                 confirm(npcDeleteConfirm(unit, encounters))
-              : confirm({
-                  ...(inGame
-                    ? ROW_ACTION_COPY.deleteFromGame(unit.name, keptMech(type, unit.id))
-                    : ROW_ACTION_COPY.deleteBuild(unit.name, keptMech(type, unit.id))),
-                  onConfirm: () => useUnits.getState().delete(type, unit.id),
-                })
+              : type === 'mech' && !inGame
+                ? // Its notice's Undo brings it back (r5 D9).
+                  confirm({
+                    ...ROW_ACTION_COPY.deleteMech(unit.name),
+                    onConfirm: () => deleteMech(unit.id),
+                  })
+                : confirm({
+                    ...(inGame
+                      ? ROW_ACTION_COPY.deleteFromGame(unit.name, keptMech(type, unit.id))
+                      : ROW_ACTION_COPY.deleteBuild(unit.name, keptMech(type, unit.id))),
+                    onConfirm: () => useUnits.getState().delete(type, unit.id),
+                  })
           )
         ),
       ],

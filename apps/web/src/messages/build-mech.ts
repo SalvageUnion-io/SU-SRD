@@ -69,6 +69,9 @@ export const mechCopy = messages({
   undo: 'Undo',
   buildUndone: 'Removed {name}.',
   buildNotUndone: '{name} could not be removed. Delete it from its sheet.',
+  mechDeleted: 'Deleted {name}.',
+  mechPutBack: '{name} is back.',
+  mechNotPutBack: '{name} could not be put back. Try again.',
   noPatternsYet: 'No Patterns yet',
   useSaveAsPatternFrom:
     'Use “Save as pattern” from a Mech sheet’s More actions menu, or the Mech builder, to save a reusable template.',

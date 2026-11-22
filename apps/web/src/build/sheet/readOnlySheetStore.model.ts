@@ -223,6 +223,7 @@ export function makeReadOnlySheetStore(data: ReadOnlySheetData): UnitsStore {
     update: readOnlyWrite,
     updateCrawlerBay: readOnlyWrite,
     delete: readOnlyWrite,
+    restore: readOnlyWrite,
     transfer: readOnlyWrite,
   }
 
