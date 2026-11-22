@@ -51,9 +51,9 @@ test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {
     .getByRole('link', { name: 'Bonesaw', exact: true })
     .click()
   await page.waitForURL(/\/starter\/pilot\//, { timeout: 15_000 })
+  // One press copies, with Undo in its notice (r5 B18), and lands on the copy.
   await page.getByRole('button', { name: 'Make a copy' }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
-  await expect(page.getByRole('alertdialog')).toHaveCount(0, { timeout: 15_000 })
+  await page.waitForURL(/\/pilots\//, { timeout: 15_000 })
 
   await openTrainingBay(page)
   const pilots = shelf(page)

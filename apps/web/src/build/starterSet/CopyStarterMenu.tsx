@@ -1,13 +1,14 @@
 /**
  * "Make a copy" of one Starter Set build, wherever it is offered: the sheet's
  * band action (`MakeACopy`) and each line of the Starter Set page. One name
- * for one act, and one confirm that names where the copy goes.
+ * for one act, and it copies at once (r5 B18): nothing is lost by copying, so
+ * its notice carries an Undo rather than a confirm asking first.
  *
  * A player with nowhere to copy to but the Training Bay gets a button; one in a
  * Game gets the same words as a menu of where (the Training Bay, or one of
- * their Games), then the same confirm. A pilot brings the mech their book
- * pairs them with, already assigned (`copyStarterPilot`), and the confirm says
- * so. Confirmed, the player lands on the copy.
+ * their Games). A pilot brings the mech their book pairs them with, already
+ * assigned (`copyStarterPilot`), and the notice names both. The player lands
+ * on the copy, in Sheet mode: a fresh copy is read before it is edited (r5 C13).
  *
  * The destinations are the ones a build of that kind may be **moved** to
  * (`moveDestinations`, which mirrors the server's ADR-037 rules): a pilot or
@@ -22,11 +23,17 @@
 import { SHELF } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { sheetPath } from 'game-domain/entityKinds'
+import { useState } from 'react'
 import { Button, HeaderMenu, toast } from '../../components/index'
-import type { Confirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
+import { failureMessage } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
-import { copyStarter, copyStarterPilot, starterMechOf } from '../../lib/starterSet/copyStarter'
+import {
+  copyStarter,
+  copyStarterPilot,
+  starterMechOf,
+  undoCopies,
+} from '../../lib/starterSet/copyStarter'
 import {
   rosterOf,
   STARTER_SET_PUBLISHER,
@@ -36,13 +43,12 @@ import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { serializeContainer } from '../entityContainer/containerKey.model'
+import { useSheetModeStore } from '../sheet/sheetMode.model'
 
 type CopyStarterMenuProps = {
   kind: SheetKind
   templateId: string
   name: string
-  /** Opens the confirm. Owned by an ancestor that outlives the control. */
-  confirm: Confirm
   /** The sheet's one action is `full`; a line of the Starter Set page keeps `mini`. */
   size?: 'mini' | 'full'
   className?: string
@@ -54,47 +60,57 @@ function ConnectedCopyStarterMenu({
   kind,
   templateId,
   name,
-  confirm,
   size = 'mini',
   className,
 }: CopyStarterMenuProps) {
   const games = useGamesQuery('games.listMine', {})
   const go = useGo()
+  const [copying, setCopying] = useState(false)
   const destinations = moveDestinations({ kind, current: SHELF, games: games ?? [] })
   // A pilot's copy is the pair the page lists: the pilot and their mech.
   const mech = kind === 'pilot' ? starterMechOf(templateId) : null
   const what = mech === null ? name : buildStarterSetCopy('pilotAndMech', { name, mech: mech.name })
 
-  function copyTo(target: Destination) {
+  async function copyTo(target: Destination) {
     const to = target.container
     // "your Training Bay" in a sentence (glossary §2); a Game by its name.
     const where = to.kind === 'shelf' ? buildStarterSetCopy('yourTrainingBay') : target.label
-    confirm({
-      title: buildStarterSetCopy('copyTo', { name: what, label: where }),
-      body: [
-        mech === null
-          ? buildStarterSetCopy('copyBody', { name, label: where })
-          : buildStarterSetCopy('copyPairBody', { name, mech: mech.name, label: where }),
-        buildStarterSetCopy('staysAsPublished', {
+    setCopying(true)
+    try {
+      const copy =
+        kind === 'pilot'
+          ? await copyStarterPilot(templateId, to)
+          : { ...(await copyStarter(kind, templateId, to)), mech: null }
+      const made = [
+        { kind, id: copy.id },
+        ...(copy.mech === null ? [] : [{ kind: 'mech' as const, id: copy.mech.id }]),
+      ]
+      toast.success(buildStarterSetCopy('copiedTo', { name: what, label: where }), {
+        description: buildStarterSetCopy('staysAsPublished', {
           roster: (rosterOf(templateId) ?? starterRoster('starter-set')).name,
           name,
           publisher: STARTER_SET_PUBLISHER,
         }),
-      ],
-      confirmLabel: buildStarterSetCopy('makeACopy'),
-      pendingLabel: buildStarterSetCopy('copying'),
-      tone: 'default',
-      failure: buildStarterSetCopy('notCopied', { name }),
-      onConfirm: async () => {
-        const made =
-          kind === 'pilot'
-            ? await copyStarterPilot(templateId, to)
-            : await copyStarter(kind, templateId, to)
-        toast.success(buildStarterSetCopy('copiedTo', { name: what, label: where }))
-        // Land on the copy: it is the build they came for.
-        go(sheetPath(kind, made.id))
-      },
-    })
+        action: {
+          label: buildStarterSetCopy('undo'),
+          onClick: () => void undoCopy(made, copy.id),
+        },
+      })
+      // Land on the copy, in Sheet mode: it is the build they came for.
+      useSheetModeStore.getState().setEditing(false)
+      go(sheetPath(kind, copy.id))
+    } catch (err) {
+      toast.error(failureMessage(err, buildStarterSetCopy('notCopied', { name })))
+    } finally {
+      setCopying(false)
+    }
+  }
+
+  /** Take the copy away again, and step back off its sheet where the copy opened it. */
+  async function undoCopy(made: { kind: SheetKind; id: string }[], id: string) {
+    await undoCopies(made)
+    toast.success(buildStarterSetCopy('copyUndone', { name: what }))
+    if (window.location.pathname.endsWith(`/${id}`)) window.history.back()
   }
 
   const label = buildStarterSetCopy('makeACopy')
@@ -108,7 +124,8 @@ function ConnectedCopyStarterMenu({
         size={size}
         className={className}
         aria-label={named}
-        onClick={() => copyTo(only)}
+        disabled={copying}
+        onClick={() => void copyTo(only)}
       >
         {label}
       </Button>
@@ -121,11 +138,12 @@ function ConnectedCopyStarterMenu({
       className={className}
       trigger={label}
       label={named ?? label}
+      disabled={copying}
       sections={[
         destinations.map((d) => ({
           id: serializeContainer(d.container),
           label: d.label,
-          onSelect: () => copyTo(d),
+          onSelect: () => void copyTo(d),
         })),
       ]}
     />

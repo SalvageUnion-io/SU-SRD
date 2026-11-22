@@ -70,6 +70,8 @@ export const playGamesCopy = messages({
   nothingBuiltYet:
     'You have no Pilots or Mechs yet. Build one for this Game, or copy one from the Starter Set.',
   starterSet: 'Starter Set',
+  starterHere: 'Or make a copy of a Starter Set Pilot, their Mech assigned, right here:',
+  starterHereCopy: 'Make a copy of {name} in this Game',
   bringNote:
     'The same unit moves into this Game; nothing is copied. A Pilot brings their Mech, still assigned. You can move them back later.',
   moveIn: 'Move in',
