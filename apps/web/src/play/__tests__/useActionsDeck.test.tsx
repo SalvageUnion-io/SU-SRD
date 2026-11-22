@@ -211,6 +211,24 @@ const heatAt = (action: Parameters<typeof actionEconomy>[0], x: number) =>
   actionEconomy(action, x).heat
 
 describe('the resolve', () => {
+  test('an attack leads with Roll the die, which pays it: no second Activate (r5 A16)', async () => {
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'leviathan',
+      systems: ['red-laser'],
+      currentHeat: 0,
+    })
+    const { store, calls } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    clickActionByName(container, 'Red Laser')
+    expect(screen.queryByRole('button', { name: /^Activate\b/ })).toBeNull()
+    expect(screen.getByText(/^Roll the die spends/)).toBeTruthy()
+    await clickRolling('Roll the Die')
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.patch.currentHeat).toBe(1)
+  })
+
   test('using an action opens its resolve with Activate + Roll', () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
@@ -364,7 +382,7 @@ describe('the resolve', () => {
     expect(calls).toHaveLength(0)
   })
 
-  test('Hot(X) stepper projects heat and drives the Activate patch', async () => {
+  test('Hot(X) stepper projects heat and drives the paid patch', async () => {
     expect(varHotSystem).toBeTruthy()
     const sys = varHotSystem as { id: string; actionName: string }
     const mech = mechFixture({
@@ -383,7 +401,10 @@ describe('the resolve', () => {
     expect(proj?.textContent).toContain('Heat 1/')
     fireEvent.click(screen.getByLabelText('Increase Hot'))
     expect(container.querySelector('.su-play-deck-hotx-proj')?.textContent).toContain('Heat 2/')
-    await clickActivate()
+    // An attack has no Activate: Roll the die pays it (r5 A16); anything else activates.
+    if (screen.queryByRole('button', { name: /^Activate\b/ }) === null) {
+      await clickRolling('Roll the Die')
+    } else await clickActivate()
     const resolvedSystem = resolveSystem(sys.id)
     if (!resolvedSystem) throw new Error(`unresolved system ${sys.id}`)
     const action = SalvageUnionReference.resolveActions(resolvedSystem)?.find(

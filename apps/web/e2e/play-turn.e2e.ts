@@ -65,7 +65,7 @@ async function boardedTurn(page: Page): Promise<string> {
   await expect(row).toHaveAttribute('data-open', 'true')
   await expect(row.getByRole('button', { name: `Cancel ${name}` })).toBeVisible()
 
-  // Activate pays the cost where there is one to pay; a free action has none.
+  // Activate pays the cost where there is one to pay; a free action has none, nor an attack (r5 A16).
   const activate = row.getByRole('button', { name: 'Activate', exact: true })
   if ((await activate.count()) > 0 && (await activate.isEnabled())) {
     await activate.click()

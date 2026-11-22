@@ -2,7 +2,8 @@
  * PlayResolveSteps — an action's resolve, opened in place as its Mini's
  * contentful body (play.md §5): Activate, then the Core Mechanic table, then
  * Apply. Roll pays the cost where Activate has not, and a line says what it
- * will spend (r4 A1); an action with no cost has no Activate (r4 A2).
+ * will spend (r4 A1); an action with no cost has no Activate (r4 A2), nor
+ * an attack, whose Roll the die is its one main button (r5 A16).
  * After a roll the keyboard is on Apply (r4 A3), and the rolled row is clear
  * of the sticky Apply bar (r4 A4).
  * Presentational:
@@ -120,8 +121,9 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
       </div>
       <ResolveCost currencyChoice={view.currencyChoice} variableHot={view.variableHot} />
 
-      {/* An action with no cost has nothing to activate: Roll alone (r4 A2). */}
-      {!view.free && (
+      {/* An action with no cost has nothing to activate: Roll alone (r4 A2);
+          an attack's roll pays it, so Roll the die leads alone (r5 A16). */}
+      {!view.free && !view.rollLeads && (
         <div className="su-play-resolve__steps">
           <Button
             variant={controls.activated ? 'default' : 'primary'}
