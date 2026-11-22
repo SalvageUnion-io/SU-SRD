@@ -17,6 +17,8 @@ export const mediatorCopy = messages({
   leaveItOnTheField: 'Leave it on the field',
   clearTheFieldToo: 'Clear the field (removes {count})',
   clearTheField: 'Clear the field',
+  clearTheDowned: 'Clear the downed',
+  clearedTheDowned: 'Cleared {count} downed.',
   clearTheFieldTitle: 'Clear the field?',
   clearTheFieldBody:
     'This removes {count} from the Opposition for good, with their HP and rolls. The crew is not touched, and a running encounter keeps running.',
@@ -140,7 +142,6 @@ export const mediatorCopy = messages({
   useFor: 'Use {name} for {name2}',
   down: 'down',
   actions2: 'Actions',
-  delete2: 'Delete {name}',
   moreFor: 'More for {name}',
   referenceCard: 'Reference card',
   rename2: 'Rename…',

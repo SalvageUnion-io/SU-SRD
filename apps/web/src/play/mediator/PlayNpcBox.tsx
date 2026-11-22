@@ -8,10 +8,11 @@
  * Its band carries what it is (NPC, Mech, Bio-Titan, …), **Actions**, which
  * opens its actions inside its own card, under the box (r4 D1: pressed while
  * they are open; nothing else on the screen moves), and ⋯: the full reference card, Mark important, Rename and Delete.
- * At 0 it is down: dashed, struck, and never removed for you (ADR-007); Delete
- * is offered as a chip on its band, before ⋯, behind a confirm. A downed Mech
- * or Vehicle offers its wreck's salvage under its vital (`PlayWreckSalvage`),
- * into the crawler or a crew Mech's hold.
+ * At 0 it is down: dashed, struck, and never removed for you (ADR-007). It
+ * folds to its one-line band (r6 B8), Delete inside its ⋯; the list sinks it
+ * below the living (`sinkDowned`). A downed Mech or Vehicle keeps its box
+ * until its wreck is salvaged (`PlayWreckSalvage`, into the crawler or a crew
+ * Mech's hold), then folds too.
  *
  * An important NPC (Workshop Manual p.255) says so on its kind chip. A mech
  * adds its EP and Heat (Heat's redline as danger) and a Heat Check; at 0 any
@@ -99,8 +100,15 @@ export function PlayNpcBox({
   const { reactor, track } = npc
   const critical = npc.important && npc.down && track !== null ? track.critical : null
   const lastImportant = npc.lastImportantRoll
+  // Down with nothing left to take: one line, its band (r6 B8).
+  const folded = npc.down && !npc.important && (wreck === null || npc.salvaged)
   return (
-    <li className="su-play-npc" data-chosen={chosen || undefined} data-npc-id={npc.id}>
+    <li
+      className="su-play-npc"
+      data-chosen={chosen || undefined}
+      data-folded={folded || undefined}
+      data-npc-id={npc.id}
+    >
       <TitledBox
         as="section"
         title={npc.name}
@@ -125,25 +133,16 @@ export function PlayNpcBox({
         }
         controls={
           <span style={CONTROLS}>
-            <Toggle
-              size="mini"
-              pressed={chosen}
-              aria-label={mediatorCopy('sActions', { name: npc.name })}
-              onClick={onChoose}
-            >
-              {mediatorCopy('actions2')}
-            </Toggle>
-            {npc.down ? (
-              <Button
-                variant="ghost"
+            {folded ? null : (
+              <Toggle
                 size="mini"
-                disabled={!canWrite}
-                aria-label={mediatorCopy('delete2', { name: npc.name })}
-                onClick={onRemove}
+                pressed={chosen}
+                aria-label={mediatorCopy('sActions', { name: npc.name })}
+                onClick={onChoose}
               >
-                {mediatorCopy('delete')}
-              </Button>
-            ) : null}
+                {mediatorCopy('actions2')}
+              </Toggle>
+            )}
             <HeaderMenu
               variant="overflow"
               label={mediatorCopy('moreFor', { name: npc.name })}
@@ -185,92 +184,96 @@ export function PlayNpcBox({
           </span>
         }
       >
-        {npc.maxHp > 0 ? (
-          <PlayVital
-            label={stat}
-            value={npc.currentHp}
-            max={npc.maxHp}
-            tone="adversary"
-            onChange={canWrite ? onHp : undefined}
-          />
-        ) : null}
-        {reactor !== null ? (
+        {folded ? null : (
           <>
-            <PlayVital
-              label={mediatorCopy('ep')}
-              value={reactor.ep}
-              max={reactor.maxEp}
-              tone="adversary"
-              onChange={canWrite ? (v) => onReactor({ currentEp: v }) : undefined}
-            />
-            <PlayVital
-              label={mediatorCopy('heat')}
-              value={reactor.heat}
-              max={reactor.heatCap}
-              tone="adversary"
-              danger={reactor.heatCap > 0 ? heatDangerFrom(reactor.heatCap) : undefined}
-              onChange={canWrite ? (v) => onReactor({ currentHeat: v }) : undefined}
-            />
+            {npc.maxHp > 0 ? (
+              <PlayVital
+                label={stat}
+                value={npc.currentHp}
+                max={npc.maxHp}
+                tone="adversary"
+                onChange={canWrite ? onHp : undefined}
+              />
+            ) : null}
+            {reactor !== null ? (
+              <>
+                <PlayVital
+                  label={mediatorCopy('ep')}
+                  value={reactor.ep}
+                  max={reactor.maxEp}
+                  tone="adversary"
+                  onChange={canWrite ? (v) => onReactor({ currentEp: v }) : undefined}
+                />
+                <PlayVital
+                  label={mediatorCopy('heat')}
+                  value={reactor.heat}
+                  max={reactor.heatCap}
+                  tone="adversary"
+                  danger={reactor.heatCap > 0 ? heatDangerFrom(reactor.heatCap) : undefined}
+                  onChange={canWrite ? (v) => onReactor({ currentHeat: v }) : undefined}
+                />
+              </>
+            ) : null}
+            {npc.down ? <p style={NOTE_MUTED}>{mediatorCopy('at0Down')}</p> : null}
+            {wreck !== null ? (
+              <PlayWreckSalvage
+                npc={npc}
+                wreck={wreck}
+                canWrite={canWrite}
+                hasCrawler={hasCrawler}
+                mechs={mechs}
+                onRoll={onSalvageRoll}
+                onSettle={onSalvage}
+                rollFor={rollFor}
+              />
+            ) : null}
+            {critical !== null || (reactor !== null && !npc.down) ? (
+              <span style={CONTROLS}>
+                {critical !== null ? (
+                  <Button
+                    size="mini"
+                    disabled={!canWrite}
+                    aria-label={mediatorCopy('rollTableFor', {
+                      table: tableName(critical),
+                      name: npc.name,
+                    })}
+                    onClick={onCritical}
+                  >
+                    {mediatorCopy('rollTable', { table: tableName(critical) })}
+                  </Button>
+                ) : (
+                  <Button
+                    size="mini"
+                    disabled={!canWrite}
+                    aria-label={mediatorCopy('heatCheckFor', { name: npc.name })}
+                    onClick={onHeatCheck}
+                  >
+                    {mediatorCopy('heatCheck')}
+                  </Button>
+                )}
+              </span>
+            ) : null}
+            {lastImportant !== null ? (
+              <RollResultLine roll={lastImportant} tableName={tableName(lastImportant.table)} />
+            ) : null}
+            {moraleDue ? (
+              <span style={CONTROLS}>
+                <Stat size="mini" label={mediatorCopy('moraleDue')} state="caution" />
+                <Button
+                  size="mini"
+                  disabled={!canWrite || onMorale === undefined}
+                  aria-label={mediatorCopy('rollMoraleFor', { name: npc.name })}
+                  onClick={onMorale}
+                >
+                  {mediatorCopy('rollMorale')}
+                </Button>
+              </span>
+            ) : null}
+            <RollResultLine roll={npc.lastRoll} empty={mediatorCopy('noMoraleRoll')} />
           </>
-        ) : null}
-        {npc.down ? <p style={NOTE_MUTED}>{mediatorCopy('at0Down')}</p> : null}
-        {wreck !== null ? (
-          <PlayWreckSalvage
-            npc={npc}
-            wreck={wreck}
-            canWrite={canWrite}
-            hasCrawler={hasCrawler}
-            mechs={mechs}
-            onRoll={onSalvageRoll}
-            onSettle={onSalvage}
-            rollFor={rollFor}
-          />
-        ) : null}
-        {critical !== null || (reactor !== null && !npc.down) ? (
-          <span style={CONTROLS}>
-            {critical !== null ? (
-              <Button
-                size="mini"
-                disabled={!canWrite}
-                aria-label={mediatorCopy('rollTableFor', {
-                  table: tableName(critical),
-                  name: npc.name,
-                })}
-                onClick={onCritical}
-              >
-                {mediatorCopy('rollTable', { table: tableName(critical) })}
-              </Button>
-            ) : (
-              <Button
-                size="mini"
-                disabled={!canWrite}
-                aria-label={mediatorCopy('heatCheckFor', { name: npc.name })}
-                onClick={onHeatCheck}
-              >
-                {mediatorCopy('heatCheck')}
-              </Button>
-            )}
-          </span>
-        ) : null}
-        {lastImportant !== null ? (
-          <RollResultLine roll={lastImportant} tableName={tableName(lastImportant.table)} />
-        ) : null}
-        {moraleDue ? (
-          <span style={CONTROLS}>
-            <Stat size="mini" label={mediatorCopy('moraleDue')} state="caution" />
-            <Button
-              size="mini"
-              disabled={!canWrite || onMorale === undefined}
-              aria-label={mediatorCopy('rollMoraleFor', { name: npc.name })}
-              onClick={onMorale}
-            >
-              {mediatorCopy('rollMorale')}
-            </Button>
-          </span>
-        ) : null}
-        <RollResultLine roll={npc.lastRoll} empty={mediatorCopy('noMoraleRoll')} />
+        )}
       </TitledBox>
-      {actions}
+      {folded ? null : actions}
       {detail.modal}
     </li>
   )

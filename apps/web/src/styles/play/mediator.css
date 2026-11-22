@@ -68,6 +68,11 @@
   align-items: flex-start;
 }
 
+/* A downed unit folds to its one-line band, a whole row below the living (r6 B8). */
+.su-play-npcs > .su-play-npc[data-folded] {
+  flex-basis: 100%;
+}
+
 /* A unit whose actions are open in its card: the ink selection ring (ruleset §3.1). */
 .su-play-npc[data-chosen] {
   outline: 2px solid var(--color-ink);

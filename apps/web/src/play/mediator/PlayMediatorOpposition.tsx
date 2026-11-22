@@ -30,6 +30,7 @@ import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { SheetPickerModal } from '../../build/sheet/SheetPickerModal'
+import { undoToast } from '../../build/sheet/undoToast.model'
 import { SkipLink } from '../../components/app'
 import type { rollForTable } from '../../components/index'
 import { Button, EmptyState, Slab, Stat, toast, tokens } from '../../components/index'
@@ -42,7 +43,7 @@ import { sceneConditionNames } from '../useScene'
 import { ClearFieldDialog, EndEncounterDialog } from './ClearFieldDialogs'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
-import { trayEntries } from './opposition.model'
+import { sinkDowned, trayEntries } from './opposition.model'
 import { PlayMediatorScene } from './PlayMediatorScene'
 import type { NpcHit } from './PlayNpcActions'
 import { PlayNpcActions } from './PlayNpcActions'
@@ -89,9 +90,25 @@ export function PlayMediatorOpposition({
   // The Scene's conditions that are on: End asks whether to clear them (r4 A11).
   const sceneOn = sceneConditionNames(mediator.scene.conditions)
   const fail = (write: Promise<unknown>) => void write.catch(onFailure)
+  const clearDowned = () =>
+    fail(
+      tray
+        .clearDowned()
+        .then(({ removed, undo }) =>
+          undoToast(
+            mediatorCopy('clearedTheDowned', { count: removed }),
+            () => fail(undo()),
+            `opposition-${mediator.gameId}`
+          )
+        )
+    )
   const grouping = flagOn('encounterSheet')
   const entries: TrayEntry[] =
-    npcs === null ? [] : grouping ? trayEntries(npcs) : npcs.map((npc) => ({ kind: 'alone', npc }))
+    npcs === null
+      ? []
+      : sinkDowned(
+          grouping ? trayEntries(npcs) : npcs.map((npc) => ({ kind: 'alone' as const, npc }))
+        )
   const held = grouping && prep.running !== null ? heldWaves(prep.running) : []
   // The crew's Mechs, whose holds a wreck's haul can be proposed to (r5 B2).
   const wreckMechs = proposalTargets(mediator.crew)
@@ -265,6 +282,12 @@ export function PlayMediatorOpposition({
       )}
       {npcs !== null && npcs.length > 0 && (
         <div style={RUNNING}>
+          {/* One press for every downed unit, with Undo, never a confirm each (r6 B8). */}
+          {npcs.some((npc) => npc.down) && (
+            <Button variant="ghost" size="mini" disabled={!canWrite} onClick={clearDowned}>
+              {mediatorCopy('clearTheDowned')}
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="mini"

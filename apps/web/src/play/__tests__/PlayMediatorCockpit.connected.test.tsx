@@ -32,6 +32,7 @@ import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
 import type { QueryAnswers } from '../../components/__tests__/serverMock'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
+import { ToasterMount } from '../../components/index'
 import {
   acts,
   answerActs,
@@ -609,14 +610,40 @@ describe('the Opposition', () => {
     ])
   })
 
-  test('a downed NPC is struck and dashed, never removed for you; Delete asks first', async () => {
+  // MD6-16: a downed mook kept its full card, a red Delete beside Actions.
+  test('a downed NPC folds to one line below the living, never removed for you; Delete is in its ⋯ and asks first (r6 B8)', async () => {
     await renderCockpit()
-    const raider = within(screen.getByRole('region', { name: 'NPC: Raider, down' }))
-    expect(raider.getByText('At 0 · down')).toBeTruthy()
-    await click(raider.getByRole('button', { name: 'Delete Raider' }))
+    const region = screen.getByRole('region', { name: 'NPC: Raider, down' })
+    const raider = within(region)
+    expect(region.closest('[data-folded]')).toBeTruthy()
+    expect(raider.queryByRole('button', { name: 'Raider’s actions' })).toBeNull()
+    expect(raider.queryByRole('button', { name: 'Delete Raider' })).toBeNull()
+    const list = screen.getByRole('list', { name: 'Opposition' })
+    const units = [...list.querySelectorAll(':scope > [data-npc-id]')]
+    expect(units.at(-1)?.getAttribute('data-npc-id')).toBe('n-raider')
+    await click(raider.getByRole('button', { name: 'More for Raider' }))
+    await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete…' }))
     expect(names()).toEqual([])
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
     expect(sent()).toEqual([{ name: 'mediator.removeNpc', args: { npcId: 'n-raider' } }])
+  })
+
+  test('Clear the downed removes every downed unit in one press, and Undo puts them back (r6 B8)', async () => {
+    await renderCockpit()
+    await act(async () => {
+      render(<ToasterMount />)
+    })
+    await click(named('Clear the downed'))
+    await waitFor(() =>
+      expect(sent()).toEqual([{ name: 'mediator.removeNpc', args: { npcId: 'n-raider' } }])
+    )
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    await click(await screen.findByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(names()).toContain('mediator.addNpc'))
+    const added = sent().find((s) => s.name === 'mediator.addNpc')?.args as {
+      body: { id?: string }
+    }
+    expect(added.body.id ?? 'n-raider').toBe('n-raider')
   })
 
   test('a downed Vehicle breaks down for its Scrap into the crawler, claimed once', async () => {
@@ -676,7 +703,7 @@ describe('the Opposition', () => {
     await restoreCrawler()
   })
 
-  test('a salvaged wreck says nothing is left to take', async () => {
+  test('a salvaged wreck folds to its one line: nothing is left to take', async () => {
     const tank = {
       _id: 'n-tank',
       body: {
@@ -690,7 +717,10 @@ describe('the Opposition', () => {
       },
     }
     await renderCockpit({ 'mediator.npcs': [tank] })
-    expect(screen.getByText('Salvaged: nothing is left to take.')).toBeTruthy()
+    // Nothing left to do with it: it folds to its one line (r6 B8).
+    const region = screen.getByRole('region', { name: 'Vehicle: Tank, down' })
+    expect(region.closest('[data-folded]')).toBeTruthy()
+    expect(screen.queryByText('Salvaged: nothing is left to take.')).toBeNull()
   })
 
   test('Area sets the area being salvaged; its line names it and Clear clears it', async () => {

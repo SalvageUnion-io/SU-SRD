@@ -417,6 +417,17 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     },
     remove: (npc) => removeNpc({ npcId: npcId(npc) }),
     clear: () => clearTray({}),
+    clearDowned: async () => {
+      // The rows as the room keeps them, so Undo puts each back whole, its id kept.
+      const downed = (npcs ?? []).filter((row) => readTrayNpc(row).down)
+      for (const row of downed) await removeNpc({ npcId: row._id })
+      return {
+        removed: downed.length,
+        undo: async () => {
+          for (const row of downed) await addNpc({ body: row.body })
+        },
+      }
+    },
     addBuilt: (npc, name) =>
       fieldNpc(
         newBuiltTrayNpc(
