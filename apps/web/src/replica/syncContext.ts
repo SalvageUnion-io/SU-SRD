@@ -29,6 +29,12 @@ export type SyncState = {
  * grants nothing: the replica refuses a write unless the status is `live`, so
  * a test that writes sets that (`signedInReplica()`).
  */
+/**
+ * Whether the room's reads answer from what this tab holds: live, or offline,
+ * where the table stays in view as last read, read-only (r6 A14).
+ */
+export const readsHeld = (status: SyncStatus): boolean => status === 'live' || status === 'offline'
+
 export const SIGNED_OUT: SyncState = { status: 'signedOut', canWrite: true, outdated: false }
 
 export const SyncContext = createContext<SyncState>(SIGNED_OUT)

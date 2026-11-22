@@ -166,6 +166,8 @@ export const playCopy = messages({
   posting: 'Posting…',
   posted: 'Posted',
   notSentYet: 'Not sent yet',
+  rollWaitsOffline:
+    'Offline: this waits for the connection. A table under Rolls still rolls, sent on reconnect.',
   sendHeld: 'Try again: send {label} to the table',
   toDiscord: '{label} {label2} to Discord',
   signInToPlay: 'Sign in to play',

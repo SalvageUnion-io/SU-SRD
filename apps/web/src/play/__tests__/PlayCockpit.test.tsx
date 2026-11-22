@@ -215,11 +215,19 @@ describe('the Cockpit frame', () => {
   })
 
   test('offline, Play is read-only and says so once, in the bar’s stamp', async () => {
-    await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' }, 'offline')
-    expect(screen.queryByText(/● Online/)).toBeNull()
-    const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('status').textContent).toBe('Offline · read-only')
-    expect(within(screen.getByRole('contentinfo')).queryByRole('status')).toBeNull()
+    answerReads({ ...ANSWERS, 'safety.stopSign': { stop: null, mayLift: false } })
+    try {
+      await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' }, 'offline')
+      expect(screen.queryByText(/● Online/)).toBeNull()
+      const bar = within(screen.getByRole('banner'))
+      expect(bar.getByRole('status').textContent).toBe('Offline · read-only')
+      expect(within(screen.getByRole('contentinfo')).queryByRole('status')).toBeNull()
+      // The table stays in view as last read (r6 A14): Stop is there, off until reconnect.
+      const stop = bar.getByRole('button', { name: 'Show the Stop Sign' }) as HTMLButtonElement
+      expect(stop.disabled).toBe(true)
+    } finally {
+      answerReads(ANSWERS)
+    }
   })
 
   test('solo has no Crew section: the Tables lead the end column', async () => {

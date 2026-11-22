@@ -56,7 +56,7 @@ import { useTabTitle } from '../lib/useTabTitle'
 import { playCopy } from '../messages/play'
 import { routesCopy } from '../messages/routes'
 import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
-import { useSync } from '../replica/syncContext'
+import { readsHeld, useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
 import { useTableRead } from '../replica/useTable'
 import { useBoardOnArrival } from './boardIntent.model'
@@ -142,7 +142,7 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
   const binding = usePlayChannelBinding(target)
   const crew = useTableRead(
     'crew.vitals',
-    target.gameId !== null && status === 'live' ? { gameId: target.gameId } : 'skip'
+    target.gameId !== null && readsHeld(status) ? { gameId: target.gameId } : 'skip'
   )
   const sign = useStopSign(target.gameId)
   const session = useGameSession(target.gameId)

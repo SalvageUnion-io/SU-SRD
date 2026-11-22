@@ -13,7 +13,7 @@ import { useEffect, useRef } from 'react'
 import { toast } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playSafetyCopy } from '../messages/play-safety'
-import { useSync } from '../replica/syncContext'
+import { readsHeld, useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
 
 export type StopSign = {
@@ -50,7 +50,7 @@ export function useStopSign(gameId: string | null): StopSign | null {
   const { status, canWrite } = useSync()
   const read = useTableRead(
     'safety.stopSign',
-    gameId !== null && status === 'live' ? { gameId } : 'skip'
+    gameId !== null && readsHeld(status) ? { gameId } : 'skip'
   )
   const showStop = useServerAction(useTableAct('safety.showStop', gameId), {
     failure: playSafetyCopy('couldNotShow'),
