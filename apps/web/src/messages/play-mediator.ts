@@ -44,7 +44,6 @@ export const mediatorCopy = messages({
   onTheField: 'On the field',
   drawFrom: 'Draw from',
   nameOptional: 'Name (optional)',
-  eGRedLeader: 'e.g. Red Leader',
   pattern: '{name} pattern',
   savedPatterns: 'Saved patterns',
   fromTheBook: 'From the book',
