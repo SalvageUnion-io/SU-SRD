@@ -12,7 +12,7 @@ import type { VitalChange } from '../../rooms/game/eventLines'
 import type { TableEvent } from '../../rooms/game/events'
 
 /** One unit's vital over the session: where it started, where it was left. */
-export type RecapVital = { who: string; label: string; from: number; to: number; down: boolean }
+type RecapVital = { who: string; label: string; from: number; to: number; down: boolean }
 
 export type SessionRecap = {
   /** HP and SP that ended lower than they started, the Down ones first. */

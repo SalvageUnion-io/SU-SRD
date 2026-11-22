@@ -19,7 +19,7 @@ export type GameSession = {
   /** Start it; resolves true once the room has it running. */
   start: () => Promise<boolean>
   /** End it; resolves true once the room has it ended. */
-  end: () => Promise<boolean> | void
+  end: () => Promise<boolean>
   pending: boolean
   /** Its Game: ending lands its Mediator on the Game's page and its recap (r6 C1). */
   gameId?: string
