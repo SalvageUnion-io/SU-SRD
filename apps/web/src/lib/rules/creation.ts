@@ -174,7 +174,6 @@ function equipmentGate(form: PilotWizardFormState): StepGateResult {
 }
 
 function callsignGate(form: PilotWizardFormState): StepGateResult {
-  // A blank Callsign is the Name (r6 F5): the rules let a callsign be the pilot's own name.
   if (form.name.trim() === '') {
     return { ok: false, reason: libRulesCopy('enterANameToContinue') }
   }
