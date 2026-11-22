@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { PlayVital } from '../PlayVital'
-import { amountOf, vitalAfter } from '../unitStats.model'
+import { amountOf, signedAmountOf, vitalAfter } from '../unitStats.model'
 
 test('an amount is a whole number above zero', () => {
   expect(amountOf(' 3 ')).toBe(3)
@@ -56,7 +56,7 @@ test('the amount entry keeps the current value in view, and says why nothing can
   const form = screen.getByRole('form', { name: 'Change SP by an amount' })
   expect(form.textContent).toContain('SP 3/9')
   const amount = screen.getByRole('textbox', { name: 'SP amount' })
-  fireEvent.change(amount, { target: { value: '-2' } })
+  fireEvent.change(amount, { target: { value: '2.5' } })
   expect(hint()).toBe('Type a whole number, 1 or more.')
   fireEvent.change(amount, { target: { value: '2' } })
   expect(hint()).toBe('')
@@ -82,6 +82,28 @@ test('an over-large amount says it will be capped, and tells the write so (r2 C6
     fireEvent.click(screen.getByRole('button', { name: 'Take 9 from SP' }))
   })
   expect(writes).toEqual([[0, 'Capped at 0']])
+})
+
+test('an amount typed with its sign sets the direction (r6 A15)', async () => {
+  expect(signedAmountOf('-12')).toEqual({ amount: 12, sign: -1 })
+  expect(signedAmountOf('\u221212')).toEqual({ amount: 12, sign: -1 })
+  expect(signedAmountOf('+3')).toEqual({ amount: 3, sign: 1 })
+  expect(signedAmountOf('3')).toEqual({ amount: 3, sign: null })
+  expect(signedAmountOf('-0')).toBeNull()
+  const writes: number[] = []
+  render(<PlayVital label="SP" value={4} max={20} tone="mech" onChange={(n) => writes.push(n)} />)
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /Change SP by an amount/ }))
+  })
+  const amount = screen.getByRole('textbox', { name: 'SP amount' })
+  // No digits-only pattern: the browser never warns about the sign.
+  expect(amount.getAttribute('pattern')).toBeNull()
+  fireEvent.change(amount, { target: { value: '+3' } })
+  expect(hint()).toBe('')
+  await act(async () => {
+    fireEvent.submit(screen.getByRole('form', { name: 'Change SP by an amount' }))
+  })
+  expect(writes).toEqual([7])
 })
 
 // r3 J4: a vital is one Tab stop; ← / → move between its number, slider, − and +.
