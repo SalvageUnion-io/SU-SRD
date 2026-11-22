@@ -21,6 +21,7 @@ import { ConfirmDialog } from '../../components/app'
 import { Segmented, SegmentedOption, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import type { PlayDowntime } from '../situation.model'
+import { useTidyUp } from '../useTidyUp'
 import { downtimeOptionLabel } from './mediatorTable.model'
 
 const ROW = { alignItems: 'center', display: 'flex', gap: tokens.space[8] } satisfies CSSProperties
@@ -42,14 +43,18 @@ export function PlayGameStateSwitch({
   downtime,
   canWrite,
   fill = false,
+  gameId = null,
 }: {
   downtime: PlayDowntime
   canWrite: boolean
+  /** The Game: Begin Downtime tidies what its encounter left, in the same press (r6 C2). */
+  gameId?: string | null
   /** Pinned below `lg`: no leading label, the options share the row (play.md §11). */
   fill?: boolean
 }) {
   const [confirmEnd, setConfirmEnd] = useState(false)
   const [confirmBegin, setConfirmBegin] = useState(false)
+  const tidy = useTidyUp(gameId)
   const { running, stepIndex } = downtime.downtime
   const count = downtimeStepCount()
   const last = (stepIndex ?? 0) >= count - 1
@@ -82,7 +87,9 @@ export function PlayGameStateSwitch({
           pressed={running}
           disabled={!canWrite}
           onClick={() => {
-            if (!running) setConfirmBegin(true)
+            if (running) return
+            tidy.reset()
+            setConfirmBegin(true)
           }}
         >
           {downtimeOptionLabel(running, stepIndex)}
@@ -92,9 +99,19 @@ export function PlayGameStateSwitch({
         open={confirmBegin}
         onOpenChange={setConfirmBegin}
         title={mediatorCopy('beginDowntimeAsk')}
-        body={mediatorCopy('beginDowntimeBody', { count })}
+        body={
+          tidy.boxes === null ? (
+            mediatorCopy('beginDowntimeBody', { count })
+          ) : (
+            <>
+              {mediatorCopy('beginDowntimeBody', { count })}
+              {tidy.boxes}
+            </>
+          )
+        }
         confirmLabel={mediatorCopy('beginDowntime')}
-        onConfirm={() => {
+        onConfirm={async () => {
+          await tidy.run()
           downtime.begin()
         }}
       />

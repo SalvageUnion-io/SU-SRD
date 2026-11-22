@@ -226,7 +226,11 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             readOnly={mediator.readOnly}
             situation={
               wide ? (
-                <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} />
+                <PlayGameStateSwitch
+                  downtime={mediator.downtime}
+                  canWrite={mediator.canWrite}
+                  gameId={mediator.gameId}
+                />
               ) : undefined
             }
             channel={channel.button}
@@ -238,7 +242,12 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       }
       pinned={
         <>
-          <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} fill />
+          <PlayGameStateSwitch
+            downtime={mediator.downtime}
+            canWrite={mediator.canWrite}
+            gameId={mediator.gameId}
+            fill
+          />
           {sceneOn && <Stat size="mini" label={mediatorCopy('scene')} value={sceneNames} />}
         </>
       }

@@ -16,7 +16,7 @@
  * under it; the session starts with the table's first act on Mediate (r6 C3).
  * While it is live the band also holds **End group session**, and everyone
  * else reads a **SESSION LIVE** stamp before Play.
- * While the Scene is under a condition the band names it (**SCENE · RADIATION
+ * While the table plays under a Scene condition the band names it (**SCENE · RADIATION
  * STORM**), so one left on is never unseen.
  */
 
@@ -91,7 +91,7 @@ export function GameBand({
       id="game-band-heading"
       asideAt="controls"
       aside={
-        mediates || actions || live || scene !== '' ? (
+        mediates || actions || live ? (
           // One cluster, so a phone's strip under the band keeps the doors on a line.
           <Cluster gap={12}>
             {mediates && (
@@ -127,7 +127,8 @@ export function GameBand({
               </Cluster>
             )}
             {/* A condition left on says so outside Play too (r4 A11). */}
-            {scene !== '' && (
+            {/* Only while the table plays: left on after it, it is stale (r6 C2). */}
+            {scene !== '' && live && (
               <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
                 {mediatorCopy('sceneUnderStamp', { scene })}
               </Badge>
