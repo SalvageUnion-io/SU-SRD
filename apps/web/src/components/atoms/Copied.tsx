@@ -12,6 +12,7 @@ export function CopiedIcon({
   copied,
   icon,
   size,
+  word = false,
 }: {
   copied: boolean
   /** The control's resting icon, `aria-hidden`. */
