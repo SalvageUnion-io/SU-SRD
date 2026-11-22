@@ -74,6 +74,15 @@ reader.
   each unit that member assigned is handed back to its owner's Training Bay
   through the same handoff a withdrawal uses, then the membership ends.
   Nothing is deleted. The Organiser cannot leave their own Game.
+  **The Game's own stay** (amended 2026-11-22, fourth persona review). A pilot
+  or mech a template Game came with (stamped with the Game's own creation
+  time, as `templateUnits` already reads them) is the Game's, not the member's
+  who was assigned it: on leaving or removal it is unassigned and stays on the
+  roster, with every change made to it; only what the member brought goes
+  home. `games.get` names them (`templateUnitIds`, read from what is stored),
+  and the dialog lists which is which. The Organiser can take an unassigned
+  one, with the mech it came with, off the roster to their own Training Bay
+  (`games.takeOffRoster`, undone by `games.putBack`): a move, never a delete.
 - **Prep.** `/games/<gameId>/prep`, for the table runner: the Game's
   encounters in order, the NPCs moved to the Game, and the plan (§4). An
   encounter gains `gameId` and `order`. `gameId` is the owner's label on their

@@ -113,7 +113,11 @@ function GameSections({ game }: { game: Game }) {
               page — what the table is made of — and everything that runs the
               table (its people, the prep, the invite, safety) is the column
               beside it. */}
-          <GameRoster gameId={gameId} gameName={game.name} />
+          <GameRoster
+            gameId={gameId}
+            gameName={game.name}
+            pregens={game.organizer ? game.templateUnitIds : undefined}
+          />
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}

@@ -48,6 +48,7 @@ import { standingDownOnPurpose } from '../tableNotices.model'
 import { GameChannelRow } from './GameChannelRow'
 import { GameSettingsDialog, LeaveGameDialog } from './GameSettings'
 import { HUB_BODY } from './hubStyles.model'
+import { heldByMember } from './leaving.model'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -83,7 +84,13 @@ export function TheGame({
 }: {
   gameId: string
   /** The Game's name and description, for its settings, and the days its table next meets. */
-  game: { name: string; description?: string | null; sessionDays?: readonly string[] }
+  game: {
+    name: string
+    description?: string | null
+    sessionDays?: readonly string[]
+    /** The pilots and mechs a template Game came with: they stay when their holder goes. */
+    templateUnitIds?: readonly string[] | undefined
+  }
   /** After the viewer has left the Game. */
   onLeft: () => void
   viewerId: string | null
@@ -267,6 +274,9 @@ export function TheGame({
         gameName={game.name}
         member={going}
         self={going !== null && going.userId === viewerId}
+        held={
+          going === null ? undefined : heldByMember(listing, game.templateUnitIds, going.userId)
+        }
         onClose={() => setGoing(null)}
         onLeft={onLeft}
       />

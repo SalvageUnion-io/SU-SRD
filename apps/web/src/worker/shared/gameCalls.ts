@@ -277,6 +277,31 @@ const CALLS = {
     if (!answer.ok) throw new RoomRefusal(answer.refusal)
     return republished(room, null)
   },
+  /**
+   * Take an unused pre-generated Pilot, with its Mech, off the roster to the
+   * Organiser's Training Bay (LG4-20); answers the ids that left. `games.putBack`
+   * is its Undo.
+   */
+  'games.takeOffRoster': async (
+    who: Caller,
+    a: { gameId: string; pilotId: string },
+    deps: CallDeps
+  ) => {
+    const room = deps.game(a.gameId)
+    const answer = await room.shelve(who.discordId, a.pilotId)
+    if (!answer.ok) throw new RoomRefusal(answer.refusal)
+    return republished(room, answer.value)
+  },
+  'games.putBack': async (
+    who: Caller,
+    a: { gameId: string; unitIds: string[] },
+    deps: CallDeps
+  ) => {
+    const room = deps.game(a.gameId)
+    const answer = await room.unshelve(who.discordId, a.unitIds)
+    if (!answer.ok) throw new RoomRefusal(answer.refusal)
+    return republished(room, null)
+  },
   /** The Game's plan (ADR-067 §4): its table runner's alone. */
   'plan.get': async (who: Caller, a: { gameId: string }, deps: CallDeps) =>
     act(deps.game(a.gameId), who.discordId, 'plan.get', undefined as never),
@@ -524,6 +549,8 @@ const CALL_ARGS = {
   'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),
   'games.update': GAME.extend({ name: z.string().optional(), description: z.string().optional() }),
   'games.removeMember': GAME.extend({ userId: z.string().optional() }),
+  'games.takeOffRoster': GAME.extend({ pilotId: z.string() }),
+  'games.putBack': GAME.extend({ unitIds: z.array(z.string()).min(1).max(8) }),
   'plan.get': GAME,
   'plan.mine': GAME,
   'plan.set': GAME.extend({ plan: GamePlanSchema }),

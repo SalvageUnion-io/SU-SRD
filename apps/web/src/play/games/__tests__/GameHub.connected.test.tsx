@@ -76,7 +76,7 @@ const { SyncContext } = await import('../../../replica/syncContext')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { useUnits } = await import('../../../replica/units')
 const { resetSync } = await import('../../../replica/sync')
-const { CHAPTER_BAND_COLOR } = await import('../../../components/index')
+const { CHAPTER_BAND_COLOR, ToasterMount } = await import('../../../components/index')
 
 /** A colour as the DOM reads it back off an inline style. */
 function colorOf(value: string): string {
@@ -257,7 +257,9 @@ describe('the sections under the roster', () => {
     await openGameMenu()
     fireEvent.click(screen.getByRole('menuitem', { name: 'Leave this Game…' }))
     const dialog = screen.getByRole('alertdialog')
-    expect(dialog.textContent).toContain('go back to your Training Bay; nothing is deleted')
+    expect(dialog.textContent).toContain(
+      'The Pilots and Mechs you brought go back to your Training Bay, and any this Game came with stay here, unassigned; nothing is deleted.'
+    )
     expect(mutations).toHaveLength(0)
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Leave' }))
@@ -282,10 +284,9 @@ describe('the sections under the roster', () => {
         within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' })
       )
     })
-    // The link they were sent is reset with them, unless unticked (r2 B4).
+    // LG4-04: the link is the whole table's, and stays unless the Organiser ticks the box.
     expect(mutations).toEqual([
       { name: 'games.removeMember', args: { gameId: 'g1', userId: 'u2' } },
-      { name: 'invites.reset', args: { gameId: 'g1' } },
     ])
     expect(navigations).toEqual([])
 
@@ -293,10 +294,25 @@ describe('the sections under the roster', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove Beefcake from this Game' }))
     const removing = within(screen.getByRole('alertdialog'))
     const tick = removing.getByRole('checkbox', { name: 'Reset the invite link too' })
+    expect((tick as HTMLInputElement).checked).toBe(false)
+    // MD4-11: the words beside the box toggle it.
+    fireEvent.click(removing.getByText('Reset the invite link too'))
     expect((tick as HTMLInputElement).checked).toBe(true)
-    fireEvent.click(tick)
     await act(async () => {
       fireEvent.click(removing.getByRole('button', { name: 'Remove' }))
+    })
+    expect(mutations).toEqual([
+      { name: 'games.removeMember', args: { gameId: 'g1', userId: 'u2' } },
+      { name: 'invites.reset', args: { gameId: 'g1' } },
+    ])
+
+    mutations.length = 0
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Beefcake from this Game' }))
+    // It arrives unticked again.
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' })
+      )
     })
     expect(mutations).toEqual([
       { name: 'games.removeMember', args: { gameId: 'g1', userId: 'u2' } },
@@ -457,8 +473,34 @@ describe('the sections under the roster', () => {
     expect(navigations).toEqual([{ to: '/games' }])
   })
 
+  // LG4-03: the dialog said "their Pilots and Mechs go back", the Game's own with them.
+  test('removing a player names what goes home and which of the Game’s own stay', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, templateUnitIds: ['s-hotdog', 's-mazona'] },
+      'games.members': [
+        { userId: 'u1', displayName: 'Ash', mediator: false, organizer: true, joinedAt: 1 },
+        { userId: 'u2', displayName: 'Cy', mediator: false, organizer: false, joinedAt: 2 },
+      ],
+      'games.listing': {
+        pilots: [
+          { _id: 's-hotdog', appId: 's-hotdog', ownerId: 'u2', body: { callsign: 'Hotdog' } },
+          { _id: 's-own', appId: 's-own', ownerId: 'u2', body: { callsign: 'Wrench' } },
+          { _id: 's-else', appId: 's-else', ownerId: 'u1', body: { callsign: 'Mine' } },
+        ],
+        mechs: [{ _id: 's-mazona', appId: 's-mazona', ownerId: 'u2', body: { name: 'Mazona' } }],
+        crawlers: [],
+        softLinks: [],
+      },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Cy from this Game' }))
+    const dialog = within(screen.getByRole('alertdialog'))
+    expect(dialog.getByText('Goes back to their Training Bay: Wrench.')).toBeTruthy()
+    expect(dialog.getByText('Stays in this Game, unassigned: Hotdog, Mazona.')).toBeTruthy()
+  })
+
   // MD2-02: a template tried and deleted left its thirteen units in the Training Bay.
-  test('a template Game offers to take its untouched units, ticked when none was changed', async () => {
+  // MD4-10, MD4-11: the offer arrives unticked, and says where they go if it stays so.
+  test('a template Game offers to take its untouched units, unticked, and says where they go', async () => {
     await renderHub({
       'games.get': { ...GAME, organizer: true, templateUnits: { came: 13, untouched: 13 } },
     })
@@ -467,7 +509,13 @@ describe('the sections under the roster', () => {
     const also = screen.getByRole('checkbox', {
       name: 'Also delete the 13 units it came with?',
     }) as HTMLInputElement
+    expect(also.checked).toBe(false)
+    const dialog = within(screen.getByRole('alertdialog'))
+    expect(dialog.getByText('Left unticked, they move to your Training Bay.')).toBeTruthy()
+    // The words beside the box toggle it.
+    fireEvent.click(dialog.getByText('Also delete the 13 units it came with?'))
     expect(also.checked).toBe(true)
+    expect(dialog.queryByText('Left unticked, they move to your Training Bay.')).toBeNull()
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
     })
@@ -490,6 +538,40 @@ describe('the sections under the roster', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
     })
     expect(mutations).toEqual([{ name: 'games.destroy', args: { gameId: 'g1' } }])
+  })
+
+  // MD4-10: eleven "X is now assigned to you" toasts, one a unit.
+  test('deleting says once how many units moved to your Training Bay', async () => {
+    answer(
+      answers({
+        'games.get': { ...GAME, organizer: true },
+        'games.listing': {
+          pilots: [
+            { _id: 's-a', appId: 's-a', ownerId: null, body: { callsign: 'A' } },
+            { _id: 's-b', appId: 's-b', ownerId: 'u2', body: { callsign: 'B' } },
+          ],
+          mechs: [{ _id: 's-m', appId: 's-m', ownerId: null, body: { name: 'M' } }],
+          crawlers: [{ _id: 's-c', appId: 's-c', body: { name: 'Hamlet' } }],
+          softLinks: [],
+        },
+      })
+    )
+    await act(async () => {
+      render(
+        <>
+          <ToasterMount />
+          <GameHub gameId="g1" />
+        </>
+      )
+    })
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete this Game…' }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
+    })
+    expect(
+      await screen.findByText('Union Crawler #430 is deleted. 3 units moved to your Training Bay.')
+    ).toBeTruthy()
   })
 
   test('a game with no crawler does not promise one', async () => {

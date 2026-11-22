@@ -448,14 +448,15 @@ export class GameRoom extends Room {
 
   /**
    * A member leaves, or the Organiser removes them (ADR-067 §3): each pilot
-   * and mech of theirs is handed back to their Training Bay first, by the
+   * and mech they brought is handed back to their Training Bay first, by the
    * same handoff a player's own move makes, so nothing is ever deleted; then
    * the roster forgets them and their room drops the Game from its list. A
-   * retry after a failed handoff moves only what had not landed.
+   * retry after a failed handoff moves only what had not landed. A pilot or
+   * mech the Game came with stays, unassigned (`leaving`, LG4-03).
    */
   async dismiss(actor: string, userId: string): Promise<GameActAnswer<null>> {
     const at = Date.now()
-    const leaving = answerOrRefuse(() => this.logic.roster.leaving(actor, userId))
+    const leaving = answerOrRefuse(() => this.logic.roster.leaving(actor, userId, at))
     if (!leaving.ok) return leaving
     const to = { kind: 'account', userId } as const
     // Together, so a pilot and their mech arrive still assigned to each other.
@@ -477,6 +478,47 @@ export class GameRoom extends Room {
     this.dropStrangers()
     this.mirror(told)
     return { ok: true, value: null }
+  }
+
+  /**
+   * Take an unused pre-generated pilot, and the mech it came with, off the
+   * roster to the Organiser's Training Bay (LG4-20), as one departure so the
+   * pair arrives still assigned. Answers the ids that left, for the Undo.
+   */
+  async shelve(actor: string, pilotId: string): Promise<GameActAnswer<string[]>> {
+    const at = Date.now()
+    const going = answerOrRefuse(() => this.logic.roster.shelving(actor, pilotId, at))
+    if (!going.ok) return going
+    const to = { kind: 'account', userId: actor } as const
+    await handOffTogether(
+      this.logic.transit,
+      accountHome(actor),
+      going.value.map((unitId) => ({ leaseId: crypto.randomUUID(), unitId, actor, to, at }))
+    )
+    this.broadcastSnapshots()
+    return going
+  }
+
+  /** Undo of `shelve`: the units come back from the Organiser's Training Bay, the Game's own again. */
+  async unshelve(actor: string, unitIds: readonly string[]): Promise<GameActAnswer<null>> {
+    const at = Date.now()
+    const allowed = answerOrRefuse(() => {
+      this.logic.store.requireOrganizer(actor)
+      return null
+    })
+    if (!allowed.ok) return allowed
+    const to = { kind: 'game', gameId: this.gameId } as const
+    await handOffTogether(
+      accountHome(actor),
+      this.logic.transit,
+      unitIds.map((unitId) => ({ leaseId: crypto.randomUUID(), unitId, actor, to, at }))
+    )
+    const back = answerOrRefuse(() => {
+      this.logic.roster.reshelved(actor, unitIds, at)
+      return null
+    })
+    this.broadcastSnapshots()
+    return back
   }
 
   /** A member deleted their account; a Game left with nobody is wiped. */
