@@ -459,7 +459,7 @@ describe('a solo Downtime, end to end', () => {
         />
       )
       const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
-      // Crafting opens the crawler's sheet in Build (r5 A14); Spend TP opens the
+      // Craft · Trade opens its bays here (r6 D4); Spend TP opens the
       // pilot's Manage Abilities, where Training Points are spent.
       expect(onHand.getByRole('button', { name: 'Spend TP' })).toBeTruthy()
       expect(onHand.getByRole('button', { name: 'Open' })).toBeTruthy()
@@ -491,8 +491,8 @@ describe('a solo Downtime, end to end', () => {
   })
 })
 
-// r5 A14 (SB5-08): Open showed the crawler read-only, with nothing to craft or trade with.
-test('solo, Craft · Trade opens the crawler’s sheet in Build, in Edit', async () => {
+// r6 D4, D5 (SB6-07, SB6-08): Open threw the player into an Edit sheet, and crafting spent nothing.
+test('solo, Craft · Trade opens its bays inside Downtime, and crafting spends Scrap', async () => {
   const { useSheetModeStore } = await import('../../build/sheet/sheetMode.model')
   useSheetModeStore.getState().setEditing(false)
   const { pilot, mech, crawler } = units()
@@ -501,20 +501,46 @@ test('solo, Craft · Trade opens the crawler’s sheet in Build, in Edit', async
     assigned.push(String(to))
   })
   try {
+    const { store, calls } = stubStore(pilot, mech, crawler)
     render(
       <Harness
         pilot={pilot}
         mech={mech}
         situation="downtime"
-        store={stubStore(pilot, mech, crawler).store}
+        store={store}
         writes={[]}
         downtime={{ stepIndex: 0 }}
       />
     )
     const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
     await click(onHand.getByRole('button', { name: 'Open' }))
-    expect(assigned).toEqual(['/crawlers/dt-c'])
-    expect(useSheetModeStore.getState().editing).toBe(true)
+    const find = await onHand.findByRole('searchbox', { name: 'Find a System or Module to craft' })
+    // No trip to the sheet, and no Edit mode left on for the next one.
+    expect(assigned).toEqual([])
+    expect(useSheetModeStore.getState().editing).toBe(false)
+    expect(onHand.getByRole('button', { name: 'Back to the step' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.change(find, { target: { value: 'Armour Plating' } })
+    })
+    const craftable = within(onHand.getByRole('list', { name: 'Craftable' }))
+    await click(craftable.getAllByRole('button', { name: 'Craft onto Buzzard' })[0] as Element)
+    await act(async () => {})
+    const spent = calls.find((c) => c.type === 'crawler' && 'scrapPool' in c.patch)
+    expect(spent?.patch.scrapPool).toMatchObject({ tl2: 6 })
+    const mounted = calls.find((c) => c.type === 'mech' && 'systems' in c.patch)
+    expect(mounted?.patch.systems).toContain('armour-plating')
+    expect(
+      onHand.getByText(/Crafted Armour Plating for 1 Tech 1\+ Scrap, into Buzzard\./)
+    ).toBeTruthy()
+
+    // r6 D6 (SB6-09): the availability roll says what is for sale, each with Choose instead and Buy.
+    await click(onHand.getByRole('button', { name: 'Roll availability' }))
+    const forSale = within(onHand.getByRole('list', { name: 'For sale' }))
+    expect(forSale.getAllByRole('button', { name: 'Choose instead' })).toHaveLength(2)
+    // A Tech 2 crawler's wares are Tech 3; Tenacity holds Tech 2 Scrap alone, so Buy says the shortfall.
+    const buys = forSale.getAllByRole('button', { name: /^Buy · \d+ T3\+$/ })
+    await click(buys[0] as Element)
+    expect(onHand.getByText(/^Short by \d+ Tech 3\+ Scrap: nothing spent\.$/)).toBeTruthy()
   } finally {
     assign.mockRestore()
     useSheetModeStore.getState().setEditing(false)

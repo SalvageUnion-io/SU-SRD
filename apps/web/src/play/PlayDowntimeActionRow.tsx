@@ -19,14 +19,12 @@
  * content (N3, play.md §12).
  */
 
-import { sheetPath } from 'game-domain/entityKinds'
 import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { PilotAbilityTrainer } from '../build/sheet/PilotAbilityTrainer'
-import { useSheetModeStore } from '../build/sheet/sheetMode.model'
 import { Button, Entity, Stat } from '../components/index'
-import { useGo } from '../components/shared/useGo'
 import { bayGate } from '../lib/rules/crawlerEconomy'
 import { playCopy } from '../messages/play'
 import { NeedChip } from './PlayActionRow'
@@ -38,12 +36,21 @@ import type { SheetTarget } from './useOpenSheet'
 import { useOpenSheet } from './useOpenSheet'
 import type { PlayActions } from './usePlayActions'
 
+/** Craft · Trade's panel, loaded once Open is pressed (the sheet route's bundle budget). */
+const PlayDowntimeCraftTrade = lazy(() =>
+  import('./PlayDowntimeCraftTrade').then((m) => ({ default: m.PlayDowntimeCraftTrade }))
+)
+
 type PlayDowntimeActionRowProps = {
   id: DowntimeActionId
   name: string
   pilot: Pilot | null
   crawler: Crawler | null
   rollFor: PlayActions['rollFor']
+  /** The mech a craft may mount on (solo Craft · Trade); none on the Mediator's screen. */
+  mech?: Mech | null
+  /** Play's store, for solo Craft · Trade's writes. */
+  store?: PlayActions['store']
   /** Why it is not on hand ("needs Downtime"), or null when it is. */
   need: string | null
   canWrite: boolean
@@ -70,11 +77,13 @@ export function PlayDowntimeActionRow({
   need,
   canWrite,
   solo = false,
+  mech = null,
+  store,
 }: PlayDowntimeActionRowProps) {
   const [rumour, setRumour] = useState<{ roll: number; text: string } | null>(null)
   const [training, setTraining] = useState(false)
   const setSheet = useOpenSheet()
-  const go = useGo()
+  const [crafting, setCrafting] = useState(false)
   const away = need !== null
 
   /**
@@ -129,14 +138,9 @@ export function PlayDowntimeActionRow({
       open(
         { kind: 'crawler', id: crawler.id, name: crawler.name },
         'Open',
-        // Solo the crawler is the player's own: its sheet in Build, in Edit,
-        // where Pay Upkeep, Fund and Trade are (r5 A14).
-        solo
-          ? () => {
-              useSheetModeStore.getState().setEditing(true)
-              go(sheetPath('crawler', crawler.id))
-            }
-          : undefined
+        // Solo the crawler is the player's own: its Crafting and Trading Bays
+        // open here, inside Downtime (r6 D4), never in an Edit sheet.
+        solo ? () => setCrafting((was) => !was) : undefined
       )
     ) : solo ? (
       // Solo the crawler is the player's own to make; a Game's is its table runner's.
@@ -150,6 +154,8 @@ export function PlayDowntimeActionRow({
     </Button>
   ) : undefined
 
+  const craftOpen =
+    id === 'craftTrade' && !away && solo && crafting && crawler !== null && store !== undefined
   const rumours = id === 'rumours' && !away && rumour !== null
   const tableHref = rumours ? rumourTableHref() : null
   return (
@@ -168,6 +174,25 @@ export function PlayDowntimeActionRow({
             ? {}
             : { state: chips })}
         {...(controls === undefined ? {} : { controls })}
+        {...(craftOpen && crawler !== null && store !== undefined
+          ? {
+              body: {
+                text: false,
+                children: (
+                  <Suspense fallback={null}>
+                    <PlayDowntimeCraftTrade
+                      crawler={crawler}
+                      mech={mech}
+                      store={store}
+                      rollFor={rollFor}
+                      canWrite={canWrite}
+                      onClose={() => setCrafting(false)}
+                    />
+                  </Suspense>
+                ),
+              },
+            }
+          : {})}
         {...(rumours
           ? {
               body: {

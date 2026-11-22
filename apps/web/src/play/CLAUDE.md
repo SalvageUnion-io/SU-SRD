@@ -1,7 +1,8 @@
 # play — Games, Play
 
 Map: [play.md](../../../../docs/architecture/play.md). Play only plays: edits
-are the Build sheet's, but for `CrawlerEconomyControl.tsx`, Spend TP; conditions stay
+are the Build sheet's, but for `CrawlerEconomyControl.tsx`, Spend TP, solo Craft and
+Trade (`PlayDowntimeCraftTrade`); conditions stay
 player-driven (`cycleItemCondition`).
 
 - `usePlaySituation` and the side hooks run once per screen (one form
