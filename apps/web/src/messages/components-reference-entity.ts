@@ -19,6 +19,8 @@ export const referenceEntityCopy = messages({
   chassisAbility: 'Chassis Ability',
   starting: 'Starting',
   loadout: 'Loadout',
+  overItsLimit: 'Over its limit',
+  asPrintedInTheBook: 'as printed in the book',
   sys: 'Sys',
   systemSlots: 'System Slots',
   mod: 'Mod',

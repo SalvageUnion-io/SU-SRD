@@ -444,6 +444,32 @@ html[data-srd-signed-in] .su-front__show-yours {
   }
 }
 
+/* Zoomed to 200% on a phone (under 320px): the plate keeps to the room it has
+   and its words and actions wrap inside it, the site's name too (RR3-09). */
+@media not (width >= 20rem) {
+  .su-front__show-plate {
+    min-width: 0;
+  }
+
+  .su-front__show-plate > :is(.su-front__show-words, .su-front__show-pitch, .su-front__show-acts) {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .su-front__show-act.su-btn {
+    height: auto;
+    max-width: 100%;
+    min-height: var(--size-full);
+    white-space: normal;
+  }
+
+  .su-front__show-name {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+}
+
 /* A door's art place: shorter than a catalog tile's 3:4, so three doors and
    their words sit on one screen. */
 .su-start-here__art.su-entity-index__art {

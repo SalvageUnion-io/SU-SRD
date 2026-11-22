@@ -211,7 +211,7 @@
 
 .su-sparse-rail__scroll {
   flex: 0 1 auto;
-  max-height: 24rem;
+  max-height: max(24rem, 70dvh);
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -262,10 +262,19 @@
     flex: 1 1 auto;
   }
 
+  /* It grows to fit its rows (a row is 24px, `--su-used-rows` of them; the foot's 4px holds the
+     last name's descenders) before
+     it scrolls, up to the screen less the page's head and foot. */
   .su-sparse-rail--long .su-sparse-rail__scroll {
+    --su-used-fit: min(
+      calc(var(--su-used-rows, 14) * var(--space-24) + var(--space-4)),
+      max(22rem, 100dvh - 20rem)
+    );
+
     contain: size;
-    flex: 1 1 22rem;
-    min-height: 22rem;
+    flex: 1 1 var(--su-used-fit);
+    min-height: var(--su-used-fit);
+    padding-block-end: var(--space-4);
   }
 
   /* The rest are short (a rule or two, the list's neighbours) and always

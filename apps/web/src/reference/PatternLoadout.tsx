@@ -114,7 +114,13 @@ export function PatternLoadout({
       columns={COLUMNS}
       rows={rows}
       total={{
-        label: pagesCopy('total'),
+        // A printed total over its limit is the book's own, and says so.
+        label:
+          capacity.asPrinted &&
+          (capacity.systemSlotsUsed > capacity.systemSlotsMax ||
+            capacity.moduleSlotsUsed > capacity.moduleSlotsMax)
+            ? pagesCopy('totalAsPrinted')
+            : pagesCopy('total'),
         cells: [
           slots(capacity.systemSlotsUsed, capacity.systemSlotsMax),
           slots(capacity.moduleSlotsUsed, capacity.moduleSlotsMax),

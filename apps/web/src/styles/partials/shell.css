@@ -144,6 +144,15 @@
   }
 }
 
+/* Each tab's name on one line: centred from the bar's middle, the switcher
+   is offered only half the row, which broke "Training Bay" in two on a 320px
+   phone. Under that (a phone zoomed to 200%) the names wrap, as they must. */
+@media (width >= 20rem) and (not (width >= 40rem)) {
+  .su-union-bar__switch {
+    width: max-content;
+  }
+}
+
 /* Below `sm` "Reference" is "Ref" (`data-short`; its `aria-label` keeps
    its name), centred in a square of the bar's control height. The tracking
    trails its last letter, so the word takes it back to sit centred. */
