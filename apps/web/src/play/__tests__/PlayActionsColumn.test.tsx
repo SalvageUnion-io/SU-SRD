@@ -487,6 +487,21 @@ describe('Use: the resolve, in the Compact', () => {
     expect(row.getAttribute('data-open')).toBeNull()
   })
 
+  test('a Down mech’s action asks Act anyway once, then opens as any (r5 A1)', async () => {
+    const { writes } = renderBoarded({ mech: makeMech({ currentSP: 0 }) })
+    await click(use(primary().name))
+    const dialog = screen.getByRole('alertdialog', { name: 'Buzzard is at 0 SP. Act anyway?' })
+    expect(writes.filter((w) => w.name === 'seat.setResolving')).toHaveLength(0)
+    await click(within(dialog).getByRole('button', { name: 'Act anyway' }))
+    const row = rowFor(primary().name)
+    expect(row.getAttribute('data-open')).toBe('true')
+    await click(within(row).getByRole('button', { name: `Cancel ${primary().name}` }))
+    // Asked once while it stays Down.
+    await click(use(primary().name))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(rowFor(primary().name).getAttribute('data-open')).toBe('true')
+  })
+
   test('Activate writes the EP spend through the store', async () => {
     const { calls, metas } = renderBoarded()
     await click(use(primary().name))

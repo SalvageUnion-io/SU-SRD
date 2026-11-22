@@ -15,7 +15,8 @@
  * Game's log and, while one is bound, the Discord channel.
  *
  * A table asked for by name (`askPlayTable`: a vital at 0's "Roll Critical
- * Damage") opens the same way, with the keyboard on its stamp.
+ * Damage") opens the same way, with the keyboard on its stamp, and is rolled
+ * when the ask says so: the toast's one press (r5 A1).
  *
  * The open table sits directly in the column (level 1, play.md §12).
  */
@@ -88,12 +89,17 @@ export function PlayTables({
   // opens here, and is brought on screen.
   const hostRef = useRef<HTMLDivElement>(null)
   const [asked, setAsked] = useState(0)
+  // The ask that rolls as it opens: the toast's press (r5 A1), by its count.
+  const [rollAsked, setRollAsked] = useState<number | null>(null)
+  const count = useRef(0)
   useEffect(
     () =>
-      onPlayTableAsked((name) => {
+      onPlayTableAsked((name, ask) => {
+        count.current += 1
         setOpen(name)
         setLanded(null)
-        setAsked((n) => n + 1)
+        setAsked(count.current)
+        setRollAsked(ask.roll ? count.current : null)
       }),
     []
   )
@@ -157,7 +163,8 @@ export function PlayTables({
       />
       {table && (
         <PlayRollTable
-          key={table.name}
+          key={`${table.name}:${rollAsked ?? 0}`}
+          rollNow={rollAsked !== null && rollAsked === asked}
           table={table.table}
           name={table.name}
           size="mini"

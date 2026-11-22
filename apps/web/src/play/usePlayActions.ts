@@ -11,17 +11,25 @@
  * Downtime actions). Every die it reads is recorded on Play's one roll log
  * (`reportingRoll`, `playRolls.model.ts`), which puts it on the Feed, the
  * Game's log and, with Post on, Discord, once.
+ *
+ * An action of a unit that is Down (at 0 SP or 0 HP, r5 A1) asks "Thresher is
+ * at 0 SP. Act anyway?" once, the first Use while it stays Down: the table
+ * decides what a Down unit may do, so it is never refused.
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { closeRangeOnly, sceneHeatScale } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import type { ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import { resolveSheetComposition } from '../build/sheet/composition.model'
 import { rollForTable } from '../components/index'
+import { useConfirm } from '../components/shared/useConfirm'
 import { buildCompanionActions, buildMechActions, buildPilotActions } from '../lib/rules/actionList'
+import { playCopy } from '../messages/play'
 import { useUnits } from '../replica/units'
 import type { ResolveModel } from './actionsDeck.model'
 import type { PlayStore } from './play.model'
@@ -32,6 +40,23 @@ import { reportingRoll } from './playRolls.model'
 import type { Play } from './situation.model'
 import { useActionsDeck } from './useActionsDeck'
 import { useSalvageArea } from './useSalvageArea'
+import { isDown } from './zeroVital.model'
+
+/** The Down units whose Act anyway was answered, by id, until they rise (r5 A1). */
+const actingDown = new Set<string>()
+
+/** The unit an action of `source` belongs to, while it is Down; null else. */
+function downUnit(
+  source: string,
+  pilot: Pilot | null,
+  mech: Mech | null
+): { id: string; name: string; label: string } | null {
+  if (source === 'mech' && mech !== null && isDown(mech.currentSP))
+    return { id: mech.id, name: mech.name, label: 'SP' }
+  if (source === 'pilot' && pilot !== null && isDown(pilot.currentHP))
+    return { id: pilot.id, name: pilotLabel(pilot), label: 'HP' }
+  return null
+}
 
 /** What a test injects: the store the writes go to, and the dice. */
 export type PlayActionsDeps = {
@@ -69,8 +94,10 @@ export type PlayActions = {
   resolvingUntouched: boolean
   /** The action that just finished and closed itself: its row says Done. */
   doneKey: string | null
-  /** Open an on-hand action's resolve in its row (Use). */
+  /** Open an on-hand action's resolve in its row (Use); a Down unit's asks first (r5 A1). */
   open: (key: string) => void
+  /** The Act anyway question, to render. */
+  dialog: ReactNode
   /**
    * The dice a roll here reads, recorded under `label`. `outcome`, read once
    * the dice are, says what the roll came to ("Heat Check passed", a rumour).
@@ -168,6 +195,30 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     salvageArea,
   })
 
+  // Risen units are asked again the next time they go Down.
+  for (const id of [...actingDown]) {
+    const current = id === pilot?.id ? pilot.currentHP : id === mech?.id ? mech.currentSP : null
+    if (current !== null && !isDown(current)) actingDown.delete(id)
+  }
+  const { confirm, dialog } = useConfirm()
+  const open = (key: string) => {
+    const entry = entries.find((e) => e.key === key)
+    const down = entry?.kind === 'action' ? downUnit(entry.source, pilot, mech) : null
+    if (down === null || actingDown.has(down.id)) return deck.open(key)
+    confirm({
+      title: playCopy('downActAnyway', { name: down.name, label: down.label }),
+      body: [playCopy('downActAnywayBody')],
+      confirmLabel: playCopy('actAnyway'),
+      pendingLabel: playCopy('actAnyway'),
+      tone: 'default',
+      failure: playCopy('actAnyway'),
+      onConfirm: () => {
+        actingDown.add(down.id)
+        deck.open(key)
+      },
+    })
+  }
+
   return {
     pilot,
     mech,
@@ -189,7 +240,8 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
       resolving.salvage === undefined &&
       !resolving.activated &&
       !resolving.applied,
-    open: deck.open,
+    open,
+    dialog,
     doneKey: deck.doneKey,
     heatScale,
     closeOnly: closeRangeOnly(play.scene.conditions),

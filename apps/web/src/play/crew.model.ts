@@ -72,13 +72,20 @@ type CrewMech = CrewVitals['mechs'][number]
  * wrong, the one that matters most where they are: their mech's SP aboard,
  * their own HP on foot.
  */
-function crewVital(pilot: CrewPilot, mech: CrewMech | undefined, attention: boolean): CrewVital {
+function crewVital(
+  pilot: CrewPilot,
+  mech: CrewMech | undefined,
+  attention: boolean,
+  down = false
+): CrewVital {
   const hp = { label: 'HP', value: vitalCurrent('pool', pilot.currentHP, pilot.maxHP) }
   const sp =
     mech === undefined
       ? null
       : { label: 'SP', value: vitalCurrent('pool', mech.currentSP, mech.maxSP) }
   if (!attention) return { ...(pilot.boarded && sp !== null ? sp : hp), attention: false }
+  // At 0 HP or 0 SP the unit is Down (r5 A1): the mark is the flag.
+  if (down) return { label: playCopy('down'), value: null, attention: true }
 
   const flag = (v: { label: string; value: string | null }): CrewVital => ({
     ...v,
@@ -128,7 +135,7 @@ export function crewSeatLines(
         present: isHere(pilot, here),
         mount: boardedIn === null ? playCopy('onFoot') : `Boarded · ${boardedIn}`,
         boardedIn,
-        vital: crewVital(pilot, mech, line.attention),
+        vital: crewVital(pilot, mech, line.attention, line.down),
         vitals: [
           { label: 'HP', value: line.hp },
           { label: 'AP', value: line.ap },

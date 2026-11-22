@@ -56,6 +56,7 @@ export function PlayActionsColumn({ play, ...deps }: PlayColumnProps & PlayActio
         <PlayActionsTools actions={actions} find={false} />
       )}
       <PlayActionsList play={play} actions={actions} head={wide ? 'h3' : 'h2'} />
+      {actions.dialog}
     </>
   )
 }
