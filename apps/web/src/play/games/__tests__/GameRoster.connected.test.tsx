@@ -234,7 +234,7 @@ describe('what a row offers', () => {
     expect(row.getAttribute('href')).toBe('/pilots/a-theirs')
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
     // Nor is it takeable: somebody already holds it.
-    expect(screen.queryByRole('button', { name: /Unassigned/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Assign to me: / })).toBeNull()
   })
 
   test('a crewmate has no delete affordance on your screen', async () => {
@@ -248,17 +248,20 @@ describe('what a row offers', () => {
 })
 
 describe('assigning yourself what nobody holds', () => {
-  test('an unassigned pre-gen carries an UNASSIGNED seal', async () => {
+  // r3 L3 (LG3-06): the way to take a pilot was a dark tag reading "Unassigned".
+  test('a free pre-gen carries an Assign to me button, in the glossary’s words', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
 
-    // Unassigned is a STATE, not a blank — and the mark announcing it is the
-    // same control you press to take the character.
-    expect(screen.getByRole('button', { name: /Unassigned/i })).toBeTruthy()
+    const take = screen.getByRole('button', { name: 'Assign to me: Pre-gen' })
+    expect(take.textContent).toBe('Assign to me')
+    expect(screen.queryByRole('button', { name: /Unassigned/i })).toBeNull()
+    // The row's menu says the same words.
+    expect(await verbsOf('Pre-gen')).toContain('Assign to me')
   })
 
   test('pressing the seal asks before it assigns', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
-    fireEvent.click(screen.getByRole('button', { name: /Unassigned/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^Assign to me: / }))
 
     // Taking a character is a commitment at the table, so the seal opens a
     // confirm that says what happens next rather than assigning on one click.
@@ -351,7 +354,7 @@ describe('what the game will accept', () => {
     // It has no owner at all, so it carries no ownership seal — neither a
     // claim invitation nor a holder's name. "Who owns the crawler" is not a
     // question the game asks.
-    expect(screen.queryByRole('button', { name: /Unassigned/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Assign to me: / })).toBeNull()
   })
 })
 
@@ -371,7 +374,7 @@ describe('yours first, then everyone else', () => {
     // Your row wears MINE (its stamp, and its Member cell).
     const mine = screen.getByRole('link', { name: 'Roach-Boy' }).closest('tr')
     expect(within(mine as HTMLElement).getAllByText('Mine').length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: /Unassigned/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Assign to me: / })).toBeTruthy()
   })
 
   test("crawlers are nobody's — the primary leads", async () => {
@@ -495,7 +498,7 @@ describe('every verb that changes who has a build asks first', () => {
 
   test('Assign to me assigns nothing until confirmed', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
-    fireEvent.click(screen.getByRole('button', { name: /Unassigned/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^Assign to me: / }))
     expect(mutations).toHaveLength(0)
 
     await confirmWith('Assign to me')

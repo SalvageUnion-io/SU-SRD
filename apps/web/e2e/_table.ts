@@ -49,10 +49,10 @@ export async function joinByInvite(page: Page, token: string): Promise<string> {
  * naming it that still offers its seal.
  */
 async function assignToMe(page: Page, name: string): Promise<void> {
-  const seal = page.getByRole('button', { name: /— assign this to you$/ })
+  const seal = page.getByRole('button', { name: /^Assign to me: / })
   const crew = page.getByRole('table', { name: 'Crew' })
   const row = crew.locator('tr', { hasText: name }).filter({ has: seal }).last()
-  await row.getByRole('button', { name: /— assign this to you$/ }).click()
+  await row.getByRole('button', { name: /^Assign to me: / }).click()
   const confirm = page.getByRole('alertdialog')
   await confirm.getByRole('button', { name: 'Assign to me' }).click()
   await expect(confirm).toBeHidden({ timeout: 15_000 })

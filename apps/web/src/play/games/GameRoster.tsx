@@ -237,10 +237,18 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     const verbs: HeaderMenuItem[] = [
       { id: 'open', label: playGamesCopy('openSheet'), onSelect: () => go(rosterSheetHref(row)) },
     ]
-    // Assigning yourself a free one is the SEAL's job, not a menu row's
-    // (`OwnerSeal`). Any holder may hand back, not just the table runner:
-    // ADR-030 §4 makes an assignment voluntary outward, and the seal's confirm
-    // promises this way back out.
+    // Taking a free one is the row's Assign to me button (`OwnerSeal`), and
+    // the menu says it in the same words (r3 L3); the table runner's own row
+    // of that name is among their Assign to… rows below.
+    if (row.can.assignSelf && !row.can.assignTo.some((member) => member.userId === viewerId)) {
+      verbs.push({
+        id: 'assign-self',
+        label: playGamesCopy('assignToMe'),
+        onSelect: act(() => rowActions.assignSelf(row)),
+      })
+    }
+    // Any holder may hand back, not just the table runner: ADR-030 §4 makes an
+    // assignment voluntary outward, and the confirm promises this way back out.
     if (row.can.unassign) {
       verbs.push({
         id: 'unassign',
@@ -343,11 +351,12 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       stamp: (
         <>
           {row.primary && <Stat size="mini" label={playGamesCopy('primary')} />}
-          {/* The seal is the assign control: a row of yours says Mine in its
-              Member column, once (R59). */}
+          {/* A free one's seal is its Assign to me button: a row of yours says
+              Mine in its Member column, once (R59). */}
           {row.owner?.unassigned && (
             <OwnerSeal
               owner={row.owner}
+              name={row.name}
               assignable={row.can.assignSelf}
               disabled={busy}
               onAssign={() => rowActions.assignSelf(row)}
