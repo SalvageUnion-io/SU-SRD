@@ -69,6 +69,18 @@ describe('pageSections', () => {
     expect(pageSections(document).map((section) => section.label)).toEqual(['Alpha', 'Beta'])
   })
 
+  test('a numbered entry reads its number and its label apart: "1 Tally Salvage" (RR6-05)', () => {
+    page(`
+      <nav data-page-contents>
+        <a href="#a"><span>1</span><span>Tally Salvage</span></a><a href="#b"><span>2</span><span>Upkeep</span></a>
+      </nav>
+      <h2 id="a">Tally Salvage</h2><h2 id="b">Upkeep</h2>`)
+    expect(pageSections(document).map((section) => section.label)).toEqual([
+      '1 Tally Salvage',
+      '2 Upkeep',
+    ])
+  })
+
   test('with no contents of its own, its second-level headings', () => {
     page('<h2>Chassis Ability</h2><h3>Not a section</h3><h2> Systems </h2>')
     const sections = pageSections(document)
