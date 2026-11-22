@@ -359,7 +359,14 @@ export class GameEvents {
         // change) is its own line, and ends the nudged line it follows (r2 I3).
         const key = `v:${op.unitId}:${field}`
         const nudge = !undo && (from === null || Math.abs(to - from) === 1)
-        const vital = { who, label, from, to, ...(undo ? { undo: true as const } : {}) }
+        const vital = {
+          who,
+          label,
+          from,
+          to,
+          unitId: op.unitId,
+          ...(undo ? { undo: true as const } : {}),
+        }
         out.push(
           this.note(actor, at, {
             kind: 'vitals',

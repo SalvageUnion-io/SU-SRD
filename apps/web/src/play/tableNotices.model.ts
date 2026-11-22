@@ -112,6 +112,30 @@ export function eventsToTell(
   return { tell, heard: new Map([...heard, ...next]) }
 }
 
+/**
+ * Another member's change to one of the viewer's own units, newly heard: the
+ * one table event their screen toasts (r6 A3), since it is done to what is
+ * theirs. The newest, or null.
+ */
+export function doneToMine(
+  events: readonly TableEvent[],
+  heard: Heard | null,
+  viewerId: string | null,
+  mine: ReadonlySet<string>
+): TableEvent | null {
+  if (heard === null) return null
+  const done = events.filter(
+    (event) =>
+      event.kind === 'vitals' &&
+      event.actorId !== null &&
+      event.actorId !== viewerId &&
+      event.vital?.unitId !== undefined &&
+      mine.has(event.vital.unitId) &&
+      heard.get(event._id) !== event.text
+  )
+  return done.sort((a, b) => a.ts - b.ts).at(-1) ?? null
+}
+
 /** What a Game's pinned strip is showing on this screen, as far as a toast would repeat it. */
 export type PinnedNow = {
   /** The pinned alert's event id (`pinnedAlert`). */

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import type { TableEvent } from '../../rooms/game/events'
 import {
+  doneToMine,
   downOf,
   endedSession,
   eventsToTell,
@@ -304,6 +305,23 @@ describe('the one strip (r6 A1)', () => {
     expect(shown.rest.map((notice) => notice.key)).toEqual(['turn'])
     expect(shownNotices([n('q', 'quiet', 0)])).toEqual({ top: n('q', 'quiet', 0), rest: [] })
     expect(shownNotices([])).toEqual({ top: null, rest: [] })
+  })
+})
+
+describe('doneToMine (r6 A3): a toast for a change another made to your own unit', () => {
+  const hit = (over: Partial<TableEvent> & { _id: string }) =>
+    event({ vital: { who: 'Nell', label: 'HP', from: 8, to: 5, unitId: 'p-mine' }, ...over })
+  const { heard } = eventsToTell([], null, 'me')
+  const mine = new Set(['p-mine'])
+
+  test('another member’s change to my unit is told; the first answer is history', () => {
+    expect(doneToMine([hit({ _id: 'a' })], null, 'me', mine)).toBeNull()
+    expect(doneToMine([hit({ _id: 'a' })], heard, 'me', mine)?._id).toBe('a')
+  })
+
+  test('not my own change, nor a change to someone else’s unit', () => {
+    expect(doneToMine([hit({ _id: 'a', actorId: 'me' })], heard, 'me', mine)).toBeNull()
+    expect(doneToMine([hit({ _id: 'a' })], heard, 'me', new Set(['other']))).toBeNull()
   })
 })
 
