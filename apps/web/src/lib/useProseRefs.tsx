@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactElement, ReactNode } from 'react'
 import { useContext, useId, useMemo } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { mentionRef } from '../components/entity'
@@ -62,7 +62,7 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
     // The book's `*italics*` print in italics, their asterisks dropped (`proseEmphasis`).
     const italics = emphasisRuns(text)
     if (segments.length === 1 && only?.kind === 'text' && italics.length === 0) return text
-    const em = (key: string, at: number, node: ReactNode) =>
+    const em = (key: string, at: number, node: ReactElement | string): ReactElement | string =>
       inside(at, italics) ? <em key={`em-${key}`}>{node}</em> : node
     // In a section a term links at its first mention alone (`ProseSection`),
     // and is plain words after.
