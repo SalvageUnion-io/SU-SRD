@@ -59,7 +59,8 @@ describe('useDetailModal — modal mode (no link provider)', () => {
     // The band's title is the Dialog.Title: it names the dialog, kind and all.
     const dialog = screen.getByRole('dialog', { name: 'Red Laser (System)' })
     expect(within(dialog).getByRole('heading', { name: 'Red Laser (System)' })).toBeTruthy()
-    expect(screen.getByText('Entity display details')).toBeTruthy()
+    // Described by its kind, never a generic line (r5 C11).
+    expect(screen.queryByText('Entity display details')).toBeNull()
   })
 
   test('the dialog closes again via its close button', () => {
