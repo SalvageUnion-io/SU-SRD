@@ -52,6 +52,8 @@ const ROSTER = {
     // K5 notices
     'ToasterMount',
     'toast',
+    'ACTION_TOAST_MS', // K5 a toast with an action stays 20s
+    'MOST_ACTION_TOASTS', // K5 three action toasts at most
     'toastRoll',
     'holdToastsOnTop', // K5 a screen whose foot is controls (Play's tabs) holds its toasts over the bar
     'Banner',
