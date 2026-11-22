@@ -370,7 +370,15 @@ function SchemaViewer({
         {hasActiveFilters && (
           <ListingPrinted
             levels={orderedTechLevels.filter((tl) => techLevelFilters.has(String(tl)))}
-            words={[sourceFilter, treeFilter, traitFilter, nameFilter && `“${nameFilter}”`]}
+            words={[
+              sourceFilter,
+              treeFilter,
+              traitFilter,
+              rangeFilter,
+              actionFilter,
+              weaponsOnly && islandsCopy('weaponsOnly'),
+              nameFilter && `“${nameFilter}”`,
+            ]}
             count={filteredData.length}
             total={initialData.length}
           />
