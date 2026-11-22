@@ -594,7 +594,8 @@ describe('every verb that changes who has a build asks first', () => {
       { name: 'games.takeOffRoster', args: { gameId: 'g1', pilotId: 's-free' } },
     ])
     expect(
-      await screen.findByText('Pre-gen and Mazona are off the roster, in your Training Bay.')
+      // Where they went, said plainly (r5 B15).
+      await screen.findByText('Pre-gen and Mazona are back in your Training Bay.')
     ).toBeTruthy()
     mutations.length = 0
     await act(async () => {
