@@ -338,15 +338,16 @@ html[data-srd-signed-in] .su-front__show-yours {
     animation-delay: calc(var(--su-show-step) * (var(--su-show-i) - 0.2));
   }
 
-  /* Held while an act is pointed at, a slide's own control is focused or a
-     finger is down on its plate (`[data-touched]`, `watchSlideshow`), and for
-     good once paused: the whole show is the screen, so hovering it is no
-     sign, and a press on Previous or Next must leave it turning. */
+  /* Held while a slide's plate (its words and its button) is pointed at,
+     a slide's own control is focused or a finger is down on its plate
+     (`[data-touched]`, `watchSlideshow`), and for good once paused: the
+     whole show is the screen, so hovering its art is no sign, and a press on
+     Previous or Next must leave it turning. */
   .su-front__show:is(
     [data-paused],
     [data-touched],
     :has(.su-front__show-slides:focus-within),
-    :has(.su-front__show-act:hover)
+    :has(.su-front__show-copy:hover)
   ) .su-front__show-slide {
     animation-play-state: paused;
   }
