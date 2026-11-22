@@ -8,7 +8,7 @@
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Encounter } from 'game-domain/schemas/encounter'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
@@ -127,6 +127,32 @@ async function editField(label: string, value: string) {
 }
 
 describe('an encounter page', () => {
+  // MD3-10: a unit could not be opened to read what it does, in Edit or in Read.
+  test('a unit’s name opens its card on the page, in Edit and in Read', async () => {
+    await renderPage()
+    const row = within(screen.getByRole('list', { name: 'Opposition' }))
+    await click(row.getByRole('button', { name: 'Raider' }))
+    const card = screen.getByRole('dialog', { name: /Raider/ })
+    expect(within(card).getAllByText(/Raider/).length).toBeGreaterThan(0)
+    cleanup()
+
+    useSheetModeStore.setState({ editing: false })
+    await renderPage()
+    await click(
+      within(screen.getByRole('list', { name: 'Opposition' })).getByRole('button', {
+        name: 'Raider',
+      })
+    )
+    expect(screen.getByRole('dialog', { name: /Raider/ })).toBeTruthy()
+  })
+
+  // MD-18: every row read "(NPC)" after its name, whatever it was.
+  test('a row says its name once, with no "(NPC)" after it', async () => {
+    await renderPage()
+    const list = screen.getByRole('list', { name: 'Opposition' })
+    expect(list.textContent).not.toContain('(NPC)')
+  })
+
   test('an unknown encounter says so and leads back to the Mediator’s Kit', async () => {
     await renderPage('missing')
     expect(screen.getByText('Encounter not found')).toBeTruthy()

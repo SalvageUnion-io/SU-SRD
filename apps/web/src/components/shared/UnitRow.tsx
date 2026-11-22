@@ -46,6 +46,11 @@ type UnitRowProps = {
   mode?: EntityMode
   /** The art window (E10): a pilot's photo or class art, a mech's chassis. */
   art?: EntityFormModel['art']
+  /**
+   * Its kind is not said after its name, to screen readers either: the list
+   * holds units of many kinds, and the row's note chip says which (MD-18).
+   */
+  unkinded?: boolean
 }
 
 export function UnitRow({
@@ -63,6 +68,7 @@ export function UnitRow({
   controls,
   mode,
   art,
+  unkinded = false,
 }: UnitRowProps) {
   const all =
     controls || href !== undefined || onUnassign ? (
@@ -105,7 +111,10 @@ export function UnitRow({
     ),
     ...(relations ?? []),
   ]
-  const marks = byChip('mark')
+  // Leaving the kind out takes the Compact's own note with it, so the note
+  // rides the marks lane, where the Compact would have set it.
+  const noteMark = unkinded && note ? [<Stat key="note" label={note} size="mini" />] : []
+  const marks = [...noteMark, ...byChip('mark').map((r) => cell(r))]
   const state = byChip('state')
   return (
     <Entity
@@ -120,7 +129,8 @@ export function UnitRow({
         ...(art ? { art } : {}),
       })}
       mode={mode}
-      labels={marks.length > 0 ? [...(labels ? [labels] : []), ...marks.map(cell)] : labels}
+      labels={marks.length > 0 ? [...(labels ? [labels] : []), ...marks] : labels}
+      {...(unkinded ? { omit: ['kind'] } : {})}
       {...(allRelations.length > 0 ? { relations: allRelations } : {})}
       {...(linked?.length ? { linked } : {})}
       {...(state.length > 0 ? { state: state.map(cell) } : {})}
