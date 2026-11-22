@@ -8,7 +8,7 @@
 import { toast } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
-import { useSync } from '../replica/syncContext'
+import { readsHeld, useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
 
 export type GameSession = {
@@ -30,7 +30,7 @@ export function useGameSession(gameId: string | null): GameSession | null {
   const { status, canWrite } = useSync()
   const read = useTableRead(
     'session.state',
-    gameId !== null && status === 'live' ? { gameId } : 'skip'
+    gameId !== null && readsHeld(status) ? { gameId } : 'skip'
   )
   const start = useServerAction(useTableAct('session.start', gameId), {
     failure: playCopy('couldNotStartSession'),

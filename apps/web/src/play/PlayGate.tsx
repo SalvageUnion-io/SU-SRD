@@ -8,7 +8,8 @@
  * server refuses every write you may not make, whatever this shows. Every
  * other case is refused:
  *
- *  - an anonymous session: sign in first (nothing is played signed out);
+ *  - an anonymous session: sign in first, but for a book crew's pilot, which
+ *    plays a round held in the tab (`trial/PlayTrial`, r6 F1; `TRIAL_PLAY`);
  *  - a pilot this browser does not hold: not found;
  *  - a pilot in a Game the viewer is not a member of (or a Game that is gone,
  *    which `games.get` deliberately does not tell apart).
@@ -34,7 +35,7 @@ import { containerOf } from 'game-domain/container'
 import { cockpitPath, sheetPath } from 'game-domain/entityKinds'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
 import { useGamesQuery } from '../replica/roomCalls'
@@ -42,6 +43,15 @@ import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
 import { PlayCockpit } from './PlayCockpit'
 import { PlayRefusal } from './PlayRefusal'
+
+/**
+ * The signed-out trial of a book pilot (r6 F1): the owner's ruling, on. False
+ * keeps Play behind sign-in for every pilot.
+ */
+const TRIAL_PLAY = true
+
+/** Loaded on a signed-out Play alone: it carries the book crews. */
+const PlayTrial = lazy(() => import('./trial/PlayTrial').then((m) => ({ default: m.PlayTrial })))
 
 /** Back to the Training Bay, where every pilot of yours is (ADR-066). */
 const TO_TRAINING_BAY = { href: '/', label: PRODUCT.build }
@@ -51,13 +61,19 @@ export function PlayGate({ id }: { id: string }) {
 
   // Checked before any Games read: signed out, there is nothing to read.
   if (status === 'signedOut') {
-    return (
+    const refusal = (
       <PlayRefusal
         area="build"
         title={playCopy('signInToPlay')}
         body={playCopy('playRunsYourPilotsSolo2')}
         signInTo={cockpitPath(id)}
       />
+    )
+    if (!TRIAL_PLAY) return refusal
+    return (
+      <Suspense fallback={<RoutePending label={playCopy('yourSession')} />}>
+        <PlayTrial id={id} refusal={refusal} />
+      </Suspense>
     )
   }
   if (status === 'syncing') return <RoutePending label={playCopy('yourSession')} />

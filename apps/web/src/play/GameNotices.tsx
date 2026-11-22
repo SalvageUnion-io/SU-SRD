@@ -40,6 +40,7 @@ import { downtimeWaits, firstSight, onHub } from './sessionNotices.model'
 import type { Notice } from './TableNoticeStack'
 import type { Heard } from './tableNotices.model'
 import {
+  doneToMine,
   endedSession,
   eventsToTell,
   lostRole,
@@ -107,6 +108,10 @@ export function GameNotices({
   })
   // The viewer's own: the replica holds every crewmate's pilot too (LG-02).
   const pilots = gamePilots(useOwnUnits('pilot'), gameId)
+  // The viewer's own units, as one value: a change another made to one toasts (r6 A3).
+  const ownMechs = useOwnUnits('mech')
+  const mineKey = [...pilots, ...ownMechs].map((unit) => unit.id).join('\n')
+  const ownIds = useMemo(() => new Set(mineKey.split('\n')), [mineKey])
   // The viewer's pilots' pages, as one value: an effect below reads them.
   const pilotRootsKey = pilots.map((pilot) => sheetPath('pilot', pilot.id)).join('\n')
   const pilotRoots = useMemo(
@@ -125,6 +130,9 @@ export function GameNotices({
   const [news, setNews] = useState<{ id: string; text: string; ts: number } | null>(null)
   useEffect(() => {
     if (events === undefined) return
+    // Done to the viewer's own unit by someone else: theirs to see, as a toast (r6 A3).
+    const toMine = doneToMine(events, heard.current, viewerId, ownIds)
+    if (toMine !== null) toast(toMine.text, { id: `table-mine-${gameId}`, description: gameName })
     const next = eventsToTell(events, heard.current, viewerId, mediator)
     heard.current = next.heard
     // What the strip is already saying is not said twice (r3 H2).
@@ -152,7 +160,7 @@ export function GameNotices({
       ? playCopy('youNowMediate')
       : stripLine(newest, (unit) => playCopy('unitIsDown', { unit }))
     setNews({ id: newest._id, text, ts: newest.ts })
-  }, [events, viewerId, mediator, inPlay, ownPage, pathname, gameId, pilotRoots])
+  }, [events, viewerId, mediator, inPlay, ownPage, pathname, gameId, gameName, pilotRoots, ownIds])
 
   // The role taken from the viewer, by the Organiser (r3 A4): said once, as it happens.
   const mediated = useRef<boolean | null>(null)

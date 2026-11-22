@@ -16,17 +16,19 @@ import { mayBindChannel } from 'game-domain/games/discord'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { useState } from 'react'
 import { useViewerId } from '../replica/roomCalls'
+import { useUnits } from '../replica/units'
 import type { ChannelOwner, PlayBinding } from './channels.model'
 import type { FeedSources } from './feed.model'
 import { playFeedEntries } from './feed.model'
 import type { PlayScreen } from './play.model'
-import { usePlayRollLog } from './playRolls.model'
+import { usePlayRollLog, useRollScreen } from './playRolls.model'
 import type { PlayColumnProps } from './situation.model'
 import { useGameBoardSources } from './useBoardSources'
 import type { GameFeed } from './useGameFeed'
 import { useGameFeed } from './useGameFeed'
 import type { PlayRollDispatch } from './usePlayChannel'
 import { usePlayChannelBinding, usePlayRollDispatch } from './usePlayChannel'
+import { mechNumbers, pilotNumbers, useSoloVitalsFeed } from './useSoloVitalsFeed'
 
 /** What a screen's Tables and Feed share, the player's or the Mediator's. */
 export type SideFeed = {
@@ -62,7 +64,15 @@ export function useSideFeed({
 }): SideFeed {
   const dispatch = usePlayRollDispatch({ target, rollerName, binding })
   const [openedAt] = useState(() => Date.now())
-  const mine = usePlayRollLog().filter((roll) => roll.at >= openedAt)
+  // Solo there is no Game's log: the Feed is every line this pilot's screen
+  // recorded in this tab, so leaving Play loses none (r6 A8). In a Game the
+  // log holds what came before.
+  const screen = `${target.gameId ?? 'solo'}:${target.pilotId ?? 'mediator'}`
+  useRollScreen(screen)
+  const log = usePlayRollLog()
+  const mine = log.filter((roll) =>
+    target.gameId === null ? roll.screen === screen : roll.at >= openedAt
+  )
   const viewerId = useViewerId()
   const entries = playFeedEntries({ rolls, alerts, events, proposals, mine, rollerName, viewerId })
   return { gameId: target.gameId, binding, channel, dispatch, entries }
@@ -75,6 +85,27 @@ export type PlaySide = SideFeed & {
 
 export function usePlaySide({ target, play }: PlayColumnProps): PlaySide {
   const inGame = target.gameId !== null
+  // Solo, what the pilot and their mech take is said on the Feed too (r6 A8).
+  const store = useUnits()
+  const mechId = play.boardedMechId ?? play.mechs?.[0]?.mechId ?? null
+  const mech = play.boardedMech ?? (mechId === null ? null : store.get('mech', mechId))
+  useSoloVitalsFeed(
+    [
+      ...(play.pilot === null
+        ? []
+        : [{ id: play.pilot.id, name: pilotLabel(play.pilot), vitals: pilotNumbers(play.pilot) }]),
+      ...(mech === null
+        ? []
+        : [
+            {
+              id: mech.id,
+              name: mech.name,
+              vitals: mechNumbers(mech, play.seat?.seat.activeEffects ?? []),
+            },
+          ]),
+    ],
+    !inGame
+  )
   const feed = useGameFeed(play.pilot)
   const sources = useGameBoardSources(target.gameId)
   const binding = usePlayChannelBinding(target)

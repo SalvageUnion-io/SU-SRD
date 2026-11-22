@@ -2,6 +2,7 @@ import { GAME_MAX_DESCRIPTION } from 'game-domain/schemas/gamePlan'
 import type { UnitParcel } from '../handoff'
 import { parcelUnit } from '../leases'
 import { RoomRefusal } from '../refusal'
+import { noteLeft } from './rejoin'
 import type { GameRow, GameStore, Member, UnitRow } from './store'
 import { bit } from './store'
 import type { GameUnits } from './units'
@@ -234,15 +235,20 @@ export class GameRoster {
       const held = this.store
         .units()
         .filter((unit) => unit.ownerId === userId && unit.kind !== 'crawler')
+      const kept: string[] = []
       for (const unit of held) {
         if (cameWithGame(game, unit) && unit.leaseId === null) {
           this.units.reassign(unit, null, actor, at)
+          kept.push(unit.id)
         }
       }
       // One already on its way out (a retried leave) finishes the trip it started.
-      return held
+      const moved = held
         .filter((unit) => !cameWithGame(game, unit) || unit.leaseId !== null)
         .map((unit) => unit.id)
+      // Removed, not leaving: rejoining brings these back (r6 C7, `rejoin.ts`).
+      if (actor !== userId) noteLeft(this.store, userId, { moved, kept }, at)
+      return moved
     })
   }
 

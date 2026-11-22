@@ -3,7 +3,7 @@ import { downtimeStepNames } from 'game-domain/rules/downtime'
 import type { GameActArgs, GameActName } from '../acts'
 import { runAct } from '../acts'
 import { isMirrored, MERGE_MS } from '../events'
-import { AT, bodies, MEDIATOR, op, PLAYER, STRANGER, table } from './harness'
+import { AT, bodies, MEDIATOR, op, PLAYER, profile, STRANGER, table } from './harness'
 
 /** A table with PLAYER's pilot and mech, and acts run as the room's Durable Object runs them. */
 function seated() {
@@ -817,5 +817,19 @@ describe('the table’s events', () => {
     const { act, room } = seated()
     act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 4 }, AT + 1)
     expect(room.proposals.pending(PLAYER)[0]?.current).toBe(10)
+  })
+})
+
+describe('a late joiner reads the session (r6 A8)', () => {
+  test('one who joins mid-session is served the session from its start, past the newest page', () => {
+    const { act, texts, code } = seated()
+    act(MEDIATOR, 'session.start', undefined as never, AT + 1)
+    for (let i = 1; i <= 220; i += 1) {
+      const at = AT + 2 + i * (MERGE_MS + 1)
+      act(PLAYER, 'submit', { ops: [op('p1', { currentHP: i % 2 }, { baseSeq: i - 1 })] }, at)
+    }
+    act(STRANGER, 'redeem', { code, profile: profile('Cal') }, AT + 10 ** 9)
+    expect(texts(STRANGER).at(-1)).toMatch(/started the group session$/)
+    expect(texts(STRANGER).length).toBeGreaterThan(220)
   })
 })

@@ -34,7 +34,7 @@ export type { EventsBefore } from './eventsBefore'
 /** The most events a room keeps; older ones are dropped as new ones land. */
 const KEPT = 600
 
-/** The most events a read returns: the stream's newest page. */
+/** The most events a read returns, but the live session's, which are all served (r6 A8). */
 const SERVED = 200
 
 export type { TableEvent, TableEventKind } from './tableEvent'
@@ -47,15 +47,27 @@ export class GameEvents {
   ) {}
   private readonly namesNow: NamesNow = (userId) => namesOf(this.store)(userId)
 
-  /** The newest events, newest first; a private one only for a Mediator. */
+  /**
+   * The newest events, newest first, and every one of the live session, so a
+   * member who joins mid-session reads it from its start (r6 A8); a private
+   * one only for a Mediator.
+   */
   list(actor: string): TableEvent[] {
     const member = this.store.member(actor)
     if (member === null) return []
+    const started = Number(this.store.rows('select started_at from session')[0]?.started_at ?? 0)
+    const inSession =
+      started === 0
+        ? 0
+        : this.store.rows(
+            `select count(*) as n from change_log where field in ('event', 'roll', 'alert') and ts >= ?`,
+            started
+          )[0]?.n
     return this.store
       .rows(
         `select * from change_log where field in ('event', 'roll', 'alert')
          order by ts desc, id limit ?`,
-        SERVED
+        Math.min(KEPT, Math.max(SERVED, Number(inSession ?? 0)))
       )
       .map((row) => this.read(row, member.mediator, actor))
       .filter((event) => event.private !== true || member.mediator)
@@ -146,6 +158,11 @@ export class GameEvents {
       }
       case 'redeem':
         return value === 'joined' ? say('join', `${who} joined the Game`) : []
+      case 'returned': {
+        // Rejoining brought their units back (r6 C7).
+        const back = (value as string[]).map((id) => unit(id))
+        return back.length === 0 ? [] : say('join', `${who} is back, with ${back.join(' and ')}`)
+      }
       case 'session.start':
         return value === true
           ? [
@@ -342,7 +359,14 @@ export class GameEvents {
         // change) is its own line, and ends the nudged line it follows (r2 I3).
         const key = `v:${op.unitId}:${field}`
         const nudge = !undo && (from === null || Math.abs(to - from) === 1)
-        const vital = { who, label, from, to, ...(undo ? { undo: true as const } : {}) }
+        const vital = {
+          who,
+          label,
+          from,
+          to,
+          unitId: op.unitId,
+          ...(undo ? { undo: true as const } : {}),
+        }
         out.push(
           this.note(actor, at, {
             kind: 'vitals',

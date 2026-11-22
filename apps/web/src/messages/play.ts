@@ -145,6 +145,7 @@ export const playCopy = messages({
   downActAnywayBody: 'A unit at 0 is Down. What it may still do is the table’s call.',
   actAnyway: 'Act anyway',
   mechIsDownHere: '{name} is Down, in the field',
+  mechIsDownInBay: '{name} is Down, in the Mech Bay',
   mechDownLock: 'Down · repair it in Downtime',
   upNowYou: 'Up now · You',
   upNowName: 'Up now · {name}',
@@ -165,6 +166,8 @@ export const playCopy = messages({
   posting: 'Posting…',
   posted: 'Posted',
   notSentYet: 'Not sent yet',
+  rollWaitsOffline:
+    'Offline: this waits for the connection. A table under Rolls still rolls, sent on reconnect.',
   sendHeld: 'Try again: send {label} to the table',
   toDiscord: '{label} {label2} to Discord',
   signInToPlay: 'Sign in to play',

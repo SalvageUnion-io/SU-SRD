@@ -136,6 +136,8 @@ export type VitalChange = {
   from: number | null
   to: number
   undo?: true
+  /** The unit it changed: whose screen toasts it, when another member did it (r6 A3). */
+  unitId?: string
 }
 
 export function vitalLine(v: VitalChange): string {

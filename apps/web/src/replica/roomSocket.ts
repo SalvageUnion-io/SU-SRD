@@ -164,7 +164,7 @@ type Batch = {
 type Pending = { resolve: (value: unknown) => void; reject: (refusal: Error) => void }
 
 /** A room this tab holds open, to send its ops and its acts. */
-type Room = {
+export type Room = {
   /** One batch; `replayed` when it was made offline (the outbox's), which the room takes only on the player's own units. */
   /** Answers the op ids this batch applied; one that had landed before is not among them. */
   submit(ops: readonly OpInput[], options?: { replayed?: boolean }): Promise<readonly string[]>
@@ -241,6 +241,15 @@ let standIn: ((gameId: string | null) => Room | null) | null = null
 /** Answer `roomOf` for every room not open with `rooms`: a unit test's seam, so its writes land. */
 export function standInRooms(rooms: ((gameId: string | null) => Room | null) | null): void {
   standIn = rooms
+}
+
+/**
+ * Hold `room` as the open account room, or let it go (null): a signed-out Play
+ * trial's room in the tab (`play/trial/trialRoom.model.ts`), which no socket backs.
+ */
+export function holdTabRoom(room: Room | null): void {
+  if (room === null) open.delete(ACCOUNT)
+  else open.set(ACCOUNT, room)
 }
 
 /** The room a unit in `gameId` (null: on the Shelf) is written through, while its socket is open. */

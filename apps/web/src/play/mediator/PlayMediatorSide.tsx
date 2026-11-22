@@ -149,8 +149,10 @@ export function PlayMediatorProposeSection({
   onCrawler,
 }: ProposeProps) {
   const [allOpen, setAllOpen] = useState(false)
-  // The crawler is the table runner's to write, never a player's to answer (ADR-038 §5).
-  const crawler = mediator.crawler?.held ? mediator.crawler.crawler : null
+  // The crawler is the table runner's to write, never a player's to answer (ADR-038 §5):
+  // said whenever the Game has one; the way to its SP only while it is held to write.
+  const crawler = mediator.crawler?.crawler ?? null
+  const toSp = mediator.crawler?.held === true ? onCrawler : undefined
   return (
     <section aria-label={mediatorCopy('propose')} style={SECTION}>
       <ProposeDock
@@ -167,8 +169,8 @@ export function PlayMediatorProposeSection({
           crawler !== null ? (
             <div style={CRAWLER_NOTE}>
               <p style={MUTED_NOTE}>{mediatorCopy('crawlerIsYours', { name: crawler.name })}</p>
-              {onCrawler && (
-                <Button size="mini" onClick={onCrawler}>
+              {toSp && (
+                <Button size="mini" onClick={toSp}>
                   {mediatorCopy('toItsSp')}
                 </Button>
               )}

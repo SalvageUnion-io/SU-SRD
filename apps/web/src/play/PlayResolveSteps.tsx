@@ -35,6 +35,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AREA_SALVAGE_TABLE } from 'salvageunion-reference/rules'
 import { Button, Callout, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
+import { useSync } from '../replica/syncContext'
 import type { ResolveModel } from './actionsDeck.model'
 import { clearOfBar } from './clearOfBar.model'
 import { ResolveCost, ResolveSpend } from './PlayResolveCost'
@@ -97,6 +98,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
           ? playCopy('salvagePickedClean')
           : undefined
   const salvageOpen = salvageShut === undefined
+  const offline = useSync().status === 'offline'
   return (
     <div ref={hostRef} className="su-play-resolve">
       {/* Mounted before the first roll, so the d20, its band and Apply are
@@ -184,7 +186,8 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
             ? rolls(push ? push.onPush : controls.onRoll)
             : undefined
         }
-        off={salvageShut}
+        // Offline the resolve waits (its steps are the seat's), and says where a die still rolls (r6 A14).
+        off={salvageShut ?? (offline ? playCopy('rollWaitsOffline') : undefined)}
       />
       {controls.push?.lockedReason && <p style={NOTE}>{controls.push.lockedReason}</p>}
 

@@ -151,15 +151,18 @@ export function PlayMediatorSeat({
               )}
               <SeatMount mount={mount} />
               <div style={CHIPS}>
-                {seat.vitals.map((v) => (
-                  <Stat
-                    key={v.label}
-                    size="mini"
-                    label={v.attention ? `▲ ${v.label}` : v.label}
-                    value={v.value ?? undefined}
-                    state={v.attention ? 'critical' : undefined}
-                  />
-                ))}
+                {/* A word (Down) is the head's chip alone: said once (r6 A4). */}
+                {seat.vitals
+                  .filter((v) => v.value !== null)
+                  .map((v) => (
+                    <Stat
+                      key={v.label}
+                      size="mini"
+                      label={v.attention ? `▲ ${v.label}` : v.label}
+                      value={v.value ?? undefined}
+                      state={v.attention ? 'critical' : undefined}
+                    />
+                  ))}
               </div>
               <SeatLine seat={seat} mount={mount} stepLine={stepLine} />
               {onUpNow || acted ? (
