@@ -76,7 +76,7 @@ function HeatCheckDue({ actions }: { actions: PlayActions }) {
   if (cap <= 0 || heat < cap) return null
   const roll = () => {
     const stamp = document.querySelector<HTMLButtonElement>(
-      '[data-action-key="reactor"] .su-play-resolve button[aria-label^="Roll"]'
+      '[data-action-key="reactor"] [data-play-roll="heat"] button.su-roll__roll'
     )
     stamp?.click()
     stamp?.closest('li')?.scrollIntoView?.({ block: 'nearest' })

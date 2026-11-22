@@ -20,9 +20,12 @@ function pressable(selector: string): HTMLElement | null {
   )
 }
 
+/** An action's Roll the die, never its Push (`PlayRollInstrument`'s `pressAs`). */
+export const ROLL_BUTTON = '[data-play-roll="roll"] button.su-roll__roll'
+
 /** What each letter presses: the open action's roll, its Apply (else its Done), End my turn. */
 const PRESSES: Readonly<Record<string, readonly string[]>> = {
-  r: ['.su-play-act[data-open] .su-play-resolve button[aria-label^="Roll the die"]'],
+  r: [`.su-play-act[data-open] ${ROLL_BUTTON}`],
   a: [
     '.su-play-act[data-open] [data-play-key="apply"]',
     '.su-play-act[data-open] .su-play-act__use',

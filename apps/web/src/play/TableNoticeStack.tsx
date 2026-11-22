@@ -8,13 +8,13 @@
  * (r6 A13). On a Play screen it has one fixed height under the bar
  * (`fixed`): the list opens over the screen, never pushing it, and a notice
  * arriving or leaving moves nothing. The ruling's other choice
- * (`stripRuling.ts`, `lines`) draws every notice as its own one-line banner.
+ * (`stripRuling.model.ts`, `lines`) draws every notice as its own one-line banner.
  */
 
 import { useState } from 'react'
 import { Button, Callout, capsLabel, cn, Text, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
-import { NOTICE_LAYOUT } from './stripRuling'
+import { NOTICE_LAYOUT } from './stripRuling.model'
 import type { StackedNotice } from './tableNotices.model'
 import { shownNotices, stackNotices, YOUR_TURN_ID } from './tableNotices.model'
 

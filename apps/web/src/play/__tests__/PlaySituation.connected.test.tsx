@@ -347,7 +347,7 @@ describe('solo: the solo seat and its own Downtime', () => {
   })
 
   test('Play solo from a Mech’s sheet opens boarded in that Mech (r6 A10)', async () => {
-    const { askToBoard } = await import('../boardIntent')
+    const { askToBoard } = await import('../boardIntent.model')
     askToBoard('ps-bonesaw', 'ps-faithful')
     await renderPlay({ pilotId: 'ps-bonesaw', gameId: null })
     expect(writes('seats.board')).toEqual([

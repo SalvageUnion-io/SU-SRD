@@ -13,7 +13,7 @@
  * over with its door, "Session live" with its door, then "Session ended"; and
  * a Game the viewer was removed from, which would otherwise just vanish. It
  * shows one and counts the rest. On a Play screen it stands under the bar
- * (`tableStripSlot.ts`) at one height while the session is live, so nothing
+ * (`tableStripSlot.model.ts`) at one height while the session is live, so nothing
  * under it moves. Offline it keeps what it last showed, marked Offline (r6
  * A14).
  *
@@ -64,8 +64,8 @@ import {
   rememberRole,
   seenRoles,
   useNoticesHeight,
-} from './tableNoticesDom'
-import { useTableStripSlot } from './tableStripSlot'
+} from './tableNoticesDom.model'
+import { useTableStripSlot } from './tableStripSlot.model'
 import { useGameSession } from './useGameSession'
 import { useStopSign } from './useStopSign'
 

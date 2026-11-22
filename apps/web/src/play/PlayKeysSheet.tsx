@@ -5,27 +5,20 @@
  */
 
 import type { CSSProperties } from 'react'
-import { capsLabel, ModalShell, tokens } from '../components/index'
+import { ModalShell, Stat, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 
-const LIST = {
-  display: 'grid',
-  gap: `${tokens.space[6]} ${tokens.space[12]}`,
-  gridTemplateColumns: 'auto 1fr',
-  margin: 0,
-} satisfies CSSProperties
-
-const WHAT = { margin: 0 } satisfies CSSProperties
-
-const KEYS = [
-  ['/', 'keyFind'],
-  ['R', 'keyRoll'],
-  ['A', 'keyApply'],
-  ['E', 'keyEndTurn'],
-  ['?', 'keyThisSheet'],
-] as const
+const LIST = { display: 'grid', gap: tokens.space[6] } satisfies CSSProperties
 
 export function PlayKeysSheet({ onClose }: { onClose: () => void }) {
+  // Each key and what it presses, a Stat (ruleset §3.7).
+  const keys = [
+    ['/', playCopy('keyFind')],
+    ['R', playCopy('keyRoll')],
+    ['A', playCopy('keyApply')],
+    ['E', playCopy('keyEndTurn')],
+    ['?', playCopy('keyThisSheet')],
+  ] as const
   return (
     <ModalShell
       open
@@ -34,16 +27,11 @@ export function PlayKeysSheet({ onClose }: { onClose: () => void }) {
       }}
       title={playCopy('playKeys')}
     >
-      <dl style={LIST}>
-        {KEYS.map(([key, what]) => (
-          <div key={key} style={{ display: 'contents' }}>
-            <dt>
-              <kbd className={capsLabel({ size: 'badge' })}>{key}</kbd>
-            </dt>
-            <dd style={WHAT}>{playCopy(what)}</dd>
-          </div>
+      <div style={LIST}>
+        {keys.map(([key, what]) => (
+          <Stat key={key} label={key} value={what} size="compact" wrap />
         ))}
-      </dl>
+      </div>
     </ModalShell>
   )
 }

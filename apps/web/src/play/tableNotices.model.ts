@@ -289,7 +289,7 @@ export function stackNotices<N extends StackedNotice>(notices: readonly N[]): N[
 /**
  * What the one strip shows (r6 A1): the first notice, and the rest behind its
  * "N more"; with none, the quiet line, when there is one. Under the strip's
- * ruling `lines` (`stripRuling.ts`) every notice is a line of its own instead,
+ * ruling `lines` (`stripRuling.model.ts`) every notice is a line of its own instead,
  * and `rest` is empty.
  */
 export function shownNotices<N extends StackedNotice>(

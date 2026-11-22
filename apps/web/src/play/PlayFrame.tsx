@@ -20,7 +20,7 @@
  *    column stacks its panes in one scroller; a `dock` pane sits at its foot.
  *    A `sheet` stands in the centre column, its panes kept mounted under it.
  *
- * Under the bar stands the table's strip (r6 A1, `tableStripSlot.ts`): the
+ * Under the bar stands the table's strip (r6 A1, `tableStripSlot.model.ts`): the
  * root's `TableNotices` draws a Game's notices there at one height, so a
  * notice arriving or leaving never moves the panes.
  *
@@ -69,7 +69,7 @@ import {
 import { playCopy } from '../messages/play'
 import type { PaneSpec, PlayColumn } from './playPanes.model'
 import { NOTICES_RESIZED } from './tableNotices.model'
-import { setTableStripSlot } from './tableStripSlot'
+import { setTableStripSlot } from './tableStripSlot.model'
 
 /**
  * Play's brand-colour grounds wear the speckle as the sheet's do (ruleset

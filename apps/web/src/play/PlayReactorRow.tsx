@@ -245,6 +245,7 @@ export function PlayReactorRow({
                       table={overloadTableTitle}
                       roll={log?.overloadRoll ?? null}
                       stamp={playCopy(pushing ? 'pushStamp' : 'heatCheckStamp')}
+                      pressAs={pushing ? 'push' : 'heat'}
                       onRoll={off ? undefined : () => void (pushing ? doPush() : doHeatCheck())}
                     />
                     {log ? (

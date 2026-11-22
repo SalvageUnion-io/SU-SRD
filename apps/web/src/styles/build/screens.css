@@ -165,7 +165,7 @@ html[data-signed-out-view]:not([data-signed-out-fonts]) .su-signed-out-static {
   align-self: center;
 }
 
-/* The ruling's other choice (`stripRuling.ts`): a notice cut to its line. */
+/* The ruling's other choice (`stripRuling.model.ts`): a notice cut to its line. */
 [data-line] .su-table-notice__text > :not(:first-child) {
   display: none;
 }

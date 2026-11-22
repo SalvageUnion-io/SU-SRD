@@ -178,6 +178,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         table={salvage ? AREA_SALVAGE_TABLE : CORE_MECHANIC_TABLE}
         roll={salvage ? salvage.roll : (roll?.roll ?? null)}
         stamp={push ? 'Push:' : undefined}
+        pressAs={push ? 'push' : 'roll'}
         onRoll={
           canWrite && salvageOpen && !controls.rollLockedReason
             ? rolls(push ? push.onPush : controls.onRoll)

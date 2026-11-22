@@ -42,6 +42,7 @@ import type { ResolveModel } from './actionsDeck.model'
 import { PlayResolveSteps } from './PlayResolveSteps'
 import type { ListEntry } from './playActions.model'
 import { NEED_TEXT } from './playActions.model'
+import { ROLL_BUTTON } from './useFindKey'
 import { usePlayWide } from './usePlayWide'
 
 type ActionEntry = Extract<ListEntry, { kind: 'action' }>
@@ -159,7 +160,7 @@ export function PlayActionRow({
     const active = document.activeElement
     // Use pressed from the keyboard: on to Roll, never left on Cancel (r6 A13).
     if (opened && row !== null && active !== null && row.contains(active)) {
-      row.querySelector<HTMLElement>('.su-play-resolve button[aria-label^="Roll the die"]')?.focus()
+      row.querySelector<HTMLElement>(ROLL_BUTTON)?.focus()
       return
     }
     if (closed && (active === null || active === document.body || !active.isConnected)) {

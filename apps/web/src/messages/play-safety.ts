@@ -6,7 +6,6 @@ export const playSafetyCopy = messages({
   safety: 'Safety',
   stopSign: 'Stop Sign',
   showTheStopSign: 'Show the Stop Sign',
-  stop: 'Stop',
   stopHold: 'Stop · hold',
   holdToShow: 'Hold to show the Stop Sign',
   stopSignMeans:
