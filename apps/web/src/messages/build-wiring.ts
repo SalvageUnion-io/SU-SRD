@@ -16,6 +16,8 @@ export const wiringCopy = messages({
   assignPilotToMech: 'Assign Pilot to Mech',
   aMechCarriesOnePilot:
     'A Mech carries one Pilot and a Pilot flies one Mech — picking a Pilot already in another Mech moves them here.',
+  aMechCarriesOnePilotHere:
+    'Your Pilots and this Game’s unassigned ones. A Mech carries one Pilot — picking one already in another of your Mechs moves them here.',
   assignMechToCrawler: 'Assign Mech to Crawler',
   aMechIsAssignedTo:
     'A Mech is assigned to one crawler, on its own — its Pilot is assigned separately.',

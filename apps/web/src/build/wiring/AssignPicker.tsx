@@ -52,10 +52,12 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { useEffect, useState } from 'react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { PickDialog } from '../../components/app'
 import { Button } from '../../components/index'
+import { useMyPerson } from '../../lib/auth/session'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useCrawlers, useMechs, usePilots } from '../../lib/entities'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
@@ -67,6 +69,7 @@ import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { wiringCopy } from '../../messages/build-wiring'
 import { CONTAINER_MOVE } from '../../replica/provenance'
+import { holderOf } from '../../replica/replica'
 import { WritesBlockedOffline } from '../../replica/sync'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
@@ -79,6 +82,11 @@ export type AssignPickerStore = SoftLinkStore & {
   pilots?: readonly Pilot[]
   mechs?: readonly Mech[]
   crawlers?: readonly Crawler[]
+  /** Who a Game holds a unit for (`holderOf`), and who the viewer is. */
+  holders?: {
+    me: string | null
+    of: (kind: 'pilot' | 'mech', id: string) => string | null | undefined
+  }
 }
 
 /** A slot on a rail: the sheet's own kind, then the kind the slot takes. */
@@ -207,6 +215,27 @@ const crawlerCandidate = (c: Crawler): Candidate => ({
 })
 
 /**
+ * Whether a Mech of the viewer's may take this Game's Pilot (r5 B16): their
+ * own, or one assigned to nobody whose Mech, if any, is theirs or this one.
+ * The room refuses the rest (`PAIRED_ELSEWHERE`), so they are not offered.
+ */
+function mayTakePilot(
+  pilotId: string,
+  mechId: string,
+  links: readonly SoftLink[],
+  holders: NonNullable<AssignPickerStore['holders']>
+): boolean {
+  const mine = (kind: 'pilot' | 'mech', id: string) => {
+    const holder = holders.of(kind, id)
+    return holder === undefined || holder === holders.me
+  }
+  if (mine('pilot', pilotId)) return true
+  if (holders.of('pilot', pilotId) !== null) return false
+  const flies = links.find((l) => l.type === 'mech-to-pilot' && l.to.id === pilotId)?.from.id
+  return flies === undefined || flies === mechId || mine('mech', flies)
+}
+
+/**
  * The empty-list copy: nothing of this kind where the subject lives at all, or
  * nothing left once the slot's occupants are excluded.
  */
@@ -281,6 +310,8 @@ export function AssignPicker({
   const livePilots = usePilots()
   const liveMechs = useMechs()
   const liveCrawlers = useCrawlers()
+  const me = useMyPerson()
+  const liveLinks = useUnits((s) => s.softLinks)
 
   const copy = SLOT_COPY[`${subject.type}.${pick}`]
   if (!copy) {
@@ -298,9 +329,18 @@ export function AssignPicker({
     const here = scope === null ? list : list.filter((e) => sameContainer(containerOf(e), scope))
     return { inScope: here.length, rows: here.filter((e) => !excluded.has(e.id)).map(toRow) }
   }
+  // A Mech in a Game is offered only the Pilots it may take (r5 B16).
+  const holders = store?.holders ?? { me, of: holderOf }
+  const links = store?.softLinks ?? liveLinks
+  const pilotsHere = (store?.pilots ?? livePilots).filter(
+    (p) =>
+      scope?.kind !== 'game' ||
+      subject.type !== 'mech' ||
+      mayTakePilot(p.id, subject.id, links, holders)
+  )
   const { inScope, rows: candidates } =
     pick === 'pilot'
-      ? offer(store?.pilots ?? livePilots, pilotCandidate)
+      ? offer(pilotsHere, pilotCandidate)
       : pick === 'mech'
         ? offer(store?.mechs ?? liveMechs, mechCandidate)
         : offer(store?.crawlers ?? liveCrawlers, crawlerCandidate)
@@ -412,7 +452,9 @@ export function AssignPicker({
         onSelect={setSelectedId}
         note={
           movesIn === null
-            ? copy.note
+            ? scope?.kind === 'game' && subject.type === 'mech' && pick === 'pilot'
+              ? wiringCopy('aMechCarriesOnePilotHere')
+              : copy.note
             : cleared.length > 0
               ? ROW_ACTION_COPY.enterGame({
                   name: movingName,
