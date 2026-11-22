@@ -253,6 +253,19 @@ describe('+ From the reference', () => {
     expect(entity.name).toBe('Trooper')
   })
 
+  test('a search that finds nothing in this kind moves to the first kind that finds it (r6 E8)', async () => {
+    await renderTab([])
+    const picker = await openPicker()
+    const search = screen.getByRole('textbox', { name: 'Search' })
+    await act(async () => {
+      fireEvent.change(search, { target: { value: 'mule' } })
+    })
+    // No NPC is a Mule; two Mechs are (LG6-22).
+    expect(picker.getByRole('button', { name: 'Mechs 2' }).getAttribute('aria-pressed')).toBe(
+      'true'
+    )
+  })
+
   test('the kinds sit above the search; a kind switches what it searches', async () => {
     await renderTab([])
     const picker = await openPicker()

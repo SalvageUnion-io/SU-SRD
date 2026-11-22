@@ -366,7 +366,8 @@
 }
 
 .su-searcher__item.su-entity-mini-line > .su-badge-stamp,
-.su-searcher__item.su-entity-mini-line > .su-stat-cell {
+.su-searcher__item.su-entity-mini-line > .su-stat-cell,
+.su-searcher__item.su-entity-mini-line > .su-searcher__add {
   align-self: center;
   flex: none;
 }
