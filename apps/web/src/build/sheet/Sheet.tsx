@@ -493,10 +493,7 @@ export function Sheet({
     ) : null
   const band: SheetBand = {
     game,
-    doorNote:
-      modeToggle !== null && play?.gameId != null && game
-        ? buildSheetCopy('soloIsNowTable', { game: game.name })
-        : undefined,
+    // The Play tab is the door; no line under it repeats it (r6 C4).
     actions:
       modeToggle === null && bandActions === undefined ? undefined : (
         <>

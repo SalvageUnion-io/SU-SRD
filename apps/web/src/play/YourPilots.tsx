@@ -62,6 +62,8 @@ export function YourPilots({ games }: { games: readonly ShelfGame[] | undefined 
         menu: [],
         play: cockpitPath(p.id),
         playGameId: p.gameId ?? null,
+        // While its Game's session is live, the Game's card above has the one Join (r6 C4).
+        playYieldsWhileLive: true,
       }))}
     />
   )

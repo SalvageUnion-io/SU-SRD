@@ -68,6 +68,9 @@ import { useStopSign } from './useStopSign'
 
 const STRONG = { fontWeight: tokens.weight.bold } satisfies React.CSSProperties
 
+/** The Games page: each Game's card carries its one Join session (r6 C4). */
+const GAMES_HUB = /^\/games\/?$/
+
 /** The Mediator's screen, whose Propose dock says every answer (r5 B7). */
 const MEDIATE_PATH = /\/mediate\/?$/
 
@@ -76,6 +79,9 @@ const dismissed = new Set<string>()
 
 /** Where a dismissed hand over is remembered: it stays news for days, a tab does not. */
 const ROLE_SEEN = 'su-role-notice-seen'
+
+/** The Games page is open (`GAMES_HUB`). */
+const onHub = (pathname: string) => GAMES_HUB.test(pathname)
 
 /** The hand overs this browser has dismissed, by event id. */
 function seenRoles(): string[] {
@@ -303,7 +309,8 @@ function GameNotices({
       roleId: mediator
         ? (pinnedRole(events, new Set([...dismissed, ...seenRoles()]), viewerId, now)?._id ?? null)
         : null,
-      sessionLive: !inPlay && !ownPage && !dismissed.has(`session:${gameId}:live`),
+      sessionLive:
+        !inPlay && !ownPage && !onHub(pathname) && !dismissed.has(`session:${gameId}:live`),
       sessionEnded: onGamePages(pathname, gamePath(gameId), pilotRoots),
     }
     for (const event of next.toast) {
@@ -504,7 +511,7 @@ function GameNotices({
       sig: `role:${role._id}:${there}`,
     })
   }
-  if (live && !inPlay && !ownPage && !dismissed.has(`${sessionKey}:live`)) {
+  if (live && !inPlay && !ownPage && !onHub(pathname) && !dismissed.has(`${sessionKey}:live`)) {
     notices.push({
       key: `${sessionKey}:live`,
       kind: 'session',

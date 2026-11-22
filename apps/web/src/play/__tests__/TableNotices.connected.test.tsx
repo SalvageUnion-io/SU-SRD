@@ -529,6 +529,11 @@ describe('the pinned notices', () => {
     await renderNotices({ 'session.state': { live: true, startedAt: 7 } }, '/pilots/p1/play')
     expect(notice('session')).toBeNull()
   })
+
+  test('on the Games page the Game’s card is the one Join: no strip repeats it (r6 C4)', async () => {
+    await renderNotices({ 'session.state': { live: true, startedAt: 7 } }, '/games/')
+    expect(notice('session')).toBeNull()
+  })
 })
 
 describe('toasts', () => {
