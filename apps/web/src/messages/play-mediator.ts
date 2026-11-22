@@ -68,6 +68,7 @@ export const mediatorCopy = messages({
     'The table is on step {value} of {count}. Everyone goes back to their seat. Beginning again starts from the first step, and upkeep is due again in {upkeepStepName}.',
   endDowntime: 'End Downtime',
   tellTheTable: 'Tell the table',
+  sendTheBriefing: 'Send the briefing',
   more: 'More',
   gamePage: 'Game page',
   downtimeStepOf: 'Downtime · Step {value} of {count}',
