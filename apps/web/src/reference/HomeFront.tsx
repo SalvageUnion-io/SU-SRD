@@ -17,6 +17,17 @@ import { DISCORD_INSTALL_URL } from '../lib/constants'
 import { BUY_HREF } from '../lib/docPages'
 import { referenceCopy } from '../messages/reference'
 
+/**
+ * THE RULING (r6 G14, SB6-16, RR6-20), in one place: whether the show turns by
+ * itself. `false`, the recommended choice: it holds still (Previous and Next
+ * still turn it by hand), and Start building and Look something up stand
+ * outside the slides, always in place, so nothing moves behind an open search
+ * list and the button a newcomer reaches for never turns away. `true`, the
+ * other choice: it turns every step, held while pointed at or focused, with
+ * its Pause, and the two actions ride the pitch's slide.
+ */
+const HERO_TURNS_ITSELF: boolean = false
+
 type Slide = {
   key: string
   /** The slide's ground: a painting from the books. */
@@ -106,6 +117,36 @@ function heroSlides(): Slide[] {
   ]
 }
 
+/**
+ * The two things a visit is for: build, or look something up. "Look something
+ * up" opens the Reference, as its link says: the search band is already in
+ * view below.
+ */
+function HeroActs() {
+  return (
+    <div className="su-front__show-acts">
+      <Button
+        href={appPath('/')}
+        linkAs="a"
+        variant="primary"
+        size="full"
+        className="su-front__show-act"
+      >
+        {referenceCopy('showStart')}
+      </Button>
+      <Button
+        href="/reference/"
+        linkAs="a"
+        variant="default"
+        size="full"
+        className="su-front__show-act"
+      >
+        {referenceCopy('showLookUp')}
+      </Button>
+    </div>
+  )
+}
+
 /** The home's search band under the show: an ink ground of its own (chrome K1), its field the child. */
 export function HomeSearchBand({ children }: { children: ReactNode }) {
   return (
@@ -134,6 +175,8 @@ export function HomeHero() {
     <section
       className="su-front__show"
       aria-label={referenceCopy('siteName')}
+      // Held from the first paint: the show turns only by hand (`HERO_TURNS_ITSELF`).
+      data-paused={HERO_TURNS_ITSELF ? undefined : ''}
       style={{ '--su-show-count': slides.length } as CSSProperties}
     >
       <ul className="su-front__show-slides">
@@ -170,10 +213,13 @@ export function HomeHero() {
                   data-ground="ink"
                 >
                   <p className="su-front__show-pitch">{referenceCopy('pitchValue')}</p>
-                  {/* The two things a visit is for. "Look something up" opens
-                      the Reference, as its link says: the search band is
-                      already in view below. */}
-                  <div className="su-front__show-acts">
+                  {HERO_TURNS_ITSELF && <HeroActs />}
+                </div>
+              ) : slide.kind === 'quote' ? (
+                <div className="su-front__show-plate su-front__show-plate--quote su-grain--paper">
+                  <Tagline />
+                  {/* Start building stands outside the slides when the show holds still. */}
+                  {HERO_TURNS_ITSELF && (
                     <Button
                       href={appPath('/')}
                       linkAs="a"
@@ -183,29 +229,7 @@ export function HomeHero() {
                     >
                       {referenceCopy('showStart')}
                     </Button>
-                    <Button
-                      href="/reference/"
-                      linkAs="a"
-                      variant="default"
-                      size="full"
-                      className="su-front__show-act"
-                    >
-                      {referenceCopy('showLookUp')}
-                    </Button>
-                  </div>
-                </div>
-              ) : slide.kind === 'quote' ? (
-                <div className="su-front__show-plate su-front__show-plate--quote su-grain--paper">
-                  <Tagline />
-                  <Button
-                    href={appPath('/')}
-                    linkAs="a"
-                    variant="primary"
-                    size="full"
-                    className="su-front__show-act"
-                  >
-                    {referenceCopy('showStart')}
-                  </Button>
+                  )}
                 </div>
               ) : (
                 <div className="su-front__show-plate su-grain--paper">
@@ -236,6 +260,12 @@ export function HomeHero() {
           <h1 className={cn('su-front__show-name su-grain--paper', capsLabel())}>
             {referenceCopy('siteName')}
           </h1>
+          {/* The two things a visit is for, under the name, in place on every slide. */}
+          {!HERO_TURNS_ITSELF && (
+            <div className="su-front__show-fixed su-grain--paper" data-ground="ink">
+              <HeroActs />
+            </div>
+          )}
         </div>
         {/* A returning reader's own doors, served hidden and shown while
             somebody is signed in (`html[data-srd-signed-in]`, as Sign in
@@ -280,16 +310,19 @@ export function HomeHero() {
         >
           <ChevronLeft size={iconSize.full} aria-hidden="true" />
         </Button>
-        <Toggle
-          pressed={false}
-          size="full"
-          className="su-front__show-control su-front__show-pause"
-          aria-label={referenceCopy('showPause')}
-          data-show-pause=""
-        >
-          <Pause size={iconSize.full} aria-hidden="true" className="su-front__show-pause-icon" />
-          <Play size={iconSize.full} aria-hidden="true" className="su-front__show-play-icon" />
-        </Toggle>
+        {/* A show that holds still has nothing to pause. */}
+        {HERO_TURNS_ITSELF && (
+          <Toggle
+            pressed={false}
+            size="full"
+            className="su-front__show-control su-front__show-pause"
+            aria-label={referenceCopy('showPause')}
+            data-show-pause=""
+          >
+            <Pause size={iconSize.full} aria-hidden="true" className="su-front__show-pause-icon" />
+            <Play size={iconSize.full} aria-hidden="true" className="su-front__show-play-icon" />
+          </Toggle>
+        )}
         <Button
           variant="default"
           size="full"

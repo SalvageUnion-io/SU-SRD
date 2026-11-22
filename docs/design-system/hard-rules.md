@@ -56,7 +56,7 @@ What frames the content (ruleset §4; R16).
 
 - **K1 One ground signal** — a surface declares its ground once (`data-ground="paper" | "ink"` on its frame); components read it in CSS, never via a prop. Paper on ink is `--color-paper-NN` alone.
 - **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, in media and container queries and JS. Exceptions: the stat column's cell count, a Compact's art by room (E10).
-- **K3 Motion** — `--dur-fast` (120ms) for a state change, `--dur-base` (150ms) for a move, one easing, `--ease`. A loop is a loading mark (`--dur-loop`, 2s) or the home's slideshow (a slide out of turn hidden; a Pause), only under `prefers-reduced-motion: no-preference`.
+- **K3 Motion** — `--dur-fast` (120ms) for a state change, `--dur-base` (150ms) for a move, one easing, `--ease`. A loop is a loading mark (`--dur-loop`, 2s) or the home's slideshow (off-turn slides hidden; hand-turned), only under `prefers-reduced-motion: no-preference`.
 - **K4 Lift and layers** — one lift, `--shadow-lift`, for what floats (popup, Peek, toast, dialog); the focus ring is the other shadow. Popups are 3px (§4.4). Above the page, z-index is `layer`'s (`--z-*`); a literal above 3 fails.
 - **K5 A notice has one job** — a toast reports an act done, from one `Toaster` (with an action: 20s, held on hover or focus, max 3); a `Banner` a lasting state; a `FieldError` a consequence there. Offline: the bar's `SyncBadge`. Copied is the copy control's `Check`, untoasted. No notice wears a roll-tier colour (§3.4).
 - **K6 One loading voice** — `Pending` in a screen, `Skeleton` a known shape, `RoutePending` a route; "Loading <thing>…" (search: "Searching…"), in `loadingCopy` alone; only K3's loops are `@keyframes`.
