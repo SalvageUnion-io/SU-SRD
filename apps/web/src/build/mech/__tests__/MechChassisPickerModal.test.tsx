@@ -29,7 +29,7 @@ function twoChassis(): [{ name: string }, { name: string }] {
 }
 
 function renderPicker(
-  onConfirm: (ref: string) => void = () => {},
+  onConfirm: (ref: string, keep?: boolean) => void = () => {},
   loadout: { systems: string[]; modules: string[] } = { systems: [], modules: [] },
   onOpenChange: (open: boolean) => void = () => {}
 ) {
@@ -119,6 +119,23 @@ describe('MechChassisPickerModal', () => {
       fireEvent.click(within(bar).getByRole('button', { name: 'Choose' }))
       expect(seen).toEqual([nameToSlug(other.name)])
       expect(closed).toEqual([false])
+    },
+    RENDER_TIMEOUT_MS
+  )
+
+  it(
+    'beside what will not fit, offers to keep everything over the slots (r5 C10)',
+    async () => {
+      const seen: [string, boolean | undefined][] = []
+      const small = SalvageUnionReference.Systems.all().find((s) => s.slotsRequired === 1)
+      if (!small) throw new Error('no one-slot system')
+      const { other } = renderPicker((ref, keep) => seen.push([ref, keep]), {
+        systems: new Array<string>(60).fill(nameToSlug(small.name)),
+        modules: [],
+      })
+      await openInSearcher(other.name)
+      fireEvent.click(screen.getByRole('button', { name: 'Keep everything (rule breaking)' }))
+      expect(seen).toEqual([[nameToSlug(other.name), true]])
     },
     RENDER_TIMEOUT_MS
   )

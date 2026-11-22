@@ -10,6 +10,8 @@ export const mechCopy = messages({
   chosen: 'Chosen',
   yourLoadoutStaysWhereItFits: 'Your loadout stays where it fits the new chassis.',
   willNotFit: 'Will not fit, and comes off: {names}. The rest stays.',
+  keepEverything: 'Keep everything (rule breaking)',
+  chassisChangedKeptAll: 'Chassis changed to {name}. Everything stays, over its slots.',
   chassisChanged: 'Chassis changed to {name}.',
   chassisChangedLeftOff: 'Chassis changed to {name}. Left off: {names}.',
   noMatchingChassis: 'No matching chassis.',

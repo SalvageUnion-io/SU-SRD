@@ -10,7 +10,8 @@
  *
  * The loadout goes with the mech where it fits the new chassis
  * (`loadoutOnChassis`); the chassis being read says, beside its Choose, what
- * will not fit. Choose is the one confirming press (r2 G3: a picker that holds
+ * will not fit, and offers to keep everything instead, over the slots (r5
+ * C10). Choose is the one confirming press (r2 G3: a picker that holds
  * exactly one thing has no Apply step); the caller offers Undo.
  */
 
@@ -27,8 +28,11 @@ type MechChassisPickerModalProps = {
   onOpenChange: (open: boolean) => void
   /** The mech's installed loadout, to say what a chassis will not hold. */
   loadout: { systems: readonly string[]; modules: readonly string[] }
-  /** Fired with the new chassis slug on Apply. */
-  onConfirm: (chassisRef: string) => void
+  /**
+   * Fired with the new chassis slug on Choose; `keep` when the player keeps
+   * the whole loadout, over the new chassis's slots (r5 C10).
+   */
+  onConfirm: (chassisRef: string, keep?: boolean) => void
 }
 
 export function MechChassisPickerModal({
@@ -77,9 +81,23 @@ export function MechChassisPickerModal({
         emptyMessage={mechCopy('noMatchingChassis')}
         onClose={() => onOpenChange(false)}
         focusExtra={(item) => {
-          const left = leftOff(nameToSlug(item.name))
+          const ref = nameToSlug(item.name)
+          const left = leftOff(ref)
           return left.length === 0 ? undefined : (
-            <Text variant="hint">{mechCopy('willNotFit', { names: left.join(', ') })}</Text>
+            <>
+              <Text variant="hint">{mechCopy('willNotFit', { names: left.join(', ') })}</Text>
+              {/* The sheet lets a build go over its slots everywhere else (r5 C10). */}
+              <Button
+                variant="ghost"
+                size="compact"
+                onClick={() => {
+                  onConfirm(ref, true)
+                  onOpenChange(false)
+                }}
+              >
+                {mechCopy('keepEverything')}
+              </Button>
+            </>
           )
         }}
         railActions={
