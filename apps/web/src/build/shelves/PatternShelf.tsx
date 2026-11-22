@@ -14,6 +14,7 @@ import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { nextSort, sortShelfRows } from './mechShelf.model'
 import { patternLine } from './patternShelf.model'
+import { findMatches, useShelfFind } from './ShelfFind'
 import { ShelfLedger } from './ShelfLedger'
 import { PATTERN_COLUMNS } from './shelfColumns'
 
@@ -40,11 +41,11 @@ export function PatternShelf({
   }
 }) {
   const [sort, setSort] = useState<LedgerSort | undefined>(undefined)
-  const rows = patterns.map((pattern) => ({
-    pattern,
-    name: pattern.name,
-    ...patternLine(pattern, sharing, games),
-  }))
+  const find = useShelfFind(buildShelvesCopy('findAPattern'), patterns.length)
+  const rows = patterns
+    .map((pattern) => ({ pattern, name: pattern.name, ...patternLine(pattern, sharing, games) }))
+    // Its find box keeps the lines whose name, chassis or description match (r5 D4).
+    .filter((row) => findMatches(find.query, [row.name, row.values.chassis, row.pattern.notes]))
   return (
     <ShelfLedger
       id="shelf-patterns"
@@ -53,7 +54,12 @@ export function PatternShelf({
       homebrew
       columns={PATTERN_COLUMNS}
       action={action}
-      empty={buildShelvesCopy('noPatternsYet')}
+      empty={
+        find.query.trim()
+          ? buildShelvesCopy('noneFound', { query: find.query.trim() })
+          : buildShelvesCopy('noPatternsYet')
+      }
+      find={find.field}
       sort={sort}
       onSort={(key) => setSort(nextSort(sort, key))}
       rows={sortShelfRows(rows, sort, (row, key) => row.values[key]).map(

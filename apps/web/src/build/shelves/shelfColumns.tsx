@@ -40,6 +40,8 @@ export const PILOT_COLUMNS = [
 const spare = (column: LedgerColumn): LedgerColumn => ({ ...column, spare: true })
 export const MECH_COLUMNS = [
   word('chassis', buildShelvesCopy('chassis'), true),
+  // Which pattern it was built from, and it sorts (r5 D4).
+  word('pattern', buildShelvesCopy('pattern')),
   GAME,
   fig(buildShelvesCopy('tl'), buildShelvesCopy('techLevel')),
   spare(fig(VITAL.sp, buildShelvesCopy('structurePoints'))),
