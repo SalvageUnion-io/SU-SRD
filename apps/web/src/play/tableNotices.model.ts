@@ -54,7 +54,9 @@ function needsALook(event: TableEvent): boolean {
  * heard. After that an event toasts when it needs a look (`needsALook`) and is
  * new, or a rewrite changed its line (a revealed roll: the toast, keyed by the
  * event's id, updates in place). Never the viewer's own act, which their
- * screen already showed them.
+ * screen already showed them, and never a Mediator's own copy of a roll (a
+ * private or veiled one): those are the Feed's, so a hand over, which serves
+ * the new Mediator every earlier one at once, replays nothing (r3 A2).
  */
 export function eventsToToast(
   events: readonly TableEvent[],
@@ -66,6 +68,7 @@ export function eventsToToast(
   const toast = events
     .filter((event) => heard.get(event._id) !== event.text)
     .filter((event) => event.actorId !== viewerId)
+    .filter((event) => event.private !== true && event.veiled !== true)
     // A hand over to the viewer needs their look: the notices word it ("You now mediate").
     .filter((event) => needsALook(event) || (event.kind === 'role' && event.about === viewerId))
     .sort((a, b) => a.ts - b.ts)

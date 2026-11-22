@@ -86,6 +86,13 @@ offline queue would each be one more mechanism.
    assignment's line may carry `about`, the member it was taken from, whose
    screen says so itself and skips the line's toast (optional, additive). No
    schema change: a room that has none reads as an empty feed.
+   Amended 2026-11-22 (r3 A5, K6): a proposal's line may carry `answer`,
+   `accepted` when its player accepted it and `undone` when they wrote back
+   what the sheet held before (the room reads that off the op log,
+   `proposals.ts` `undoes`; `ops.sent` then serves the row as `undone`).
+   "Last session" counts both as changes to vitals. Optional and additive: a
+   line without it reads as before. A member the Organiser removed is a line
+   too, as a join is.
 8. **ADR-007 maps directly.** A destructive change is only ever an op its
    player authors; automation authors none.
 9. **Offline, ops wait in an outbox** (Jrvs 2026-10-25: play your own units

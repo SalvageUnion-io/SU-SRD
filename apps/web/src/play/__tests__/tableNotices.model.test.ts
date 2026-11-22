@@ -71,6 +71,58 @@ describe('eventsToToast', () => {
     ])
   })
 
+  test('a hand over replays nothing: a Mediator’s own copy of a private or veiled roll never toasts (r3 A2)', () => {
+    const { heard } = eventsToToast(
+      [
+        event({
+          _id: 'v',
+          kind: 'roll',
+          text: 'Mediator rolled · 9',
+          actorId: 'old',
+          mediator: true,
+        }),
+      ],
+      null,
+      'me'
+    )
+    // The role arrives, and with it every earlier roll as a Mediator reads it.
+    const crossed = [
+      event({
+        _id: 'v',
+        kind: 'roll',
+        text: 'Old · Veteran · Rifle · 9',
+        actorId: 'old',
+        veiled: true,
+      }),
+      event({
+        _id: 'p',
+        kind: 'roll',
+        text: 'Old · Vex · Rifle · 3',
+        actorId: 'old',
+        private: true,
+      }),
+      event({
+        _id: 'p2',
+        kind: 'roll',
+        text: 'Mediator · Vex · 15',
+        actorId: 'old',
+        private: true,
+        mediator: true,
+      }),
+    ]
+    expect(eventsToToast(crossed, heard, 'me').toast).toEqual([])
+    // A revealed one is the table's, and toasts.
+    const shown = event({
+      _id: 'p',
+      kind: 'roll',
+      text: 'Old · Vex · Rifle · 3',
+      actorId: 'old',
+      revealed: true,
+      mediator: true,
+    })
+    expect(eventsToToast([shown], heard, 'me').toast).toEqual([shown])
+  })
+
   test('never my own act, and never the Stop Sign, which the banner says', () => {
     const { heard } = eventsToToast([], null, 'me')
     const events = [

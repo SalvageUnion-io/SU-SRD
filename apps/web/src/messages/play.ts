@@ -106,6 +106,7 @@ export const playCopy = messages({
   privateRolls: 'Private rolls',
   mediatorRolled: 'Mediator rolled',
   namesHidden: 'Players see the result, not the names',
+  onlyMediatorSees: 'Only the Mediator sees this roll',
   reveal: 'Reveal',
   revealWhat: 'Reveal to the table: {text}',
   revealDidNotLand: 'That roll was not revealed. Try again.',
@@ -347,6 +348,7 @@ export const playCopy = messages({
   youNowMediateBody:
     'The table and its sessions are yours to run. Notes its last Mediator wrote stay theirs.',
   youNowMediate: 'You now mediate this Game.',
+  youNowMediateLine: 'You now mediate this Game',
   proposalIn: 'Proposal · {game}',
   answerDidNotLand: 'Your answer did not land. Try again.',
   tableNotices: 'Your Games',

@@ -9,7 +9,8 @@ import type { GameStore } from './store'
  * op, so a row about a unit is not kept: its history is `units.history`.
  *
  * A roll logged `private` (ADR-051 §9a) is the Mediator's own: only a
- * Mediator and whoever rolled it read it back.
+ * Mediator and whoever rolled it read it back, until a Mediator reveals it
+ * (`reveal`), after which it is the table's like any other roll.
  *
  * A roll logged `veiled` (ADR-051 §9b) is the Opposition's: the row keeps the
  * whole line, and the room serves a player the veiled line in its place (that
@@ -65,6 +66,17 @@ export function rollLineFor(
   return mediates ? { description: whole, veiled: true } : { description: roll.veiled }
 }
 
+/** Whether a roll's row is still kept from the players whole: private, and never revealed (r3 A1). */
+export function isPrivateRoll(after: unknown): boolean {
+  const roll = after as StoredRoll | null
+  return roll?.private === true && roll.revealed !== true
+}
+
+/** Whether a Mediator showed the table this roll (`reveal`). */
+export function isRevealedRoll(after: unknown): boolean {
+  return (after as StoredRoll | null)?.revealed === true
+}
+
 export type AlertRow = { _id: string; message: string; ts: number; actorId: string | null }
 
 export class GameLog {
@@ -97,7 +109,10 @@ export class GameLog {
     })
   }
 
-  /** Show the table a veiled roll whole (ADR-051 §9b): the Mediator's, and it stays shown. */
+  /**
+   * Show the table a roll whole (ADR-051 §9b): a veiled one with its names, a
+   * private one at all (r3 A1). The Mediator's, and it stays shown.
+   */
   reveal(actor: string, rollId: string): void {
     this.store.sql.transaction(() => {
       this.store.requireMediator(actor)
@@ -106,7 +121,7 @@ export class GameLog {
         rollId
       )[0]
       const after = row === undefined ? null : (parsed(row.after) as StoredRoll | null)
-      if (after === null || typeof after.veiled !== 'string') {
+      if (after === null || (typeof after.veiled !== 'string' && after.private !== true)) {
         throw new RoomRefusal('That is not a roll to reveal')
       }
       this.store.rows(
@@ -121,9 +136,9 @@ export class GameLog {
   rolls(actor: string): RollRow[] {
     const mediates = this.store.member(actor)?.mediator === true
     return this.newest(actor, 'roll').flatMap((row): RollRow[] => {
-      const after = parsed(row.after) as { description?: unknown; private?: unknown } | null
+      const after = parsed(row.after)
       const actorId = row.actor_id === null ? null : String(row.actor_id)
-      const hidden = after?.private === true
+      const hidden = isPrivateRoll(after)
       if (hidden && !mediates && actorId !== actor) return []
       return [
         {

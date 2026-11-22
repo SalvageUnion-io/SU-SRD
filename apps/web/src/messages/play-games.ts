@@ -104,6 +104,7 @@ export const playGamesCopy = messages({
   sessionSince: 'Started {start}.',
   sessionFromTo: '{start} to {end}.',
   sessionCounts: ' Rolls: {rolls}. Vitals changes: {changes}.',
+  sessionPrivateRolls: ' Private rolls: {count}.',
   showAllLines: 'Show all {count}',
   proposalsAwaitingYourAnswer: 'Proposals awaiting your answer',
   apply: 'Apply',
@@ -149,7 +150,7 @@ export const playGamesCopy = messages({
   handTheTableOver: 'Hand the table over?',
   whoeverMediatesNowStandsDown: ' Whoever mediates now stands down.',
   handOverGoes:
-    'Goes across: the table, the opposition on its field, and the session list with its days and titles.',
+    'Goes across: the table, the opposition on its field, the private rolls on the Feed, and the session list with its days and titles.',
   handOverStays:
     'Stays with you: your Game notes and private session notes, and the encounters and NPCs in your Mediator’s Kit. The new Mediator starts with empty notes.',
   whoMediates: 'Who mediates',

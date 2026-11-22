@@ -476,9 +476,12 @@ export class GameRoom extends Room {
         at,
       }))
     )
+    // The table is told of a removal, as it was of the joining (r3 A4); leaving is one's own.
+    const told = actor === userId ? [] : [this.logic.events.removed(actor, userId, at)]
     this.logic.roster.forgetMember(userId)
     await accountHome(userId).leftGame(this.gameId)
     this.dropStrangers()
+    this.mirror(told)
     return { ok: true, value: null }
   }
 

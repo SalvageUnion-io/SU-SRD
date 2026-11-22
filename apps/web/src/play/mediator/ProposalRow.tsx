@@ -6,7 +6,7 @@
  * "Judge · HP → 4 · "Ejection burn"", when, and the state in words, on a
  * `FeedLine`. A proposal stores no before (ADR-030 §4, as amended), so a sent
  * row shows only the value it asks for. State is a treatment, never a hue
- * (ruleset §3.3): a Superseded or Withdrawn row is struck through, and every
+ * (ruleset §3.3): a Superseded, Withdrawn or Undone row is struck through, and every
  * state is its word. A Pending row offers Withdraw (r2 C7) where the caller
  * may take it back.
  */
@@ -35,7 +35,11 @@ export function ProposalRow({
   const line = proposalLine(proposal)
   return (
     <FeedLine
-      struck={proposal.state === 'superseded' || proposal.state === 'withdrawn'}
+      struck={
+        proposal.state === 'superseded' ||
+        proposal.state === 'withdrawn' ||
+        proposal.state === 'undone'
+      }
       end={
         <>
           {showTime && <FeedTime ts={proposal.ts} format="ago" now={now} />}

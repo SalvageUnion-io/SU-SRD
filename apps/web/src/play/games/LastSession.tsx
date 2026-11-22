@@ -10,7 +10,9 @@ import { FeedLine, FeedList, FeedTime } from '../../components/app'
 import { Button, SlabSection, Text } from '../../components/index'
 import { formatDateTime } from '../../lib/formatDate'
 import { playGamesCopy } from '../../messages/play-games'
+import { useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
+import { tableLine } from '../feed.model'
 import { HUB_BODY } from './hubStyles.model'
 import { lastSession } from './lastSession.model'
 
@@ -19,6 +21,7 @@ const SHOWN = 12
 
 export function LastSession({ gameId }: { gameId: string }) {
   const events = useTableRead('changeLog.events', { gameId })
+  const viewerId = useViewerId()
   const [all, setAll] = useState(false)
   const record = events === undefined ? null : lastSession(events)
   if (record === null) return null
@@ -38,12 +41,14 @@ export function LastSession({ gameId }: { gameId: string }) {
               end: formatDateTime(record.endedAt),
             })}
         {playGamesCopy('sessionCounts', { rolls: record.rolls, changes: record.changes })}
+        {record.privateRolls > 0 &&
+          playGamesCopy('sessionPrivateRolls', { count: record.privateRolls })}
       </Text>
       {lines.length > 0 && (
         <FeedList label={playGamesCopy('lastSession')}>
           {lines.map((line) => (
             <FeedLine key={line._id} end={<FeedTime ts={line.ts} format="clock" />}>
-              {line.text}
+              {tableLine(line, viewerId)}
             </FeedLine>
           ))}
         </FeedList>

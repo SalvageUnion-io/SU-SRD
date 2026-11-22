@@ -646,6 +646,28 @@ describe('the Opposition', () => {
     expect(sent()).toEqual([{ name: 'changeLog.reveal', args: { rollId: 'e-veiled' } }])
   })
 
+  test('a private roll says only the Mediator sees it, never that players saw the result, and Reveal sends it (r3 A1)', async () => {
+    await renderCockpit({
+      'changeLog.events': [
+        {
+          _id: 'e-private',
+          ts: NOW - 1000,
+          kind: 'roll',
+          text: 'Mediator · Strikebreaker · Fists · 15 · Success',
+          actorId: 'u-gm',
+          private: true,
+          veiled: true,
+        },
+      ],
+    })
+    const line = feedLines().find((l) => l.includes('Strikebreaker · Fists')) ?? ''
+    expect(line).toContain('· Private')
+    expect(line).toContain('Only the Mediator sees this roll')
+    expect(line).not.toContain('Players see the result')
+    await click(named(/^Reveal to the table: /))
+    expect(sent()).toEqual([{ name: 'changeLog.reveal', args: { rollId: 'e-private' } }])
+  })
+
   test('Private rolls on: the roll is logged private, reads Private on the Feed and never reaches Discord', async () => {
     await renderCockpit()
     await click(named('Private rolls'))
