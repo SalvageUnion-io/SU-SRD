@@ -22,8 +22,10 @@ type ArrivalDeps = {
 
 /** The new page's heading: the first h1 in its `<main>` that is not a wizard step's. */
 function arrivedHeading(): HTMLElement | null {
-  for (const h1 of document.querySelectorAll<HTMLElement>('main h1')) {
-    if (h1.closest('.su-wiz-shell') === null) return h1
+  for (const main of document.getElementsByTagName('main')) {
+    for (const h1 of main.getElementsByTagName('h1')) {
+      if (h1.closest('.su-wiz-shell') === null) return h1
+    }
   }
   return null
 }

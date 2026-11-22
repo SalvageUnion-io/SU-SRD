@@ -33,8 +33,20 @@ const ACTS = {
   gap: tokens.space[8],
 } satisfies CSSProperties
 
-/** Under the step's title: `active` is the step's index. */
-export function WizStartLines({ active }: { active: number }) {
+/**
+ * Under the step's title: `active` is the step's index, `tryNote` the shell's
+ * own line (signed out: saving needs a sign-in), said last. A redesign shows
+ * only that line.
+ */
+export function WizStartLines({
+  active,
+  tryNote,
+  redesign,
+}: {
+  active: number
+  tryNote?: string | undefined
+  redesign: boolean
+}) {
   const starts = useContext(WizStartsContext)
   // Read as the wizard opens: a draft it restored, offered on the step it
   // reopened on until answered or left.
@@ -42,7 +54,8 @@ export function WizStartLines({ active }: { active: number }) {
   const [draft, setDraft] = useState(
     () => starts !== null && readWizardDraft(wizardDraftKey(starts.kind)) !== null
   )
-  if (starts === null) return null
+  const note = tryNote ? <p style={tryNoteStyle}>{tryNote}</p> : null
+  if (starts === null || redesign) return note
   const needs = (label: string) =>
     starts.signedOut ? buildWizardCopy('startNeedsSignIn', { label }) : label
   return (
@@ -82,6 +95,7 @@ export function WizStartLines({ active }: { active: number }) {
           {starts.signedOut && <span>{buildWizardCopy('startsSaveAtOnce')}</span>}
         </p>
       )}
+      {note}
     </>
   )
 }

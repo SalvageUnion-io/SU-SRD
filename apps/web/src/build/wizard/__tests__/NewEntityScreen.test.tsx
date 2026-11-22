@@ -240,7 +240,7 @@ describe('NewEntityScreen — mode routing', () => {
       <NewEntityScreen
         kind="mech"
         mode={undefined}
-        wizard={<WizStartLines active={0} />}
+        wizard={<WizStartLines active={0} redesign={false} />}
         onModeChange={(next) => calls.push(next)}
         onCreated={noop}
         forPilot="Nia Vale"
@@ -258,7 +258,7 @@ describe('NewEntityScreen — mode routing', () => {
       <NewEntityScreen
         kind="pilot"
         mode={undefined}
-        wizard={<WizStartLines active={0} />}
+        wizard={<WizStartLines active={0} redesign={false} />}
         onModeChange={noop}
         onCreated={noop}
       />
@@ -499,7 +499,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
       <NewEntityScreen
         kind="mech"
         mode={undefined}
-        wizard={<WizStartLines active={0} />}
+        wizard={<WizStartLines active={0} redesign={false} />}
         onModeChange={noop}
         onCreated={noop}
       />
@@ -517,7 +517,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
       <NewEntityScreen
         kind="pilot"
         mode={undefined}
-        wizard={<WizStartLines active={0} />}
+        wizard={<WizStartLines active={0} redesign={false} />}
         onModeChange={noop}
         onCreated={noop}
       />
