@@ -32,7 +32,7 @@ import { APP_BASE, appPath, GAMES_ROOT, underBase } from './appBase'
 const GAMES_HOME = `${GAMES_ROOT}/`
 
 import { DOC_PAGES } from './docPages'
-import { SEARCH_PAGE, searchHref } from './searchHref'
+import { searchHref } from './searchHref'
 
 /** An exact `from → to` 301. */
 export type Move = { from: string; to: string }
@@ -137,16 +137,11 @@ export function legacyItemHref(schemaId: string, slug: string): string {
 // ---------------------------------------------------------------------------
 
 /**
- * A site page that no longer exists, and where its address lands. The search
- * page went (the bar's dropdown is the search, EDL "Which form, where"): its
- * address goes to the Reference page, and the Worker keeps the query string, so
- * `/search/?q=mule` opens the Union bar's search on "mule". The bot's page
- * moved from `/discord/` to `/bot/`, beside its terms and privacy policy.
+ * A site page that no longer exists, and where its address lands. The bot's
+ * page moved from `/discord/` to `/bot/`, beside its terms and privacy policy.
+ * (`/search/` is a page again: every result for a query, r5 E3.)
  */
-const RETIRED_SITE_PAGES: ReadonlyMap<string, string> = new Map([
-  ['/search', SEARCH_PAGE],
-  ['/discord', '/bot/'],
-])
+const RETIRED_SITE_PAGES: ReadonlyMap<string, string> = new Map([['/discord', '/bot/']])
 
 /**
  * Where a retired site page's address lands, with or without its trailing

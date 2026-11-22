@@ -190,6 +190,9 @@ export const pagesCopy = messages({
   atTheTable: 'At the table',
   chapterDescription: 'The Salvage Union {chapter}, every entry by listing: {listings}.',
   ogCardRender: 'OG card render',
+  searchResults: 'Search results',
+  searchResultsDescription:
+    'Every entry in the Salvage Union Reference that matches a search, grouped by kind.',
   homebrew: 'Homebrew',
   homebrewPatternsRow: 'Mech Patterns',
   homebrewDescription:

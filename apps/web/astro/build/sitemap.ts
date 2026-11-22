@@ -23,10 +23,15 @@ import { SITE_URL } from '../../src/lib/constants'
 
 /**
  * The pages kept out of the sitemap: the 404, the og card's screenshot
- * surface, and the app's shell, whose public pages have their own
+ * surface, the search's results page (a query's, noindexed), and the app's shell, whose public pages have their own
  * (`build/sitemap.xml`). `passesSitemapFilter` is the net under this list.
  */
-export const NOT_IN_SITEMAP: ReadonlySet<string> = new Set(['/404', '/og-card', '/build'])
+export const NOT_IN_SITEMAP: ReadonlySet<string> = new Set([
+  '/404',
+  '/og-card',
+  '/build',
+  '/search',
+])
 
 /**
  * The URL filter. It takes the FULL page URL.

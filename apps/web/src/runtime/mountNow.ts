@@ -8,7 +8,7 @@
  * visit, is only known in the browser, so that listing mounts at once rather
  * than showing the wrong cards until someone touches the rail. A hero search,
  * or the bar's on the Reference page, mounts at once for an address with a query
- * (`/reference/?q=mule`, where the retired search page's links land), to open on it.
+ * (`/reference/?q=mule`, where a 404's and a retired page's links land), to open on it.
  * A chassis's Homebrew mounts at once when the reader left its switch on, to
  * list them; off, it waits for a press, which is held and played back.
  *

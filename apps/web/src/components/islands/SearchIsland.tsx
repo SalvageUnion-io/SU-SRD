@@ -3,9 +3,9 @@
  * Union bar's field, the home and 404 hero), and the app renders the same
  * component in its bar. One engine, the build-time compact index
  * (`/search-index.json`, `searchCompactIndex`); one panel, hung under the
- * field, which is the whole search (there is no results page, EDL "Which
- * form, where"); Cmd/Ctrl+K focuses it. Every result is a reference page,
- * followed in the same tab; Enter with no row highlighted opens the first.
+ * field; Cmd/Ctrl+K focuses it. Every result is a reference page, followed in
+ * the same tab. Enter with no row highlighted, or the hero's Search, opens the
+ * page of every result (`/search/?q=`, `SearchResultsIsland`, r5 E3).
  *
  * The hero, and the bar on the Reference page, open on the address's `?q=`: the
  * retired search page's address lands on the Reference page with it
@@ -19,7 +19,7 @@ import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
-import { SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
+import { resultsHref, SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
 import { isSearchShortcut } from '../../lib/searchShortcut'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
@@ -159,6 +159,8 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     ready,
     moreRow: true,
     onSubmit: (result) => doNavigate(resultUrl(result)),
+    // Enter with no row highlighted: the page of every result.
+    onSubmitQuery: (term) => doNavigate(resultsHref(term)),
     searchFn,
   })
 
@@ -195,7 +197,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         return
       }
       if (!isOpen) return
-      // Arrows move the highlight; Enter opens it, or the first result.
+      // Arrows move the highlight; Enter opens it, or the page of every result.
       handleKeyDown(e)
     },
     [isOpen, query, clear, handleKeyDown]
@@ -332,13 +334,13 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   if (hero) {
     // The form's own submit — Enter with the listbox closed, or the Search
-    // button — opens the first result, as Enter does in the bar; with none,
-    // the field takes focus and its panel shows what the search found.
+    // button — opens the page of every result, as Enter does in the bar;
+    // with none found, the field takes focus and its panel says so.
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
-      const first = query.trim() ? results[0] : undefined
-      if (first) {
-        submit(first)
+      const term = query.trim()
+      if (term && !empty) {
+        doNavigate(resultsHref(term))
         return
       }
       // Nothing found, something close: Search takes the offer.

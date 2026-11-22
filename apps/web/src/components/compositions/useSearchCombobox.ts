@@ -86,6 +86,12 @@ export type UseSearchComboboxOptions = {
    *  when the caller wires them through submit(). */
   onSubmit: (result: SearchComboboxResult) => void
   /**
+   * Invoked instead of `onSubmit` on Enter with no row highlighted, with the
+   * trimmed query: the host's page of every result (the site's search).
+   * Without it, that Enter opens the first row.
+   */
+  onSubmitQuery?: (query: string) => void
+  /**
    * Override the entity-search implementation. Defaults to the ORM-backed
    * `search()` from `salvageunion-reference`. Pass a different implementation
    * to decouple entity search from the full ORM/dataset — e.g. the reference site's
@@ -175,6 +181,7 @@ export function useSearchCombobox({
   schemaSlots = 3,
   moreRow = false,
   onSubmit,
+  onSubmitQuery,
   searchFn = search,
 }: UseSearchComboboxOptions) {
   const [query, setQuery] = useState('')
@@ -269,12 +276,20 @@ export function useSearchCombobox({
         setSelectedIndex((prev) => Math.max(prev - 1, -1))
       } else if (e.key === 'Enter') {
         e.preventDefault()
+        if (selectedIndex < 0 && onSubmitQuery && query.trim()) {
+          onSubmitQuery(query.trim())
+          return
+        }
         const target = selectedIndex >= 0 ? results[selectedIndex] : results[0]
         if (target) submit(target)
       }
     },
-    [results, selectedIndex, submit]
+    [results, selectedIndex, submit, onSubmitQuery, query]
   )
+
+  // The rows listed, "Show more" apart: it is an act, not a result.
+  const listed = results.filter((result) => result.kind !== 'more').length
+  const more = results.find((result) => result.kind === 'more')
 
   /** Screen-reader result-count announcement (render in an aria-live region). */
   const announcement = !hasSearched
@@ -283,8 +298,8 @@ export function useSearchCombobox({
       ? query.trim()
         ? SEARCHING
         : null
-      : results.length > 0
-        ? `${results.length} result${results.length === 1 ? '' : 's'} found`
+      : listed > 0
+        ? `${listed} result${listed === 1 ? '' : 's'} found${more ? `, ${more.group}` : ''}`
         : NO_RESULTS
 
   /** Spread onto the <input>; add aria-expanded (open semantics differ per shell). */
