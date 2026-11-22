@@ -192,17 +192,16 @@ function rowLines(row: EntityLogRow, defaults: LogDefaults): LogLine[] {
   const ref = REFS[row.field]
   const text = (value: unknown) =>
     ref && typeof value === 'string' && value !== '' ? (ref.name(value) ?? value) : valueText(value)
-  // A number written over nothing started from what nothing stood for.
-  const start =
-    (row.before === null || row.before === undefined) && typeof row.after === 'number'
-      ? defaults[row.field]
-      : undefined
+  // An absent number reads as what it stands for, on either side: a full
+  // pool, 0 Heat (r3 B4, r5 C7), never "None".
+  const filled = (value: unknown) =>
+    value === null || value === undefined ? (defaults[row.field] ?? value) : value
   return [
     {
       key: row._id,
       label: fieldLabel(row.field),
-      before: text(start ?? row.before),
-      after: text(row.after),
+      before: text(filled(row.before)),
+      after: text(filled(row.after)),
     },
   ]
 }
@@ -466,7 +465,9 @@ export function reversal(change: LogChange, defaults: LogDefaults = {}): Reversa
       done: short
         ? buildSheetCopy('logSetBackDone', { label: value.label, value: value.before })
         : buildSheetCopy('logSetBackDonePlain', { label: value.label }),
-      was: buildSheetCopy('logSetBackWas'),
+      was: short
+        ? buildSheetCopy('logSetBackWasTo', { value: value.before })
+        : buildSheetCopy('logSetBackWas'),
     }
   }
   return {

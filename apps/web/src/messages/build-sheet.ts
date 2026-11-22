@@ -42,6 +42,7 @@ export const buildSheetCopy = messages({
   logRemovedAgain: 'Removed again',
   logCleared: 'Cleared',
   logSetBackWas: 'Set back',
+  logSetBackWasTo: 'Set back to {value}',
   logUndone: 'Undone',
   logJustNow: 'Just now',
   logEarlier: 'Earlier',
