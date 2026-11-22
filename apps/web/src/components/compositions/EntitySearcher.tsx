@@ -432,7 +432,16 @@ export function EntitySearcher({
             {compositionsCopy('showingOf', { count: visible.length, count2: pool.length })}
           </p>
           {techLevel !== undefined && showAllTechLevels && (
-            <Button variant="ghost" size="mini" onClick={showAllTechLevels}>
+            <Button
+              variant="ghost"
+              size="mini"
+              onClick={() => {
+                showAllTechLevels()
+                // The button goes as it is pressed: the cursor returns to Search, so
+                // Enter still adds the first match (a phone keeps its keyboard down).
+                if (window.matchMedia(WIDE_QUERY).matches) searchRef.current?.focus()
+              }}
+            >
               {compositionsCopy('showAllTechLevels')}
             </Button>
           )}

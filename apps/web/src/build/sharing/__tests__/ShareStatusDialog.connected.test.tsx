@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 /**
  * ShareStatusDialog when Connected: one "Who can see it" control for every
@@ -153,6 +153,9 @@ describe('ShareStatusDialog — a sheet shared by link', () => {
       fireEvent.click(screen.getByRole('button', { name: /copy public link/i }))
     })
     expect(writes).toEqual([url])
+    // The button says so where a sighted reader looks, not only to a screen reader (r3 L6).
+    const copy = screen.getByRole('button', { name: /copy public link/i })
+    expect(within(copy).getByText('Copied')).toBeTruthy()
 
     const qr = await screen.findByTestId('share-qr')
     expect(qr.getAttribute('aria-label')).toBe('QR code linking to this sheet')

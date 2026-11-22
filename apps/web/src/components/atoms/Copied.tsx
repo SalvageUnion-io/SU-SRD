@@ -5,7 +5,8 @@ import { atomsCopy } from '../../messages/components-atoms'
 
 /**
  * The copy control's own icon (chrome K5): `icon` at rest, a `Check` of the
- * same size for the moment after a copy lands (`useCopied`).
+ * same size for the moment after a copy lands (`useCopied`), with the word
+ * "Copied" where `word` asks for it.
  */
 export function CopiedIcon({
   copied,
@@ -17,8 +18,20 @@ export function CopiedIcon({
   icon: ReactNode
   /** The line's Size, the resting icon's (`iconSize`), which the Check takes. */
   size: keyof typeof iconSize
+  /**
+   * Say "Copied" beside the Check, where an icon-only control gave a sighted
+   * reader too little to see (r3 L6). Hidden from a screen reader, which
+   * hears `CopiedStatus`.
+   */
+  word?: boolean
 }) {
-  return copied ? <Check aria-hidden="true" size={iconSize[size]} /> : icon
+  if (!copied) return icon
+  return (
+    <>
+      <Check aria-hidden="true" size={iconSize[size]} />
+      {word && <span aria-hidden="true">{atomsCopy('copied')}</span>}
+    </>
+  )
 }
 
 /**

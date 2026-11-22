@@ -419,7 +419,10 @@ describe('Training Bay — items', () => {
     const mech = await seedEntity('mech', 'Iron Jaw')
     await renderShelves()
     fireEvent.click(within(await openMenu('Iron Jaw')).getByRole('menuitem', { name: 'Rename…' }))
-    const field = await screen.findByRole('textbox', { name: 'Mech name' })
+    const field = (await screen.findByRole('textbox', { name: 'Mech name' })) as HTMLInputElement
+    // It opens with the old name selected, so typing replaces it (r3 J2).
+    field.focus()
+    expect([field.selectionStart, field.selectionEnd]).toEqual([0, 'Iron Jaw'.length])
     fireEvent.change(field, { target: { value: 'Iron Jaw Mk II' } })
     fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
     await waitFor(() => expect(useUnits.getState().get('mech', mech)?.name).toBe('Iron Jaw Mk II'))

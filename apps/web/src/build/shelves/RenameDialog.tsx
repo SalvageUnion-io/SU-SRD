@@ -64,6 +64,8 @@ function RenameBody({ subject, onClose }: { subject: RenameSubject; onClose: () 
           if (e.key === 'Enter') void confirm()
         }}
         autoFocus
+        // It opens with the old name selected, so typing replaces it.
+        onFocus={(e) => e.currentTarget.select()}
         style={FIELD}
         required
       />
