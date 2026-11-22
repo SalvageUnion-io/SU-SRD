@@ -45,7 +45,7 @@ export const PLAY_TXN: ChangeMeta = { kind: 'transaction', source: 'play' }
 /**
  * A Play toast's Undo writing a number back (r3 B2): the same transaction,
  * with a source the table's events read to mark the line as taken back
- * (`rooms/game/events.ts`'s `UNDO_SOURCE`).
+ * (`rooms/game/eventLines.ts`'s `UNDO_SOURCE`).
  */
 export const PLAY_UNDO: ChangeMeta = { kind: 'transaction', source: 'play-undo' }
 

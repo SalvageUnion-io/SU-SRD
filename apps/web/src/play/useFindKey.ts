@@ -7,12 +7,7 @@
 
 import type { RefObject } from 'react'
 import { useEffect } from 'react'
-
-/** Whether a key pressed on `target` is text being typed, not a shortcut. */
-export function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  return target.isContentEditable || target.matches('input, textarea, select')
-}
+import { isTyping } from '../lib/searchShortcut'
 
 /** While mounted, "/" focuses the search field inside `within`. */
 export function useFindKey(within: RefObject<HTMLElement | null>): void {

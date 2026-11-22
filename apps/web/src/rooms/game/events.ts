@@ -1,6 +1,5 @@
 import { fieldLabel } from 'game-domain/games/proposals'
 import type { LinkShape } from 'game-domain/links/linkRules'
-import { pilotCallsign } from 'game-domain/pilotLabel'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   resolveInstalledRef,
@@ -10,6 +9,8 @@ import {
 import { seatOf } from '../seats'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
+import type { VitalChange } from './eventLines'
+import { crewedLabel, UNDO_SOURCE, vitalLine } from './eventLines'
 import { rollLineFor } from './log'
 import type { GameStore, StoredOp } from './store'
 import type { SubmitResult } from './units'
@@ -32,7 +33,7 @@ import { unitName } from './units'
  *   rewrites the line it follows ("HP 8 → 5", "×3") until the line is sealed
  *   (posted to Discord). A hit, any larger change to a vital, is a line of its
  *   own, so two hits are two lines (r2 I3). A change Undo wrote
- *   (`UNDO_SOURCE`) is a line of its own too, marked "· Undo" (r3 B2).
+ *   (`eventLines.ts`) is a line of its own too, marked "· Undo" (r3 B2).
  * - **A mech's line names its pilot:** "Reaper (GHOST) · Heat 2 → 3", whoever
  *   is aboard, else whoever it is assigned to (r3 B2).
  * - **Private:** a row marked `private` (the Mediator's private roll) is
@@ -85,13 +86,6 @@ export type TableEvent = {
   about?: string
 }
 
-/**
- * The source of an op a toast's Undo wrote (`replica/provenance.ts`'s
- * `PLAY_UNDO`): its line says so, so the table reads a hit taken back as
- * taken back, never as a second change (r3 B2).
- */
-export const UNDO_SOURCE = 'play-undo'
-
 /** How long a line stays open to a repeat. */
 export const MERGE_MS = 10_000
 
@@ -132,7 +126,7 @@ type Stored = {
   /** The key whose open line this one ends: a hit on a vital, which no nudge folds across. */
   ends?: string
   /** A vital's line, kept apart so a repeat can rewrite it. */
-  vital?: { who: string; label: string; from: number | null; to: number; undo?: true }
+  vital?: VitalChange
   /** How many times the line repeated. */
   n?: number
   /** The line before its count. */
@@ -391,7 +385,7 @@ export class GameEvents {
     for (const id of result.fresh) {
       const op = this.store.op(id)
       if (op === null || op.state !== 'applied') continue
-      const who = this.crewedLabel(op.unitId)
+      const who = crewedLabel(this.store, op.unitId, this.unitLabel(op.unitId))
       const undo = op.source === UNDO_SOURCE
       for (const [field, label] of Object.entries(VITALS)) {
         const to = op.patch[field]
@@ -541,25 +535,6 @@ export class GameEvents {
     return unitName(unit) ?? (unit.kind === 'pilot' ? 'A Pilot' : `A ${unit.kind}`)
   }
 
-  /**
-   * A unit as a vital's line names it: a mech with its pilot, "Reaper (GHOST)",
-   * whoever is aboard, else whoever it is assigned to (r3 B2).
-   */
-  private crewedLabel(unitId: string): string {
-    const label = this.unitLabel(unitId)
-    const unit = this.store.unit(unitId)
-    if (unit?.kind !== 'mech') return label
-    const aboard = this.store
-      .rows('select * from seats')
-      .map(seatOf)
-      .find((seat) => seat.mount.kind === 'boarded' && seat.mount.mechId === unitId)?.pilotId
-    const pilotId =
-      aboard ??
-      this.store.linksTouching(unitId).find((link) => link.type === 'mech-to-pilot')?.to.id
-    const pilot = pilotId === undefined ? null : this.store.unit(pilotId)
-    return pilot === null ? label : `${label} (${pilotCallsign(pilot.body)})`
-  }
-
   private proposalLine(op: StoredOp): string {
     const [field = '', after = null] = Object.entries(op.patch)[0] ?? []
     return `${this.unitLabel(op.unitId)} ${fieldLabel(field)} → ${after === null ? '—' : String(after)}`
@@ -580,14 +555,6 @@ function effectName(ref: string): string {
 function lost(before: EventsBefore, to: string | null): { about?: string } {
   const holder = before.holder ?? null
   return holder === null || holder === to ? {} : { about: holder }
-}
-
-function vitalLine(v: NonNullable<Stored['vital']>): string {
-  const line =
-    v.from === null
-      ? `${v.who} · ${v.label} → ${v.to}`
-      : `${v.who} · ${v.label} ${v.from} → ${v.to}`
-  return v.undo === true ? `${line} · Undo` : line
 }
 
 /** A repeat folded into the line it follows: a vital keeps where it started, any other line counts. */

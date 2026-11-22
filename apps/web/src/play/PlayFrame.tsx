@@ -226,7 +226,10 @@ export function PlayFrame<Value extends string>({
 }
 
 /** Where a held toast starts, on the document: the foot of the frame's head (`atoms-leaves.css`). */
-const HEAD_BOTTOM = '--su-play-head-bottom'
+const HEAD_BOTTOM = '--su-toast-head'
+
+/** The frame's head rows, either of which ends it. */
+const HEAD_ROWS = ['.su-play-frame__bar', '.su-play-frame__pinned'].join()
 
 /**
  * Publishes where the frame's head ends (the pinned row, else the bar) while
@@ -250,8 +253,7 @@ function useToastsUnderHead(hostRef: { current: HTMLElement | null }, on: boolea
     // The bar's line wrapping, the pinned row arriving or leaving (table mode).
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
     ro?.observe(host)
-    for (const part of host.querySelectorAll('.su-play-frame__bar, .su-play-frame__pinned'))
-      ro?.observe(part)
+    for (const part of host.querySelectorAll(HEAD_ROWS)) ro?.observe(part)
     return () => {
       window.removeEventListener('resize', publish)
       window.removeEventListener(NOTICES_RESIZED, publish)

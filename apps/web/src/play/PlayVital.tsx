@@ -27,7 +27,7 @@ import type { CSSVarStyle } from '../components/index'
 import { tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayVitalAmount } from './PlayVitalAmount'
-import { useVitalKeys } from './vitalKeys'
+import { useVitalKeys } from './useVitalKeys'
 
 type VitalTone = 'pilot' | 'mech' | 'crawler' | 'adversary'
 

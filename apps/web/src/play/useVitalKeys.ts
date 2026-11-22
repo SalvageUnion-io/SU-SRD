@@ -13,17 +13,17 @@ import type { FocusEvent, KeyboardEvent, RefObject } from 'react'
 import { useEffect, useRef } from 'react'
 
 /** Every control a vital's row may hold, in reading order, pressable or not. */
-const CONTROLS = 'button, [role="slider"]'
+const CONTROLS = ['button', '[role="slider"]'].join()
 
 const pressable = (el: HTMLElement) => !(el instanceof HTMLButtonElement && el.disabled)
 
 /** The row's controls that take the focus now, in reading order. */
-export function vitalStops(row: HTMLElement): HTMLElement[] {
+function vitalStops(row: HTMLElement): HTMLElement[] {
   return [...row.querySelectorAll<HTMLElement>(CONTROLS)].filter(pressable)
 }
 
 /** The stop ← or → moves to from `from`, or null at the row's end. */
-export function nextStop(
+function nextStop(
   stops: readonly HTMLElement[],
   from: Element | null,
   key: string
@@ -34,7 +34,7 @@ export function nextStop(
 }
 
 /** The pressable control nearest `gone` in reading order: where its focus goes when it is disabled. */
-export function nearestStop(row: HTMLElement, gone: HTMLElement): HTMLElement | null {
+function nearestStop(row: HTMLElement, gone: HTMLElement): HTMLElement | null {
   const all = [...row.querySelectorAll<HTMLElement>(CONTROLS)]
   const at = all.indexOf(gone)
   if (at === -1) return null

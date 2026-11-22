@@ -11,7 +11,7 @@ import { modKeyHint } from '../components/atoms/modKeyHint'
 const FIELDS = ['input', 'textarea', 'select'].join()
 
 /** Whether a key press here is text going into a field. */
-function isTyping(target: EventTarget | null): boolean {
+export function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
   return target.isContentEditable || target.matches(FIELDS)
 }

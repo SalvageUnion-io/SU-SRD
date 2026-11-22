@@ -80,9 +80,9 @@
   --su-toast-bottom: calc(var(--su-foot-clear, 0px) + env(safe-area-inset-bottom, 0px) + 1rem);
   /* Held at the top (a phone's Play screen, `toastPlacement.ts`): under the
      status bar, and under Play's bar and pinned row, whose foot the frame
-     publishes (`--su-play-head-bottom`, `PlayFrame`; r3 H2). */
+     publishes (`--su-toast-head`, `PlayFrame`; r3 H2). */
   --su-toast-top: calc(
-    max(env(safe-area-inset-top, 0px), var(--su-play-head-bottom, 0px)) +
+    max(env(safe-area-inset-top, 0px), var(--su-toast-head, 0px)) +
     var(--space-8)
   );
 }
