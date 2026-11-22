@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { StopSignButton } from '../StopSign'
 import type { StopSign } from '../useStopSign'
 
@@ -51,41 +51,50 @@ describe('the Stop Sign button', () => {
   test('on a phone it wears a label, and only a hold shows the sign', () => {
     const s = sign()
     const h = hold()
-    const told: string[] = []
-    render(<StopSignButton sign={s.value} compact timer={h.timer} tell={(m) => told.push(m)} />)
+    render(<StopSignButton sign={s.value} compact timer={h.timer} />)
     const button = screen.getByRole('button', { name: 'Show the Stop Sign' })
     expect(button.textContent).toBe('Stop')
+    // The hint is at the button itself (r4 B6), and says nothing until a tap comes up short.
+    const hint = screen.getByRole('status')
+    expect(hint.parentElement === button.parentElement).toBe(true)
+    expect(hint.textContent).toBe('')
     // A tap: down, up before the hold is over, then the browser's click.
     fireEvent.pointerDown(button)
     fireEvent.pointerUp(button)
     fireEvent.click(button, { detail: 1 })
     expect(s.shown()).toBe(0)
     expect(h.waiting()).toBe(false)
-    expect(told).toEqual(['Hold to show the Stop Sign'])
-    // A hold: the timer runs out with the finger still down.
+    expect(hint.textContent).toBe('Hold to show the Stop Sign')
+    expect(button.parentElement?.hasAttribute('data-holding')).toBe(false)
+    // A hold: the button fills while the finger is down, and the hint goes;
+    // the timer runs out with the finger still down.
     fireEvent.pointerDown(button)
-    h.elapse()
+    expect(button.parentElement?.hasAttribute('data-holding')).toBe(true)
+    expect(hint.textContent).toBe('')
+    act(() => h.elapse())
     expect(s.shown()).toBe(1)
     fireEvent.pointerUp(button)
     fireEvent.click(button, { detail: 1 })
     expect(s.shown()).toBe(1)
-    expect(told).toHaveLength(1)
+    expect(button.parentElement?.hasAttribute('data-holding')).toBe(false)
+    expect(hint.textContent).toBe('')
   })
 
   test('a finger that slides off lets go of the hold', () => {
     const s = sign()
     const h = hold()
-    render(<StopSignButton sign={s.value} compact timer={h.timer} tell={() => {}} />)
+    render(<StopSignButton sign={s.value} compact timer={h.timer} />)
     const button = screen.getByRole('button', { name: 'Show the Stop Sign' })
     fireEvent.pointerDown(button)
     fireEvent.pointerLeave(button)
+    expect(button.parentElement?.hasAttribute('data-holding')).toBe(false)
     expect(h.waiting()).toBe(false)
     expect(s.shown()).toBe(0)
   })
 
   test('on a phone a keyboard’s or a screen reader’s press shows it at once', () => {
     const s = sign()
-    render(<StopSignButton sign={s.value} compact timer={hold().timer} tell={() => {}} />)
+    render(<StopSignButton sign={s.value} compact timer={hold().timer} />)
     fireEvent.click(screen.getByRole('button', { name: 'Show the Stop Sign' }), { detail: 0 })
     expect(s.shown()).toBe(1)
   })
