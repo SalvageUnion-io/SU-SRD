@@ -1,7 +1,8 @@
 /**
  * BookPatternBuild — the New Mech screen's book patterns: pick a chassis, then
- * one of the patterns it prints, and build the mech as printed. Every pattern
- * of every chassis is here, whatever its Tech Level; one past the starting
+ * one of the patterns it prints, and build the mech as printed. It opens on
+ * the starting-level chassis (r5 D5); every Tech Level is one press away, and
+ * a deep link to a higher one shows them all. One past the starting
  * budget says so beside its totals and in the notice (a Blank-family shortcut,
  * as a saved pattern's Build With This). One press builds, and the notice has
  * Undo (r4 E23). A Reference pattern page's Build With This lands here with
@@ -14,6 +15,7 @@ import { moveTo } from 'game-domain/container'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
+import { isLegalCreationChassis } from 'salvageunion-reference/rules'
 import { Button, Field, Select, Stat, Text, tokens } from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import {
@@ -44,6 +46,7 @@ const ROW = {
 } satisfies CSSProperties
 const PICK = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 const FILL = { width: '100%' } satisfies CSSProperties
+const EVERY = { alignSelf: 'flex-start' } satisfies CSSProperties
 const TOTALS = {
   alignItems: 'center',
   display: 'flex',
@@ -62,8 +65,15 @@ type BookPatternBuildProps = {
 
 export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatternBuildProps) {
   const { status, canWrite } = useSync()
-  const pool = chassisWithPatterns()
+  const every = chassisWithPatterns()
   const [chassisSlug, setChassisSlug] = useState(chassis ?? '')
+  // Starting-level chassis first; every Tech Level on a press, or where the link names one past it.
+  const [allLevels, setAllLevels] = useState(
+    () =>
+      chassis !== undefined &&
+      every.some((c) => nameToSlug(c.name) === chassis && !isLegalCreationChassis(c.techLevel))
+  )
+  const pool = allLevels ? every : every.filter((c) => isLegalCreationChassis(c.techLevel))
   const [patternSlug, setPatternSlug] = useState(pattern ?? '')
   // A deep link that names a pattern lands on its Build With This, in view.
   const linked = bookPattern(chassis, pattern) !== undefined
@@ -162,6 +172,11 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
           {build.pending ? mechCopy('building') : mechCopy('buildWithThis')}
         </Button>
       </div>
+      {!allLevels && (
+        <Button variant="ghost" size="compact" style={EVERY} onClick={() => setAllLevels(true)}>
+          {mechCopy('everyTechLevel')}
+        </Button>
+      )}
       {input && slots && (
         <div style={TOTALS}>
           <Text variant="note">

@@ -149,6 +149,7 @@ export const mechCopy = messages({
   pickAChassisFirst: 'Pick a Chassis first',
   slotsAndScrap: 'Systems {systems} · Modules {modules} · {scrap} Scrap',
   notAStartingBuild: 'Not a starting build',
+  everyTechLevel: 'Show every Tech Level',
   optional: 'Optional',
   needsSlots: 'Needs {count} Slots · {left} left',
   needsScrap: 'Needs {count} Scrap · {left} left',

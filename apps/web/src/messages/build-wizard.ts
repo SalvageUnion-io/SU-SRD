@@ -90,6 +90,8 @@ export const buildWizardCopy = messages({
   aPatternIsYourPlan:
     'A Pattern is a plan for a Mech: one the book prints, at any Tech Level, or one of your own. Build With This makes the Mech.',
   yourPatterns: 'Your Patterns',
+  patternNeedsSignIn:
+    'Building from a pattern saves the Mech at once, so it needs a sign-in. Guided and Blank work without one.',
   nextReason: 'First: {reason}',
   forPilot: 'For {name}: the Mech is assigned to them once it is made.',
   forMech: 'For {name}: the Pilot is assigned to it once they are made.',

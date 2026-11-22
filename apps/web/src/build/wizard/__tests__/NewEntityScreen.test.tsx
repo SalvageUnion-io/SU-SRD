@@ -92,6 +92,8 @@ describe('NewEntityScreen — signed out', () => {
     signedOut(undefined)
     expect(await screen.findByRole('button', { name: /guided/i })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Sign in to build a mech' })).toBeNull()
+    // The pattern door says before any press that it needs an account (r5 D5).
+    expect(screen.getByText(/building from a pattern .* needs a sign-in/i)).toBeTruthy()
     cleanup()
     signedOut('guided')
     expect(await screen.findByTestId('stub-wizard')).toBeTruthy()
@@ -268,7 +270,7 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
       />
     )
 
-  test('with a pattern saved, a mech chooser opens on From a pattern, then Guided and Blank, and names the pilot', () => {
+  test('with a pattern saved, a mech chooser opens on Guided and Blank, then From a pattern, and names the pilot (r5 D5)', () => {
     usePatterns.setState({
       mechPatterns: [
         {
@@ -284,14 +286,27 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
       hydrated: true,
     })
     chooser()
-    expect(order()).toMatchObject({ patternFirst: true, guidedFirst: true })
+    expect(order()).toMatchObject({ patternLast: true, guidedFirst: true })
     expect(screen.getByText(/For Nia Vale/)).toBeTruthy()
   })
 
-  test('with none saved, the order is the same: From a pattern, then Guided and Blank (r4 E23)', () => {
+  test('with none saved, the order is the same: Guided and Blank, then From a pattern', () => {
     usePatterns.setState({ mechPatterns: [], hydrated: true })
     chooser()
-    expect(order()).toMatchObject({ patternFirst: true, guidedFirst: true })
+    expect(order()).toMatchObject({ patternLast: true, guidedFirst: true })
+  })
+
+  test('its chassis open on the starting level; every Tech Level is one press away (r5 D5)', () => {
+    usePatterns.setState({ mechPatterns: [], hydrated: true })
+    chooser()
+    const chassis = () =>
+      [...screen.getByRole('combobox', { name: 'Chassis' }).querySelectorAll('option')]
+        .map((o) => o.textContent ?? '')
+        .filter((t) => t !== '—')
+    expect(chassis().length).toBeGreaterThan(0)
+    expect(chassis().every((t) => t.endsWith('(T1)'))).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Show every Tech Level' }))
+    expect(chassis().some((t) => !t.endsWith('(T1)'))).toBe(true)
   })
 
   test('pilot and crawler choosers do NOT show the pattern door', () => {
