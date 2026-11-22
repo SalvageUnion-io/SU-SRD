@@ -941,6 +941,9 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     const bonesaw = await within(dialog).findByRole('button', {
       name: 'Make a copy of Bonesaw in this Game',
     })
+    // The button says what it does, and "nothing is copied" is not said under it (r6 C10).
+    expect(bonesaw.textContent).toBe('Make a copy of Bonesaw')
+    expect(within(dialog).queryByText(/nothing is copied/)).toBeNull()
     await act(async () => {
       fireEvent.click(bonesaw)
     })

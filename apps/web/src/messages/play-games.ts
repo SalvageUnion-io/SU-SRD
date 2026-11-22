@@ -72,6 +72,8 @@ export const playGamesCopy = messages({
   starterSet: 'Starter Set',
   starterHere: 'Or make a copy of a Starter Set Pilot, their Mech assigned, right here:',
   starterHereCopy: 'Make a copy of {name} in this Game',
+  // Each button says what it does (r6 C10); the glossary's one copy label.
+  starterHereButton: 'Make a copy of {name}',
   bringNote:
     'The same unit moves into this Game; nothing is copied. A Pilot brings their Mech, still assigned. You can move them back later.',
   moveIn: 'Move in',
