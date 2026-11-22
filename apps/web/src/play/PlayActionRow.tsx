@@ -26,12 +26,14 @@
  * companion's rows wear its own Mini's tone, as the Units column draws it,
  * and name it as a relation chip (C11).
  *
+ * When its resolve closes (Apply, Done), the keyboard is back on its Use.
+ *
  * A Mini nests nothing (E6): the resolve inside it, its roll instrument (R8)
  * and its steps, is plain content, never an entity of its own (play.md §12).
  */
 
 import type { ReactNode } from 'react'
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Button, Entity, Stat, TraitProse } from '../components/index'
 import { actionRow } from '../lib/rules/actionRow'
 import { atomsCopy } from '../messages/components-atoms'
@@ -138,6 +140,17 @@ export function PlayActionRow({
   const wide = usePlayWide()
   const companion = entry.action.companion
   const open = resolve !== null
+  // Closing takes the pressed control (Apply, Done) away with the resolve:
+  // the keyboard goes back to this row's Use, never to the page's top (r4 A3).
+  const rowRef = useRef<HTMLLIElement>(null)
+  const wasOpen = useRef(open)
+  useEffect(() => {
+    const closed = wasOpen.current && !open
+    wasOpen.current = open
+    const active = document.activeElement
+    if (closed && (active === null || active === document.body || !active.isConnected))
+      rowRef.current?.querySelector<HTMLElement>('.su-play-act__use')?.focus()
+  }, [open])
   const away = entry.need !== null
   const size = wide ? 'mini' : 'compact'
   const control =
@@ -197,6 +210,7 @@ export function PlayActionRow({
   const steps = open ? <PlayResolveSteps view={resolve} canWrite={canWrite} /> : null
   return (
     <li
+      ref={rowRef}
       className="su-play-act"
       data-away={away || undefined}
       data-open={open || undefined}

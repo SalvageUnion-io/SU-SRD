@@ -17,6 +17,7 @@ export const playCopy = messages({
   use: 'Use',
   use2: 'Use {name}',
   actions: 'Actions',
+  skipToActions: 'Skip to actions',
   clear: 'Clear',
   startOver: 'Start over',
   resolveStepsHint:

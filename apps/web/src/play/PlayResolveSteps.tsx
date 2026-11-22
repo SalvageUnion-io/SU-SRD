@@ -3,6 +3,8 @@
  * contentful body (play.md §5): Activate, then the Core Mechanic table, then
  * Apply. Roll pays the cost where Activate has not, and a line says what it
  * will spend (r4 A1); an action with no cost has no Activate (r4 A2).
+ * After a roll the keyboard is on Apply (r4 A3), and the rolled row is clear
+ * of the sticky Apply bar (r4 A4).
  * Presentational:
  * `useActionsDeck` builds the `ResolveModel` from the seat's `resolving` and
  * owns every write; this draws its steps and calls back.
@@ -25,10 +27,11 @@
  */
 
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AREA_SALVAGE_TABLE } from 'salvageunion-reference/rules'
 import { Button, Callout, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
+import { clearOfBar } from './clearOfBar'
 import { ResolveCost, ResolveSpend } from './PlayResolveCost'
 import { PlayRollInstrument } from './PlayRollInstrument'
 import { SalvageAreaDialog } from './SalvageAreaDialog'
@@ -58,6 +61,22 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
   // Rolled, a mech's action Pushes from the same stamp while it may.
   const push = roll && controls.push && !controls.push.disabled ? controls.push : null
   const [settingArea, setSettingArea] = useState(false)
+  // After a roll the keyboard is on Apply, never left on the stamp, which now
+  // reads Push: a second Enter there would reroll and add Heat (r4 A3).
+  const applyRef = useRef<HTMLButtonElement>(null)
+  const rolling = useRef(false)
+  const rolls = (run: () => void) => () => {
+    rolling.current = true
+    run()
+  }
+  const hostRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!rolling.current || !canWrite || controls.applyDisabled) return
+    rolling.current = false
+    // The bar is on screen already: the focus never moves the pane.
+    applyRef.current?.focus({ preventScroll: true })
+    clearOfBar(hostRef.current)
+  })
   // An Area Salvage rolls only while its area has Supply to spend.
   // Why Area Salvage has nothing to roll on: said in its note, and on the roll, which stands off.
   const salvageShut =
@@ -70,7 +89,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
           : undefined
   const salvageOpen = salvageShut === undefined
   return (
-    <div className="su-play-resolve">
+    <div ref={hostRef} className="su-play-resolve">
       {/* Mounted before the first roll, so the d20, its band and Apply are
           spoken as they land; each line is one text node, read whole. */}
       <div aria-live="polite" className="su-sr-only">
@@ -151,9 +170,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         stamp={push ? 'Push:' : undefined}
         onRoll={
           canWrite && salvageOpen && !controls.rollLockedReason
-            ? push
-              ? push.onPush
-              : controls.onRoll
+            ? rolls(push ? push.onPush : controls.onRoll)
             : undefined
         }
         off={salvageShut}
@@ -163,6 +180,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
       {/* The ways forward stay on screen under the table, however long it is (r2 I3). */}
       <div className="su-play-resolve__steps su-play-resolve__forward">
         <Button
+          ref={applyRef}
           size="compact"
           style={GROW}
           onClick={controls.onApply}
@@ -171,7 +189,15 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         >
           {controls.applyLabel}
         </Button>
-        <Button variant="ghost" size="compact" onClick={controls.onClear} disabled={!canWrite}>
+        <Button
+          variant="ghost"
+          size="compact"
+          onClick={() => {
+            rolling.current = false
+            controls.onClear()
+          }}
+          disabled={!canWrite}
+        >
           {playCopy('startOver')}
         </Button>
       </div>

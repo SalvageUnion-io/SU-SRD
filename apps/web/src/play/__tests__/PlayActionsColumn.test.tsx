@@ -499,6 +499,21 @@ describe('Use: the resolve, in the Compact', () => {
     }
   })
 
+  // r4 A3 (LG4-11): after Roll the focus sat on Push; after Apply it fell to the body.
+  test('keyboard: a roll puts the focus on Apply, and Apply hands it back to the row’s Use', async () => {
+    renderBoarded()
+    await click(use(primary().name))
+    const roll = screen.getByRole<HTMLButtonElement>('button', {
+      name: 'Roll the die on Core Mechanic',
+    })
+    roll.focus()
+    await click(roll)
+    const apply = screen.getByRole<HTMLButtonElement>('button', { name: 'Apply' })
+    expect(document.activeElement).toBe(apply)
+    await click(apply)
+    expect(document.activeElement).toBe(use(primary().name))
+  })
+
   test('Apply is gated on a roll, the roll pays the cost once, and Start over keeps it paid', async () => {
     const { calls } = renderBoarded()
     await click(use(primary().name))

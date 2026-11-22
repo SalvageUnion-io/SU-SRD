@@ -99,6 +99,13 @@ const RULES = { margin: `calc(-1 * ${tokens.space[8]})` } satisfies CSSPropertie
 /** From `lg` the Reference closes the end column, under the Tables. */
 const RULES_PANE = { value: 'rules', label: playCopy('rules'), column: 'end' } as const
 
+/** The screen's first Tab stop: past the bar and the Units, onto the first action's Use (r4 A3). */
+const SKIP_TO_ACTIONS = {
+  pane: 'act',
+  label: playCopy('skipToActions'),
+  first: '[data-action-key] button:not([disabled])',
+} as const
+
 /** The phases as the phone's band says them. */
 const PHASE_WORDS = {
   onFoot: playCopy('onFoot'),
@@ -295,6 +302,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
         tabs={PLAYER_TABS}
         tab={tab}
         onTab={openTab}
+        skip={SKIP_TO_ACTIONS}
         sheet={
           onScreen.shown ? (
             <PlaySheetPane
