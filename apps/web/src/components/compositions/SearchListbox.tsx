@@ -3,6 +3,7 @@ import { color, fontSize, space, weight } from '../../design/tokens'
 import { schemaLabel } from '../../lib/schemaLabels'
 import { compositionsCopy } from '../../messages/components-compositions'
 import { activateOnKey } from '../atoms/interaction'
+import { Stat } from '../atoms/Stat'
 import { EmptyState } from '../containers/EmptyState'
 import { Pending } from '../containers/Pending'
 import type { Paint } from '../entity'
@@ -191,9 +192,18 @@ export function SearchListbox({
         size="compact"
         model={model}
         mode={{ kind: 'link', ...link, attrs: option(index) }}
+        // Two results of one name (Heat, the guide and the keyword) say their kind.
+        labels={
+          shared.has(result.title) ? (
+            <Stat label={model.kind.stamp ?? result.group} size="mini" />
+          ) : undefined
+        }
       />
     )
   }
+  // The names more than one result carries.
+  const titles = results.map((result) => result.title)
+  const shared = new Set(titles.filter((title, i) => titles.indexOf(title) !== i))
   const isEntity = (result: SearchComboboxResult) =>
     result.kind === 'entity' && modelOf(result) !== undefined
   return (

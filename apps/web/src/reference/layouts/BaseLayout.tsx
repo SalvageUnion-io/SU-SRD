@@ -276,8 +276,8 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             poweredBySalvageUrl="/Powered_by_Salvage_Black.webp"
             // Every page's foot sits on the one page measure and wears the
             // page's leading band; a page with no citation keeps the licence
-            // row alone.
-            foot={{ ...foot, measure: PAGE_MEASURE }}
+            // row alone. Its address prints with the citation, on paper alone.
+            foot={{ ...foot, measure: PAGE_MEASURE, address: canonicalUrl }}
           />
         </div>
         {/* A long page's way back to search and its sections on a phone; the

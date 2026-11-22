@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { readFileSync } from 'node:fs'
 import { turnedClock, watchSlideshow } from '../slideshow'
 
 const STEP = 7000
@@ -120,5 +121,18 @@ describe('watchSlideshow', () => {
   test('a show without its controls is left alone', () => {
     document.body.innerHTML = '<section class="su-front__show"></section>'
     expect(() => watchSlideshow(document)).not.toThrow()
+  })
+})
+
+describe('the show holds while it is being read (r5 E14)', () => {
+  const css = readFileSync(new URL('../../styles/partials/front.css', import.meta.url), 'utf8')
+  const hold = css.slice(
+    css.indexOf('.su-front__show:is('),
+    css.indexOf('animation-play-state: paused')
+  )
+
+  test('the pointer on a slide’s words or its button holds it, as focus on them does', () => {
+    expect(hold).toContain(':has(.su-front__show-copy:hover)')
+    expect(hold).toContain(':has(.su-front__show-slides:focus-within)')
   })
 })

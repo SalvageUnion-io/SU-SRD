@@ -151,6 +151,10 @@ describe('SearchIsland', () => {
     expect(screen.getByRole('listbox').textContent).toContain('Pattern · Magpie')
     // The option is named with its kind, as the row reads (r2 G7).
     expect(first?.getAttribute('aria-label')).toMatch(/^Ironmonger, Pattern · Magpie$/i)
+    // Highlighted, the row opens its own page.
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'ArrowDown' })
+    })
     await act(async () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
@@ -173,7 +177,7 @@ describe('SearchIsland', () => {
     expect(firstHref()).toBe('/bio-titans/')
   })
 
-  test('Enter with no arrow selection opens the first result', async () => {
+  test('Enter with no arrow selection opens the page of every result (r5 E3)', async () => {
     const navigate = mock(() => {})
     render(<SearchIsland navigate={navigate} />)
     const input = screen.getByRole('combobox')
@@ -187,10 +191,9 @@ describe('SearchIsland', () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
 
-    // There is no results page: the dropdown is the search, so Enter with no
-    // highlighted row opens its first row.
+    // With no row highlighted, Enter opens the results page for the query.
     expect(navigate).toHaveBeenCalledTimes(1)
-    expect(navigate).toHaveBeenCalledWith(options[0]?.getAttribute('href'))
+    expect(navigate).toHaveBeenCalledWith('/search/?q=chassis')
   })
 
   test('Enter with arrow selection navigates to the selected result', async () => {
@@ -418,17 +421,16 @@ describe('SearchIsland', () => {
     expect(document.activeElement).not.toBe(input)
   })
 
-  test('without a navigate prop, Enter sends the window to the first result', async () => {
+  test('without a navigate prop, Enter sends the window to the results page', async () => {
     const assign = spyOn(window.location, 'assign').mockImplementation(() => {})
     try {
       render(<SearchIsland />)
       const input = screen.getByRole('combobox')
       await typeAndSettle(input, 'mule')
-      const [first] = screen.getAllByRole('option')
       await act(async () => {
         fireEvent.keyDown(input, { key: 'Enter' })
       })
-      expect(assign).toHaveBeenCalledWith(first?.getAttribute('href'))
+      expect(assign).toHaveBeenCalledWith('/search/?q=mule')
     } finally {
       assign.mockRestore()
     }
@@ -468,7 +470,7 @@ describe('SearchIsland', () => {
   })
 
   describe('the bar on the Reference page, where a search by address lands', () => {
-    test("opens on the address's query, where the retired search page lands", async () => {
+    test("opens on the address's query, where a search by address lands", async () => {
       window.location.href = 'http://localhost/reference/?q=mule'
       try {
         render(<SearchIsland />)
@@ -498,20 +500,31 @@ describe('SearchIsland', () => {
   })
 
   describe('the hero variant', () => {
-    test('submitting the form opens the first result for the trimmed term', async () => {
+    test('submitting the form opens the results page for the trimmed term (r5 E3)', async () => {
       const navigate = mock(() => {})
       render(<SearchIsland variant="hero" navigate={navigate} />)
       const input = screen.getByRole('combobox')
       expect(input.getAttribute('name')).toBe('q')
       await typeAndSettle(input, '  mule  ')
-      const [first] = screen.getAllByRole('option')
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: 'Search' }))
       })
-      expect(navigate).toHaveBeenCalledWith(first?.getAttribute('href'))
+      expect(navigate).toHaveBeenCalledWith('/search/?q=mule')
     })
 
-    test("opens on the address's query, where the retired search page lands", async () => {
+    test('submitting a search that found nothing stays, with the field focused (r5 E3)', async () => {
+      const navigate = mock(() => {})
+      render(<SearchIsland variant="hero" navigate={navigate} />)
+      const input = screen.getByRole('combobox')
+      await typeAndSettle(input, 'zzqxjv')
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+      })
+      expect(navigate).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(input)
+    })
+
+    test("opens on the address's query, where a search by address lands", async () => {
       window.location.href = 'http://localhost/reference/?q=mule'
       try {
         render(<SearchIsland variant="hero" />)

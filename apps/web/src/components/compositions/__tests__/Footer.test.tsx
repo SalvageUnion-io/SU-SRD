@@ -211,4 +211,19 @@ describe('Footer on a homebrew page', () => {
     expect(citation).toBe('Homebrew // Made by alxjrvs')
     expect(container.querySelector('.su-footer__legal')).not.toBeNull()
   })
+
+  test('a page’s foot carries its address, for paper alone, beside its citation (r5 E9)', () => {
+    const { container } = render(
+      <Footer
+        links={LINKS}
+        poweredBySalvageUrl="/mark.webp"
+        foot={{ ...GOPHER, address: 'https://salvageunion.io/systems/gopher/' }}
+      />
+    )
+    const cite = container.querySelector('.su-chapter-foot__cite')
+    expect(cite?.querySelector('.su-footer__citation')?.textContent).toContain('Workshop Manual')
+    expect(cite?.querySelector('.su-footer__address')?.textContent).toBe(
+      'https://salvageunion.io/systems/gopher/'
+    )
+  })
 })

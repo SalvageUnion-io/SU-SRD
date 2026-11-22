@@ -466,13 +466,43 @@
   }
 
   /* The website around a page stays off its printout (r4 E9): the Union bar,
-     the footer, a band's buttons (Share, Build With This) and a listing's
-     view switch. A sortable column keeps its label: it is the table's head. */
+     the footer's licence row and links, a band's buttons (Share, Build With
+     This) and a listing's view switch. A sortable column keeps its label: it
+     is the table's head. */
   .su-union-bar:not(#\#),
-  .su-footer:not(#\#),
+  .su-footer .su-chapter-foot__row:not(#\#),
+  .su-footer .su-chapter-foot__grain:not(#\#),
   .su-chapter-band__corner:not(#\#),
   .su-chapter-band__action:not(#\#),
   .su-chapter-band .su-seg:not(#\#) {
     display: none;
+  }
+
+  /* A table's Roll the die is the screen's, button or stamp (r5 E9). */
+  .su-roll__roll:not(#\#) {
+    display: none;
+  }
+
+  /* The footer keeps where the page came from (r5 E9): the book's citation
+     and the page's address, ink on the paper, one under the other. */
+  .su-footer .su-chapter-foot:not(#\#) {
+    --su-foot-bg: transparent;
+    --su-foot-fg: var(--color-ink);
+  }
+
+  .su-footer .su-chapter-foot__cite:not(#\#) {
+    display: block;
+    padding: var(--space-8) 0 0;
+  }
+
+  .su-footer__citation:not(#\#) {
+    background-color: transparent;
+    padding: 0;
+  }
+
+  .su-footer__address:not(#\#) {
+    display: block;
+    font-size: var(--text-caption);
+    margin: 0;
   }
 }

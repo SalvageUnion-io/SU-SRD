@@ -97,37 +97,41 @@ describe('CompactIndex art', () => {
     }
   })
 
-  test('in a catalog with art, an art-less tile keeps the art place and wears a censor mark', () => {
+  test('in a catalog with art, an art-less tile keeps the art place with a No illustration plate and its page (r5 E7)', () => {
     const tl = need(SalvageUnionReference.CrawlerTechLevels.all()[2], 'crawler tech level 3')
     const { container } = render(
       <Entity size="compact" layout="index" entity={tl} missingArt={0} />
     )
     const frame = container.querySelector('.su-entity-index__frame')
     expect(frame?.firstElementChild?.classList).toContain('su-entity-index__art')
-    const mark = container.querySelector('.su-entity-index__art .su-missing-art')
-    expect(mark?.getAttribute('aria-hidden')).toBe('true')
-    expect(mark?.querySelector('.su-missing-art__backdrop')?.getAttribute('src')).toMatch(
-      /-440q\d+\.webp$/
-    )
+    const plate = container.querySelector('.su-entity-index__art .su-no-art')
+    expect(plate?.getAttribute('aria-hidden')).toBe('true')
+    expect(plate?.textContent).toMatch(/^No illustration.+ · p\.\d+$/)
+    // Nothing on it reads as withheld: no REDACTED bar, no blueprint behind.
+    expect(plate?.textContent).not.toMatch(/redacted|removed/i)
+    expect(plate?.querySelector('img')).toBeNull()
     expect(container.querySelector('.su-entity-index--bare')).toBeNull()
   })
 
-  test('the marks turn with the art-less ordinal, so neighbours differ', () => {
+  test('its facts are an illustrated tile’s: the plate takes the art’s place alone', () => {
     const tl = need(SalvageUnionReference.CrawlerTechLevels.all()[2], 'crawler tech level 3')
-    const variants = [0, 1, 2].map((ordinal) => {
-      const { container } = render(
-        <Entity size="compact" layout="index" entity={tl} missingArt={ordinal} />
-      )
-      return container.querySelector('[data-missing-art]')?.getAttribute('data-missing-art')
-    })
-    expect(variants).toEqual(['file', 'row', 'removed'])
+    const chips = (missingArt?: number) =>
+      render(
+        <Entity
+          size="compact"
+          layout="index"
+          entity={tl}
+          {...(missingArt !== undefined ? { missingArt } : {})}
+        />
+      ).container.querySelector('.su-entity-index__band')?.textContent
+    expect(chips(0)).toBe(chips())
   })
 
-  test('an entity with art ignores the censor mark', () => {
+  test('an entity with art ignores the plate', () => {
     const { container } = render(
       <Entity size="compact" layout="index" entity={mule()} missingArt={0} />
     )
-    expect(container.querySelector('.su-missing-art')).toBeNull()
+    expect(container.querySelector('.su-no-art')).toBeNull()
     expect(container.querySelector('.su-entity-index__art img')).not.toBeNull()
   })
 

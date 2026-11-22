@@ -123,7 +123,7 @@ export function HomeSearchBand({ children }: { children: ReactNode }) {
  * every time.
  * The show is CSS (the page is served without React): a slide out of its turn
  * is hidden, so only the one in view is seen, pressed or focused (chrome K3).
- * It holds while an act is pointed at or focused, its Pause (`watchSlideshow`, the
+ * It holds while a slide's words or action are pointed at or focused, its Pause (`watchSlideshow`, the
  * page's script) stops it for good (WCAG 2.2.2), and Previous and Next turn it
  * by hand, the slide they land on starting its turn afresh. Under reduced motion it never
  * turns: the slides stand one under another, every action in view.
@@ -171,8 +171,8 @@ export function HomeHero() {
                 >
                   <p className="su-front__show-pitch">{referenceCopy('pitchValue')}</p>
                   {/* The two things a visit is for. "Look something up" opens
-                      the search where the script runs (`data-search-open`,
-                      `islands.client.ts`), else the Reference's Contents. */}
+                      the Reference, as its link says: the search band is
+                      already in view below. */}
                   <div className="su-front__show-acts">
                     <Button
                       href={appPath('/')}
@@ -189,7 +189,6 @@ export function HomeHero() {
                       variant="default"
                       size="full"
                       className="su-front__show-act"
-                      data-search-open=""
                     >
                       {referenceCopy('showLookUp')}
                     </Button>

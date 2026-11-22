@@ -132,6 +132,41 @@ describe('useSearchCombobox', () => {
     expect(picked).toHaveLength(2)
   })
 
+  test('with onSubmitQuery, bare Enter hands it the query; a highlighted row still opens (r5 E3)', async () => {
+    const picked: string[] = []
+    const queries: string[] = []
+    const { result } = renderHook(() =>
+      useSearchCombobox({
+        onSubmit: (r) => picked.push(r.id),
+        onSubmitQuery: (q) => queries.push(q),
+      })
+    )
+    await typeAndSettle(result, ' laser ')
+    const preventDefault = () => {}
+    act(() => {
+      result.current.handleKeyDown({ key: 'Enter', preventDefault })
+    })
+    expect(queries).toEqual(['laser'])
+    expect(picked).toEqual([])
+
+    act(() => {
+      result.current.handleKeyDown({ key: 'ArrowDown', preventDefault })
+    })
+    act(() => {
+      result.current.handleKeyDown({ key: 'Enter', preventDefault })
+    })
+    expect(picked).toEqual([must(result.current.results[0]).id])
+    expect(queries).toHaveLength(1)
+  })
+
+  test('the count announced is the rows listed, "Show more" apart (r5 E3)', async () => {
+    const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {}, moreRow: true }))
+    await typeAndSettle(result, 'laser')
+    const more = must(result.current.results.at(-1))
+    expect(more.kind).toBe('more')
+    expect(result.current.announcement).toBe(`10 results found, ${more.group}`)
+  })
+
   test('results stay hidden and announcement reads Searching while not ready (r4 F2)', async () => {
     const { result } = renderHook(() => useSearchCombobox({ ready: false, onSubmit: () => {} }))
     await typeAndSettle(result, 'laser')

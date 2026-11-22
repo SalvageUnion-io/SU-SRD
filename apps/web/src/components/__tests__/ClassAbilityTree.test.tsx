@@ -94,6 +94,8 @@ describe('ClassAbilityTree banners and track', () => {
             .closest('section')
             ?.querySelectorAll<HTMLElement>('.su-entity-compact__frame, .su-entity-mini') ?? []),
         ])
+        // An Ability's rules opened in place (r5 E5) are its card's, not the track's.
+        .filter((frame) => !frame.closest('.su-ability-open'))
         .map((frame) => frame.style.getPropertyValue('--su-band'))
     // The Core track's Compacts wear the Core orange.
     expect(new Set(bandsOf('Forging'))).toEqual(new Set(['var(--color-pilot)']))

@@ -12,7 +12,9 @@
  *   press would otherwise make; a tap elsewhere closes it.
  * - A press on a button marked `data-peek-press`, which does nothing else,
  *   opens it at once. A press on a link always follows the link, however
- *   soon (E27): a reference term's Peek is hover's and focus's alone.
+ *   soon (E27): a reference term's Peek is hover's and focus's. Touch has no
+ *   hover, so there a tap on a term (a link marked `data-peek-press`)
+ *   explains it in place: its Peek opens, Open page on it (r5 E4).
  * - Escape closes it, and only it: the dialog or page under it stays.
  *
  * A trigger inside the popup never peeks (E16: a Peek is terminal).
@@ -65,6 +67,8 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   let pressAt: { x: number; y: number } | undefined
   let swallowClick = false
   let lastPress = Number.NEGATIVE_INFINITY
+  /** The last press was a finger's: a tap on a term explains it rather than leaving. */
+  let touched = false
 
   const clearOpen = () => {
     clearTimeout(openTimer)
@@ -151,6 +155,7 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   const onPointerDown = (event: PointerEvent) => {
     lastPress = performance.now()
     swallowClick = false
+    touched = event.pointerType === 'touch'
     const trigger = triggerOf(event.target)
     if (current && !insidePopup(event.target) && trigger !== current) closeNow()
     if (event.pointerType !== 'touch' || !trigger) return
@@ -176,9 +181,15 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
       if (!trigger?.hasAttribute(PEEK_PRESS_ATTRIBUTE)) return
       // A link is followed, never held (E27): a click costs one click.
       // Its Peek, open or on its way, goes: the reader is leaving for the page.
+      // A finger's tap explains the term in place instead, Open page on its
+      // Peek (r5 E4): touch has no hover to Peek it by.
       if (trigger instanceof HTMLAnchorElement && trigger.hasAttribute('href')) {
-        closeNow()
-        return
+        if (!touched) {
+          closeNow()
+          return
+        }
+        event.preventDefault()
+        event.stopPropagation()
       }
       // A trigger whose press does nothing else opens its Peek.
       openNow(trigger, 'press')

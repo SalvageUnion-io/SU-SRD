@@ -125,8 +125,11 @@ export function PatternLoadout({
         cells: [
           slots(capacity.systemSlotsUsed, capacity.systemSlotsMax),
           slots(capacity.moduleSlotsUsed, capacity.moduleSlotsMax),
-          // By Tech Level, as it is paid (r4 E11).
-          scrapSplit(mechScrap(build)),
+          // By Tech Level, as it is paid (r4 E11), and labelled so (r5 E13).
+          <span key="scrap" title={pagesCopy('scrapByTechLevel')}>
+            <span className="su-sr-only">{pagesCopy('scrapByTechLevel')}: </span>
+            {scrapSplit(mechScrap(build))}
+          </span>,
         ],
       }}
     />

@@ -210,6 +210,12 @@ export type ReferenceEntityCardHideConfig = {
    * bubble into the card's own handler.
    */
   rollTable?: boolean
+  /**
+   * Keep the roll table but not its Roll: a card opened inside a static page
+   * (a class page's ability rules), where a Roll would ship the whole page
+   * card's island (`cardNeedsHydration`). Its table is still read, and Peeked.
+   */
+  roll?: boolean
   damagedEffect?: boolean
   choices?: boolean
   content?: boolean

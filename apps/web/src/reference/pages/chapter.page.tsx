@@ -41,6 +41,13 @@ import '../../lib/gameData'
 const GROUP_FROM = 24
 
 /**
+ * The listings read in the book's order, never by name: the guides are its
+ * chapters, the distances its range bands (Close, Medium, Long, Far), as their
+ * own listings run (r5 E6).
+ */
+const IN_BOOK_ORDER = new Set(['guides', 'distances'])
+
+/**
  * A listing's entries by name, under sub-heads where the list is big: the
  * listing page's own groups (tech level in the book's order, tree, kind, bay;
  * `listingGroups.ts`), else by first letter. Its title links the listing.
@@ -77,6 +84,7 @@ function listingGroups(schemaId: string): ContentsGroup[] {
           a.name.localeCompare(b.name)
       )
       .map(row)
+  if (IN_BOOK_ORDER.has(schemaId)) return [{ label: '', rows: items.map(row) }]
   if (items.length <= GROUP_FROM) {
     const levelled = items.every((entity) => getTechLevelNumber(entity) != null)
     return [{ label: '', rows: levelled ? byLevel(items) : byName(items) }]

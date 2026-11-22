@@ -84,6 +84,10 @@ describe('search finds the thing named, however it is typed (r4 F1)', () => {
     for (const [query, trait] of [
       ['hot 3', 'Hot'],
       ['explosive 2', 'Explosive'],
+      // As the site's own text prints it (r5 E1).
+      ['Hot (3)', 'Hot'],
+      ['hot(3)', 'Hot'],
+      ['explosive (2)', 'Explosive'],
     ] as const) {
       const [first] = names(query)
       expect(first?.entityName).toBe(trait)

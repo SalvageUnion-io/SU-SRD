@@ -23,7 +23,7 @@ test.describe('Reference print', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Chassis' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Forge' })).toBeVisible()
     await expect(page.locator('.su-union-bar')).toBeHidden()
-    await expect(page.locator('.su-footer')).toBeHidden()
+    await expect(page.locator('.su-footer .su-chapter-foot__row')).toBeHidden()
     await expect(page.getByRole('button', { name: 'Catalog' })).toBeHidden()
     // A column keeps its label: it is the table's head.
     await expect(page.getByRole('button', { name: /^Sort by SP/ })).toBeVisible()
@@ -37,7 +37,10 @@ test.describe('Reference print', () => {
     await page.emulateMedia({ media: 'print' })
     await expect(page.getByRole('heading', { level: 1, name: 'Hacker' })).toBeVisible()
     await expect(page.locator('.su-union-bar')).toBeHidden()
-    await expect(page.locator('.su-footer')).toBeHidden()
+    await expect(page.locator('.su-footer .su-chapter-foot__row')).toBeHidden()
+    // It says where it came from: the book and page, and its address (r5 E9).
+    await expect(page.locator('.su-footer__citation')).toBeVisible()
+    await expect(page.locator('.su-footer__address')).toHaveText(/\/classes\/hacker\/$/)
     await expect(page.getByRole('button', { name: /share/i })).toHaveCount(0)
     await expect(page.getByText(/build with this/i).first()).toBeHidden()
   })

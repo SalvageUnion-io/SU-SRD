@@ -2,6 +2,8 @@
  * THE ONE LINK RULE (EDL E27, r4 F3): a reference term (a Mention, a Tag) is a
  * real link, and a press on it follows it, however soon: one link, one click.
  * Its Peek is hover's and the keyboard's focus's, with Open page on the plate.
+ * On touch, which has no hover, a tap explains the term in place instead: it
+ * opens the Peek (a sheet on a phone), Open page on it (r5 E4).
  */
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
@@ -138,5 +140,21 @@ describe('a press on a reference term', () => {
     } finally {
       window.matchMedia = real
     }
+  })
+
+  test('on touch a tap opens the term’s Peek in place, Open page on it, and does not follow (r5 E4)', async () => {
+    const { ref, link } = renderTerm()
+    let followed = true
+    act(() => {
+      fireEvent.pointerDown(link, { pointerType: 'touch', clientX: 5, clientY: 5 })
+      fireEvent.pointerUp(link, { pointerType: 'touch' })
+      followed = fireEvent.click(link)
+    })
+    expect(followed).toBe(false)
+    const peek = await screen.findByRole('tooltip')
+    await waitFor(() => expect(peek.querySelector('[data-peek-out]')).not.toBeNull())
+    expect(peek.querySelector('[data-peek-out]')?.getAttribute('href')).toBe(`/traits/${ref.slug}/`)
+    // A mouse's press after it is a click again: it follows the link.
+    expect(press(link)).toBe(true)
   })
 })
