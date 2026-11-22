@@ -1,5 +1,6 @@
+import { ChevronDown } from 'lucide-react'
 import { useMemo } from 'react'
-import type { RefClass } from 'salvageunion-reference'
+import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
 import { cn } from '../lib/cn'
 import { itemHref } from '../lib/entityHref'
@@ -13,7 +14,16 @@ import { Box } from './containers/Box'
 import { TermChip, TRAINING_POINTS } from './entity'
 import { RowDress } from './entity/rowDress'
 import type { TreeTrack } from './index'
-import { Chips, Head, Slab, SlabSection, Stat, TitledBox } from './index'
+import {
+  Chips,
+  Head,
+  ReferenceEntityCard,
+  Slab,
+  SlabSection,
+  Stat,
+  TitledBox,
+  tokens,
+} from './index'
 import { MentionProse } from './MentionProse'
 import { ReferenceAbilityTrack } from './ReferenceAbilityTrack'
 import { treeAnchor } from './referenceEntity/card/abilityTreeRelations'
@@ -28,6 +38,35 @@ type ClassAbilityTreeProps = {
 const GAINING_ABILITIES_PAGE = 23
 
 const classHref = (c: RefClass) => itemHref('classes', getEntitySlug(c))
+
+const RULES_LABEL = cn('su-ability-open__label', capsLabel({ tracking: 'snug' }))
+
+/** The rules card under an Ability lists no lead: the row above it has said it. */
+const RULES_HIDE = { lead: true } as const
+
+/**
+ * An Ability's full rules, opening in place under its row (r5 E5), as nested
+ * entities open inside their parent elsewhere: its card, contentful, its
+ * action's text and roll table, so a class page reads whole without a trip to
+ * each ability's page. A `<details>`: it opens with no script, on a page
+ * served without React.
+ */
+function AbilityRules({ ability }: { ability: RefAbility }) {
+  return (
+    <details className="su-ability-open">
+      <summary className={cn('su-ability-open__summary', FOCUS_RING)}>
+        <ChevronDown aria-hidden="true" size={tokens.iconSize.mini} />
+        <span className={RULES_LABEL}>{componentsCopy('abilityRules')}</span>
+        <span className="su-sr-only">: {ability.name}</span>
+      </summary>
+      <div className="su-ability-open__body">
+        <ReferenceEntityCard data={ability} size="mini" hide={RULES_HIDE} />
+      </div>
+    </details>
+  )
+}
+
+const abilityRules = (ability: RefAbility) => <AbilityRules ability={ability} />
 
 /** What a tree's slab notes: nothing for a sequence (MOCK, best revision 6: the head is the tree's name), "Choose 1" for a Legendary tree. */
 const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : undefined)
@@ -70,7 +109,7 @@ function TreeSection({
         abilities={abilities}
         track={track}
         size={size}
-        {...(size === 'compact' ? { titleAs: 'h3' as const } : {})}
+        {...(size === 'compact' ? { titleAs: 'h3' as const, rules: abilityRules } : {})}
       />
     </SlabSection>
   )

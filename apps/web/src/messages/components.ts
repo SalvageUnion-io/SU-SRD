@@ -24,6 +24,7 @@ export const componentsCopy = messages({
   onThisPage: 'On this page',
   training: 'Training',
   abilities: 'Abilities',
+  abilityRules: 'Rules',
   trees: 'Trees',
   req: 'REQ',
   workshopManualP: 'Workshop Manual · p.{page}',
