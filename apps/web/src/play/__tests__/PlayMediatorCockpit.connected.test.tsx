@@ -691,6 +691,9 @@ describe('the Opposition', () => {
     await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
     const offer = await screen.findByRole('button', { name: 'Propose 3 HP from Raider to…' })
     expect(offer.textContent).toContain('Propose 3 HP to…')
+    // Beside the result, above the table's rows, in view after the roll (r5 B6).
+    const firstRow = offer.closest('.su-play-resolve')?.querySelector('.su-roll__row') as Element
+    expect(offer.compareDocumentPosition(firstRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     acts.length = 0
     await click(offer)
     // HP damage goes to Pilots, never to a Mech; each says what it is left with.
