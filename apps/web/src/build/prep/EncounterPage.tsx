@@ -13,7 +13,8 @@
  *    patterns included;
  *  - **Tables to hand**: the roll tables it pins in Play (`EncounterTables`);
  *  - **Notes**: the Mediator's own, never shown to players;
- *  - **Briefing**: what the Pilots see, which Play offers to tell the table;
+ *  - **Briefing**: what the Pilots see, which Play offers to tell the table
+ *    (both save as they are typed, `AutosavedText`, r6 B2);
  *  - **Spoils**: what the opposition could leave behind (`EncounterThreat`).
  *
  * Opponents can be put in groups, each arriving in a wave (`EncounterGroups`).
@@ -68,6 +69,7 @@ import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
 import { useSheetModeStore } from '../sheet/sheetMode.model'
 import { undoToast } from '../sheet/undoToast.model'
+import { AutosavedText } from './AutosavedText'
 import { EncounterGameField } from './EncounterGame'
 import { GroupedOpposition, GroupNameDialog } from './EncounterGroups'
 import { EncounterTables } from './EncounterTables'
@@ -452,20 +454,18 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                     title={buildPrepCopy('notes')}
                     actions={<Stat label={buildPrepCopy('onlyYou')} size="compact" />}
                   >
-                    <Field
-                      label={buildPrepCopy('yourNotes')}
-                      value={encounter.notes}
-                      multiline
-                      fill
-                      placeholder={buildPrepCopy('notesPlaceholder')}
-                      onSave={
-                        canWrite
-                          ? (next) => {
-                              fire(() => ({ notes: next.slice(0, ENCOUNTER_MAX_NOTES) }))
-                            }
-                          : undefined
-                      }
-                    />
+                    {/* Saved as typed, as the Game's notes in Prep are (r6 B2). */}
+                    {canWrite ? (
+                      <AutosavedText
+                        label={buildPrepCopy('yourNotes')}
+                        value={encounter.notes}
+                        max={ENCOUNTER_MAX_NOTES}
+                        placeholder={buildPrepCopy('notesPlaceholder')}
+                        onSave={(notes) => write(() => ({ notes }))}
+                      />
+                    ) : (
+                      <Field label={buildPrepCopy('yourNotes')} value={encounter.notes} multiline />
+                    )}
                   </SlabSection>
                 )}
                 {grouping && (canWrite || (encounter.briefing ?? '').trim() !== '') && (
@@ -475,21 +475,22 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                     title={buildPrepCopy('briefing')}
                     actions={<Stat label={buildPrepCopy('playersSeeThis')} size="compact" />}
                   >
-                    <Field
-                      label={buildPrepCopy('whatThePilotsSee')}
-                      value={encounter.briefing ?? ''}
-                      multiline
-                      placeholder={buildPrepCopy('briefingPlaceholder')}
-                      onSave={
-                        canWrite
-                          ? (next) => {
-                              fire(() => ({
-                                briefing: next.slice(0, ENCOUNTER_MAX_BRIEFING),
-                              }))
-                            }
-                          : undefined
-                      }
-                    />
+                    {canWrite ? (
+                      <AutosavedText
+                        label={buildPrepCopy('whatThePilotsSee')}
+                        value={encounter.briefing ?? ''}
+                        max={ENCOUNTER_MAX_BRIEFING}
+                        rows={3}
+                        placeholder={buildPrepCopy('briefingPlaceholder')}
+                        onSave={(briefing) => write(() => ({ briefing }))}
+                      />
+                    ) : (
+                      <Field
+                        label={buildPrepCopy('whatThePilotsSee')}
+                        value={encounter.briefing ?? ''}
+                        multiline
+                      />
+                    )}
                   </SlabSection>
                 )}
                 {grouping && <EncounterSpoils encounter={encounter} editing={canWrite} />}
