@@ -22,6 +22,9 @@ export const mechCopy = messages({
     'No prefill — craft your Systems and Modules by hand in the next steps.',
   systems: 'Systems',
   modules: 'Modules',
+  oneMechBuiltFromIt: '1 Mech was built from this pattern. It keeps its loadout.',
+  mechsBuiltFromIt: '{count} Mechs were built from this pattern. They keep their loadout.',
+  patternPageGoes: 'The pattern’s page, and any link shared to it, stops working.',
   scrapLeftOverGoesIntoHold:
     '{count} Scrap left over goes into this Mech’s hold. Do not add it to the Union Crawler’s Scrap Pool as well.',
   scrapLeftOverSplit:

@@ -23,6 +23,11 @@ type ShelfLedgerRow = {
   under?: ReactNode
   /** The ⋯ menu's rows, grouped; empty draws no menu. */
   menu: HeaderMenuItem[][]
+  /**
+   * Its one act, a visible button before the ⋯ menu (a pattern's Build With
+   * This, r3 L5): what the row is for, never a menu row away.
+   */
+  act?: { label: string; onSelect: () => void } | undefined
   /** Its Play door (a pilot's Cockpit), before the ⋯ menu. */
   play?: string
   /** The door's words where the line has room to name who it plays ("Play GHOST"); "Play" otherwise. */
@@ -57,12 +62,22 @@ export function ShelfLink({ href, children }: { href: string | undefined; childr
   return <InlineRef href={href}>{children}</InlineRef>
 }
 
-/** A line's end: its Play door, then its ⋯ menu; neither draws nothing. */
+/** A line's end: its act or its Play door, then its ⋯ menu; none draws nothing. */
 function trailingOf(row: ShelfLedgerRow): ReactNode {
   const menu = row.menu.some((section) => section.length > 0)
-  if (!row.play && !menu) return undefined
+  if (!row.play && !row.act && !menu) return undefined
   return (
     <span className="su-ledger__trailing-line">
+      {row.act && (
+        <Button
+          variant="default"
+          size="mini"
+          aria-label={buildShelvesCopy('actOnName', { act: row.act.label, name: row.name })}
+          onClick={row.act.onSelect}
+        >
+          {row.act.label}
+        </Button>
+      )}
       {row.play && (
         <Button
           href={row.play}

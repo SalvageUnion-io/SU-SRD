@@ -117,7 +117,7 @@ describe('rowActionCopy', () => {
   })
 
   test('a copy names the build it will make', () => {
-    expect(said(ROW_ACTION_COPY.copyOnShelf('Vex Arlo'))).toContain('“COPY OF Vex Arlo”')
+    expect(said(ROW_ACTION_COPY.copyOnShelf('Vex Arlo'))).toContain('“Vex Arlo”')
   })
 
   test('a move out of a game the reader cannot name still reads as a sentence', () => {

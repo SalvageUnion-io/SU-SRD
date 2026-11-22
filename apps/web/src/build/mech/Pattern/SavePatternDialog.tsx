@@ -9,9 +9,10 @@
  * description, where a book pattern's prose goes. Saving keeps it to its
  * maker; they share it from its page or their Hangar, as every player thing.
  *
- * Under the listing it says what the pattern uses and costs (`PatternTotals`):
- * its chassis, slots filled of the chassis's, and Scrap, a count over its cap
- * marked. Damage, Heat and cargo stay on the mech (`patternFromMech`).
+ * Under the two fields, above the loadout's rules cards, it says what the
+ * pattern uses and costs (`PatternTotals`): its chassis, slots filled of the
+ * chassis's, and Scrap, a count over its cap marked; the Save button sits
+ * with it. Damage, Heat and cargo stay on the mech (`patternFromMech`).
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
@@ -161,25 +162,10 @@ function SavePatternBody({
     />
   )
 
-  return (
+  // What is being saved, in figures (its chassis, slots and Scrap, r2 G4), and the
+  // button that saves it: above the rules cards, so neither is a scroll away (r3 L5).
+  const summary = (
     <div style={BODY}>
-      {chassis ? (
-        <PatternListing
-          chassis={chassis}
-          chassisName={chassis.name}
-          pattern={asReferencePattern({ ...source, name: name.trim() || source.name })}
-          host={{ hostDown: false, chassisName: chassis.name }}
-          homebrew
-          edit={{ name: nameField, description: descriptionField }}
-        />
-      ) : (
-        // A chassis the reference no longer has: the two fields, without the listing.
-        <>
-          {nameField}
-          {descriptionField}
-        </>
-      )}
-      {/* What is being saved, in figures: its chassis, slots and Scrap (r2 G4). */}
       <PatternTotals unit={source} />
       <Text variant="hint">{mechCopy('damageHeatAndCargoStay')}</Text>
       {error && <FieldError>{error}</FieldError>}
@@ -196,6 +182,28 @@ function SavePatternBody({
           {save.pending ? mechCopy('saving') : mechCopy('savePattern')}
         </Button>
       </DialogActions>
+    </div>
+  )
+
+  return (
+    <div style={BODY}>
+      {chassis ? (
+        <PatternListing
+          chassis={chassis}
+          chassisName={chassis.name}
+          pattern={asReferencePattern({ ...source, name: name.trim() || source.name })}
+          host={{ hostDown: false, chassisName: chassis.name }}
+          homebrew
+          edit={{ name: nameField, description: descriptionField, summary }}
+        />
+      ) : (
+        // A chassis the reference no longer has: the two fields, without the listing.
+        <>
+          {nameField}
+          {descriptionField}
+          {summary}
+        </>
+      )}
     </div>
   )
 }

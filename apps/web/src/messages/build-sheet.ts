@@ -172,6 +172,7 @@ export const buildSheetCopy = messages({
   pattern: 'Pattern',
   basedOn: 'Based on',
   aSavedPattern: 'A saved pattern',
+  patternDeleted: 'Deleted',
   madeBy: 'Made by',
   assignedSheets: 'Assigned sheets',
   chassis: 'Chassis',

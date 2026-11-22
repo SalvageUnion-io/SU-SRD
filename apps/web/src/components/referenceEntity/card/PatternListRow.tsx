@@ -185,8 +185,12 @@ export function PatternListing({
   host: PatternRowsHost
   /** A player made it: the HOMEBREW stamp among its chips. */
   homebrew?: boolean
-  /** Edit: the name's field, in its cut-out, and the description's, in the prose's place. */
-  edit?: { name: ReactNode; description: ReactNode }
+  /**
+   * Edit: the name's field, in its cut-out, and the description's, in the prose's place.
+   * `summary` sits under them, above the loadout: what is being saved and its button,
+   * reachable before the rules cards (r3 L5).
+   */
+  edit?: { name: ReactNode; description: ReactNode; summary?: ReactNode }
 }) {
   const surface = useEntitySurface()
   const model = useMemo(
@@ -225,6 +229,7 @@ export function PatternListing({
         : description && (
             <TraitProse as="p" className="su-pattern-rows__prose" text={description} />
           )}
+      {edit?.summary}
       {(loadout.length > 0 || drones.length > 0) && (
         <PatternLoadout
           groups={loadout}

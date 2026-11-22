@@ -437,7 +437,7 @@ describe('Training Bay — items', () => {
         .getAllByRole('link')
         .map((a) => a.textContent)
         .filter((text) => text === 'Alpha' || text === 'Bravo')
-    expect(within(mechs).getByRole('button', { name: /sort by scrap/i })).toBeTruthy()
+    expect(within(mechs).getByRole('button', { name: /sort by cost/i })).toBeTruthy()
     const byName = () => within(mechs).getByRole('button', { name: /sort by mechs/i })
     fireEvent.click(byName())
     expect(names()).toEqual(['Alpha', 'Bravo'])
@@ -465,15 +465,15 @@ describe('Training Bay — Make a copy', () => {
     })
     // A copy only adds, so nothing asks first.
     expect(screen.queryByRole('alertdialog')).toBeNull()
-    await settle(() => screen.queryByText('Ghost 2 · COPY OF Fen Oya') !== null)
+    await settle(() => screen.queryByText('Ghost 2 · Fen Oya 2') !== null)
 
-    expect(screen.getByText('Ghost 2 · COPY OF Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Ghost 2 · Fen Oya 2')).toBeTruthy()
     expect(screen.getByText('Ghost · Fen Oya')).toBeTruthy()
     const names = useUnits
       .getState()
       .list('pilot')
       .map((p) => p.name)
-    expect(names.sort()).toEqual(['COPY OF Fen Oya', 'Fen Oya'])
+    expect(names.sort()).toEqual(['Fen Oya', 'Fen Oya 2'])
   })
 })
 

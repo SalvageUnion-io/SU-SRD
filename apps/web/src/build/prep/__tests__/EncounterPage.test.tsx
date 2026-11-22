@@ -338,7 +338,7 @@ describe('the Encounters shelf', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
     await settle(() => useEncounters.getState().encounters.length === 2)
     const copy = useEncounters.getState().encounters.find((e) => e.id !== 'enc-1')
-    expect(copy?.name).toBe('COPY OF Ambush')
+    expect(copy?.name).toBe('Ambush 2')
     await settle(() => screen.queryByRole('button', { name: 'Open the copy' }) !== null)
     await click(screen.getByRole('button', { name: 'Open the copy' }))
     expect(assigned).toEqual([`/encounters/${copy?.id}`])
@@ -356,7 +356,7 @@ describe('the Encounters shelf', () => {
         .getState()
         .encounters.map((e) => e.name)
         .sort()
-    ).toEqual(['Ambush', 'COPY OF Ambush', 'COPY OF Ambush 2'])
+    ).toEqual(['Ambush', 'Ambush 2', 'Ambush 3'])
   })
 
   test('Delete asks, then takes it off the shelf', async () => {

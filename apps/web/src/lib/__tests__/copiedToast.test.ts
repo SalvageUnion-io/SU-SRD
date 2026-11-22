@@ -131,13 +131,13 @@ describe('copying a pilot (r2 G6)', () => {
     const copy = pilots.find((p) => p.id !== 'p-ghost')
     const twin = mechs.find((m) => m.id !== 'm-rig')
     expect(copy?.callsign).toBe('Ghost 2')
-    expect(twin?.name).toBe('COPY OF Rig')
+    expect(twin?.name).toBe('Rig 2')
     expect(
       softLinks.some(
         (l) => l.type === 'mech-to-pilot' && l.from.id === twin?.id && l.to.id === copy?.id
       )
     ).toBe(true)
-    expect(String((open()[0] as { title?: unknown }).title)).toContain('with COPY OF Rig')
+    expect(String((open()[0] as { title?: unknown }).title)).toContain('with Rig 2')
   })
 
   test('Pilot only leaves the mech alone', async () => {

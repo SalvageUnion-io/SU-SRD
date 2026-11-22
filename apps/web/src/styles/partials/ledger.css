@@ -409,6 +409,12 @@
     width: auto;
   }
 
+  /* A figure over its cap: its mark drops under it, so the column stays a
+     figure wide and the table keeps the ones after it on screen. */
+  .su-ledger__over > [data-rule-break] {
+    display: block;
+  }
+
   /* A list with no phone column: its quiet line drops under the name. */
   .su-ledger__table[data-phone-line] tr {
     display: block;

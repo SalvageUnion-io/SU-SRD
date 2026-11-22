@@ -15,7 +15,7 @@ import { usePatterns } from '../replica/collections'
 import { subscribe } from '../replica/replica'
 import { useUnits } from '../replica/units'
 import { failureMessage } from './connection/useServerAction'
-import { copyForShelf, copyName, freeName, namesOn } from './copyEntity'
+import { copyForShelf, copyName, namesOn } from './copyEntity'
 import { patternCopy, savedPatternHref } from './patterns/patterns'
 
 /** How long an action toast stays: the Undo line's time (`changeUndoToast`). */
@@ -94,8 +94,8 @@ export const keptMech = (type: EntityKind, id: string, units?: Units): string | 
   type === 'pilot' ? mechFlownBy(id, units)?.name : undefined
 
 /**
- * Copy one of your units onto the Training Bay, named "Copy of …", numbered
- * past the names taken. A pilot's copy takes a callsign of its own too
+ * Copy one of your units onto the Training Bay, its name numbered past the
+ * names taken (`Mara Voss 2`). A pilot's copy takes a callsign of its own too
  * (`GHOST 2`): the list leads with the callsign, so two alike read as one
  * pilot. With `mech`, the pilot's mech is copied and paired with the copy, all
  * or nothing.
@@ -113,7 +113,7 @@ function copyUnit(
     make: async () => {
       const copy = copyForShelf(body, name, namesOn(units.list(type)))
       if (type === 'pilot' && typeof copy.callsign === 'string')
-        copy.callsign = freeName(
+        copy.callsign = copyName(
           copy.callsign,
           units.list('pilot').map((p) => p.callsign)
         )

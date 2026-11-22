@@ -47,7 +47,7 @@ import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useContext, useState } from 'react'
-import { PageShell, RosterSkeleton } from '../../components/app'
+import { PageShell, RosterSkeleton, RuleBreakMark } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import { Button, ChapterBand, HeaderMenu, toast } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
@@ -105,7 +105,8 @@ import { EncounterShelf } from './EncounterShelf'
 import { MechShelf } from './MechShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
-import { patternMenuOf } from './patternMenu.model'
+import { mechBuildFigures } from './mechShelf.model'
+import { buildFromPattern, patternMenuOf } from './patternMenu.model'
 import { RenameDialog } from './RenameDialog'
 import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
@@ -306,6 +307,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const patternMenu = (pattern: MechPattern) =>
     patternMenuOf(pattern, { go, confirm, canWrite, rename: setRenaming })
+  const patternBuild = (pattern: MechPattern) => {
+    const onSelect = buildFromPattern(pattern, { go, confirm, canWrite })
+    return onSelect ? { label: buildShelvesCopy('buildWithThis'), onSelect } : undefined
+  }
+  const patternOver = (pattern: MechPattern) => {
+    const figures = mechBuildFigures(pattern)
+    return figures.over ? <RuleBreakMark what={figures.overWhat} /> : undefined
+  }
 
   // -- the shelves ------------------------------------------------------------
 
@@ -363,6 +372,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           ),
           String(patternReading(p)?.value ?? ''),
         ],
+        // Over its chassis's slots, it wears the mark the Mechs shelf does (r3 I2).
+        under: patternOver(p),
+        // What a pattern is for is on its row, not a menu away (r3 L5).
+        act: patternBuild(p),
         menu: patternMenu(p),
       }))}
     />
