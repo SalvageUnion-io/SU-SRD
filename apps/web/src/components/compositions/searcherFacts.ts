@@ -7,6 +7,7 @@
 
 import type { EntityModel, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
+import { entityTraitNames } from '../../lib/listingTraits'
 import { compositionsCopy } from '../../messages/components-compositions'
 import type { PoolEntity } from './entitySearcherTypes'
 
@@ -31,6 +32,17 @@ function fact(model: EntityModel, key: string): string {
   // A custom weapon prints its range and damage as keyword values.
   const keyword = model.traits.find((trait) => trait.name.toLowerCase() === key)
   return keyword?.param ? String(keyword.param) : ''
+}
+
+/**
+ * The traits a part carries, by name, as its card prints them (r5 E2): its
+ * own and its attack's (a weapon System's Melee is its action's).
+ */
+export function carriedTraits(entity: PoolEntity): string[] {
+  const names = new Set((entity.traits ?? []).map((trait) => trait.type))
+  const model = modelOf(entity)
+  if (model) for (const name of entityTraitNames(model)) names.add(name)
+  return [...names]
 }
 
 /** `always`: shown at every width (a chassis's slots, what it is chosen by). */

@@ -8,6 +8,7 @@ import { selectableClasses } from './classOptions.model'
 import { PickList } from './PickList'
 import { abilityColumns } from './pickColumns'
 import type { PickColumn } from './pickLedger.model'
+import { SkipToNext } from './SkipToNext'
 import { FIRST_ABILITY_ID } from './wizPrompt.model'
 
 type SURClassesAccessor = {
@@ -149,6 +150,8 @@ export function ClassAbilityStep({
       {/* In the page's flow, never a column that scrolls in itself: with the
           picked ability over the class its foot sat under the fold of its own
           scroller, where no page scroll reached it (K14). */}
+      {/* Past the card's links to Next (r5 C6). */}
+      <SkipToNext />
       <div className="su-wiz-compare-detail">
         {selectedClass === undefined ? (
           <EmptyState

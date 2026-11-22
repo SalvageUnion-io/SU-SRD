@@ -7,7 +7,7 @@
 import type { Mech } from 'game-domain/schemas/mech'
 import { CONDITION_LABELS, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import type { LedgerColumn, LedgerRow } from '../../components/index'
-import { Stat, TechLevel } from '../../components/index'
+import { ChipButton, Stat, TechLevel } from '../../components/index'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import {
   itemEconomy,
@@ -43,6 +43,8 @@ export const ITEM_COLUMNS: readonly LedgerColumn[] = [
     label: buildDashCopy('cost'),
     title: buildDashCopy('activationCost'),
     phone: true,
+    // Its stamp opens what an EP cost is, as the strip's labels do (r5 C8).
+    statKey: 'cost',
   },
 ]
 
@@ -58,7 +60,12 @@ export function itemRows(
   mech: Fitted,
   kind: ItemKind,
   /** The carrier keeps its items' choices (a mech), so one not yet made is marked. */
-  keepsChoices = false
+  keepsChoices = false,
+  /**
+   * Spend an item's EP from its row (r5 C9): its cost is the press, naming
+   * the item to the write. Absent, the cost only reads.
+   */
+  spend?: (name: string, ep: number) => void
 ): LedgerRow[] {
   const slugs = kind === 'system' ? mech.systems : mech.modules
   const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
@@ -66,7 +73,9 @@ export function itemRows(
   return slugs.map((slug, index) => {
     const entity = kind === 'system' ? resolveSystem(slug) : resolveModule(slug)
     const condition = conditions[slug] ?? 'intact'
-    const maxUses = entity ? itemEconomy(entity).maxUses : 0
+    const economy = entity ? itemEconomy(entity) : undefined
+    const maxUses = economy?.maxUses ?? 0
+    const ep = economy?.epCost ?? 0
     const model = entity ? toEntityModel(entity) : undefined
     const fact = (key: string) => {
       const found = model?.facts.find((entry) => entry.key === key)
@@ -113,7 +122,24 @@ export function itemRows(
         fact('range'),
         fact('damage'),
         maxUses > 0 ? `${itemUsesRemaining(maxUses, mech.itemUses?.[slug])}/${maxUses}` : '',
-        model?.cost ? <Cost key="cost" cost={model.cost} /> : '',
+        !model?.cost ? (
+          ''
+        ) : spend && entity && ep > 0 && condition !== 'destroyed' ? (
+          <ChipButton
+            key="cost"
+            aria-label={buildDashCopy('spendEpFor', { ep, name: entity.name })}
+            title={buildDashCopy('spendEpFor', { ep, name: entity.name })}
+            onClick={(event) => {
+              // The press spends; it never opens the row.
+              event.stopPropagation()
+              spend(entity.name, ep)
+            }}
+          >
+            <Cost cost={model.cost} />
+          </ChipButton>
+        ) : (
+          <Cost key="cost" cost={model.cost} />
+        ),
       ],
       dim: condition === 'destroyed',
       detail: entity ? <RowRules entity={entity} /> : undefined,

@@ -60,6 +60,15 @@
   }
 }
 
+/* A tablet reads the art over the rules, as a phone does, but at a tablet's
+   70vh it would take the whole first screen: capped, so the ability and the
+   Description start beside the stats and the drawing (r5 E10). */
+@media (width >= 40rem) and (not (width >= 64rem)) {
+  .su-manual .su-entity-hero {
+    --su-hero-max-h: 40vh;
+  }
+}
+
 /* With no side column the rules run the page's measure; a line of prose
    keeps a reading measure. */
 .su-entity-page.su-manual:not(.su-entity-page--art) > * {

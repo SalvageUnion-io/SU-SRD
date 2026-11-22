@@ -181,6 +181,19 @@ describe('LiveSheet — the chapter band', () => {
     expect(openPage).toHaveBeenCalledTimes(1)
   })
 
+  // r5 A15 (SB5-19): moved into a Game, Play solo became Open table with no word why.
+  test('in a Game the band says solo play is now its table', () => {
+    renderShell({
+      band: {
+        game: { name: 'Tenacity', href: '/games/g1' },
+        doorNote: 'Solo play is now Tenacity’s table: Open table plays here.',
+      },
+    })
+    const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex (Pilot)' })
+    const band = within(must(title.closest<HTMLElement>('.su-chapter-band')))
+    expect(band.getByText('Solo play is now Tenacity’s table: Open table plays here.')).toBeTruthy()
+  })
+
   test('a detail is stamped even when it repeats the name (ADR-066: explicit)', () => {
     renderShell({ name: 'Scrapper', kindDetail: { label: 'Chassis', name: 'Scrapper' } })
     const title = screen.getByRole('heading', { level: 1, name: 'Scrapper (Pilot)' })

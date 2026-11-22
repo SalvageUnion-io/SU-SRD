@@ -3,7 +3,8 @@
  * link" and "Reset link", chips on the Invite link section's head.
  *
  * Copying hands out the Game's one URL (`invites.link`); pressing it again
- * copies the same one. Resetting mints a new URL (`invites.reset`), and the
+ * copies the same one. Where the clipboard refuses, the link is shown in a
+ * field, selected, to copy by hand (r5 C15). Resetting mints a new URL (`invites.reset`), and the
  * old one stops working, after a confirm.
  *
  * Connected only. The link comes from the server of record, so a signed-out or
@@ -11,9 +12,10 @@
  */
 
 import { Link2 } from 'lucide-react'
-import { useState } from 'react'
+import type { CSSProperties } from 'react'
+import { useRef, useState } from 'react'
 import { ConfirmDialog, CopiedIcon, CopiedStatus, useCopied } from '../../components/app'
-import { Button, toast, tokens } from '../../components/index'
+import { Button, Input, toast, tokens } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
 import { playGamesCopy } from '../../messages/play-games'
@@ -41,15 +43,30 @@ async function writeClipboardPromise(text: Promise<string>): Promise<void> {
   await navigator.clipboard.writeText(await text)
 }
 
+/** The link to copy by hand: the actions' whole line, under the buttons. */
+const BY_HAND = { flexBasis: '100%' } satisfies CSSProperties
+
 function ConnectedCopyInviteLink({
   gameId,
   clipboardWriter = writeClipboardPromise,
 }: CopyInviteLinkProps) {
   const link = useGamesCall('invites.link')
+  // The URL the last press fetched, and the one shown when the clipboard refused it.
+  const fetched = useRef<string | null>(null)
+  const [byHand, setByHand] = useState<string | null>(null)
   // Both calls start inside the press: the action runs synchronously up to its
   // first await, which is what keeps WebKit's gesture alive for the clipboard.
   const copyLink = useServerAction(
-    () => clipboardWriter(link({ gameId }).then((token) => inviteUrl(token))),
+    () => {
+      const url = link({ gameId }).then((token) => inviteUrl(token))
+      url.then(
+        (u) => {
+          fetched.current = u
+        },
+        () => undefined
+      )
+      return clipboardWriter(url)
+    },
     { failure: playGamesCopy('inviteLinkCopyFailed'), toastId: 'invite-link-copy' }
   )
 
@@ -58,8 +75,10 @@ function ConnectedCopyInviteLink({
   const { copied, flash } = useCopied()
 
   async function copy(): Promise<void> {
+    fetched.current = null
     const result = await copyLink.run()
     if (result.ok) flash()
+    setByHand(result.ok ? null : fetched.current)
   }
 
   return (
@@ -73,6 +92,17 @@ function ConnectedCopyInviteLink({
         {playGamesCopy('copyInviteLink')}
       </Button>
       <CopiedStatus copied={copied} />
+      {byHand !== null && (
+        <div style={BY_HAND}>
+          <Input
+            readOnly
+            autoFocus
+            aria-label={playGamesCopy('inviteLink')}
+            value={byHand}
+            onFocus={(event) => event.currentTarget.select()}
+          />
+        </div>
+      )}
     </>
   )
 }

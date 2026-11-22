@@ -1,7 +1,8 @@
 /**
  * BookPatternBuild — the New Mech screen's book patterns: pick a chassis, then
- * one of the patterns it prints, and build the mech as printed. Every pattern
- * of every chassis is here, whatever its Tech Level; one past the starting
+ * one of the patterns it prints, and build the mech as printed. It opens on
+ * the starting-level chassis (r5 D5); every Tech Level is one press away, and
+ * a deep link to a higher one shows them all. One past the starting
  * budget says so beside its totals and in the notice (a Blank-family shortcut,
  * as a saved pattern's Build With This). One press builds, and the notice has
  * Undo (r4 E23). A Reference pattern page's Build With This lands here with
@@ -14,6 +15,7 @@ import { moveTo } from 'game-domain/container'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
+import { isLegalCreationChassis } from 'salvageunion-reference/rules'
 import { Button, Field, Select, Stat, Text, tokens } from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import {
@@ -23,8 +25,8 @@ import {
   isStartingBookPattern,
   mechFromBookPattern,
 } from '../../../lib/patterns/bookPatterns'
-import { loadoutSlots } from '../../../lib/patterns/patterns'
-import { mechScrap } from '../../../lib/rules/mechScrap'
+import { countedLoadout, loadoutSlots } from '../../../lib/patterns/patterns'
+import { mechScrap, scrapSplit } from '../../../lib/rules/mechScrap'
 import { mechCopy } from '../../../messages/build-mech'
 import { useSync } from '../../../replica/syncContext'
 import { useUnits } from '../../../replica/units'
@@ -44,12 +46,17 @@ const ROW = {
 } satisfies CSSProperties
 const PICK = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 const FILL = { width: '100%' } satisfies CSSProperties
+const EVERY = { alignSelf: 'flex-start' } satisfies CSSProperties
 const TOTALS = {
   alignItems: 'center',
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[8],
 } satisfies CSSProperties
+
+/** A loadout's lines, copies counted: `Mini Mortar ×2, Chainsaw Arm`. */
+const counted = (lines: readonly { name: string; count: number }[]) =>
+  lines.map((line) => (line.count > 1 ? `${line.name} ×${line.count}` : line.name)).join(', ')
 
 type BookPatternBuildProps = {
   /** The deep link's pick, as slugs; either may name nothing. */
@@ -62,8 +69,15 @@ type BookPatternBuildProps = {
 
 export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatternBuildProps) {
   const { status, canWrite } = useSync()
-  const pool = chassisWithPatterns()
+  const every = chassisWithPatterns()
   const [chassisSlug, setChassisSlug] = useState(chassis ?? '')
+  // Starting-level chassis first; every Tech Level on a press, or where the link names one past it.
+  const [allLevels, setAllLevels] = useState(
+    () =>
+      chassis !== undefined &&
+      every.some((c) => nameToSlug(c.name) === chassis && !isLegalCreationChassis(c.techLevel))
+  )
+  const pool = allLevels ? every : every.filter((c) => isLegalCreationChassis(c.techLevel))
   const [patternSlug, setPatternSlug] = useState(pattern ?? '')
   // A deep link that names a pattern lands on its Build With This, in view.
   const linked = bookPattern(chassis, pattern) !== undefined
@@ -81,6 +95,7 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
   const starting =
     picked !== undefined && chosen !== undefined && isStartingBookPattern(picked, chosen)
   const slots = input ? loadoutSlots(input) : undefined
+  const loadout = input ? countedLoadout(input) : undefined
   const signedOut = status === 'signedOut' && !canWrite
 
   const build = useServerAction(
@@ -162,16 +177,37 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
           {build.pending ? mechCopy('building') : mechCopy('buildWithThis')}
         </Button>
       </div>
+      {!allLevels && (
+        <Button variant="ghost" size="compact" style={EVERY} onClick={() => setAllLevels(true)}>
+          {mechCopy('everyTechLevel')}
+        </Button>
+      )}
       {input && slots && (
         <div style={TOTALS}>
           <Text variant="note">
             {mechCopy('slotsAndScrap', {
               systems: `${slots.systemSlotsUsed}/${slots.systemSlotsMax}`,
               modules: `${slots.moduleSlotsUsed}/${slots.moduleSlotsMax}`,
-              scrap: mechScrap(input).total,
+              // Scrap as it is paid, by Tech Level (r5 D6).
+              scrap: scrapSplit(mechScrap(input)),
             })}
           </Text>
           {!starting && <Stat size="mini" label={mechCopy('notAStartingBuild')} />}
+        </div>
+      )}
+      {/* What is in it, before it is built (r5 D6). */}
+      {loadout && (
+        <div>
+          {loadout.systems.length > 0 && (
+            <Text variant="note">
+              {mechCopy('patternSystemsLine', { names: counted(loadout.systems) })}
+            </Text>
+          )}
+          {loadout.modules.length > 0 && (
+            <Text variant="note">
+              {mechCopy('patternModulesLine', { names: counted(loadout.modules) })}
+            </Text>
+          )}
         </div>
       )}
       {/* Nothing was edited here: the ask names the choice, kept in the address. */}

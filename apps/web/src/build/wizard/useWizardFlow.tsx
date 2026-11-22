@@ -32,7 +32,9 @@ import type { StepGateResult } from '../../lib/rules/creation'
 import { wizardDraftSummary } from '../../lib/wizard/draftSummary'
 import {
   clearWizardDraft,
+  markWizardSignIn,
   readWizardReached,
+  readWizardSignIn,
   writeWizardReached,
 } from '../../lib/wizard/wizardDraft'
 import { buildWizardCopy } from '../../messages/build-wizard'
@@ -124,6 +126,8 @@ type WizardShellProps = {
   signIn: { open: boolean; onClose: () => void }
   /** Signed out, the first step says up front that saving needs a sign-in. */
   tryNote: string | undefined
+  /** Back from the sign-in Save asked for, on the submit step: the bar says Save is still to press. */
+  signedInBack: boolean
   /** Signed out on the submit step: keep the build as a file, or print it. */
   keepAsFile: KeepAsFileActs | undefined
 }
@@ -184,6 +188,8 @@ export function useWizardFlow<
   // is already this tab's session draft, so signing in comes back to it.
   const { status, canWrite } = useSync()
   const [askSignIn, setAskSignIn] = useState(false)
+  // Save asked for the sign-in this draft has come back from (r5 C14).
+  const [askedSignIn] = useState(() => readWizardSignIn(draftKey))
 
   const currentIndex = steps.indexOf(step)
 
@@ -271,6 +277,7 @@ export function useWizardFlow<
   async function handleSubmit() {
     setInvalid(null)
     if (signedOut) {
+      markWizardSignIn(draftKey)
       setAskSignIn(true)
       return
     }
@@ -362,6 +369,7 @@ export function useWizardFlow<
       busy: save.pending,
       signIn: { open: askSignIn, onClose: () => setAskSignIn(false) },
       tryNote: signedOut && currentIndex === 0 ? buildWizardCopy('tryItNow') : undefined,
+      signedInBack: askedSignIn && canWrite && step === submitStep && existing === undefined,
       keepAsFile:
         signedOut && step === submitStep && entityType !== 'npc'
           ? { fileName, onDownload: download, onPrint: () => window.print() }

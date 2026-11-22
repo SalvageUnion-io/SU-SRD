@@ -1,6 +1,6 @@
-import { fieldLabel } from 'game-domain/games/proposals'
+import { fieldLabel, proposalValueText } from 'game-domain/games/proposals'
 import type { LinkShape } from 'game-domain/links/linkRules'
-import { seatOf } from '../seats'
+import { downtimeStepNames } from 'game-domain/rules/downtime'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
 import type { Stored } from './eventLines'
@@ -16,11 +16,15 @@ import {
   VITALS,
   vitalLine,
 } from './eventLines'
+import type { EventsBefore } from './eventsBefore'
+import { downtimeStepNow, eventsBefore, unappliedOf } from './eventsBefore'
 import { isPrivateRoll, isRevealedRoll, rollLineFor } from './log'
 import { undoes } from './proposals'
 import type { GameStore, StoredOp } from './store'
 import type { SubmitResult } from './units'
 import { unitName } from './units'
+
+export type { EventsBefore } from './eventsBefore'
 
 /**
  * The table's event stream (ADR-063 §7, as amended): one line per thing a member did in a
@@ -79,7 +83,7 @@ export type TableEvent = {
   kind: TableEventKind
   /** The line: who and what, as the Feed, a toast and Discord all read it. */
   text: string
-  /** Whose act it was; null for the Stop Sign, which names nobody. */
+  /** Whose act it was; null for the Stop Sign, which names nobody but whoever lifted someone else's. */
   actorId: string | null
   /** Mediators' eyes only: never toasted to a player, never mirrored. */
   private?: true
@@ -121,21 +125,8 @@ const KEPT = 600
 /** The most events a read returns: the stream's newest page. */
 const SERVED = 200
 
-/** What an act needs remembered from before it ran, to say what changed. */
-export type EventsBefore = {
-  resolving?: string | null
-  proposal?: StoredOp | null
-  session?: boolean
-  /** Whether a Downtime was running. */
-  downtime?: boolean
-  stop?: boolean
-  /** Whether the effect was switched on. */
-  effectOn?: boolean
-  /** Who held the unit an assignment moves. */
-  holder?: string | null
-  /** Whether the roll was already revealed: a second Reveal tells nobody again. */
-  revealed?: boolean
-}
+/** A proposal's Undo: its Mediator's row changes with it, so every list is served again (r5 A2). */
+export const isUndone = (event: TableEvent): boolean => event.answer === 'undone'
 
 /** Whether an event goes to the bound channel as a line: never a private one, nor one with its own post. */
 export function isMirrored(event: TableEvent): boolean {
@@ -167,62 +158,9 @@ export class GameEvents {
       .filter((event) => event.private !== true || member.mediator)
   }
 
-  /** What `after` needs from before the act ran. */
+  /** What `after` needs from before the act ran (`eventsBefore.ts`). */
   before(name: GameActName, args: unknown): EventsBefore {
-    const a = (args ?? {}) as Record<string, unknown>
-    switch (name) {
-      case 'seats.setResolving': {
-        const row = this.store.rows(
-          'select resolving from seats where pilot_id = ?',
-          String(a.pilotId)
-        )[0]
-        const resolving =
-          typeof row?.resolving === 'string'
-            ? (JSON.parse(row.resolving) as { name?: string } | null)
-            : null
-        return { resolving: resolving?.name ?? null }
-      }
-      case 'seats.toggleEffect': {
-        const row = this.store.rows('select * from seats where pilot_id = ?', String(a.pilotId))[0]
-        return {
-          effectOn: row !== undefined && seatOf(row).activeEffects.includes(String(a.ref)),
-        }
-      }
-      case 'assign':
-      case 'unassign':
-        return { holder: this.store.unit(String(a.unitId))?.ownerId ?? null }
-      case 'ops.accept':
-      case 'ops.decline':
-      case 'ops.withdraw':
-        return { proposal: this.store.op(String(a.opId)) }
-      case 'session.start':
-      case 'session.end':
-        return { session: this.store.rows('select 1 from session where id = 1').length > 0 }
-      case 'downtime.begin':
-      case 'downtime.end':
-        return {
-          downtime: this.store.rows('select 1 from downtime_run where id = 1').length > 0,
-        }
-      case 'changeLog.reveal': {
-        const row = this.store.rows(
-          'select after from change_log where id = ?',
-          String(a.rollId)
-        )[0]
-        return {
-          revealed:
-            typeof row?.after === 'string' && isRevealedRoll(JSON.parse(row.after) as unknown),
-        }
-      }
-      case 'safety.showStop':
-      case 'safety.liftStop':
-        return {
-          stop:
-            this.store.rows('select 1 from stop_sign where id = 1 and shown_at is not null')
-              .length > 0,
-        }
-      default:
-        return {}
-    }
+    return eventsBefore(this.store, name, args)
   }
 
   /**
@@ -243,6 +181,16 @@ export class GameEvents {
     const say = (kind: TableEventKind, text: string, key = text) => [
       this.note(actor, at, { kind, text, key }),
     ]
+    // What the act closed unapplied, a line each (r5 A7).
+    const closed = () =>
+      (before.unapplied ?? [])
+        .filter((u) => unappliedOf(this.store, [u.pilotId]).length === 0)
+        .map((u) =>
+          this.note(actor, at, {
+            kind: 'action',
+            text: `${unit(u.pilotId)} · ${u.name}: not applied`,
+          })
+        )
     switch (name) {
       case 'submit':
         return this.vitals(actor, value as SubmitResult, at)
@@ -274,6 +222,11 @@ export class GameEvents {
       case 'drawLink':
       case 'removeLink': {
         const link = a.link as LinkShape
+        // A mech and its pilot: the pilot flies it, so "assigned to" stays a person's word (r5 B14).
+        if (link.type === 'mech-to-pilot') {
+          const verb = name === 'drawLink' ? 'flies' : 'no longer flies'
+          return say('assign', `${unit(link.to.id)} ${verb} ${unit(link.from.id)}`)
+        }
         const verb = name === 'drawLink' ? 'is assigned to' : 'is unassigned from'
         return say('assign', `${unit(link.from.id)} ${verb} ${unit(link.to.id)}`)
       }
@@ -298,6 +251,7 @@ export class GameEvents {
       case 'session.end':
         return before.session === true
           ? [
+              ...closed(),
               this.note(actor, at, {
                 kind: 'session',
                 text: `${this.runnerName(actor)} ended the group session`,
@@ -309,12 +263,22 @@ export class GameEvents {
       case 'downtime.begin':
         return value === true
           ? [
+              ...closed(),
               this.note(actor, at, {
                 kind: 'downtime',
                 text: `${this.runnerName(actor)} began Downtime`,
               }),
             ]
           : []
+      // Moved, the table is told where to, and which steps were passed over (r5 A3).
+      case 'downtime.advance':
+      case 'downtime.setStep': {
+        const from = before.downtimeStep ?? null
+        const to = downtimeStepNow(this.store)
+        if (from === null || to === null || to === from) return []
+        const text = downtimeMoveLine(this.runnerName(actor), from, to)
+        return [this.note(actor, at, { kind: 'downtime', text })]
+      }
       case 'downtime.end':
         return before.downtime === true
           ? [
@@ -368,17 +332,43 @@ export class GameEvents {
       }
       case 'changeLog.withdrawAlert':
         return [this.note(actor, at, { kind: 'withdrawn', text: 'Mediator withdrew an alert' })]
+      case 'scenes.setUpNow': {
+        // Giving the turn is said to the whole table (r5 A4), as ending it is.
+        const pilotId = a.pilotId
+        if (pilotId === before.upNow) return []
+        const given =
+          typeof pilotId === 'string'
+            ? [
+                this.note(actor, at, {
+                  kind: 'turn',
+                  text: `The Mediator gave ${unit(pilotId)} the turn`,
+                }),
+              ]
+            : []
+        return [...closed(), ...given]
+      }
       case 'scenes.endTurn':
-        return [this.note(actor, at, { kind: 'turn', text: `${unit(value)} ended their turn` })]
+        return [
+          this.note(actor, at, { kind: 'turn', text: `${unit(value)} ended their turn` }),
+          ...closed(),
+        ]
       case 'safety.showStop':
         // Nobody is named: who showed it stays in the room.
         return before.stop === true
           ? []
           : [this.note(null, at, { kind: 'stop', text: 'The Stop Sign is up. Play is paused.' })]
       case 'safety.liftStop':
-        return before.stop === true
-          ? [this.note(null, at, { kind: 'stop', text: 'The Stop Sign is lifted. Play resumes.' })]
-          : []
+        if (before.stop !== true) return []
+        // Lifted for someone else, the Feed says who lifted it (r5 A8); whoever
+        // showed it lifting it themselves stays unnamed.
+        return before.stopBy !== actor
+          ? [
+              this.note(actor, at, {
+                kind: 'stop',
+                text: `${who} lifted the Stop Sign. Play resumes.`,
+              }),
+            ]
+          : [this.note(null, at, { kind: 'stop', text: 'The Stop Sign is lifted. Play resumes.' })]
       default:
         return []
     }
@@ -583,11 +573,21 @@ export class GameEvents {
 
   private proposalLine(op: StoredOp): string {
     const [field = '', after = null] = Object.entries(op.patch)[0] ?? []
-    return `${this.unitLabel(op.unitId)} ${fieldLabel(field)} → ${after === null ? '—' : String(after)}`
+    return `${this.unitLabel(op.unitId)} ${fieldLabel(field)} → ${proposalValueText(after)}`
   }
 }
 
 /** Whose the unit was before an assignment moved it to `to`: nobody, when it stays theirs or was free. */
+/** "Mediator moved Downtime to 7 Train your Pilot, past 2–6": a step is said by its number and name. */
+function downtimeMoveLine(who: string, from: number, to: number): string {
+  const names = downtimeStepNames()
+  const where = `${to + 1} ${names[to] ?? ''}`.trim()
+  if (to < from) return `${who} moved Downtime back to ${where}`
+  const passed = to - from - 1
+  const past = passed === 0 ? '' : passed === 1 ? `, past ${from + 2}` : `, past ${from + 2}–${to}`
+  return `${who} moved Downtime to ${where}${past}`
+}
+
 function lost(before: EventsBefore, to: string | null): { about?: string } {
   const holder = before.holder ?? null
   return holder === null || holder === to ? {} : { about: holder }

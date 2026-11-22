@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { downtimeStepNames } from 'game-domain/rules/downtime'
 import type { GameActArgs, GameActName } from '../acts'
 import { runAct } from '../acts'
 import { isMirrored, MERGE_MS } from '../events'
@@ -216,6 +217,8 @@ describe('the table’s events', () => {
     act(STRANGER, 'redeem', { code, profile: { displayName: 'Nell', avatarUrl: null } }, AT + 8)
     expect(texts()).toEqual([
       'Nell joined the Game',
+      // Left resolving when the session ended (r5 A7).
+      'p1 · Pilot p1 · Patch: not applied',
       'Mediator ended the group session',
       'Player accepted: p1 · Pilot p1 AP → 2',
       'Mediator proposes p1 · Pilot p1 AP → 2',
@@ -251,6 +254,21 @@ describe('the table’s events', () => {
     ])
   })
 
+  test('a pilot paired with a mech flies it: the Feed keeps "assigned to" for a person (r5 B14)', () => {
+    const { act, texts } = seated()
+    const link = {
+      type: 'mech-to-pilot',
+      from: { type: 'mech', id: 'm1' },
+      to: { type: 'pilot', id: 'p1' },
+    } as const
+    act(PLAYER, 'drawLink', { link }, AT + 1)
+    act(PLAYER, 'removeLink', { link }, AT + MERGE_MS + 2)
+    expect(texts().slice(0, 2)).toEqual([
+      'p1 · Pilot p1 no longer flies Mech m1',
+      'p1 · Pilot p1 flies Mech m1',
+    ])
+  })
+
   test('the same line said again at once is counted on the line it follows, not repeated', () => {
     const { act, texts } = seated()
     const [first] = act(MEDIATOR, 'assign', { unitId: 'p1', userId: PLAYER }, AT + 1)
@@ -281,8 +299,18 @@ describe('the table’s events', () => {
     const [up] = act(PLAYER, 'safety.showStop', undefined as never)
     expect(up).toMatchObject({ kind: 'stop', actorId: null })
     expect(isMirrored(up as never)).toBe(false)
-    const [down] = act(MEDIATOR, 'safety.liftStop', undefined as never, AT + 1)
-    expect(down?.actorId).toBeNull()
+    // Lifted by its own shower: nobody named.
+    const [own] = act(PLAYER, 'safety.liftStop', undefined as never, AT + 1)
+    expect(own).toMatchObject({ actorId: null, text: 'The Stop Sign is lifted. Play resumes.' })
+    expect(isMirrored(own as never)).toBe(true)
+    // Lifted by the Mediator for someone else: the Feed says who lifted it (r5 A8).
+    act(PLAYER, 'safety.showStop', undefined as never, AT + 2)
+    const [down] = act(MEDIATOR, 'safety.liftStop', undefined as never, AT + 3)
+    expect(down).toMatchObject({
+      actorId: MEDIATOR,
+      text: 'Med lifted the Stop Sign. Play resumes.',
+    })
+    expect(down?.about).toBeUndefined()
     expect(isMirrored(down as never)).toBe(true)
   })
 
@@ -309,6 +337,23 @@ describe('the table’s events', () => {
     expect(mediators.map((e) => e.mediator)).toEqual([undefined, true, undefined])
     expect(mediators.filter((e) => isMirrored(e))).toEqual([])
     expect(room.events.list(STRANGER)).toEqual([])
+  })
+
+  test('a Mediator’s roll in a slot replaces the one before it on the Feed; a player’s never does (r5 B1)', () => {
+    const { room, texts } = seated()
+    const roll = (description: string, ts: number, slot = 'wreck:n1') => ({
+      entityType: 'game',
+      field: 'roll',
+      after: { description, slot },
+      source: 'play',
+      ts,
+    })
+    room.log.append(MEDIATOR, [roll('Mediator · Mech Salvage · 6', AT + 1)])
+    room.log.append(MEDIATOR, [roll('Mediator · Mech Salvage · 12', AT + 2)])
+    room.log.append(MEDIATOR, [roll('Mediator · Morale · 3', AT + 3, 'wreck:n2')])
+    expect(texts(PLAYER)).toEqual(['Mediator · Morale · 3', 'Mediator · Mech Salvage · 12'])
+    room.log.append(PLAYER, [roll('p1 · Core Mechanic · 4', AT + 4, 'wreck:n2')])
+    expect(texts(PLAYER)).toHaveLength(3)
   })
 
   test('an Opposition roll reaches players without its names, in the Feed and the log, until the Mediator reveals it (r2 B1)', () => {
@@ -441,6 +486,24 @@ describe('the table’s events', () => {
     expect(room.events.list(MEDIATOR)[0]).not.toHaveProperty('veiled')
   })
 
+  // r5 A3 (LG5-03, MD5-17): the Mediator moved Downtime on and the players heard nothing.
+  test('Downtime moving is a line for everyone, naming the step and what was passed over', () => {
+    const { act, texts } = seated()
+    act(MEDIATOR, 'downtime.begin', undefined as never, AT + 1)
+    const [next] = act(MEDIATOR, 'downtime.advance', undefined as never, AT + 2)
+    expect(next).toMatchObject({ kind: 'downtime', actorId: MEDIATOR })
+    act(MEDIATOR, 'downtime.setStep', { stepIndex: 6 }, AT + 3)
+    act(MEDIATOR, 'downtime.setStep', { stepIndex: 2 }, AT + 4)
+    // Put on the step it is already on, nothing moved, and nothing is said.
+    expect(act(MEDIATOR, 'downtime.setStep', { stepIndex: 2 }, AT + 5)).toEqual([])
+    const names = downtimeStepNames()
+    expect(texts(PLAYER).slice(0, 3)).toEqual([
+      `Mediator moved Downtime back to 3 ${names[2]}`,
+      `Mediator moved Downtime to 7 ${names[6]}, past 3–6`,
+      `Mediator moved Downtime to 2 ${names[1]}`,
+    ])
+  })
+
   test('Downtime beginning and ending are each one line for everyone (r2 E2)', () => {
     const { act, texts } = seated()
     const [began] = act(MEDIATOR, 'downtime.begin', undefined as never, AT + 1)
@@ -467,7 +530,9 @@ describe('the table’s events', () => {
     const [undone] = act(
       PLAYER,
       'submit',
-      { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2 })] },
+      {
+        ops: [op('p1', { currentHP: 8 }, { baseSeq: 2, kind: 'transaction', source: 'play-undo' })],
+      },
       AT + 4
     )
     expect(undone).toMatchObject({
@@ -490,6 +555,36 @@ describe('the table’s events', () => {
     )
     expect(later).toMatchObject({ kind: 'vitals' })
     expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('undone')
+  })
+
+  test('a heal back to the old value is a heal, never the proposal undone (r5 A2)', () => {
+    const { act, room } = seated()
+    act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 8 })] }, AT + 1)
+    act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 3 }, AT + 2)
+    act(PLAYER, 'ops.accept', { opId: room.proposals.pending(PLAYER)[0]?._id as string }, AT + 3)
+    // Change by amount, a repair or Downtime's Restore: Play's own write, back to 8.
+    const [healed] = act(
+      PLAYER,
+      'submit',
+      { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2, kind: 'transaction', source: 'play' })] },
+      AT + 4
+    )
+    expect(healed).toMatchObject({ kind: 'vitals', text: 'p1 · Pilot p1 · HP 3 → 8' })
+    expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('applied')
+    // A sheet's own Undo of the accepted change is an Undo too.
+    const other = seated()
+    other.act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 8 })] }, AT + 1)
+    other.act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 3 }, AT + 2)
+    const sent = other.room.proposals.pending(PLAYER)[0]?._id as string
+    other.act(PLAYER, 'ops.accept', { opId: sent }, AT + 3)
+    const [undone] = other.act(
+      PLAYER,
+      'submit',
+      { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2, source: `live-sheet-undo:${sent}` })] },
+      AT + 4
+    )
+    expect(undone).toMatchObject({ kind: 'proposal', answer: 'undone' })
+    expect(other.room.proposals.sent(MEDIATOR)[0]?.state).toBe('undone')
   })
 
   test('an accepted proposal changed to anything but what it replaced still stands', () => {
@@ -528,6 +623,63 @@ describe('the table’s events', () => {
     expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
   })
 
+  test('giving the turn is a line for the whole table, once per pilot given it (r5 A4)', () => {
+    const { act, texts } = seated()
+    const [given] = act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    expect(given).toMatchObject({ kind: 'turn', actorId: MEDIATOR })
+    expect(given?.text).toStartWith('The Mediator gave ')
+    expect(given?.text).toEndWith(' the turn')
+    expect(isMirrored(given as never)).toBe(true)
+    expect(texts(PLAYER)[0]).toBe(given?.text as string)
+    // The same pilot again, or nobody, says nothing more.
+    expect(act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 2)).toEqual([])
+    expect(act(MEDIATOR, 'scenes.setUpNow', { pilotId: null }, AT + 3)).toEqual([])
+  })
+
+  test('a resolve nobody applied is closed, not applied, when its turn or the session ends (r5 A7)', () => {
+    const { act, room, texts } = seated()
+    const open = (name: string) =>
+      act(PLAYER, 'seats.setResolving', {
+        pilotId: 'p1',
+        resolving: {
+          ref: 'k',
+          name,
+          activated: true,
+          roll: { roll: 12, band: 'success' },
+          applied: false,
+        },
+      })
+    act(MEDIATOR, 'session.start', undefined as never, AT)
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    open('Chainsaw Arm')
+    const ended = act(PLAYER, 'scenes.endTurn', undefined as never, AT + 2)
+    expect(ended.map((e) => e.text)).toEqual([
+      expect.stringContaining('ended their turn'),
+      expect.stringContaining(' · Chainsaw Arm: not applied'),
+    ])
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+    // The turn moved on by the Mediator's hand closes it too.
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 3)
+    open('Provoke')
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: null }, AT + 4)
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+    expect(texts(MEDIATOR)[0]).toContain(' · Provoke: not applied')
+    // Downtime beginning ends the turn too.
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 4)
+    open('Patch')
+    act(MEDIATOR, 'downtime.begin', undefined as never, AT + 4)
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+    act(MEDIATOR, 'downtime.end', undefined as never, AT + 4)
+    // And the session ending closes every seat's.
+    open('Red Laser')
+    const left = act(MEDIATOR, 'session.end', undefined as never, AT + 5)
+    expect(left.map((e) => e.text)).toEqual([
+      expect.stringContaining(' · Red Laser: not applied'),
+      expect.stringContaining('ended the group session'),
+    ])
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+  })
+
   test('the player who is up ends their own turn: the marker clears and the table is told (r4 B1)', () => {
     const { act, room, texts } = seated()
     act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
@@ -558,6 +710,37 @@ describe('the table’s events', () => {
     expect(() => act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 3)).toThrow(
       'That alert is no longer there'
     )
+  })
+
+  test('a salvaged part proposed to a Mech’s hold adds to the hold it holds when accepted (r5 B2)', () => {
+    const { act, room, texts } = seated()
+    const held = { id: 'l1', kind: 'unit', name: 'Crate', cat: 'SEALED', units: 1, code: 'CRT' }
+    act(PLAYER, 'submit', { ops: [op('m1', { cargoLots: [held] })] }, AT)
+    const part = {
+      id: 'l2',
+      kind: 'unit',
+      name: 'Mule (Damaged)',
+      cat: 'SYSTEM',
+      units: 7,
+      code: 'MUL',
+    }
+    act(MEDIATOR, 'ops.propose', { entityId: 'm1', field: 'cargoLots', after: [part] }, AT + 1)
+    expect(texts()[0]).toBe('Mediator proposes Mech m1 Cargo → + Mule (Damaged)')
+    // The hold changed after the proposal was sent: accepting keeps both.
+    const other = { ...held, id: 'l3', name: 'Ration Pack' }
+    act(PLAYER, 'submit', { ops: [op('m1', { cargoLots: [held, other] }, { baseSeq: 1 })] }, AT + 2)
+    const opId = String(room.proposals.pending(PLAYER)[0]?._id)
+    act(PLAYER, 'ops.accept', { opId }, AT + 3)
+    const mech = room.units.list(PLAYER).find((u) => u.id === 'm1')
+    expect(((mech?.body.cargoLots ?? []) as { name: string }[]).map((l) => l.name)).toEqual([
+      'Mule (Damaged)',
+      'Crate',
+      'Ration Pack',
+    ])
+    expect(room.proposals.sent(MEDIATOR)[0]).toMatchObject({ state: 'applied', after: [part] })
+    expect(() =>
+      act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'cargoLots', after: [part] }, AT + 4)
+    ).toThrow('Mech')
   })
 
   test('a sent proposal is withdrawn by a Mediator: it leaves the player’s list and reads Withdrawn (r2 C7)', () => {

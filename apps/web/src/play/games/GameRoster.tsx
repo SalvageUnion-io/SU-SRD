@@ -481,6 +481,10 @@ export function GameRoster({ gameId, gameName, pregens }: GameRosterProps) {
                   label: playGamesCopy('seats'),
                   value: seats.claimed,
                   max: seats.total,
+                  title: playGamesCopy('seatsMeans', {
+                    claimed: seats.claimed,
+                    total: seats.total,
+                  }),
                 },
               }
             : {})}

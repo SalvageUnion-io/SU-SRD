@@ -13,6 +13,12 @@
  * My own rolls reach the Game's log too (the dispatch writes them, stamped
  * with the roll's own time), so the log's copy of a roll this screen holds is
  * dropped: the screen's copy carries its Discord post state.
+ *
+ * One action is one entry (r5 A9): "Razor uses Red Laser", the cost it paid
+ * ("Thresher (Razor) · Heat 0 → 1") and its roll group under the roll, or
+ * under the use where nothing was rolled (`lead`, `detail`). And my own
+ * change this screen wrote ("You · Hotdog · HP 10→0 · roll on …") is not said
+ * twice: the table's line for the same change is left out.
  */
 
 import { playCopy } from '../messages/play'
@@ -22,7 +28,15 @@ import { isDiceRoll, playRollDescription } from './playRolls.model'
 import { proposalChange } from './proposalAnswer.model'
 import type { AlertLine, PendingProposal, RollLine } from './useGameFeed'
 
-export type FeedEntry =
+/** An action's use and its cost, grouped into its roll's entry (r5 A9). */
+type Grouped = {
+  /** The use the entry is the roll of: "Razor uses Red Laser". */
+  lead?: string
+  /** What the action spent, a line each. */
+  detail?: readonly string[]
+}
+
+export type FeedEntry = (
   | {
       kind: 'proposal'
       key: string
@@ -68,6 +82,8 @@ export type FeedEntry =
       reveal?: string
       kept?: Kept
     }
+) &
+  Grouped
 
 /** What the players miss of a roll a Mediator may reveal: the whole roll, or the names in it. */
 export type Kept = 'roll' | 'names'
@@ -179,6 +195,68 @@ export function mineText(roll: PlayRoll, hidden = roll.private === true): string
   ].join(' · ')
 }
 
+/** How long after an action's use its cost and roll still group with it. */
+const ACTION_SPAN_MS = 5 * 60_000
+
+/** A vital an action's cost moves, as the table's line names it. */
+const COST_LINE = / · (Heat|EP|AP|Uses) /
+
+/** What the grouping needs of an entry: whose act, and what kind of line. */
+type Source = { actor: string | null; kind: TableEvent['kind'] | 'mine' }
+
+/**
+ * Fold each action's cost and roll into one entry (r5 A9). `entries` are
+ * newest first; `sources` says whose each is. A use groups the same actor's
+ * cost lines (Heat, EP, AP, Uses) and the first roll naming the action, within
+ * `ACTION_SPAN_MS` after it; the roll is the entry, the use its `lead`.
+ */
+function groupActions(
+  entries: readonly FeedEntry[],
+  sources: ReadonlyMap<string, Source>
+): FeedEntry[] {
+  const folded = new Set<string>()
+  const grouped = new Map<string, FeedEntry>()
+  // Oldest first, so a use claims what came after it.
+  for (const use of [...entries].reverse()) {
+    const from = sources.get(use.key)
+    const name = from?.kind === 'action' ? / uses (.+)$/.exec(use.text)?.[1] : undefined
+    if (from === undefined || name === undefined || folded.has(use.key)) continue
+    const mine = (e: FeedEntry) => e.key !== use.key && sources.get(e.key)?.actor === from.actor
+    // The span ends at the same actor's next use.
+    const next = [...entries]
+      .reverse()
+      .find((e) => mine(e) && e.ts >= use.ts && sources.get(e.key)?.kind === 'action')
+    const end = Math.min(use.ts + ACTION_SPAN_MS, next?.ts ?? Number.POSITIVE_INFINITY)
+    const after = (e: FeedEntry) => !folded.has(e.key) && mine(e) && e.ts >= use.ts && e.ts <= end
+    const rolled = [...entries]
+      .reverse()
+      .find(
+        (e) =>
+          after(e) &&
+          (e.kind === 'roll' || (e.kind === 'mine' && e.roll.rolls.length > 0)) &&
+          e.text.includes(` · ${name} · `)
+      )
+    const until = rolled?.ts ?? end
+    const costs = entries.filter(
+      (e) =>
+        after(e) && e.ts <= until && sources.get(e.key)?.kind === 'vitals' && COST_LINE.test(e.text)
+    )
+    if (rolled === undefined && costs.length === 0) continue
+    const detail = costs.reverse().map((e) => e.text)
+    for (const e of costs) folded.add(e.key)
+    if (rolled === undefined) {
+      grouped.set(use.key, { ...use, detail })
+      continue
+    }
+    folded.add(use.key)
+    grouped.set(rolled.key, { ...rolled, lead: use.text, detail })
+  }
+  return entries.filter((e) => !folded.has(e.key)).map((e) => grouped.get(e.key) ?? e)
+}
+
+/** How near in time the table's line for my own change and this screen's are. */
+const SAME_CHANGE_MS = 10_000
+
 export function playFeedEntries({
   rolls,
   alerts,
@@ -231,10 +309,21 @@ export function playFeedEntries({
   const proposes = playCopy('mediatorProposes', { what: '' })
   const asked = (e: TableEvent) =>
     e.kind === 'proposal' && awaiting.has(e.ts) && e.text.startsWith(proposes)
+  // My own change this screen wrote says itself: the table's line for it is not said twice (r5 A9).
+  const changes = mine.filter((r) => !isDiceRoll(r))
+  const saidHere = (e: TableEvent) =>
+    e.kind === 'vitals' &&
+    viewerId !== null &&
+    e.actorId === viewerId &&
+    changes.some((r) => Math.abs(r.at - e.ts) <= SAME_CHANGE_MS)
+  const sources = new Map<string, Source>()
+  for (const e of events ?? []) sources.set(`event-${e._id}`, { actor: e.actorId, kind: e.kind })
+  for (const r of mine) sources.set(r.id, { actor: viewerId, kind: 'mine' })
   const logged: FeedEntry[] =
     events !== null
       ? events
           .filter((e) => !asked(e))
+          .filter((e) => !saidHere(e))
           .filter((e) => e.kind !== 'roll' || !echoes.has(`${e.ts}|${e.text}`))
           .map(
             (e): FeedEntry => ({
@@ -280,5 +369,5 @@ export function playFeedEntries({
       }
     }),
   ].sort((a, b) => b.ts - a.ts)
-  return [...pending, ...rest]
+  return [...pending, ...(events === null ? rest : groupActions(rest, sources))]
 }

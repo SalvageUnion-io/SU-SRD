@@ -148,8 +148,8 @@ export async function copyStarterCrew(
   }
 }
 
-/** Delete what a refused crew copy made, newest first; a delete that fails too is left for the player. */
-async function undoCopies(made: { kind: SheetKind; id: string }[]): Promise<void> {
+/** Delete what a copy made (a refused one, or one its Undo takes back), newest first; a delete that fails too is left for the player. */
+export async function undoCopies(made: { kind: SheetKind; id: string }[]): Promise<void> {
   const store = useUnits.getState()
   for (const { kind, id } of made.reverse()) {
     await store.delete(kind, id).catch(() => undefined)

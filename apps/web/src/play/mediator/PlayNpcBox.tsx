@@ -11,7 +11,7 @@
  * At 0 it is down: dashed, struck, and never removed for you (ADR-007); Delete
  * is offered as a chip on its band, before ⋯, behind a confirm. A downed Mech
  * or Vehicle offers its wreck's salvage under its vital (`PlayWreckSalvage`),
- * into the crawler.
+ * into the crawler or a crew Mech's hold.
  *
  * An important NPC (Workshop Manual p.255) says so on its kind chip. A mech
  * adds its EP and Heat (Heat's redline as danger) and a Heat Check; at 0 any
@@ -30,6 +30,7 @@ import { PlayVital } from '../PlayVital'
 import { CONTROLS, NOTE_MUTED } from './mediatorStyles.model'
 import { npcKind } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
+import type { WreckMech } from './PlayWreckSalvage'
 import { PlayWreckSalvage } from './PlayWreckSalvage'
 import { RollResultLine } from './RollResultLine'
 import type { PlayMediator } from './usePlayMediator'
@@ -56,6 +57,10 @@ type PlayNpcBoxProps = {
   onSalvage: PlayMediator['salvageWreck']
   /** Whether the Mediator holds a crawler a wreck's haul can go to. */
   hasCrawler: boolean
+  /** The crew's Mechs a wreck's haul can be proposed to (r5 B2). */
+  mechs?: readonly WreckMech[]
+  /** Keep its wreck's Mech Salvage roll (r5 B1). */
+  onSalvageRoll: (npc: TrayNpc, roll: number) => Promise<unknown>
   rollFor?: typeof rollForTable
   onImportant: (important: boolean) => void
   onReactor: (patch: { currentEp?: number; currentHeat?: number }) => void
@@ -78,6 +83,8 @@ export function PlayNpcBox({
   onRemove,
   onSalvage,
   hasCrawler,
+  mechs,
+  onSalvageRoll,
   rollFor,
   onImportant,
   onReactor,
@@ -93,7 +100,7 @@ export function PlayNpcBox({
   const critical = npc.important && npc.down && track !== null ? track.critical : null
   const lastImportant = npc.lastImportantRoll
   return (
-    <li className="su-play-npc" data-chosen={chosen || undefined}>
+    <li className="su-play-npc" data-chosen={chosen || undefined} data-npc-id={npc.id}>
       <TitledBox
         as="section"
         title={npc.name}
@@ -213,6 +220,8 @@ export function PlayNpcBox({
             wreck={wreck}
             canWrite={canWrite}
             hasCrawler={hasCrawler}
+            mechs={mechs}
+            onRoll={onSalvageRoll}
             onSettle={onSalvage}
             rollFor={rollFor}
           />

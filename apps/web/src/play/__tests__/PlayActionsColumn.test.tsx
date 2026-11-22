@@ -25,6 +25,7 @@ import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechI
 import { playTxn } from '../../replica/provenance'
 import { ACTION_TYPE_ORDER } from '../playActions.model'
 import type { PlayRoll } from '../playRolls.model'
+import { narrowViewport } from './narrowViewport'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
@@ -204,6 +205,30 @@ describe('under the Scene’s conditions', () => {
   })
 })
 
+describe('who is up (r5 A4)', () => {
+  test('below lg the Act tab says whose turn it is, and nothing while nobody is up', () => {
+    const restore = narrowViewport()
+    const mech = makeMech()
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        store={store}
+        writes={[]}
+        scene={{ conditions: [], hours: 0, upNow: 'p1' }}
+      />
+    )
+    expect(document.querySelector('[data-up-now]')?.textContent).toBe('Up now · You')
+    cleanup()
+    renderBoarded()
+    expect(document.querySelector('[data-up-now]')).toBeNull()
+    restore()
+  })
+})
+
 describe('the list', () => {
   test('Boarded: the mech’s and the pilot’s actions on hand, then the Reactor and Mount', () => {
     renderBoarded()
@@ -272,6 +297,19 @@ describe('the list', () => {
       .queryAllByRole('listitem')
       .map((li) => li.getAttribute('data-action-key') ?? '')
     expect(keys.some((key) => key.startsWith('system:'))).toBe(false)
+  })
+
+  test('on foot with no Mech to board, the Mount offers Build a new Mech, for this pilot in this Game (r5 B17)', () => {
+    const pilot = makePilot()
+    const { store } = stubStore(makeMech(), pilot)
+    render(
+      <Harness pilot={pilot} mech={null} situation="onFoot" gameId="g1" store={store} writes={[]} />
+    )
+    const mount = document.querySelector('[data-action-key="mount"]') as HTMLElement
+    expect(within(mount).getByText('No Mech to board')).toBeTruthy()
+    expect(within(mount).getByRole('link', { name: 'Build a new Mech' }).getAttribute('href')).toBe(
+      `/mechs/new?game=g1&pilot=${pilot.id}&back=play`
+    )
   })
 
   test('on foot: the mech’s actions wait, collapsed, each saying it needs Boarded', async () => {
@@ -460,6 +498,21 @@ describe('Use: the resolve, in the Compact', () => {
     await click(within(row).getByRole('button', { name: `Cancel ${primary().name}` }))
     expect(writes.at(-1)).toEqual({ name: 'seat.clearResolving' })
     expect(row.getAttribute('data-open')).toBeNull()
+  })
+
+  test('a Down mech’s action asks Act anyway once, then opens as any (r5 A1)', async () => {
+    const { writes } = renderBoarded({ mech: makeMech({ currentSP: 0 }) })
+    await click(use(primary().name))
+    const dialog = screen.getByRole('alertdialog', { name: 'Buzzard is at 0 SP. Act anyway?' })
+    expect(writes.filter((w) => w.name === 'seat.setResolving')).toHaveLength(0)
+    await click(within(dialog).getByRole('button', { name: 'Act anyway' }))
+    const row = rowFor(primary().name)
+    expect(row.getAttribute('data-open')).toBe('true')
+    await click(within(row).getByRole('button', { name: `Cancel ${primary().name}` }))
+    // Asked once while it stays Down.
+    await click(use(primary().name))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(rowFor(primary().name).getAttribute('data-open')).toBe('true')
   })
 
   test('Activate writes the EP spend through the store', async () => {

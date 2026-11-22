@@ -7,6 +7,7 @@ import {
 } from 'salvageunion-reference'
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
 import { space, fontSize as typeScale, weight } from '../../design/tokens'
+import { linkSeeRules } from '../../lib/seeRulesFor'
 import { useParseTraitReferences } from '../../lib/useProseRefs'
 import { referenceEntityCopy } from '../../messages/components-reference-entity'
 import { ActivationCost } from '../atoms/ActivationCost'
@@ -320,7 +321,7 @@ function ContentBlock({
   // Always parse the string value for the hook (even if we don't use it for datavalues)
   // This ensures React hooks are called in the same order every render
   const stringValue = parseContentBlockString(block, chassisName)
-  const parsedValue = useParseTraitReferences(stringValue)
+  const parsedValue = useParseTraitReferences(linkSeeRules(stringValue))
   // A labelled block leads with its label in bold (a list item's "Bright:", a
   // paragraph's "Integrated Hover Locomotion System:").
   // A label with no text of its own is not a run-in (a bay's damaged effect,

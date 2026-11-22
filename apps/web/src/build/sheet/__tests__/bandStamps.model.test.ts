@@ -98,6 +98,26 @@ describe('mechPatternStamp', () => {
       expect(mechPatternStamp({ ...mech, modules: [] }, held)?.changed).toBe(true)
       expect(mechPatternStamp({ ...mech, chassisRef: 'scrapper' }, held)).toBeUndefined()
     })
+
+    test('a changed one says what differs and carries the pattern’s loadout (r5 D2)', () => {
+      const saved = {
+        name: 'Digger',
+        chassisRef: 'mule',
+        systems: ['chainsaw-arm', 'red-laser'],
+        modules: [],
+      }
+      const stamp = mechPatternStamp(
+        {
+          chassisRef: 'mule',
+          sourcePattern: 'p1',
+          systems: ['red-laser', 'red-laser'],
+          modules: [],
+        },
+        () => saved
+      )
+      expect(stamp?.loadout).toEqual({ systems: ['chainsaw-arm', 'red-laser'], modules: [] })
+      expect(stamp?.differs).toMatch(/^pattern adds Chainsaw Arm · pattern has no Red Laser$/i)
+    })
   })
 
   test('a blank build says nothing', () => {

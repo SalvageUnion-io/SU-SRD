@@ -335,6 +335,20 @@ describe('the bar', () => {
     expect(names()).toEqual(['downtime.end'])
   })
 
+  // r5 A3 (MD5-17): a jump from step 1 to 7 took one click, and the Mediator saw nothing skipped.
+  test('a Downtime jump past more than one step asks first, and lists what was passed over', async () => {
+    await renderCockpit(downtimeAt(0))
+    await click(named(/^Step 5: /))
+    expect(names()).toEqual([])
+    const ask = within(screen.getByRole('alertdialog', { name: /^Jump to step 5 / }))
+    await click(ask.getByRole('button', { name: 'Jump' }))
+    expect(sent()).toEqual([{ name: 'downtime.setStep', args: { stepIndex: 4 } }])
+    // The step left with seats still working, then each step jumped over.
+    expect(
+      screen.getByText(/^Passed over: 1 Tally Salvage \(Bonesaw, Wren still working\), 2 .*, 4 /)
+    ).toBeTruthy()
+  })
+
   test('Tell the table sends one word to every player', async () => {
     await renderCockpit()
     // The dialog focuses on the next frame; the frame is run here, so the
@@ -488,6 +502,27 @@ describe('the table', () => {
     ])
   })
 
+  test('a boarded pilot’s seat aims at the Mech, the pilot one press away; Enter sends (r5 B7)', async () => {
+    await renderCockpit()
+    await click(screen.getByRole('button', { name: /^Bonesaw \(Pilot\), here/ }))
+    const dock = region('Propose')
+    expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-buzzard')
+    await click(dock.getByRole('button', { name: 'Aim at Bonesaw' }))
+    expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-bonesaw')
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('Amount'), { target: { value: '2' } })
+    })
+    await act(async () => {
+      fireEvent.submit(dock.getByLabelText('Amount').closest('form') as HTMLFormElement)
+    })
+    expect(sent()).toEqual([
+      {
+        name: 'ops.propose',
+        args: { entityId: 'row-bonesaw', entityType: 'pilot', field: 'currentHP', after: 5 },
+      },
+    ])
+  })
+
   test('Set to still proposes the value itself', async () => {
     await renderCockpit()
     await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
@@ -617,7 +652,11 @@ describe('the Opposition', () => {
           ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
       ).toBe(true)
     )
-    expect(names()).toEqual(['mediator.updateNpc'])
+    // The roll is kept with the wreck first (r5 B1), then the wreck is claimed.
+    expect(sent().map((a) => Object.keys((a.args as { patch: object }).patch))).toEqual([
+      ['salvageRoll'],
+      ['salvaged'],
+    ])
     await restoreCrawler()
   })
 
@@ -687,6 +726,9 @@ describe('the Opposition', () => {
     await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
     const offer = await screen.findByRole('button', { name: 'Propose 3 HP from Raider to…' })
     expect(offer.textContent).toContain('Propose 3 HP to…')
+    // Beside the result, above the table's rows, in view after the roll (r5 B6).
+    const firstRow = offer.closest('.su-play-resolve')?.querySelector('.su-roll__row') as Element
+    expect(offer.compareDocumentPosition(firstRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     acts.length = 0
     await click(offer)
     // HP damage goes to Pilots, never to a Mech; each says what it is left with.
@@ -1333,12 +1375,22 @@ describe('below `lg`, on a phone (play.md §11)', () => {
   test('skip links lead the screen: each opens its tab and moves focus into its pane (r4 D6)', async () => {
     await renderCockpit()
     const jumps = within(screen.getByRole('navigation', { name: 'Jump to' })).getAllByRole('link')
-    expect(jumps.map((j) => j.textContent)).toEqual([
+    expect(jumps.slice(0, 4).map((j) => j.textContent)).toEqual([
       'Skip to The table',
       'Skip to Opposition',
       'Skip to Rolls',
       'Skip to Propose a change',
     ])
+    // Then each unit's vitals, and Add opposition's Add (r5 A17).
+    expect(jumps.at(-1)?.textContent).toBe('Skip to Add opposition')
+    const strike = jumps.find((j) => j.textContent === 'Skip to Strikebreaker’s vitals')
+    expect(strike).toBeTruthy()
+    await click(strike as HTMLElement)
+    expect(document.activeElement?.closest('[data-npc-id]')?.textContent).toContain('Strikebreaker')
+    await click(jumps.at(-1) as HTMLElement)
+    expect(document.activeElement?.getAttribute('aria-label')).toBe(
+      'Add opposition from the reference'
+    )
     await click(jumps[1] as HTMLElement)
     expect(phoneTab('Opposition').getAttribute('aria-selected')).toBe('true')
     expect(document.activeElement?.getAttribute('role')).toBe('tabpanel')

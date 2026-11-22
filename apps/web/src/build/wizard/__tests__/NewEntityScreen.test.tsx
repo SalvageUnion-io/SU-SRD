@@ -92,6 +92,8 @@ describe('NewEntityScreen — signed out', () => {
     signedOut(undefined)
     expect(await screen.findByRole('button', { name: /guided/i })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Sign in to build a mech' })).toBeNull()
+    // The pattern door says before any press that it needs an account (r5 D5).
+    expect(screen.getByText(/building from a pattern .* needs a sign-in/i)).toBeTruthy()
     cleanup()
     signedOut('guided')
     expect(await screen.findByTestId('stub-wizard')).toBeTruthy()
@@ -268,7 +270,7 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
       />
     )
 
-  test('with a pattern saved, a mech chooser opens on From a pattern, then Guided and Blank, and names the pilot', () => {
+  test('with a pattern saved, a mech chooser opens on Guided and Blank, then From a pattern, and names the pilot (r5 D5)', () => {
     usePatterns.setState({
       mechPatterns: [
         {
@@ -284,14 +286,40 @@ describe('CreateModeChooser — the mech’s From a pattern door', () => {
       hydrated: true,
     })
     chooser()
-    expect(order()).toMatchObject({ patternFirst: true, guidedFirst: true })
+    expect(order()).toMatchObject({ patternLast: true, guidedFirst: true })
     expect(screen.getByText(/For Nia Vale/)).toBeTruthy()
   })
 
-  test('with none saved, the order is the same: From a pattern, then Guided and Blank (r4 E23)', () => {
+  test('with none saved, the order is the same: Guided and Blank, then From a pattern', () => {
     usePatterns.setState({ mechPatterns: [], hydrated: true })
     chooser()
-    expect(order()).toMatchObject({ patternFirst: true, guidedFirst: true })
+    expect(order()).toMatchObject({ patternLast: true, guidedFirst: true })
+  })
+
+  test('its chassis open on the starting level; every Tech Level is one press away (r5 D5)', () => {
+    usePatterns.setState({ mechPatterns: [], hydrated: true })
+    chooser()
+    const chassis = () =>
+      [...screen.getByRole('combobox', { name: 'Chassis' }).querySelectorAll('option')]
+        .map((o) => o.textContent ?? '')
+        .filter((t) => t !== '—')
+    expect(chassis().length).toBeGreaterThan(0)
+    expect(chassis().every((t) => t.endsWith('(T1)'))).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Show every Tech Level' }))
+    expect(chassis().some((t) => !t.endsWith('(T1)'))).toBe(true)
+  })
+
+  test('a picked book pattern lists its Systems and Modules and its Scrap by Tech Level (r5 D6)', () => {
+    usePatterns.setState({ mechPatterns: [], hydrated: true })
+    chooser()
+    fireEvent.change(screen.getByRole('combobox', { name: 'Chassis' }), {
+      target: { value: 'mule' },
+    })
+    const pattern = screen.getByRole('combobox', { name: 'Pattern' })
+    const first = [...pattern.querySelectorAll('option')].find((o) => o.value !== '')
+    fireEvent.change(pattern, { target: { value: first?.value } })
+    expect(screen.getByText(/^Systems: \S/)).toBeTruthy()
+    expect(screen.getByText(/Scrap TL1 \d+/)).toBeTruthy()
   })
 
   test('pilot and crawler choosers do NOT show the pattern door', () => {
@@ -434,6 +462,23 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(mech?.chassisRef).toBe('mule')
     expect(mech?.name).toBe('Mule')
     expect(useSheetModeStore.getState().editing).toBe(true)
+  })
+
+  test('a chassis page’s Build With This opens Blank with its chassis picked (r5 D8)', async () => {
+    const created: string[] = []
+    render(
+      <NewEntityScreen
+        kind="mech"
+        mode="blank"
+        wizard={null}
+        onModeChange={noop}
+        onCreated={(id) => created.push(id)}
+        book={{ chassis: 'magpie' }}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Create Mech' }))
+    await waitFor(() => expect(created.length).toBe(1))
+    expect(useUnits.getState().get('mech', created[0] as string)?.chassisRef).toBe('magpie')
   })
 
   test('a draft left mid-build is offered: Resume your draft, or Start over (which clears it)', () => {

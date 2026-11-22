@@ -343,6 +343,17 @@ export function rowsOf<T extends Table>(
     .map((h) => ({ row: h.row as RowOf<T>, owner: h.owner ?? null }))
 }
 
+/**
+ * Who a Game holds a row for, as served: `undefined` where it is the caller's
+ * by `ownedBy`'s other ways (the account's, or not yet served an owner) or is
+ * not held, `null` when it is assigned to nobody.
+ */
+export function holderOf(table: Table, id: string): string | null | undefined {
+  const h = tableOf(table).get(id)
+  if (h === undefined || h.scopes.has('account')) return undefined
+  return h.owner
+}
+
 /** The unit's `headSeq` as last served, for an op's `baseSeq` (ADR-063). */
 export function headSeqOf(table: Table, id: string): number | undefined {
   return tableOf(table).get(id)?.headSeq

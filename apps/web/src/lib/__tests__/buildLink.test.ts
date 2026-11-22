@@ -21,9 +21,17 @@ describe('buildLinkFor', () => {
     })
   })
 
-  test('a chassis the wizard never offers gets no link', () => {
-    const tech2 = must(SalvageUnionReference.Chassis.all().find((c) => c.techLevel === 2))
-    expect(buildLinkFor('chassis', tech2)).toBeNull()
+  test('every other chassis, a higher Tech Level or a Bio-Chassis, opens a Blank build of it (r5 D8)', () => {
+    for (const chassis of SalvageUnionReference.Chassis.all()) {
+      if (isLegalCreationChassis(chassis.techLevel)) continue
+      expect(buildLinkFor('chassis', chassis)?.href).toBe(
+        `${appPath('/mechs/new')}?mode=blank&chassis=${getEntitySlug(chassis)}`
+      )
+    }
+    const lettered = SalvageUnionReference.Chassis.all().filter(
+      (c) => typeof c.techLevel !== 'number'
+    )
+    expect(lettered.length).toBeGreaterThan(0)
   })
 
   test('a core class opens the pilot wizard; an advanced or hybrid class gets no link', () => {
@@ -134,8 +142,22 @@ describe('mediatorLinksFor', () => {
     const from = `from=bio-titans%3A${getEntitySlug(titan)}`
     expect(mediatorLinksFor('bio-titans', titan)).toEqual({
       add: { href: `${appPath('/encounters/add')}?${from}`, label: 'Add to an encounter' },
-      design: { href: `${appPath('/npcs/new')}?${from}`, label: 'Design from this' },
+      design: { href: `${appPath('/npcs/new')}?${from}`, label: 'Design an NPC from this' },
     })
+  })
+
+  test('an NPC, squad or creature page carries Design an NPC from this on its band, for everyone (r5 B19)', () => {
+    const raider = must(SalvageUnionReference.NPCs.all()[0])
+    const href = `${appPath('/npcs/new')}?from=npcs%3A${getEntitySlug(raider)}`
+    expect(buildLinkFor('npcs', raider)).toEqual({ href, label: 'Design an NPC from this' })
+    for (const [schema, list] of [
+      ['squads', SalvageUnionReference.Squads.all()],
+      ['creatures', SalvageUnionReference.Creatures.all()],
+    ] as const) {
+      expect(buildLinkFor(schema, must(list[0]))?.label).toBe('Design an NPC from this')
+    }
+    // The signed-in foot does not say it twice.
+    expect(mediatorLinksFor('npcs', raider)?.design).toBeNull()
   })
 
   test('a page that is no denizen has none', () => {

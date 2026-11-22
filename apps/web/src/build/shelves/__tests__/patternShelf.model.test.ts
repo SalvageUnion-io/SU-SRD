@@ -55,6 +55,21 @@ describe('a pattern’s line on its shelf (r4 E13)', () => {
   })
 })
 
+describe('two patterns of one name can be told apart (r5 D3)', () => {
+  test('by their Scrap, the time they were saved and their description’s first line', () => {
+    const line = patternLine(
+      pattern({ notes: '  Digs fast.\nNeeds a pilot with Grit.' }),
+      undefined,
+      undefined
+    )
+    expect(typeof line.values.Cost).toBe('number')
+    expect(line.values.Cost).toBeGreaterThan(0)
+    expect(line.saved).toMatch(/\d{1,2}:\d{2}/)
+    expect(line.about).toBe('Digs fast.')
+    expect(patternLine(pattern({}), undefined, undefined).about).toBeUndefined()
+  })
+})
+
 describe('a name a saved pattern already has', () => {
   test('is taken however it is cased or spaced; a blank or a new one is not', () => {
     const held = [{ name: 'Atlas Gunline Mk1' }]

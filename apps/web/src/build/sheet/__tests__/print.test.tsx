@@ -196,6 +196,42 @@ describe('Print markup — MechSheet', () => {
     expect(container.children.length).toBeGreaterThan(0)
   })
 
+  test('on paper each System and Module prints its rules line, with no opener (r5 C17)', () => {
+    const fitted = mechFixture({
+      id: 'print-mech-2',
+      name: 'Print Lamp',
+      chassisRef: 'mule',
+      systems: ['floodlights'],
+      modules: ['zoom-optics'],
+    })
+    const { container } = render(
+      <Sheet
+        kind="mech"
+        id="print-mech-2"
+        entityStore={makeEntityLookupMock([fitted])}
+        softLinkStore={makeSoftLinkStoreMock()}
+      />
+    )
+    const loadout = () => [...container.querySelectorAll('table.su-open--loadout')]
+    const rules = () =>
+      loadout().flatMap((table) => [...table.querySelectorAll('.su-open__detail-body')])
+    expect(loadout().length).toBe(2)
+    // On screen a row's rules wait behind its chevron.
+    expect(container.querySelectorAll('.su-open--loadout .su-open__toggle')).toHaveLength(2)
+    expect(rules()).toHaveLength(0)
+    act(() => {
+      window.dispatchEvent(new Event('beforeprint'))
+    })
+    // Floodlights and Zoom Optics: one rules line each, and no chevron to press.
+    expect(rules()).toHaveLength(2)
+    expect(rules().every((body) => (body.textContent ?? '').length > 0)).toBe(true)
+    expect(loadout().some((table) => table.querySelector('.su-open__toggle'))).toBe(false)
+    act(() => {
+      window.dispatchEvent(new Event('afterprint'))
+    })
+    expect(rules()).toHaveLength(0)
+  })
+
   test('mech name heading is an h2 (print 16pt target)', () => {
     const { container } = render(
       <Sheet

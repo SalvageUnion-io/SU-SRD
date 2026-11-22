@@ -198,6 +198,21 @@ describe('/mechs/new', () => {
     expect(assignedPairs).toEqual(['new-id → p1'])
     expect(at(router).pathname).toBe('/pilots/p1')
   })
+
+  test('a lost Mech replaced from Play: assigned to the pilot, and back at the table (r5 B17)', async () => {
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const { useUnits } = await import('../../replica/units')
+    const { newMechForPilotHref } = await import('../../lib/wizard/fromGame')
+    await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1', name: 'Nia', gameId: 'g1' }))
+    const href = newMechForPilotHref('p1', 'g1', true)
+    expect(href).toBe('/mechs/new?game=g1&pilot=p1&back=play')
+    const router = await mountAt(href)
+    expect(await screen.findByText('blank lands in g1')).toBeTruthy()
+    assignedPairs.length = 0
+    await press('Created')
+    expect(assignedPairs).toEqual(['new-id → p1'])
+    expect(at(router).pathname).toBe('/pilots/p1/play')
+  })
 })
 
 describe('/pilots/new', () => {
@@ -260,6 +275,22 @@ describe('/crawlers/new', () => {
     await press('Crawler builder: complete')
     expect(assignedPairs).toEqual(['p1 → new-id', 'm1 → new-id'])
     expect(at(router).pathname).toBe('/pilots/p1')
+  })
+
+  test('made from a solo Downtime: the pilot and their mech are crew, and Downtime opens again (r5 A13)', async () => {
+    const { mechFixture, pilotFixture, softLinkFixture } = await import(
+      '../../components/__tests__/fixtures'
+    )
+    const { useUnits } = await import('../../replica/units')
+    const store = useUnits.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'p3', name: 'Tessa', gameId: null }))
+    await store.adopt('mech', mechFixture({ id: 'm3', name: 'Old Dobbin', gameId: null }))
+    await store.adopt('softLink', softLinkFixture('mech-to-pilot', 'm3', 'p3'))
+    const router = await mountAt('/crawlers/new?mode=guided&pilot=p3&back=play')
+    assignedPairs.length = 0
+    await press('Crawler builder: complete')
+    expect(assignedPairs).toEqual(['p3 → new-id', 'm3 → new-id'])
+    expect(at(router).pathname).toBe('/pilots/p3/play')
   })
 
   test('made from a mech’s + Create: the mech is assigned, and the mech opens (r4 E19)', async () => {

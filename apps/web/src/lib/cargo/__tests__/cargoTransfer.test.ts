@@ -440,6 +440,16 @@ describe('add-carrier-lot', () => {
     expect(result.changed).toEqual({ carrier: true, depot: false })
   })
 
+  test('Scrap of a Tech Level already held joins its row (r5 B3, PT5-10)', () => {
+    const held = makeScrapLot(2, 5)
+    const result = cargoTransfer(state({ carrierLots: [held] }), {
+      type: 'add-carrier-lot',
+      lot: makeScrapLot(2, 4),
+    })
+    if (!result.ok) throw new Error(result.reason)
+    expect(result.state.carrierLots).toEqual([{ ...held, qty: 9, units: 9 }])
+  })
+
   test('adding over capacity is allowed (honest overflow, never clamped)', () => {
     // Cap 6, add an 8-unit lot → over capacity, still accepted.
     const result = cargoTransfer(state({ carrierCargoCap: 6 }), {
@@ -548,6 +558,23 @@ describe('remove-depot-lot', () => {
     expect(result.changed).toEqual({ carrier: false, depot: true })
   })
 
+  test('part of a stack leaves the lot lighter, and its Undo rejoins it (r5 B4)', () => {
+    const bolts = bulkLot({ id: 'lot-bolts', cat: 'SEALED', qty: 6, units: 6 })
+    const result = cargoTransfer(state({ depotLots: [bolts] }), {
+      type: 'remove-depot-lot',
+      lotId: 'lot-bolts',
+      qty: 2,
+    })
+    if (!result.ok) throw new Error(result.reason)
+    expect(result.state.depotLots).toEqual([{ ...bolts, qty: 4, units: 4 }])
+    const back = cargoTransfer(result.state, {
+      type: 'add-depot-lot',
+      lot: { ...bolts, qty: 2, units: 2 },
+    })
+    if (!back.ok) throw new Error(back.reason)
+    expect(back.state.depotLots).toEqual([bolts])
+  })
+
   test('refuses a lot that is not in the Storage Bay', () => {
     const result = cargoTransfer(state({ depotLots: [unitLot()] }), {
       type: 'remove-depot-lot',
@@ -557,7 +584,18 @@ describe('remove-depot-lot', () => {
     if (!result.ok) expect(result.reason).toMatch(/not in the crawler storage bay/i)
   })
 
-  test('the crawler scrap pool is untouched by Storage Bay add/remove', () => {
+  test('Scrap stowed through the adder goes into the pool, not the hold (r5 B3)', () => {
+    const result = cargoTransfer(state({ scrapPool: { tl1: 2 } }), {
+      type: 'add-depot-lot',
+      lot: makeScrapLot(1, 12),
+    })
+    if (!result.ok) throw new Error(result.reason)
+    expect(result.state.depotLots).toEqual([])
+    expect(result.state.scrapPool).toEqual({ tl1: 14 })
+    expect(result.changed).toEqual({ carrier: false, depot: true })
+  })
+
+  test('the crawler scrap pool is untouched by Storage Bay add/remove of cargo', () => {
     const added = cargoTransfer(state({ scrapPool: { tl3: 5 } }), {
       type: 'add-depot-lot',
       lot: unitLot({ id: 'lot-x' }),

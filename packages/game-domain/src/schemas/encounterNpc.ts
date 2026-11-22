@@ -147,6 +147,16 @@ export const EncounterNpcSchema = z
      */
     salvaged: z.boolean().optional(),
 
+    /**
+     * A downed Mech's Mech Salvage roll (Core Book p.246), kept with the wreck
+     * until it is salvaged, so the band and what it lets the salvager take
+     * outlast leaving Mediate (r5 B1). Rolled again, the new roll replaces it.
+     */
+    salvageRoll: z
+      .object({ roll: z.number().int().min(1).max(20), rolledAt: z.string().datetime() })
+      .strict()
+      .optional(),
+
     /** Last Mediator table roll recorded against this NPC. */
     lastMediatorRoll: MediatorRollResultSchema.optional(),
 

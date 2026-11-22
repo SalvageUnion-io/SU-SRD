@@ -1,5 +1,5 @@
 import { Copy } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { NO_EFFECT, plainTraitText, rollOnTable } from 'salvageunion-reference'
 import { CopiedIcon, CopiedStatus, useCopied } from '../components/app'
@@ -44,8 +44,11 @@ export function PlayRollTable({
   size = 'full',
   tone,
   onRollResult,
+  rollNow = false,
 }: {
   table: RollTableType
+  /** Roll once as it opens: a press made elsewhere for it (the zero toast's, r5 A1). */
+  rollNow?: boolean
   /** The table's name: the bar's title, the toast's, and its die. */
   name: string
   /** `full` reads a table on its own; `mini` is the Tables column's. */
@@ -110,6 +113,14 @@ export function PlayRollTable({
       })
       .catch(() => toast(playCopy('rollFailed')))
   }
+
+  // A press made elsewhere for this table rolls it once, as it opens.
+  const rolled = useRef(false)
+  useEffect(() => {
+    if (!rollNow || rolled.current) return
+    rolled.current = true
+    roll()
+  })
 
   // Copied is the control's own Check swap and a polite status, never a toast
   // (chrome K5); a refused clipboard (an insecure page, an iframe) says so.

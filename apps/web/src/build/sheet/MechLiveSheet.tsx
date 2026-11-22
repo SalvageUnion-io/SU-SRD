@@ -25,7 +25,7 @@ import {
 } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
 import { mechScrap } from '../../lib/rules/mechScrap'
-import { usePatternGone } from '../../lib/sharing/reads'
+import { usePatternElsewhere, usePatternGone } from '../../lib/sharing/reads'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
 import { useSync } from '../../replica/syncContext'
@@ -35,6 +35,7 @@ import { ChangeChassis } from './chassisControls'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
 import { mechBarStrip } from './mechBarStrip.model'
+import { PatternCatchUp } from './PatternCatchUp'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type MechLiveSheetProps = SheetViewCommonProps & {
@@ -100,9 +101,15 @@ export function MechLiveSheet({
   const notHeld =
     mech.sourcePattern !== undefined && !savedPatterns.some((p) => p.id === mech.sourcePattern)
   const { status } = useSync()
-  const patternGone = usePatternGone(
-    mech.sourcePattern,
-    liveInRead && patternsIn && notHeld && status === 'live'
+  const askElsewhere = liveInRead && patternsIn && notHeld && status === 'live'
+  const patternGone = usePatternGone(mech.sourcePattern, askElsewhere)
+  // Someone else's pattern, by its link or a crew's: named, not "A saved pattern" (r5 D3).
+  const elsewhere = usePatternElsewhere(mech.sourcePattern, askElsewhere)
+  const fromPattern = mechPatternStamp(
+    mech,
+    (id) =>
+      savedPatterns.find((p) => p.id === id) ?? (id === mech.sourcePattern ? elsewhere : undefined),
+    patternGone
   )
   const rail = assignedRail(
     { kind: 'mech', entity: mech },
@@ -120,14 +127,22 @@ export function MechLiveSheet({
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
       // Change Chassis sits where the chassis is named (r4 E17).
+      // Bring up to date beside it once the loadout is no longer the pattern's (r5 D2).
       kindAction={
-        editable && mech.chassisRef !== '' ? <ChangeChassis mech={mech} patch={patch} /> : undefined
+        editable && mech.chassisRef !== '' ? (
+          <>
+            <ChangeChassis mech={mech} patch={patch} />
+            {fromPattern?.loadout && (
+              <PatternCatchUp
+                mech={mech}
+                stamp={{ ...fromPattern, loadout: fromPattern.loadout }}
+                patch={patch}
+              />
+            )}
+          </>
+        ) : undefined
       }
-      fromPattern={mechPatternStamp(
-        mech,
-        (id) => savedPatterns.find((p) => p.id === id),
-        patternGone
-      )}
+      fromPattern={fromPattern}
       // Read's header strip carries TL and
       // SV with the chassis's other figures, so the band leaves them out (R59).
       rank={readOnly ? undefined : <MechBandRank mech={mech} />}

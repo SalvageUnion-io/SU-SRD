@@ -8,8 +8,16 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { toast } from 'sonner'
 import type { PlayRoll } from '../playRolls.model'
-import { clearPlayRolls, onPlayRoll } from '../playRolls.model'
-import { onPlayTableAsked, zeroUnit, zeroVitalNotice, zeroVitalTable } from '../zeroVital.model'
+import { clearPlayRolls, onPlayRoll, recordPlayRoll } from '../playRolls.model'
+import {
+  clearDownResults,
+  downResult,
+  isDown,
+  onPlayTableAsked,
+  zeroUnit,
+  zeroVitalNotice,
+  zeroVitalTable,
+} from '../zeroVital.model'
 
 const mech = { kind: 'mech', unit: { id: 'm-zero', name: 'Rig', chassisRef: 'mule' } } as const
 const pilot = {
@@ -30,6 +38,7 @@ describe('a vital at 0 says what happens next', () => {
   afterEach(() => {
     toast.dismiss()
     clearPlayRolls()
+    clearDownResults()
   })
 
   test('which table: Critical Damage for a Mech’s SP, Critical Injury for a Pilot’s HP, none else', () => {
@@ -54,6 +63,36 @@ describe('a vital at 0 says what happens next', () => {
       stopRolls()
       stopAsked()
     }
+  })
+
+  test('the toast’s one press rolls the table; its result is kept on the unit until it rises (r5 A1)', () => {
+    const asked: { name: string; roll: boolean }[] = []
+    const stopAsked = onPlayTableAsked((name, ask) => asked.push({ name, roll: ask.roll }))
+    try {
+      zeroVitalNotice(mech, 'currentSP', 6, 0)
+      press('zero:m-zero:currentSP')
+      expect(asked).toEqual([{ name: 'Critical Damage', roll: true }])
+      // The Tables section rolls it, and Play records the roll.
+      recordPlayRoll({
+        tableName: 'Critical Damage',
+        rolls: [18],
+        label: 'Critical Damage',
+        outcome: 'Core Damage',
+      })
+      expect(downResult('m-zero')).toBe('Critical Damage · 18 · Core Damage')
+      // Repaired off 0: the result is not kept any more.
+      zeroVitalNotice(mech, 'currentSP', 0, 3)
+      expect(downResult('m-zero')).toBeNull()
+    } finally {
+      stopAsked()
+    }
+  })
+
+  test('Down is a vital at 0; an unset one reads full', () => {
+    expect(isDown(0)).toBe(true)
+    expect(isDown(3)).toBe(false)
+    expect(isDown(null)).toBe(false)
+    expect(isDown(undefined)).toBe(false)
   })
 
   test('a Pilot reaching 0 HP names Critical Injury, by callsign', () => {

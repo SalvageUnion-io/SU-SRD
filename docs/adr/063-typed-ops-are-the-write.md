@@ -90,6 +90,7 @@ offline queue would each be one more mechanism.
    `accepted` when its player accepted it and `undone` when they wrote back
    what the sheet held before (the room reads that off the op log,
    `proposals.ts` `undoes`; `ops.sent` then serves the row as `undone`).
+   Only an Undo's write counts (r5 A2): a heal that reaches the old value is a change.
    "Last session" counts both as changes to vitals. Optional and additive: a
    line without it reads as before. A member the Organiser removed is a line
    too, as a join is.

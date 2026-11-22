@@ -107,6 +107,15 @@ export const tryNoteStyle = {
   margin: `0 0 ${tokens.space[12]}`,
 } satisfies CSSProperties
 
+/** Back from sign-in, one line over the bar, centred as the prompt is. */
+export const signedInStyle = {
+  ...tryNoteStyle,
+  alignSelf: 'stretch',
+  margin: 0,
+  padding: `${tokens.space[8]} ${tokens.space[12]}`,
+  textAlign: 'center',
+} satisfies CSSProperties
+
 /** The action bar's prompt: one line over the bar, the footer's width. */
 export const promptStyle = {
   alignSelf: 'stretch',

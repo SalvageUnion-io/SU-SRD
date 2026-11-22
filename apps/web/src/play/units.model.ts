@@ -117,3 +117,13 @@ export function hangarMechs(options: readonly BoardOption[], shownId: string | n
       (option.state === 'yours' || option.state === 'destroyed')
   )
 }
+
+/**
+ * Solo, where a Downtime line that needs a Union Crawler sends the player to
+ * make one: the pilot carried, so the crawler takes them and their mech as
+ * crew, and finishing comes back to this Downtime (`?back=play`, r5 A13).
+ */
+export function makeCrawlerHref(pilotId: string | null): string {
+  if (pilotId === null) return '/crawlers/new'
+  return `/crawlers/new?pilot=${encodeURIComponent(pilotId)}&back=play`
+}

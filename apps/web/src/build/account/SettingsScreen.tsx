@@ -99,6 +99,10 @@ function SignedInAccount() {
     return <EmptyState variant="quiet" body={buildAccountCopy('noAccountIsHeldFor')} />
 
   const value = name ?? me.displayName ?? ''
+  const saveName = () => {
+    setSaved(false)
+    void save.run({ displayName: value }).then((answer) => setSaved(answer.ok))
+  }
 
   return (
     <Stack gap={32}>
@@ -115,16 +119,19 @@ function SignedInAccount() {
               setSaved(false)
               setName(e.target.value)
             }}
+            // Enter saves, as Save does (r5 C4).
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' || save.pending) return
+              e.preventDefault()
+              saveName()
+            }}
           />
           <Button
             variant="primary"
             size="full"
             className={ACTION}
             disabled={save.pending}
-            onClick={() => {
-              setSaved(false)
-              void save.run({ displayName: value }).then((answer) => setSaved(answer.ok))
-            }}
+            onClick={saveName}
           >
             {save.pending ? buildAccountCopy('saving') : buildAccountCopy('save')}
           </Button>

@@ -112,3 +112,32 @@ describe('useParseTraitReferences', () => {
     expect(links.map((a) => a.getAttribute('tabindex'))).toEqual([null, '-1', null, null])
   })
 })
+
+describe('the book’s italics (r5 E13)', () => {
+  test('a *sentence* prints in italics without its asterisks, and a term inside it still links', () => {
+    const { container } = render(
+      <EntitySurfaceProvider value={{ hrefFor: srdHrefFor, nameRefs: NAMES }}>
+        <Prose text="It cuts rock. *Regulation requires the Dependable Trait when firing.*" />
+      </EntitySurfaceProvider>
+    )
+    const p = container.querySelector('p')
+    expect(p?.textContent).toBe(
+      'It cuts rock. Regulation requires the Dependable Trait when firing.'
+    )
+    const ems = [...container.querySelectorAll('em')]
+    expect(ems.map((e) => e.textContent).join('')).toBe(
+      'Regulation requires the Dependable Trait when firing.'
+    )
+    expect(container.querySelector('em a')?.textContent).toContain('Dependable')
+  })
+
+  test('plain text with italics alone, and **bold** is left as it is', () => {
+    const { container } = render(
+      <Prose text="we really do mean *everything*. Any **Mutant** too." />
+    )
+    expect(container.querySelector('em')?.textContent).toBe('everything')
+    expect(container.querySelector('p')?.textContent).toBe(
+      'we really do mean everything. Any **Mutant** too.'
+    )
+  })
+})

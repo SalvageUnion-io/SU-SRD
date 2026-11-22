@@ -14,6 +14,7 @@ import { pilotCallsign } from 'game-domain/pilotLabel'
 import { useState } from 'react'
 import { ConfirmDialog } from '../components/app'
 import { Button, Entity, HeaderMenu } from '../components/index'
+import { newMechForPilotHref } from '../lib/wizard/fromGame'
 import { playCopy } from '../messages/play'
 import { AssignAndBoardConfirm } from './AssignAndBoardConfirm'
 import type { BoardOption } from './boardMenu.model'
@@ -57,8 +58,20 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
   ) : (
     <>
       {main === undefined ? (
-        // Said, never a disabled Board with a hover title a phone can't read.
-        <NeedChip need={playCopy('noMechToBoard')} />
+        <>
+          {/* Said, never a disabled Board with a hover title a phone can't read. */}
+          <NeedChip need={playCopy('noMechToBoard')} />
+          {/* Replacing a lost Mech is one path: the Pilot and Game carried, back here after (r5 B17). */}
+          {!off && (
+            <Button
+              size="mini"
+              variant="primary"
+              href={newMechForPilotHref(play.target.pilotId, play.target.gameId, true)}
+            >
+              {playCopy('buildANewMech')}
+            </Button>
+          )}
+        </>
       ) : (
         // Boarding is what the line is for: rust, as every Use (§3.13).
         <Button size="mini" variant="primary" onClick={() => choose(main)} disabled={off}>
@@ -86,10 +99,10 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         size="mini"
         context="play"
         model={MODEL}
-        // Getting in and out of a mech wears the mech's tone,
-        // faded while there is nothing it can do.
+        // Getting in and out of a mech wears the mech's tone, faded while
+        // there is nothing it can do (with no Mech, it can build one).
         tint="mech"
-        dim={away || off || (!boarded && main === undefined)}
+        dim={away || off}
         // Which mech is the Situation switch's to say ("Boarded · Buzzard"):
         // the line carries only its controls.
         {...(away ? { state: <NeedChip need={need} /> } : { controls })}

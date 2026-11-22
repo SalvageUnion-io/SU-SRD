@@ -1,13 +1,13 @@
 /**
  * CreateModeChooser — the "which door?" screen every /new opens on.
  *
- * Doors under the page's ChapterBand, each the house `TitledBox` headed h2. A
- * mech's first door is FROM A PATTERN (ADR-066 §4: chassis, then a pattern,
- * then a mech): the book's patterns, then your saved ones, each with its Build
- * With This. It is first whether or not you have saved one, so the page keeps
- * one order (r4 E23). Then GUIDED
- * (primary — the existing step wizard), headed in the kind's tone, and BLANK
- * (the escape hatch — an empty sheet, no steps, no limits), headed in ink.
+ * Doors under the page's ChapterBand, each the house `TitledBox` headed h2:
+ * GUIDED (primary — the existing step wizard), headed in the kind's tone, and
+ * BLANK (the escape hatch — an empty sheet, no steps, no limits), headed in
+ * ink. A mech's FROM A PATTERN follows them (r5 D5, over r4 E23): the book's
+ * patterns, opening on the starting-level chassis, then your saved ones, each
+ * with its Build With This. Signed out it says up front that building from a
+ * pattern needs a sign-in, before any press runs into it.
  * A mech built for a pilot (`?pilot=`) says so above the doors.
  *
  * The title is the ChapterBand every page wears.
@@ -17,6 +17,7 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { Button, ChapterBand, Slab, Text, TitledBox, tokens } from '../../components/index'
 import { clearWizardDraft, readWizardDraft, wizardDraftKey } from '../../lib/wizard/wizardDraft'
+import { useSync } from '../../replica/syncContext'
 import { BookPatternBuild } from '../mech/Pattern/BookPatternBuild'
 import { PatternList } from '../mech/Pattern/PatternList'
 import { WizardGameChip } from './WizardGameChip'
@@ -77,7 +78,7 @@ const doorActs = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } sat
 /** Its padding grows at `sm` (`.su-wiz-chooser-body`). */
 const MEASURE = '56rem'
 const bodyStyle = { marginInline: 'auto', maxWidth: MEASURE, width: '100%' } satisfies CSSProperties
-/** The pattern door: its own row, above Guided and Blank. */
+/** The pattern door: its own row, under Guided and Blank. */
 const patternDoor = { flexBasis: '100%' } satisfies CSSProperties
 /** The pilot line, above the doors. */
 const pilotNote = { marginBottom: tokens.space[12] } satisfies CSSProperties
@@ -97,10 +98,12 @@ export function CreateModeChooser({
   const guided = GUIDED_COPY[kind]
   // Read as the chooser draws: the draft is this tab's session's.
   const hasDraft = readWizardDraft(wizardDraftKey(kind)) !== null
+  const signedOut = useSync().status === 'signedOut'
   const patterns = kind === 'mech' && (
     <div style={patternDoor}>
       <TitledBox title={buildWizardCopy('fromAPattern')} titleAs="h2" tone="mech">
         <p style={doorText}>{buildWizardCopy('aPatternIsYourPlan')}</p>
+        {signedOut && <Text variant="note">{buildWizardCopy('patternNeedsSignIn')}</Text>}
         <BookPatternBuild
           chassis={book?.chassis}
           pattern={book?.pattern}
@@ -149,7 +152,6 @@ export function CreateModeChooser({
           </Text>
         )}
         <div className="su-wiz-chooser-doors">
-          {patterns}
           <TitledBox title={buildWizardCopy('guided')} titleAs="h2" tone={kind}>
             <p style={doorText}>{guided.body}</p>
             <p style={doorCite}>{guided.cite}</p>
@@ -179,6 +181,7 @@ export function CreateModeChooser({
               {buildWizardCopy('startBlank')}
             </Button>
           </TitledBox>
+          {patterns}
         </div>
       </div>
     </section>

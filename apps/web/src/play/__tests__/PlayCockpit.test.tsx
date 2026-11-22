@@ -232,7 +232,7 @@ describe('the Cockpit frame', () => {
 })
 
 describe('below `lg`: the same panes as tabs (play.md §11)', () => {
-  test('a 390px phone gets the tabs, not the columns; the Situation is in the bar’s ⋯', async () => {
+  test('a 390px phone gets the tabs, not the columns; the Situation is pinned, and in the bar’s ⋯', async () => {
     const restore = narrowViewport()
     try {
       await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
@@ -247,8 +247,10 @@ describe('below `lg`: the same panes as tabs (play.md §11)', () => {
       expect(bar.getByText(/On foot/)).toBeTruthy()
       expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture · Wren')
       expect(bar.getByRole('link', { name: 'Back to Sheet' }).textContent).toBe('Back to Sheet')
-      // No Situation switch on a phone: On foot, Board and Downtime are ⋯ rows.
-      expect(screen.queryByRole('group', { name: 'Situation' })).toBeNull()
+      // On a phone the Situation switch is pinned (r5 A15), and its moves are ⋯ rows too.
+      expect(
+        screen.getByRole('group', { name: 'Situation' }).closest('.su-play-frame__pinned')
+      ).not.toBeNull()
       await act(async () => {
         fireEvent.click(bar.getByRole('button', { name: 'More' }))
       })

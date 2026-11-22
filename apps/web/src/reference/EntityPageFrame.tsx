@@ -72,9 +72,11 @@ function MediatorActsFoot({ add, design }: MediatorLinks) {
       <Button href={add.href} variant="primary" size="compact" className="su-page-action">
         {add.label}
       </Button>
-      <Button href={design.href} size="compact" className="su-page-action">
-        {design.label}
-      </Button>
+      {design && (
+        <Button href={design.href} size="compact" className="su-page-action">
+          {design.label}
+        </Button>
+      )}
     </nav>
   )
 }

@@ -1,10 +1,10 @@
 /**
  * "Make a copy" without a confirm: a copy only adds, and deleting it is the
- * way back, so the act runs at once and says what it made. The notice is the
- * one way to what was made, so it stays until it is dismissed (r4 E19): its
- * one action opens the copy, its close takes it down, and it closes at once
+ * way back, so the act runs at once and says what it made. The notice opens
+ * what was made and stays as any toast with an action does (chrome K5; r5 C3,
+ * over r4 E19's standing line): its close takes it down, and it closes at once
  * when the copy is gone (deleted, or the account signed out), since its action
- * would then open nothing.
+ * would then open nothing. Its words follow a rename (`said` as a function).
  */
 
 import type { EntityKind } from 'game-domain/entityKinds'
@@ -19,35 +19,42 @@ import { failureMessage } from './connection/useServerAction'
 import { copyBeside, copyForShelf, copyName, namesOn } from './copyEntity'
 import { patternCopy, savedPatternHref } from './patterns/patterns'
 
-/** A notice that opens what an act made stays until dismissed, with a close of its own. */
-export const STAYS = { duration: Number.POSITIVE_INFINITY, closeButton: true } as const
-
 /** What a copy answers: its name, where it opens, whether it is still there, and the mech copied with it. */
 type Made = { name: string; href: string; exists?: () => boolean; mech?: string }
 
 /**
  * Says what an act made (`said`), with the way to it (`open`), for as long as
- * it is there to open or until the notice is dismissed.
+ * it is there to open or until the notice leaves. `said` as a function is
+ * read again on every change to what the account holds, so the line names the
+ * thing as it is called now (r5 C3).
  */
 export function madeToast(
-  said: string,
+  said: string | (() => string),
   open: string,
   made: Pick<Made, 'href' | 'exists'>,
   go: (href: string) => void
 ): void {
+  const words = typeof said === 'function' ? said : () => said
   let unwatch: (() => void) | undefined
-  const id = toast.success(said, {
-    ...STAYS,
+  let shown = words()
+  const options = {
     action: { label: open, onClick: () => go(made.href) },
     onDismiss: () => unwatch?.(),
     onAutoClose: () => unwatch?.(),
-  })
+  }
+  const id = toast.success(shown, options)
   const { exists } = made
-  if (!exists) return
+  if (!exists && typeof said !== 'function') return
   unwatch = subscribe(() => {
-    if (exists()) return
-    unwatch?.()
-    toast.dismiss(id)
+    if (exists && !exists()) {
+      unwatch?.()
+      toast.dismiss(id)
+      return
+    }
+    const now = words()
+    if (now === shown) return
+    shown = now
+    toast.success(now, { ...options, id })
   })
 }
 

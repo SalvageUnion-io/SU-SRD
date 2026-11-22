@@ -4,17 +4,19 @@
  * in a toast whose Undo puts it back: a mis-press costs one press, as Play's
  * spends do.
  *
- * It waits for the player: the line stands until it is answered, dismissed, or
- * the sheet changes again (after which its Undo would write over the newer
- * change), or the player leaves the sheet (`leaveSheet`, r3 B3). One sheet
- * holds one such line; the Change Log is the way back after that.
+ * The line stays as any toast with an action does (chrome K5: 20 seconds,
+ * held under the pointer or the focus; r5 C3, over r2 C1's standing line),
+ * and leaves sooner when it is answered, dismissed, the sheet changes again
+ * (after which its Undo would write over the newer change), or the player
+ * leaves the sheet (`leaveSheet`, r3 B3). One sheet holds one such line;
+ * Ctrl+Z and the Change Log are the way back after that.
  *
  * A quick removal is the exception (r4 E3): its Undo puts back only what it
  * took off, on the sheet as it is now (`takeBack`), so it is safe after later
- * edits and each removal keeps its own line (`stack`), the newest few.
+ * edits and each removal keeps its own line (`stack`), the newest three (K5).
  */
 
-import { toast } from '../../components/index'
+import { MOST_ACTION_TOASTS, toast } from '../../components/index'
 import { dismissChangeUndo } from '../../lib/changeUndoToast'
 import { componentsCopy } from '../../messages/components'
 import { onUnitWrite } from '../../replica/units'
@@ -29,7 +31,7 @@ const toastId = (sheetId: string) => `undo:${sheetId}`
 const stacked = new Map<string, string[]>()
 
 /** How many removal lines one sheet holds; an older one leaves (Ctrl+Z still reaches it). */
-const STACK = 4
+const STACK = MOST_ACTION_TOASTS
 
 let serial = 0
 
@@ -48,14 +50,15 @@ function sheetChanged(sheetId: string): void {
 }
 
 /**
- * Say what was taken off, with Undo. Call it AFTER the write it reports: the
- * line leaves on the sheet's next write. `sheetId` is the unit's id.
+ * Say what was taken off, with Undo (or `label`: an undo's Redo). Call it
+ * AFTER the write it reports: the line leaves on the sheet's next write.
+ * `sheetId` is the unit's id.
  */
 export function undoToast(
   message: string,
   undo: () => void,
   sheetId: string,
-  { stack = false }: { stack?: boolean } = {}
+  { stack = false, label = componentsCopy('undo') }: { stack?: boolean; label?: string } = {}
 ) {
   if (stack) {
     serial += 1
@@ -65,10 +68,8 @@ export function undoToast(
     stacked.set(sheetId, lines)
     toast(message, {
       id: lineId,
-      duration: Number.POSITIVE_INFINITY,
-      closeButton: true,
       action: {
-        label: componentsCopy('undo'),
+        label,
         onClick: () => {
           unstack(sheetId, lineId)
           toast.dismiss(lineId)
@@ -86,10 +87,8 @@ export function undoToast(
   standing.add(sheetId)
   toast(message, {
     id: toastId(sheetId),
-    duration: Number.POSITIVE_INFINITY,
-    closeButton: true,
     action: {
-      label: componentsCopy('undo'),
+      label,
       onClick: () => {
         standing.delete(sheetId)
         undo()

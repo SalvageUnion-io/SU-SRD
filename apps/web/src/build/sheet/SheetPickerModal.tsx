@@ -11,6 +11,7 @@
 import type { CSSProperties, ReactElement, ReactNode } from 'react'
 import { cloneElement, isValidElement } from 'react'
 import { ModalShell, tokens } from '../../components/index'
+import { usePickerHistory } from './usePickerHistory'
 
 // ---------------------------------------------------------------------------
 // The ONE shared picker modal (collections + single-select pickers)
@@ -55,6 +56,8 @@ export function SheetPickerModal({
   floating = false,
   children,
 }: SheetPickerModalProps) {
+  // Back closes the picker and stays on the sheet (r5 C5).
+  usePickerHistory(open, onClose)
   // Floating searcher-picker: a BARE ModalShell; the child EntitySearcher owns
   // the whole frame (header + search + close + internal scroll + its rail).
   // Inject this modal's title/onClose onto that single child.

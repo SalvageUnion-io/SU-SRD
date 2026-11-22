@@ -16,7 +16,7 @@
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import type { PhoneVital } from '../../components/index'
 import { tokens } from '../../components/index'
 import { useCargo } from '../../lib/cargo/useCargo'
@@ -29,7 +29,6 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
-import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import type { CrawlerDashEdit } from '../dash/CrawlerDash'
 import { CrawlerDash } from '../dash/CrawlerDash'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
@@ -72,6 +71,13 @@ type CrawlerSheetProps = {
   /** The crew board for this crawler (D8): the bays' Crew link in Edit. */
   crewHref?: string
 }
+
+/** The weapons picker, a chunk of its own: fetched when Mount first opens it. */
+const CrawlerSystemsEditModal = lazy(() =>
+  import('../crawler/CrawlerSystemsEditModal').then((m) => ({
+    default: m.CrawlerSystemsEditModal,
+  }))
+)
 
 export function CrawlerSheet({
   crawler,
@@ -173,12 +179,14 @@ export function CrawlerSheet({
       {/* The weapons picker, mounted lazily so its reference preload only
           runs once Mount opens it. */}
       {edit && systemsModalOpen && (
-        <CrawlerSystemsEditModal
-          open
-          onClose={() => setSystemsModalOpen(false)}
-          crawler={crawler}
-          patch={patchCrawler}
-        />
+        <Suspense fallback={null}>
+          <CrawlerSystemsEditModal
+            open
+            onClose={() => setSystemsModalOpen(false)}
+            crawler={crawler}
+            patch={patchCrawler}
+          />
+        </Suspense>
       )}
     </section>
   )

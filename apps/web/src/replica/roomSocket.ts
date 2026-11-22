@@ -254,7 +254,17 @@ export function roomOrStandIn(gameId: string | null): Room | null {
 }
 
 /** The rooms whose socket is opening or reopening (`openRoom`), by `open`'s key. */
-const coming = new Set<string>()
+const coming = new Map<string, Room>()
+
+/**
+ * The room at `key` is no longer opening, if `room` is the one opening it: a
+ * socket closed after the same room was opened again (a remount, React's
+ * double-run effect) must not take the new one's "coming" with it, or a write
+ * made while the new socket opens would fail as offline.
+ */
+function notComing(key: string, room: Room): void {
+  if (coming.get(key) === room) coming.delete(key)
+}
 
 /** How long a write waits for its room's socket to open before it fails as offline. */
 export const ROOM_OPEN_WAIT_MS = 10_000
@@ -333,11 +343,11 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
     batch.settle(refusal, fresh)
   }
   const connect = () => {
-    coming.add(gameId ?? ACCOUNT)
+    coming.set(gameId ?? ACCOUNT, room)
     socket = new WebSocket(url.href, [ROOM_PROTOCOL])
     socket.onopen = () => {
       attempt = 0
-      coming.delete(gameId ?? ACCOUNT)
+      notComing(gameId ?? ACCOUNT, room)
       open.set(gameId ?? ACCOUNT, room)
       if (gameId !== null && seated.has(gameId)) tellSeat(gameId)
       for (const batch of waiting.values()) send(batch)
@@ -387,7 +397,7 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
         noteRoomChange()
       }
       if (closed) {
-        coming.delete(gameId ?? ACCOUNT)
+        notComing(gameId ?? ACCOUNT, room)
         return
       }
       retry = setTimeout(connect, RETRY_MS[Math.min(attempt++, RETRY_MS.length - 1)])
@@ -418,7 +428,7 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
   return () => {
     closed = true
     clearTimeout(retry)
-    coming.delete(gameId ?? ACCOUNT)
+    notComing(gameId ?? ACCOUNT, room)
     if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
     holdPresence(scope, null)
     socket?.close(1000)

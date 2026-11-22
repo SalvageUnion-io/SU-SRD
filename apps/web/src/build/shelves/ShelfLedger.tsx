@@ -55,6 +55,8 @@ type ShelfLedgerProps = {
   note?: string
   /** A line under the shelf with an act of its own (the Kit's leftover rows). */
   foot?: ReactNode
+  /** Its find box, atop the list (r5 D4). */
+  find?: ReactNode
   /** With `onSort`, a column's label sorts the shelf by it. */
   sort?: LedgerSort | undefined
   onSort?: (key: string) => void
@@ -134,6 +136,7 @@ export function ShelfLedger({
   empty,
   note,
   foot,
+  find,
   sort,
   onSort,
 }: ShelfLedgerProps) {
@@ -143,6 +146,7 @@ export function ShelfLedger({
   )
   return (
     <section id={id} aria-label={title} className="su-shelf-ledger">
+      {find}
       <Ledger
         label={title}
         tone={tone}

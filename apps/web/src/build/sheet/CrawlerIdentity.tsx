@@ -7,13 +7,17 @@
 
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Field, tokens } from '../../components/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsState } from '../../replica/units'
-import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import type { SheetPatch } from './sheetViewProps.model'
+
+/** The Type picker, a chunk of its own: fetched when it first opens. */
+const CrawlerTypeEditModal = lazy(() =>
+  import('../crawler/CrawlerTypeEditModal').then((m) => ({ default: m.CrawlerTypeEditModal }))
+)
 
 const STACK = {
   display: 'flex',
@@ -61,12 +65,14 @@ export function CrawlerIdentityFields({
       />
       {/* Mounted lazily so its reference preload only runs once it opens. */}
       {typePickerOpen && (
-        <CrawlerTypeEditModal
-          open
-          onClose={() => setTypePickerOpen(false)}
-          crawler={crawler}
-          storeState={storeState}
-        />
+        <Suspense fallback={null}>
+          <CrawlerTypeEditModal
+            open
+            onClose={() => setTypePickerOpen(false)}
+            crawler={crawler}
+            storeState={storeState}
+          />
+        </Suspense>
       )}
     </section>
   )

@@ -24,6 +24,7 @@ import { mechCopy } from '../../messages/build-mech'
 import { PickList } from '../wizard/PickList'
 import { choicesOf, chosenChips, loadoutColumns } from '../wizard/pickColumns'
 import { RecapMinis } from '../wizard/ReviewRecap'
+import { SkipToNext } from '../wizard/SkipToNext'
 import { WizMeter } from '../wizard/WizBudget'
 
 type Kind = 'systems' | 'modules'
@@ -189,6 +190,8 @@ export function MechLoadoutStep({
             }}
           />
         </div>
+        {/* Past the card's links to Next (r5 C6). */}
+        <SkipToNext />
         <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky su-wiz-compare-detail--scroll su-wiz-compare-detail--desk">
           {focused && card(kind, focused)}
           <RecapMinis

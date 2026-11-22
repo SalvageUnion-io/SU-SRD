@@ -1,8 +1,7 @@
 /**
  * "Make a copy" — the Starter Set sheet's one action: copy this build, to edit
  * and play. Signed in it is the page's own control at the sheet's size
- * (`CopyStarterMenu`): one confirm naming where the copy goes, a pilot with
- * their mech. The template is untouched (`copyStarter`).
+ * (`CopyStarterMenu`): it copies at once with Undo, a pilot with their mech. The template is untouched (`copyStarter`).
  *
  * Signed out, the same button signs in first and comes back to this sheet: a
  * copy is a build of your own, and builds live in an account (ADR-034 as
@@ -14,7 +13,6 @@
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
-import type { Confirm } from '../../components/shared/useConfirm'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
@@ -24,11 +22,9 @@ type MakeACopyProps = {
   kind: SheetKind
   templateId: string
   name: string
-  /** Opens the confirm. Owned by an ancestor that outlives the control. */
-  confirm: Confirm
 }
 
-export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
+export function MakeACopy({ kind, templateId, name }: MakeACopyProps) {
   const { status } = useSync()
 
   if (status === 'signedOut') {
@@ -46,7 +42,6 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
       kind={kind}
       templateId={templateId}
       name={name}
-      confirm={confirm}
       size="full"
       className="su-page-action"
     />

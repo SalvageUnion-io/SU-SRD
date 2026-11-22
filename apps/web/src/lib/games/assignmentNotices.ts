@@ -42,12 +42,20 @@ export function assignmentNotices(
   if (me === null) return []
   const mine = new Set(before.filter((u) => u.owner === me).map((u) => u.id))
   const others = new Set(before.filter((u) => u.owner !== me).map((u) => u.id))
+  const gained = (unit: HeldUnit) => others.has(unit.id) && unit.owner === me
+  const lost = (unit: HeldUnit) => mine.has(unit.id) && unit.owner !== me
+  // A pilot's mech goes with them (the room's `withMech`): where the pilot's move was the
+  // player's own doing, the mech that followed is not announced in its place (r5 B14).
+  const own = (moved: (unit: HeldUnit) => boolean) =>
+    now.some((unit) => unit.kind === 'pilot' && moved(unit) && ownDoing.has(unit.id))
+  const quiet = { gained: own(gained), lost: own(lost) }
   return now.flatMap((unit) => {
-    if (others.has(unit.id) && unit.owner === me) {
-      return ownDoing.delete(unit.id) ? [] : [libGamesCopy('assignedToYou', { name: unit.name })]
+    if (gained(unit)) {
+      if (ownDoing.delete(unit.id) || (quiet.gained && unit.kind === 'mech')) return []
+      return [libGamesCopy('assignedToYou', { name: unit.name })]
     }
-    if (!mine.has(unit.id) || unit.owner === me) return []
-    if (ownDoing.delete(unit.id)) return []
+    if (!lost(unit)) return []
+    if (ownDoing.delete(unit.id) || (quiet.lost && unit.kind === 'mech')) return []
     return [
       unit.owner === null
         ? libGamesCopy('unassignedFromYou', { name: unit.name })

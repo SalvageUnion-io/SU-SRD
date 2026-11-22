@@ -43,6 +43,8 @@ export type ConfirmCopy = {
    * the player (a refusal brings its own wording; anything else gets this).
    */
   failure: string
+  /** What a toast says once the action is done (r5 C12: "Deleted Scuttler."). */
+  done?: string
 }
 
 /** The line saying a deleted pilot's mech stays, when they fly one. */
@@ -202,6 +204,7 @@ export const ROW_ACTION_COPY = {
       pendingLabel: 'Deleting…',
       tone: 'danger',
       failure: libGamesCopy('deleteFailed', { name }),
+      done: libGamesCopy('deleted', { name }),
     }
   },
 
@@ -217,6 +220,15 @@ export const ROW_ACTION_COPY = {
       pendingLabel: 'Deleting…',
       tone: 'danger',
       failure: libGamesCopy('deleteFailed', { name }),
+      done: libGamesCopy('deleted', { name }),
+    }
+  },
+
+  /** Deleting a Mech of the Training Bay (r5 D9): one confirm, and the notice after it undoes. */
+  deleteMech(name: string): ConfirmCopy {
+    return {
+      ...ROW_ACTION_COPY.deleteBuild(name),
+      body: [libGamesCopy('deleteMechBody', { name })],
     }
   },
 
@@ -243,6 +255,7 @@ export const ROW_ACTION_COPY = {
       pendingLabel: 'Deleting…',
       tone: 'danger',
       failure: libGamesCopy('deleteFailed', { name }),
+      done: libGamesCopy('deleted', { name }),
     }
   },
 

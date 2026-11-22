@@ -88,6 +88,15 @@ export function effectName(ref: string): string {
  */
 export const UNDO_SOURCE = 'play-undo'
 
+/**
+ * Whether an op is an Undo: a Play toast's, or a sheet's own (`sheetUndo`,
+ * `live-sheet-undo:<change id>`). Only one of these takes an accepted proposal
+ * back (r5 A2): a heal that reaches the old value is a heal.
+ */
+export function isUndoSource(source: string): boolean {
+  return source === UNDO_SOURCE || source.startsWith('live-sheet-undo:')
+}
+
 /** A vital's change as an event stores it. */
 export type VitalChange = {
   who: string

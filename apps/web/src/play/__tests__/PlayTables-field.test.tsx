@@ -9,7 +9,7 @@
  * `afterAll` restore.
  */
 import { afterAll, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { RosterLine } from 'game-domain/rules/encounterRoster'
 
 /** The d20 every roll lands on: Arid Steppes Encounters 16-19, the traders. */
@@ -94,5 +94,22 @@ describe('a table asked for by name', () => {
     act(() => askPlayTable('Critical Damage'))
     const stamp = screen.getByRole('button', { name: 'Roll the die on Critical Damage' })
     expect(document.activeElement).toBe(stamp)
+  })
+
+  test('the zero toast’s ask rolls it in the same press (r5 A1)', async () => {
+    const { askPlayTable } = await import('../zeroVital.model')
+    const { onPlayRoll } = await import('../playRolls.model')
+    const heard: string[] = []
+    const stop = onPlayRoll((roll) => heard.push(roll.tableName))
+    try {
+      render(<PlayTables downtime={false} solo binding={null} />)
+      await act(async () => {
+        askPlayTable('Critical Damage', true)
+        await Promise.resolve()
+      })
+      await waitFor(() => expect(heard).toEqual(['Critical Damage']))
+    } finally {
+      stop()
+    }
   })
 })

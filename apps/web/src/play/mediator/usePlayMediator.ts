@@ -20,7 +20,8 @@
  * it to the bound Discord channel, unless Private rolls is on (ADR-051 §9a).
  */
 
-import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
+import { CARGO_PROPOSAL_FIELD, PROPOSALS_PAGE } from 'game-domain/games/proposals'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Encounter, RunningEncounter } from 'game-domain/schemas/encounter'
 import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
@@ -84,6 +85,15 @@ import { useWithdrawProposal } from './useWithdrawProposal'
 /** A wreck's salvage that hauls nothing: it is settled, and nothing is written. */
 export const NOTHING = (): null => null
 
+/**
+ * Where a wreck's haul goes: the crawler's hold and pool (a patch of it as it
+ * stands), or a crew Mech's hold (r5 B2), as a proposal its player accepts
+ * (ADR-030 §4: the Mediator never writes a player's sheet).
+ */
+export type WreckHaul =
+  | ((crawler: Crawler) => Partial<Crawler> | null)
+  | { mechId: string; lots: CargoLot[]; reason: string }
+
 /** How many alerts and rolls the Feed reads. */
 const FEED_ALERTS = 20
 const FEED_ROLLS = 30
@@ -109,11 +119,11 @@ export type PlayMediator = {
   tray: TrayWrites
   /**
    * Settle a downed wreck's salvage: claim it (`salvaged`, once), then write
-   * `haul`'s patch of the crawler as it stands. `NOTHING` settles a wreck
-   * that yields nothing; any other haul is refused with no crawler the
-   * Mediator holds.
+   * `haul`'s patch of the crawler as it stands, or propose its lots to a crew
+   * Mech's hold. `NOTHING` settles a wreck that yields nothing; a crawler
+   * haul is refused with no crawler the Mediator holds.
    */
-  salvageWreck: (npc: TrayNpc, haul: (crawler: Crawler) => Partial<Crawler> | null) => Promise<void>
+  salvageWreck: (npc: TrayNpc, haul: WreckHaul) => Promise<void>
   /** The area the crew is salvaging, which the Mediator names (Core Book p.245). */
   area: SalvageAreaView
   /** The Mediator's prep (ADR-059): their encounters, and the one this Game is running. */
@@ -292,6 +302,11 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         )
       ),
     setHp: (npc, next) => updateNpc({ npcId: npcId(npc), patch: { currentHp: next } }),
+    salvageRoll: (npc, roll) =>
+      updateNpc({
+        npcId: npcId(npc),
+        patch: { salvageRoll: { roll, rolledAt: new Date().toISOString() } },
+      }),
     morale: async (npc) => {
       // Morale is a named Salvage Union table (Core Book p.268); its die is
       // rollTable('Morale'), and rollMorale reads the row from our own data.
@@ -483,7 +498,17 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     ownNpcs,
     savedPatterns: (patterns ?? []).flatMap((row) => readSavedPattern(row) ?? []),
     tray: trayWrites,
-    salvageWreck: said(async (npc: TrayNpc, haul: (c: Crawler) => Partial<Crawler> | null) => {
+    salvageWreck: said(async (npc: TrayNpc, haul: WreckHaul) => {
+      if (typeof haul !== 'function') {
+        await updateNpc({ npcId: npcId(npc), patch: { salvaged: true } })
+        await proposeMutation({
+          entityId: haul.mechId,
+          field: CARGO_PROPOSAL_FIELD,
+          after: haul.lots,
+          reason: haul.reason,
+        })
+        return
+      }
       const held = crawler?.held ? crawler.crawler : null
       const patch = held === null ? null : haul(store.get('crawler', held.id) ?? held)
       if (held === null && haul !== NOTHING) throw new Error('There is no crawler to haul it to')

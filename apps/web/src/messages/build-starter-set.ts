@@ -3,16 +3,14 @@
 import { messages } from './define'
 
 export const buildStarterSetCopy = messages({
-  copyTo: 'Copy {name} to {label}?',
   makeACopy: 'Make a copy',
   makeACopyOfName: 'Make a copy of {name}',
   copying: 'Copying…',
   copiedTo: 'Copied {name} to {label}.',
+  copyUndone: '{name}: the copy is deleted again.',
+  undo: 'Undo',
   pilotAndMech: '{name} and {mech}',
   yourTrainingBay: 'your Training Bay',
-  copyBody: 'This makes {name} a build of your own in {label}, to edit and play.',
-  copyPairBody:
-    'This makes {name} and their Mech, {mech}, builds of your own in {label}, the Mech already assigned.',
   signInToMakeA: 'Sign in to make a copy',
   starterSet2: 'Starter Set',
   copyOneIntoYourTraining:

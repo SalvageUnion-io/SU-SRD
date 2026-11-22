@@ -164,6 +164,13 @@ export function useHarnessPlay({
         }
         return true
       },
+      // Solo, Restore's healing run again (r5 A12): once per step.
+      healAgain: solo
+        ? async (i, patch) => {
+            record('downtime.healAgain', { stepIndex: i, patch })
+            return true
+          }
+        : null,
       // The Upkeep or Nanites op on the crawler (`downtime.claim`).
       claim: async (claim, crawlerId, patch) => {
         record('downtime.claim', { claim, crawlerId, patch })

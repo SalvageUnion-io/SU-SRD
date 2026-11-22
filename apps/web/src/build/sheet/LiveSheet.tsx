@@ -37,6 +37,7 @@ import {
   relation,
   Stat,
   Tag,
+  Text,
   tokens,
 } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -152,7 +153,7 @@ type LiveSheetProps = {
   fromPattern?: PatternStamp | undefined
   /**
    * Where it came from, when not a blank build (R49): the
-   * Starter Set (`seedRef`) is a STARTER KIT chip, a saved pattern
+   * Starter Set (`seedRef`) is a STARTER SET chip, a saved pattern
    * (`sourcePattern`) the HOMEBREW stamp.
    */
   source?: 'starter' | 'homebrew' | undefined
@@ -432,6 +433,8 @@ export function LiveSheet({
                       ) : (
                         <Stat label={patternLabel(fromPattern)} value={fromPattern.name} wrap />
                       ))}
+                    {/* What differs from the pattern now (r5 D2). */}
+                    {fromPattern?.differs && <Stat label={fromPattern.differs} wrap />}
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />
                     )}
@@ -447,6 +450,7 @@ export function LiveSheet({
               }}
               state={out && <Stat label={out.stamp} state="critical" wrap />}
             />
+            {band?.doorNote && <Text variant="note">{band.doorNote}</Text>}
             {/* The phone's segmented Pilot/Mech/Crawler switch, full width
                 under the name so it stays thumb-reachable. The active segment
                 is the sheet being viewed (an ink plate, never rust: a

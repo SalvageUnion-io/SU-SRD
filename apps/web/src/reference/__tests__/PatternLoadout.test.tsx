@@ -26,4 +26,12 @@ describe('PatternLoadout', () => {
   test('a pattern within its slots says nothing more', () => {
     expect(loadout('Mule', 'Hauler')).not.toContain('as printed')
   })
+
+  test('the total’s Scrap reads by Tech Level, as TL, and says so (r5 E13)', () => {
+    const html = loadout('Atlas', 'Throne')
+    const foot = html.slice(html.indexOf('<tfoot'))
+    expect(foot).toMatch(/TL1 \d+ · TL3 \d+/)
+    expect(foot).not.toMatch(/>T\d /)
+    expect(foot).toContain('Scrap by Tech Level')
+  })
 })

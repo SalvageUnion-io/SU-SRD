@@ -39,6 +39,8 @@ export type FooterFoot = {
   credit?: string
   /** The inner row's max width, matching the page's own measure. */
   measure?: string
+  /** The page's web address, printed beside the citation on paper alone (r5 E9). */
+  address?: string
 }
 
 type FooterLink = { label: string; href: string }
@@ -121,11 +123,19 @@ export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }
   const citation =
     foot?.credit ??
     (printed ? <CiteLine text={printed} hrefs={bookHrefs(foot?.printings ?? [])} /> : undefined)
+  const address = foot?.address ? <p className="su-footer__address">{foot.address}</p> : null
   return (
     <footer className="su-footer">
       <ChapterFoot
         measure={measure}
-        cite={citation ? <p className="su-footer__citation">{citation}</p> : undefined}
+        cite={
+          citation || address ? (
+            <>
+              {citation ? <p className="su-footer__citation">{citation}</p> : null}
+              {address}
+            </>
+          ) : undefined
+        }
         start={<Legal />}
         end={<End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />}
       />

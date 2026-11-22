@@ -5,10 +5,12 @@
  * the crawler wizard on that type. The app's `/…/new` routes read the slug
  * (`apps/web/src/lib/wizard/preselect.ts`) and keep it through sign-in.
  *
- * A page's own link is offered only where the wizard would accept the pick — a
+ * A page's own link opens the wizard only where it would accept the pick — a
  * Tech 1 chassis, a core class, any crawler type — by the same rules its
  * pickers filter on, so the button never lands on a wizard that silently
- * ignores it. A pattern page always has one (`patternBuildLinkFor`).
+ * ignores it. Every other chassis (higher Tech Levels, Bio-Chassis) opens a
+ * Blank build of it, which takes any chassis (r5 D8). A pattern page always
+ * has one (`patternBuildLinkFor`).
  *
  * A creation guide ends on its exits (`guideExitsFor`): the same wizard, unseeded,
  * the next guide, and the Starter Set.
@@ -58,15 +60,16 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
   const slug = getEntitySlug(item)
   switch (schemaId) {
     case 'chassis':
-      return 'techLevel' in item &&
-        item.techLevel !== undefined &&
-        isLegalCreationChassis(item.techLevel)
-        ? {
-            href: wizardHref('/mechs/new', { chassis: slug }),
-            label: BUILD_WITH_THIS,
-            ariaLabel: `${BUILD_WITH_THIS}: a mech`,
-          }
-        : null
+      return {
+        href:
+          'techLevel' in item &&
+          item.techLevel !== undefined &&
+          isLegalCreationChassis(item.techLevel)
+            ? wizardHref('/mechs/new', { chassis: slug })
+            : `${appPath('/mechs/new')}?${new URLSearchParams({ mode: 'blank', chassis: slug })}`,
+        label: BUILD_WITH_THIS,
+        ariaLabel: `${BUILD_WITH_THIS}: a mech`,
+      }
     case 'classes':
       return 'coreTrees' in item && isLegalCreationClass(item.coreTrees)
         ? {
@@ -81,6 +84,12 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
         label: BUILD_WITH_THIS,
         ariaLabel: `${BUILD_WITH_THIS}: a crawler`,
       }
+    // A denizen's page leads into the Mediator's Kit, signed in or out (r5 B19):
+    // static markup, so the Reference page loads no script for it.
+    case 'npcs':
+    case 'squads':
+    case 'creatures':
+      return { href: designHref(schemaId, item), label: referenceCopy('designFromThis') }
     case 'guides': {
       // A creation guide's band opens the builder for what it creates.
       const step = CREATION_GUIDES.find(
@@ -101,7 +110,12 @@ const DENIZEN_KINDS = ['npcs', 'squads', 'creatures', 'vehicles', 'drones', 'mel
  * (`.su-mediator-acts`): field it in one of their encounters
  * (`/encounters/add`), or design an NPC of their own from it (`/npcs/new`).
  */
-export type MediatorLinks = { add: BuildLink; design: BuildLink }
+export type MediatorLinks = { add: BuildLink; design: BuildLink | null }
+
+/** The NPC designer, started from this denizen (`/npcs/new?from=<schema>:<slug>`). */
+function designHref(schemaId: string, item: RefEntity): string {
+  return `${appPath('/npcs/new')}?${new URLSearchParams({ from: `${schemaId}:${getEntitySlug(item)}` })}`
+}
 
 /** The page's Mediator links, or `null` where it is no denizen. */
 export function mediatorLinksFor(schemaId: string, item: RefEntity): MediatorLinks | null {
@@ -112,7 +126,11 @@ export function mediatorLinksFor(schemaId: string, item: RefEntity): MediatorLin
       href: `${appPath('/encounters/add')}?${from}`,
       label: referenceCopy('addToAnEncounter'),
     },
-    design: { href: `${appPath('/npcs/new')}?${from}`, label: referenceCopy('designFromThis') },
+    // Where the band already carries it (`buildLinkFor`), the foot does not repeat it.
+    design:
+      buildLinkFor(schemaId, item) === null
+        ? { href: designHref(schemaId, item), label: referenceCopy('designFromThis') }
+        : null,
   }
 }
 

@@ -55,6 +55,8 @@ export type MergeSummary = {
   }
   remappedLinks: number
   skippedDuplicates: number
+  /** The first sheet it added (pilot, mech or crawler), for the toast's Open (r5 C12). */
+  first?: { type: 'pilot' | 'mech' | 'crawler'; id: string; name: string }
 }
 
 /**
@@ -152,6 +154,8 @@ export async function mergeImport(
       const created = await entityStore.create(type, { ...rest, gameId: null } as CreateInput<T>)
       idMap.set(record.id, created.id)
       summary.created[countKey]++
+      if (!summary.first && (type === 'pilot' || type === 'mech' || type === 'crawler'))
+        summary.first = { type, id: created.id, name: String(created.name ?? '') }
     }
   }
 

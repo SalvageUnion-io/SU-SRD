@@ -92,6 +92,7 @@ export function PlayMediatorSeat({
   return (
     <li
       className="su-play-seat"
+      data-seat-id={seat.pilotId}
       data-attention={seat.attention || undefined}
       data-away={away || undefined}
       data-choice-toggle=""

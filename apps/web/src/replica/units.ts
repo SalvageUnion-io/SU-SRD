@@ -117,6 +117,11 @@ export type UnitsApi = {
   /** Deletes on the server, then here; a unit's links go with it. */
   delete: (type: EntityType, id: string) => Promise<void>
   /**
+   * Send a just-deleted row back whole, under its own id (r5 D9's Undo), then
+   * hold it. Its links are drawn again by the caller.
+   */
+  restore: <T extends UnitType>(type: T, record: EntityForType<T>) => Promise<EntityForType<T>>
+  /**
    * Moves value between units (scrap, cargo stow and load) as ONE batch of
    * ops, all or none at both ends.
    */
@@ -196,11 +201,18 @@ function opOf(
     patch: changed,
     ...(unset.length === 0 ? {} : { unset }),
   }
+  madeHere.add(op.id)
   // Under the rooms every container change is a handoff between rooms (`sendOp`).
   if (!('gameId' in patch)) return { op }
   delete changed.gameId
   return { op, move: (patch as { gameId?: string | null }).gameId ?? null }
 }
+
+/** The ops this tab made, by id: what its sheets' Ctrl+Z may take back (r5 C2). */
+const madeHere = new Set<string>()
+
+/** Whether this tab made the op (a Change Log change's id). */
+export const madeInThisTab = (opId: string): boolean => madeHere.has(opId)
 
 /** Each unit's last write, settled or not: the next one to it waits behind this. */
 const writing = new Map<string, Promise<unknown>>()
@@ -393,6 +405,12 @@ export const units: UnitsApi = {
     // exist, so it must not appear here either.
     const record = prepareCreate(kindOf(type), withContainer(type, input))
     return holdApplied(type, record, await sendCreate(type, record))
+  },
+
+  async restore(type, record) {
+    requireWritable()
+    const parsed = kindOf(type).schema.parse(record)
+    return holdApplied(type, parsed, await sendCreate(type, parsed))
   },
 
   async adopt(type, record) {

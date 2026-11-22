@@ -170,10 +170,11 @@
 }
 
 /* The Page's foot (Previous / Next): the body's last block, at the page's
-   bottom however short the words, under the body and the sidebar both. */
+   bottom however short the words, under the body and the sidebar both, one
+   rhythm gap under the block above it (R17). */
 .su-entity__foot {
   margin-top: auto;
-  padding-top: var(--space-24);
+  padding-top: var(--space-12);
 }
 
 .su-entity__body .su-entity-page__wide:empty {
@@ -649,10 +650,10 @@ html[data-srd-signed-in] .su-mediator-acts {
     width: 100%;
   }
 
-  /* Below the controls and any open facets, on its own line. */
+  /* On its own line under the controls, above any open facets, so the count
+     stays in view while the reader chooses (r5 E8). */
   .su-rail > .su-rail__status {
     flex-basis: 100%;
-    order: 1;
   }
 
   .su-rail__status ~ .su-rail__spring {

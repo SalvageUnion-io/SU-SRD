@@ -3,14 +3,16 @@
  * strip of its own that nothing folds away (r4 B2), then the one strip the
  * rest share: the first of them (`shownNotices`), with how many more wait
  * behind a button that lists them, and Dismiss all for those that can be
- * dismissed. One notice is just itself.
+ * dismissed. One notice is just itself. "Your turn" is never one of the
+ * counted (r5 A5): under a proposal it is a line of its own, its title and End
+ * my turn. The first turn strip is what "Skip to your turn" lands on (r5 A17).
  */
 
 import { useState } from 'react'
 import { Button, Callout, Text, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import type { StackedNotice } from './tableNotices.model'
-import { shownNotices } from './tableNotices.model'
+import { shownNotices, YOUR_TURN_ID } from './tableNotices.model'
 
 const STRONG = { fontWeight: tokens.weight.bold } satisfies React.CSSProperties
 
@@ -31,11 +33,13 @@ export type Notice = StackedNotice & {
 
 export function NoticeStack({ notices }: { notices: readonly Notice[] }) {
   const [open, setOpen] = useState(false)
-  const { alerts, top, rest } = shownNotices(notices)
+  const { alerts, top, turns, rest } = shownNotices(notices)
   // The Mediator's word is never folded away (r4 B2): above the strip, each its own.
   const told = alerts.map((notice) => <NoticeStrip key={notice.key} notice={notice} />)
   if (top === null) return <>{told}</>
-  const clearable = [...alerts, top, ...rest].filter((notice) => notice.dismiss !== undefined)
+  const clearable = [...alerts, top, ...turns, ...rest].filter(
+    (notice) => notice.dismiss !== undefined
+  )
   const more =
     rest.length === 0 ? null : (
       <>
@@ -66,20 +70,39 @@ export function NoticeStack({ notices }: { notices: readonly Notice[] }) {
   return (
     <>
       {told}
-      <NoticeStrip notice={top} more={more} />
+      <NoticeStrip notice={top} more={more} id={top.kind === 'turn' ? YOUR_TURN_ID : undefined} />
+      {turns.map((notice, i) => (
+        <NoticeStrip
+          key={notice.key}
+          notice={notice}
+          line
+          id={i === 0 && top.kind !== 'turn' ? YOUR_TURN_ID : undefined}
+        />
+      ))}
       {open && rest.map((notice) => <NoticeStrip key={notice.key} notice={notice} />)}
     </>
   )
 }
 
-function NoticeStrip({ notice, more }: { notice: Notice; more?: React.ReactNode }) {
+function NoticeStrip({
+  notice,
+  more,
+  line = false,
+  id,
+}: {
+  notice: Notice
+  more?: React.ReactNode
+  /** One line: the title and its controls, no body (r5 A5). */
+  line?: boolean
+  id?: string | undefined
+}) {
   return (
-    <div role="status" data-table-notice={notice.kind}>
+    <div role="status" data-table-notice={notice.kind} id={id}>
       <Callout tone={notice.tone}>
         <div className="su-table-notice">
           <div className="su-table-notice__text">
             <Text style={STRONG}>{notice.title}</Text>
-            {notice.body !== undefined && <Text>{notice.body}</Text>}
+            {notice.body !== undefined && !line && <Text>{notice.body}</Text>}
           </div>
           <span className="su-table-notice__actions">
             {notice.actions}

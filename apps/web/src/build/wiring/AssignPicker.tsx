@@ -44,33 +44,21 @@
  * and replaced by generic copy rather than its raw message.
  */
 
-import type { Container, ContainerFields } from 'game-domain/container'
-import { containerOf, moveTo, sameContainer } from 'game-domain/container'
-import { linkTypeFor } from 'game-domain/links/linkRules'
-import { pilotLabel } from 'game-domain/pilotLabel'
+import type { Container } from 'game-domain/container'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useEffect, useState } from 'react'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { PickDialog } from '../../components/app'
+import { lazy, Suspense, useState } from 'react'
 import { Button } from '../../components/index'
-import { failureMessage } from '../../lib/connection/useServerAction'
-import { useCrawlers, useMechs, usePilots } from '../../lib/entities'
-import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
-import { assignLink } from '../../lib/links/assignLink'
-import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
-import { LinkRefused } from '../../lib/links/linkRefused'
-import { readReference } from '../../lib/readReference'
-import type { UnitReading } from '../../lib/units/unitModel'
-import { unitRowModel } from '../../lib/units/unitModel'
+import { useOpenedOnce } from '../../lib/useOpenedOnce'
 import { wiringCopy } from '../../messages/build-wiring'
-import { CONTAINER_MOVE } from '../../replica/provenance'
-import { WritesBlockedOffline } from '../../replica/sync'
-import { useSync } from '../../replica/syncContext'
-import { useUnits } from '../../replica/units'
 import type { SoftLinkStore } from './useSoftLinks'
+
+/** The dialog, its candidates and its write: fetched when it first opens. */
+const AssignPickDialog = lazy(() =>
+  import('./AssignPickDialog').then((m) => ({ default: m.AssignPickDialog }))
+)
 
 type Kind = EntityRef['type']
 
@@ -79,12 +67,17 @@ export type AssignPickerStore = SoftLinkStore & {
   pilots?: readonly Pilot[]
   mechs?: readonly Mech[]
   crawlers?: readonly Crawler[]
+  /** Who a Game holds a unit for (`holderOf`), and who the viewer is. */
+  holders?: {
+    me: string | null
+    of: (kind: 'pilot' | 'mech', id: string) => string | null | undefined
+  }
 }
 
 /** A slot on a rail: the sheet's own kind, then the kind the slot takes. */
 type Slot = `${Kind}.${Kind}`
 
-type SlotCopy = {
+export type SlotCopy = {
   /** Visible trigger text, empty slot. */
   assign: string
   /**
@@ -166,73 +159,6 @@ const SLOT_COPY: Partial<Record<Slot, SlotCopy>> = {
   },
 }
 
-/** What the empty list calls the kind it found none of. */
-const MANY: Record<Kind, string> = {
-  pilot: 'pilots',
-  mech: 'mechs',
-  crawler: 'crawlers',
-  npc: 'NPCs',
-}
-
-/** A candidate's Compact: its name, what it is built as, and its readings as chips. */
-type Candidate = { id: string; name: string; note?: string | undefined; readings?: UnitReading[] }
-
-/** Chassis name for a mech row, best-effort (reference data may not be loaded). */
-function chassisName(chassisRef: string): string | undefined {
-  const chassis = readReference(
-    'AssignPicker.chassisName',
-    () => resolveChassisRef(chassisRef),
-    null
-  )
-  return chassis?.name ?? (chassisRef || undefined)
-}
-
-const pilotCandidate = (p: Pilot): Candidate => ({
-  id: p.id,
-  // Callsign first, as everywhere a pilot is named (`pilotLabel`).
-  name: pilotLabel(p),
-  readings: [],
-})
-
-const mechCandidate = (m: Mech): Candidate => ({
-  id: m.id,
-  name: m.name,
-  note: chassisName(m.chassisRef),
-})
-
-const crawlerCandidate = (c: Crawler): Candidate => ({
-  id: c.id,
-  name: c.name,
-  readings: [{ label: wiringCopy('tl'), value: c.techLevel }],
-})
-
-/**
- * The empty-list copy: nothing of this kind where the subject lives at all, or
- * nothing left once the slot's occupants are excluded.
- */
-function emptyCopy(kind: Kind, scope: Container | null, anyAtAll: boolean): string {
-  const many = MANY[kind]
-  if (scope === null) {
-    return anyAtAll
-      ? wiringCopy('noOtherToPick', { many })
-      : wiringCopy('noneYetCreateOneFirst', { many })
-  }
-  if (scope.kind === 'game') {
-    return anyAtAll
-      ? wiringCopy('noOtherInThisGame', { many })
-      : wiringCopy('noneInThisGameYet', { many })
-  }
-  return anyAtAll
-    ? wiringCopy('noOtherInYourTrainingBay', { many })
-    : wiringCopy('noneInYourTrainingBay', { many })
-}
-
-/** Player copy for a failed assignment. Never the raw message of a defect. */
-function refusalCopy(err: unknown): string {
-  if (err instanceof LinkRefused || err instanceof WritesBlockedOffline) return err.message
-  return failureMessage(err, wiringCopy('assignmentNotSaved'))
-}
-
 type AssignPickerProps = {
   /** The entity whose sheet holds the slot. */
   subject: { type: Kind; id: string }
@@ -264,7 +190,7 @@ export function AssignPicker({
   container,
   pick,
   filled = false,
-  exclude = [],
+  exclude,
   size = 'compact',
   store,
   onAssigned,
@@ -272,102 +198,11 @@ export function AssignPicker({
 }: AssignPickerProps) {
   const [ownOpen, setOwnOpen] = useState(false)
   const open = control ? control.open : ownOpen
-  const [selectedId, setSelectedId] = useState('')
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const { status } = useSync()
-
-  // Always call the hooks (Rules of Hooks); prefer the injected lists.
-  const livePilots = usePilots()
-  const liveMechs = useMechs()
-  const liveCrawlers = useCrawlers()
+  const mounted = useOpenedOnce(open)
 
   const copy = SLOT_COPY[`${subject.type}.${pick}`]
   if (!copy) {
     throw new Error(`AssignPicker: a ${subject.type} sheet has no ${pick} slot`)
-  }
-
-  // Signed out, there is one pile and no container to scope to.
-  const scope = status === 'live' ? container : null
-  const excluded = new Set(exclude)
-  /** Everything of this kind where the subject lives, and what is left to offer. */
-  const offer = <T extends ContainerFields & { id: string }>(
-    list: readonly T[],
-    toRow: (entity: T) => Candidate
-  ): { inScope: number; rows: Candidate[] } => {
-    const here = scope === null ? list : list.filter((e) => sameContainer(containerOf(e), scope))
-    return { inScope: here.length, rows: here.filter((e) => !excluded.has(e.id)).map(toRow) }
-  }
-  const { inScope, rows: candidates } =
-    pick === 'pilot'
-      ? offer(store?.pilots ?? livePilots, pilotCandidate)
-      : pick === 'mech'
-        ? offer(store?.mechs ?? liveMechs, mechCandidate)
-        : offer(store?.crawlers ?? liveCrawlers, crawlerCandidate)
-
-  // In a Game, your own pilots and mechs still in the Training Bay: picked,
-  // each moves in first. A crawler moves only into a Game its owner runs, so it
-  // is never offered here.
-  const shelf =
-    scope?.kind === 'game' && (pick === 'pilot' || pick === 'mech')
-      ? (pick === 'pilot'
-          ? (store?.pilots ?? livePilots).map((e) => [e, pilotCandidate(e)] as const)
-          : (store?.mechs ?? liveMechs).map((e) => [e, mechCandidate(e)] as const)
-        )
-          .filter(([e]) => containerOf(e).kind === 'shelf' && !excluded.has(e.id))
-          .map(([, row]) => row)
-      : []
-  const shelfIds = new Set(shelf.map((row) => row.id))
-  const movesIn = shelfIds.has(selectedId) && scope?.kind === 'game' ? scope : null
-  const movingName = shelf.find((row) => row.id === selectedId)?.name ?? ''
-  const cleared =
-    movesIn === null
-      ? []
-      : assignmentsClearedByMove(useUnits.getState(), { type: pick, id: selectedId }, movesIn)
-
-  function openDialog() {
-    setSelectedId('')
-    setError(null)
-    setOwnOpen(true)
-  }
-
-  // Opened from outside, it starts clean as its own trigger would.
-  const controlOpen = control?.open === true
-  useEffect(() => {
-    if (!controlOpen) return
-    setSelectedId('')
-    setError(null)
-  }, [controlOpen])
-
-  function closeDialog() {
-    if (control) control.onClose()
-    else setOwnOpen(false)
-    setError(null)
-  }
-
-  async function handleConfirm(pickedId: string) {
-    // The schema fixes the direction: whichever end the link type starts from.
-    const self = { type: subject.type, id: subject.id }
-    const picked = { type: pick, id: pickedId }
-    const [from, to] =
-      linkTypeFor(self.type, picked.type) !== null ? [self, picked] : [picked, self]
-    setPending(true)
-    setError(null)
-    try {
-      // From the Training Bay: the same record moves into the Game first (a
-      // link never crosses containers), then is assigned.
-      if (shelfIds.has(pickedId) && scope?.kind === 'game') {
-        await useUnits.getState().update(pick, pickedId, moveTo(scope), CONTAINER_MOVE)
-      }
-      await assignLink(from, to, store ?? useUnits.getState())
-      if (control) control.onClose()
-      else setOwnOpen(false)
-      onAssigned?.()
-    } catch (err) {
-      setError(refusalCopy(err))
-    } finally {
-      setPending(false)
-    }
   }
 
   const label = filled && copy.change ? copy.change : copy.assign
@@ -376,60 +211,26 @@ export function AssignPicker({
   return (
     <>
       {!control && (
-        <Button size={size} onClick={openDialog} aria-label={ariaLabel}>
+        <Button size={size} onClick={() => setOwnOpen(true)} aria-label={ariaLabel}>
           {label}
         </Button>
       )}
 
-      <PickDialog
-        open={open}
-        onOpenChange={(next) => {
-          if (!next) closeDialog()
-        }}
-        title={copy.title}
-        groups={[
-          {
-            key: pick,
-            ...(shelf.length > 0 ? { title: wiringCopy('inThisGame') } : {}),
-            choices: candidates.map((c) => ({
-              id: c.id,
-              label: c.name,
-              model: unitRowModel({ kind: pick, name: c.name, note: c.note, readings: c.readings }),
-            })),
-          },
-          {
-            key: 'shelf',
-            title: wiringCopy('fromYourTrainingBay'),
-            choices: shelf.map((c) => ({
-              id: c.id,
-              label: c.name,
-              model: unitRowModel({ kind: pick, name: c.name, note: c.note, readings: c.readings }),
-            })),
-          },
-        ]}
-        empty={emptyCopy(pick, scope, inScope > 0)}
-        selected={selectedId || null}
-        onSelect={setSelectedId}
-        note={
-          movesIn === null
-            ? copy.note
-            : cleared.length > 0
-              ? ROW_ACTION_COPY.enterGame({
-                  name: movingName,
-                  kind: pick,
-                  game: null,
-                  cleared,
-                }).body.join(' ')
-              : wiringCopy('movesIntoThisGame', { name: movingName })
-        }
-        error={error}
-        confirmLabel={
-          pending ? copy.pending : movesIn === null ? copy.confirm : wiringCopy('moveInAndAssign')
-        }
-        confirmAria={copy.confirmAria}
-        confirm={selectedId ? () => void handleConfirm(selectedId) : undefined}
-        pending={pending}
-      />
+      {mounted && (
+        <Suspense fallback={null}>
+          <AssignPickDialog
+            subject={subject}
+            container={container}
+            pick={pick}
+            exclude={exclude}
+            store={store}
+            onAssigned={onAssigned}
+            copy={copy}
+            open={open}
+            onClose={control ? control.onClose : () => setOwnOpen(false)}
+          />
+        </Suspense>
+      )}
     </>
   )
 }

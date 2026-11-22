@@ -34,6 +34,8 @@ export type SheetBand = {
   actions?: ReactNode
   /** The Game the unit is in: a GAME relation chip on the band, linking to its page. */
   game?: { name: string; href: string } | undefined
+  /** In a Game, under the door: solo play is now that Game's table (r5 A15). */
+  doorNote?: string | undefined
 }
 
 export type SheetViewCommonProps = {

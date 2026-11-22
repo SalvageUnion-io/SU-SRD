@@ -11,7 +11,9 @@
  * It leaves the player where they asked (the mech they are tuning, the
  * builder), with a notice that opens the pattern (r4 E19), and a name a
  * pattern of theirs already has is asked about once before a second is saved
- * under it (r4 E13).
+ * under it (r4 E13); beside that, Replace writes this build over the one that
+ * has the name, which keeps its link and its description (r5 D1), and the
+ * notice's Undo puts its old build back.
  *
  * Under the two fields, above the loadout's rules cards, it says what the
  * pattern uses and costs (`PatternTotals`): its chassis, slots filled of the
@@ -43,11 +45,14 @@ import {
 } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
-import { patternNameTaken } from './buildConfirm.model'
+import { patternNameTaken, patternToReplace, replacePattern } from './buildConfirm.model'
 import { PatternTotals } from './PatternTotals'
 
 /** What a pattern is cut from: a mech's name, chassis and loadout. */
-export type PatternSource = Pick<Mech, 'name' | 'chassisRef' | 'systems' | 'modules'>
+export type PatternSource = Pick<Mech, 'name' | 'chassisRef' | 'systems' | 'modules'> & {
+  /** The saved pattern the mech was built from: the one a Replace under its name means. */
+  sourcePattern?: string | undefined
+}
 
 type SavePatternDialogProps = {
   source: PatternSource
@@ -123,8 +128,13 @@ function SavePatternBody({
         .create(patternFromMech(source, { name: patternName, notes: description })),
     { failure: mechCopy('patternNotSaved') }
   )
+  const held = usePatterns((s) => s.mechPatterns)
+  const replace = useServerAction((id: string) => replacePattern(id, source), {
+    failure: mechCopy('patternNotReplaced'),
+  })
   const chassis = patternChassis(source)
-  const error = invalid ?? save.error
+  const error = invalid ?? save.error ?? replace.error
+  const pending = save.pending || replace.pending
 
   async function confirm() {
     if (!name.trim()) {
@@ -141,8 +151,12 @@ function SavePatternBody({
     if (!result.ok) return
     onClose()
     const { id } = result.value
+    const saved = result.value.name
+    // The line names the pattern as it is called now (r5 C3).
+    const nameNow = () =>
+      usePatterns.getState().mechPatterns.find((held) => held.id === id)?.name ?? saved
     madeToast(
-      mechCopy('savedPattern', { name: result.value.name }),
+      () => mechCopy('savedPattern', { name: nameNow() }),
       mechCopy('openThePattern'),
       {
         href: savedPatternHref(id),
@@ -153,6 +167,15 @@ function SavePatternBody({
     onSaved?.(id)
   }
   const asking = asked !== null && asked === name.trim()
+  // The pattern a Replace would write over: the mech's own of that name, else the only one.
+  const replaceable = asking ? patternToReplace(asked, held, source.sourcePattern) : undefined
+
+  async function confirmReplace(id: string) {
+    const result = await replace.run(id)
+    if (!result.ok) return
+    onClose()
+    onSaved?.(id)
+  }
 
   const nameField = (
     <Input
@@ -187,18 +210,31 @@ function SavePatternBody({
       {error && <FieldError>{error}</FieldError>}
       {asking && (
         <Text variant="body" role="status">
-          {mechCopy('saveAsASecondPattern', { name: asked })}
+          {replaceable
+            ? mechCopy('replaceOrSaveASecond', { name: asked })
+            : mechCopy('saveAsASecondPattern', { name: asked })}
         </Text>
       )}
       <DialogActions>
-        <Button variant="ghost" size="compact" onClick={onClose} disabled={save.pending}>
+        <Button variant="ghost" size="compact" onClick={onClose} disabled={pending}>
           {mechCopy('cancel')}
         </Button>
+        {replaceable && (
+          <Button
+            size="compact"
+            onClick={() => void confirmReplace(replaceable.id)}
+            disabled={pending}
+          >
+            {replace.pending
+              ? mechCopy('replacing')
+              : mechCopy('replaceNamed', { name: replaceable.name })}
+          </Button>
+        )}
         <Button
           variant="primary"
           size="compact"
           onClick={() => void confirm()}
-          disabled={save.pending || !name.trim()}
+          disabled={pending || !name.trim()}
         >
           {save.pending
             ? mechCopy('saving')

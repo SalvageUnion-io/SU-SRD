@@ -94,6 +94,29 @@ describe('SearchListbox', () => {
     expect(mule?.closest('tr')?.textContent).toContain('Chassis')
   })
 
+  test('two Compacts of one name say their kind; a name of its own does not (r5 E3)', () => {
+    const heat = (id: string, group: string, stamp: string) => ({
+      result: { ...MULE, id, title: 'Heat', group } as SearchComboboxResult,
+      model: { ...model, title: 'Heat', kind: { ...model.kind, stamp } },
+    })
+    const rows = [heat('g', 'Guides', 'Guide'), heat('k', 'Keywords', 'Keyword')]
+    list({
+      results: [...rows.map((r) => r.result), MULE],
+      modelOf: (r) => rows.find((row) => row.result.id === r.id)?.model ?? model,
+    })
+    // What the eye reads: the screen reader's own kind label left out.
+    const seen = (option: HTMLElement | undefined) => {
+      const row = option?.closest('.su-entity-compact')?.cloneNode(true)
+      if (!(row instanceof HTMLElement)) return ''
+      for (const sr of row.querySelectorAll('.su-sr-only')) sr.remove()
+      return row.textContent ?? ''
+    }
+    const [guide, keyword, mule] = screen.getAllByRole('option')
+    expect(seen(guide)).toContain('Guide')
+    expect(seen(keyword)).toContain('Keyword')
+    expect(seen(mule)).toBe('Mule')
+  })
+
   test('"Show more" is an option that acts, never a link (r4 F1)', () => {
     const more: SearchComboboxResult = {
       kind: 'more',

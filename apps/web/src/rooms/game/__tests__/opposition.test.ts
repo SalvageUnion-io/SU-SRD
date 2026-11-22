@@ -136,6 +136,27 @@ describe('waves and groups', () => {
     )
   })
 
+  test('a wreck keeps its Mech Salvage roll until it is salvaged (r5 B1)', () => {
+    const { room } = table()
+    const id = room.opposition.addNpc(MEDIATOR, { name: 'Scrapper', currentHp: 2, maxHp: 4 }, AT)
+    const rolled = { roll: 6, rolledAt: new Date(AT).toISOString() }
+    expect(() => room.opposition.updateNpc(MEDIATOR, id, { salvageRoll: rolled }, AT)).toThrow(
+      'downed wreck'
+    )
+    room.opposition.updateNpc(MEDIATOR, id, { currentHp: 0, salvageRoll: rolled }, AT)
+    expect(room.opposition.tray(MEDIATOR)[0]?.salvageRoll).toEqual(rolled)
+    // Rolled again, the new roll replaces the old.
+    room.opposition.updateNpc(MEDIATOR, id, { salvageRoll: { ...rolled, roll: 12 } }, AT)
+    expect(room.opposition.tray(MEDIATOR)[0]?.salvageRoll).toEqual({ ...rolled, roll: 12 })
+    expect(() =>
+      room.opposition.updateNpc(MEDIATOR, id, { salvageRoll: { roll: 21, rolledAt: 'x' } }, AT)
+    ).toThrow()
+    room.opposition.updateNpc(MEDIATOR, id, { salvaged: true }, AT)
+    expect(() => room.opposition.updateNpc(MEDIATOR, id, { salvageRoll: rolled }, AT)).toThrow(
+      'already salvaged'
+    )
+  })
+
   test('only the Mediator is served the running encounter, which marks them as mediating', () => {
     const { room } = table()
     expect(room.opposition.mediatorRecords(PLAYER)).toEqual([])

@@ -71,6 +71,8 @@ export type PilotSheetActions = {
   toggleAbility: (slug: string) => void
   /** Add an ability and pay its Training Points in the one write. */
   trainAbility: (slug: string) => void
+  /** Take back an ability bought in this visit, its Training Points with it (r5 C1). */
+  untrainAbility: (slug: string, refund: number) => void
   toggleEquipment: (slug: string) => void
   handleEquipmentConditionChange: (slug: string, next: ItemCondition) => Promise<void>
   handleUsesChange: (slug: string, next: number) => void
@@ -195,7 +197,7 @@ export function usePilotSheetActions({
   // the async store write.
   // Advisory only (soft warnings), never rule-GATED: the cap, tree order and
   // the Advanced/Legendary prerequisites are said as the edit saves, with Undo.
-  function toggleAbility(slug: string, pay = false) {
+  function toggleAbility(slug: string, pay = false, refund = 0) {
     const current = freshPilot()
     const removing = current.abilities.includes(slug)
     const price = removing ? 0 : (abilityTrainingCost(slug) ?? 0)
@@ -219,6 +221,10 @@ export function usePilotSheetActions({
         partners: syncPartners(current.partners, pilotPartnerSeeds(current.equipment, abilities)),
         // Training it pays its Training Points with the add (Core Book p.224).
         ...(cost > 0 ? { trainingPoints: Math.max(0, (current.trainingPoints ?? 0) - cost) } : {}),
+        // Taken back in the visit that bought it: its points come back (r5 C1).
+        ...(removing && refund > 0
+          ? { trainingPoints: (current.trainingPoints ?? 0) + refund }
+          : {}),
       },
       unpaid
         ? [
@@ -243,6 +249,8 @@ export function usePilotSheetActions({
                 current.partners,
                 pilotPartnerSeeds(current.equipment, abilities)
               ),
+              // A refund taken back is spent again.
+              ...(refund > 0 ? { trainingPoints: (current.trainingPoints ?? 0) + refund } : {}),
             })
           ),
         pilot.id,
@@ -366,6 +374,7 @@ export function usePilotSheetActions({
     handleConditionsChange,
     toggleAbility: (slug) => toggleAbility(slug),
     trainAbility: (slug) => toggleAbility(slug, true),
+    untrainAbility: (slug, refund) => toggleAbility(slug, false, refund),
     toggleEquipment,
     handleEquipmentConditionChange,
     handleUsesChange,

@@ -69,6 +69,15 @@ export const WIZARD_TXN: ChangeMeta = { kind: 'transaction', source: 'wizard' }
 export const LIVE_SHEET_MANUAL: ChangeMeta = { kind: 'manual', source: 'live-sheet' }
 
 /**
+ * A Live Sheet edit made for something the sheet names, so the Change Log
+ * says what spent the points ("For Zoom Optics", r5 C9): `live-sheet:<name>`,
+ * as `playTxn` names Play's.
+ */
+export function liveSheetFor(did: string): ChangeMeta {
+  return { kind: 'manual', source: `${LIVE_SHEET_MANUAL.source}:${did}` }
+}
+
+/**
  * A sheet's Undo taking one change back (r4 E2, E3), from the Change Log's
  * button, Ctrl+Z or "Undo last change": a hand edit whose `source` names the
  * change it reverses (`live-sheet-undo:<change id>`), so the log can say that

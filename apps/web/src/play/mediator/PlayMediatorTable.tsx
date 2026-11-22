@@ -55,7 +55,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
             <PlayMediatorSeat
               key={seat.pilotId}
               seat={seat}
-              picked={picked === seat.rowId}
+              picked={picked === seat.rowId || picked === seat.aimId}
               onPick={() => onPick(seat)}
               onOpenSheet={() => setCrewSheet(seat)}
               upNow={mediator.scene.upNow === seat.pilotId}

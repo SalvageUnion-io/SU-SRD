@@ -158,6 +158,7 @@ function playFor({
       end: () => {},
       doneSteps: gameId === null ? [] : null,
       markStepDone: gameId === null ? async () => true : null,
+      healAgain: null,
       claim: async () => true,
     },
     canWrite: true,
@@ -280,6 +281,8 @@ describe('the Units column (play.md §4)', () => {
     ).toBe('12')
     expect(within(mechBox).getByRole('note', { name: 'EP restores to 4' })).toBeTruthy()
     expect(within(mechBox).getByRole('note', { name: 'Heat restores to 0' })).toBeTruthy()
+    // In the Mech Bay the mech's sheet is on hand, as the crawler's is (r5 A14).
+    expect(within(mechBox).getByRole('button', { name: 'Open Buzzard’s sheet' })).toBeTruthy()
 
     const crawlerBox = box('Crawler: Tenacity')
     expect(isReference(crawlerBox)).toBe(false)

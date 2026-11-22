@@ -12,6 +12,7 @@ export const buildDashCopy = messages({
   uses: 'Uses',
   cost: 'Cost',
   activationCost: 'Activation cost',
+  spendEpFor: 'Spend {ep} EP for {name}',
   action: 'Action',
   rng: 'RNG',
   range: 'Range',

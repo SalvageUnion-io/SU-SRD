@@ -41,6 +41,7 @@ import { Island } from '../../../runtime/Island'
 import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
 import { EntityView } from '../../EntityView'
+import { guideNeighbours } from '../../guideNeighbours'
 import { PageRelations } from '../../PageRelations'
 import { ColumnsTablePage, RollTablePage } from '../../RollTablePage'
 import { SparseRail } from '../../SparseRail'
@@ -103,12 +104,16 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         : null,
     relationsFor(schemaId, item)
   )
-  // An ability's Preceding and Next in its tree, at the Page's foot.
-  const neighbours = abilityTreeNeighbours(item as RefMetaEntity).map(({ label, abilities }) => ({
-    label,
-    entities: abilities,
-    end: label === 'Next',
-  }))
+  // An ability's Preceding and Next in its tree, at the Page's foot; a
+  // guide's Previous and Next in the book's order (r5 E6).
+  const neighbours = [
+    ...abilityTreeNeighbours(item as RefMetaEntity).map(({ label, abilities }) => ({
+      label,
+      entities: abilities,
+      end: label === 'Next',
+    })),
+    ...guideNeighbours(schemaId, item),
+  ]
   const canonicalUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
 
   const displayData = item ? getReferenceEntityData(item) : null
@@ -182,7 +187,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         mediator={mediatorLinksFor(schemaId, item)}
         rail={sparse ? <SparseRail rail={sparse} tone={chapter.tone} /> : undefined}
         foot={
-          // An ability's neighbours in its tree, under the body.
+          // An ability's neighbours in its tree, or a guide's in the book, under the body.
           <NeighbourRow as="h2" neighbours={neighbours} />
         }
       >

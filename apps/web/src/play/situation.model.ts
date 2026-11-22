@@ -114,6 +114,12 @@ export type PlayDowntime = {
       ) => Promise<boolean>)
     | null
   /**
+   * Solo, Restore's healing for a pilot who took the step before there was a
+   * Med Bay (r5 A12): its own op, once (`downtimeHealOpId`). True when this
+   * call applied it. Null in a Game and on the Mediator's own screen.
+   */
+  healAgain: ((stepIndex: number, pilotPatch: Record<string, unknown>) => Promise<boolean>) | null
+  /**
    * Pay the crawler's Upkeep or process its Nanites: its patch, sent as this
    * Downtime's one op for it (`downtime.claim`, in its own step). True when
    * this call applied it; false when it already had been, or was refused

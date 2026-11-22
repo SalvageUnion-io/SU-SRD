@@ -21,6 +21,8 @@ export type NewUnitSearch<K extends string = never> = {
   pilot?: string | undefined
   /** `/pilots/new`: the mech the new pilot is assigned to (that mech's "No Pilot" + Create). `/crawlers/new`: the mech whose "+ Create" it was. */
   mech?: string | undefined
+  /** 'play': made from a pilot's Play (`/mechs/new`, r5 B17) or solo Downtime (`/crawlers/new`, r5 A13); finishing returns there. */
+  back?: 'play' | undefined
 } & { [P in K]?: string }
 
 /**

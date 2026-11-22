@@ -120,6 +120,9 @@ export function makeEntityStoreMock(overrides: EntityStoreMockOverrides = {}): U
         throw new Error('entityStore mock: updateCrawlerBay not stubbed')
       }),
     delete: overrides.delete ?? (async () => {}),
+    restore: async () => {
+      throw new Error('entityStore mock: restore not stubbed')
+    },
     transfer:
       overrides.transfer ??
       (async () => {

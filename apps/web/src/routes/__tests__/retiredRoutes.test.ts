@@ -10,10 +10,8 @@
  * (`/games/…`) and each pilot's Cockpit the Play mode of its page (ADR-066). Each lands in one hop on a live route of
  * the real generated tree.
  *
- * The site's search page, `/search`, is retired: the bar's dropdown is the
- * search (EDL "Which form, where"). Not an app route, so the Worker answers
- * its address (`retiredSitePage`, `lib/redirects.ts`): one 301 to the home
- * page, its query kept, where the hero's search opens on it.
+ * The site's search page, `/search/`, is a page again (r5 E3): every result
+ * for a query. The Worker no longer sends its address to the Reference page.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -89,19 +87,12 @@ describe('the retired app addresses', () => {
   })
 })
 
-describe('the retired search page', () => {
-  for (const [from, to] of [
-    ['/search/?q=mule', '/reference/?q=mule'],
-    ['/search?q=mule%20pattern', '/reference/?q=mule%20pattern'],
-    ['/search/', '/reference/'],
-    ['/search', '/reference/'],
-  ] as const) {
-    test(`${from} lands on the Reference page's search: ${to}`, async () => {
-      const { status, location, asked } = await redirectOf(from)
-      expect(status).toBe(301)
-      expect(location).toBe(to)
-      // Decided without the asset binding: the page is gone, not missing.
-      expect(asked).toEqual([])
+describe('the search page', () => {
+  for (const path of ['/search/?q=mule', '/search?q=mule%20pattern', '/search/']) {
+    test(`${path} is the results page, not retired (r5 E3)`, async () => {
+      const { status, location } = await redirectOf(path)
+      expect(status).not.toBe(301)
+      expect(location ?? '').not.toContain('/reference/')
     })
   }
 })

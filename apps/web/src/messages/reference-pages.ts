@@ -13,6 +13,9 @@ export const pagesCopy = messages({
   salvageValue: 'Salvage Value, in Scrap',
   total: 'Total',
   totalAsPrinted: 'Total, as printed in the book',
+  scrapByTechLevel: 'Scrap by Tech Level',
+  previousGuide: 'Previous',
+  nextGuide: 'Next',
   thePageYouAreLooking: 'The page you are looking for could not be found.',
   patternOf: 'Pattern of',
   aboutSalvageunionIoAnOpen:
@@ -187,6 +190,9 @@ export const pagesCopy = messages({
   atTheTable: 'At the table',
   chapterDescription: 'The Salvage Union {chapter}, every entry by listing: {listings}.',
   ogCardRender: 'OG card render',
+  searchResults: 'Search results',
+  searchResultsDescription:
+    'Every entry in the Salvage Union Reference that matches a search, grouped by kind.',
   homebrew: 'Homebrew',
   homebrewPatternsRow: 'Mech Patterns',
   homebrewDescription:

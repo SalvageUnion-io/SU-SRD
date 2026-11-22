@@ -16,6 +16,7 @@ import { denizenTemplate, isDenizenKind } from '../../lib/npcs/npcModel'
 import { srdPatternHref } from '../../lib/patternHref'
 import { savedPatternHref } from '../../lib/patterns/patterns'
 import { readReference } from '../../lib/readReference'
+import { droppedNames } from '../../lib/rules/chassisSwap'
 import { buildSheetCopy } from '../../messages/build-sheet'
 
 export type BandStamp = {
@@ -82,7 +83,48 @@ export function npcStamp(templateRef: NpcTemplateRef | undefined): BandStamp | u
  * (`page`), which the app's router must never take. `changed` once the mech's
  * loadout is no longer the pattern's: the band then reads "Based on".
  */
-export type PatternStamp = { name: string; href?: string; page?: string; changed?: true }
+export type PatternStamp = {
+  name: string
+  href?: string
+  page?: string
+  changed?: true
+  /** Once `changed`: the pattern's loadout, what Bring up to date writes (r5 D2). */
+  loadout?: Loadout
+  /** Once `changed`: what differs, in words (`pattern adds Chainsaw Arm`). */
+  differs?: string
+}
+
+type Loadout = { systems: string[]; modules: string[] }
+
+/** What `want` holds more of than `have`, slug by slug, copies counted. */
+function more(want: readonly string[], have: readonly string[]): string[] {
+  const left = [...have]
+  return want.filter((slug) => {
+    const at = left.indexOf(slug)
+    if (at === -1) return true
+    left.splice(at, 1)
+    return false
+  })
+}
+
+/**
+ * What a pattern's loadout has that the mech's does not, and the other way
+ * (r5 D2), by name: `pattern adds Chainsaw Arm · pattern has no Red Laser`.
+ */
+function loadoutDiffers(mech: Loadout, pattern: Loadout): string {
+  const adds = droppedNames([
+    ...more(pattern.systems, mech.systems),
+    ...more(pattern.modules, mech.modules),
+  ])
+  const lacks = droppedNames([
+    ...more(mech.systems, pattern.systems),
+    ...more(mech.modules, pattern.modules),
+  ])
+  return [
+    ...(adds.length ? [buildSheetCopy('patternAdds', { names: adds.join(', ') })] : []),
+    ...(lacks.length ? [buildSheetCopy('patternHasNo', { names: lacks.join(', ') })] : []),
+  ].join(' · ')
+}
 
 /** A saved pattern as this browser holds it: its name, or with its build to compare the mech against. */
 type SavedPattern =
@@ -124,10 +166,20 @@ export function mechPatternStamp(
    */
   gone = false
 ): PatternStamp | undefined {
-  const differs = (systems: readonly string[], modules: readonly string[]) =>
+  // Changed: what differs, and the pattern's loadout to bring it up to date to (r5 D2).
+  const differs = (systems: string[], modules: string[]) =>
     mech.systems !== undefined &&
     mech.modules !== undefined &&
     !(sameLoadout(mech.systems, systems) && sameLoadout(mech.modules, modules))
+      ? {
+          changed: true as const,
+          loadout: { systems, modules },
+          differs: loadoutDiffers(
+            { systems: [...mech.systems], modules: [...mech.modules] },
+            { systems, modules }
+          ),
+        }
+      : {}
   if (mech.sourcePattern) {
     const held = saved(mech.sourcePattern)
     const href = savedPatternHref(mech.sourcePattern)
@@ -138,11 +190,7 @@ export function mechPatternStamp(
     }
     if (typeof held === 'string') return { name: held, href }
     if (held.chassisRef !== mech.chassisRef) return undefined
-    return {
-      name: held.name,
-      href,
-      ...(differs(held.systems, held.modules) ? { changed: true as const } : {}),
-    }
+    return { name: held.name, href, ...differs(held.systems, held.modules) }
   }
   const ref = mech.startingPatternRef
   if (!ref) return undefined
@@ -157,6 +205,6 @@ export function mechPatternStamp(
   return {
     name: pattern.name,
     page: srdPatternHref(chassis, pattern),
-    ...(differs(slugs(pattern.systems), slugs(pattern.modules)) ? { changed: true as const } : {}),
+    ...differs(slugs(pattern.systems), slugs(pattern.modules)),
   }
 }

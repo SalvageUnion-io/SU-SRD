@@ -1,6 +1,6 @@
 /** What the Patterns shelf reads off a pattern: its line's values (r4 E13). */
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { formatDate } from '../../lib/formatDate'
+import { formatDateTime } from '../../lib/formatDate'
 import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import { chassisFact, patternChips } from '../../lib/shelves/shelfItems'
 import { buildShelvesCopy } from '../../messages/build-shelves'
@@ -11,7 +11,13 @@ export function patternLine(
   pattern: MechPattern,
   sharing: readonly PatternSharing[] | undefined,
   games: readonly ShelfGame[] | undefined
-): { values: Record<string, string | number>; saved: string; over: string | undefined } {
+): {
+  values: Record<string, string | number>
+  saved: string
+  over: string | undefined
+  /** The first line of its description, under its name (r5 D3). */
+  about: string | undefined
+} {
   const figures = mechBuildFigures(pattern)
   const at = Date.parse(pattern.createdAt)
   return {
@@ -26,10 +32,13 @@ export function patternLine(
       [buildShelvesCopy('tl')]: figures.techLevel ?? '',
       [buildShelvesCopy('sys')]: figures.systems,
       [buildShelvesCopy('mod')]: figures.modules,
+      [buildShelvesCopy('cost')]: figures.scrap,
       // Sorted by the moment, read as the day.
       saved: Number.isNaN(at) ? '' : at,
     },
-    saved: Number.isNaN(at) ? '' : formatDate(at),
+    // The time too: two saved the same day differ by it (r5 D3).
+    saved: Number.isNaN(at) ? '' : formatDateTime(at),
     over: figures.over ? (figures.overWhat ?? '') : undefined,
+    about: pattern.notes?.trim().split('\n')[0]?.trim() || undefined,
   }
 }

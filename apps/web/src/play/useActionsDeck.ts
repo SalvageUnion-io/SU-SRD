@@ -394,6 +394,7 @@ export function useActionsDeck({
       onBack: close,
       cost,
       free: cost.amount <= 0 && cost.heat <= 0 && cost.uses <= 0,
+      rollLeads: !salvaging && selected.action.damage !== undefined,
       rollSpends:
         activated || spends.length === 0
           ? null

@@ -3,7 +3,8 @@
  * that pilot's row too, and names them under its name here, r4 E20), each
  * line saying what tells two builds on one chassis apart (Tech Level, slots filled, Scrap), and any column sorting it.
  * A build over its chassis's slots wears the rule-breaking mark under its name,
- * and the sort is remembered across a reload.
+ * and the sort is remembered across a reload. Its Pattern column names what it
+ * was built from, and its find box keeps the lines that match (r5 D4).
  */
 import type { Mech } from 'game-domain/schemas/mech'
 import type { ReactNode } from 'react'
@@ -14,6 +15,8 @@ import { chassisFact } from '../../lib/shelves/shelfItems'
 import { VITAL } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { buildShelvesCopy } from '../../messages/build-shelves'
+import { usePatterns } from '../../replica/collections'
+import { mechPatternStamp } from '../sheet/bandStamps.model'
 import {
   mechBuildFigures,
   nextSort,
@@ -21,6 +24,7 @@ import {
   sortShelfRows,
   storedSort,
 } from './mechShelf.model'
+import { findMatches, useShelfFind } from './ShelfFind'
 import { ShelfLedger } from './ShelfLedger'
 import { inGame, MECH_COLUMNS, read } from './shelfColumns'
 
@@ -48,6 +52,8 @@ export function MechShelf({
 }) {
   // The sort is kept for the next visit (this browser's storage, a convenience).
   const [sort, setSort] = useState<LedgerSort | undefined>(storedSort)
+  const patterns = usePatterns((s) => s.mechPatterns)
+  const find = useShelfFind(buildShelvesCopy('findAMech'), mechs.length)
   const rows = mechs.map((mech) => {
     const r = readings.get(mech.id)
     const figures = mechBuildFigures(mech)
@@ -55,6 +61,7 @@ export function MechShelf({
     // One a column of `MECH_COLUMNS`, by its key.
     const values: Record<string, string | number> = {
       chassis: chassisFact(mech.chassisRef) ?? '',
+      pattern: mechPatternStamp(mech, (id) => patterns.find((p) => p.id === id)?.name)?.name ?? '',
       game: own.game[0]?.value ?? '',
       [buildShelvesCopy('tl')]: figures.techLevel ?? '',
       [buildShelvesCopy('sys')]: figures.systems,
@@ -66,6 +73,9 @@ export function MechShelf({
     }
     return { mech, name: mech.name, own, values, over: figures.over, what: figures.overWhat }
   })
+  const found = rows.filter((row) =>
+    findMatches(find.query, [row.name, row.values.chassis, row.values.pattern])
+  )
   return (
     <ShelfLedger
       id="shelf-mechs"
@@ -73,14 +83,17 @@ export function MechShelf({
       tone="mech"
       columns={MECH_COLUMNS}
       action={action}
-      empty={empty}
+      empty={
+        find.query.trim() ? buildShelvesCopy('noneFound', { query: find.query.trim() }) : empty
+      }
+      find={find.field}
       sort={sort}
       onSort={(key) => {
         const next = nextSort(sort, key)
         rememberSort(next)
         setSort(next)
       }}
-      rows={sortShelfRows(rows, sort, (row, key) => row.values[key]).map(
+      rows={sortShelfRows(found, sort, (row, key) => row.values[key]).map(
         ({ mech, own, values, over, what }) => ({
           id: mech.id,
           name: mech.name,

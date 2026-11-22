@@ -326,3 +326,26 @@ describe('a hangar mech', () => {
     expect(container.textContent).not.toContain('In hangar')
   })
 })
+
+describe('a unit at 0 is Down (r5 A1)', () => {
+  test('a pilot at 0 HP and a mech at 0 SP are marked Down; above 0 they are not', () => {
+    const { store } = recordingStore()
+    const { unmount } = render(
+      <>
+        <PlayPilotUnit pilot={{ ...pilot, currentHP: 0 }} crawler={null} live store={store} />
+        <PlayMechUnit mech={{ ...mech, currentSP: 0 }} place="boarded" live store={store} />
+      </>
+    )
+    expect(screen.getAllByText('Down')).toHaveLength(2)
+    // The stamp says Down, not Boarded, while it is.
+    expect(screen.queryByText('Boarded')).toBeNull()
+    unmount()
+    render(
+      <>
+        <PlayPilotUnit pilot={pilot} crawler={null} live store={store} />
+        <PlayMechUnit mech={mech} place="boarded" live store={store} />
+      </>
+    )
+    expect(screen.queryByText('Down')).toBeNull()
+  })
+})

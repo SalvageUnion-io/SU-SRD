@@ -55,4 +55,24 @@ describe('what a player is told when an assignment leaves them', () => {
     handedBack('p1')
     expect(assignmentNotices([held(null)], [held('u-me')], 'u-me')).toEqual([])
   })
+
+  test('a mech that follows a pilot they took or handed back themselves is not news either (r5 B14)', () => {
+    const unit = (kind: 'pilot' | 'mech', id: string, name: string, owner: string | null) => ({
+      kind,
+      id,
+      name,
+      owner,
+    })
+    const free = [unit('pilot', 'razor', 'Razor', null), unit('mech', 'thresher', 'Thresher', null)]
+    const mine = [
+      unit('pilot', 'razor', 'Razor', 'u-me'),
+      unit('mech', 'thresher', 'Thresher', 'u-me'),
+    ]
+    handedBack('razor')
+    expect(assignmentNotices(free, mine, 'u-me')).toEqual([])
+    handedBack('razor')
+    expect(assignmentNotices(mine, free, 'u-me')).toEqual([])
+    // Assigned by whoever runs the table, both are told.
+    expect(assignmentNotices(free, mine, 'u-me')).toHaveLength(2)
+  })
 })

@@ -29,6 +29,7 @@
 import { containerOf } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { sheetPath } from 'game-domain/entityKinds'
+import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -93,6 +94,10 @@ export type AssignedSlot = {
   extra?: ReactNode
   /** The placeholder's name for a writer (a place of many's "Dock a Mech"); `No <kind>` by default. */
   placeholder?: string
+  /** + Create's words where they are not "+ Create" (a lost Mech's "Build a new Mech"). */
+  createLabel?: string
+  /** Drawn for a writer only: a reader sees the unit itself, not a place to fill. */
+  writerOnly?: true
 }
 
 const NEW_PATH = {
@@ -325,6 +330,20 @@ export function assignedUnitsFor(args: {
                 picker(kind, { filled: true, exclude: [entity.id], control }),
             }),
         onUnassign: unassignable ? () => args.unassign(link.id) : undefined,
+      })
+    }
+    // A pilot whose Mech is Destroyed is offered its replacement where the Mech
+    // stands: built for the pilot, in their Game, and assigned (r5 B17).
+    const lost = subject.kind === 'pilot' && kind === 'mech' ? place.linked[0] : undefined
+    if (lost !== undefined && mechHasCondition(lost as Mech, 'Destroyed')) {
+      slots.push({
+        key: 'mech-lost',
+        kind,
+        assign: picker(kind, { filled: true, exclude: [lost.id], size: 'mini' }),
+        createHref: createHrefFor(kind, subject),
+        placeholder: buildSheetCopy('noWorkingMech'),
+        createLabel: buildSheetCopy('buildANewMech'),
+        writerOnly: true,
       })
     }
     const hidden = withheld.filter((unit) => unit.kind === kind)

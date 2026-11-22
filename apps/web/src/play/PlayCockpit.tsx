@@ -17,8 +17,8 @@
  * From `lg` the Situation switch (`PlaySituationSwitch`) fills the bar's
  * `situation` slot; below it, the Situation and Table mode are rows of the
  * bar's ⋯ (`situationRows`) and the live vitals for the Situation are pinned
- * above every pane (`pinnedUnits`); in Downtime the switch is pinned under
- * them too, with the numbers its steps restore (r4 A10). In table mode (`useTableMode`)
+ * above every pane (`pinnedUnits`), the switch pinned under them in every
+ * Situation (r5 A15; in Downtime with the numbers its steps restore, r4 A10). In table mode (`useTableMode`)
  * the panes give way to `PlayTableMode`, which draws those vitals itself at
  * the Full Size, and the screen stays awake (`useWakeLock`).
  *
@@ -342,8 +342,9 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
                 live={{ pilot: units.live.pilot, mech: units.live.mech }}
                 onWrite={writeVital}
               />
-              {/* In Downtime the way out of it stays on screen, with the numbers (r4 A10). */}
-              {inDowntime && <PlaySituationSwitch play={play} fill />}
+              {/* On foot, Board and Downtime stay on screen in every Situation,
+                  boarded too (r5 A15); in Downtime with the numbers (r4 A10). */}
+              <PlaySituationSwitch play={play} fill />
             </>
           )
         }

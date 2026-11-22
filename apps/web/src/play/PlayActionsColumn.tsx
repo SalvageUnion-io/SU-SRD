@@ -10,6 +10,9 @@
  * Activate, Roll, Push?, Apply, on the seat's `resolving`. Below `lg` the
  * pane's tab is its heading, so the type filter leads it.
  *
+ * Below `lg`, where the Crew is another tab, a line says who the Mediator
+ * gave the turn (r5 A4): "Up now · Razor", or "Up now · You".
+ *
  * Over it, the Scene's conditions when the Mediator has put it under any
  * (`PlayScene`): what scales the Heat a Push and a Hot action make.
  *
@@ -21,7 +24,9 @@
  * Every roll made here goes on Play's one roll log (`playRolls.model.ts`).
  */
 
-import { Slab } from '../components/index'
+import { pilotLabel } from 'game-domain/pilotLabel'
+import { Slab, Text } from '../components/index'
+import { usePilots } from '../lib/entities'
 import { playCopy } from '../messages/play'
 import { PlayActionsList, PlayActionsTools } from './PlayActionsList'
 import { PlayDowntimeColumn } from './PlayDowntimeColumn'
@@ -37,6 +42,7 @@ export function PlayActionsColumn({ play, ...deps }: PlayColumnProps & PlayActio
   if (play.situation === 'downtime') return <PlayDowntimeColumn play={play} actions={actions} />
   return (
     <>
+      {wide ? null : <UpNowLine upNow={play.scene.upNow} selfId={play.pilot?.id ?? null} />}
       <PlayScene scene={play.scene} />
       {wide ? (
         <Slab
@@ -50,6 +56,20 @@ export function PlayActionsColumn({ play, ...deps }: PlayColumnProps & PlayActio
         <PlayActionsTools actions={actions} find={false} />
       )}
       <PlayActionsList play={play} actions={actions} head={wide ? 'h3' : 'h2'} />
+      {actions.dialog}
     </>
+  )
+}
+
+/** Who is up, on the phone's Act tab (r5 A4); nothing while nobody is. */
+function UpNowLine({ upNow, selfId }: { upNow: string | undefined; selfId: string | null }) {
+  const up = usePilots().find((pilot) => pilot.id === upNow)
+  if (upNow === undefined || (up === undefined && upNow !== selfId)) return null
+  return (
+    <Text variant="hint" data-up-now="">
+      {upNow === selfId
+        ? playCopy('upNowYou')
+        : playCopy('upNowName', { name: up === undefined ? '' : pilotLabel(up) })}
+    </Text>
   )
 }

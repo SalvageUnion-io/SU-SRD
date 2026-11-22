@@ -51,6 +51,8 @@ export function CreateDoors({
         onClose={() => onModeChange(undefined)}
         onCreated={onCreated}
         gameId={gameId}
+        // A chassis page's Build With This opens a Blank build of it (r5 D8).
+        chassis={kind === 'mech' ? book?.chassis : undefined}
       />
     </>
   )

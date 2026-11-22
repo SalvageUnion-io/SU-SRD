@@ -706,3 +706,37 @@ describe('Build’s sub-nav', () => {
     for (const id of anchors) expect(document.getElementById(id)).not.toBeNull()
   })
 })
+
+describe('finding a Mech, and its pattern (r5 D4)', () => {
+  test('the Mechs shelf names each build’s pattern, and its find box keeps what matches', async () => {
+    await useUnits.getState().adopt(
+      'mech',
+      mechFixture({
+        id: 'm-dig',
+        name: 'Digger 2',
+        chassisRef: 'titan',
+        gameId: null,
+        sourcePattern: 'pat-1',
+      })
+    )
+    await renderShelves()
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    expect(within(mechs).getByText('Brawler')).toBeTruthy()
+    const find = within(mechs).getByRole('searchbox', { name: 'Find a Mech' })
+    await act(async () => {
+      fireEvent.change(find, { target: { value: 'brawl' } })
+    })
+    expect(within(mechs).getByText('Digger 2')).toBeTruthy()
+    expect(within(mechs).queryByText('Iron Jaw')).toBeNull()
+    await act(async () => {
+      fireEvent.change(find, { target: { value: 'nothing like it' } })
+    })
+    expect(within(mechs).getByText('None matches “nothing like it”.')).toBeTruthy()
+  })
+
+  test('one pattern has no find box: there is nothing to tell apart', async () => {
+    await renderShelves('live', 'patterns')
+    const patterns = screen.getByRole('region', { name: 'Patterns' })
+    expect(within(patterns).queryByRole('searchbox')).toBeNull()
+  })
+})

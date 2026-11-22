@@ -3,7 +3,7 @@
 // columns of its own (the Catalog, a chapter's index) reads them here.
 import type { EntityModel, RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
-import { entityTraitNames } from '../../lib/listingTraits'
+import { entityTraitLabels } from '../../lib/listingTraits'
 import { islandsCopy } from '../../messages/components-islands'
 import type { LedgerColumn, LedgerSort } from '../entity/Ledger'
 
@@ -91,15 +91,16 @@ const LEAD: IndexColumn = {
 }
 
 /**
- * The traits a row carries, by name: what the listing's Trait filter picks
- * from (RR-05). The quiet line of a kind that carries them (ledger L5), in
- * place of its opening words, which its Page and its Catalog tile have.
+ * The traits a row carries, each with its value ("Hot 3", r5 E8): what the
+ * listing's Trait filter picks from, by name (RR-05). The quiet line of a kind
+ * that carries them (ledger L5), in place of its opening words, which its Page
+ * and its Catalog tile have.
  */
 const TRAITS: IndexColumn = {
   key: 'traits',
   label: islandsCopy('traits'),
   kind: 'quiet',
-  value: (_item, model) => entityTraitNames(model).join(', '),
+  value: (_item, model) => entityTraitLabels(model).join(', '),
 }
 
 /** The row's Tech Level, sorted by its stamp on the head strip: the name's rank, not a column (ledger L4). */
@@ -235,13 +236,20 @@ export function indexColumns(
   const cells = (column: IndexColumn) =>
     models.map(({ item, model }) => column.value(item, model)).join('\u0000')
   const seen = new Set<string>()
-  return kept.filter((column) => {
-    if (!stats.has(column.key) || models.length < 2) return true
-    const key = cells(column)
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
+  return kept
+    .filter((column) => {
+      if (!stats.has(column.key) || models.length < 2) return true
+      const key = cells(column)
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .map((column) =>
+      // A cost few rows carry (a system's EP) is the one a narrow frame spares
+      // first, before the quiet line (`data-spare`, `ledger.css`): a column of
+      // dashes never pushes the traits out (r5 E8).
+      column === COST && filled(column) * 4 < models.length ? { ...column, spare: true } : column
+    )
 }
 
 /** The columns a phone can show: every one but the quiet line, which has no room there. */

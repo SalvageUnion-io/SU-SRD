@@ -159,6 +159,8 @@
    * App chrome and interactive-only surfaces have no meaning on paper. The
    * `:not([data-print='keep'])` on buttons is the escape hatch: a control that
    * carries printed STATE (a ticked box, a filled pip button) opts back in.
+   * A link drawn as a button (`Button` with `href`: Related units' "+ Create")
+   * is a control too, so it goes with them (r5 C17).
    * A chip that Peeks its entry (`.su-chip-link`, a button: `CLASS | Engineer`)
    * and a name that does (`.su-inline-ref`: a table's ability or equipment
    * name, a linked word in an entry's text) are read content, so each prints
@@ -167,7 +169,8 @@
   header:not(#\#),
   [role='dialog']:not(#\#),
   [data-sonner-toaster]:not(#\#),
-  button:not([data-print='keep'], .su-chip-link, .su-inline-ref):not(#\#) {
+  button:not([data-print='keep'], .su-chip-link, .su-inline-ref):not(#\#),
+  a.su-btn:not([data-print='keep']):not(#\#) {
     display: none;
   }
 
@@ -235,6 +238,47 @@
   .su-sheet-section:not(:first-child) {
     page-break-before: auto;
     break-before: auto;
+  }
+
+  /* A sheet starts on page one (r5 C17). Its body is one section taller than
+     a page, so "avoid" pushed all of it past a page holding the title alone:
+     the body breaks between its parts, the title stays with the masthead,
+     and a ledger's row, its rules line and the hold's "free" stay with the
+     row above them. */
+  .su-sheet-live-body > section:not(#\#) {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  /* The dash's columns stack as plain blocks: a grid or flex column split
+     across pages drew the side column over the loadout. */
+  .su-sheet-live-body > section:not(#\#),
+  .su-dash:not(#\#),
+  .su-dash__col:not(#\#) {
+    display: block;
+  }
+
+  .su-dash__col:not(#\#) > * + * {
+    margin-top: 12pt;
+  }
+
+  .su-chapter-band:not(#\#) {
+    break-after: avoid;
+  }
+
+  .su-dash-top:not(#\#),
+  .su-open__row:not(#\#) {
+    break-inside: avoid;
+  }
+
+  /* A long rules line (a roll table) may run on to the next page. */
+  .su-open__detail:not(#\#) {
+    break-inside: auto;
+  }
+
+  .su-open__detail:not(#\#),
+  .su-dash-slots:not(#\#) {
+    break-before: avoid;
   }
 
   dl {

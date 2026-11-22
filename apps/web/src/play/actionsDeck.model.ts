@@ -32,6 +32,11 @@ export type ResolveModel =
       cost: { amount: number; heat: number; uses: number; usesLeft?: number }
       /** It costs nothing: there is no Activate step, Roll alone (r4 A2). */
       free: boolean
+      /**
+       * An attack, which always rolls (it deals damage): Roll the die pays its
+       * cost, so it is the one main button and there is no Activate (r5 A16).
+       */
+      rollLeads: boolean
       /** What pressing Roll will spend, while the cost is unpaid; null when nothing. */
       rollSpends: string | null
       /** What this activation spends: the mech's EP or the pilot's AP. */

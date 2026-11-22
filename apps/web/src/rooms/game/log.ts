@@ -49,6 +49,8 @@ type StoredRoll = {
   /** The line a player reads in its place. */
   veiled?: unknown
   revealed?: unknown
+  /** What a Mediator's roll stands for, once (`append`). */
+  slot?: unknown
 }
 
 /**
@@ -85,7 +87,12 @@ export class GameLog {
     private readonly newId: () => string
   ) {}
 
-  /** A member's rows about the table (their rolls); a row about a unit is its op, and not kept. */
+  /**
+   * A member's rows about the table (their rolls); a row about a unit is its
+   * op, and not kept. A Mediator's roll may name a `slot` (a wreck's Mech
+   * Salvage): it replaces the slot's row before it, so a roll made again, or
+   * the line that says what was taken, is one line on every Feed (r5 B1).
+   */
   append(actor: string, entries: readonly LogEntry[]): void {
     if (entries.some((e) => e.field === 'alert')) {
       throw new RoomRefusal('Alerts are written by the Mediator, not by a client append')
@@ -94,6 +101,13 @@ export class GameLog {
       const { mediator } = this.store.requireMember(actor)
       for (const e of entries) {
         if (e.entityType !== 'game') continue
+        const slot = (e.after as StoredRoll | null)?.slot
+        if (mediator && e.field === 'roll' && typeof slot === 'string') {
+          this.store.rows(
+            "delete from change_log where field = 'roll' and json_extract(after, '$.slot') = ?",
+            slot
+          )
+        }
         this.put(e.field, mediator ? (e.after ?? null) : shared(e.after), e.source, actor, e.ts)
       }
     })

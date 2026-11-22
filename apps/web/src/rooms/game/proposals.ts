@@ -1,8 +1,13 @@
 import type { EntityKind } from 'game-domain/entityKinds'
-import { normalizeReason, PROPOSAL_REASON_MAX } from 'game-domain/games/proposals'
+import {
+  CARGO_PROPOSAL_FIELD,
+  normalizeReason,
+  PROPOSAL_REASON_MAX,
+} from 'game-domain/games/proposals'
 import type { OpState } from '../ops'
 import { RoomRefusal } from '../refusal'
 import { unsetVital } from '../vitals'
+import { isUndoSource } from './eventLines'
 import type { GameStore, StoredOp, UnitRow } from './store'
 import type { GameUnits, SubmitResult } from './units'
 import { BatchRefused, PROPOSAL_SOURCE, unitName } from './units'
@@ -28,6 +33,8 @@ export type ProposalRead = {
    * the notice's "HP 7 → 0". Read when served, never stored (ADR-030 §4).
    */
   current?: number | null
+  /** Who sent it, on one awaiting its answer: a Mediator who handed the table on signs theirs still (r5 A11). */
+  byName?: string | null
 }
 
 export type SentProposal = ProposalRead & {
@@ -77,6 +84,12 @@ export class GameProposals {
       if (unit.ownerId === null) {
         throw new RoomRefusal('That entity is unassigned — assign it before proposing changes')
       }
+      if (args.field === CARGO_PROPOSAL_FIELD) {
+        if (unit.kind !== 'mech') throw new RoomRefusal('Only a Mech takes cargo')
+        if (!Array.isArray(args.value) || args.value.length === 0) {
+          throw new RoomRefusal('A cargo proposal names what it adds')
+        }
+      }
       let reason: string | undefined
       try {
         reason = normalizeReason(args.reason)
@@ -117,18 +130,27 @@ export class GameProposals {
       out.push({
         ...read,
         current: typeof held === 'number' ? held : unsetVital(this.store, unit.id, read.field),
+        byName: this.store.member(op.author)?.displayName ?? null,
       })
     }
     return out.sort((a, b) => b.ts - a.ts)
   }
 
-  /** Every Mediator proposal, newest first, for any Mediator: one handed the table inherits them. */
+  /**
+   * Every Mediator proposal, newest first, for any Mediator: one handed the
+   * table inherits them. Never one another Mediator sent to the viewer's own
+   * unit: theirs to answer, it reads under Awaiting your answer (r5 A11).
+   */
   sent(actor: string): SentProposal[] {
     const member = this.store.member(actor)
     if (member === null || !member.mediator) return []
     const rows = this.store.rows(
-      'select id from ops where source = ? order by at desc, id limit ?',
+      `select o.id from ops o left join units u on u.id = o.unit_id
+       where o.source = ? and not (u.owner_id is not null and u.owner_id = ? and o.author != ?)
+       order by o.at desc, o.id limit ?`,
       PROPOSAL_SOURCE,
+      actor,
+      actor,
       MAX_SENT
     )
     const out: SentProposal[] = []
@@ -170,7 +192,7 @@ export class GameProposals {
         this.units.assertMayWrite(actor, unit)
         const seq = this.units.applyTo(
           unit,
-          { ...proposal, baseSeq: unit.headSeq, at },
+          { ...proposal, patch: appliedPatch(proposal, unit), baseSeq: unit.headSeq, at },
           proposal.author,
           proposal.reason
         )
@@ -219,6 +241,18 @@ export class GameProposals {
   }
 }
 
+/**
+ * The patch accepting `proposal` writes: its own, but for a cargo proposal
+ * (r5 B2), whose lots are added ahead of the hold as it is now. The op keeps
+ * the lots it added (`putOp` never rewrites a patch), so every line reads them.
+ */
+function appliedPatch(proposal: StoredOp, unit: UnitRow): Record<string, unknown> {
+  const added = proposal.patch[CARGO_PROPOSAL_FIELD]
+  if (!Array.isArray(added)) return proposal.patch
+  const held = unit.body[CARGO_PROPOSAL_FIELD]
+  return { [CARGO_PROPOSAL_FIELD]: [...added, ...(Array.isArray(held) ? held : [])] }
+}
+
 /** What `field` held before `op` applied: its stored before, or what a vital never written reads. */
 function heldBefore(store: GameStore, op: StoredOp, field: string): number | null {
   const was = op.before?.[field]
@@ -228,11 +262,13 @@ function heldBefore(store: GameStore, op: StoredOp, field: string): number | nul
 /**
  * The applied proposal `op` writes back, when it does (r3 A5): the change to
  * the same field of the same unit just before it was a Mediator's proposal,
- * and `op` puts back what the sheet held before that. It is how the player's
- * Undo lands (`acceptedUndo`), read off the op log, so nothing more is stored.
+ * and `op`, an Undo's write (`isUndoSource`), puts back what the sheet held
+ * before that. It is how the player's Undo lands (`acceptedUndo`), read off
+ * the op log, so nothing more is stored. A repair, a heal or Downtime's
+ * Restore that reaches the old value is an ordinary change (r5 A2).
  */
 export function undoes(store: GameStore, op: StoredOp, field: string): StoredOp | null {
-  if (op.state !== 'applied' || op.seq === null) return null
+  if (op.state !== 'applied' || op.seq === null || !isUndoSource(op.source)) return null
   const earlier = store
     .opsOf(op.unitId)
     .filter(
@@ -265,6 +301,7 @@ function undoneBy(store: GameStore, proposal: StoredOp): StoredOp | null {
 }
 
 function proposalRead(op: StoredOp, unit: UnitRow | null): ProposalRead {
+  // A cargo proposal keeps the lots it added, accepted or not (`appliedPatch`).
   const [field = '', after = null] = Object.entries(op.patch)[0] ?? []
   return {
     _id: op.id,

@@ -11,7 +11,7 @@
 // on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react'
 import type { CSSProperties, ElementType, MouseEvent, ReactNode } from 'react'
-import { Fragment, useId } from 'react'
+import { Fragment, useContext, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
@@ -20,6 +20,7 @@ import { Badge } from '../atoms/Badge'
 import { capsLabel } from '../atoms/capsLabel'
 import { InlineRef } from '../atoms/InlineRef'
 import type { SlabCount } from '../atoms/slabSummary'
+import { StatMeaningContext } from '../atoms/statMeaning'
 import { Box } from '../containers/Box'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 import { EntityCardIdentityFooter } from '../referenceEntity/card/EntityCardIdentityFooter'
@@ -38,6 +39,8 @@ export type LedgerColumn = {
   label: string
   /** The label spelled out, on hover and for a screen reader. */
   title?: string
+  /** The stat's key, where its stamp opens what it means (`StatMeaningContext`, r5 C8). */
+  statKey?: string
   /**
    * `figure` (the default): a numeral, centred in its column; `text`: a word;
    * `quiet`: one line of words, muted, taking the room left; `line`: body
@@ -336,6 +339,7 @@ function LedgerList({
 }: LedgerListProps) {
   const group = useId()
   const surface = useEntitySurface()
+  const meaning = useContext(StatMeaningContext)
   const paint = paintProp ?? paintFor(tone, { texture: surface.texture })
   const hasTrailing =
     action != null ||
@@ -348,7 +352,7 @@ function LedgerList({
   const roomy = columns.some((column) => column.kind === 'quiet' || column.kind === 'line')
   const hasFill = !roomy && !hasTrailing
   const span = columns.length + 1 + (hasTrailing || hasFill ? 1 : 0)
-  const stamp = (key: string, text: string, title?: string) => {
+  const stamp = (key: string, text: string, title?: string, statKey?: string) => {
     const mark = (
       <Badge shape="stamp" size="mini" surface="solid">
         {key === 'cost' && <CostMark />}
@@ -372,7 +376,7 @@ function LedgerList({
         {mark}
       </button>
     ) : (
-      <span title={title}>{mark}</span>
+      <span title={title}>{meaning && statKey ? meaning(statKey, mark) : mark}</span>
     )
   }
   // A phone keeps the columns marked for it; a list with none keeps its first
@@ -437,7 +441,7 @@ function LedgerList({
                 data-line={column.key === phoneLine || undefined}
                 aria-sort={ariaSort(column.key)}
               >
-                {stamp(column.key, column.label, column.title)}
+                {stamp(column.key, column.label, column.title, column.statKey)}
               </th>
             ))}
             {hasTrailing && (

@@ -21,7 +21,7 @@ import type {
   PoolEntity,
   TechLevelLike,
 } from './entitySearcherTypes'
-import { namedBy } from './searcherFacts'
+import { carriedTraits, namedBy } from './searcherFacts'
 
 /** The Tech level row's label: the one row the toolbar may set inline. */
 export const TECH_LEVEL_ROW = compositionsCopy('techLevel')
@@ -40,6 +40,9 @@ function toggleIn<T>(set: Set<T>, value: T, setter: (s: Set<T>) => void) {
   else next.add(value)
   setter(next)
 }
+
+/** A trait is searched for by this much of its name or more ("hot"). */
+const TRAIT_QUERY_MIN = 3
 
 type SearcherPoolOptions = {
   schema: EntitySchemaName
@@ -122,14 +125,17 @@ export function useSearcherPool({
     const items: PoolEntity[] = entities
       ? entities.filter((item) => (filter ? filter(item) : true))
       : SalvageUnionReference.findAllIn(schema, (item) => (filter ? filter(item) : true))
-    return [...items].sort((a, b) => {
-      const ta = a.techLevel
-      const tb = b.techLevel
-      if (ta !== undefined && tb !== undefined && ta !== tb)
-        return techLevelRank(ta) - techLevelRank(tb)
-      return a.name.localeCompare(b.name)
-    })
-  }, [schema, filter, entities])
+    return [...items].sort(
+      facets?.order ??
+        ((a, b) => {
+          const ta = a.techLevel
+          const tb = b.techLevel
+          if (ta !== undefined && tb !== undefined && ta !== tb)
+            return techLevelRank(ta) - techLevelRank(tb)
+          return a.name.localeCompare(b.name)
+        })
+    )
+  }, [schema, filter, entities, facets?.order])
 
   // Available facet options, derived from the pool. A facet with <2 options is
   // useless, so it hides itself (also hides TL/traits on schemas that lack them).
@@ -142,7 +148,7 @@ export function useSearcherPool({
 
   const traitOptions = useMemo(() => {
     const s = new Set<string>()
-    for (const i of pool) for (const t of i.traits ?? []) s.add(t.type)
+    for (const i of pool) for (const t of carriedTraits(i)) s.add(t)
     return [...s].sort((a, b) => a.localeCompare(b))
   }, [pool])
 
@@ -178,6 +184,17 @@ export function useSearcherPool({
     ranked.forEach((e, i) => {
       order.set(e.id, i)
     })
+    // A trait's name finds every part that carries it (r5 E2), after the
+    // parts the words themselves found.
+    const trait = q.toLowerCase()
+    if (trait.length >= TRAIT_QUERY_MIN) {
+      for (const item of pool) {
+        if (order.has(item.id)) continue
+        if (carriedTraits(item).some((name) => name.toLowerCase().startsWith(trait))) {
+          order.set(item.id, order.size)
+        }
+      }
+    }
     return order
   }, [schema, query, pool, entities])
 
@@ -194,7 +211,7 @@ export function useSearcherPool({
       !(showTl && activeTls.size) || (item.techLevel != null && activeTls.has(item.techLevel))
     const passes = (item: PoolEntity) => {
       if (showTraits && activeTraits.size) {
-        const types = new Set((item.traits ?? []).map((t) => t.type))
+        const types = new Set(carriedTraits(item))
         if (![...activeTraits].some((t) => types.has(t))) return false
       }
       if (showCat && activeCats.size && categoryOf) {

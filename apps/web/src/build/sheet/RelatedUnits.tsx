@@ -62,7 +62,7 @@ export function RelatedUnits({
   const [changing, setChanging] = useState<string | null>(null)
   // A place of many (a crawler's bay) that holds some reads by its units alone
   // to a viewer who cannot add one.
-  const open = slots.filter((slot) => writes || !slot.many?.filled)
+  const open = slots.filter((slot) => writes || (!slot.many?.filled && !slot.writerOnly))
   return (
     <SlabSection
       id="linked-units"
@@ -167,7 +167,7 @@ export function RelatedUnits({
                     <>
                       {slot.assign}
                       <Button href={slot.createHref} size="mini">
-                        {buildSheetCopy('create')}
+                        {slot.createLabel ?? buildSheetCopy('create')}
                       </Button>
                     </>
                   ),

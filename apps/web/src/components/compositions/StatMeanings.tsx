@@ -1,8 +1,9 @@
 /**
- * A sheet's stat labels explain themselves (r4 E21): HP, AP, SP, EP and Heat
- * open the glossary entry a Reference tile opens (its keyword, with its page
- * cite), and Training Points and Inventory, which the glossary has no entry
- * for, their meaning in the app's words over the book's page (`statTerms`).
+ * A sheet's stat labels explain themselves (r4 E21): HP, AP, SP, EP, Heat,
+ * SYS, MODS and an item's Cost open the glossary entry a Reference tile opens
+ * (its keyword, with its page cite), and Training Points, Inventory and Cargo,
+ * which the glossary has no entry for, their meaning in the app's words over
+ * the book's page (`statTerms`).
  * Provided to the sheet's atoms through `StatMeaningContext` (`StatMeanings`).
  */
 
@@ -19,6 +20,10 @@ const KEYWORDS: Readonly<Record<string, string>> = {
   sp: 'structure-points',
   ep: 'energy-points',
   heat: 'heat',
+  // A mech's slot budgets, and an item's EP cost (r5 C8).
+  systemSlots: 'system-slots',
+  moduleSlots: 'module-slots',
+  cost: 'energy-points',
 }
 
 /** A stat's key on a sheet, and the term's (`statTerms`) where they differ. */
