@@ -12,7 +12,7 @@
  */
 
 import { afterAll, describe, expect, test } from 'bun:test'
-import { act, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import type { SyncState } from '../../../replica/syncContext'
 
@@ -79,5 +79,44 @@ describe('ShareStatusDialog — signed in but not connected', () => {
     })
     expect(screen.getByText(/need a live connection/i)).toBeTruthy()
     expect(screen.queryByText(/sharing needs an account/i)).toBeNull()
+  })
+})
+
+describe('ShareStatusDialog — a pilot’s share is the pilot’s alone (r4 E18)', () => {
+  test('says its mech and crawler are shared separately, and links each', async () => {
+    const { crawlerFixture, mechFixture, softLinkFixture } = await import(
+      '../../../components/__tests__/fixtures'
+    )
+    cleanup()
+    const { useUnits } = await import('../../../replica/units')
+    useUnits.setState({
+      mechs: [mechFixture({ id: 'm1', name: 'Iron Mongrel' })],
+      crawlers: [crawlerFixture({ id: 'c1', name: 'Tenacity' })],
+      softLinks: [
+        softLinkFixture('mech-to-pilot', 'm1', 'pilot-1'),
+        softLinkFixture('pilot-to-crawler', 'pilot-1', 'c1'),
+      ],
+    })
+    await act(async () => {
+      renderDialog()
+    })
+    const note = screen.getByRole('region', { name: 'Shared separately' })
+    expect(note.textContent).toContain('Their Mech and their crawler are shared separately')
+    expect(
+      screen.getByRole('link', { name: 'Open Iron Mongrel to share it' }).getAttribute('href')
+    ).toBe('/mechs/m1')
+    expect(
+      screen.getByRole('link', { name: 'Open Tenacity to share it' }).getAttribute('href')
+    ).toBe('/crawlers/c1')
+  })
+
+  test('a pilot with neither says nothing of it', async () => {
+    cleanup()
+    const { useUnits } = await import('../../../replica/units')
+    useUnits.setState({ mechs: [], crawlers: [], softLinks: [] })
+    await act(async () => {
+      renderDialog()
+    })
+    expect(screen.queryByRole('region', { name: 'Shared separately' })).toBeNull()
   })
 })
