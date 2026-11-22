@@ -334,10 +334,11 @@ describe('the Play landing', () => {
     ).toBeTruthy()
     const pilots = section('Your Pilots')
     // Every pilot of yours, in a Game or not, each door naming who it plays.
-    const wren = pilots.getByRole('link', { name: 'Open table as Wren' })
+    // A Pilot in no Game plays solo, and the door says so (SB4-08).
+    const wren = pilots.getByRole('link', { name: 'Play solo as Wren' })
     expect(wren.getAttribute('href')).toBe('/pilots/land-wren/play')
-    expect(wren.textContent).toBe('Open table')
-    expect(pilots.getByRole('link', { name: 'Open table as Kestrel' })).toBeTruthy()
+    expect(wren.textContent).toBe('Play solo')
+    expect(pilots.getByRole('link', { name: 'Play solo as Kestrel' })).toBeTruthy()
     // Callsign first, then the name; the door takes the callsign.
     const rook = pilots.getByRole('link', { name: 'CASTLE · Rook' }).closest('tr') as HTMLElement
     expect(

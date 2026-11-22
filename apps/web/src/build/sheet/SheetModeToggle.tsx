@@ -30,6 +30,8 @@ type SheetModeToggleProps = {
 
 export function SheetModeToggle({ mode, kind, play }: SheetModeToggleProps) {
   const live = useSessionLive(play?.gameId)
+  // In no Game there is no table to open: the door says Play solo (r4 C7).
+  const solo = play?.gameId == null
   return (
     <Segmented label={buildSheetCopy('readOrEditThis', { kind })} size="compact">
       {mode !== null && (
@@ -46,9 +48,9 @@ export function SheetModeToggle({ mode, kind, play }: SheetModeToggleProps) {
         <SegmentedOption
           pressed={false}
           onClick={play.onPlay}
-          aria-label={sessionDoorAs(live, play.name)}
+          aria-label={sessionDoorAs(live, play.name, null, solo)}
         >
-          {sessionDoor(live)}
+          {sessionDoor(live, solo)}
         </SegmentedOption>
       )}
     </Segmented>

@@ -283,6 +283,7 @@ export const playCopy = messages({
   hangar: 'Hangar',
   restoresTo: '{label} restores to {restoresTo}',
   tableMode: 'Table mode',
+  tableModeHint: 'One big roll and your vitals',
   leaveTableMode: 'Leave table mode',
   rules: 'Rules',
   rolls: 'Rolls',
@@ -319,6 +320,9 @@ export const playCopy = messages({
   // session is live, else Open table, on a Game's page, its row, a pilot's
   // line and a sheet's band; the "as" forms are the accessible names.
   openTable: 'Open table',
+  // A pilot in no Game (r4 C7): there is no table to open, so the door says play.
+  playSolo: 'Play solo',
+  playSoloAs: 'Play solo as {name}',
   joinSessionAs: 'Join session as {name}',
   openTableAs: 'Open table as {name}',
   joinSessionAsIn: 'Join session as {name} in {game}',

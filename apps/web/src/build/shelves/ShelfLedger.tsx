@@ -66,7 +66,7 @@ export function ShelfLink({ href, children }: { href: string | undefined; childr
   return <InlineRef href={href}>{children}</InlineRef>
 }
 
-/** A pilot's door into Play, under the door's one name (glossary §9, r3 H3): Join session while its Game's is live, else Open table. */
+/** A pilot's door into Play, under the door's one name (glossary §9, r3 H3): Join session while its Game's is live, else Open table; Play solo in no Game. */
 function PlayDoor({
   href,
   name,
@@ -77,9 +77,15 @@ function PlayDoor({
   gameId: string | null | undefined
 }) {
   const live = useSessionLive(gameId)
+  const solo = gameId == null
   return (
-    <Button href={href} variant="primary" size="mini" aria-label={sessionDoorAs(live, name)}>
-      {sessionDoor(live)}
+    <Button
+      href={href}
+      variant="primary"
+      size="mini"
+      aria-label={sessionDoorAs(live, name, null, solo)}
+    >
+      {sessionDoor(live, solo)}
     </Button>
   )
 }
