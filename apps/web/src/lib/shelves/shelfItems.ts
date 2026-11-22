@@ -221,7 +221,7 @@ export function linkChip(sharedByLink: readonly string[] | undefined, id: string
  * Who can see an NPC, always said, so the column never comes and goes (r3
  * A3): anyone with the link once its owner shares it so; nobody but you while
  * it is in your Training Bay; in a Game only its Mediator (the room withholds
- * it from the players, `GameUnits.readerOf`), unless it crews a crawler,
+ * it from the players, `rooms/game/readers.ts`), unless it crews a crawler,
  * whose sheet shows it to the table.
  */
 export function npcChips(args: {

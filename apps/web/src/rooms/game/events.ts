@@ -1,17 +1,22 @@
 import { fieldLabel } from 'game-domain/games/proposals'
 import type { LinkShape } from 'game-domain/links/linkRules'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import {
-  resolveInstalledRef,
-  resolveModuleRef,
-  resolveSystemRef,
-} from 'salvageunion-reference/rules'
 import { seatOf } from '../seats'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
+import type { Stored } from './eventLines'
+import {
+  CONDITION_WORDS,
+  CONDITIONS,
+  effectName,
+  eventOf,
+  mergeLine,
+  signedBy,
+  VITALS,
+  vitalLine,
+} from './eventLines'
 import { isPrivateRoll, isRevealedRoll, rollLineFor } from './log'
 import { undoes } from './proposals'
-import type { GameStore, Member, StoredOp } from './store'
+import type { GameStore, StoredOp } from './store'
 import type { SubmitResult } from './units'
 import { unitName } from './units'
 
@@ -43,7 +48,7 @@ import { unitName } from './units'
  *   channel, which gets its line once (r3 A1).
  */
 
-type TableEventKind =
+export type TableEventKind =
   | 'vitals'
   | 'action'
   | 'roll'
@@ -105,48 +110,6 @@ const KEPT = 600
 
 /** The most events a read returns: the stream's newest page. */
 const SERVED = 200
-
-/** The vitals whose changes the table hears, by their sheet field. */
-const VITALS: Readonly<Record<string, string>> = {
-  currentHP: 'HP',
-  currentAP: 'AP',
-  currentSP: 'SP',
-  currentEP: 'EP',
-  currentHeat: 'Heat',
-}
-
-/** A mech's item conditions, by the sheet field that holds them (`ItemConditionMapSchema`). */
-const CONDITIONS = {
-  systemConditions: resolveSystemRef,
-  moduleConditions: resolveModuleRef,
-} as const
-
-/** A system or module's new condition, in the line's words. */
-const CONDITION_WORDS: Readonly<Record<string, string>> = {
-  intact: 'is repaired',
-  damaged: 'is damaged',
-  destroyed: 'is destroyed',
-}
-
-/** What a stored event row carries beside its line. */
-type Stored = {
-  kind: TableEventKind
-  text: string
-  /** What a repeat is matched on; absent once sealed, or for a line that never merges. */
-  key?: string
-  /** The key whose open line this one ends: a hit on a vital, which no nudge folds across. */
-  ends?: string
-  /** A vital's line, kept apart so a repeat can rewrite it. */
-  vital?: { who: string; label: string; from: number | null; to: number }
-  /** How many times the line repeated. */
-  n?: number
-  /** The line before its count. */
-  base?: string
-  private?: true
-  session?: 'start' | 'end'
-  answer?: 'accepted' | 'undone'
-  about?: string
-}
 
 /** What an act needs remembered from before it ran, to say what changed. */
 export type EventsBefore = {
@@ -597,63 +560,8 @@ export class GameEvents {
   }
 }
 
-/** How a Mediator's screen signs the rolls it logs (`PlayMediatorCockpit`'s `rollerName`). */
-const MEDIATOR_SIGNED = 'Mediator · '
-
-/**
- * A roll's line under the name of whoever rolled it (r3 A2): one signed
- * "Mediator" by somebody who mediates no longer reads as theirs, by name, so
- * the Mediator of today is never taken for its roller. Their own screen is
- * served the line as logged, and says "You" (`feed.model.ts`).
- */
-function signedBy(line: string, roller: Member | null): string {
-  if (!line.startsWith(MEDIATOR_SIGNED) || roller?.mediator === true) return line
-  return `${roller?.displayName ?? 'Previous Mediator'} · ${line.slice(MEDIATOR_SIGNED.length)}`
-}
-
-/** What a switched effect is called: the system, module or ability that declares it. */
-function effectName(ref: string): string {
-  try {
-    const item = resolveInstalledRef(ref) as { name?: string } | null
-    return item?.name ?? SalvageUnionReference.Abilities.getBySlug(ref)?.name ?? ref
-  } catch {
-    return ref
-  }
-}
-
 /** Whose the unit was before an assignment moved it to `to`: nobody, when it stays theirs or was free. */
 function lost(before: EventsBefore, to: string | null): { about?: string } {
   const holder = before.holder ?? null
   return holder === null || holder === to ? {} : { about: holder }
-}
-
-function vitalLine(v: NonNullable<Stored['vital']>): string {
-  return v.from === null
-    ? `${v.who} · ${v.label} → ${v.to}`
-    : `${v.who} · ${v.label} ${v.from} → ${v.to}`
-}
-
-/** A repeat folded into the line it follows: a vital keeps where it started, any other line counts. */
-function mergeLine(open: Stored, next: Stored): Stored {
-  if (open.vital !== undefined && next.vital !== undefined) {
-    const vital = { ...next.vital, from: open.vital.from }
-    return { ...open, vital, text: vitalLine(vital) }
-  }
-  const n = (open.n ?? 1) + 1
-  const base = open.base ?? open.text
-  return { ...open, n, base, text: `${base} ×${n}` }
-}
-
-function eventOf(id: string, ts: number, actorId: string | null, stored: Stored): TableEvent {
-  return {
-    _id: id,
-    ts,
-    kind: stored.kind,
-    text: stored.text,
-    actorId,
-    ...(stored.private === true ? { private: true as const } : {}),
-    ...(stored.session === undefined ? {} : { session: stored.session }),
-    ...(stored.answer === undefined ? {} : { answer: stored.answer }),
-    ...(stored.about === undefined ? {} : { about: stored.about }),
-  }
 }

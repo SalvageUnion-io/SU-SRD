@@ -9,6 +9,7 @@ import {
   gameSnapshot,
   readClientMessage,
 } from '../feed'
+import { readerOf } from '../readers'
 import { AT, bodies, MEDIATOR, op, PLAYER, STRANGER, table } from './harness'
 
 /** A Game with a pilot boarded in a mech and one NPC on the tray. */
@@ -67,7 +68,7 @@ describe('what a Game room tells a socket', () => {
     })
     expect(room.units.history(PLAYER, 'n1')).toEqual([])
     expect(room.units.history(MEDIATOR, 'n1').length).toBeGreaterThan(0)
-    expect(room.units.readerOf(STRANGER)(room.store.requireUnit('p1'))).toBe(false)
+    expect(readerOf(room.store, STRANGER)(room.store.requireUnit('p1'))).toBe(false)
     // One that crews a crawler is on that crawler's sheet, which the table reads.
     room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
     room.store.putLink({

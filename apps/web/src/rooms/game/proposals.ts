@@ -248,7 +248,7 @@ export function undoes(store: GameStore, op: StoredOp, field: string): StoredOp 
 }
 
 /** The op that undid an applied `proposal` (`undoes`), or null while it stands. */
-export function undoneBy(store: GameStore, proposal: StoredOp): StoredOp | null {
+function undoneBy(store: GameStore, proposal: StoredOp): StoredOp | null {
   if (proposal.state !== 'applied' || proposal.seq === null) return null
   const [field] = Object.keys(proposal.patch)
   if (field === undefined) return null

@@ -90,16 +90,19 @@ const OWN: ReadonlySet<TableEvent['kind']> = new Set([
   'join',
 ])
 
-/** What follows the subject of a line the room words "<who> <did>": the reader's own starts "You". */
+/**
+ * What follows the subject of a line the room words "<who> <did>"
+ * (`rooms/game/events.ts`): the reader's own starts "You".
+ */
 const DID = [
-  ' started the group session',
-  ' ended the group session',
-  ' began Downtime',
-  ' ended Downtime',
+  ` ${playCopy('saidStartedSession')}`,
+  ` ${playCopy('saidEndedSession')}`,
+  ` ${playCopy('saidBeganDowntime')}`,
+  ` ${playCopy('saidEndedDowntime')}`,
   ' accepted: ',
   ' declined: ',
   ' undid: ',
-  ' joined the Game',
+  ` ${playCopy('saidJoined')}`,
 ] as const
 
 function asMine(text: string): string {
@@ -195,7 +198,8 @@ export function playFeedEntries({
   // a roll another Mediator signed the same way is never "You" (r3 A2).
   const prefixes = [`${rollerName} · `, `${playCopy('feedMediator')} · `]
   const mineAs = (description: string, actorId?: string | null) => {
-    if (viewerId !== null && actorId !== undefined && actorId !== viewerId) return description
+    // A roll the room names no roller for is matched by its name alone, as before.
+    if (viewerId !== null && typeof actorId === 'string' && actorId !== viewerId) return description
     // Known to be mine, whatever name this screen rolls under: a Mediator's on their pilot's Play.
     const known = viewerId !== null && actorId === viewerId
     const prefix = prefixes.slice(0, known ? 2 : 1).find((p) => description.startsWith(p))

@@ -3,6 +3,7 @@ import { ClientMessageSchema } from '../protocol'
 import { DEFECT_REFUSAL } from '../refusal'
 import { crewVitals } from '../vitals'
 import type { GameRoomLogic } from './gameRoomLogic'
+import { hiddenFrom } from './readers'
 import type { GameStore, StoredOp, UnitRow } from './store'
 import type { SubmitResult } from './units'
 
@@ -10,7 +11,7 @@ import type { SubmitResult } from './units'
  * What a Game room tells a member's socket (`../protocol.ts`): the whole
  * Game on connect and after any act that changes more than one unit's body,
  * else one `applied` per op. Members see every pilot, mech and crawler and
- * their links; an NPC only as `GameUnits.readerOf` allows (r3 A3); only a
+ * their links; an NPC only as `readerOf` allows (r3 A3); only a
  * Mediator sees the Opposition.
  */
 
@@ -18,7 +19,7 @@ export function gameSnapshot(room: GameRoomLogic, actor: string, gameId: string)
   if (room.store.member(actor) === null)
     return { type: 'snapshot', units: [], records: {}, links: [] }
   // An NPC the room withholds from this member goes with its links (r3 A3).
-  const hidden = room.units.hiddenFrom(actor)
+  const hidden = hiddenFrom(room.store, actor)
   return {
     type: 'snapshot',
     units: room.units.list(actor).map((unit) => roomUnit(unit, gameId)),
