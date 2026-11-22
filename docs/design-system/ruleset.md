@@ -22,7 +22,7 @@ Canon for every primitive: a component breaking a rule is wrong; [the origin](ht
    3. **Play — the instrument panel** — its lists are Minis; the only transactional surface: bookkeeping `auto`, destruction `confirm`; each mutation logs a Change Log row, each roll a Game log row.
       Its ground wears the phase's band (`PHASE_TONE`). On a phone: tabs under pinned vitals (ADR-051 §10).
    4. **Use opens the action** — in Play an on-hand action's Mini carries a rust Use after its cost, which resolves it in place (ADR-051 §6). A sheet lists no actions.
-   5. **Compact — one entity, one click** — `<Entity size="compact">`, an entity in a list at level 1 (E6): one-row head, chip group (E17); nothing edits or expands in place. Forms: [EDL](entity-display-language.md).
+   5. **Compact — one entity, one click** — `<Entity size="compact">`, a level-1 list item ([E6](entity-display-language.md)): one-row head, chip group (E17); nothing edits or expands in place but a read-only prep card.
    6. **Peek — the glance** — a Compact contentful (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app; terminal (E16).
    7. **Page — the entity's own route** — the Description first, plain; a chassis's stats as tiles, every other's on the band (E20); then rules, the art in a side column (EDL Forms 5).
       The body starts under the band; level-1 blocks sit 12px apart; nothing is centred in spare height.

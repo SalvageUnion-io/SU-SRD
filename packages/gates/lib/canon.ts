@@ -49,7 +49,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§1.2': ['R11', 'chrome-tokens/dashed'],
   '§1.3': ['R35', 'R10', 'PlayFrame.test.tsx'],
   '§1.4': ['C8', 'PlayActionsColumn.test.tsx', '_hierarchy.ts#use-rust'],
-  '§1.5': ['C8'],
+  '§1.5': ['C8', 'EncounterPage.test.tsx'],
   '§1.6': ['E16'],
   '§1.7': ['R17', 'R43', 'pageDescription.test.tsx'],
   '§1.8': [

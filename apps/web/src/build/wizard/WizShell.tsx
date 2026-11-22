@@ -97,8 +97,8 @@ type WizShellProps = {
   onNext: () => void
   /**
    * A saved unit's redesign (`useWizardFlow`'s `existing`): every step's
-   * action is the save, and Next steps on beside Back (from sm; a phone
-   * steps by the rail's notches).
+   * action is the save, and Next steps on beside Back (a phone shows
+   * its chevron alone).
    */
   saveNow?: (() => void) | undefined
   nextDisabled?: boolean
@@ -434,7 +434,12 @@ export function WizShell({
             onClick={onNext}
             disabled={nextDisabled || busy}
           >
-            {nextLabel}
+            {/* A phone shows its chevron and reads its name (`wizard.css`). */}
+            <NextLabel
+              to={<span className="su-wiz-pill-step-name">{steps[active + 1]}</span>}
+              size="full"
+              wordClassName="su-wiz-pill-next"
+            />
           </Button>
         )}
         <Button

@@ -271,11 +271,25 @@
 /* A phone's bar is its budgets, then Back, the ⋯ menu (Cancel, the escape)
    and the Next; "Next:" before the step's name is read at every width
    (`NextLabel`'s own word, visually hidden) and seen from sm. */
-/* A redesign's ghost Next (`saveNow`) waits for sm too: a phone's bar is
-   Back, the menu and the save, and its steps are the rail's notches. */
-.su-wiz-pill-cancel,
-.su-wiz-pill-step {
+.su-wiz-pill-cancel {
   display: none;
+}
+
+/* A redesign's ghost Next (`saveNow`) is on a phone's bar too, as its chevron:
+   the step's name has no room beside Back, the menu and the save, so it is
+   read, not seen, until sm (the visually-hidden pattern, as `.su-sr-only`). */
+@media not (width >= 40rem) {
+  .su-wiz-pill-step-name {
+    border-width: 0;
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px; /* design-tokens-ignore(raw-spacing): the visually-hidden pattern, not spacing */
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
 }
 
 .su-wiz-pill-more {
@@ -313,8 +327,7 @@
     flex: none;
   }
 
-  .su-wiz-pill-cancel,
-  .su-wiz-pill-step {
+  .su-wiz-pill-cancel {
     display: inline-flex;
   }
 
