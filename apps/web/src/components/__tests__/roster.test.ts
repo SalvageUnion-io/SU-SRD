@@ -55,7 +55,8 @@ const ROSTER = {
     'ACTION_TOAST_MS', // K5 a toast with an action stays 20s
     'MOST_ACTION_TOASTS', // K5 three action toasts at most
     'toastRoll',
-    'holdToastsOnTop', // K5 a screen whose foot is controls (Play's tabs) holds its toasts over the bar
+    'holdToastsOnTop', // K5 a screen whose foot is controls (a search) holds its toasts at the top
+    'holdPlayToasts', // K5 Play's toasts: one at a time, bottom left, above the tabs (r6 A3)
     'Banner',
     'FieldError',
     'CopiedIcon',
