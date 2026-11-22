@@ -13,7 +13,8 @@ export function RuleBreakMark({
 }: {
   /**
    * Which limit is broken, where the mark stands apart from its figure (a
-   * shelf's line, under the unit's name): "System Slots 13/12".
+   * shelf's line, under the unit's name): "System Slots 13/12". It wraps
+   * there, so the mark never widens the line it stands under (r4 E1).
    */
   what?: string | undefined
 }) {
@@ -23,7 +24,7 @@ export function RuleBreakMark({
       <Stat
         size="mini"
         label={componentsCopy('ruleBreaking')}
-        {...(what === undefined ? {} : { value: what })}
+        {...(what === undefined ? {} : { value: what, wrap: true })}
         state="critical"
       />
     </span>

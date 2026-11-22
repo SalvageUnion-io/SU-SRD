@@ -52,6 +52,18 @@ describe('a shelf never runs wider than its frame', () => {
   })
 })
 
+/** r4 E1: a shelf's rule-breaking mark wraps under the name; it never sets the list's width. */
+describe('a rule-breaking mark under a name', () => {
+  test('stacks and wraps by the word', () => {
+    expect(rules('.su-ledger__under [data-rule-break] > .su-stat-cell--wrap').join()).toContain(
+      'flex-wrap: wrap'
+    )
+    const words = rules('.su-ledger__under [data-rule-break] .su-stat-plate--wrap').join()
+    expect(words).toContain('overflow-wrap: break-word')
+    expect(words).not.toContain('nowrap')
+  })
+})
+
 /** SB-17: on a phone a count's − and + each take a 44px target, inside the frame. */
 describe("a count's steps on a phone", () => {
   const step = ".su-ledger__table tbody [data-kind='trailing'] .su-step-btn--cell"

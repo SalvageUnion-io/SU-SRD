@@ -188,6 +188,17 @@
   padding-block: var(--space-2);
 }
 
+/* A rule-breaking mark under a name never widens its list (r4 E1): short of
+   room its words drop under its label, whole, and wrap there. */
+.su-ledger__under [data-rule-break] > .su-stat-cell--wrap {
+  flex-wrap: wrap;
+}
+
+.su-ledger__under [data-rule-break] .su-stat-plate--wrap {
+  flex: 1 1 auto;
+  overflow-wrap: break-word;
+}
+
 /* The trailing cell: the row's menu or its count, at the line's end. */
 .su-ledger__table [data-kind='trailing'] {
   text-align: right;
