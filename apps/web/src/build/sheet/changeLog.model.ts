@@ -19,7 +19,7 @@ import { resolveClass } from '../../lib/classRef'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { SHEET_REDO_SOURCE, SHEET_UNDO_SOURCE } from '../../replica/provenance'
+import { LIVE_SHEET_MANUAL, SHEET_REDO_SOURCE, SHEET_UNDO_SOURCE } from '../../replica/provenance'
 import type { EntityLogRow } from '../../rooms/ops'
 
 /** One line of a change: a sentence, or a named value's before and after. */
@@ -221,8 +221,10 @@ function origin(source: string): Pick<LogChange, 'from' | 'did' | 'reverses'> {
   if ((surface === SHEET_UNDO_SOURCE || surface === SHEET_REDO_SOURCE) && at !== -1) {
     return { reverses: { id: source.slice(at + 1), again: surface === SHEET_REDO_SOURCE } }
   }
-  if (surface !== 'play' && surface !== 'downtime') return {}
   const did = at === -1 ? '' : source.slice(at + 1).trim()
+  // A sheet edit for something it names (`liveSheetFor`): what, not where (r5 C9).
+  if (surface === LIVE_SHEET_MANUAL.source) return did === '' ? {} : { did }
+  if (surface !== 'play' && surface !== 'downtime') return {}
   return did === '' ? { from: surface } : { from: surface, did }
 }
 

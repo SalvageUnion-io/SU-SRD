@@ -87,6 +87,19 @@ describe('logChanges', () => {
     expect(changes[0] && reversal(changes[0], { currentSP: 5 }).label).toBe('Set back to 5')
   })
 
+  test('a sheet write made for an item names it, and no surface (r5 C9)', () => {
+    const [change] = logChanges([
+      row({
+        _id: 'a:currentEP',
+        field: 'currentEP',
+        before: 4,
+        after: 3,
+        source: 'live-sheet:Zoom Optics',
+      }),
+    ])
+    expect([change?.from, change?.did]).toEqual([undefined, 'Zoom Optics'])
+  })
+
   test('a write from Play or Downtime says so, and what it was for (r3 B4)', () => {
     const changes = logChanges([
       row({ _id: 'a:currentAP', field: 'currentAP', before: 5, after: 4, source: 'play:Spotter' }),

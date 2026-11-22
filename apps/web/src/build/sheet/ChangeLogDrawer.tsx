@@ -61,7 +61,7 @@ const KIND_META: Partial<Record<ChangeLogKind, { label: string; tone: BadgeTone 
 
 /** "From Play · Squeeze It In": where a rule's write came from, and what for. */
 function origin(change: LogChange): string | undefined {
-  if (!change.from) return undefined
+  if (!change.from) return change.did ? buildSheetCopy('logForDid', { did: change.did }) : undefined
   const from = buildSheetCopy(change.from === 'play' ? 'logFromPlay' : 'logFromDowntime')
   return change.did ? buildSheetCopy('logFromDid', { from, did: change.did }) : from
 }

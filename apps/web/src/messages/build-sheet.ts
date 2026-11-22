@@ -26,6 +26,8 @@ export const buildSheetCopy = messages({
   logFromPlay: 'From Play',
   logFromDowntime: 'From Downtime',
   logFromDid: '{from} · {did}',
+  logForDid: 'For {did}',
+  notEnoughEp: '{name} costs {ep} EP, and {left} is left.',
   override: 'Override',
   logChassis: 'Chassis',
   logClass: 'Class',

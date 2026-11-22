@@ -45,6 +45,7 @@ import {
   Ledger,
   Mention,
   TechLevel,
+  toast,
   tokens,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
@@ -232,6 +233,26 @@ export function MechDash({
 }: MechDashProps) {
   const { capacity, cargo } = model
   const vitals = mechVitalRows({ mech, model, actions, writes: live || edit, edit })
+  // An item's EP is spent from its row (r5 C9), in a write that names it, with
+  // the vitals' one Undo a change (K5); with too little EP left it spends none.
+  const spendEP =
+    live || edit
+      ? (name: string, ep: number) => {
+          const from = model.currentEP
+          if (from < ep) {
+            toast(buildSheetCopy('notEnoughEp', { ep, name, left: from }))
+            return
+          }
+          actions.patchFor({ currentEP: from - ep }, name)
+          changeUndoToast({
+            id: `mech:${mech.id}:currentEP`,
+            label: SHEET_VITALS.ep.short,
+            from,
+            to: from - ep,
+            undo: (value) => actions.patchMech({ currentEP: value }),
+          })
+        }
+      : undefined
   const conditions = mech.conditions ?? []
   const foot = edit ? (
     <>
@@ -340,7 +361,7 @@ export function MechDash({
     ) : undefined
   /** A collection's rows; in Edit each item's controls close its line. */
   const loadoutRows = (kind: ItemKind): LedgerRow[] => {
-    const rows = itemRows(mech, kind, true)
+    const rows = itemRows(mech, kind, true, spendEP)
     if (!edit) return rows
     const slugs = kind === 'system' ? mech.systems : mech.modules
     const held = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
