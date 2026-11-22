@@ -135,6 +135,8 @@ export type EventsBefore = {
   holder?: string | null
   /** Whether the roll was already revealed: a second Reveal tells nobody again. */
   revealed?: boolean
+  /** Who was up: giving the same pilot the turn again tells nobody. */
+  upNow?: string | null
 }
 
 /** A proposal's Undo: its Mediator's row changes with it, so every list is served again (r5 A2). */
@@ -215,6 +217,14 @@ export class GameEvents {
           revealed:
             typeof row?.after === 'string' && isRevealedRoll(JSON.parse(row.after) as unknown),
         }
+      }
+      case 'scenes.setUpNow': {
+        const row = this.store.rows("select after from change_log where field = 'upNow'")[0]
+        const was =
+          typeof row?.after === 'string'
+            ? (JSON.parse(row.after) as { pilotId?: string | null }).pilotId
+            : null
+        return { upNow: was ?? null }
       }
       case 'safety.showStop':
       case 'safety.liftStop':
@@ -371,6 +381,13 @@ export class GameEvents {
       }
       case 'changeLog.withdrawAlert':
         return [this.note(actor, at, { kind: 'withdrawn', text: 'Mediator withdrew an alert' })]
+      case 'scenes.setUpNow': {
+        // Giving the turn is said to the whole table (r5 A4), as ending it is.
+        const pilotId = a.pilotId
+        if (typeof pilotId !== 'string' || pilotId === before.upNow) return []
+        const text = `The Mediator gave ${unit(pilotId)} the turn`
+        return [this.note(actor, at, { kind: 'turn', text })]
+      }
       case 'scenes.endTurn':
         return [this.note(actor, at, { kind: 'turn', text: `${unit(value)} ended their turn` })]
       case 'safety.showStop':

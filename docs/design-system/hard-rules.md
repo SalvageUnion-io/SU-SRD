@@ -54,11 +54,11 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pe
 
 What frames the content (ruleset §4; R16).
 
-- **K1 One ground signal** — a surface declares its ground once (`data-ground="paper" | "ink"` on its frame); components read it in CSS, never through a prop. Paper on ink is `--color-paper-NN` alone.
-- **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, in media and container queries and their JS. Exceptions: the stat column's cell count, a Compact's art by room (E10).
+- **K1 One ground signal** — a surface declares its ground once (`data-ground="paper" | "ink"` on its frame); components read it in CSS, never via a prop. Paper on ink is `--color-paper-NN` alone.
+- **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, in media and container queries and JS. Exceptions: the stat column's cell count, a Compact's art by room (E10).
 - **K3 Motion** — `--dur-fast` (120ms) for a state change, `--dur-base` (150ms) for a move, one easing, `--ease`. A loop is a loading mark (`--dur-loop`, 2s) or the home's slideshow (a slide out of turn hidden; a Pause), only under `prefers-reduced-motion: no-preference`.
 - **K4 Lift and layers** — one lift, `--shadow-lift`, for what floats (popup, Peek, toast, dialog); the focus ring is the other shadow. Popups are 3px (§4.4). Above the page, z-index is `layer`'s (`--z-*`); a literal above 3 fails.
-- **K5 A notice has one job** — a toast reports an act just done, from the one `Toaster`; a `Banner` a lasting condition; a `FieldError` a consequence where it applies. Offline is one notice, the bar's `SyncBadge`. Copied is the copy control's `Check` and the word, never a toast. No notice wears a roll-tier colour (§3.4).
+- **K5 A notice has one job** — a toast reports an act just done, from the one `Toaster`; a `Banner` a lasting condition; a `FieldError` a consequence where it applies. Offline is one notice, the bar's `SyncBadge`. Copied is the copy control's `Check` and word, never a toast. No notice wears a roll-tier colour (§3.4).
 - **K6 One loading voice** — `Pending` in a screen, `Skeleton` a known shape, `RoutePending` a route; "Loading <thing>…" (search: "Searching…"), in `loadingCopy` alone; only K3's loops are `@keyframes`.
 - **K7 Three dialog widths** — `ModalShell` is narrow (28rem), default (48rem) or page (72rem: the Page, the searcher); no per-dialog `max-width`. One pick dialog (§6.6): `PickDialog`, narrow, its Compacts in select in one radio group (toggles for several), Cancel and the act in `DialogActions`; `RadioCardGroup` only there and in the wizards' steps.
 - **K8 One empty state, one error per job** — `EmptyState` by place (a stamp on a Page or sheet section, quiet in app chrome, inline in a framed list), "No <things> yet."; a crash is `RecoveryPanel`, a missing record `NotFoundPanel`, a failed act `toast.error`; "Try again", never "Retry"; `role="alert"` only in `FieldError`, `RecoveryPanel` and `Banner`.
@@ -67,7 +67,7 @@ What frames the content (ruleset §4; R16).
 - **K11 Icons take their Size** (§5.11) — 12, 14 or 18px from `iconSize` (Mini, Compact, Full), stroke 2; ⋯ `Ellipsis`, close `X`, back `BackLabel` and next `NextLabel` (a chevron and the place's name), a value's change `ArrowRight`; never an arrow or ellipsis character in copy.
 - **K12 Link previews** — an entity with art: its art; else a 1200 × 630 card, its Page in small: band, name, chips, cite, path at the foot; canon solid, homebrew dashed; no type under 34px; theme-color the band.
 - **K13 Chrome matches** — header and footer: `--color-paper` on `--color-ink-deep`; the rail: its band, words `--su-on-kind`.
-- **K14 Every control in reach** — every control sits inside its frame at every width; nothing invisible takes its press.
-- **K15 Table notices pin as one** (K5) — untoasted, on every screen: Stop Sign, alert, one strip: notice, count, Dismiss all; Play, toasts below.
+- **K14 Every control in reach** — every control sits in its frame at every width; nothing invisible takes its press.
+- **K15 Table notices pin as one** (K5) — untoasted, everywhere: Stop Sign, alert, one strip (notice, count, Dismiss all), Your turn never folded; Play, toasts below.
 - **K16 Rules beside the board** — from `lg` Play's Rules are a pane, never a dialog.
 - **R52 One muted note** — a lede, hint or note is `Text variant="note"`; no style object pairs a muted ink with a font size.

@@ -21,6 +21,7 @@ export const playCopy = messages({
   use2: 'Use {name}',
   actions: 'Actions',
   skipToActions: 'Skip to actions',
+  skipToYourTurn: 'Skip to your turn',
   clear: 'Clear',
   startOver: 'Start over',
   resolveStepsHint:

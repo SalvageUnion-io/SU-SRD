@@ -560,6 +560,19 @@ describe('the table’s events', () => {
     expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
   })
 
+  test('giving the turn is a line for the whole table, once per pilot given it (r5 A4)', () => {
+    const { act, texts } = seated()
+    const [given] = act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    expect(given).toMatchObject({ kind: 'turn', actorId: MEDIATOR })
+    expect(given?.text).toStartWith('The Mediator gave ')
+    expect(given?.text).toEndWith(' the turn')
+    expect(isMirrored(given as never)).toBe(true)
+    expect(texts(PLAYER)[0]).toBe(given?.text as string)
+    // The same pilot again, or nobody, says nothing more.
+    expect(act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 2)).toEqual([])
+    expect(act(MEDIATOR, 'scenes.setUpNow', { pilotId: null }, AT + 3)).toEqual([])
+  })
+
   test('the player who is up ends their own turn: the marker clears and the table is told (r4 B1)', () => {
     const { act, room, texts } = seated()
     act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)

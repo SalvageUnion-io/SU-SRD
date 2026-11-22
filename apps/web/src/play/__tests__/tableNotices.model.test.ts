@@ -304,11 +304,32 @@ describe('the one strip (r3 H1)', () => {
     expect(shown.top?.key).toBe('turn')
     expect(shown.rest.map((notice) => notice.key)).toEqual(['ended'])
     // An alert alone is just itself; Accept still leads the strip under one.
-    expect(shownNotices([n('alert', 'alert', 300)])).toMatchObject({ top: null, rest: [] })
+    expect(shownNotices([n('alert', 'alert', 300)])).toMatchObject({
+      top: null,
+      turns: [],
+      rest: [],
+    })
     expect(shownNotices([n('alert', 'alert', 300), n('proposal', 'answer', 1)]).top?.key).toBe(
       'proposal'
     )
   })
+})
+
+test('"Your turn" is never folded behind the count: under a proposal it is its own line (r5 A5)', () => {
+  const n = (key: string, rank: 'answer' | 'turn' | 'news', ts: number) => ({
+    key,
+    rank,
+    ts,
+    dismissible: rank === 'news',
+  })
+  const shown = shownNotices([
+    n('turn', 'turn', 0),
+    n('proposal', 'answer', 5),
+    n('ended', 'news', 9),
+  ])
+  expect(shown.top?.key).toBe('proposal')
+  expect(shown.turns.map((notice) => notice.key)).toEqual(['turn'])
+  expect(shown.rest.map((notice) => notice.key)).toEqual(['ended'])
 })
 
 describe('the Mediator’s role taken back (r3 A4)', () => {

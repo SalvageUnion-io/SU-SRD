@@ -17,7 +17,10 @@
  *    lists them, and offers Dismiss all. The Mediator's alert is never one
  *    of the counted: it is a strip of its own above that one, for the player
  *    who is up too (r4 B2). "Your turn" carries End my turn (r4 B1,
- *    `scenes.endTurn`).
+ *    `scenes.endTurn`), and off the Game's pages its table's door (r5 A4);
+ *    it is never counted behind a proposal (r5 A5). While it is up, "Skip
+ *    to your turn" is the first Tab stop, and after End my turn, Accept or
+ *    Decline the focus goes to the Actions list (r5 A17).
  *  - **Toasts**: what needs a look, off the table's event stream
  *    (`tableNotices.model.ts`, the Feed's own source): a proposal, an alert,
  *    the session and Downtime starting and ending, the Mediator's role
@@ -29,6 +32,7 @@
 import { cockpitPath, gamePath, mediatePath, sheetPath } from 'game-domain/entityKinds'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { SkipLink } from '../components/app'
 import { Button, Callout, Text, toast, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { useOwnUnits } from '../lib/entities'
@@ -57,6 +61,7 @@ import {
   pinnedRole,
   pinnedSays,
   resumedTitle,
+  YOUR_TURN_ID,
 } from './tableNotices.model'
 import { useGameSession } from './useGameSession'
 import { useStopSign } from './useStopSign'
@@ -113,6 +118,21 @@ function useNoticesHeight() {
     observer.current.observe(node)
     publish()
   }, [])
+}
+
+/**
+ * After End my turn, Accept or Decline (r5 A17): focus goes to the first
+ * action's Use on a Play screen, else to the page's content, never the body.
+ */
+function focusTheActions(): void {
+  const uses = document.querySelectorAll<HTMLElement>('[data-action-key] button:not([disabled])')
+  const use = [...uses].find((button) => button.closest('[hidden]') === null)
+  ;(use ?? document.getElementById('main-content'))?.focus()
+}
+
+/** "Skip to your turn" (r5 A17): onto the turn's End my turn. */
+function focusYourTurn(): void {
+  document.querySelector<HTMLElement>(`#${YOUR_TURN_ID} button:not([disabled])`)?.focus()
 }
 
 /** A Game the viewer was removed from, with when this screen learned of it. */
@@ -186,6 +206,12 @@ export function TableNotices({ pathname }: { pathname: string }) {
       data-under-bar={inPlay ? undefined : ''}
       aria-label={playCopy('tableNotices')}
     >
+      {/* The first Tab stop while it is the viewer's turn (r5 A17). */}
+      {theirs.some((notice) => notice.kind === 'turn') && (
+        <SkipLink to={YOUR_TURN_ID} onFollow={focusYourTurn}>
+          {playCopy('skipToYourTurn')}
+        </SkipLink>
+      )}
       {games.map((game) => (
         <GameNotices
           key={game._id}
@@ -359,16 +385,28 @@ function GameNotices({
       title,
       body: playCopy('yourTurnIn', { game: gameName }),
       actions: (
-        <Button
-          variant="primary"
-          size="compact"
-          disabled={!canWrite || endTurn.pending}
-          onClick={() => void endTurn.run({})}
-        >
-          {playCopy('endMyTurn')}
-        </Button>
+        <>
+          {/* Seen off this Game's pages, the way to its table (r5 A4). */}
+          {here ? null : (
+            <Button size="compact" href={cockpitPath(turn.id)}>
+              {playCopy('openTable')}
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            size="compact"
+            disabled={!canWrite || endTurn.pending}
+            onClick={() =>
+              void endTurn.run({}).then((result) => {
+                if (result.ok) focusTheActions()
+              })
+            }
+          >
+            {playCopy('endMyTurn')}
+          </Button>
+        </>
       ),
-      sig: `turn:${gameId}:${title}:${canWrite}:${endTurn.pending}`,
+      sig: `turn:${gameId}:${title}:${canWrite}:${endTurn.pending}:${here}`,
     })
   }
   for (const p of pending ?? []) {
@@ -395,7 +433,9 @@ function GameNotices({
               void reply
                 .run(() => apply({ opId: p._id }))
                 .then((result) => {
-                  if (result.ok) acceptedUndo(p)
+                  if (!result.ok) return
+                  acceptedUndo(p)
+                  focusTheActions()
                 })
             }
           >
@@ -405,7 +445,13 @@ function GameNotices({
             size="compact"
             disabled={!canWrite}
             aria-label={playCopy('decline2', { text: what })}
-            onClick={() => void reply.run(() => decline({ opId: p._id }))}
+            onClick={() =>
+              void reply
+                .run(() => decline({ opId: p._id }))
+                .then((result) => {
+                  if (result.ok) focusTheActions()
+                })
+            }
           >
             {playCopy('decline')}
           </Button>

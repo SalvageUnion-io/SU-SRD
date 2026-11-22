@@ -25,6 +25,7 @@ import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechI
 import { playTxn } from '../../replica/provenance'
 import { ACTION_TYPE_ORDER } from '../playActions.model'
 import type { PlayRoll } from '../playRolls.model'
+import { narrowViewport } from './narrowViewport'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
@@ -201,6 +202,30 @@ describe('under the Scene’s conditions', () => {
     expect(screen.getByRole('button', { name: 'Push' }).getAttribute('title')).toBe(
       '+4 Heat, then the Heat Check'
     )
+  })
+})
+
+describe('who is up (r5 A4)', () => {
+  test('below lg the Act tab says whose turn it is, and nothing while nobody is up', () => {
+    const restore = narrowViewport()
+    const mech = makeMech()
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        store={store}
+        writes={[]}
+        scene={{ conditions: [], hours: 0, upNow: 'p1' }}
+      />
+    )
+    expect(document.querySelector('[data-up-now]')?.textContent).toBe('Up now · You')
+    cleanup()
+    renderBoarded()
+    expect(document.querySelector('[data-up-now]')).toBeNull()
+    restore()
   })
 })
 
