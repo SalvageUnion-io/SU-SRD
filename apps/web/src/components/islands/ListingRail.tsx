@@ -389,14 +389,16 @@ export function ListingRail({
         </div>
       )}
       {hasStatus && (
-        // The count, then what is filtered: one line under every control,
-        // there filtered or not, so a filter changes the list alone.
-        <output className="su-rail__status" aria-live="polite">
-          <span className="su-rail__tally">
-            {islandsCopy('of', { count: shown, count2: count })}
-          </span>
-          {status}
+        // The count at the far end of the controls' last line (r8 owner review):
+        // it changes with every filter, and nothing stands after it to move.
+        <output className="su-rail__tally" aria-live="polite">
+          {islandsCopy('of', { count: shown, count2: count })}
         </output>
+      )}
+      {hasStatus && (
+        // What is filtered: one line under every control, there filtered or
+        // not, so a filter changes the list alone (K17).
+        <div className="su-rail__status">{status}</div>
       )}
     </div>
   )

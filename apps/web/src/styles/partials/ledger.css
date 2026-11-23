@@ -31,6 +31,12 @@
   white-space: nowrap;
 }
 
+/* A stamp on the strip's foot sits on its bottom, not on a baseline: the COST
+   stamp's mark has none, and its stamp rode a pixel off the foot. */
+.su-ledger__head .su-badge-stamp {
+  vertical-align: bottom;
+}
+
 /* The title's cell: the Compact head's notch (`.su-entity-compact__notch`),
    its tab on the strip's foot, opening into the first paper row. */
 .su-ledger__head > th:first-child {

@@ -71,7 +71,7 @@ export const EXEMPTIONS: readonly StringExemption[] = [
     reason: 'A CSS selector given to `closest`.',
   },
   {
-    file: 'apps/web/src/runtime/offlineWarm.client.ts',
+    file: 'apps/web/src/runtime/installedApp.ts',
     strings: ['(display-mode: standalone)', '(display-mode: minimal-ui)'],
     reason: 'CSS media queries given to `matchMedia`.',
   },
