@@ -95,7 +95,8 @@ const SEAT_ACTS = {
 const PLACE = z.object({ pilotId: z.string().optional() })
 const DOWNTIME_ACTS = {
   'downtime.begin': PLACE,
-  'downtime.advance': PLACE,
+  // `auto`: the Mediator's screen passing a step nobody can act in (r7 D3), said as that (r8 A4).
+  'downtime.advance': PLACE.extend({ auto: z.boolean().optional() }),
   'downtime.setStep': PLACE.extend({ stepIndex: z.number() }),
   'downtime.end': PLACE,
   'downtime.claim': PLACE.extend({ claim: z.enum(['upkeep', 'nanites']), op: OpInputSchema }),

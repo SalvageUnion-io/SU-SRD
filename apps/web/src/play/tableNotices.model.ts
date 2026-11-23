@@ -8,6 +8,7 @@
  */
 
 import type { TableEvent } from '../rooms/game/events'
+import { STRIP_PINS } from './stripRuling.model'
 
 /**
  * The window event the notices raise when their height changes: Play's frame
@@ -37,9 +38,12 @@ export type Heard = ReadonlyMap<string, string>
  * of it is a toast any more: a toast is for the viewer's own act (r6 A3). The
  * Stop Sign and whose turn it is are the strip's own notices. A player ending
  * their own turn is the Mediator's to hear (r4 B1): the crew see the strip's
- * "… is up" change.
+ * "… is up" change. Under the ruling `STRIP_PINS` (r8 A2) only the alert and
+ * a unit Down are told: the rest is the Feed's.
  */
-function needsALook(event: TableEvent, mediates: boolean): boolean {
+function needsALook(event: TableEvent, mediates: boolean, pins: typeof STRIP_PINS): boolean {
+  // Only what the seat acts on pins (r8 A2): the alert, and a unit Down.
+  if (pins === 'act') return event.kind === 'alert' || downOf(event) !== null
   switch (event.kind) {
     case 'turn':
       return mediates
@@ -112,15 +116,20 @@ export function eventsToTell(
   events: readonly TableEvent[],
   heard: Heard | null,
   viewerId: string | null,
-  mediates = false
+  mediates = false,
+  /** The strip's ruling (`STRIP_PINS`, r8 A2); a test names the other. */
+  pins: typeof STRIP_PINS = STRIP_PINS
 ): { tell: TableEvent[]; heard: Heard } {
   const next = new Map(events.map((event) => [event._id, event.text]))
   if (heard === null) return { tell: [], heard: next }
+  // Nothing from before the viewer joined is news to them (r8 A4, MD8-14).
+  const joined = joinedAt(events, viewerId)
   const tell = events
     .filter((event) => heard.get(event._id) !== event.text)
+    .filter((event) => event.ts >= joined)
     .filter((event) => event.actorId !== viewerId)
     .filter((event) => event.private !== true && event.veiled !== true)
-    .filter((event) => needsALook(event, mediates))
+    .filter((event) => needsALook(event, mediates, pins))
     .sort((a, b) => a.ts - b.ts)
   // An id the stream no longer serves stays heard: a line that scrolled off is never told again.
   return { tell, heard: new Map([...heard, ...next]) }
@@ -294,37 +303,42 @@ export function gameOfPage(
 }
 
 /**
- * One pinned notice as the strip stacks it (r3 H1, r6 A1, r7 A1). `stop` is
- * the Stop Sign, which leads everything; `role` the viewer's new Mediator
- * role, which leads the rest; `down` the viewer's own unit Down, its Critical
- * roll to make; `answer` one waiting on the viewer (a proposal), `turn` whose
- * turn it is. `alert` is the Mediator's word to the table, `news` everything
- * else.
+ * One pinned notice as the strip stacks it (r3 H1, r6 A1, r7 A1, r8 A2).
+ * `stop` is the Stop Sign, which leads everything; `yours` the viewer's own
+ * turn, with End my turn, which leads the rest; `role` the viewer's new
+ * Mediator role; `down` the viewer's own unit Down, its Critical roll to make;
+ * `answer` one waiting on the viewer (a proposal), `turn` whose turn it is.
+ * `alert` is the Mediator's word to the table, `news` everything else.
  */
 export type StackedNotice = {
   key: string
-  rank: 'stop' | 'role' | 'down' | 'answer' | 'alert' | 'turn' | 'news'
+  rank: 'stop' | 'yours' | 'role' | 'down' | 'answer' | 'alert' | 'turn' | 'news'
   /** When it became news: the newest leads. */
   ts: number
   /** Whether Dismiss, and so Dismiss all, clears it. */
   dismissible: boolean
 }
 
-/** What leads whatever its time (r7 A1): the Stop Sign, "You now mediate", my Down, then what waits on my answer. */
+/**
+ * What leads whatever its time (r7 A1, r8 A2): the Stop Sign, "Your turn"
+ * (a Mediator's word arriving during it sits below), "You now mediate", my
+ * Down, then what waits on my answer.
+ */
 const FIRST: Partial<Record<StackedNotice['rank'], number>> = {
   stop: 0,
-  role: 1,
-  down: 2,
-  answer: 3,
+  yours: 1,
+  role: 2,
+  down: 3,
+  answer: 4,
 }
 
-const lead = (notice: StackedNotice): number => FIRST[notice.rank] ?? 4
+const lead = (notice: StackedNotice): number => FIRST[notice.rank] ?? 5
 
 /**
- * The notices in the order the strip shows them (r6 A1, r7 A1): the Stop
- * Sign, "You now mediate", the viewer's own unit Down, then what waits on
- * their answer, so Accept is never behind anything, then the rest newest
- * first, the Mediator's alert and the turn among them.
+ * The notices in the order the strip shows them (r6 A1, r7 A1, r8 A2): the
+ * Stop Sign, "Your turn", "You now mediate", the viewer's own unit Down, then
+ * what waits on their answer, then the rest newest first, the Mediator's
+ * alert among them.
  */
 export function stackNotices<N extends StackedNotice>(notices: readonly N[]): N[] {
   return [...notices].sort((a, b) => lead(a) - lead(b) || b.ts - a.ts)

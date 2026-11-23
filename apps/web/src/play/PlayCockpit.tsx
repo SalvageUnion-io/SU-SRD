@@ -328,7 +328,7 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
                   </Button>
                 ) : undefined
               }
-              stop={<StopSignButton sign={sign} compact={!wide} />}
+              stop={<StopSignButton sign={sign} compact={!wide} inPlay />}
               menu={
                 <CockpitMenu
                   gameId={target.gameId}

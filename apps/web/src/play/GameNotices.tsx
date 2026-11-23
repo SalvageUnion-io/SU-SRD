@@ -41,10 +41,12 @@ import type { ProposalRead } from '../rooms/game/proposals'
 import { gamePilots } from './play.model'
 import { acceptedUndo, proposalChange } from './proposalAnswer.model'
 import { downtimeWaits, firstSight, onHub } from './sessionNotices.model'
+import { STRIP_PINS } from './stripRuling.model'
 import type { Notice } from './TableNoticeStack'
 import type { Heard } from './tableNotices.model'
 import {
   doneToMine,
+  downOf,
   endedSession,
   eventsToTell,
   lostRole,
@@ -169,8 +171,14 @@ export function GameNotices({
     const told = next.tell.filter(
       (event) =>
         !pinnedSays(event, pinned, viewerId) &&
-        // On Mediate the Propose dock's Newest proposal line says a player's answer (r5 B7).
-        !(event.kind === 'proposal' && mediator && MEDIATE_PATH.test(pathname))
+        // On Mediate the Propose dock's Newest proposal line says a player's answer (r5 B7),
+        // but not that it put a unit Down: the Mediator is told that too (r8 A3).
+        !(
+          event.kind === 'proposal' &&
+          mediator &&
+          MEDIATE_PATH.test(pathname) &&
+          downOf(event) === null
+        )
     )
     const newest = told.at(-1)
     if (newest === undefined) return
@@ -306,7 +314,8 @@ export function GameNotices({
       ),
       sig: `away:${gameId}:${title}:${next}:${canWrite}:${passTurn.pending}`,
     })
-  } else if (turn === null && upNow !== null && here) {
+  } else if (turn === null && upNow !== null && here && STRIP_PINS === 'news') {
+    // Under the ruling `act` (r8 A2) who is up is the Play bar's, never pinned.
     const title = playCopy('nameIsUp', { name: turnName ?? '' })
     notices.push({
       key: `turn:${gameId}`,
@@ -362,7 +371,8 @@ export function GameNotices({
     notices.push({
       key: `turn:${gameId}`,
       kind: 'turn',
-      rank: 'turn',
+      // Mine leads every notice but the Stop Sign, End my turn beside it (r8 A2).
+      rank: 'yours',
       ts: turnSeen.current.at,
       dismissible: false,
       tone: 'pilot',
@@ -388,7 +398,9 @@ export function GameNotices({
   for (const p of pending ?? []) {
     // From and to: the size of it, before they answer (r2 C7).
     const what = `${p.targetName ?? p.entityType} ${proposalChange(p)}`
-    const body = `${playCopy('mediatorProposes', { what })}${p.reason === null ? '' : ` · “${p.reason}”`}`
+    // Who sent it, by name, as the Feed says it (r8 A4).
+    const by = p.byName ?? playCopy('feedMediator')
+    const body = `${playCopy('mediatorProposes', { name: by, what })}${p.reason === null ? '' : ` · “${p.reason}”`}`
     notices.push({
       key: `proposal:${p._id}`,
       kind: 'proposal',
@@ -447,7 +459,10 @@ export function GameNotices({
     })
   }
   if (alert !== null) {
-    const body = alert.text.replace(/^Mediator · /, '')
+    // "Mara · Rad storm rolls in": the sender is the title's, by name (r8 A4).
+    const at = alert.text.indexOf(' · ')
+    const from = at > 0 ? alert.text.slice(0, at) : playCopy('feedMediator')
+    const body = at > 0 ? alert.text.slice(at + 3) : alert.text
     notices.push({
       key: `alert:${alert._id}`,
       kind: 'alert',
@@ -455,7 +470,7 @@ export function GameNotices({
       ts: alert.ts,
       dismissible: true,
       tone: 'ink',
-      title: playCopy('fromTheMediatorIn', { game: gameName }),
+      title: playCopy('fromTheMediatorIn', { name: from, game: gameName }),
       body,
       dismiss: () => dismiss(alert._id),
       sig: `alert:${alert._id}:${body}`,

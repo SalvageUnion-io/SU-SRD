@@ -274,7 +274,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
                   ) : undefined
                 }
                 channel={channel.button}
-                stop={<StopSignButton sign={sign} compact={!wide} />}
+                stop={<StopSignButton sign={sign} compact={!wide} inPlay />}
                 menu={
                   <PlayMediatorBarActions mediator={mediator} wide={wide} channel={channel.row} />
                 }

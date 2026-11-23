@@ -7,7 +7,9 @@
  * turn) stay on it whichever notice leads, so the turn ends one Tab away
  * (r6 A13). On a Play screen it has one fixed height under the bar
  * (`fixed`), and a notice arriving or leaving moves nothing; "N more" opens
- * the list below it, never over the step it is about (r7 A1). The ruling's other choice
+ * the list below it, never over the step it is about (r7 A1). There a notice
+ * reads in two lines on a phone, one from `lg`, and a press on its words opens
+ * it whole in place, its controls wrapping under them (r8 A1). The ruling's other choice
  * (`stripRuling.model.ts`, `lines`) draws every notice as its own one-line banner.
  */
 
@@ -115,6 +117,8 @@ export function NoticeStack({
   return (
     <>
       <NoticeStrip
+        // A new notice leading the strip opens cut to its lines again.
+        key={top.key}
         notice={top}
         line={fixed}
         carried={carried?.carry}
@@ -150,14 +154,36 @@ function NoticeStrip({
   offline?: string | undefined
   id?: string | undefined
 }) {
+  // Cut to its lines, a press on the words opens the notice whole in place (r8 A1).
+  const [whole, setWhole] = useState(false)
+  const words = (
+    <>
+      <Text style={STRONG}>{notice.title}</Text>
+      {notice.body !== undefined && <Text>{notice.body}</Text>}
+    </>
+  )
   return (
-    <div role="status" data-table-notice={notice.kind} data-line={line ? '' : undefined} id={id}>
+    <div
+      role="status"
+      data-table-notice={notice.kind}
+      data-line={line ? '' : undefined}
+      data-whole={line && whole ? '' : undefined}
+      id={id}
+    >
       <Callout tone={notice.tone}>
         <div className="su-table-notice">
-          <div className="su-table-notice__text" title={line ? notice.body : undefined}>
-            <Text style={STRONG}>{notice.title}</Text>
-            {notice.body !== undefined && <Text>{notice.body}</Text>}
-          </div>
+          {line ? (
+            <button
+              type="button"
+              className="su-table-notice__text"
+              aria-expanded={whole}
+              onClick={() => setWhole(!whole)}
+            >
+              {words}
+            </button>
+          ) : (
+            <div className="su-table-notice__text">{words}</div>
+          )}
           <span className="su-table-notice__actions">
             {offline !== undefined && (
               <span className={cn('su-table-notice__offline', capsLabel({ size: 'badge' }))}>

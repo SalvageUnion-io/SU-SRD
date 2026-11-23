@@ -1181,7 +1181,7 @@ describe('Downtime', () => {
     await renderCockpit({
       'downtime.state': { running: true, stepIndex: 5, completedBy: everyone, upkeepSpent: true },
     })
-    expect(sent()).toEqual([{ name: 'downtime.advance', args: {} }])
+    expect(sent()).toEqual([{ name: 'downtime.advance', args: { auto: true } }])
     expect(screen.getByText(/^Moved on by itself, nothing left to do: 6 /)).toBeTruthy()
   })
 

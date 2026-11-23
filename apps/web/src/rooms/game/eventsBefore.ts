@@ -35,6 +35,20 @@ export type EventsBefore = {
   unapplied?: { pilotId: string; name: string; owes: boolean }[]
 }
 
+/** What of a seat's resolve says how far it got. */
+type Resolving = { activated?: unknown; roll?: unknown; salvage?: unknown; applied?: unknown }
+
+/** Whether a seat's resolve has got anywhere: paid, rolled or applied (r8 A7). */
+export function resolvingDone(resolving: Resolving | null | undefined): boolean {
+  if (resolving == null) return false
+  return (
+    resolving.activated === true ||
+    resolving.roll != null ||
+    resolving.salvage != null ||
+    resolving.applied === true
+  )
+}
+
 /** What `after` needs from before the act ran. */
 export function eventsBefore(store: GameStore, name: GameActName, args: unknown): EventsBefore {
   const before = beforeAct(store, name, args)
@@ -54,9 +68,10 @@ function beforeAct(store: GameStore, name: GameActName, args: unknown): EventsBe
       const row = store.rows('select resolving from seats where pilot_id = ?', String(a.pilotId))[0]
       const resolving =
         typeof row?.resolving === 'string'
-          ? (JSON.parse(row.resolving) as { name?: string } | null)
+          ? (JSON.parse(row.resolving) as Resolving & { name?: string })
           : null
-      return { resolving: resolving?.name ?? null }
+      // Its use is said once it got anywhere (r8 A7): until then it is not yet said.
+      return { resolving: resolvingDone(resolving) ? (resolving?.name ?? null) : null }
     }
     case 'seats.toggleEffect': {
       const row = store.rows('select * from seats where pilot_id = ?', String(a.pilotId))[0]

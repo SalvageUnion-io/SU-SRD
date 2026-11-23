@@ -66,7 +66,7 @@ A gate fails the build unless its rule is **pending** (`e2e/_pendingRules.ts`): 
 - **K12 Link previews** — an entity with art: its art; else a 1200 × 630 card, its Page in small: band, name, chips, cite, path at the foot; canon solid, homebrew dashed; no type under 34px; theme-color the band.
 - **K13 Chrome matches** — header and footer: `--color-paper` on `--color-ink-deep`; the rail: its band, words `--su-on-kind`.
 - **K14 Every control in reach** — every control sits in its frame at every width; nothing invisible takes its press.
-- **K15 Table notices pin as one** (K5) — one strip: Stop Sign, You now mediate, your Down, answers, the newest, each gone with its news; one height under Play's bar, opening down.
+- **K15 Table notices pin as one** (K5) — one strip of what a seat acts on: Stop Sign, Your turn, You now mediate, a Down, answers, alerts; the rest is the Feed's; a press opens it.
 - **K16 Rules beside the board** — from `lg` Play's Rules are a pane, never a dialog.
 - **K17 A filter moves only its results** — a filter, sort or find keeps its controls, all above them and its columns within 1px.
 - **R52 One muted note** — a lede, hint or note is `Text variant="note"`; no style object pairs a muted ink with a font size.

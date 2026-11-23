@@ -21,7 +21,7 @@ import {
   withSaid,
 } from './eventLines'
 import type { EventsBefore } from './eventsBefore'
-import { downtimeStepNow, eventsBefore, unappliedOf } from './eventsBefore'
+import { downtimeStepNow, eventsBefore, resolvingDone, unappliedOf } from './eventsBefore'
 import { isPrivateRoll, isRevealedRoll, rollLineFor } from './log'
 import { undoes } from './proposals'
 import type { GameStore, StoredOp } from './store'
@@ -122,9 +122,12 @@ export class GameEvents {
       case 'seats.eject':
         return say('board', `${unit(a.pilotId)} ejects`)
       case 'seats.setResolving': {
-        const next = (a.resolving as { name?: unknown } | null)?.name
+        // Said once something is done with it (activated, rolled): an action
+        // opened and closed again is no action (r8 A7).
+        const resolving = a.resolving as { name?: unknown; activated?: unknown } | null
+        const next = resolving?.name
         if (typeof next !== 'string' || next === '' || next === before.resolving) return []
-        return say('action', `${unit(a.pilotId)} uses ${next}`)
+        return resolvingDone(resolving) ? say('action', `${unit(a.pilotId)} uses ${next}`) : []
       }
       case 'seats.toggleEffect': {
         // On and off are two lines: a repeat of either counts on its own.
@@ -212,6 +215,11 @@ export class GameEvents {
         const from = before.downtimeStep ?? null
         const to = downtimeStepNow(this.store)
         if (from === null || to === null || to === from) return []
+        // A step that passed by itself names nobody (r8 A4).
+        if (a.auto === true && to === from + 1) {
+          const text = `${from + 1} ${downtimeStepNames()[from] ?? ''}`.trim()
+          return [this.note(null, at, { kind: 'downtime', text: `${text} passed automatically` })]
+        }
         const text = downtimeMoveLine(this.runnerName(actor), from, to)
         return [this.note(actor, at, { kind: 'downtime', text })]
       }
@@ -233,7 +241,8 @@ export class GameEvents {
         const op = this.store.op(String(value))
         if (op === null) return []
         // About whoever answers it: their screen pins it, so it toasts them nothing (r3 H2).
-        const text = `Mediator proposes ${this.proposalLine(op)}`
+        // By name, as every line names a person (r8 A4).
+        const text = `${who} proposes ${this.proposalLine(op)}`
         const about = this.store.unit(op.unitId)?.ownerId ?? null
         return [
           this.note(actor, at, {
@@ -273,11 +282,11 @@ export class GameEvents {
       case 'ops.withdraw': {
         const op = before.proposal
         return value === true && op != null
-          ? say('proposal', `Mediator withdrew: ${this.proposalLine(op)}`)
+          ? say('proposal', `${who} withdrew: ${this.proposalLine(op)}`)
           : []
       }
       case 'changeLog.withdrawAlert':
-        return [this.note(actor, at, { kind: 'withdrawn', text: 'Mediator withdrew an alert' })]
+        return [this.note(actor, at, { kind: 'withdrawn', text: `${who} withdrew an alert` })]
       case 'scenes.setUpNow': {
         // Giving the turn is said to the whole table (r5 A4), as ending it is.
         const pilotId = a.pilotId
@@ -487,7 +496,9 @@ export class GameEvents {
     if (row.field === 'event')
       return eventOf(id, ts, actorId, namedNow(after as Stored, actorId, this.namesNow))
     if (row.field === 'alert') {
-      return { _id: id, ts, kind: 'alert', text: `Mediator · ${String(after)}`, actorId }
+      // Signed by name, as every line names a person (r8 A4).
+      const by = actorId === null ? 'Mediator' : this.memberName(actorId)
+      return { _id: id, ts, kind: 'alert', text: `${by} · ${String(after)}`, actorId }
     }
     const line = rollLineFor(after, mediates)
     const roller = actorId === null ? null : this.store.member(actorId)
@@ -531,7 +542,6 @@ export class GameEvents {
   }
 }
 
-/** Whose the unit was before an assignment moved it to `to`: nobody, when it stays theirs or was free. */
 /** "Mediator moved Downtime to 7 Train your Pilot, past 2–6": a step is said by its number and name. */
 function downtimeMoveLine(who: string, from: number, to: number): string {
   const names = downtimeStepNames()
@@ -542,6 +552,7 @@ function downtimeMoveLine(who: string, from: number, to: number): string {
   return `${who} moved Downtime to ${where}${past}`
 }
 
+/** Whose the unit was before an assignment moved it to `to`: nobody, when it stays theirs or was free. */
 function lost(before: EventsBefore, to: string | null): { about?: string } {
   const holder = before.holder ?? null
   return holder === null || holder === to ? {} : { about: holder }
