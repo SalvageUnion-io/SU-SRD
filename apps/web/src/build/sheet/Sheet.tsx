@@ -51,6 +51,7 @@ import type { EntityLookup } from './composition.model'
 import { resolveSheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
 import { MechLiveSheet } from './MechLiveSheet'
+import { typeNameOnArrival } from './nameOnArrival.model'
 import { PilotLiveSheet } from './PilotLiveSheet'
 import { usePrinting } from './printing.model'
 import { SheetFallback } from './SheetFallback'
@@ -364,9 +365,21 @@ export function Sheet({
         id: 'copy',
         label: buildSheetCopy('makeACopy'),
         // A copy only adds: it runs at once, and its notice opens it. A
-        // pilot with a mech is asked whether the mech comes too.
+        // pilot with a mech is asked whether the mech comes too. A Mech's
+        // copy opens at once, its name selected for typing, and the notice
+        // leads back (r7 G4).
         onSelect: writable(
-          () => void copyAsking(confirm, kind, entity.name, entity, go, { units: storeState })
+          () =>
+            void copyAsking(
+              confirm,
+              kind,
+              entity.name,
+              entity,
+              go,
+              kind === 'mech'
+                ? { units: storeState, openCopy: true, landed: typeNameOnArrival }
+                : { units: storeState }
+            )
         ),
       },
       // A mech saves as a pattern in a dialog over its sheet.

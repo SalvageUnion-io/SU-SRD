@@ -89,6 +89,36 @@ describe('madeToast (r5 C3)', () => {
   })
 })
 
+describe('a Mech sheet’s Make a copy opens the copy (r7 G4)', () => {
+  test('it lands on the copy, and the notice leads back to the original', async () => {
+    const units = useUnits.getState()
+    const mech = await units.adopt('mech', mechFixture({ id: 'm-a', name: 'Mule Hauler A' }))
+    const went: string[] = []
+    const landed: string[] = []
+    await copyAsking(
+      () => {},
+      'mech',
+      mech.name,
+      mech,
+      (href) => went.push(href),
+      {
+        openCopy: true,
+        landed: (id) => landed.push(id),
+      }
+    )
+    const copy = useUnits.getState().mechs.find((m) => m.id !== 'm-a')
+    expect(copy?.name).toBe('Mule Hauler A 2')
+    expect(landed).toEqual([copy?.id ?? ''])
+    // No press on the notice to get there.
+    expect(went).toEqual([`/mechs/${copy?.id}`])
+    const [line] = open() as { title?: unknown; action?: { label: string; onClick: () => void } }[]
+    expect(line?.title).toBe('Copied Mule Hauler A.')
+    expect(line?.action?.label).toBe('Back to the original')
+    line?.action?.onClick()
+    expect(went.at(-1)).toBe('/mechs/m-a')
+  })
+})
+
 /** A pilot who flies a mech, both on the shelf. */
 async function ghostAndRig() {
   const units = useUnits.getState()
