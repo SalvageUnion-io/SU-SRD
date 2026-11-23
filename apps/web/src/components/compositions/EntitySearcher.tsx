@@ -228,6 +228,8 @@ export function EntitySearcher({
     if (!item) return
     entered.current = false
     setCursorId(idOf(item))
+    // The Page beside the list follows the highlight, as a press would open it.
+    if (wide && !browse) setFocusId(idOf(item))
     document.getElementById(domId(item))?.scrollIntoView?.({ block: 'nearest' })
   }
 

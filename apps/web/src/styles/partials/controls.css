@@ -341,12 +341,30 @@
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
-/* The keyboard's highlight (r4 E4): the one row Enter acts on, a heavy ink
-   outline set off the row, so it never reads as the chosen ring (flush) or
-   the opened Page's thin one. */
+/* The keyboard's highlight (r4 E4, r8 E7): the one row Enter acts on, a
+   solid ink bar at the row's start, in the list's padding, so it never reads
+   as the chosen ring or the opened Page's thin one. */
 .su-searcher__item[data-cursor] {
-  outline: var(--bw-entity) solid var(--color-ink);
-  outline-offset: var(--bw-entity);
+  position: relative;
+}
+
+.su-searcher__item[data-cursor]::before {
+  background: var(--color-ink);
+  content: '';
+  inset-block: 0;
+  inset-inline-start: calc(-1 * var(--space-12));
+  position: absolute;
+  width: var(--space-6);
+}
+
+/* What a search names in the other picker (r8 E7): a line above the toolbar. */
+.su-searcher__elsewhere {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin: 0;
+  padding: var(--space-8) var(--space-16) 0;
 }
 
 /* A wide row's facts (r4 E6): a line of running text under the Mini, so the
@@ -370,6 +388,11 @@
 .su-searcher__item.su-entity-mini-line > .su-searcher__add {
   align-self: center;
   flex: none;
+}
+
+/* The + ends its line, tagged or not (r8 E7). */
+.su-searcher__item.su-entity-mini-line > .su-searcher__add {
+  margin-inline-start: auto;
 }
 
 .su-searcher__item[data-focused][data-selected] {
