@@ -107,6 +107,8 @@ export const GAME_SOCKET_ACTS = {
     encounter: z.unknown(),
     clear: z.boolean(),
     waves: z.boolean().optional(),
+    /** False: a test run, with no group session started for it (r7 C6). */
+    startSession: z.boolean().optional(),
   }),
   'mediator.bringInWave': z.object({ wave: z.number().int() }),
   'mediator.endEncounter': z.object({ clear: z.boolean().optional() }).optional(),

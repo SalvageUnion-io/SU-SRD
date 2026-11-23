@@ -5,6 +5,7 @@
  */
 import { createFileRoute } from '@tanstack/react-router'
 import { NpcSheetView } from '../../build/npc/NpcSheetView'
+import { editSearch, useOpenInEdit } from '../../build/prep/useOpenInEdit'
 import { SheetSkeleton } from '../../build/sheet/SheetSkeleton'
 import { areaTitle } from '../../lib/pageTitle'
 import { loadSheet } from '../../lib/sheetRoute'
@@ -12,6 +13,8 @@ import { routesCopy } from '../../messages/routes'
 
 export const Route = createFileRoute('/npcs/$id')({
   loader: loadSheet,
+  // From a Game's Prep it opens in Edit (r7 C13).
+  validateSearch: editSearch,
   // The NPC's own name follows from the store (`useLocatedSheet`); it is the Mediator's Kit's.
   head: () => ({ meta: [{ title: areaTitle(routesCopy('mediatorsKit'), routesCopy('npc')) }] }),
   component: NpcSheetPage,
@@ -20,5 +23,7 @@ export const Route = createFileRoute('/npcs/$id')({
 
 function NpcSheetPage() {
   const { id } = Route.useParams()
+  const { edit } = Route.useSearch()
+  useOpenInEdit(edit)
   return <NpcSheetView id={id} />
 }

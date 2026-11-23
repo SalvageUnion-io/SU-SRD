@@ -3,6 +3,7 @@ import type { LinkShape } from 'game-domain/links/linkRules'
 import { downtimeStepNames } from 'game-domain/rules/downtime'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
+import { carriedOver } from './carriedOver'
 import type { NamesNow, Stored } from './eventLines'
 import {
   CONDITION_WORDS,
@@ -142,10 +143,17 @@ export class GameEvents {
       case 'drawLink':
       case 'removeLink': {
         const link = a.link as LinkShape
-        // A mech and its pilot: the pilot flies it, so "assigned to" stays a person's word (r5 B14).
+        // A mech and its pilot: their Mech, so "assigned to" stays a person's word (r5 B14);
+        // parked until they board it, never "flies", which reads as aboard (r7 C9).
         if (link.type === 'mech-to-pilot') {
-          const verb = name === 'drawLink' ? 'flies' : 'no longer flies'
-          return say('assign', `${unit(link.to.id)} ${verb} ${unit(link.from.id)}`)
+          const mech = unit(link.from.id)
+          const pilot = unit(link.to.id)
+          return say(
+            'assign',
+            name === 'drawLink'
+              ? `${mech} is ${pilot}’s Mech, parked`
+              : `${mech} is no longer ${pilot}’s Mech`
+          )
         }
         const verb = name === 'drawLink' ? 'is assigned to' : 'is unassigned from'
         return say('assign', `${unit(link.from.id)} ${verb} ${unit(link.to.id)}`)
@@ -163,16 +171,19 @@ export class GameEvents {
         const back = (value as string[]).map((id) => unit(id))
         return back.length === 0 ? [] : say('join', `${who} is back, with ${back.join(' and ')}`)
       }
-      case 'session.start':
-        return value === true
-          ? [
-              this.note(actor, at, {
-                kind: 'session',
-                text: `${this.runnerName(actor)} started the group session`,
-                session: 'start',
-              }),
-            ]
-          : []
+      case 'session.start': {
+        if (value !== true) return []
+        // What the last session left open is the new one's first line (r7 C10).
+        const still = carriedOver(this.store, (id) => this.unitLabel(id))
+        const started = `${this.runnerName(actor)} started the group session`
+        return [
+          this.note(actor, at, {
+            kind: 'session',
+            text: still === null ? started : `${started} · ${still}`,
+            session: 'start',
+          }),
+        ]
+      }
       case 'session.end':
         return before.session === true
           ? [

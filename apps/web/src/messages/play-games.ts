@@ -99,6 +99,8 @@ export const playGamesCopy = messages({
   youHaveBeenInvited: 'You have been invited',
   everyoneAtATableCan: 'Everyone at a table can read each other’s sheets.',
   joinThisGame: 'Join this Game',
+  displayName: 'Display name',
+  displayNameExample: 'How the table calls you',
   signInToJoinYour:
     'Sign in to join. Your Pilots, Mechs and Crawlers live on your account, and signing in is what seats you at the table.',
   signInToJoin: 'Sign in to join',
@@ -121,7 +123,11 @@ export const playGamesCopy = messages({
   // An ended session's recap (r6 C1).
   recapHurt: 'Hurt and Down',
   recapVital: '{who} · {label} {from} → {to}',
-  recapChangedHands: 'Changed hands',
+  recapStillOpen: 'Still open',
+  recapMoved: 'Salvage and Scrap',
+  recapDamageTaken: 'Damage taken',
+  recapLast: 'Last session: {last}',
+  aSheet: 'A sheet',
   recapDowntime: 'A Downtime was held.',
   recapNext: 'Next session: {next}',
   fullLog: 'Full log',
@@ -143,7 +149,7 @@ export const playGamesCopy = messages({
   gameSettings: 'Game settings',
   gameName: 'Name',
   // Under the band's Mediate (r6 C3).
-  sessionStartsWithPlay: 'The session starts when you play',
+  sessionStartsWithPlay: 'Running an encounter or telling the table starts the session',
   noSessionYet: 'No session yet',
   // The band's title, renamed in place (r6 C9).
   rename: 'Rename',
@@ -171,6 +177,8 @@ export const playGamesCopy = messages({
   leave: 'Leave',
   removeMember: 'Remove {name} from this Game',
   removeNamed: 'Remove {name}?',
+  removeWho: 'Remove {name}',
+  nameAndPilots: '{name} ({pilots})',
   removeBody:
     'The Pilots and Mechs they brought go back to their Training Bay, and any this Game came with stay here, unassigned; nothing is deleted. They are told, and can join again with an invite. The link they already have still works unless you reset it.',
   resetInviteLinkToo: 'Reset the invite link too',
@@ -279,6 +287,8 @@ export const playGamesCopy = messages({
     'The Mediator runs the table: the opposition, Downtime, the crawler, and proposals to the crew.',
   tableHandOverFailed: 'The table could not be handed over. Try again.',
   onFootUnit: 'on foot',
+  aboardMech: 'aboard {mech}',
+  mechParked: 'on foot · {mech} parked',
   runsTheTable: 'Runs the table',
   noPilotYet: 'No Pilot yet',
   waitingForAPlayer: 'Waiting for a player',

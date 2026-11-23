@@ -162,3 +162,19 @@ test('a read-out vital has no Tab stop to manage', () => {
   render(<PlayVital label="HP" value={8} max={10} tone="pilot" />)
   expect(screen.queryByRole('slider')).toBeNull()
 })
+
+// r7 C8 (MD7-21): a digit typed on the focused number was dropped.
+test('a digit typed on the number opens the amount with that digit in it', async () => {
+  const writes: number[] = []
+  render(<PlayVital label="HP" value={8} max={10} tone="pilot" onChange={(n) => writes.push(n)} />)
+  const number = screen.getByRole('button', { name: 'Change HP by an amount, now 8 of 10' })
+  number.focus()
+  await act(async () => {
+    fireEvent.keyDown(number, { key: '2' })
+  })
+  expect((screen.getByRole('textbox', { name: 'HP amount' }) as HTMLInputElement).value).toBe('2')
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Take 2 from HP' }))
+  })
+  expect(writes).toEqual([6])
+})

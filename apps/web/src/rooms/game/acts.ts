@@ -168,8 +168,12 @@ const GAME_ACTS = {
   'mediator.running': (c: ActContext) => c.room.opposition.running(c.actor),
   'mediator.runEncounter': (
     c: ActContext,
-    a: { encounter: unknown; clear: boolean; waves?: boolean }
-  ) => withPlay(c, c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at)),
+    a: { encounter: unknown; clear: boolean; waves?: boolean; startSession?: boolean }
+  ) => {
+    const ran = c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at)
+    // The Run dialog says it starts the session, and a test run can say not to (r7 C6).
+    return a.startSession === false ? ran : withPlay(c, ran)
+  },
   'mediator.bringInWave': (c: ActContext, a: { wave: number }) =>
     c.room.opposition.bringInWave(c.actor, a.wave, c.at),
   'mediator.endEncounter': (c: ActContext, a?: { clear?: boolean }) =>

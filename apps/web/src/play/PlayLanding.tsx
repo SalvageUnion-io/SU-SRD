@@ -12,8 +12,10 @@
  *    Game, the whole Compact opening the Game's page in Play
  *    (`/games/$gameId`). Its chips are your role, how many are here now
  *    (the Game's room, `useGamePresence`, play.md §7), the Downtime state
- *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
- *    body the crew as header-only Minis (`useGameListing`, `gameCrew`);
+ *    (`downtime.state`), where the campaign is (proposals open, last played,
+ *    the next plan: `useCampaign`, r7 C11) and its Discord channel
+ *    (`channelBindings.mine`); its body the crew as header-only Minis
+ *    (`useGameListing`, `gameCrew`), your own pilot first, marked Yours;
  *    its doors, last in the chip group: where you mediate it, Start group
  *    session (`useGameSession`) until one is live, then Mediate; then Play
  *    <pilot> for each pilot of
@@ -67,6 +69,7 @@ import { Tagline } from '../components/Tagline'
 import { signIn } from '../lib/auth/session'
 import { cn } from '../lib/cn'
 import { useOwnUnits } from '../lib/entities'
+import { formatAgo, todayDay } from '../lib/formatDate'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { MEDIATORS_KIT_ANCHOR } from '../lib/games/gameRoster'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
@@ -74,12 +77,14 @@ import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { playCopy } from '../messages/play'
 import { useGameListing } from '../replica/gameListing'
 import type { GameCallResult } from '../replica/roomCalls'
-import { useGamesQuery } from '../replica/roomCalls'
+import { useGamesQuery, useViewerId } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
 import { useTableRead } from '../replica/useTable'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
 import { hereCount } from './crew.model'
+import { lastSession } from './games/lastSession.model'
+import { sessionPlans } from './games/useNextSession'
 import { gamePilots } from './play.model'
 import { gameChips, gameCrew, gameDoors } from './playHub.model'
 import { useGamePresence } from './useGamePresence'
@@ -414,6 +419,33 @@ function JoinGame() {
 }
 
 /**
+ * Where a Game's campaign is (r7 C11, MD7-17): the proposals still open (the
+ * viewer's to answer and the ones they sent), when the table last played
+ * (`lastSession`) and the next plan (`sessionPlans`; the plan is the table
+ * runner's alone).
+ */
+function useCampaign(game: GameSummary) {
+  const gameId = game._id
+  const events = useTableRead('changeLog.events', { gameId })
+  const waiting = useTableRead('ops.pending', { gameId })
+  const sent = useTableRead('ops.sent', { gameId })
+  const plan = useGamesQuery('plan.get', game.tableRunner ? { gameId } : 'skip')
+  const record = events === undefined ? null : lastSession(events)
+  const endedAt = record?.endedAt ?? null
+  const plans = sessionPlans(
+    plan?.sessions ?? [],
+    game.sessionDays ?? [],
+    todayDay(),
+    endedAt === null ? null : todayDay(new Date(endedAt))
+  )
+  return {
+    pending: (waiting?.length ?? 0) + (sent ?? []).filter((p) => p.state === 'proposed').length,
+    played: endedAt === null ? null : formatAgo(endedAt, Date.now()),
+    next: plans.next,
+  }
+}
+
+/**
  * One of your Games, as a contentful Compact: the whole Compact opens the
  * Game's page; its chips say your role, how many are here, the Downtime state
  * and its channel; its body is the crew, each unit opening its sheet; its
@@ -436,17 +468,22 @@ function PlayGameItem({
   const here = hereCount(vitals?.pilots, presence)
   const session = useGameSession(gameId)
   const go = useGo()
+  const viewerId = useViewerId()
   const live = session?.live === true
-  const chips = gameChips({ mediator: game.mediator, live, here, downtime, channel })
+  const campaign = useCampaign(game)
+  const chips = gameChips({ mediator: game.mediator, live, here, downtime, channel, ...campaign })
   const doors = gameDoors(game, pilots, session === null ? null : live)
   const crew =
     listing && vitals
-      ? gameCrew({
-          crawlers: listing.crawlers,
-          primaryCrawlerId: listing.primaryCrawlerId,
-          pilots: vitals.pilots,
-          mechs: vitals.mechs,
-        })
+      ? gameCrew(
+          {
+            crawlers: listing.crawlers,
+            primaryCrawlerId: listing.primaryCrawlerId,
+            pilots: vitals.pilots,
+            mechs: vitals.mechs,
+          },
+          viewerId
+        )
       : []
   return (
     <li className="su-hub-game" style={ITEM}>

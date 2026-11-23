@@ -2,8 +2,8 @@
  * An encounter's threat read and spoils on its page (ADR-059 §5), from
  * `threat.model.ts`: the read under the opposition, set against a crew the
  * Mediator steps to size, and the spoils beside the notes. Both read the
- * encounter and write nothing to it; the crew opens at the Game's own where the
- * encounter is prepared for one, and what is stepped to is remembered on this device.
+ * encounter and write nothing to it; the crew opens at the Game's own (its
+ * Pilots, its crawler's Tech Level, r7 C13) where the encounter is prepared for one, and what is stepped to is remembered on this device.
  */
 
 import type { Crew } from 'game-domain/rules/threat'
@@ -59,6 +59,7 @@ export function ThreatReadLine({
   encounter,
   editing,
   gameCrew,
+  gameTech,
 }: {
   encounter: Encounter
   /** Edit: the crew steps. Read prints it, as every sheet's Read does (R11). */
@@ -68,13 +69,17 @@ export function ThreatReadLine({
    * read opens at the real crew (r4 D5), never at a guess, until it is stepped.
    */
   gameCrew?: number | undefined
+  /** The Tech Level of that Game's crawler, once known (r7 C13): the crew's own, until stepped. */
+  gameTech?: number | undefined
 }) {
   // What the Mediator stepped to on this page; until then the Game's crew,
   // else the one remembered on this device.
   const [stepped, setStepped] = useState<Crew | null>(null)
   const [remembered] = useState(readCrew)
-  const crew =
-    stepped ?? (between(gameCrew, CREW_SIZE_MAX) ? { ...remembered, size: gameCrew } : remembered)
+  const crew = stepped ?? {
+    size: between(gameCrew, CREW_SIZE_MAX) ? gameCrew : remembered.size,
+    techLevel: between(gameTech, TECH_LEVEL_MAX) ? gameTech : remembered.techLevel,
+  }
   const step = (next: Partial<Crew>) => {
     const value = { ...crew, ...next }
     setStepped(value)

@@ -299,9 +299,32 @@ describe('an encounter page', () => {
     const raider = picker.querySelector('[data-searcher-open="raider"]') as HTMLElement
     await click(raider)
     await click(within(picker).getAllByRole('button', { name: /^Add.*Raider/ })[0] as HTMLElement)
+    // One is in already: adding it again asks how many (r7 C13).
+    const count = screen.getByRole('alertdialog', { name: 'Add more Raider' })
+    await click(within(count).getByRole('button', { name: 'Add 1' }))
     await settle(() => current()?.opposition.length === 2)
     // The first reads "Raider 1" once a second is added (r4 D5).
     expect(current()?.opposition.map((o) => o.name)).toEqual(['Raider 1', 'Raider 2'])
+  })
+
+  test('the same opponent again is one add of a count (r7 C13)', async () => {
+    await renderPage()
+    await click(screen.getByRole('button', { name: 'Add opposition from the reference' }))
+    const picker = screen.getByRole('dialog', { name: 'Add opposition from the reference' })
+    await click(picker.querySelector('[data-searcher-open="raider"]') as HTMLElement)
+    await click(within(picker).getAllByRole('button', { name: /^Add.*Raider/ })[0] as HTMLElement)
+    const count = screen.getByRole('alertdialog', { name: 'Add more Raider' })
+    await act(async () => {
+      fireEvent.change(within(count).getByLabelText('How many'), { target: { value: '3' } })
+    })
+    await click(within(count).getByRole('button', { name: 'Add 3' }))
+    await settle(() => current()?.opposition.length === 4)
+    expect(current()?.opposition.map((o) => o.name)).toEqual([
+      'Raider 1',
+      'Raider 2',
+      'Raider 3',
+      'Raider 4',
+    ])
   })
 
   test('Read prints the encounter: no edits, its empty sections left out', async () => {

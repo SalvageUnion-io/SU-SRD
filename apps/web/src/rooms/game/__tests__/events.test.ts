@@ -294,7 +294,8 @@ describe('the table’s events', () => {
     ])
   })
 
-  test('a pilot paired with a mech flies it: the Feed keeps "assigned to" for a person (r5 B14)', () => {
+  // r7 C9 (MD7-07): "flies" read as aboard; a Mech paired is parked until its pilot boards.
+  test('a pilot paired with a mech: their Mech, parked; "assigned to" stays a person’s (r5 B14)', () => {
     const { act, texts } = seated()
     const link = {
       type: 'mech-to-pilot',
@@ -304,8 +305,8 @@ describe('the table’s events', () => {
     act(PLAYER, 'drawLink', { link }, AT + 1)
     act(PLAYER, 'removeLink', { link }, AT + MERGE_MS + 2)
     expect(texts().slice(0, 2)).toEqual([
-      'p1 · Pilot p1 no longer flies Mech m1',
-      'p1 · Pilot p1 flies Mech m1',
+      'Mech m1 is no longer p1 · Pilot p1’s Mech',
+      'Mech m1 is p1 · Pilot p1’s Mech, parked',
     ])
   })
 
@@ -696,6 +697,29 @@ describe('the table’s events', () => {
       expect.objectContaining({ kind: 'session' })
     )
     expect(texts(PLAYER).filter((t) => t.includes('started the group session'))).toHaveLength(1)
+  })
+
+  // r7 C10 (LG7-25): a Pilot left Down and an open area carried into next week unsaid.
+  test('a new session’s first line names a Pilot still Down and an open salvage area', () => {
+    const { act } = seated()
+    act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 0 })] }, AT)
+    act(
+      MEDIATOR,
+      'salvageAreas.set',
+      { area: { name: 'Mutant Nest', techLevel: 1, supply: 4 } },
+      AT + 1
+    )
+    const [start] = act(MEDIATOR, 'session.start', undefined as never, AT + MERGE_MS + 2)
+    expect(start?.text).toBe(
+      'Mediator started the group session · Still open: p1 · Pilot p1 is Down; the salvage area Mutant Nest is open'
+    )
+    expect(start?.session).toBe('start')
+  })
+
+  test('with nothing left open, the line is the start alone', () => {
+    const { act } = seated()
+    const [start] = act(MEDIATOR, 'session.start', undefined as never, AT)
+    expect(start?.text).toBe('Mediator started the group session')
   })
 
   test('taking the turn back, or a player’s own act, starts no session', () => {

@@ -20,7 +20,7 @@
  */
 
 import { ArrowRight } from 'lucide-react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { VitalGauge } from '../components/app'
 import type { CSSVarStyle } from '../components/index'
@@ -90,6 +90,8 @@ export function PlayVital({
   const live = onChange !== undefined
   // "Take 3 damage" is one write: press the number, type the amount, − or +.
   const [asking, setAsking] = useState(false)
+  // A digit typed on the number opens the amount with that digit in it (r7 C8, MD7-21).
+  const [seed, setSeed] = useState('')
   const keys = useVitalKeys()
   // The amount form closed: the focus goes back to the number that opened it (r3 J4).
   const back = useRef(false)
@@ -98,6 +100,17 @@ export function PlayVital({
     back.current = false
     keys.ref.current?.querySelector<HTMLElement>('.su-vital-gauge__value-button')?.focus()
   }, [asking, keys.ref])
+  const digitOrKeys = (event: KeyboardEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement
+    const digit = /^[0-9]$/.test(event.key) && !event.altKey && !event.ctrlKey && !event.metaKey
+    if (!digit || !target.classList.contains('su-vital-gauge__value-button')) {
+      keys.onKeyDownCapture(event)
+      return
+    }
+    event.preventDefault()
+    setSeed(event.key)
+    setAsking(true)
+  }
   if (live && asking) {
     return (
       <PlayVitalAmount
@@ -105,15 +118,17 @@ export function PlayVital({
         value={value}
         max={max}
         onChange={onChange}
+        initial={seed}
         onClose={() => {
           back.current = true
+          setSeed('')
           setAsking(false)
         }}
       />
     )
   }
   return (
-    <div style={ROW} {...(live ? keys : {})}>
+    <div style={ROW} {...(live ? { ...keys, onKeyDownCapture: digitOrKeys } : {})}>
       <div style={GAUGE}>
         <VitalGauge
           size="compact"

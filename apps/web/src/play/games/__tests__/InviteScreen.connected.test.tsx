@@ -18,6 +18,11 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
  */
 
 import { installServerMocks } from '../../../components/__tests__/serverMock'
+import {
+  accountAnswers,
+  accountApiStub,
+  accountWrites,
+} from '../../../lib/account/__tests__/accountApiStub'
 import { answerRoutes, withWorkerRoutes } from '../../../lib/sharing/__tests__/workerRoutes'
 import { sharedPaths } from '../../../lib/sharing/paths'
 import { RoomDeclined } from '../../../replica/roomSocket'
@@ -42,6 +47,7 @@ const serverMocks = await installServerMocks({
     if (redeemError !== null) throw redeemError
     return redeemResult
   },
+  also: { '../../lib/account/accountApi': accountApiStub },
 })
 
 const navigations = serverMocks.navigations
@@ -68,12 +74,14 @@ function preview(over: Record<string, unknown> = {}) {
 /** What joining opens: the Game's own page, in Play. */
 const THE_GAME = { to: '/games/$gameId', params: { gameId: 'g1' } }
 
-function renderJoin(value: unknown, joinOnArrival = false) {
+function renderJoin(value: unknown, joinOnArrival = false, displayName: string | null = 'Sam') {
+  accountAnswers.me = { displayName }
   answerPreview(value)
   navigations.length = 0
   mutationCalls.length = 0
   redeemError = null
   isAuthenticated = true
+  accountWrites.length = 0
   return render(
     <SyncProvider>
       <InviteScreen token={TOKEN} joinOnArrival={joinOnArrival} />
@@ -104,6 +112,23 @@ describe('a live invite', () => {
     renderJoin(preview(), true)
     await waitFor(() => expect(navigations).toEqual([THE_GAME]))
     expect(mutationCalls).toEqual(['invites.redeem'])
+  })
+
+  // r7 C1 (MD7-01, LG7-01): asked once, here, and filled in.
+  test('the Display name is filled in from the account, and a changed one is kept', async () => {
+    renderJoin(preview())
+    const field = screen.getByLabelText('Display name') as HTMLInputElement
+    expect(field.value).toBe('Sam')
+    fireEvent.change(field, { target: { value: 'Ana' } })
+    fireEvent.click(screen.getByText('Join this Game'))
+    await waitFor(() => expect(navigations).toEqual([THE_GAME]))
+    expect(accountWrites).toEqual([{ name: 'updateProfile', args: { displayName: 'Ana' } }])
+  })
+
+  test('back from signing in with no name yet, it asks before joining', () => {
+    renderJoin(preview(), true, null)
+    expect(mutationCalls).toHaveLength(0)
+    expect((screen.getByLabelText('Display name') as HTMLInputElement).value).toBe('')
   })
 
   test('arriving to join a dead link spends nothing', () => {

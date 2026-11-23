@@ -19,7 +19,7 @@
  * A weapon's roll offers its hit (r4 D2), beside the result at the top of the
  * resolve, above the table (r5 B6): "Propose 3 HP to…" lists the seats
  * that take that damage (`hitTargets`), and pressing one sends the proposal,
- * the weapon its reason. Nothing is offered on the table's Failure rows, a
+ * the table its reason, never the NPC (r7 C7). Nothing is offered on the table's Failure rows, a
  * miss; the player still decides whether a proposal applies.
  */
 
@@ -50,7 +50,7 @@ import { npcActions } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
 import type { ProposeArgs } from './ProposeDock'
 import type { HitDamage } from './proposalLine.model'
-import { hitDamageOf, hitTargets } from './proposalLine.model'
+import { hitDamageOf, hitTargets, veiledReason } from './proposalLine.model'
 
 /** Where a weapon's hit goes: the seats a proposal can reach, and the write. */
 export type NpcHit = {
@@ -96,6 +96,8 @@ type PlayNpcActionsProps = {
   hit?: NpcHit | undefined
   /** The dice (a test injects its own). */
   rollFor?: typeof rollForTable | undefined
+  /** An action was rolled: the unit has taken its turn (r7 C3). */
+  onActed?: (() => void) | undefined
 }
 
 export function PlayNpcActions({
@@ -104,6 +106,7 @@ export function PlayNpcActions({
   onMorale,
   hit,
   rollFor = rollForTable,
+  onActed,
 }: PlayNpcActionsProps) {
   const actions = useMemo(() => npcActions(npc), [npc])
   // The action resolving in its Mini: one at a time, as a player's.
@@ -130,6 +133,7 @@ export function PlayNpcActions({
             onOpen={(on) => setOpen(on ? entry.key : null)}
             hit={live ? hit : undefined}
             rollFor={rollFor}
+            onActed={onActed}
           />
         ))}
         <li className="su-play-act" data-action-key="morale">
@@ -162,6 +166,7 @@ function NpcActionRow({
   onOpen,
   hit,
   rollFor,
+  onActed,
 }: {
   npc: TrayNpc
   entry: NpcAction
@@ -170,6 +175,7 @@ function NpcActionRow({
   onOpen: (open: boolean) => void
   hit: NpcHit | undefined
   rollFor: typeof rollForTable
+  onActed: (() => void) | undefined
 }) {
   // The same row text as the player's board: the effect alone.
   // A chassis ability names its chassis by a token: the row reads the name (r5 B9).
@@ -200,6 +206,7 @@ function NpcActionRow({
     }))(20)
     said = npcActionOutcome(die) || undefined
     setRolled({ die, band: said ?? '' })
+    onActed?.()
   }
 
   return (
@@ -245,7 +252,7 @@ function NpcActionRow({
                           {rolled.die} · {rolled.band}
                         </p>
                         {!missed(rolled.band) && damage && hit ? (
-                          <HitOffer npc={npc} weapon={entry.name} damage={damage} hit={hit} />
+                          <HitOffer npc={npc} damage={damage} hit={hit} />
                         ) : null}
                       </div>
                     ) : null}
@@ -279,17 +286,7 @@ function NpcActionRow({
  * names the damage, its menu the seats that take it and what each is left
  * with; a seat pressed is proposed it at once.
  */
-function HitOffer({
-  npc,
-  weapon,
-  damage,
-  hit,
-}: {
-  npc: TrayNpc
-  weapon: string
-  damage: HitDamage
-  hit: NpcHit
-}) {
+function HitOffer({ npc, damage, hit }: { npc: TrayNpc; damage: HitDamage; hit: NpcHit }) {
   const unit = damage.damageType
   const seats = hitTargets(damage, hit.targets)
   if (seats.length === 0) {
@@ -313,7 +310,8 @@ function HitOffer({
                 entityType: target.kind,
                 field,
                 after,
-                reason: `${npc.name} · ${weapon}`.slice(0, PROPOSAL_REASON_MAX),
+                // The roll was veiled: the reason names the table, never the NPC (r7 C7).
+                reason: veiledReason(NPC_ACTION).slice(0, PROPOSAL_REASON_MAX),
               })
               .then(() =>
                 toast.success(

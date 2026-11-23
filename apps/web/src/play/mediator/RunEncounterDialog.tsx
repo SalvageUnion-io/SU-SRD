@@ -6,14 +6,15 @@
  *
  * Adding is the default. Clearing the tray first removes every NPC on it, so
  * the choice says how many, and is the Mediator's own (ADR-007): Run is the
- * act that does it.
+ * act that does it. With no group session live, running one starts it, and
+ * the dialog says so in a ticked line a test run can clear (r7 C6).
  */
 
 import type { Encounter } from 'game-domain/schemas/encounter'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { ConfirmDialog, Radio } from '../../components/app'
-import { capsLabel, InlineRef, Stack, toast, tokens } from '../../components/index'
+import { Checkbox, capsLabel, InlineRef, Stack, toast, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { KIT_PATH } from '../games/prep/gamePrep.model'
@@ -41,7 +42,9 @@ type RunEncounterDialogProps = {
   gameId: string
   /** How many NPCs are on the tray now. */
   onTray: number
-  onRun: (encounterId: string, clear: boolean) => Promise<{ added: number }>
+  /** A group session is live: running one starts none, so the dialog asks nothing of it. */
+  sessionLive: boolean
+  onRun: (encounterId: string, clear: boolean, startSession: boolean) => Promise<{ added: number }>
 }
 
 export function RunEncounterDialog({
@@ -50,11 +53,14 @@ export function RunEncounterDialog({
   encounters: mine,
   gameId,
   onTray,
+  sessionLive,
   onRun,
 }: RunEncounterDialogProps) {
   const id = useId()
   const [chosen, setChosen] = useState<string | null>(null)
   const [clear, setClear] = useState(false)
+  // Running starts the group session, said and ticked, so a test run can say no (r7 C6).
+  const [startSession, setStartSession] = useState(true)
   const games = useGamesQuery('games.listMine', open ? {} : 'skip')
   const choices = runChoices(
     mine,
@@ -116,6 +122,13 @@ export function RunEncounterDialog({
                 />
               </fieldset>
             )}
+            {!sessionLive && (
+              <Checkbox
+                checked={startSession}
+                onChange={(e) => setStartSession(e.target.checked)}
+                words={mediatorCopy('startTheSessionToo')}
+              />
+            )}
           </Stack>
         )
       }
@@ -128,9 +141,10 @@ export function RunEncounterDialog({
       tone={clear && onTray > 0 ? 'danger' : 'default'}
       onConfirm={async () => {
         if (picked === null) return
-        const { added } = await onRun(picked.id, clear && onTray > 0)
+        const { added } = await onRun(picked.id, clear && onTray > 0, sessionLive || startSession)
         toast.success(mediatorCopy('runningAdded', { name: picked.name, added }))
         setClear(false)
+        setStartSession(true)
       }}
     />
   )

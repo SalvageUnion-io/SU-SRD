@@ -320,5 +320,15 @@ export const mediatorCopy = messages({
   acted: 'Acted',
   notActed: 'To act',
   actedFor: 'Acted: {name}',
-  initiativeNote: 'A tracker you move: it enforces nothing.',
+  initiativeNote:
+    'Using an action marks it Acted, and a side all acted passes play on. It enforces nothing.',
+  autoActed: '{name} acted.',
+  startTheSessionToo: 'Start the group session too',
+  pilotHit: '{who}’s hit: {amount} {unit}',
+  pilotHitFor: 'Apply {who}’s hit, {amount} {unit}, to {name}',
+  pilotHitApplied: '{name} took {who}’s hit: {unit} {before} → {after}.',
+  splitOff: 'Split off {name}',
+  autoPassed: '{side} to act.',
+  undoStep: 'Undo',
+  undoStepLabel: 'Undo: {what}',
 })

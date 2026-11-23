@@ -167,7 +167,8 @@ type MediatorPrep = {
   /** The one running; null when none is (or while it loads). */
   running: RunningEncounter | null
   /** Run one: its opposition joins the tray (`clear` empties the tray first). */
-  run: (encounterId: string, clear: boolean) => Promise<{ added: number }>
+  /** `startSession` false: a test run, no group session started for it (r7 C6). */
+  run: (encounterId: string, clear: boolean, startSession?: boolean) => Promise<{ added: number }>
   /** Stop running it: its notes and tables leave Play; the Opposition stays unless `clear`. */
   end: (clear?: boolean) => Promise<void>
   /** Bring a held-back wave onto the tray (ADR-059 §5). */
@@ -547,12 +548,13 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         ...encounters.filter((e) => e.gameId !== gameId),
       ],
       running: running == null ? null : readRunning(running),
-      run: (encounterId, clear) =>
+      run: (encounterId, clear, startSession = true) =>
         runEncounter({
           // A Game room cannot read the Mediator's shelf: their own copy rides along.
           encounter: encounters.find((e) => e.id === encounterId),
           clear,
           ...(flagOn('encounterSheet') ? { waves: true } : {}),
+          ...(startSession ? {} : { startSession: false }),
         }),
       bringIn: (wave) => bringInWave({ wave }),
       end: async (clear = false) => {

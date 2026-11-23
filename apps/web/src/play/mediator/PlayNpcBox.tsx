@@ -72,6 +72,8 @@ type PlayNpcBoxProps = {
   moraleDue?: boolean
   /** Roll its Morale check: the tray's write. */
   onMorale?: () => void
+  /** A Pilot's hit that can land on it (r7 C5): its words and the press that applies it. */
+  hit?: { label: string; name: string; onApply: () => void } | undefined
   /** While Group Initiative is kept (r6 B4): whether it acted this round, and the toggle. */
   acted?: { acted: boolean; onToggle?: (() => void) | undefined } | undefined
 }
@@ -97,6 +99,7 @@ export function PlayNpcBox({
   moraleDue = false,
   onMorale,
   acted,
+  hit,
 }: PlayNpcBoxProps) {
   const detail = useDetailModal(npc.entity ?? undefined, { pattern: npc.pattern ?? undefined })
   const stat = npc.statKind === 'sp' ? 'SP' : 'HP'
@@ -209,6 +212,13 @@ export function PlayNpcBox({
                 tone="adversary"
                 onChange={canWrite ? onHp : undefined}
               />
+            ) : null}
+            {hit !== undefined ? (
+              <span style={CONTROLS}>
+                <Button size="mini" aria-label={hit.name} onClick={hit.onApply}>
+                  {hit.label}
+                </Button>
+              </span>
             ) : null}
             {reactor !== null ? (
               <>

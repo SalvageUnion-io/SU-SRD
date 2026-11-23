@@ -41,6 +41,7 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollInstrument } from '../PlayRollInstrument'
 import { recordPlayRoll, reportingRoll } from '../playRolls.model'
 import type { TrayNpc } from './opposition.model'
+import { veiledReason } from './proposalLine.model'
 import type { PlayMediator, WreckHaul } from './usePlayMediator'
 import { NOTHING } from './usePlayMediator'
 
@@ -123,7 +124,8 @@ export function PlayWreckSalvage({
   ) => {
     let haul: WreckHaul = crawlerHaul
     if (!toCrawler && crawlerHaul !== NOTHING && mech !== null) {
-      haul = { mechId: mech.id, lots: mechLots().lots, reason: label }
+      // Veiled, as its roll: the table, never the wreck (r7 C7).
+      haul = { mechId: mech.id, lots: mechLots().lots, reason: veiledReason(MECH_SALVAGE) }
     }
     setBusy(true)
     void onSettle(npc, haul)

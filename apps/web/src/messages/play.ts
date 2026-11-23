@@ -390,7 +390,13 @@ export const playCopy = messages({
   vitals: 'Vitals',
   unitVitals: '{name}’s vitals',
   sessionLive: 'Session live',
-  startGroupSession: 'Start group session',
+  // Where the campaign is, on a Your Games card (r7 C11).
+  proposals: 'Proposals',
+  nPending: '{n} pending',
+  lastPlayed: 'Last played',
+  nextPlan: 'Next',
+  yours: 'Yours',
+  startGroupSession: 'Start session',
   // A Downtime step waiting, off the Play screen (r6 C5).
   downtimeHasBegunIn: 'Downtime has begun · {game}',
   yourStep: 'Your step',
@@ -405,7 +411,7 @@ export const playCopy = messages({
   couldNotStartSession: 'Could not start the session.',
   sessionStarted: 'The group session has started.',
   couldNotEndSession: 'Could not end the session.',
-  startGroupSessionOf: 'Start a group session of {game}',
+  startGroupSessionOf: 'Start session of {game}',
   // The Mediator's quiet doors on a Game's row (MD4-13): neither starts a session.
   prep: 'Prep',
   prepOf: 'Prep for {game}',

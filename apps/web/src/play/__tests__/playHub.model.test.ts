@@ -60,7 +60,7 @@ describe('its doors', () => {
   const START = {
     label: 'Start session',
     href: '/games/g1/mediate',
-    ariaLabel: 'Start a group session of The Rust Belt Run',
+    ariaLabel: 'Start session of The Rust Belt Run',
     start: true,
   }
 
@@ -184,6 +184,30 @@ describe('its crew', () => {
     expect(crew[3]?.href).toBe('/pilots/a-p2')
   })
 
+  test('the viewer’s own pilot first, marked Yours (r7 C11)', () => {
+    const crew = gameCrew(
+      {
+        crawlers: [crawler('c1', 'Big Sal')],
+        primaryCrawlerId: 'c1',
+        pilots: [
+          pilot({ ownerId: 'u2', name: 'Vesper', _id: 'p2', linkId: 'a-p2' }),
+          pilot({ boarded: true, mechId: 'a-m1' }),
+        ],
+        mechs: [mech({}), mech({ _id: 'm2', linkId: 'a-m2', ownerId: 'u1', name: 'Thresher' })],
+      },
+      'u1'
+    )
+    expect(crew.map((u) => [u.kind, u.name])).toEqual([
+      ['mech', 'Rook'],
+      ['crawler', 'Big Sal'],
+      ['pilot', 'Vesper'],
+      // A spare mech of theirs is no pilot: it keeps its place.
+      ['mech', 'Thresher'],
+    ])
+    expect(crew[0]?.relations?.map((r) => r.name)).toEqual(['Mech', 'Yours'])
+    expect(crew.slice(1).some((u) => u.relations?.some((r) => r.key === 'yours'))).toBe(false)
+  })
+
   test('a member’s own: each unit carries whose it is', () => {
     const crew = pairedCrew({
       pilots: [pilot({ mechId: 'a-m1' })],
@@ -193,6 +217,34 @@ describe('its crew', () => {
       ['u1', 'Rook'],
       ['u2', 'Kite'],
     ])
+  })
+})
+
+describe('where the campaign is (r7 C11)', () => {
+  test('proposals open, last played and the next plan, before the channel', () => {
+    expect(
+      gameChips({
+        mediator: false,
+        here: 0,
+        downtime: undefined,
+        channel: '#salvage-run',
+        pending: 2,
+        played: '3 days ago',
+        next: 'Sat 28 Nov',
+      })
+    ).toEqual([
+      { key: 'role', label: 'Player' },
+      { key: 'pending', label: 'Proposals', value: '2 pending' },
+      { key: 'played', label: 'Last played', value: '3 days ago' },
+      { key: 'next', label: 'Next', value: 'Sat 28 Nov' },
+      { key: 'channel', label: '#salvage-run' },
+    ])
+  })
+
+  test('none of them when nothing is open, played or planned', () => {
+    expect(
+      gameChips({ mediator: true, here: 0, downtime: undefined, pending: 0, played: null })
+    ).toEqual([{ key: 'role', label: 'Mediator' }])
   })
 })
 

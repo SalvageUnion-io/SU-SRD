@@ -14,6 +14,12 @@ import { RoomDeclined } from '../../../replica/roomSocket'
  */
 
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import {
+  accountAnswers,
+  accountApiStub,
+  accountWrites,
+  resetAccountApi,
+} from '../../../lib/account/__tests__/accountApiStub'
 
 let authed = true
 const mutations: { name: string; args: unknown }[] = []
@@ -28,6 +34,7 @@ const serverMocks = await installServerMocks({
     mutations.push({ name, args })
     return results[name]
   },
+  also: { '../../lib/account/accountApi': accountApiStub },
 })
 
 const { NewGameControl } = await import('../NewGameControl')
@@ -63,6 +70,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  resetAccountApi()
   // Process-global: a leaked signed-in state changes what later files exercise.
   resetSync()
 })
@@ -134,8 +142,21 @@ describe('the dialog’s focus (MD2-04)', () => {
 })
 
 describe('starting a game', () => {
+  // r7 C15 (LG7-04): the suggested name is a value, so Create works at once.
+  test('Create takes the suggested name as it stands', async () => {
+    await renderOpen()
+    const field = screen.getByLabelText('New Game name') as HTMLInputElement
+    expect(field.value).toBe('Union Crawler #430')
+    expect(field.getAttribute('placeholder')).toBeNull()
+    await press('Create')
+    expect(mutations).toEqual([
+      { name: 'games.create', args: { name: 'Union Crawler #430', mediator: true } },
+    ])
+  })
+
   test('Create waits for a name, then makes the game and shows it', async () => {
     await renderOpen()
+    fireEvent.change(screen.getByLabelText('New Game name'), { target: { value: ' ' } })
     const create = screen.getByRole('button', { name: 'Create' })
     expect(create.hasAttribute('disabled')).toBe(true)
     // No longer than the room takes.
@@ -159,6 +180,7 @@ describe('starting a game', () => {
   test('Enter in the name creates the Game, and does nothing while it is empty', async () => {
     await renderOpen()
     const name = screen.getByLabelText('New Game name')
+    fireEvent.change(name, { target: { value: '' } })
     await act(async () => {
       fireEvent.keyDown(name, { key: 'Enter' })
     })
@@ -213,5 +235,26 @@ describe('starting a game', () => {
 
     expect(screen.getByRole('alert').textContent).toBe('You have too many games')
     expect(assigned).toEqual([])
+  })
+})
+
+// r7 C1 (MD7-01, LG7-01): the name the table reads is asked here, once, filled in.
+describe('the Display name', () => {
+  test('is filled in from the account, and kept as it is when left alone', async () => {
+    accountAnswers.me = { displayName: 'Sam' }
+    await renderOpen()
+    expect((screen.getByLabelText('Display name') as HTMLInputElement).value).toBe('Sam')
+    await press('Create')
+    expect(accountWrites).toEqual([])
+    expect(mutations.map((m) => m.name)).toEqual(['games.create'])
+  })
+
+  test('a changed name is saved to the profile before the Game is made', async () => {
+    accountAnswers.me = { displayName: null }
+    await renderOpen()
+    fireEvent.change(screen.getByLabelText('Display name'), { target: { value: ' Jo ' } })
+    await press('Create')
+    expect(accountWrites).toEqual([{ name: 'updateProfile', args: { displayName: 'Jo' } }])
+    expect(mutations.map((m) => m.name)).toEqual(['games.create'])
   })
 })
