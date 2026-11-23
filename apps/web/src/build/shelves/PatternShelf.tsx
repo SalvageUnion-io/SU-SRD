@@ -55,14 +55,15 @@ export function PatternShelf({
   const find = useShelfFind(buildShelvesCopy('findAPattern'), kept.length)
   // Its Used by: how many of the account's Mechs were built from it (r7 G2).
   const mechs = useUnits((s) => s.mechs)
-  const rows = kept
-    .map((pattern) => ({
-      pattern,
-      name: pattern.name,
-      ...patternLine(pattern, sharing, games, mechs),
-    }))
-    // Its find box keeps the lines whose name, chassis or description match (r5 D4).
-    .filter((row) => findMatches(find.query, [row.name, row.values.chassis, row.pattern.notes]))
+  const lines = kept.map((pattern) => ({
+    pattern,
+    name: pattern.name,
+    ...patternLine(pattern, sharing, games, mechs),
+  }))
+  // Its find box keeps the lines whose name, chassis or description match (r5 D4).
+  const rows = lines.filter((row) =>
+    findMatches(find.query, [row.name, row.values.chassis, row.pattern.notes])
+  )
   const sorted = sortShelfRows(rows, sort, (row, key) =>
     key === buildShelvesCopy('cost') ? row.values.scrapSort : row.values[key]
   )
@@ -72,6 +73,32 @@ export function PatternShelf({
     () => true,
     remove && ((ids) => remove(kept.filter((p) => ids.includes(p.id))))
   )
+  const shelfRow = ({ pattern, values, saved, over, about }: (typeof lines)[number]) => {
+    const { under, ...rest } = line(pattern, over)
+    return {
+      id: pattern.id,
+      name: pattern.name,
+      href: savedPatternHref(pattern.id),
+      cells: PATTERN_COLUMNS.map((column) =>
+        column.key === 'saved'
+          ? saved
+          : column.key === buildShelvesCopy('cost')
+            ? scrapCell(values[column.key])
+            : (values[column.key] ?? '')
+      ),
+      // Its description's first line, then any mark (r5 D3).
+      under:
+        about === undefined ? (
+          under
+        ) : (
+          <>
+            <span>{about}</span>
+            {under}
+          </>
+        ),
+      ...rest,
+    }
+  }
   return (
     <ShelfLedger
       id="shelf-patterns"
@@ -89,32 +116,8 @@ export function PatternShelf({
       sort={sort}
       onSort={(key) => setSort(nextSort(sort, key))}
       select={select}
-      rows={sorted.map(({ pattern, values, saved, over, about }) => {
-        const { under, ...rest } = line(pattern, over)
-        return {
-          id: pattern.id,
-          name: pattern.name,
-          href: savedPatternHref(pattern.id),
-          cells: PATTERN_COLUMNS.map((column) =>
-            column.key === 'saved'
-              ? saved
-              : column.key === buildShelvesCopy('cost')
-                ? scrapCell(values[column.key])
-                : (values[column.key] ?? '')
-          ),
-          // Its description's first line, then any mark (r5 D3).
-          under:
-            about === undefined ? (
-              under
-            ) : (
-              <>
-                <span>{about}</span>
-                {under}
-              </>
-            ),
-          ...rest,
-        }
-      })}
+      rows={sorted.map(shelfRow)}
+      sizer={lines.filter((row) => !rows.includes(row)).map(shelfRow)}
     />
   )
 }

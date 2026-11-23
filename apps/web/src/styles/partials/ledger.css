@@ -779,3 +779,28 @@
     display: none;
   }
 }
+
+/* The rows a filter hides (`sizer`): one line of no height whose cells hold
+   every hidden value, so they set the columns' widths as their lines did and
+   draw nothing (chrome K17). */
+.su-ledger__sizer {
+  visibility: hidden;
+}
+
+.su-ledger__table .su-ledger__sizer > tr > * {
+  border: 0;
+  padding-block: 0;
+}
+
+.su-ledger__table .su-ledger__sizer > tr > * > * {
+  height: 0;
+  overflow: hidden;
+}
+
+/* A phone's list with no phone column draws its rows as blocks: there are no
+   columns for hidden rows to set. */
+@media not (width >= 40rem) {
+  .su-ledger__table[data-phone-line] .su-ledger__sizer {
+    display: none;
+  }
+}

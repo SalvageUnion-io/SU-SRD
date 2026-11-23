@@ -247,7 +247,9 @@ describe('SchemaViewerIsland', () => {
         sources={getUniqueSources(systems)}
       />
     )
-    expect(container.querySelectorAll('tbody tr').length).toBe(inTheBox.length)
+    expect(container.querySelectorAll('tbody:not(.su-ledger__sizer) tr').length).toBe(
+      inTheBox.length
+    )
     const select = screen.getByRole('combobox', { name: 'Source' }) as HTMLSelectElement
     expect(select.value).toBe(starter)
   })
@@ -461,7 +463,9 @@ describe('SchemaViewerIsland', () => {
       const { container } = renderChassis()
       expect(container.querySelector('.su-listing[data-view="list"]')).toBeTruthy()
       expect(container.querySelectorAll('table')).toHaveLength(1)
-      expect(container.querySelectorAll('tbody tr').length).toBe(chassisEntities().length)
+      expect(container.querySelectorAll('tbody:not(.su-ledger__sizer) tr').length).toBe(
+        chassisEntities().length
+      )
       expect(container.querySelector('.su-listing__tiles')).toBeNull()
       expect(container.querySelector('tbody a[href="/chassis/gopher/"]')).toBeTruthy()
       const views = required(
@@ -527,16 +531,21 @@ describe('SchemaViewerIsland', () => {
       )
     })
 
-    it('shows the filtered count and a removable token only while a filter is on', () => {
+    it('keeps its count line, filtered or not; a removable token only while a filter is on (K17)', () => {
       const { container } = renderChassis()
-      expect(container.querySelector('.su-rail__status')).toBeNull()
-      fireEvent.click(screen.getByRole('button', { name: 'Tech Level 2' }))
+      const all = chassisEntities().length
       const status = required(container.querySelector('.su-rail__status'), 'the status line')
+      expect(status.textContent).toBe(`${all} of ${all}`)
+      fireEvent.click(screen.getByRole('button', { name: 'Tech Level 2' }))
       const matching = chassisEntities().filter((e) => getTechLevel(e) === 2)
-      expect(status.textContent).toContain(`${matching.length} of ${chassisEntities().length}`)
-      expect(container.querySelectorAll('tbody tr').length).toBe(matching.length)
+      expect(container.querySelector('.su-rail__status')?.textContent).toContain(
+        `${matching.length} of ${all}`
+      )
+      expect(container.querySelectorAll('tbody:not(.su-ledger__sizer) > tr').length).toBe(
+        matching.length
+      )
       fireEvent.click(screen.getByRole('button', { name: 'Remove Tech Level 2' }))
-      expect(container.querySelector('.su-rail__status')).toBeNull()
+      expect(container.querySelector('.su-rail__status')?.textContent).toBe(`${all} of ${all}`)
     })
 
     it(
@@ -598,7 +607,9 @@ describe('SchemaViewerIsland', () => {
           .map((b) => b.textContent)
       ).toEqual(['List', 'Tree', 'Catalog'])
       expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
-      expect(container.querySelectorAll('tbody tr').length).toBe(abilities().length)
+      expect(container.querySelectorAll('tbody:not(.su-ledger__sizer) tr').length).toBe(
+        abilities().length
+      )
       fireEvent.click(screen.getByRole('button', { name: 'Tree' }))
       expect(container.querySelector('section[aria-label="Forging Tree"]')).toBeTruthy()
     })

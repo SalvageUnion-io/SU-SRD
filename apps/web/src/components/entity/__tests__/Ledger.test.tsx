@@ -111,6 +111,40 @@ describe('Ledger: rows and columns (L4, L5)', () => {
   })
 })
 
+describe('Ledger: hidden rows size the columns (chrome K17)', () => {
+  const HIDDEN: readonly LedgerRow[] = [
+    { id: 'c', name: 'Mega Laser Cannon', entityRef: undefined, cells: ['', '', ''] },
+  ]
+  // A list whose shown rows fill no Traits: the hidden row that does keeps it.
+  const shown: readonly LedgerRow[] = [{ ...(ROWS[1] as LedgerRow), cells: [0, 'Close', ''] }]
+  const traits: readonly LedgerRow[] = [{ ...(HIDDEN[0] as LedgerRow), cells: ['', '', 'Hot'] }]
+
+  test('a column only a hidden row fills still stands', () => {
+    const bare = draw({ rows: shown })
+    expect(within(bare.container).queryByText('Traits')).toBeNull()
+    bare.unmount()
+    const { container } = draw({ rows: shown, sizer: traits })
+    expect(within(container).getByText('Traits')).toBeTruthy()
+  })
+
+  test('the hidden rows draw no line: one inert, unread line of their values', () => {
+    const { container } = draw({ rows: ROWS, sizer: HIDDEN })
+    const sizer = container.querySelector<HTMLElement>('tbody.su-ledger__sizer')
+    expect(sizer?.getAttribute('aria-hidden')).toBe('true')
+    expect(sizer?.hasAttribute('inert')).toBe(true)
+    expect(sizer?.querySelectorAll('tr')).toHaveLength(1)
+    expect(sizer?.textContent).toContain('Mega Laser Cannon')
+    // The shown rows are the table's only lines, and the only links.
+    expect(container.querySelectorAll('tbody:not(.su-ledger__sizer) > tr')).toHaveLength(2)
+    expect(sizer?.querySelector('a')).toBeNull()
+  })
+
+  test('with nothing hidden there is no sizer', () => {
+    const { container } = draw()
+    expect(container.querySelector('.su-ledger__sizer')).toBeNull()
+  })
+})
+
 describe('Ledger: the foot (L6)', () => {
   test('the sources print once, on the cite foot', () => {
     const { container } = draw({ foot: 'Workshop Manual · p.162' })

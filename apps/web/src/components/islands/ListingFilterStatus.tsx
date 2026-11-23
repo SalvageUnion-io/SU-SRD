@@ -25,24 +25,19 @@ function FilterToken({
 }
 
 /**
- * What a listing is filtered by, on its rail (`ListingRail`'s `status`): the
- * count, a token per filter that removes it, and Clear all.
+ * What a listing is filtered by, on its rail's status line after the count
+ * (`ListingRail`'s `status`): a token per filter that removes it, and Clear all.
  */
 export function ListingFilterStatus({
-  shown,
-  total,
   techLevels,
   filters,
 }: {
-  shown: number
-  total: number
   /** Every Tech Level the listing offers, in the book's order. */
   techLevels: readonly TechLevel[]
   filters: ReturnType<typeof useListingFilters>
 }) {
   return (
-    <output className="su-rail__status" aria-live="polite">
-      <span className="su-rail__tally">{islandsCopy('of', { count: shown, count2: total })}</span>
+    <>
       {[...filters.techLevelFilters].map((key) => {
         const level = techLevels.find((tl) => String(tl) === key)
         if (level == null) return null
@@ -107,6 +102,6 @@ export function ListingFilterStatus({
       <Button variant="ghost" size="compact" onClick={filters.clear}>
         {islandsCopy('clearAll')}
       </Button>
-    </output>
+    </>
   )
 }

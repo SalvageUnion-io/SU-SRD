@@ -1,11 +1,11 @@
 # The Hard Rules
 
-Every canon law ([ruleset](ruleset.md), [EDL](entity-display-language.md), chips-and-actions, ledger, here) names the gate that fails when it breaks: `CANON` in `packages/gates/lib/canon.ts`, held by `bun run check canon`. A law lands with its gate.
-A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pendingRules.ts`): it reports under a ceiling till the screens hold it; at zero, delete it.
+Every canon law ([ruleset](ruleset.md), [EDL](entity-display-language.md), chips-and-actions, ledger, here) names the gate that fails when it breaks: `CANON`, held by `bun run check canon`. A law lands with its gate.
+A gate fails the build unless its rule is **pending** (`e2e/_pendingRules.ts`): it reports under a ceiling; at zero, delete it.
 
 ## Coverage
 
-- **R0 Every layout gate sees every context** — one route list (`designRoutes`, `e2e/_designTable.ts`): every surface in Read and Edit, phone and page widths, signed in. `design-walk.e2e.ts` seeds and walks it once for every layout gate, a baseline per route family; signed out, the gates walk the reference corpus (`REFERENCE_CORPUS`).
+- **R0 Every layout gate sees every context** — one route list (`designRoutes`, `e2e/_designTable.ts`): every surface in Read and Edit, phone and page, signed in. `design-walk.e2e.ts` seeds and walks it once for every layout gate, a baseline per route family; signed out, the reference corpus (`REFERENCE_CORPUS`).
 
 ## Primitives
 
@@ -50,9 +50,7 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pe
 - **R35 The form fits the place** (E2, E3, E11, E19, §1.3, §6.6) — a list item is a Compact, index Compact, Mini or Ledger row; every Live Sheet list item is or holds one (`syntheticItemModel` for a carried thing the reference lacks); a Play list's line is a Mini.
 - **R68 A grid fills its rows** — a grid of items is the one fill grid (`.su-grid`): flex rows that wrap, a short last row growing to its width, to a cap (`--su-grid-max`); no empty track, no orphan cell. Masonry never has more columns than items. A pip track or table is no item grid.
 
-## Chrome
-
-What frames the content (ruleset §4; R16).
+## Chrome (§4, R16)
 
 - **K1 One ground signal** — a surface declares its ground once (`data-ground="paper" | "ink"` on its frame); components read it in CSS, never via a prop. Paper on ink is `--color-paper-NN` alone.
 - **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, in media and container queries and JS. Exceptions: the stat column's cell count, a Compact's art by room (E10).
@@ -70,4 +68,5 @@ What frames the content (ruleset §4; R16).
 - **K14 Every control in reach** — every control sits in its frame at every width; nothing invisible takes its press.
 - **K15 Table notices pin as one** (K5) — one strip: Stop Sign, You now mediate, your Down, answers, the newest, each gone with its news; one height under Play's bar, opening down.
 - **K16 Rules beside the board** — from `lg` Play's Rules are a pane, never a dialog.
+- **K17 A filter moves only its results** — a filter, sort or find keeps its controls, all above them and its columns within 1px.
 - **R52 One muted note** — a lede, hint or note is `Text variant="note"`; no style object pairs a muted ink with a font size.
