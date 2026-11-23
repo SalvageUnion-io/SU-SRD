@@ -6,11 +6,13 @@
  * `PhoneVitals` block under the card (its rows with their − | + at 44px), so
  * the five take one line of the screen until a number has to change; a second
  * tap closes it. A row's number asks for an amount (`PlayVitalAmount`: "take
- * 3" is one write, LG-13). A unit that isn't live is a read-out. From `lg` the Units
+ * 3" is one write, LG-13). Once a change is saved the block closes (r7 B7):
+ * an amount at once, a step at the next press outside it, so a run of − −
+ * stays open and the block never sits over the screen after. A unit that isn't live is a read-out. From `lg` the Units
  * column holds them, so nothing is pinned.
  */
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SHEET_VITALS } from '../build/sheet/sheetVitals.model'
 import { heatDangerFrom, PhoneVitals, PhoneVitalsGlance } from '../components/app'
 import type { CSSVarStyle, PhoneVitalCell } from '../components/index'
@@ -55,6 +57,24 @@ export function PlayPinnedVitals({
   const [open, setOpen] = useState<string | null>(null)
   // "Take 3 damage" in one write: an open row's number asks for the amount.
   const [asking, setAsking] = useState<string | null>(null)
+  // A step saved: the next press outside the block closes it (r7 B7).
+  const changed = useRef(false)
+  const host = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (open === null) return
+    const outside = (event: PointerEvent) => {
+      if (!changed.current || host.current?.contains(event.target as Node)) return
+      changed.current = false
+      setOpen(null)
+      setAsking(null)
+    }
+    document.addEventListener('pointerdown', outside, true)
+    return () => document.removeEventListener('pointerdown', outside, true)
+  }, [open])
+  const write: typeof onWrite = (...args) => {
+    changed.current = true
+    onWrite(...args)
+  }
   if (units.length === 0) return null
   const all = tableUnits(units).flatMap((unit) => unit.vitals.map((v) => ({ unit, v })))
   const picked = all.find(({ v, unit }) => v.label === open && live[unit.kind])
@@ -70,13 +90,20 @@ export function PlayPinnedVitals({
       style: tone(unit.kind),
       hot: redline !== undefined && v.value > redline,
       open: picked?.v.label === v.label,
-      ...(live[unit.kind] ? { onPress: () => setOpen(open === v.label ? null : v.label) } : {}),
+      ...(live[unit.kind]
+        ? {
+            onPress: () => {
+              changed.current = false
+              setOpen(open === v.label ? null : v.label)
+            },
+          }
+        : {}),
     }
   })
   // A mech's Shut down and Vulnerable, under the five (r7 B2).
   const states = units.flatMap((unit) => unit.states ?? [])
   return (
-    <section aria-label={playCopy('pinnedVitals')} className="su-play-pins">
+    <section ref={host} aria-label={playCopy('pinnedVitals')} className="su-play-pins">
       <PhoneVitalsGlance cells={cells} />
       {states.length > 0 ? (
         <div className="su-play-pins__states">
@@ -91,9 +118,11 @@ export function PlayPinnedVitals({
             label={asked.label}
             value={asked.value}
             max={asked.max}
-            onChange={(next, note) =>
+            onChange={(next, note) => {
               onWrite(picked.unit.kind, asked.field, next, asked.label, note)
-            }
+              // An amount is the whole change: saved, the block closes (r7 B7).
+              setOpen(null)
+            }}
             onClose={() => setAsking(null)}
             size="full"
           />
@@ -109,7 +138,7 @@ export function PlayPinnedVitals({
             value: v.value,
             max: v.max,
             ...(danger(v) !== undefined ? { danger: danger(v) } : {}),
-            onChange: (next: number) => onWrite(picked.unit.kind, v.field, next, v.label),
+            onChange: (next: number) => write(picked.unit.kind, v.field, next, v.label),
             onValuePress: () => setAsking(v.label),
           }))}
         />
