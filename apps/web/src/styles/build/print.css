@@ -164,12 +164,15 @@
    * A chip that Peeks its entry (`.su-chip-link`, a button: `CLASS | Engineer`)
    * and a name that does (`.su-inline-ref`: a table's ability or equipment
    * name, a linked word in an entry's text) are read content, so each prints
-   * as its words.
+   * as its words; so is a number set by pressing it (`NumeralField`: the
+   * masthead's TP, r8 F2).
    * ------------------------------------------------------------------------- */
   header:not(#\#),
   [role='dialog']:not(#\#),
   [data-sonner-toaster]:not(#\#),
-  button:not([data-print='keep'], .su-chip-link, .su-inline-ref):not(#\#),
+  button:not([data-print='keep'], .su-chip-link, .su-inline-ref, .su-numeral-field__button):not(
+    #\#
+  ),
   a.su-btn:not([data-print='keep']):not(#\#) {
     display: none;
   }
@@ -262,6 +265,15 @@
     margin-top: 12pt;
   }
 
+  /* A column's section and an ability tree may run on to the next page,
+     an open ability's rules too: kept whole, the abilities left page one
+     half blank and the Pilot sheet took three pages (r8 F2). */
+  .su-dash__col:not(#\#) > .su-sheet-section,
+  .su-pilot-trees:not(#\#) .su-sheet-section,
+  .su-ability-track__tier:not(#\#) {
+    break-inside: auto;
+  }
+
   .su-chapter-band:not(#\#) {
     break-after: avoid;
   }
@@ -313,6 +325,36 @@
   .su-strip__label:not(#\#) {
     flex-wrap: wrap;
     line-height: 1.3;
+    white-space: normal;
+  }
+
+  /* A Mini's name keeps its words whole (r8 F2): paper is narrower than the
+     screen its chips were fitted on, and the name gave way to a letter a
+     line. On paper the pill is three columns, the tier, the name and the
+     chips: the name takes the room between, never less than its longest
+     word, and the chips stack where the line is short. */
+  .su-entity-mini__pill:not(#\#) {
+    display: grid;
+    grid-template-columns: auto minmax(min-content, 1fr) auto;
+    white-space: normal;
+  }
+
+  .su-entity-mini__notch:not(#\#) {
+    grid-column: 2;
+  }
+
+  .su-entity-mini__chips:not(#\#) {
+    flex-wrap: wrap;
+    grid-column: 3;
+    justify-content: flex-end;
+  }
+
+  .su-entity-mini__notch:not(#\#),
+  .su-entity-mini__name:not(#\#) {
+    min-width: auto;
+    overflow: visible;
+    overflow-wrap: break-word;
+    text-overflow: clip;
     white-space: normal;
   }
 
