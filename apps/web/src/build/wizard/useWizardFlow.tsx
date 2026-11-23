@@ -143,6 +143,8 @@ export type WizardFlow<TStep extends string> = {
   shell: WizardShellProps
   /** Signed out: open the shell's "Sign in to save" (a step's own save asks as Create does); else undefined. */
   askSignIn: (() => void) | undefined
+  /** Go to a step at once (a full pattern's pick opens Name & Review, r7 F9); the rail keeps the ones between. */
+  goTo: (step: TStep) => void
 }
 
 export function useWizardFlow<
@@ -356,6 +358,7 @@ export function useWizardFlow<
     gate,
     submitError: invalid ?? save.error,
     askSignIn: signedOut ? () => setAskSignIn(true) : undefined,
+    goTo,
     shell: {
       steps: steps.map((s) => stepLabels[s]),
       active: currentIndex,

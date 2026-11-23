@@ -130,7 +130,7 @@ export function MechWizard({
   // The step machine + the create submit, shared with the pilot, crawler and
   // NPC wizards (`useWizardFlow`); the mech's create input is a plain projection
   // of the form.
-  const { step, gate, submitError, shell, askSignIn } = useWizardFlow({
+  const { step, gate, submitError, shell, askSignIn, goTo } = useWizardFlow({
     entityType: 'mech',
     noun: 'mech',
     steps: STEPS,
@@ -198,9 +198,12 @@ export function MechWizard({
    * steps 4–5 from the pattern (expanding per-entry `count`) and debits the
    * budget accordingly. The arithmetic stays enforced on the prefilled state
    * — `legalStarting` patterns fit by data, and the Review gate re-checks.
+   * A pattern is a whole build, so its pick opens Name & Review; Systems and
+   * Quirk stay one press back on the rail (r7 F9).
    */
   function selectPattern(pattern: ChassisPattern) {
     setForm((prev) => withPatternPrefill(prev, pattern))
+    goTo('review')
   }
 
   /** Custom build: clear the prefill for a manual craft (idempotent-ish). */
@@ -349,9 +352,8 @@ export function MechWizard({
     )
   }
 
-  // The action bar's budgets. Scrap rides every step that can spend it; the
-  // slot counts join it on step 2 from sm (a phone's bar is one budget, and
-  // the step's own meters show all three).
+  // The action bar's budgets, the one place they show (r7 F10). Scrap rides
+  // every step that can spend it; the slot counts join it on step 2.
   const trackers = (() => {
     const scrap = (
       // Spent, as the slots read filled: every budget counts up to its cap.

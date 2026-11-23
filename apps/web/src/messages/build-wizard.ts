@@ -73,9 +73,8 @@ export const buildWizardCopy = messages({
   startNew: 'Start new {fresh}',
   draftKept: 'Your {label} draft is kept in this tab. Resume it from the Training Bay.',
   draftKeptBrowser: 'Your {label} draft is kept in this browser. Resume it from the Training Bay.',
-  tryItNow: 'Try it now. Saving needs a free sign-in.',
-  tryItNowTab:
-    'Try it now. Saving needs a free sign-in; until then the draft is kept in this tab only.',
+  tryItNow: 'Saving needs a free sign-in.',
+  tryItNowTab: 'Saving needs a free sign-in; until then the draft is kept in this tab only.',
   signInToBuildThis:
     'Building from a pattern saves the Mech at once, which needs an account. Sign in with Discord and your choice is here when you come back.',
   notNow: 'Not now',
@@ -91,8 +90,6 @@ export const buildWizardCopy = messages({
   startBlank: 'Start blank',
   orStart: 'Or:',
   orBuildItGuided: 'Or build it step by step, guided',
-  startNeedsSignIn: '{label} (needs a sign-in)',
-  startsSaveAtOnce: 'Each saves at once.',
   continueYourDraft: 'Continue your draft',
   fromAPattern: 'From a pattern',
   aPatternIsYourPlan:
@@ -119,6 +116,8 @@ export const buildWizardCopy = messages({
   noEquipment: 'No Equipment',
   noTechLevel1Equipment: 'No Tech Level 1 equipment found.',
   roll: 'Roll {lowerCase}',
+  rollTheRest: 'Roll the rest',
+  rollTheRestHint: 'Fills every empty field that has a table.',
   signInToSave: 'Sign in to save',
   signedInPressSave: 'Signed in. Press {label} to save it.',
   yourBuildIsKeptAsADraft:
@@ -142,6 +141,7 @@ export const buildWizardCopy = messages({
   steps: 'Steps',
   stepOf: 'Step {value} of {count} ·',
   saved: 'Saved {value}.',
+  rulesForThisStep: 'Rules for this step',
   readTheRule: 'Read the rule',
   foldTheRule: 'Fold the rule',
   moreActions: 'More actions',

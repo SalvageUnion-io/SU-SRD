@@ -23,6 +23,7 @@ import { CallsignStep } from '../wizard/CallsignStep'
 import { ClassAbilityStep } from '../wizard/ClassAbilityStep'
 import { EquipmentStep } from '../wizard/EquipmentStep'
 import { FlavorStep } from '../wizard/FlavorStep'
+import { RollTheRest } from '../wizard/RollTheRest'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { RollTableDeps } from '../wizard/rollTableHelpers.model'
@@ -415,7 +416,6 @@ export function PilotWizard({
             selectedAbilities={form.abilities}
             onSelectClass={handleSelectClass}
             onSelectAbility={handleSelectAbility}
-            cite={ruleFor('classAbility').cite}
             _sur={_sur ? { Classes: sur.Classes, Abilities: sur.Abilities } : undefined}
           />
         </>
@@ -436,66 +436,70 @@ export function PilotWizard({
       )}
       {step === 'identity' && (
         // Five book steps, a part each: the field over the book's words for
-        // it, in two columns where there is room. Only the first is required.
-        <div className="su-wiz-parts">
-          <div className="su-wiz-parts__col">
-            {part(
-              'callsign',
-              <CallsignStep
-                name={form.name}
-                callsign={form.callsign}
-                onChange={(field, value) => updateForm({ [field]: value })}
-                _rollDeps={_rollDeps}
-              />
-            )}
-            {part(
-              'motto',
-              <FlavorStep
-                field="motto"
-                label={pilotCopy('motto')}
-                value={form.motto}
-                onChange={(v) => updateForm({ motto: v })}
-                placeholder={pilotCopy('aPhraseYourPilotLives')}
-                _rollDeps={_rollDeps}
-              />
-            )}
-            {part(
-              'keepsake',
-              <FlavorStep
-                field="keepsake"
-                label={pilotCopy('keepsake')}
-                value={form.keepsake}
-                onChange={(v) => updateForm({ keepsake: v })}
-                placeholder={pilotCopy('somethingPreciousFromYourPast')}
-                _rollDeps={_rollDeps}
-              />
-            )}
+        // it, in two columns where there is room. Only the Callsign is
+        // required (r7 F7); Roll the rest fills every empty field at once.
+        <>
+          <RollTheRest values={form} onRolled={updateForm} _rollDeps={_rollDeps} />
+          <div className="su-wiz-parts">
+            <div className="su-wiz-parts__col">
+              {part(
+                'callsign',
+                <CallsignStep
+                  name={form.name}
+                  callsign={form.callsign}
+                  onChange={(field, value) => updateForm({ [field]: value })}
+                  _rollDeps={_rollDeps}
+                />
+              )}
+              {part(
+                'motto',
+                <FlavorStep
+                  field="motto"
+                  label={pilotCopy('motto')}
+                  value={form.motto}
+                  onChange={(v) => updateForm({ motto: v })}
+                  placeholder={pilotCopy('aPhraseYourPilotLives')}
+                  _rollDeps={_rollDeps}
+                />
+              )}
+              {part(
+                'keepsake',
+                <FlavorStep
+                  field="keepsake"
+                  label={pilotCopy('keepsake')}
+                  value={form.keepsake}
+                  onChange={(v) => updateForm({ keepsake: v })}
+                  placeholder={pilotCopy('somethingPreciousFromYourPast')}
+                  _rollDeps={_rollDeps}
+                />
+              )}
+            </div>
+            <div className="su-wiz-parts__col">
+              {part(
+                'background',
+                <BackgroundStep
+                  background={form.background}
+                  onChange={(v) => updateForm({ background: v })}
+                  description={form.description}
+                  onDescriptionChange={(v) => updateForm({ description: v })}
+                  _rollDeps={_rollDeps}
+                />
+              )}
+              {part(
+                'appearance',
+                <FlavorStep
+                  field="appearance"
+                  label={pilotCopy('appearance')}
+                  value={form.appearance}
+                  onChange={(v) => updateForm({ appearance: v })}
+                  placeholder={pilotCopy('howDoesYourPilotLook')}
+                  multiline
+                  _rollDeps={_rollDeps}
+                />
+              )}
+            </div>
           </div>
-          <div className="su-wiz-parts__col">
-            {part(
-              'background',
-              <BackgroundStep
-                background={form.background}
-                onChange={(v) => updateForm({ background: v })}
-                description={form.description}
-                onDescriptionChange={(v) => updateForm({ description: v })}
-                _rollDeps={_rollDeps}
-              />
-            )}
-            {part(
-              'appearance',
-              <FlavorStep
-                field="appearance"
-                label={pilotCopy('appearance')}
-                value={form.appearance}
-                onChange={(v) => updateForm({ appearance: v })}
-                placeholder={pilotCopy('howDoesYourPilotLook')}
-                multiline
-                _rollDeps={_rollDeps}
-              />
-            )}
-          </div>
-        </div>
+        </>
       )}
       {step === 'review' && (
         <ReviewStep

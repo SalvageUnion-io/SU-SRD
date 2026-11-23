@@ -41,6 +41,8 @@ type PickListProps<T> = {
   stamp?: (row: T) => ReactNode
   /** Under a picked row's name: its made choices (`CHOSEN | Energy`, R60). */
   under?: (row: T) => ReactNode
+  /** Under every row's name on a phone only: a column the phone drops, said there (r7 F6). */
+  phoneUnder?: (row: T) => ReactNode
   /** Why a row cannot be picked now; it dims, and says why on a pointer. */
   disabled?: (row: T) => string | undefined
   /** A dimmed row's reason in a word or two, marked on the row itself, undimmed (r4 E22). */
@@ -50,7 +52,7 @@ type PickListProps<T> = {
   /** `always`: the detail opens under its line at every width (a row's own fields). */
   detailAt?: 'narrow' | 'always'
   /** The foot: where the book prints it, on its cut-out, a plain fact left of it (`COSTS | …`). */
-  foot?: { cite: BookCite; meta?: { label: string; value: string } }
+  foot?: { cite?: BookCite; meta?: { label: string; value: string } }
 }
 
 export function PickList<T>({
@@ -65,6 +67,7 @@ export function PickList<T>({
   count,
   stamp,
   under,
+  phoneUnder,
   disabled,
   why,
   detail,
@@ -104,7 +107,7 @@ export function PickList<T>({
               </>
             ),
           cells: columns.map((column) => column.value(row)),
-          under: picked ? under?.(row) : undefined,
+          under: underOf(picked ? under?.(row) : undefined, phoneUnder?.(row)),
           ...(count ? { picked } : {}),
           ...(blocked !== undefined ? { blocked } : {}),
           ...(detail && key === selected ? { detail: detail(row) } : {}),
@@ -123,9 +126,20 @@ export function PickList<T>({
             : {}),
         }
       })}
-      {...(foot ? { foot: <CiteLine text={formatCite(foot.cite)} /> } : {})}
+      {...(foot?.cite ? { foot: <CiteLine text={formatCite(foot.cite)} /> } : {})}
       {...(foot?.meta ? { footMeta: [foot.meta] } : {})}
     />
+  )
+}
+
+/** What stands under a row's name: its made choices, then its phone-only line. */
+function underOf(made: ReactNode, phone: ReactNode): ReactNode {
+  if (phone === undefined || phone === null || phone === '') return made
+  return (
+    <>
+      {made}
+      <span className="su-wiz-phone-under">{phone}</span>
+    </>
   )
 }
 

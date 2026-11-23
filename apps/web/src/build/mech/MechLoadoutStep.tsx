@@ -2,8 +2,8 @@
 // Ledger form (`PickList`, its count pick). The Tech 1 Systems and the Tech 1
 // Modules are a framed list each, a line an item: Slots, SV, Action, RNG and
 // DMG in fixed columns, and its count's stepper at the line's end.
-// The step opens on the three budgets as meters (`WizMeter`), Scrap among
-// them; a list's head says no budget of its own, so its count keeps its frame. Beside
+// Its three budgets, Scrap among them, stand once, in the action bar's
+// trackers (r7 F10); a list's head says no budget of its own. Beside
 // each list stand the line it has in focus, as its contentful card (where an
 // option it asks is chosen), and what is installed from it so far; on a phone
 // the card opens under its line. Only Tech 1 renders, a copy costs its SV from
@@ -12,11 +12,7 @@
 import { useMemo, useState } from 'react'
 import type { BookCite, ChoiceSelections, RefModule, RefSystem } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import {
-  isLegalCreationModule,
-  isLegalCreationSystem,
-  MECH_CREATION_SCRAP_CAP,
-} from 'salvageunion-reference/rules'
+import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
 import { Badge, ReferenceEntityCard } from '../../components/index'
 import { maxAddableCopies } from '../../lib/rules/creation'
 import { LOCOMOTION } from '../../lib/rules/locomotion'
@@ -25,7 +21,6 @@ import { PickList } from '../wizard/PickList'
 import { choicesOf, chosenChips, loadoutColumns } from '../wizard/pickColumns'
 import { RecapMinis } from '../wizard/ReviewRecap'
 import { SkipToNext } from '../wizard/SkipToNext'
-import { WizMeter } from '../wizard/WizBudget'
 
 type Kind = 'systems' | 'modules'
 type Item = RefSystem | RefModule
@@ -204,27 +199,5 @@ export function MechLoadoutStep({
     )
   }
 
-  return (
-    <div className="su-wiz-step">
-      {/* The three budgets, each a meter counting up: Scrap spent, slots filled. */}
-      <div className="su-wiz-budget">
-        <WizMeter
-          label={mechCopy('scrapSpent')}
-          value={MECH_CREATION_SCRAP_CAP - scrapRemaining}
-          max={MECH_CREATION_SCRAP_CAP}
-        />
-        <WizMeter
-          label={mechCopy('systemSlots')}
-          value={slots.systems.used}
-          max={slots.systems.max}
-        />
-        <WizMeter
-          label={mechCopy('moduleSlots')}
-          value={slots.modules.used}
-          max={slots.modules.max}
-        />
-      </div>
-      {KINDS.map(band)}
-    </div>
-  )
+  return <div className="su-wiz-step">{KINDS.map(band)}</div>
 }

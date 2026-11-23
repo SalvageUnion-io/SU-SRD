@@ -87,18 +87,21 @@ function endDowntimeBody(stepIndex: number | null, inGame: boolean): string {
  * The Situation as ⋯ rows below `lg`: On foot, a row for each mech that can
  * be boarded, Downtime, then Table mode. The row that is so now says "Now"
  * and does nothing. Downtime is the Mediator's in a Game, so a player's row
- * there only reads; every move is off while writes cannot go.
+ * there only reads; every move is off while writes cannot go. A signed-out
+ * trial (`trial`) has no Downtime row: it plays a round only (r7 F3).
  */
 export function situationRows({
   play,
   moves,
   tableOn,
   setTableOn,
+  trial = false,
 }: {
   play: Play
   moves: SituationMoves
   tableOn: boolean
   setTableOn: (on: boolean) => void
+  trial?: boolean
 }): HeaderMenuItem[] {
   const { situation, canWrite, canChangeDowntime } = play
   const { downtime, locked } = play.downtime
@@ -122,13 +125,19 @@ export function situationRows({
           ? undefined
           : () => moves.go({ kind: 'board', option }),
     })),
-    {
-      id: 'downtime',
-      label: playCopy('downtimeWord'),
-      hint: downtime.running ? now : locked ? playCopy('setByTheMediator') : undefined,
-      onSelect:
-        canWrite && canChangeDowntime && !downtime.running ? () => play.startDowntime() : undefined,
-    },
+    ...(trial
+      ? []
+      : [
+          {
+            id: 'downtime',
+            label: playCopy('downtimeWord'),
+            hint: downtime.running ? now : locked ? playCopy('setByTheMediator') : undefined,
+            onSelect:
+              canWrite && canChangeDowntime && !downtime.running
+                ? () => play.startDowntime()
+                : undefined,
+          },
+        ]),
     {
       id: 'table-mode',
       label: playCopy(tableOn ? 'leaveTableMode' : 'tableMode'),

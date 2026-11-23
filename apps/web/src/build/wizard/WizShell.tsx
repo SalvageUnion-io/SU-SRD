@@ -35,6 +35,7 @@ import {
   stepTitleCaps,
   stepTitleStyle,
 } from './wizShellStyles.model'
+import { useWizTaught, WizTaughtContext } from './wizTaught.model'
 import '../../styles/build/wizard.css'
 import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
@@ -494,6 +495,9 @@ export function WizShell({
     </div>
   )
 
+  // After a first finished build the long rule boxes fold to a line (r7 F10).
+  const taught = useWizTaught()
+
   return (
     <div className={`su-wiz-shell su-sheet--${kind}`}>
       {/* The page title as every other page sets it. A paragraph: the step's
@@ -545,7 +549,7 @@ export function WizShell({
                       <KeepAsFile {...keepAsFile} />
                     </div>
                   )}
-                  {children}
+                  <WizTaughtContext.Provider value={taught}>{children}</WizTaughtContext.Provider>
                   {footerNote && (
                     <p id={STEP_NOTE_ID} role="status" style={stepNoteStyle}>
                       {footerNote}

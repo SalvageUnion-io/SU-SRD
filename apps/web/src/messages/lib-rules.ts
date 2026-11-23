@@ -32,6 +32,7 @@ export const libRulesCopy = messages({
   pickItemOne: 'Choose {remaining} more equipment item to continue',
   pickItemMany: 'Choose {remaining} more equipment items to continue',
   enterANameToContinue: 'Enter a Name to continue',
+  enterACallsignToContinue: 'Enter a Callsign to continue',
   classPick: 'class pick',
   craftYourChassis: 'Craft your Chassis to continue',
   nameYourMech: 'Name your Mech to continue',

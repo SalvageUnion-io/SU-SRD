@@ -11,6 +11,7 @@
  *    locked (🔒, "set by the Mediator") and only shows it running. Solo (or for
  *    the Mediator) it starts Downtime; leaving it for On foot or Board ends
  *    it, behind a confirm, since a new Downtime starts from the first step.
+ *    A signed-out trial plays a round only, so it has no Downtime (r7 F3).
  *
  * Every option is off while writes cannot go (Disconnected, Outdated). What
  * each press does is `Play`'s (`usePlaySituation`); this only draws it.
@@ -21,6 +22,7 @@ import { ChevronDown, Lock } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { HeaderMenu, Segmented, SegmentedOption, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
+import { useSync } from '../replica/syncContext'
 import type { BoardOption } from './boardMenu.model'
 import { boardable, boardedMechName, boardMenuSections } from './boardMenu.model'
 import type { Play } from './situation.model'
@@ -67,6 +69,7 @@ export function PlaySituationSwitch({
   fill?: boolean
 }) {
   const { go, dialogs } = useSituationMoves(play)
+  const { trial = false } = useSync()
   const { situation, mechs, canWrite, canChangeDowntime } = play
   const { downtime, locked } = play.downtime
   const running = downtime.running
@@ -110,25 +113,27 @@ export function PlaySituationSwitch({
           disabled={!canWrite}
           onChoose={(option) => go({ kind: 'board', option })}
         />
-        <SegmentedOption
-          pressed={situation === 'downtime'}
-          // Locked and not running, there is nothing to show or press.
-          disabled={!canWrite || (locked && !running)}
-          title={locked ? SET_BY_MEDIATOR : undefined}
-          aria-label={
-            locked
-              ? playCopy('downtime', { setByMediatorPhrase: SET_BY_MEDIATOR_PHRASE })
-              : undefined
-          }
-          onClick={() => {
-            if (!running && canChangeDowntime) play.startDowntime()
-          }}
-        >
-          {playCopy('downtimeWord')}
-          {locked && !running && (
-            <Lock size={tokens.iconSize.mini} aria-hidden="true" style={GLYPH} />
-          )}
-        </SegmentedOption>
+        {!trial && (
+          <SegmentedOption
+            pressed={situation === 'downtime'}
+            // Locked and not running, there is nothing to show or press.
+            disabled={!canWrite || (locked && !running)}
+            title={locked ? SET_BY_MEDIATOR : undefined}
+            aria-label={
+              locked
+                ? playCopy('downtime', { setByMediatorPhrase: SET_BY_MEDIATOR_PHRASE })
+                : undefined
+            }
+            onClick={() => {
+              if (!running && canChangeDowntime) play.startDowntime()
+            }}
+          >
+            {playCopy('downtimeWord')}
+            {locked && !running && (
+              <Lock size={tokens.iconSize.mini} aria-hidden="true" style={GLYPH} />
+            )}
+          </SegmentedOption>
+        )}
       </Segmented>
       {dialogs}
     </div>

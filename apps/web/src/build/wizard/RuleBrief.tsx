@@ -1,10 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { useId, useState } from 'react'
+import { useContext, useId, useState } from 'react'
 import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
 import { Box, Button, EntityCardIdentityFooter, Eyebrow, tokens } from '../../components/index'
 import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import { WizTaughtContext } from './wizTaught.model'
 
 /** Per-step rule metadata carried by each wizard's step table. */
 export type StepRule = {
@@ -19,7 +20,9 @@ type RuleBriefProps = StepRule & {
   /**
    * A wizard step's brief: on a phone a long rule shows its first two lines
    * and a `Read the rule` toggle, so the step's picks start on the first
-   * screen. The cite always shows.
+   * screen. The cite always shows. Once the wizard has taught (a finished
+   * build of the player's own, `WizTaughtContext`), a long rule shows as one
+   * "Rules for this step" line at every width, opening in place (r7 F10).
    */
   fold?: boolean
   /**
@@ -63,8 +66,31 @@ const citeStyle = { margin: 0 } satisfies CSSProperties
  */
 export function RuleBrief({ rule, cite, className, fold = false, children }: RuleBriefProps) {
   const [open, setOpen] = useState(false)
+  const [shown, setShown] = useState(false)
+  const taught = useContext(WizTaughtContext)
   const ruleId = useId()
   const folds = fold && typeof rule === 'string' && rule.length > FOLD_FROM
+  // Taught: the rule waits behind one line, its ask (a field) still in reach.
+  if (folds && taught && !shown) {
+    const toggle = (
+      <Button size="mini" variant="ghost" aria-expanded={false} onClick={() => setShown(true)}>
+        {buildWizardCopy('rulesForThisStep')}
+      </Button>
+    )
+    if (!children) return <div className={className}>{toggle}</div>
+    return (
+      <Box
+        as="section"
+        label={buildWizardCopy('theRule')}
+        className={className}
+        body="flush"
+        frameColor="var(--tone)"
+      >
+        <div className="su-wiz-rule-brief__ask">{children}</div>
+        <div className="su-wiz-rule-brief__text su-wiz-rule-brief__text--under">{toggle}</div>
+      </Box>
+    )
+  }
   // A wizard step's brief (`fold`) wears the site's
   // cite-foot cut-out, the card's own foot in the kind's band paint.
   if (fold) {

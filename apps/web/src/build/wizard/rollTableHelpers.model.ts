@@ -87,3 +87,41 @@ export async function rollOnNamedTable(
 
   return outcome.label ? `${outcome.label}: ${outcome.value}` : outcome.value
 }
+
+/**
+ * What each of the Pilot wizard's identity fields rolls on (r7 F7). The Name
+ * has no table of its own in the book, so its Roll is the Callsign Table's: a
+ * Callsign may be the Pilot's actual name (Workshop Manual p.19).
+ */
+export const PILOT_IDENTITY_ROLLS = {
+  callsign: 'callsign',
+  name: 'callsign',
+  motto: 'motto',
+  keepsake: 'keepsake',
+  background: 'background',
+  appearance: 'appearance',
+} as const satisfies Record<string, PilotRollField>
+
+export type PilotIdentityField = keyof typeof PILOT_IDENTITY_ROLLS
+
+/**
+ * "Roll the rest" (r7 F7): every identity field still empty, rolled on its
+ * table at once; what is typed is left as typed. A roll that lands on no row
+ * leaves its field empty.
+ */
+export async function rollTheRest(
+  values: Record<PilotIdentityField, string>,
+  deps: RollTableDeps = defaultRollTableDeps
+): Promise<Partial<Record<PilotIdentityField, string>>> {
+  const empty = (Object.keys(PILOT_IDENTITY_ROLLS) as PilotIdentityField[]).filter(
+    (field) => values[field].trim() === ''
+  )
+  const rolled = await Promise.all(
+    empty.map(
+      async (field) => [field, await rollForPilotField(PILOT_IDENTITY_ROLLS[field], deps)] as const
+    )
+  )
+  return Object.fromEntries(
+    rolled.filter(([, value]) => value !== null && value !== NO_EFFECT)
+  ) as Partial<Record<PilotIdentityField, string>>
+}
