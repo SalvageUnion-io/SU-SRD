@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { runAct } from '../acts'
 import { AT, MEDIATOR, ORGANIZER, PLAYER, STRANGER, table } from './harness'
 
 describe('the group session', () => {
@@ -28,5 +29,24 @@ describe('the group session', () => {
     const { room } = table('g2', { mediator: false })
     expect(room.session.start(ORGANIZER, AT)).toBe(true)
     expect(room.session.session(PLAYER).live).toBe(true)
+  })
+
+  test('ending it marks the plan the table played, by the day the Mediator says (r8 B8)', () => {
+    const { room, gameId } = table()
+    const sessions = [
+      { id: 's1', date: '2026-11-23', note: '' },
+      { id: 's2', date: '2026-11-30', note: '' },
+    ]
+    room.plan.write(MEDIATOR, { schemaVersion: 1, notes: '', sessions }, AT)
+    room.session.start(MEDIATOR, AT)
+    const end = runAct({ room, actor: MEDIATOR, gameId, at: AT + 1 }, 'session.end', {
+      day: '2026-11-23',
+    })
+    expect(end.ok).toBe(true)
+    expect(room.plan.read(MEDIATOR).sessions.map((s) => s.played)).toEqual([
+      '2026-11-23',
+      undefined,
+    ])
+    expect(room.plan.sessionDays('2026-11-22')).toEqual(['2026-11-30'])
   })
 })

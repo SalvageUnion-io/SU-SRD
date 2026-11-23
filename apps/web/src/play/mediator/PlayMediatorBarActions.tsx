@@ -68,7 +68,7 @@ export function PlayMediatorBarActions({
   return (
     <>
       {/* On the board, never in a menu, a phone's bar too (r8 B10): the table's own switch, and its word. */}
-      <SessionControl session={session} inBar />
+      <SessionControl session={session} inBar stay />
       <Button variant="ink" size="compact" onClick={() => setTelling(true)}>
         {mediatorCopy('tellTheTable')}
       </Button>

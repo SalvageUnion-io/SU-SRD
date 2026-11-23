@@ -7,7 +7,8 @@
  * Adding is the default. Clearing the tray first removes every NPC on it, so
  * the choice says how many, and is the Mediator's own (ADR-007): Run is the
  * act that does it. With no group session live, running one starts it, and
- * the dialog says so in a ticked line a test run can clear (r7 C6).
+ * the dialog says so in a ticked line a test run can clear (r7 C6). It
+ * starts on the first encounter not yet run at this table (r8 B8).
  */
 
 import type { Encounter } from 'game-domain/schemas/encounter'
@@ -17,6 +18,7 @@ import { ConfirmDialog, Radio } from '../../components/app'
 import { Checkbox, capsLabel, InlineRef, Stack, toast, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { useGamesQuery } from '../../replica/roomCalls'
+import { useTableRead } from '../../replica/useTable'
 import { KIT_PATH } from '../games/prep/gamePrep.model'
 import { choiceLine, runChoices, trayChoiceLabel } from './runEncounter.model'
 
@@ -68,7 +70,13 @@ export function RunEncounterDialog({
     (other) => games?.find((g) => g._id === other)?.name ?? null
   )
   const encounters = choices.map((c) => c.encounter)
-  const picked = encounters.find((e) => e.id === chosen) ?? encounters[0] ?? null
+  // The first not yet run at this table leads (r8 B8, MD8-09): last week's fight is never preselected.
+  const ran = new Set(useTableRead('mediator.ran', open ? { gameId } : 'skip') ?? [])
+  const picked =
+    encounters.find((e) => e.id === chosen) ??
+    encounters.find((e) => !ran.has(e.id)) ??
+    encounters[0] ??
+    null
 
   return (
     <ConfirmDialog

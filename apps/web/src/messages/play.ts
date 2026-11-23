@@ -403,6 +403,8 @@ export const playCopy = messages({
   couldNotStartSession: 'Could not start the session.',
   sessionStarted: 'The group session has started.',
   couldNotEndSession: 'Could not end the session.',
+  sessionEnded: 'The group session has ended.',
+  readTheRecap: 'Read the recap',
   startGroupSessionOf: 'Start session of {game}',
   // The Mediator's quiet doors on a Game's row (MD4-13): neither starts a session.
   prep: 'Prep',

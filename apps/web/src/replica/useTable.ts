@@ -156,6 +156,11 @@ const ANSWERED_BY: Record<ReadName, Answer> = {
     table: 'mediator',
     answer: (held) => (held as { initiative?: unknown } | null)?.initiative ?? null,
   },
+  // The encounters run here (r8 B8), on the same record.
+  'mediator.ran': {
+    table: 'mediator',
+    answer: (held) => (held as { ran?: unknown } | null)?.ran ?? [],
+  },
   'seats.forGame': { table: 'seats' },
   'seats.solo': { table: 'seats', answer: soloSeat },
   'downtime.state': {
@@ -183,6 +188,7 @@ type Reads = {
   'mediator.running': RunningEncounter | null
   'mediator.amMediator': boolean
   'mediator.initiative': Initiative | null
+  'mediator.ran': string[]
   'seats.forGame': SeatRead[]
   'seats.solo': SoloSeatRead | null
   'downtime.state': DowntimeState | null

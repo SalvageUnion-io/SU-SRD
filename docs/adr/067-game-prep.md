@@ -103,7 +103,7 @@ One row per Game room (`plan`), read and written only by the table runner:
 
 ```
 GamePlan { schemaVersion: 1, notes, sessions: Session[] }
-Session  { id, date?, title?, note, scenes?: Scene[] }
+Session  { id, date?, title?, note, scenes?: Scene[], played? }
 Scene    { id, title, note?, encounterId? }
 ```
 
@@ -146,6 +146,14 @@ them editable in Prep again, and that dialog says so.
 **The session days are every member's.** A Game's read (`games.get`) carries
 `sessionDays`: the coming sessions' days, soonest first, and nothing else of
 the plan (never a title or a note). The Game's page shows the next one.
+
+**A plan the table played is played** (amended 2026-11-23, r8 B8). Ending the
+group session marks the plan it played: the latest not yet played whose day
+has come by the Mediator's clock (`session.end` sends their day), else the
+first not played with no day; one dated later is never guessed at. A session
+gains an optional `played` day, and nothing is migrated. A played plan is
+never the next one and its day leaves `sessionDays`; a save from a screen
+read before the mark keeps it.
 
 ### 5. The Kit stands under Games
 
