@@ -112,7 +112,8 @@ function useRailEntries(
  * A chosen Mini focuses that entry's Card (`onFocus`). In toggle and count
  * mode each has a Remove (✕); a single pick is replaced by picking another, so
  * it has none. Removing an entry hands focus to the entry now in its place, or to the heading once
- * the list is empty, so a keyboard user never lands on <body>.
+ * the list is empty, so a keyboard user never lands on <body>; or, given `refocus`, to what it
+ * names (a picker's search, r7 G6), so the next keys never press another Remove.
  */
 export function SelectionRail({
   wide,
@@ -126,6 +127,7 @@ export function SelectionRail({
   mode,
   onToggle,
   onRemove,
+  refocus,
   onFocus,
   actions,
 }: {
@@ -142,6 +144,8 @@ export function SelectionRail({
   mode: 'toggle' | 'count' | 'single'
   onToggle?: (ref: string) => void
   onRemove?: (index: number) => void
+  /** Where focus goes after a Remove, in place of the next entry's ✕. */
+  refocus?: (() => HTMLElement | null) | undefined
   onFocus: (ref: string) => void
   actions?: ReactNode
 }) {
@@ -169,8 +173,8 @@ export function SelectionRail({
     pendingFocus.current = null
     if (entries.length > pending.length) return
     const next = removeRefs.current[Math.min(pending.position, entries.length - 1)]
-    ;(next ?? toggleRef.current ?? headingRef.current)?.focus()
-  }, [entries])
+    ;(refocus?.() ?? next ?? toggleRef.current ?? headingRef.current)?.focus()
+  }, [entries, refocus])
 
   function remove(entry: RailEntry, position: number) {
     pendingFocus.current = { position, length: entries.length }

@@ -260,6 +260,8 @@ export function EntitySearcher({
     const price = cost?.(item)
     if (price?.canPay) price.onPay()
     else add(idOf(item))
+    // The Page beside the list shows what was just added (r7 G6).
+    if (wide && !browse) setFocusId(idOf(item))
   }
   function addFirstMatch() {
     // The highlighted row; else, typed, the first row the search NAMES (r4 E5:
@@ -480,6 +482,8 @@ export function EntitySearcher({
         mode={focusMode}
         onToggle={onToggle}
         onRemove={onRemove}
+        // After a Remove, typing goes to the search again, never to the next ✕ (r7 G6).
+        refocus={wide ? () => searchRef.current : undefined}
         onFocus={open}
         actions={actions}
       />
