@@ -148,7 +148,7 @@ describe('a live invite', () => {
 describe('a link that is no good', () => {
   test('an unknown link says so, explains invite links and offers no sign-in', () => {
     renderJoin(null)
-    expect(screen.getByText(/does not work/i)).toBeTruthy()
+    expect(screen.getByText(/has expired/i)).toBeTruthy()
     expect(screen.getByText(/may have been reset/i)).toBeTruthy()
     // An old typed code from `/join/…` lands here too: say how joining works now.
     expect(screen.getByText(/there is no code to type/i)).toBeTruthy()
@@ -159,7 +159,7 @@ describe('a link that is no good', () => {
   test('still checking is not the same as invalid', () => {
     renderJoin(undefined)
     expect(screen.getByText(/Checking that invite/i)).toBeTruthy()
-    expect(screen.queryByText(/does not work/i)).toBeNull()
+    expect(screen.queryByText(/has expired/i)).toBeNull()
   })
 })
 
@@ -193,11 +193,16 @@ describe('a visitor who is not signed in', () => {
       </SyncProvider>
     )
 
-    expect(screen.getByText(/does not work/i)).toBeTruthy()
+    expect(screen.getByText(/has expired/i)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Sign in to join' })).toBeNull()
     // Its ways on: back to your shelves, and — signed out — a plain sign-in.
     expect(screen.getByRole('link', { name: 'Back to Games' }).getAttribute('href')).toBe('/games/')
-    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
+    // r8 C7 (LG8-21): Games leads; sign-in, which cannot fix the link, is second and outlined.
+    const games = screen.getByRole('link', { name: 'Back to Games' })
+    const signIn = screen.getByRole('button', { name: 'Sign in with Discord' })
+    expect(games.className).toContain('su-btn--primary')
+    expect(signIn.className).not.toContain('su-btn--primary')
+    expect(games.compareDocumentPosition(signIn) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     isAuthenticated = true
   })
 })

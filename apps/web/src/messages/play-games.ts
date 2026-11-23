@@ -270,13 +270,14 @@ export const playGamesCopy = messages({
   tl: 'TL',
   techLevel: 'Tech Level',
 
-  inviteLinkCopyFailed: 'The invite link could not be copied. Try again, or select it and copy it.',
+  inviteLinkCopyFailed: 'The invite link could not be copied. Select it above and copy it.',
   copyInviteLink: 'Copy invite link',
+  shareInviteLink: 'Share invite link',
   gameDeleteFailed: 'That Game could not be deleted. Try again.',
   goBackToWhoeverOwnsThem: '{who} go back to whoever owns them, in their {bay}.',
   howInvitesWork:
     'A Game is joined from the invite link its Organiser sends you. Open the link and sign in to join; there is no code to type.',
-  inviteLinkDoesNotWork: 'That invite link does not work.',
+  inviteLinkDoesNotWork: 'That invite link has expired.',
   inviteLinkAskAgain:
     'It may have been reset, or not copied whole. Ask whoever invited you for the current link.',
   youreInvitedTo: "You're invited to ",

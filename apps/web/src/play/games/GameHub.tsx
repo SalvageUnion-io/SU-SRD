@@ -51,7 +51,7 @@ import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { useGameSession } from '../useGameSession'
 import { sceneConditionNames, useScene } from '../useScene'
 import { useStopSign } from '../useStopSign'
-import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
+import { InviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { FormerNotes } from './FormerNotes'
 import { GameBand } from './GameBand'
@@ -152,8 +152,7 @@ function GameSections({ game }: { game: Game }) {
             // this column, so they are the section's body, under its title.
             <SlabSection as="h2" id="invite-link-heading" title={playGamesCopy('inviteLink')}>
               <div style={HUB_ACTIONS}>
-                <CopyInviteLink gameId={gameId} />
-                <ResetInviteLink gameId={gameId} />
+                <InviteLink gameId={gameId} />
               </div>
             </SlabSection>
           )}
