@@ -43,7 +43,7 @@ import { libRulesCopy } from '../../messages/lib-rules'
 import type { CrawlerWizardFormState } from '../wizard/crawlerFormState'
 import type { MechWizardFormState } from '../wizard/mechFormState'
 import type { PilotWizardFormState } from '../wizard/pilotFormState'
-import { REQUIRED_PILOT_NAME } from '../wizard/pilotFormState'
+import { callsignGate } from './pilotNameGate'
 import { isStartingEquipment } from './startingEquipment'
 
 /** Book-order pilot wizard step ids (Pilot Bay pp.18–19 + Review). */
@@ -172,16 +172,6 @@ function equipmentGate(form: PilotWizardFormState): StepGateResult {
   const remaining = pilotEquipmentPicksRemaining(count)
   const reason = libRulesCopy(remaining === 1 ? 'pickItemOne' : 'pickItemMany', { remaining })
   return { ok: false, reason }
-}
-
-/** The name the wizard needs (`REQUIRED_PILOT_NAME`, r7 F7): the other is optional. */
-function callsignGate(form: PilotWizardFormState): StepGateResult {
-  if (form[REQUIRED_PILOT_NAME].trim() === '') {
-    const reason =
-      REQUIRED_PILOT_NAME === 'callsign' ? 'enterACallsignToContinue' : 'enterANameToContinue'
-    return { ok: false, reason: libRulesCopy(reason) }
-  }
-  return OK
 }
 
 /**

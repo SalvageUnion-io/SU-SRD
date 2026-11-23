@@ -78,8 +78,7 @@ export function storedCallsign(callsign: string, name: string): string {
 export type PilotNameField = 'name' | 'callsign'
 
 /**
- * Owner ruling (Jrvs, 2026-11-23, r7 F7): which name the Pilot wizard needs
- * before Review. The Callsign, the name the game uses; the Name is optional,
+ * The owner's ruling (r7 F7): which name the Pilot wizard needs before Review. The Callsign, the name the game uses; the Name is optional,
  * and left blank it is stored as the Callsign (a pilot's record keeps both).
  * `'name'` puts back r6 F5's rule (Name required, a blank Callsign is the Name).
  */
