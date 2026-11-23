@@ -116,8 +116,38 @@ describe('mechPatternStamp', () => {
         () => saved
       )
       expect(stamp?.loadout).toEqual({ systems: ['chainsaw-arm', 'red-laser'], modules: [] })
-      // From the mech's side (r6 E2).
-      expect(stamp?.differs).toBe('Removed Chainsaw Arm · added Red Laser')
+      // What the pattern has that the Mech lacks reads from the pattern's side (r7 G3).
+      expect(stamp?.differs).toBe(
+        'Digger has 1 System this Mech lacks: Chainsaw Arm · added Red Laser'
+      )
+      expect(stamp?.lacksOnly).toBeUndefined()
+    })
+
+    test('a pattern that gained parts says what the Mech lacks, never "removed" (r7 G3)', () => {
+      const saved = {
+        name: 'Longhaul',
+        chassisRef: 'mule',
+        systems: ['red-laser', 'hydraulic-crusher', 'green-laser', 'floodlights'],
+        modules: ['comms-module'],
+      }
+      const stamp = mechPatternStamp(
+        { chassisRef: 'mule', sourcePattern: 'p1', systems: ['floodlights'], modules: [] },
+        () => saved
+      )
+      expect(stamp?.differs).toBe(
+        'Longhaul has 3 Systems and 1 Module this Mech lacks: Red Laser, Hydraulic Crusher, Green Laser, Comms Module'
+      )
+      expect(stamp?.lacksOnly).toBe(true)
+    })
+
+    test('a Mech that added parts says what it added (r6 E2)', () => {
+      const saved = { name: 'Digger', chassisRef: 'mule', systems: [], modules: [] }
+      const stamp = mechPatternStamp(
+        { chassisRef: 'mule', sourcePattern: 'p1', systems: ['red-laser'], modules: [] },
+        () => saved
+      )
+      expect(stamp?.differs).toBe('Added Red Laser (vs Digger)')
+      expect(stamp?.lacksOnly).toBeUndefined()
     })
   })
 

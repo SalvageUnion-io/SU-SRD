@@ -1,17 +1,19 @@
 /**
  * The drift line (r6 E2): a mech whose loadout is no longer its pattern's
- * says how, from the mech's side ("Removed Hydraulic Crusher · added Red
- * Laser (vs Grinder Scrapper)"), as the body's first line in Read and Edit
- * alike, and carries what to do about it where the viewer writes the mech:
+ * says how, each side from the side that has more ("Longhaul has 3 Systems
+ * this Mech lacks: …", r7 G3; "Added Red Laser (vs Longhaul)"), as the body's
+ * first line in Read and Edit alike, and carries what to do about it where
+ * the viewer writes the mech:
  *
  * - **Update the pattern from this Mech**, where the pattern is the viewer's
  *   own: the mech's Systems and Modules are written over the pattern, which
  *   keeps its id, links and share settings (`replacePattern`, its notice's
  *   Undo puts the old build back). The pattern alone changes
  *   (the E2 ruling in `build/rulings.model.ts`): other mechs built from it show their own drift.
- * - **Bring back to the pattern** (r5 D2): the pattern's Systems and Modules
- *   back on the mech, at once, with the sheet's Undo line. Damage, Heat and
- *   cargo stay.
+ * - **Bring back to the pattern** (r5 D2), or **Bring them in** where the
+ *   Mech only lacks what the pattern has (r7 G3): the pattern's Systems and
+ *   Modules on the mech, at once, with the sheet's Undo line, which says the
+ *   Mech now matches it. Damage, Heat and cargo stay.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
@@ -59,7 +61,7 @@ export function PatternCatchUp({
   return (
     <section aria-label={buildSheetCopy('driftLabel', { name: mech.name })} style={LINE}>
       <Text variant="note" style={WORDS}>
-        {buildSheetCopy('driftVs', { differs: stamp.differs ?? '', pattern: stamp.name })}
+        {stamp.differs}
       </Text>
       {patch && patternId !== undefined && (
         <Button size="compact" onClick={() => void updatePattern(mech, stamp, patternId)}>
@@ -75,7 +77,7 @@ export function PatternCatchUp({
             undoToast(buildSheetCopy('broughtUpToDate', names), () => patch(before), mech.id)
           }}
         >
-          {buildSheetCopy('bringBackToPattern')}
+          {stamp.lacksOnly ? buildSheetCopy('bringThemIn') : buildSheetCopy('bringBackToPattern')}
         </Button>
       )}
     </section>

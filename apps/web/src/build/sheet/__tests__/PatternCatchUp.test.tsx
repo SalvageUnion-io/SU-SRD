@@ -13,7 +13,8 @@ afterEach(() => {
 const stamp = {
   name: 'Digger',
   changed: true as const,
-  differs: 'Removed Chainsaw Arm',
+  differs: 'Digger has 1 System this Mech lacks: Chainsaw Arm',
+  lacksOnly: true as const,
   loadout: { systems: ['red-laser', 'chainsaw-arm'], modules: [] },
 }
 
@@ -22,11 +23,12 @@ describe('PatternCatchUp', () => {
     const patch = mock(() => {})
     const mech = mechFixture({ id: 'm-1', name: 'Digger 2', systems: ['red-laser'], modules: [] })
     render(<PatternCatchUp mech={mech} stamp={stamp} patch={patch} />)
-    expect(screen.getByText('Removed Chainsaw Arm (vs Digger)')).toBeTruthy()
+    expect(screen.getByText('Digger has 1 System this Mech lacks: Chainsaw Arm')).toBeTruthy()
     // Not the viewer's pattern: nothing to update.
     expect(screen.queryByRole('button', { name: 'Update the pattern from this Mech' })).toBeNull()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Bring back to the pattern' }))
+      // What the pattern has, brought in (r7 G3).
+      fireEvent.click(screen.getByRole('button', { name: 'Bring them in' }))
     })
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(patch).toHaveBeenCalledWith({ systems: ['red-laser', 'chainsaw-arm'], modules: [] })
@@ -34,6 +36,7 @@ describe('PatternCatchUp', () => {
       | { action: { onClick: (e: never) => void } }
       | undefined
     expect(line).toBeDefined()
+    expect((line as { title?: unknown } | undefined)?.title).toBe('Digger 2 now matches Digger.')
     line?.action.onClick(undefined as never)
     expect(patch).toHaveBeenLastCalledWith({ systems: ['red-laser'], modules: [] })
   })
@@ -46,6 +49,20 @@ describe('PatternCatchUp', () => {
     expect(screen.getByRole('button', { name: 'Update the pattern from this Mech' })).toBeTruthy()
     rerender(<PatternCatchUp mech={mech} stamp={{ ...stamp, own: true }} />)
     expect(screen.queryByRole('button')).toBeNull()
-    expect(screen.getByText('Removed Chainsaw Arm (vs Digger)')).toBeTruthy()
+    expect(screen.getByText('Digger has 1 System this Mech lacks: Chainsaw Arm')).toBeTruthy()
+  })
+
+  test('a Mech that differs both ways is brought back to the pattern', () => {
+    const mech = mechFixture({ id: 'm-1', name: 'Digger 2' })
+    const { lacksOnly: _only, ...both } = stamp
+    render(
+      <PatternCatchUp
+        mech={mech}
+        stamp={{ ...both, differs: 'Added Red Laser (vs Digger)' }}
+        patch={() => {}}
+      />
+    )
+    expect(screen.getByText('Added Red Laser (vs Digger)')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Bring back to the pattern' })).toBeTruthy()
   })
 })
