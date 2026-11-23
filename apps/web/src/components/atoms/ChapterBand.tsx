@@ -172,6 +172,11 @@ export type ChapterBandProps = {
   scale?: 'page' | 'og'
   /** The notched title's font size, when the scale's own does not fit the name. */
   titleSize?: string
+  /**
+   * The title's accessible name, when it holds a control beside its words (a
+   * Game's Rename, r8 C4, LG8-22): the heading reads the name alone.
+   */
+  titleLabel?: string
 }
 
 const ROOT = {
@@ -287,6 +292,7 @@ export function ChapterBand({
   grain,
   scale = 'page',
   titleSize,
+  titleLabel,
 }: ChapterBandProps) {
   // A link preview is a picture at one size: it never bleeds.
   const bleed = scale === 'page'
@@ -326,6 +332,7 @@ export function ChapterBand({
   const title = (
     <Tag
       id={id}
+      aria-label={titleLabel}
       data-fill-name={fillName ? '' : undefined}
       data-beside={beside ? '' : undefined}
       className={cn('su-chapter-band__title', TITLE_CAPS)}

@@ -148,7 +148,6 @@ export const playGamesCopy = messages({
   deleteThisGame: 'Delete this Game…',
   gameSettingsMenu: 'Game settings…',
   gameSettings: 'Game settings',
-  gameName: 'Name',
   // Under the band's Mediate (r6 C3).
   sessionStartsWithPlay: 'Running an encounter or telling the table starts the session',
   noSessionYet: 'No session yet',

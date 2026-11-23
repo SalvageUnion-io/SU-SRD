@@ -350,8 +350,8 @@ describe('the sections under the roster', () => {
     await openGameMenu()
     fireEvent.click(screen.getByRole('menuitem', { name: 'Game settings…' }))
     const settings = within(screen.getByRole('alertdialog'))
-    expect((settings.getByLabelText('Name') as HTMLInputElement).value).toBe(GAME.name)
-    fireEvent.change(settings.getByLabelText('Name'), { target: { value: 'Rust Coast' } })
+    // The name is renamed on the band, not here (r8 C4, MD8-29).
+    expect(settings.queryByLabelText('Name')).toBeNull()
     fireEvent.change(settings.getByLabelText('Description'), { target: { value: 'A long haul.' } })
     await act(async () => {
       fireEvent.click(settings.getByRole('button', { name: 'Save' }))
@@ -359,7 +359,7 @@ describe('the sections under the roster', () => {
     expect(mutations).toEqual([
       {
         name: 'games.update',
-        args: { gameId: 'g1', name: 'Rust Coast', description: 'A long haul.' },
+        args: { gameId: 'g1', description: 'A long haul.' },
       },
     ])
   })
@@ -421,6 +421,8 @@ describe('the sections under the roster', () => {
     await renderHub({
       'games.get': { ...GAME, organizer: true, mediator: true },
     })
+    // The heading is the name alone, its Rename beside it (r8 C4, LG8-22).
+    expect(screen.getByRole('heading', { level: 1, name: GAME.name })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: `Rename ${GAME.name}` }))
     const field = screen.getByRole('textbox', { name: 'Game name' }) as HTMLInputElement
     expect(field.value).toBe(GAME.name)
@@ -777,7 +779,7 @@ describe('the Discord channel on the Game page', () => {
     expect(sidebar.queryByRole('button', { name: /Discord/ })).toBeNull()
   })
 
-  test('the Organiser is offered Set up there, and in Game settings', async () => {
+  test('the Organiser is offered Set up there, and only there (r8 C4)', async () => {
     await renderLive({ 'games.get': { ...GAME, organizer: true } })
     const sidebar = within(screen.getByRole('complementary', { name: 'The Game' }))
     expect(sidebar.getByText('None bound: rolls stay at the table')).toBeTruthy()
@@ -785,7 +787,7 @@ describe('the Discord channel on the Game page', () => {
     await openGameMenu()
     fireEvent.click(screen.getByRole('menuitem', { name: 'Game settings…' }))
     const settings = within(screen.getByRole('alertdialog', { name: 'Game settings' }))
-    expect(settings.getByText('Discord channel')).toBeTruthy()
+    expect(settings.queryByText('Discord channel')).toBeNull()
   })
 })
 
