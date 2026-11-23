@@ -1,7 +1,7 @@
 /**
  * PlayCockpit — the player's Play screen for one pilot, in a Game or solo
  * (Direction A, the Cockpit), on `PlayFrame`'s one layout: the Play bar,
- * then the panes: Act, Crew, Rolls and Rules as tabs on a phone (Units from
+ * then the panes: Act, Crew, Feed and Rules as tabs on a phone (Units from
  * the bar's ⋯), and Units over the Feed | Actions | Crew, Tables and the
  * Rules from `lg`, then the foot. Who may open it is `PlayGate`'s question,
  * asked before this renders.
@@ -234,15 +234,16 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
     if (from !== undefined)
       zeroVitalNotice(zeroUnit(useUnits.getState(), kind, id), field, from, to)
   }
-  // The button on that notice: the Rolls tab, where the table opens (`PlayTables`).
+  // The button on that notice: the roll tables, where the table opens (`PlayTables`).
   const closeSheet = onScreen.close
   useEffect(
     () =>
       onPlayTableAsked(() => {
         closeSheet()
-        setTab('tables')
+        // Below `lg` the roll tables head the Rules tab (r8 A5).
+        setTab(wide ? 'tables' : 'rules')
       }),
-    [closeSheet]
+    [closeSheet, wide]
   )
   const openTab = (next: PlayerPane) => {
     onScreen.close()
@@ -266,12 +267,20 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
       </>
     ),
     crew: <PlayCrewSection target={target} play={play} side={side} />,
-    tables: <PlayerTablesAndFeed target={target} play={play} side={side} feed={!wide} />,
-    // The Reference inside Play, a player's too (the Mediator's `SrdExplorer`).
-    rules: (
-      <div style={wide ? undefined : RULES}>
-        <SrdExplorer />
-      </div>
+    tables: <PlayerTablesAndFeed target={target} play={play} side={side} feed={false} />,
+    // Below `lg` the Feed's own tab (r8 A5).
+    feed: <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />,
+    // The Reference inside Play, a player's too (the Mediator's `SrdExplorer`);
+    // below `lg` the roll tables at its head (r8 A5).
+    rules: wide ? (
+      <SrdExplorer />
+    ) : (
+      <>
+        <PlayerTablesAndFeed target={target} play={play} side={side} feed={false} />
+        <div style={RULES}>
+          <SrdExplorer />
+        </div>
+      </>
     ),
   }
   // Who is playing, on the band's cut-out.
@@ -280,10 +289,10 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
     play.situation === 'boarded' && play.boardedMech !== null
       ? playCopy('pilotInMech', { pilot: pilotWord, mech: play.boardedMech.name })
       : pilotWord
-  // A proposal awaiting this player's answer sits in the Feed, the Rolls tab's on a phone.
+  // A proposal awaiting this player's answer sits in the Feed, its own tab on a phone.
   const waiting = side.entries.some((entry) => entry.kind === 'proposal')
   // Somebody else's line landed while the Feed was out of sight (r4 B7): the
-  // bar says so, and its press goes there (on a phone, by way of the Rolls tab).
+  // bar says so, and its press goes there (on a phone, by way of the Feed tab).
   const feedMark = useFeedMark(side.entries, FEED_ID)
   const [toFeed, setToFeed] = useState(0)
   useEffect(() => {
@@ -291,7 +300,7 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
   }, [toFeed])
   const jumpToFeed = () => {
     feedMark.clear()
-    if (!wide) openTab('tables')
+    if (!wide) openTab('feed')
     setToFeed((n) => n + 1)
   }
 
@@ -383,8 +392,8 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
         }
         panes={(wide
           ? [...playerPanes(solo), RULES_PANE]
-          : // New in the Feed marks the Rolls tab too, its bar icon gone (r7 B7).
-            playerPhonePanes(solo, waiting || feedMark.shown ? 'tables' : null)
+          : // New in the Feed marks the Feed tab too, its bar icon gone (r7 B7).
+            playerPhonePanes(solo, waiting || feedMark.shown ? 'feed' : null)
         ).map((p) => ({ ...p, node: nodes[p.value] }))}
         tabs={PLAYER_TABS}
         tab={tab}

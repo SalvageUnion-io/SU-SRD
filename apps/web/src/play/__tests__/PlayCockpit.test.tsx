@@ -248,7 +248,7 @@ describe('below `lg`: the same panes as tabs (play.md §11)', () => {
       // No foot: the tabs take the screen's foot.
       expect(screen.queryByRole('contentinfo')).toBeNull()
       const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
-      expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Crew', 'Rolls', 'Rules'])
+      expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Crew', 'Feed', 'Rules'])
       const bar = within(screen.getByRole('banner'))
       // The band's crumb names the Game and the phase; the title says who is playing.
       expect(bar.getByText('Tenacity')).toBeTruthy()
