@@ -475,6 +475,7 @@ export function useActionsDeck({
             : {
                 disabled: roll === null || pushed || pushLocked,
                 pushed,
+                heat: pushHeat,
                 lockedReason: pushLocked
                   ? playCopy('noPushAtHeatWouldPass', {
                       heat: heatCtx.currentHeat,

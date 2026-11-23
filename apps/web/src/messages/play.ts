@@ -475,6 +475,8 @@ export const playCopy = messages({
   heatCheckDue: 'Heat {heat}/{cap}: make a Heat Check',
   makeTheHeatCheck: 'Roll the Heat Check',
   pushStamp: 'Push:',
+  pushHeatStamp: 'Push · +{gain} Heat:',
+  pushHeat: 'Push · +{gain} Heat',
   heatCheckStamp: 'Heat Check:',
   rollTheDiceStamp: 'Roll the Dice:',
   copy: 'Copy',

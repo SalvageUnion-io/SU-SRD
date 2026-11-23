@@ -16,7 +16,9 @@
  * The roll is the table's (`PlayRollInstrument`, R8): its ROLL THE DIE stamp
  * is the one roll control, and the result is its marked row. Once a mech's
  * action has rolled, the same stamp reads Push (reroll, +2 Heat and a Heat
- * Check, Core Book p.233) while a Push is open to it.
+ * Check, Core Book p.233) while a Push is open to it, saying the Heat it
+ * adds. After a Success it is not the stamp (r7 B1): a quiet text button
+ * under the table, so the next press cannot throw the Success away.
  *
  * Inside a Mini, which nests nothing (E6), so the steps are plain buttons and
  * plain content (the Nested Frames Audit, play.md §12): no box, card, entity
@@ -69,6 +71,9 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
   const { controls, roll, salvage } = view
   // Rolled, a mech's action Pushes from the same stamp while it may.
   const push = roll && controls.push && !controls.push.disabled ? controls.push : null
+  // A Success (or Nailed It) is not thrown away by the next press (r7 B1).
+  const quietPush = push !== null && (roll?.band === 'success' || roll?.band === 'nailed')
+  const stampPush = quietPush ? null : push
   const [settingArea, setSettingArea] = useState(false)
   // After a roll the keyboard is on Apply, never left on the stamp, which now
   // reads Push: a second Enter there would reroll and add Heat (r4 A3).
@@ -106,7 +111,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
   // Offline the steps are held (r6 A14); a Push and an Area Salvage wait.
   const holds = offline && salvage === undefined
   const writes = canWrite || holds
-  const waits = offline && (!holds || push !== null)
+  const waits = offline && (!holds || stampPush !== null)
   return (
     <div ref={hostRef} className="su-play-resolve">
       {/* Mounted before the first roll, so the d20, its band and Apply are
@@ -187,16 +192,27 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
       <PlayRollInstrument
         table={salvage ? AREA_SALVAGE_TABLE : CORE_MECHANIC_TABLE}
         roll={salvage ? salvage.roll : (roll?.roll ?? null)}
-        stamp={push ? 'Push:' : undefined}
-        pressAs={push ? 'push' : 'roll'}
+        stamp={stampPush ? playCopy('pushHeatStamp', { gain: stampPush.heat }) : undefined}
+        pressAs={stampPush ? 'push' : 'roll'}
         onRoll={
-          writes && !waits && salvageOpen && !controls.rollLockedReason
-            ? rolls(push ? push.onPush : controls.onRoll)
+          writes && !waits && !quietPush && salvageOpen && !controls.rollLockedReason
+            ? rolls(stampPush ? stampPush.onPush : controls.onRoll)
             : undefined
         }
         // What waits for the connection says where a die still rolls (r6 A14).
         off={salvageShut ?? (waits ? playCopy('rollWaitsOffline') : undefined)}
       />
+      {quietPush && push && (
+        <Button
+          variant="ghost"
+          size="mini"
+          onClick={rolls(push.onPush)}
+          disabled={!canWrite}
+          title={canWrite ? undefined : playCopy('rollWaitsOffline')}
+        >
+          {playCopy('pushHeat', { gain: push.heat })}
+        </Button>
+      )}
       {view.held && <p style={NOTE}>{playCopy('notSentYet')}</p>}
       {controls.push?.lockedReason && <p style={NOTE}>{controls.push.lockedReason}</p>}
 
