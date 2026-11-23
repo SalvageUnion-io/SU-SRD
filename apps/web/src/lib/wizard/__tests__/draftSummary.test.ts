@@ -23,17 +23,28 @@ describe('wizardDraftSummary', () => {
     expect(wizardDrafts()).toEqual([])
   })
 
-  test('a draft is named by its pick, pilots first', () => {
+  test('a draft is named by its pick until a name is typed, pilots first', () => {
     keep('mech', { ...EMPTY_MECH_FORM_STATE, chassisName: 'mule' })
-    keep('pilot', { ...EMPTY_PILOT_FORM_STATE, classId: classId('Hacker'), name: 'Ada Test' })
+    keep('pilot', { ...EMPTY_PILOT_FORM_STATE, classId: classId('Hacker') })
     expect(wizardDrafts()).toEqual([
       { kind: 'pilot', label: 'Hacker pilot' },
       { kind: 'mech', label: 'Mule mech' },
     ])
   })
 
-  test('a draft with no pick yet is its bare kind', () => {
-    keep('pilot', { ...EMPTY_PILOT_FORM_STATE, name: 'Ada' })
+  test('a typed name names the draft (r7 F8, SB7-13)', () => {
+    keep('pilot', { ...EMPTY_PILOT_FORM_STATE, classId: classId('Scout'), name: 'Mara Quill' })
+    keep('mech', { ...EMPTY_MECH_FORM_STATE, chassisName: 'mule', name: 'Old Faithful' })
+    expect(wizardDrafts()).toEqual([
+      { kind: 'pilot', label: 'Mara Quill' },
+      { kind: 'mech', label: 'Old Faithful' },
+    ])
+    keep('pilot', { ...EMPTY_PILOT_FORM_STATE, callsign: 'Sparks', name: 'Mara Quill' })
+    expect(wizardDraftSummary('pilot')?.label).toBe('Sparks · Mara Quill')
+  })
+
+  test('a draft with no pick and no name yet is its bare kind', () => {
+    keep('pilot', { ...EMPTY_PILOT_FORM_STATE })
     expect(wizardDraftSummary('pilot')).toEqual({ kind: 'pilot', label: 'pilot' })
   })
 })
