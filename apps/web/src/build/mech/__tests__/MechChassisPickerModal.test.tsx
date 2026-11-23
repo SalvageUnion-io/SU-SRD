@@ -94,37 +94,41 @@ describe('MechChassisPickerModal', () => {
   )
 
   it(
-    'Choose applies a different chassis, by SLUG, in one press, and says first what will not fit',
+    'Choose applies a different chassis, by SLUG, in one press, and says first what will not fit, which it keeps (r6 E7)',
     async () => {
-      const seen: string[] = []
+      const seen: [string, boolean | undefined][] = []
       const closed: boolean[] = []
       // More one-slot systems than any chassis holds: some will not fit.
       const small = SalvageUnionReference.Systems.all().find((s) => s.slotsRequired === 1)
       if (!small) throw new Error('no one-slot system')
       const { other } = renderPicker(
-        (ref) => seen.push(ref),
+        (ref, keep) => seen.push([ref, keep]),
         { systems: new Array<string>(60).fill(nameToSlug(small.name)), modules: [] },
         (open) => closed.push(open)
       )
 
-      expect(screen.getByText('Your loadout stays where it fits the new chassis.')).toBeDefined()
-      // Reading a chassis writes nothing, and says beside its Choose what comes off.
+      expect(screen.getByText('Your whole loadout comes along to the new chassis.')).toBeDefined()
+      // Reading a chassis writes nothing, and says beside its Choose what will not fit.
       const bar = await openInSearcher(other.name)
       expect(seen).toEqual([])
       expect(
-        within(bar).getByText(new RegExp(`Will not fit, and comes off: ${small.name} ×\\d+`))
+        within(bar).getByText(
+          new RegExp(
+            `Will not fit: ${small.name} ×\\d+\\. Choose keeps them, marked rule breaking\\.`
+          )
+        )
       ).toBeDefined()
 
       // Choose is the one confirming press: no Apply, no second dialog (the sheet offers Undo).
       fireEvent.click(within(bar).getByRole('button', { name: 'Choose' }))
-      expect(seen).toEqual([nameToSlug(other.name)])
+      expect(seen).toEqual([[nameToSlug(other.name), true]])
       expect(closed).toEqual([false])
     },
     RENDER_TIMEOUT_MS
   )
 
   it(
-    'beside what will not fit, offers to keep everything over the slots (r5 C10)',
+    'beside what will not fit, its second button leaves them off (r6 E7)',
     async () => {
       const seen: [string, boolean | undefined][] = []
       const small = SalvageUnionReference.Systems.all().find((s) => s.slotsRequired === 1)
@@ -134,8 +138,8 @@ describe('MechChassisPickerModal', () => {
         modules: [],
       })
       await openInSearcher(other.name)
-      fireEvent.click(screen.getByRole('button', { name: 'Keep everything (rule breaking)' }))
-      expect(seen).toEqual([[nameToSlug(other.name), true]])
+      fireEvent.click(screen.getByRole('button', { name: 'Leave them off' }))
+      expect(seen).toEqual([[nameToSlug(other.name), false]])
     },
     RENDER_TIMEOUT_MS
   )

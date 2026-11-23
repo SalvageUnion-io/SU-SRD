@@ -108,11 +108,27 @@ function opened(): PlayTarget | null {
   return line ? (JSON.parse(line.replace('Cockpit for ', '')) as PlayTarget) : null
 }
 
+describe('the signed-out trial (r6 F1)', () => {
+  test('a book pilot opens in Play signed out, solo, and asks the server nothing', async () => {
+    setQueryAnswers({})
+    await renderGate('starter-pilot-bonesaw', 'signedOut')
+    await screen.findByText(/^Cockpit for /)
+    expect(opened()).toEqual({
+      pilotId: 'starter-pilot-bonesaw',
+      gameId: null,
+      gameName: null,
+      mediator: false,
+    })
+    expect(queryCalls()).toHaveLength(0)
+  })
+})
+
 describe('refusals', () => {
   test('an anonymous session is asked to sign in, and asks the server nothing', async () => {
     setQueryAnswers({})
     await renderGate('play-rook', 'signedOut')
-    expect(heading('Sign in to play')).toBeTruthy()
+    // The trial's module loads first, to tell a book pilot from any other (r6 F1).
+    expect(await screen.findByRole('heading', { name: 'Sign in to play' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     expect(queryCalls()).toHaveLength(0)
     expect(opened()).toBeNull()

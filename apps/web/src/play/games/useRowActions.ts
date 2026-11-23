@@ -1,9 +1,9 @@
 /**
  * The destructive and ownership verbs on a Game's crew row, each behind its
- * confirm, but for two that land at once with Undo in their toast: the table
- * runner's **Assign to …** (MD4-09: six pre-gens were eighteen presses) and
- * the Organiser's **Take off the roster** (LG4-20). Neither destroys anything
- * and each is one press to take back.
+ * confirm, but for three that land at once with Undo in their toast: a
+ * player's **Assign to me** (r6 C8), the table runner's **Assign to …**
+ * (MD4-09: six pre-gens were eighteen presses) and the Organiser's **Take off
+ * the roster** (LG4-20). None destroys anything and each is one press to take back.
  *
  * Every other verb here changes who has a build or whether it exists — taking
  * it, unassigning it, moving it out, deleting it, scrapping the crawler — so
@@ -91,16 +91,28 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
   }
 
   return {
-    assignSelf: (row) =>
-      confirm({
-        ...ROW_ACTION_COPY.assignSelf(row.name),
-        onConfirm: async () => {
-          // Nothing to pull down by hand: it is yours now, so it is in
-          // `listMine`, and `RoomFeed` caches it from there — the row's View
-          // opens it editable as soon as it lands.
-          await ownDoing(row, () => assign({ entityId: row.serverId }), true)
-        },
-      }),
+    // At once, with Undo in its toast (r6 C8): Unassign takes it back, so no confirm asks first.
+    assignSelf: (row) => {
+      const failed = libGamesCopy('assignSelfFailed', { name: row.name })
+      // Nothing to pull down by hand: it is yours now, so it is in
+      // `listMine`, and `RoomFeed` caches it from there — the row's View
+      // opens it editable as soon as it lands.
+      ownDoing(row, () => assign({ entityId: row.serverId }), true).then(
+        () =>
+          toast.success(playGamesCopy('assignedToYou', { name: row.name }), {
+            id: `assigned:${row.serverId}`,
+            action: {
+              label: componentsCopy('undo'),
+              onClick: () => {
+                ownDoing(row, () => unassign({ entityId: row.serverId })).catch((err: unknown) =>
+                  toast.error(failureMessage(err, failed))
+                )
+              },
+            },
+          }),
+        (err: unknown) => toast.error(failureMessage(err, failed))
+      )
+    },
 
     assignTo: (row, member, self) => {
       const to = self ? 'you' : member.displayName

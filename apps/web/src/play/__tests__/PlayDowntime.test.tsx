@@ -20,6 +20,7 @@ import {
 } from '../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import type { PlayRoll } from '../playRolls.model'
+import { rumourRowText } from '../rumours.model'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
@@ -98,6 +99,39 @@ function currentStep(): number {
   return Number(match?.[1] ?? 1) - 1
 }
 const button = (name: string | RegExp) => within(stepBox()).getByRole('button', { name })
+
+// r6 D1 (LG6-12): Tally Salvage asked players to note their Scrap down.
+describe('Tally Salvage moves the Scrap', () => {
+  test('the carried Scrap by Tech Level, one press into the crawler, and the step taken', async () => {
+    const { pilot, mech, crawler } = units()
+    const carrying: Pilot = {
+      ...pilot,
+      genericInventory: [{ id: 's', name: 'Tech 1 Scrap', slotCost: 3, qty: 2 }],
+    }
+    const writes: Write[] = []
+    render(
+      <Harness
+        pilot={carrying}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(carrying, mech, crawler).store}
+        writes={writes}
+        downtime={{ stepIndex: 0 }}
+      />
+    )
+    const line = within(within(stepBox()).getByRole('list', { name: 'Carried Scrap' }))
+    expect(line.getByText('T1')).toBeTruthy()
+    expect(line.getByText('2')).toBeTruthy()
+    // The book's 'note it down' gives way to the move.
+    expect(within(stepBox()).queryByText(/note these down/i)).toBeNull()
+    await click(button('Move to the crawler'))
+    expect(writes).toContainEqual({
+      name: 'downtime.moveScrap',
+      args: { pilotId: 'dt-p', mechId: 'dt-m', crawlerId: 'dt-c' },
+    })
+    expect(within(stepBox()).getByText('Moved 2 Scrap to Tenacity.')).toBeTruthy()
+  })
+})
 
 describe('a solo Downtime, end to end', () => {
   test('every step in turn: Upkeep paid once, Restore and Train applied, then End', async () => {
@@ -425,7 +459,7 @@ describe('a solo Downtime, end to end', () => {
         />
       )
       const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
-      // Crafting opens the crawler's sheet in Build (r5 A14); Spend TP opens the
+      // Craft · Trade opens its bays here (r6 D4); Spend TP opens the
       // pilot's Manage Abilities, where Training Points are spent.
       expect(onHand.getByRole('button', { name: 'Spend TP' })).toBeTruthy()
       expect(onHand.getByRole('button', { name: 'Open' })).toBeTruthy()
@@ -434,16 +468,16 @@ describe('a solo Downtime, end to end', () => {
       const picker = screen.getByRole('dialog', { name: 'Manage Abilities' })
       await click(within(picker).getByRole('button', { name: /close/i }))
       expect(screen.queryByRole('dialog', { name: 'Manage Abilities' })).toBeNull()
-      // No adventure's rumour table at a table that plays none: a plain d20.
-      expect(onHand.queryByRole('button', { name: 'Roll the die on Rumour' })).toBeNull()
-      expect(onHand.queryByText(/Vornaya/)).toBeNull()
+      // Solo the rumour rolls on the Rumour table and says its row (r6 D8).
       await click(onHand.getByRole('button', { name: 'Roll d20' }))
-      expect(heard.at(-1)).toMatchObject({ tableName: 'Gather Cantina Rumours', rolls: [14] })
+      expect(heard.at(-1)).toMatchObject({ tableName: 'Rumour', rolls: [14] })
       // Solo there is no Mediator to send the player to (r3 L2).
       expect(onHand.queryByText(/Mediator/)).toBeNull()
-      expect(
-        onHand.getByText('14 · Solo, what you hear is yours to say, or roll a rumour table.')
-      ).toBeTruthy()
+      expect(onHand.getByText(`14 · ${rumourRowText(14)}`)).toBeTruthy()
+      expect(rumourRowText(14).length).toBeGreaterThan(0)
+      expect(onHand.getByRole('link', { name: 'Open the table' }).getAttribute('href')).toBe(
+        '/roll-tables/rumour/'
+      )
       const field = screen.getByRole('button', { name: 'Expand Field actions' })
       expect(field.getAttribute('aria-expanded')).toBe('false')
       await click(field)
@@ -457,8 +491,8 @@ describe('a solo Downtime, end to end', () => {
   })
 })
 
-// r5 A14 (SB5-08): Open showed the crawler read-only, with nothing to craft or trade with.
-test('solo, Craft · Trade opens the crawler’s sheet in Build, in Edit', async () => {
+// r6 D4, D5 (SB6-07, SB6-08): Open threw the player into an Edit sheet, and crafting spent nothing.
+test('solo, Craft · Trade opens its bays inside Downtime, and crafting spends Scrap', async () => {
   const { useSheetModeStore } = await import('../../build/sheet/sheetMode.model')
   useSheetModeStore.getState().setEditing(false)
   const { pilot, mech, crawler } = units()
@@ -467,20 +501,46 @@ test('solo, Craft · Trade opens the crawler’s sheet in Build, in Edit', async
     assigned.push(String(to))
   })
   try {
+    const { store, calls } = stubStore(pilot, mech, crawler)
     render(
       <Harness
         pilot={pilot}
         mech={mech}
         situation="downtime"
-        store={stubStore(pilot, mech, crawler).store}
+        store={store}
         writes={[]}
         downtime={{ stepIndex: 0 }}
       />
     )
     const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
     await click(onHand.getByRole('button', { name: 'Open' }))
-    expect(assigned).toEqual(['/crawlers/dt-c'])
-    expect(useSheetModeStore.getState().editing).toBe(true)
+    const find = await onHand.findByRole('searchbox', { name: 'Find a System or Module to craft' })
+    // No trip to the sheet, and no Edit mode left on for the next one.
+    expect(assigned).toEqual([])
+    expect(useSheetModeStore.getState().editing).toBe(false)
+    expect(onHand.getByRole('button', { name: 'Back to the step' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.change(find, { target: { value: 'Armour Plating' } })
+    })
+    const craftable = within(onHand.getByRole('list', { name: 'Craftable' }))
+    await click(craftable.getAllByRole('button', { name: 'Craft onto Buzzard' })[0] as Element)
+    await act(async () => {})
+    const spent = calls.find((c) => c.type === 'crawler' && 'scrapPool' in c.patch)
+    expect(spent?.patch.scrapPool).toMatchObject({ tl2: 6 })
+    const mounted = calls.find((c) => c.type === 'mech' && 'systems' in c.patch)
+    expect(mounted?.patch.systems).toContain('armour-plating')
+    expect(
+      onHand.getByText(/Crafted Armour Plating for 1 Tech 1\+ Scrap, into Buzzard\./)
+    ).toBeTruthy()
+
+    // r6 D6 (SB6-09): the availability roll says what is for sale, each with Choose instead and Buy.
+    await click(onHand.getByRole('button', { name: 'Roll availability' }))
+    const forSale = within(onHand.getByRole('list', { name: 'For sale' }))
+    expect(forSale.getAllByRole('button', { name: 'Choose instead' })).toHaveLength(2)
+    // A Tech 2 crawler's wares are Tech 3; Tenacity holds Tech 2 Scrap alone, so Buy says the shortfall.
+    const buys = forSale.getAllByRole('button', { name: /^Buy · \d+ T3\+$/ })
+    await click(buys[0] as Element)
+    expect(onHand.getByText(/^Short by \d+ Tech 3\+ Scrap: nothing spent\.$/)).toBeTruthy()
   } finally {
     assign.mockRestore()
     useSheetModeStore.getState().setEditing(false)
@@ -524,7 +584,13 @@ describe('Downtime’s dead ends say why', () => {
         downtime={{ stepIndex: restore, doneSteps: [restore] }}
       />
     )
-    expect(within(stepBox()).getByText('HP stays 3: healing needs a Med Bay')).toBeTruthy()
+    expect(within(stepBox()).getByText('HP stays 3')).toBeTruthy()
+    // The reason, with its page, comes first (r6 D7).
+    expect(
+      within(stepBox()).getByText(
+        'Healing in Downtime needs your crawler’s Med Bay (Core Book p.242).'
+      )
+    ).toBeTruthy()
     expect(
       within(stepBox()).getByRole('link', { name: 'Make a Union Crawler' }).getAttribute('href')
     ).toBe('/crawlers/new?pilot=dt-p&back=play')
@@ -567,6 +633,7 @@ describe('Downtime’s dead ends say why', () => {
     expect(onHand.queryByRole('link')).toBeNull()
     await click(onHand.getByRole('button', { name: 'Roll d20' }))
     expect(onHand.getByText('14 · The Mediator says what you hear.')).toBeTruthy()
+    expect(onHand.queryByRole('link', { name: 'Open the table' })).toBeNull()
   })
 })
 
@@ -719,7 +786,7 @@ describe('a Game’s step', () => {
     expect(writes).toContainEqual({ name: 'downtime.advance' })
   })
 
-  test('Upkeep in a Game is the Mediator’s: read, not ticked; the player marks done', async () => {
+  test('Upkeep in a Game is the Mediator’s: read, not ticked; nothing for the seat (r6 D2)', async () => {
     const { pilot, mech, crawler } = units()
     const { store, calls } = stubStore(pilot, mech, crawler)
     const writes: Write[] = []
@@ -736,13 +803,13 @@ describe('a Game’s step', () => {
     )
     expect(within(stepBox()).getByText('The Mediator pays it')).toBeTruthy()
     expect(within(stepBox()).queryByRole('checkbox')).toBeNull()
-    await click(button('Mark done'))
-    // Marking done takes the step for this pilot, applying nothing.
-    expect(writes).toContainEqual({
-      name: 'downtime.markStepDone',
-      args: { stepIndex: STEPS.indexOf('Upkeep & Upgrade'), patch: {} },
-    })
-    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
+    // The step has nothing for this seat: it counts as done, with no press and no words promising ticks.
+    expect(within(stepBox()).queryByRole('button', { name: 'Mark done' })).toBeNull()
+    expect(within(stepBox()).queryByText(/each line can be unticked/)).toBeNull()
+    expect(
+      within(stepBox()).getByText('Nothing for your seat: the Mediator runs this step')
+    ).toBeTruthy()
+    expect(writes.some((w) => w.name === 'downtime.markStepDone')).toBe(false)
     expect(writes.some((w) => w.name === 'downtime.claim')).toBe(false)
     expect(calls).toHaveLength(0)
   })

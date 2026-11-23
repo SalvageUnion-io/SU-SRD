@@ -485,6 +485,26 @@ describe('SearchIsland', () => {
       }
     })
 
+    test('the results page keeps the query in the bar, its list shut until the field is reached (RR6-02)', async () => {
+      window.location.href = 'http://localhost/search/?q=railgun%20damage'
+      try {
+        render(<SearchIsland />)
+        const input = screen.getByRole('combobox')
+        await act(async () => {
+          jest.advanceTimersByTime(DEBOUNCE_MS)
+        })
+        expect((input as HTMLInputElement).value).toBe('railgun damage')
+        expect(input.getAttribute('aria-expanded')).toBe('false')
+        expect(document.activeElement).not.toBe(input)
+        await act(async () => {
+          input.focus()
+        })
+        expect(input.getAttribute('aria-expanded')).toBe('true')
+      } finally {
+        window.location.href = 'http://localhost/'
+      }
+    })
+
     test('elsewhere the bar leaves a query to its page', async () => {
       window.location.href = 'http://localhost/abilities/?q=mule'
       try {

@@ -44,6 +44,7 @@ import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { mayBindChannel } from 'game-domain/games/discord'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
+import { ScrollText } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import type { HeaderMenuItem } from '../components/index'
@@ -55,9 +56,10 @@ import { useTabTitle } from '../lib/useTabTitle'
 import { playCopy } from '../messages/play'
 import { routesCopy } from '../messages/routes'
 import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
-import { useSync } from '../replica/syncContext'
+import { readsHeld, useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
 import { useTableRead } from '../replica/useTable'
+import { useBoardOnArrival } from './boardIntent.model'
 import { hereCount } from './crew.model'
 import { SrdExplorer } from './mediator/SrdExplorer'
 import { PlayActionsColumn } from './PlayActionsColumn'
@@ -123,11 +125,14 @@ type PlayCockpitProps = {
   target: PlayTarget
   /** The Act pane's store and dice (a test injects its own). */
   actions?: PlayActionsDeps
+  /** A signed-out trial of a book pilot (r6 F1): "‹ Sheet" goes back to its book page. */
+  trial?: boolean
 }
 
-export function PlayCockpit({ target, actions }: PlayCockpitProps) {
+export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
+  useBoardOnArrival(play)
   // Callsign first, then the name, as everywhere a pilot is named.
   const pilotName = play.pilot ? pilotLabel(play.pilot) : undefined
   // A pilot in a Game is that Game's: its tab says so (glossary §9); a solo
@@ -137,7 +142,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const binding = usePlayChannelBinding(target)
   const crew = useTableRead(
     'crew.vitals',
-    target.gameId !== null && status === 'live' ? { gameId: target.gameId } : 'skip'
+    target.gameId !== null && readsHeld(status) ? { gameId: target.gameId } : 'skip'
   )
   const sign = useStopSign(target.gameId)
   const session = useGameSession(target.gameId)
@@ -228,7 +233,9 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     setTab(next)
   }
   const nodes: Record<PlayerPane, ReactNode> = {
-    act: <PlayActionsColumn target={target} play={play} {...actions} />,
+    act: (
+      <PlayActionsColumn target={target} play={play} onShow={() => openTab('act')} {...actions} />
+    ),
     // From `lg` the
     // Feed, the table's log, runs under the Units, and the Reference under the
     // Tables, so both side columns end with the centre one.
@@ -293,7 +300,9 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               tone={PHASE_TONE[play.situation]}
               paused={sign?.shown === true}
               // Back to the pilot's own page (ADR-066); its Game is in ⋯.
-              backHref={sheetPath('pilot', target.pilotId)}
+              backHref={
+                trial ? `/starter/pilot/${target.pilotId}` : sheetPath('pilot', target.pilotId)
+              }
               backLabel={playCopy('sheet')}
               live={status === 'live' && !solo}
               here={crew == null || here === null ? null : hereCount(crew.pilots, here)}
@@ -301,7 +310,11 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               // stamp has the room to say "Online" as the canvas's does.
               short={!wide && channel.button !== null}
               readOnly={play.readOnly}
-              situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
+              situation={
+                wide ? (
+                  <PlaySituationSwitch play={play} downtimeMech={units.mech?.mech ?? null} />
+                ) : undefined
+              }
               channel={channel.button}
               mark={
                 feedMark.shown ? (
@@ -311,7 +324,12 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
                     aria-label={playCopy('newInTheFeed')}
                     onClick={jumpToFeed}
                   >
-                    {wide ? playCopy('newInTheFeed') : playCopy('feed')}
+                    {/* A phone's is its icon and dot: the pilot's name keeps its room (r6 A12). */}
+                    {wide ? (
+                      playCopy('newInTheFeed')
+                    ) : (
+                      <ScrollText size={tokens.iconSize.mini} aria-hidden="true" />
+                    )}
                     {!wide && <span className="su-play-tab-dot" aria-hidden="true" />}
                   </Button>
                 ) : undefined
@@ -344,7 +362,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               />
               {/* On foot, Board and Downtime stay on screen in every Situation,
                   boarded too (r5 A15); in Downtime with the numbers (r4 A10). */}
-              <PlaySituationSwitch play={play} fill />
+              <PlaySituationSwitch play={play} fill downtimeMech={units.mech?.mech ?? null} />
             </>
           )
         }

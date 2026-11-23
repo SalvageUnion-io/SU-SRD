@@ -26,10 +26,17 @@ export const renameItem = (
   onSelect: open ? () => open(subject) : undefined,
 })
 
-/** The menu's `Delete…`, in its own group; without `onSelect` it is disabled. */
-export const deleteItem = (onSelect: (() => void) | undefined): HeaderMenuItem => ({
+/**
+ * The menu's `Delete…`, in its own group; without `onSelect` it is disabled.
+ * `undoable`: the delete asks nothing and its notice undoes it (r6 E3), so it
+ * reads `Delete`, with no ellipsis for a question that never comes.
+ */
+export const deleteItem = (
+  onSelect: (() => void) | undefined,
+  undoable = false
+): HeaderMenuItem => ({
   id: 'delete',
-  label: buildShelvesCopy('deleteMenu'),
+  label: buildShelvesCopy(undoable ? 'deleteNow' : 'deleteMenu'),
   tone: 'danger',
   onSelect,
 })

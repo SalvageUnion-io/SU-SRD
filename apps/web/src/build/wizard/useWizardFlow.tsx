@@ -25,6 +25,7 @@ import { moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { startTransition, useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/index'
+import { focusHeadingOnArrival } from '../../lib/arrivalFocus'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import { draftExportBundle } from '../../lib/export/draftExport'
@@ -32,6 +33,7 @@ import type { StepGateResult } from '../../lib/rules/creation'
 import { wizardDraftSummary } from '../../lib/wizard/draftSummary'
 import {
   clearWizardDraft,
+  DRAFT_SCOPE,
   markWizardSignIn,
   readWizardReached,
   readWizardSignIn,
@@ -97,7 +99,7 @@ export type WizardFlowOptions<
    */
   gameId?: string | undefined
   /**
-   * The saved unit this run redesigns (the NPC designer's Edit design): Save
+   * The saved unit this run redesigns (the NPC designer's Redesign from a template): Save
    * validates the form the same way, then hands it to `save`, which writes
    * that unit in place, and nothing is created. The unit is already whole, so
    * every step is reached from the start and each one saves (MD3-06).
@@ -185,7 +187,7 @@ export function useWizardFlow<
   // The form's own words for what it is missing; a failed write is `save.error`.
   const [invalid, setInvalid] = useState<string | null>(null)
   // A wizard runs signed out; Save is where an account is asked for. The form
-  // is already this tab's session draft, so signing in comes back to it.
+  // is already the browser's draft, so signing in comes back to it.
   const { status, canWrite } = useSync()
   const [askSignIn, setAskSignIn] = useState(false)
   // Save asked for the sign-in this draft has come back from (r5 C14).
@@ -205,7 +207,12 @@ export function useWizardFlow<
       queueMicrotask(() => {
         if (state.mounted || state.settled || !state.dirty || entityType === 'npc') return
         const draft = wizardDraftSummary(entityType)
-        if (draft) toast.info(buildWizardCopy('draftKept', { label: draft.label }))
+        if (draft)
+          toast.info(
+            buildWizardCopy(DRAFT_SCOPE === 'tab' ? 'draftKept' : 'draftKeptBrowser', {
+              label: draft.label,
+            })
+          )
       })
     }
   }, [entityType])
@@ -286,6 +293,8 @@ export function useWizardFlow<
     toast.success(buildWizardCopy('saved', { value: form.name.trim() || noun }))
     leaving.current.settled = true
     clearWizardDraft(draftKey)
+    // What was made takes focus on its page's heading (r6 F7).
+    if (existing === undefined) focusHeadingOnArrival()
     onComplete(result.value.id)
   }
 
@@ -368,7 +377,10 @@ export function useWizardFlow<
       nextDisabled: !gate.ok,
       busy: save.pending,
       signIn: { open: askSignIn, onClose: () => setAskSignIn(false) },
-      tryNote: signedOut && currentIndex === 0 ? buildWizardCopy('tryItNow') : undefined,
+      tryNote:
+        signedOut && currentIndex === 0
+          ? buildWizardCopy(DRAFT_SCOPE === 'tab' ? 'tryItNowTab' : 'tryItNow')
+          : undefined,
       signedInBack: askedSignIn && canWrite && step === submitStep && existing === undefined,
       keepAsFile:
         signedOut && step === submitStep && entityType !== 'npc'

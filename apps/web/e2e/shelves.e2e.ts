@@ -44,9 +44,10 @@ test('move a unit into a Game and back: it never leaves the Training Bay', async
 test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {
   await openTrainingBay(page)
 
-  // The Starter Set is folded under its Slab until its fold opens it.
-  await page.getByRole('button', { name: 'Expand Starter Set' }).click()
+  // The Starter crews are folded under their Slab until its fold opens it (r6 E12).
+  await page.getByRole('button', { name: 'Expand Starter crews' }).click()
   await page
+    .getByRole('region', { name: 'Starter crews' })
     .getByRole('region', { name: 'Starter Set' })
     .getByRole('link', { name: 'Bonesaw', exact: true })
     .click()

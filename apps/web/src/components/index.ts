@@ -69,6 +69,7 @@ export { FOCUS_RING } from './atoms/interaction'
 export { KofiButton } from './atoms/KofiButton'
 // A phone's vitals block, for the sheets and Play.
 export type { PhoneVital, PhoneVitalCell } from './atoms/PhoneVitals'
+export { ScrapSplit } from './atoms/ScrapSplit'
 // slotPips — a slot count as a line of pips, for a wizard's tracker tab.
 export { SearchField } from './atoms/SearchField'
 export { Segmented, SegmentedOption } from './atoms/Segmented'
@@ -211,7 +212,7 @@ export { TitledBox } from './containers/TitledBox'
 // ToasterMount — the document's one Toaster (K5); `toast` raises an act's notice
 export { ToasterMount } from './containers/Toaster'
 export { ACTION_TOAST_MS, MOST_ACTION_TOASTS, toast } from './containers/toast'
-export { holdToastsOnTop } from './containers/toastPlacement'
+export { holdPlayToasts, holdToastsOnTop } from './containers/toastPlacement'
 export type { AnnouncedRoll } from './containers/toastRoll'
 export { toastRoll } from './containers/toastRoll'
 // THE ENTITY MODULE'S FACE (`entity/index.ts`, R7): the forms' shared parts,

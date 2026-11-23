@@ -9,11 +9,9 @@
 // (`.su-entity-compact__notch` + `__title`), notched into the head strip's
 // foot, and its sources on the card foot's cut-out (`EntityCardIdentityFooter`
 // on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
-import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react'
 import type { CSSProperties, ElementType, MouseEvent, ReactNode } from 'react'
 import { Fragment, useContext, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
-import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { entityCopy } from '../../messages/components-entity'
 import { Badge } from '../atoms/Badge'
@@ -29,6 +27,8 @@ import { CostMark } from './CostMark'
 import { useEntitySurface } from './entitySurfaceContext'
 import { Mention } from './forms/Mention'
 import { LedgerOpen } from './LedgerOpen'
+import type { LedgerSort } from './ledgerSort'
+import { sortSlot, useSortRove } from './ledgerSort'
 import type { Paint } from './parts/paint'
 import { paintFor } from './parts/paint'
 import { usePeekAttrs } from './peekContext'
@@ -162,31 +162,7 @@ const CAPS = capsLabel({ weight: 'inherit' })
 const TITLE_LINE = cn('su-ledger__title-line', CAPS)
 const NAME = cn('su-ledger__name', capsLabel({ size: 'lede', weight: 'inherit' }))
 
-export type LedgerSort = { key: string; descending: boolean }
-
-/** The sorted column's mark: a chevron at the Mini Size (K11), up for ascending. */
-function sortMark(sort: LedgerSort): ReactNode {
-  const Mark = sort.descending ? ChevronDown : ChevronUp
-  return <Mark aria-hidden="true" size={iconSize.mini} className="su-ledger__arrow" />
-}
-
-/**
- * A sortable head's caret slot: the mark where the list sorts by this column,
- * else a muted up-and-down one in the same room, so no label widens when you
- * sort and every sortable label says it sorts.
- */
-function sortSlot(sort: LedgerSort | undefined, key: string): ReactNode {
-  return sort?.key === key ? (
-    sortMark(sort)
-  ) : (
-    <ChevronsUpDown
-      aria-hidden="true"
-      size={iconSize.mini}
-      className="su-ledger__arrow"
-      data-idle=""
-    />
-  )
-}
+export type { LedgerSort } from './ledgerSort'
 
 /** A cell with nothing to say draws `—` (L5); a `0` is a value. */
 const isEmpty = (cell: ReactNode) =>
@@ -204,8 +180,9 @@ function cellTitle(column: LedgerColumn, cell: ReactNode): string | undefined {
 
 /**
  * A cell's words; rules text's `[[Trait]]` reads as its word, never as markup.
- * A quiet line, cut to its one line, holds no links; a Page's loadout line
- * links its parts (L4).
+ * A quiet line, cut to its one line, holds no links but its names' Peeks (an
+ * index's abilities and traits, `IndexLedger`); a Page's loadout line links
+ * its parts (L4).
  */
 function cellBody(cell: ReactNode): ReactNode {
   return typeof cell === 'string' ? cell.replace(MARKUP, '$1') : cell
@@ -352,6 +329,13 @@ function LedgerList({
   const roomy = columns.some((column) => column.kind === 'quiet' || column.kind === 'line')
   const hasFill = !roomy && !hasTrailing
   const span = columns.length + 1 + (hasTrailing || hasFill ? 1 : 0)
+  // The sorting labels are one Tab stop (r6 E13).
+  const keys = onSort ? [sortTab && 'name', rank?.key, ...columns.map((c) => c.key)] : []
+  const sortRove = useSortRove(
+    [...keys, onSort && trailingLabel !== undefined && !action && 'trailing'],
+    sort?.key
+  )
+  const { rove, onKeyDown: onSortKey } = sortRove
   const stamp = (key: string, text: string, title?: string, statKey?: string) => {
     const mark = (
       <Badge shape="stamp" size="mini" surface="solid">
@@ -364,6 +348,7 @@ function LedgerList({
       <button
         type="button"
         className="su-ledger__sort"
+        {...rove(key)}
         title={title}
         // The name holds the visible label (SC 2.5.3): "Sort by SP (Structure Points)".
         aria-label={
@@ -402,6 +387,7 @@ function LedgerList({
             className={cn('su-ledger__head', grainClass(paint.grain))}
             data-grain={paint.grain}
             style={{ backgroundColor: paint.background, color: paint.color }}
+            onKeyDown={onSort ? onSortKey : undefined}
           >
             <th scope="col" aria-sort={ariaSort('name') ?? (rank && ariaSort(rank.key))}>
               {/* The title's cut-out: the Compact head's paper tab. */}
@@ -411,6 +397,7 @@ function LedgerList({
                     <button
                       type="button"
                       className="su-ledger__sort su-entity-compact__title"
+                      {...rove('name')}
                       aria-label={entityCopy('sortBy', { column: nameLabel })}
                       onClick={() => onSort('name')}
                     >

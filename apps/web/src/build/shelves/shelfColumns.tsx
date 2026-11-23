@@ -4,6 +4,7 @@
  */
 import type { ReactNode } from 'react'
 import type { LedgerColumn } from '../../components/index'
+import { ScrapSplit } from '../../components/index'
 import { HP_OR_SP } from '../../lib/shelves/shelfItems'
 import { VITAL } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
@@ -78,6 +79,10 @@ export const PATTERN_COLUMNS = [
   spare(fig(buildShelvesCopy('cost'), buildShelvesCopy('scrapChassisAndLoadout'))),
   spare(word('saved', buildShelvesCopy('saved'))),
 ]
+
+/** A build's Scrap cell, breaking between its Tech Levels (`TL1 18 · TL2 5`, r6 E4). */
+export const scrapCell = (scrap: string | number | undefined): ReactNode =>
+  typeof scrap === 'string' && scrap !== '' ? <ScrapSplit parts={scrap.split(' · ')} /> : ''
 
 /** One reading's figure (`8/10`) by its label; none draws the dash. */
 export const read = (readings: readonly UnitReading[] | undefined, label: string): string =>

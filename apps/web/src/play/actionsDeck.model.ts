@@ -110,6 +110,10 @@ export type ResolveModel =
       meltdown?: { onConfirm: () => void; onDismiss: () => void } | null
       applied: boolean
       applyRouted: boolean
+      /** The roll writes nothing to any unit: no Apply, nor its note (r6 A5). */
+      nothingToApply: boolean
+      /** What the row says when the roll closes it, nothing being left to do; null while it stays. */
+      closesItself: string | null
       /** Something was done with it (activated, rolled): its close reads Done, never Cancel. */
       progressed: boolean
     }
@@ -143,4 +147,6 @@ export type ActionsDeck = {
   resolve: ResolveModel
   /** The action that just finished (applied, and closed itself): its row says Done until another opens. */
   doneKey: string | null
+  /** What the finished row says: "Result applied", or the roll that closed itself (r6 A5). */
+  doneSays: string
 }

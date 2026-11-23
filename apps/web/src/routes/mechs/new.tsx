@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { MechWizard } from '../../build/mech/MechWizard'
+import { useBuildNow } from '../../build/mech/Pattern/useBuildNow'
+import { SheetSkeleton } from '../../build/sheet/SheetSkeleton'
 import { NewUnitRoute } from '../../build/wizard/NewUnitRoute'
 import { newUnitHead, newUnitSearch } from '../../lib/newUnitRoute'
 import { parseGameParam } from '../../lib/wizard/fromGame'
@@ -16,12 +18,16 @@ export const Route = createFileRoute('/mechs/new')({
     pilot: parseGameParam(search.pilot),
     // From Play, a Mech built for its Pilot returns there (r5 B17).
     ...(search.back === 'play' ? { back: 'play' as const } : {}),
+    // A Reference pattern page's Build With This builds at once (r6 E6).
+    ...(search.build === 'now' ? { build: 'now' as const } : {}),
   }),
   component: NewMechRoute,
 })
 
 function NewMechRoute() {
   const search = Route.useSearch()
+  // Signed in, the linked pattern is being built and its sheet opens.
+  if (useBuildNow(search)) return <SheetSkeleton />
   return (
     <NewUnitRoute
       kind="mech"

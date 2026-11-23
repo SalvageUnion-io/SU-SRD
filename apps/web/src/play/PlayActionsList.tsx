@@ -14,7 +14,7 @@
  * the Downtime column, where the group is the Field actions.
  */
 
-import { useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import {
   Button,
   Callout,
@@ -31,6 +31,12 @@ import type { ActionTypeKey, ListEntry } from './playActions.model'
 import { ACTION_TYPE_ORDER, TYPE_FILTERS } from './playActions.model'
 import type { Play } from './situation.model'
 import { useFindKey } from './useFindKey'
+
+/** "?"'s sheet, loaded when first asked for (r6 A13). */
+const PlayKeysSheet = lazy(() =>
+  import('./PlayKeysSheet').then(({ PlayKeysSheet }) => ({ default: PlayKeysSheet }))
+)
+
 import type { PlayActions } from './usePlayActions'
 
 /** A list of entries, one contentful Mini each, in the Mini grid. */
@@ -125,14 +131,20 @@ function OrphanNote({ text, onClear }: { text: string; onClear: () => void }) {
  * The type filter and, from `lg`, Find, for the "Actions" Slab's heading
  * line: they wrap under the heading when the column is too narrow for one
  * line (`.su-play-act-head`). Below `lg` the filter leads the pane alone.
- * The slash key jumps to Find (`useFindKey`).
+ * The slash key jumps to Find, and "?" lists Play's keys (`useFindKey`).
  */
 export function PlayActionsTools({ actions, find }: { actions: PlayActions; find: boolean }) {
   // "/" jumps to Find, where there is one (r3 J4).
   const tools = useRef<HTMLDivElement>(null)
-  useFindKey(tools)
+  // "?" lists the keys (r6 A13): the sheet loads when first asked for.
+  const { keysOpen, closeKeys } = useFindKey(tools)
   return (
     <div className="su-play-act-tools" ref={tools}>
+      {keysOpen && (
+        <Suspense fallback={null}>
+          <PlayKeysSheet onClose={closeKeys} />
+        </Suspense>
+      )}
       <Segmented label={playCopy('filterActionsByType')} size="compact">
         {TYPE_FILTERS.map((type) => (
           <SegmentedOption

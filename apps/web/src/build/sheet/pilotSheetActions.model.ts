@@ -35,6 +35,7 @@ import type { SoftWarning } from 'salvageunion-reference/rules'
 import { enrichPilotSnapshot, pilotMaxAP, resolvePoolStart } from 'salvageunion-reference/rules'
 import { useSoftWarnings } from '../../components/shared/useSoftWarnings'
 import { pilotActivationPatch } from '../../lib/rules/actionPatches'
+import { copyCondition, withCopyCondition } from '../../lib/rules/equipmentCopies'
 import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
 import { pilotRuleBreaks, ruleBreaksMade } from '../../lib/rules/ruleBreaks'
@@ -74,7 +75,13 @@ export type PilotSheetActions = {
   /** Take back an ability bought in this visit, its Training Points with it (r5 C1). */
   untrainAbility: (slug: string, refund: number) => void
   toggleEquipment: (slug: string) => void
-  handleEquipmentConditionChange: (slug: string, next: ItemCondition) => Promise<void>
+  /** One copy's condition (r6 E16): `copy` of `count` of that slug; the first of one by default. */
+  handleEquipmentConditionChange: (
+    slug: string,
+    next: ItemCondition,
+    copy?: number,
+    count?: number
+  ) => Promise<void>
   handleUsesChange: (slug: string, next: number) => void
   handleSpendAP: (cost: number) => void
   handleAbilityUsedChange: (slug: string, next: boolean) => void
@@ -309,15 +316,20 @@ export function usePilotSheetActions({
     }
   }
 
-  async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
-    const prev = freshPilot().equipmentConditions ?? {}
-    const prevCondition = prev[slug] ?? 'intact'
-    await writeAwait({ equipmentConditions: { ...prev, [slug]: next } })
+  async function handleEquipmentConditionChange(
+    slug: string,
+    next: ItemCondition,
+    copy = 1,
+    count = 1
+  ) {
+    const prev = freshPilot().equipmentConditions
+    const prevCondition = copyCondition(prev, slug, copy, count)
+    await writeAwait({ equipmentConditions: withCopyCondition(prev, slug, copy, count, next) })
     // Landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
     if (next === 'destroyed' && prevCondition !== 'destroyed') {
       const name = resolveEquipment(slug)?.name ?? slug
       destroyedUndoToast(name, () => {
-        runWrite(() => handleEquipmentConditionChange(slug, prevCondition))
+        runWrite(() => handleEquipmentConditionChange(slug, prevCondition, copy, count))
       })
     }
   }

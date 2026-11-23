@@ -27,6 +27,7 @@ import { atomsCopy } from '../../messages/components-atoms'
 import type { CSSVarStyle } from '../../styles/cssVars'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
+import { NumeralField } from './NumeralField'
 import { trackSegmentState } from './pipRows'
 import { RuleBreakMark } from './RuleBreakMark'
 import { StatMeaningContext } from './statMeaning'
@@ -118,7 +119,14 @@ function StripVital({ vital }: { vital: PhoneVital }) {
       <p className={cn('su-strip__label', CAPS)}>{meaning ? meaning(vital.key, words) : words}</p>
       <div className="su-strip__read">
         <p className={cn('su-strip__num', CAPS)} data-over={control.over ? '' : undefined}>
-          <b>{shown}</b>
+          {/* A live counter is typed as well as stepped (r6 E18): 6 TP is "6, Enter". */}
+          <b>
+            {onChange && max === undefined ? (
+              <NumeralField label={name} value={shown} onSet={onChange} />
+            ) : (
+              shown
+            )}
+          </b>
           {max !== undefined &&
             (maxEdit ? (
               <i>

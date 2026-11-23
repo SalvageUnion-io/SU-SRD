@@ -5,6 +5,7 @@ import { downOf } from '../referenceEntity/card/cardChrome'
 import { drawnAnchor } from './peekAnchor'
 import type { PeekSize } from './peekContext'
 import { PEEK_DOWN_ATTRIBUTE, PEEK_SIZE_ATTRIBUTE, parsePeekAddress } from './peekContext'
+import type { PeekOpening } from './peekController'
 import { installPeekController } from './peekController'
 import { installPeekHistory } from './peekHistory'
 
@@ -22,6 +23,7 @@ type Active = {
   id: string
   down: Down
   size: PeekSize
+  how: PeekOpening
 }
 
 /** Only the first host on a page listens; a second would open every Peek twice. */
@@ -74,7 +76,7 @@ export function PeekHost({
         const target = parsePeekAddress(address)
         const down = downOf(anchor.getAttribute(PEEK_DOWN_ATTRIBUTE) ?? undefined)
         const size = anchor.getAttribute(PEEK_SIZE_ATTRIBUTE) === 'mini' ? 'mini' : 'compact'
-        setActive(target ? { anchor, ...target, down, size } : null)
+        setActive(target ? { anchor, ...target, down, size, how } : null)
         if (target && how === 'press') history?.opened()
       },
       close: () => {
@@ -116,6 +118,7 @@ export function PeekHost({
         entityId={active.id}
         down={active.down}
         size={active.size}
+        how={active.how}
         load={load}
         onDismiss={dismiss}
       />

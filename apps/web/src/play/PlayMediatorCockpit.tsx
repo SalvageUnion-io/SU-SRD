@@ -32,7 +32,7 @@ import { gamePath } from 'game-domain/entityKinds'
 import { proposalTargets } from 'game-domain/games/proposals'
 import { PRODUCT } from 'game-domain/product'
 import type { ReactNode } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import type { rollForTable } from '../components/index'
 import { Stat, Toggle } from '../components/index'
 import { areaTitle } from '../lib/pageTitle'
@@ -62,6 +62,7 @@ import { mediatorTarget, PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
 import { rememberPrivateRolls, setPrivateRolls, storedPrivateRolls } from './playRolls.model'
+import { FoldRolledTables, PrivateRolls } from './privateRolls.model'
 import { StopSignButton } from './StopSign'
 import { useGameSession } from './useGameSession'
 import { usePlayChannelBinding } from './usePlayChannel'
@@ -70,6 +71,11 @@ import { useSideFeed } from './usePlaySide'
 import { usePlayWide } from './usePlayWide'
 import { sceneConditionNames } from './useScene'
 import { useStopSign } from './useStopSign'
+
+/** Only needed once it shows: its own file (the app's bundle budget). */
+const MediatorPlan = lazy(() =>
+  import('./mediator/MediatorPlan').then((m) => ({ default: m.MediatorPlan }))
+)
 
 /** The foot's reminder: what the players can see of the Opposition. */
 type PlayMediatorCockpitProps = {
@@ -135,6 +141,18 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     toRef.current?.focus()
     setFocusTo(false)
   }, [focusTo, tab, wide])
+  // Propose's "Go to its SP": the crawler's own vital on the Table (r6 B13).
+  const [toCrawler, setToCrawler] = useState(false)
+  const crawlerName = mediator.crawler?.crawler.name
+  useEffect(() => {
+    if (!toCrawler || (!wide && tab !== 'table') || crawlerName === undefined) return
+    const box = document.querySelector(
+      `[aria-label="${playCopy('crawler', { name: crawlerName })}"]`
+    )
+    const gauge = box?.querySelector<HTMLElement>('.su-vital-gauge__value-button')
+    ;(gauge ?? box?.querySelector<HTMLElement>('button'))?.focus()
+    setToCrawler(false)
+  }, [toCrawler, tab, wide, crawlerName])
 
   const nodes: Record<MediatorPane, ReactNode> = {
     // The Feed under the Table, on a phone and a desk alike:
@@ -188,100 +206,108 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     // without covering the seats; a phone opens it from the ⋯. Shut until
     // asked for, so Propose is on the first screen (r2 I2).
     rules: <SrdExplorer fold="closed" />,
+    // The session plan and Game notes from Prep, beside the board (r6 B7); a phone opens them from the ⋯.
+    plan: (
+      <Suspense fallback={null}>
+        <MediatorPlan gameId={mediator.gameId} canWrite={mediator.canWrite} />
+      </Suspense>
+    ),
     propose: (
       <PlayMediatorProposeSection
         mediator={mediator}
         targetId={picked}
         onTarget={setPicked}
         toRef={toRef}
+        onCrawler={() => {
+          setTab('table')
+          setToCrawler(true)
+        }}
       />
     ),
   }
 
   return (
-    <PlayFrame
-      wide={wide}
-      labels={[
-        playCopy('theTable'),
-        running ? playCopy('downtimeWord') : playCopy('opposition'),
-        playCopy('rollsRulesAndPropose'),
-      ]}
-      bar={
-        <>
-          <PlayBar
-            title={gameName}
-            backHref={gamePath(gameId)}
-            backLabel={playCopy('game')}
-            // A phone's bar is one line (U3): its tabs (Table, Opposition,
-            // Propose) say whose screen it is, so the role stamp is the canvas's.
-            stamp={wide ? 'Mediator' : undefined}
-            // A phone's bar is one line: its pinned row carries the Scene.
-            scene={wide ? sceneOn : undefined}
-            short={!wide}
-            tone={PHASE_TONE[running ? 'downtime' : 'scene']}
-            paused={sign?.shown === true}
-            live={status === 'live'}
-            here={mediator.crew === null ? null : here}
-            of={mediator.crew === null ? null : of}
-            readOnly={mediator.readOnly}
-            situation={
-              wide ? (
-                <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} />
-              ) : undefined
-            }
-            channel={channel.button}
-            stop={<StopSignButton sign={sign} compact={!wide} />}
-            menu={<PlayMediatorBarActions mediator={mediator} wide={wide} channel={channel.row} />}
-          />
-          {channel.dialog}
-        </>
-      }
-      pinned={
-        <>
-          <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} fill />
-          {sceneOn && <Stat size="mini" label={mediatorCopy('scene')} value={sceneNames} />}
-        </>
-      }
-      panes={mediatorPanes(running, wide).map((p) => ({ ...p, node: nodes[p.value] }))}
-      tab={tab}
-      onTab={setTab}
-      // The first unit's HP was 27 Tabs from the top (r4 D6); then each
-      // unit's vitals and Add opposition's Add are a jump each (r5 A17).
-      jumps={[
-        { pane: 'table', label: playCopy('theTable') },
-        {
-          pane: 'opposition',
-          label: running ? playCopy('downtimeWord') : playCopy('opposition'),
-        },
-        { pane: 'tables', label: playCopy('rolls') },
-        { pane: 'propose', label: mediatorCopy('proposeAChange') },
-        ...mediator.seats.map((seat) => ({
-          pane: 'table' as const,
-          label: mediatorCopy('vitalsOf', { name: seat.name }),
-          first: `[data-seat-id="${seat.pilotId}"] button`,
-        })),
-        ...(running
-          ? []
-          : [
-              ...(mediator.npcs ?? []).map((npc) => ({
-                pane: 'opposition' as const,
-                label: mediatorCopy('vitalsOf', { name: npc.name }),
-                first: `[data-npc-id="${npc.id}"] .su-vital-gauge__value-button`,
-              })),
-              {
-                pane: 'opposition' as const,
-                label: mediatorCopy('addOpposition'),
-                first: '[data-opposition-add]',
-              },
-            ]),
-      ]}
-      foot={
-        <PlayFoot
-          solo={false}
-          tone={PHASE_TONE[running ? 'downtime' : 'scene']}
-          note={session?.live ? playCopy('sessionLive') : undefined}
+    <PrivateRolls.Provider value={privately}>
+      <FoldRolledTables.Provider value={true}>
+        <PlayFrame
+          wide={wide}
+          labels={[
+            playCopy('theTable'),
+            running ? playCopy('downtimeWord') : playCopy('opposition'),
+            playCopy('rollsRulesAndPropose'),
+          ]}
+          bar={
+            <>
+              <PlayBar
+                title={gameName}
+                backHref={gamePath(gameId)}
+                backLabel={playCopy('game')}
+                // A phone's bar is one line (U3): its tabs (Table, Opposition,
+                // Propose) say whose screen it is, so the role stamp is the canvas's.
+                stamp={wide ? 'Mediator' : undefined}
+                // A phone's bar is one line: its pinned row carries the Scene.
+                scene={wide ? sceneOn : undefined}
+                short={!wide}
+                tone={PHASE_TONE[running ? 'downtime' : 'scene']}
+                paused={sign?.shown === true}
+                live={status === 'live'}
+                here={mediator.crew === null ? null : here}
+                of={mediator.crew === null ? null : of}
+                readOnly={mediator.readOnly}
+                situation={
+                  wide ? (
+                    <PlayGameStateSwitch
+                      downtime={mediator.downtime}
+                      canWrite={mediator.canWrite}
+                      gameId={mediator.gameId}
+                    />
+                  ) : undefined
+                }
+                channel={channel.button}
+                stop={<StopSignButton sign={sign} compact={!wide} />}
+                menu={
+                  <PlayMediatorBarActions mediator={mediator} wide={wide} channel={channel.row} />
+                }
+              />
+              {channel.dialog}
+            </>
+          }
+          pinned={
+            <>
+              <PlayGameStateSwitch
+                downtime={mediator.downtime}
+                canWrite={mediator.canWrite}
+                gameId={mediator.gameId}
+                fill
+              />
+              {sceneOn && <Stat size="mini" label={mediatorCopy('scene')} value={sceneNames} />}
+            </>
+          }
+          panes={mediatorPanes(running, wide).map((p) => ({ ...p, node: nodes[p.value] }))}
+          tab={tab}
+          onTab={setTab}
+          // The first unit's HP was 27 Tabs from the top (r4 D6). Four jumps,
+          // whatever the size of the fight (r6 B11): the Opposition's lands on its
+          // heading, which leads into its own list of units (`OppositionJumps`).
+          jumps={[
+            { pane: 'table', label: playCopy('theTable') },
+            {
+              pane: 'opposition',
+              label: running ? playCopy('downtimeWord') : playCopy('opposition'),
+              ...(running ? {} : { first: '#mediate-opposition' }),
+            },
+            { pane: 'tables', label: playCopy('rolls') },
+            { pane: 'table', label: playCopy('feed'), first: '#mediate-feed' },
+          ]}
+          foot={
+            <PlayFoot
+              solo={false}
+              tone={PHASE_TONE[running ? 'downtime' : 'scene']}
+              note={session?.live ? playCopy('sessionLive') : undefined}
+            />
+          }
         />
-      }
-    />
+      </FoldRolledTables.Provider>
+    </PrivateRolls.Provider>
   )
 }

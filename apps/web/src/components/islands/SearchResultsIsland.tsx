@@ -13,6 +13,7 @@ import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
 import { clientSwap } from '../../runtime/clientSwap'
 import { InlineRef } from '../atoms/InlineRef'
+import { HeroSearchStatic } from '../HeroSearch'
 import { Entity, Pending, SlabSection } from '../index'
 import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
@@ -95,16 +96,27 @@ export function SearchResultsIsland({ search }: SearchResultsIslandProps = {}) {
   )
 
   if (!query) return <p style={LINE}>{islandsCopy('searchForSomething')}</p>
-  if (!ready) return <Pending searching />
+  // What was searched for stays in a field of its own, to refine (RR6-02).
+  const refine = <HeroSearchStatic query={query} shortcut="" />
+  if (!ready)
+    return (
+      <div style={SECTIONS}>
+        {refine}
+        <Pending searching />
+      </div>
+    )
 
   if (results.length === 0) {
     return (
-      <p style={LINE}>
-        {islandsCopy('nothingCloseTo', { query })}. {islandsCopy('searchNoneBrowse')}{' '}
-        <InlineRef href="/reference/">{islandsCopy('searchNoneListings')}</InlineRef>{' '}
-        {islandsCopy('searchNoneOr')}{' '}
-        <InlineRef href="/rules/">{islandsCopy('searchNoneRules')}</InlineRef>.
-      </p>
+      <div style={SECTIONS}>
+        {refine}
+        <p style={LINE}>
+          {islandsCopy('nothingCloseTo', { query })}. {islandsCopy('searchNoneBrowse')}{' '}
+          <InlineRef href="/reference/">{islandsCopy('searchNoneListings')}</InlineRef>{' '}
+          {islandsCopy('searchNoneOr')}{' '}
+          <InlineRef href="/rules/">{islandsCopy('searchNoneRules')}</InlineRef>.
+        </p>
+      </div>
     )
   }
 
@@ -112,6 +124,7 @@ export function SearchResultsIsland({ search }: SearchResultsIslandProps = {}) {
   return (
     <IslandErrorBoundary>
       <div style={SECTIONS}>
+        {refine}
         <p style={LINE} aria-live="polite">
           {results.length === 1
             ? islandsCopy('oneResultFor', { query })

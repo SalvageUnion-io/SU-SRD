@@ -1,6 +1,6 @@
 import { PreviewCard } from '@base-ui/react/preview-card'
 import type { CSSProperties, ErrorInfo, ReactNode } from 'react'
-import { Component, useEffect, useState } from 'react'
+import { Component, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { EntitySchemaName, RefEntity, RefObjectTable } from 'salvageunion-reference'
 import {
@@ -26,6 +26,7 @@ import type { StatTerm } from './parts/statTerms'
 import { TERM_SCHEMA, termAt } from './parts/statTerms'
 import type { PeekSize } from './peekContext'
 import { PEEK_PRESS_ATTRIBUTE } from './peekContext'
+import type { PeekOpening } from './peekController'
 import { PEEK_POPUP_ATTRIBUTE } from './peekController'
 import { PEEK_PLATE } from './peekPlate'
 
@@ -84,6 +85,30 @@ const PEEK_SHEET_OUT = {
   flex: 'none',
   borderTop: PEEK_OUT.border,
 } satisfies CSSProperties
+
+/** A list's row (a Ledger's): a Peek from it stands clear of the row's columns (r6 G7). */
+const LEDGER_ROW = '.su-ledger__table > tbody > tr'
+
+/**
+ * Where a Peek from a list's row hangs: under the whole row, at its trigger's
+ * edge (the name's, an ability's or a trait's), so the columns it is read
+ * beside stay in view. Read live, so it follows a scroll.
+ */
+function underRow(trigger: HTMLElement, row: HTMLElement) {
+  return {
+    contextElement: trigger,
+    getBoundingClientRect: () => {
+      const own = trigger.getBoundingClientRect()
+      const line = row.getBoundingClientRect()
+      return DOMRect.fromRect({
+        x: own.left,
+        y: line.top,
+        width: own.width,
+        height: line.height,
+      })
+    },
+  }
+}
 
 /** Whether the screen is a phone's (below the ladder's first rung), read as the Peek opens. */
 function onPhone(): boolean {
@@ -169,6 +194,7 @@ export function PeekPopup({
   entityId,
   down = false,
   size = 'compact',
+  how = 'hover',
   load,
   onDismiss,
 }: {
@@ -180,11 +206,19 @@ export function PeekPopup({
   down?: Down
   /** One form below the trigger's (E23): a Compact contentful, or a contentful Mini. */
   size?: PeekSize
+  /**
+   * How it opened. The keyboard's Peek stands above its line (r6 G8): the
+   * reader Tabbing through a sentence reads on below it, never under the card.
+   */
+  how?: PeekOpening
   load: PeekLoader
   onDismiss: () => void
 }) {
   const [loaded, setLoaded] = useState(false)
   const [sheet] = useState(onPhone)
+  // From a list's row the Peek hangs under the whole row (r6 G7).
+  const row = anchor.closest<HTMLElement>(LEDGER_ROW)
+  const at = useMemo(() => (row ? underRow(anchor, row) : anchor), [anchor, row])
   useEffect(() => {
     let live = true
     // A term is the app's own words: no schema to read.
@@ -220,7 +254,7 @@ export function PeekPopup({
     ) : subject.kind === 'table' ? (
       <PeekTable name={subject.name} table={subject.table} />
     ) : (
-      <PeekEntity entity={subject.entity} down={down} size={size} />
+      <PeekEntity entity={subject.entity} down={down} size={size} fromRow={!!row} />
     )
   ) : null
   const out =
@@ -266,8 +300,14 @@ export function PeekPopup({
     >
       <PreviewCard.Portal>
         <PreviewCard.Positioner
-          anchor={anchor}
-          side="bottom"
+          anchor={at}
+          // A trigger whose controls sit below it asks for the room above (r6 E20);
+          // a Peek opened by focus sits above its line, a row's below the row (r6 G8).
+          side={
+            anchor.getAttribute('data-peek-side') === 'top' || (how === 'focus' && !row)
+              ? 'top'
+              : 'bottom'
+          }
           align="start"
           sideOffset={5}
           collisionPadding={8}

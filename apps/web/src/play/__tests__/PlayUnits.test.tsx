@@ -195,6 +195,22 @@ describe('activated effects (ADR-029 §4)', () => {
     expect(toggled).toEqual(['hull-magnetiser'])
   })
 
+  test('each effect says what it does, its cost and its rule (r6 A11)', () => {
+    render(
+      <PlayMechUnit
+        mech={magnetised}
+        place="boarded"
+        live
+        pilotAbilities={['squeeze-it-in']}
+        onToggleEffect={() => undefined}
+      />
+    )
+    const line = [...document.querySelectorAll('p, span, div')].find((n) =>
+      n.textContent?.startsWith('Squeeze it in: +4 Cargo Capacity · 1 AP. When activated')
+    )
+    expect(line).toBeTruthy()
+  })
+
   test('an effect the seat has on reads pressed', () => {
     render(
       <PlayMechUnit

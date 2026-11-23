@@ -96,7 +96,7 @@ describe('Sheet — one unit, no links', () => {
 // ---------------------------------------------------------------------------
 
 describe('Sheet — a mech band', () => {
-  test("its chassis's Tech Level and Salvage Value ride the band (C10)", () => {
+  test("its chassis's Tech Level and its Scrap by Tech Level ride the band (C10, r6 E4)", () => {
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum' }
     render(
       <Sheet
@@ -108,7 +108,8 @@ describe('Sheet — a mech band', () => {
     )
     const band = screen.getByRole('heading', { level: 1 }).closest('.su-chapter-band__row')
     expect(within(band as HTMLElement).getByText('TL')).toBeTruthy()
-    expect(within(band as HTMLElement).getByText('SV')).toBeTruthy()
+    expect(within(band as HTMLElement).getByText('Scrap')).toBeTruthy()
+    expect(within(band as HTMLElement).queryByText('SV')).toBeNull()
   })
 })
 

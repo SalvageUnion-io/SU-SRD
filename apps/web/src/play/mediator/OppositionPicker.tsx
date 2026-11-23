@@ -71,6 +71,11 @@ export type TrayWrites = {
   remove: (npc: TrayNpc) => Promise<unknown>
   /** Clear the field: every NPC leaves the tray at once. */
   clear: () => Promise<unknown>
+  /**
+   * Clear the downed (r6 B8): every downed NPC leaves the tray in one press;
+   * `undo` puts each back as it was.
+   */
+  clearDowned: () => Promise<{ removed: number; undo: () => Promise<void> }>
   rename: (npc: TrayNpc, name: string) => Promise<unknown>
   /** Field an encounter row's roster (p.270): every line it names, how many it says. */
   field: (lines: readonly RosterLine[]) => Promise<number>
@@ -173,6 +178,14 @@ export function OppositionPicker({
     ...OPPOSITION_SCHEMAS.map((s) => ({ kind: s.schema as Kind, label: s.label })),
     ...(onAddBuilt ? [{ kind: YOURS as Kind, label: mediatorCopy('yours') }] : []),
   ]
+  // The search moves to the first kind that finds something when this one
+  // finds nothing (r6 E8): a match never sits behind another tab.
+  const findIn = (next: string) => {
+    setQuery(next)
+    if (matches(kind, next, yours) !== 0) return
+    const first = kinds.find((k) => (matches(k.kind, next, yours) ?? 0) > 0)
+    if (first) setKind(first.kind)
+  }
   const lead = (
     <div style={LEAD}>
       <Segmented label={mediatorCopy('drawFrom')} size="compact" wrap>
@@ -207,7 +220,7 @@ export function OppositionPicker({
     onClose,
     lead,
     initialQuery: query,
-    onQueryChange: setQuery,
+    onQueryChange: findIn,
     railEntities,
     emptyMessage: mediatorCopy('nothingOfThisKind'),
     // What it can do is what it is picked by (r4 D4): its Page lists its

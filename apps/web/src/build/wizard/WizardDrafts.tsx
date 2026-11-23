@@ -1,8 +1,8 @@
 /**
- * WizardDrafts — the Training Bay's lines for the builds this tab keeps as
+ * WizardDrafts — the Training Bay's lines for the builds this browser keeps as
  * drafts ("Draft: Hacker pilot · Resume"), signed in or out: a build left
  * mid-wizard is said where the reader lands, not only behind + New again.
- * Nothing with no draft. A draft is this tab's session's (`wizardDraft.ts`),
+ * Nothing with no draft. A draft is the browser's (`wizardDraft.ts`),
  * read as the page draws.
  */
 
@@ -11,6 +11,7 @@ import type { CSSProperties } from 'react'
 import { Button, Callout, tokens } from '../../components/index'
 import { useGo } from '../../components/shared/useGo'
 import { wizardDrafts } from '../../lib/wizard/draftSummary'
+import { DRAFT_SCOPE } from '../../lib/wizard/wizardDraft'
 import { buildWizardCopy } from '../../messages/build-wizard'
 
 const NEW_PATH: Record<SheetKind, string> = {
@@ -42,7 +43,12 @@ export function WizardDrafts() {
   if (drafts.length === 0) return null
   return (
     <Callout tone="ink">
-      <ul aria-label={buildWizardCopy('draftsInThisTab')} style={LIST}>
+      <ul
+        aria-label={buildWizardCopy(
+          DRAFT_SCOPE === 'tab' ? 'draftsInThisTab' : 'draftsInThisBrowser'
+        )}
+        style={LIST}
+      >
         {drafts.map((draft) => (
           <li key={draft.kind} style={LINE}>
             <span>{buildWizardCopy('draftLine', { label: draft.label })}</span>

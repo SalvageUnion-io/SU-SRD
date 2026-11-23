@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Toaster as SonnerToaster } from 'sonner'
 import { borderWidth, color, font, fontSize, radius, shadow } from '../../design/tokens'
 import { holdToastsOnFocus } from './toastFocusHold'
-import { useToastsOnTop } from './toastPlacement'
+import { usePlayToasts, useToastsOnTop } from './toastPlacement'
 
 /** Sonner's own radius variable, set to the popup radius (ruleset §4.4). */
 const TOASTER = { '--border-radius': radius.card } as CSSProperties
@@ -39,11 +39,14 @@ const MOBILE_OFFSET = {
 export function Toaster() {
   // A phone's Play screen holds its toasts at the top, under its bar, off its controls (r2 C4, r3 H2).
   const onTop = useToastsOnTop()
+  // Play's: one at a time, a newer replacing the older, bottom left (r6 A3).
+  const play = usePlayToasts()
   // A toast holds under the focus as under the pointer (chrome K5).
   useEffect(() => holdToastsOnFocus(), [])
   return (
     <SonnerToaster
-      position={onTop ? 'top-center' : 'bottom-right'}
+      position={onTop ? 'top-center' : play ? 'bottom-left' : 'bottom-right'}
+      visibleToasts={play ? 1 : 3}
       mobileOffset={MOBILE_OFFSET}
       style={TOASTER}
       toastOptions={{

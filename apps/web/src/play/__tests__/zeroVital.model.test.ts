@@ -88,6 +88,24 @@ describe('a vital at 0 says what happens next', () => {
     }
   })
 
+  test('the result is shown once: the card names the row, and the toast goes (r6 A4)', () => {
+    const stopAsked = onPlayTableAsked(() => undefined)
+    try {
+      zeroVitalNotice(mech, 'currentSP', 6, 0)
+      press('zero:m-zero:currentSP')
+      recordPlayRoll({
+        tableName: 'Critical Damage',
+        rolls: [19],
+        label: 'Critical Damage',
+        outcome: 'Core Damage: the whole row’s text, which the table marks',
+      })
+      expect(downResult('m-zero')).toBe('Critical Damage · 19 · Core Damage')
+      expect(line('zero:m-zero:currentSP')).toBeUndefined()
+    } finally {
+      stopAsked()
+    }
+  })
+
   test('Down is a vital at 0; an unset one reads full', () => {
     expect(isDown(0)).toBe(true)
     expect(isDown(3)).toBe(false)

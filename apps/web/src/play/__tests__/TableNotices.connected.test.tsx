@@ -239,6 +239,28 @@ describe('the pinned notices', () => {
     expect(notice('session-ended')).toBeNull()
   })
 
+  test('Session ended is said once: a later visit does not pin it again (r6 C1)', async () => {
+    const at = Date.now() - 60_000
+    localStorage.setItem('su-session-ended-seen', JSON.stringify([`session:g1:ended:${at}`]))
+    await renderNotices(
+      {
+        'changeLog.events': [
+          {
+            _id: 'e-end-seen',
+            ts: at,
+            kind: 'session',
+            text: 'Ash ended the group session',
+            actorId: 'gm',
+            session: 'end',
+          },
+        ],
+      },
+      '/games/g1'
+    )
+    expect(notice('session-ended')).toBeNull()
+    localStorage.removeItem('su-session-ended-seen')
+  })
+
   test('Your turn pins on every screen while the Mediator has my pilot up (r2 E1)', async () => {
     const { useUnits } = await import('../../replica/units')
     const { pilotFixture } = await import('../../components/__tests__/fixtures')
@@ -256,6 +278,35 @@ describe('the pinned notices', () => {
     })
     expect(notice('turn')).toBeNull()
     act(() => drop('pilot', 'tn-up'))
+  })
+
+  // r6 C5 (LG6-19): what waits for a player reaches them off the Play screen.
+  test('a Downtime step waiting on my pilot pins its door off Play, and none on Play', async () => {
+    const { useUnits } = await import('../../replica/units')
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const { drop } = await import('../../replica/replica')
+    await act(async () => {
+      await useUnits.getState().adopt('pilot', pilotFixture({ id: 'tn-dt', gameId: 'g1' }))
+    })
+    const running = {
+      'downtime.state': {
+        running: true,
+        runId: 'r1',
+        stepIndex: 0,
+        startedAt: 5,
+        completedBy: [],
+        upkeepSpent: false,
+        doneSteps: [],
+      },
+    }
+    await renderNotices(running, '/games/')
+    expect(notice('downtime')?.textContent).toContain('Downtime has begun · Tenacity')
+    const door = screen.getByRole('link', { name: 'Your step' }) as HTMLAnchorElement
+    expect(door.getAttribute('href')).toBe('/pilots/tn-dt/play')
+    cleanup()
+    await renderNotices(running, '/pilots/tn-dt/play')
+    expect(notice('downtime')).toBeNull()
+    act(() => drop('pilot', 'tn-dt'))
   })
 
   // LG-02: the replica holds every crewmate's pilot too; the door is for the
@@ -308,7 +359,7 @@ describe('the pinned notices', () => {
     expect(notice('removed')).toBeNull()
   })
 
-  test('several notices share one strip: the newest, how many more, and Dismiss all (r3 H1)', async () => {
+  test('several notices share one strip: the newest, how many more, and Dismiss all (r6 A1)', async () => {
     const now = Date.now()
     const alert = {
       _id: 'a-stack',
@@ -334,18 +385,17 @@ describe('the pinned notices', () => {
       '/games/g1/prep'
     )
     const strips = () => [...document.querySelectorAll('[data-table-notice]')]
-    // The Mediator's alert is never folded away (r4 B2); under it one strip,
-    // the newer of the other two, and the last waits behind the count.
-    expect(strips().map((el) => el.getAttribute('data-table-notice'))).toEqual(['alert', 'role'])
-    const more = screen.getByRole('button', { name: 'Show 1 more notices' })
-    expect(more.textContent).toBe('1 more')
+    // One strip, the newest; the Mediator's alert waits behind the count too.
+    expect(strips().map((el) => el.getAttribute('data-table-notice'))).toEqual(['role'])
+    const more = screen.getByRole('button', { name: 'Show 2 more notices' })
+    expect(more.textContent).toBe('2 more')
     expect(more.getAttribute('aria-expanded')).toBe('false')
     await act(async () => {
       fireEvent.click(more)
     })
     expect(strips().map((el) => el.getAttribute('data-table-notice'))).toEqual([
-      'alert',
       'role',
+      'alert',
       'session',
     ])
     await act(async () => {
@@ -355,7 +405,7 @@ describe('the pinned notices', () => {
     expect(screen.getByRole('region', { name: 'Your Games' }).childElementCount).toBe(0)
   })
 
-  test('a proposal leads the strip under the alert, and dismissing leaves it waiting (r3 H1)', async () => {
+  test('a proposal leads the strip, and dismissing the rest leaves it waiting (r6 A1)', async () => {
     const proposal = {
       _id: 'p-1',
       entityId: 'bonesaw',
@@ -378,8 +428,11 @@ describe('the pinned notices', () => {
       [...document.querySelectorAll('[data-table-notice]')].map((el) =>
         el.getAttribute('data-table-notice')
       )
-    expect(strips()).toEqual(['alert', 'proposal'])
+    expect(strips()).toEqual(['proposal'])
     expect(screen.getByRole('button', { name: 'Accept: Static AP → 2' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Show 1 more notices' }))
+    })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /^Dismiss: From the Mediator/ }))
     })
@@ -387,38 +440,7 @@ describe('the pinned notices', () => {
     expect(screen.queryByRole('button', { name: /^Dismiss/ })).toBeNull()
   })
 
-  test('the player who is up reads the Mediator’s alert above "Your turn", and ends their own turn (r4 B1, B2)', async () => {
-    const { useUnits } = await import('../../replica/units')
-    const { pilotFixture } = await import('../../components/__tests__/fixtures')
-    const { drop } = await import('../../replica/replica')
-    await act(async () => {
-      await useUnits
-        .getState()
-        .adopt('pilot', pilotFixture({ id: 'tn-end', gameId: 'g1', callsign: 'Tinhat' }))
-    })
-    const alert = {
-      _id: 'a-up',
-      ts: Date.now() - 1000,
-      kind: 'alert',
-      text: 'Mediator · Sandstorm rolling in',
-      actorId: 'gm',
-    }
-    await renderNotices({
-      'scenes.current': { conditions: [], hours: 0, upNow: 'tn-end' },
-      'changeLog.events': [alert],
-    })
-    const strips = [...document.querySelectorAll('[data-table-notice]')]
-    expect(strips.map((el) => el.getAttribute('data-table-notice'))).toEqual(['alert', 'turn'])
-    expect(strips[0]?.textContent).toContain('Sandstorm rolling in')
-    expect(screen.queryByRole('button', { name: /more notices/ })).toBeNull()
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'End my turn' }))
-    })
-    expect(mutations).toEqual([{ name: 'scenes.endTurn', args: {} }])
-    act(() => drop('pilot', 'tn-end'))
-  })
-
-  test('Your turn is never behind "1 more": under a proposal it is its own line (r5 A5)', async () => {
+  test('the player who is up ends their turn from the strip, whatever leads it (r4 B1, r6 A13)', async () => {
     const { useUnits } = await import('../../replica/units')
     const { pilotFixture } = await import('../../components/__tests__/fixtures')
     const { drop } = await import('../../replica/replica')
@@ -442,12 +464,34 @@ describe('the pinned notices', () => {
       'scenes.current': { conditions: [], hours: 0, upNow: 'tn-both' },
     })
     const strips = [...document.querySelectorAll('[data-table-notice]')]
-    expect(strips.map((el) => el.getAttribute('data-table-notice'))).toEqual(['proposal', 'turn'])
-    expect(screen.queryByRole('button', { name: /more notices/ })).toBeNull()
-    // One line: its title and End my turn, not the body.
-    expect(strips[1]?.textContent).toContain('Your turn · Razor')
-    expect(strips[1]?.textContent).not.toContain('gave you the turn')
+    // The proposal leads; its strip carries End my turn, one control, never two.
+    expect(strips.map((el) => el.getAttribute('data-table-notice'))).toEqual(['proposal'])
+    expect(strips[0]?.id).toBe('su-your-turn')
+    expect(screen.getAllByRole('button', { name: 'End my turn' })).toHaveLength(1)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'End my turn' }))
+    })
+    expect(mutations).toEqual([{ name: 'scenes.endTurn', args: {} }])
     act(() => drop('pilot', 'tn-both'))
+  })
+
+  test('every other seat reads who is up on the Game’s pages (r6 A2)', async () => {
+    const { serve, gameScope, drop } = await import('../../replica/replica')
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const theirs = {
+      table: 'pilot' as const,
+      row: pilotFixture({ id: 'tn-razor', gameId: 'g1', callsign: 'Razor', name: 'Razor' }),
+      version: 1,
+      owner: 'u-crewmate',
+    }
+    act(() => serve(gameScope('g1'), [], [theirs]))
+    await renderNotices(
+      { 'scenes.current': { conditions: [], hours: 0, upNow: 'tn-razor' } },
+      '/games/g1'
+    )
+    expect(notice('turn')?.textContent).toContain('Razor is up')
+    expect(screen.queryByRole('button', { name: 'End my turn' })).toBeNull()
+    act(() => drop('pilot', 'tn-razor'))
   })
 
   test('off the Game’s pages Your turn opens its table; a skip link leads to it, and ending it moves focus on (r5 A4, A17)', async () => {
@@ -529,10 +573,15 @@ describe('the pinned notices', () => {
     await renderNotices({ 'session.state': { live: true, startedAt: 7 } }, '/pilots/p1/play')
     expect(notice('session')).toBeNull()
   })
+
+  test('on the Games page the Game’s card is the one Join: no strip repeats it (r6 C4)', async () => {
+    await renderNotices({ 'session.state': { live: true, startedAt: 7 } }, '/games/')
+    expect(notice('session')).toBeNull()
+  })
 })
 
-describe('toasts', () => {
-  test('what needs a look toasts once it happens; history, my own and a crewmate’s vitals never do (r2 C4)', async () => {
+describe('the table’s news (r6 A3)', () => {
+  test('someone else’s act is never a toast; what matters to the table is one line in the strip', async () => {
     const spy = mock((text: unknown, options?: { id?: unknown }) => {
       toasts.push({ text: String(text), id: options?.id })
       return 0
@@ -547,17 +596,16 @@ describe('toasts', () => {
       await act(async () => {
         render(
           <SyncContext.Provider value={connected}>
-            <Fresh pathname="/" />
+            <Fresh pathname="/games/g1" />
           </SyncContext.Provider>
         )
       })
-      expect(toasts).toEqual([])
       const theirs = { _id: 'e-1', ts: 2, kind: 'vitals', text: 'Nell · HP 8 → 5', actorId: 'u2' }
-      const told = {
+      const down = {
         _id: 'e-3',
         ts: 4,
-        kind: 'alert',
-        text: 'Mediator · Raiders close in',
+        kind: 'vitals',
+        text: 'Thresher (Razor) · SP 3 → 0',
         actorId: 'gm',
       }
       const mine = {
@@ -567,13 +615,21 @@ describe('toasts', () => {
         text: 'Bonesaw boards Mazona',
         actorId: 'u1',
       }
-      // An alert just sent is pinned, so it is not toasted too (r3 H2).
-      const pinned = { ...told, _id: 'e-4', ts: Date.now(), text: 'Mediator · Take cover' }
       await act(async () => {
-        serveAll(answers({ 'changeLog.events': [pinned, told, mine, theirs, old] }))
+        serveAll(answers({ 'changeLog.events': [down, mine, theirs, old] }))
       })
-      expect(notice('alert')?.textContent).toContain('Take cover')
-      expect(toasts).toEqual([{ text: 'Mediator · Raiders close in', id: 'table-event-e-3' }])
+      expect(toasts).toEqual([])
+      expect(notice('event')?.textContent).toContain('Thresher (Razor) is Down')
+      // Off the Game's pages it is the Feed's alone.
+      cleanup()
+      await act(async () => {
+        render(
+          <SyncContext.Provider value={connected}>
+            <Fresh pathname="/build/" />
+          </SyncContext.Provider>
+        )
+      })
+      expect(notice('event')).toBeNull()
     } finally {
       mock.module('../../components/index', () => ({ ...components, toast: real }))
     }

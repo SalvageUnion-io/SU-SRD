@@ -191,18 +191,19 @@ describe('the card as a page', () => {
       (label) => label.textContent
     )
     expect(labels).toEqual(BOOK_EIGHT)
-    // The Description leads the main track; the stat column follows it.
-    expect(column?.previousElementSibling?.classList.contains('su-entity-page__prose')).toBe(true)
+    // The stat column leads the main track; the chassis ability follows it (RR6-06).
+    expect(column?.previousElementSibling).toBeNull()
+    expect(column?.nextElementSibling?.classList.contains('su-manual__ability')).toBe(true)
   })
 
-  test('the chassis ability stands in the side column under its own h2: its rules text, never a heading', () => {
+  test('the chassis ability follows the stats in the main column under its own h2: its rules text, never a heading', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     const section = need(
       screen.getByRole('heading', { name: 'Chassis Ability', level: 2 }).closest('section') ??
         undefined,
       'the chassis ability section'
     )
-    expect(section.closest('.su-manual__side')).not.toBeNull()
+    expect(section.closest('.su-manual__main')).not.toBeNull()
     expect(section.querySelector('.su-row-rules')?.textContent).toContain('Cargo Capacity')
     expect(section.querySelectorAll('h3, h4, h5, h6')).toHaveLength(0)
     expect(container.querySelector('.su-ec-frame')).toBeNull()

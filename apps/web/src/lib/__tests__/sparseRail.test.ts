@@ -4,7 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { relationsFor } from '../pageRelations'
 import { isSparse, oneRelatedRules, sparseRailFor, tableRailFor } from '../sparseRail'
 
-const find = (schema: 'traits' | 'keywords', slug: string) =>
+const find = (schema: 'traits' | 'keywords' | 'distances', slug: string) =>
   SalvageUnionReference.findAllIn(schema, () => true).find(
     (entity) => entity.name.toLowerCase().replace(/\s+/g, '-') === slug
   ) as RefEntity
@@ -15,6 +15,15 @@ describe('sparseRailFor', () => {
     expect(rail.usedBy.length).toBe(22)
     expect(rail.usedBy.every((row) => row.kind.length > 0)).toBe(true)
     expect(rail.usedBy.map((row) => row.kind)).toContain('Equipment')
+  })
+
+  test("a range's users fire at that range: its words in flavour text are no use (RR6-11)", () => {
+    const rail = sparseRailFor('distances', find('distances', 'long'))
+    const names = rail.usedBy.map((row) => row.name)
+    expect(names.length).toBeGreaterThan(0)
+    // Its flavour says "for as long as anyone remembers"; it fires at Close.
+    expect(names).not.toContain('.50 Cal Machine Gun')
+    expect(names).toContain('Railgun')
   })
 
   test('a keyword nothing names has no users', () => {

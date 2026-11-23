@@ -19,7 +19,7 @@
  * screen's rolls are its own. No React here but the one hook.
  */
 
-import { useSyncExternalStore } from 'react'
+import { useLayoutEffect, useSyncExternalStore } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
 import { localStore } from '../lib/safeLocalStorage'
@@ -58,16 +58,20 @@ export type PlayRoll = {
    * slot's row before it, so a roll made again is one Feed line, not two.
    */
   slot?: string
+  /** The screen it was recorded on (`useRollScreen`): a solo Feed reads its own back (r6 A8). */
+  screen?: string
 }
 
-/** What a caller hands `recordPlayRoll`: the id is assigned, `at` defaults to now. */
-export type PlayRollInput = Omit<PlayRoll, 'id' | 'at'> & { at?: number }
+/** What a caller hands `recordPlayRoll`: the id and screen are assigned, `at` defaults to now. */
+export type PlayRollInput = Omit<PlayRoll, 'id' | 'at' | 'screen'> & { at?: number }
 
 type Listener = (roll: PlayRoll) => void
 
 let log: readonly PlayRoll[] = []
 let next = 0
 let privately = false
+/** The Play screen open now, stamped on what it records (`useRollScreen`). */
+let screen: string | null = null
 const listeners = new Set<Listener>()
 const watchers = new Set<() => void>()
 
@@ -79,6 +83,7 @@ export function recordPlayRoll(input: PlayRollInput): PlayRoll {
     id: `play-roll-${next}`,
     at: input.at ?? Date.now(),
     ...(privately && input.rolls.length > 0 ? { private: true as const } : {}),
+    ...(screen === null ? {} : { screen }),
   }
   log = [...log.filter((r) => input.slot === undefined || r.slot !== input.slot), roll]
   for (const listener of listeners) listener(roll)
@@ -226,10 +231,33 @@ export function reportingRoll(roll: Roll, tableName: string, meta: () => PlayRol
   }
 }
 
+/**
+ * Stamp what is recorded while this screen is open with `key`, so a solo
+ * Feed lists its own lines again when its pilot's Play is opened again in
+ * this tab, not only those since (r6 A8).
+ */
+export function useRollScreen(key: string): void {
+  useLayoutEffect(() => {
+    screen = key
+    return () => {
+      if (screen === key) screen = null
+    }
+  }, [key])
+}
+
+/** Take the line in `slot` off this tab's log: a solo vitals line whose change was undone (r6 A8). */
+export function dropPlayRollSlot(slot: string): void {
+  const kept = log.filter((r) => r.slot !== slot)
+  if (kept.length === log.length) return
+  log = kept
+  for (const watch of watchers) watch()
+}
+
 /** Empty the log (tests). */
 export function clearPlayRolls(): void {
   log = []
   privately = false
+  screen = null
   for (const watch of watchers) watch()
 }
 

@@ -176,6 +176,12 @@ export function useHarnessPlay({
         record('downtime.claim', { claim, crawlerId, patch })
         return claim === 'upkeep' ? payUpkeep() : true
       },
+      // Tally Salvage's move into the crawler (`downtime.moveScrap`, r6 D1); it takes the step.
+      moveScrap: async (move) => {
+        record('downtime.moveScrap', move)
+        setDoneSteps((d) => (d.includes(stepIndex) ? d : [...d, stepIndex]))
+        return true
+      },
     },
     canWrite,
     readOnly: canWrite ? null : { stamp: 'Read-only', says: 'Read-only.' },

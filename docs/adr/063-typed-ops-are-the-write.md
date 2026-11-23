@@ -68,6 +68,15 @@ offline queue would each be one more mechanism.
    proposal on the same field still supersedes the older.
 6. **A Downtime step is an op with a stable id** per pilot and step, so
    applying it twice is a no-op and the claim bookkeeping goes.
+   Amended 2026-11-22 (r6 D1): Tally Salvage's move of a pilot's carried
+   Scrap (their inventory's and their mech's Cargo's) into the crawler's
+   pool is one act, `downtime.moveScrap`, its player's in Tally Salvage. The
+   room builds every patch from the bodies it holds, since a player may not
+   write the crawler: the crawler's op under `downtimeScrapOpId` (once per
+   run and pilot), the pilot's and mech's halves beside it, and the step op.
+   `downtime.state` adds `scrapMoved`, the pilot ids moved (optional,
+   additive). Who presses is one switch (`DOWNTIME_RULINGS.scrapMove`). No
+   schema change.
 7. **What is not an op.** Rolls and the Mediator's alerts ("Tell the table")
    are a Game's feed, not changes to a unit. Container moves and assignment
    (`gameId`, `ownerId`, links) are server state about where a unit is

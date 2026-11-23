@@ -3,12 +3,13 @@
  *
  * Wizard form state is plain useState, so on its own a refresh, back-nav, PWA
  * autoUpdate reload, or mis-tap would silently destroy a multi-step build.
- * Drafts mirror to sessionStorage on every change and restore on mount.
+ * Drafts mirror to the browser's storage on every change and restore on mount.
  *
- * sessionStorage (not localStorage) is deliberate: drafts are a
- * crash/refresh safety net for the CURRENT session, not long-lived state —
- * they expire with the tab, never sync across tabs, and cannot go stale for
- * weeks. The serialized form is a plain `lib/wizard/*FormState.ts` object.
+ * Where (`DRAFT_SCOPE`, r6 F6): in this browser, in every tab, until the
+ * build is saved or discarded (localStorage), so closing the tab or opening
+ * the wizard in another keeps the build. It is never sent to the server, so a
+ * signed-out draft saves nothing (ADR-034). The serialized form is a plain
+ * `lib/wizard/*FormState.ts` object.
  *
  * Storage failures (quota, disabled storage) degrade silently to an unsaved
  * draft — drafts are best-effort, never load-bearing.
@@ -19,11 +20,23 @@ import { useEffect, useMemo, useRef } from 'react'
 
 const PREFIX = 'app-wizard-draft'
 
+/**
+ * The r6 F6 ruling, in its one place: `'browser'` keeps a draft in every tab
+ * of this browser until it is saved or discarded (localStorage); `'tab'`
+ * keeps it to this tab (sessionStorage), and step 1 says so (`tryNote`).
+ */
+export const DRAFT_SCOPE: 'browser' | 'tab' = 'browser'
+
+/** The storage a draft is kept in, per `DRAFT_SCOPE`. */
+export function draftStorage(): Storage {
+  return DRAFT_SCOPE === 'browser' ? localStorage : sessionStorage
+}
+
 export type WizardKind = EntityKind
 
 /**
  * Draft slot: one per wizard kind. The `:new` suffix is load-bearing — it is
- * the key drafts already in sessionStorage were written under.
+ * the key drafts were always written under.
  */
 export function wizardDraftKey(kind: WizardKind): string {
   return `${PREFIX}:${kind}:new`
@@ -32,13 +45,13 @@ export function wizardDraftKey(kind: WizardKind): string {
 /** Read a stored draft; null when absent or unparseable (corrupt → cleared). */
 export function readWizardDraft<T>(key: string): T | null {
   try {
-    const raw = sessionStorage.getItem(key)
+    const raw = draftStorage().getItem(key)
     if (raw === null) return null
     return JSON.parse(raw) as T
   } catch {
     // A corrupt or unreadable draft: drop it and start the wizard clean.
     try {
-      sessionStorage.removeItem(key)
+      draftStorage().removeItem(key)
     } catch {
       /* storage unavailable — nothing to clear */
     }
@@ -49,9 +62,9 @@ export function readWizardDraft<T>(key: string): T | null {
 /** Drop a draft — call on successful submit or a confirmed cancel. */
 export function clearWizardDraft(key: string): void {
   try {
-    sessionStorage.removeItem(key)
-    sessionStorage.removeItem(`${key}:reached`)
-    sessionStorage.removeItem(`${key}:signIn`)
+    draftStorage().removeItem(key)
+    draftStorage().removeItem(`${key}:reached`)
+    draftStorage().removeItem(`${key}:signIn`)
   } catch {
     /* storage unavailable — nothing to clear */
   }
@@ -63,7 +76,7 @@ export function clearWizardDraft(key: string): void {
  */
 export function readWizardReached(key: string): number {
   try {
-    const n = Number.parseInt(sessionStorage.getItem(`${key}:reached`) ?? '', 10)
+    const n = Number.parseInt(draftStorage().getItem(`${key}:reached`) ?? '', 10)
     return Number.isFinite(n) && n > 0 ? n : 0
   } catch {
     return 0
@@ -73,7 +86,7 @@ export function readWizardReached(key: string): number {
 /** That Save asked for a sign-in over this draft, so the return can say what is left (r5 C14). */
 export function markWizardSignIn(key: string): void {
   try {
-    sessionStorage.setItem(`${key}:signIn`, '1')
+    draftStorage().setItem(`${key}:signIn`, '1')
   } catch {
     /* unavailable — the return says nothing extra */
   }
@@ -82,7 +95,7 @@ export function markWizardSignIn(key: string): void {
 /** Whether Save asked for a sign-in over this draft (`markWizardSignIn`). */
 export function readWizardSignIn(key: string): boolean {
   try {
-    return sessionStorage.getItem(`${key}:signIn`) !== null
+    return draftStorage().getItem(`${key}:signIn`) !== null
   } catch {
     return false
   }
@@ -91,14 +104,14 @@ export function readWizardSignIn(key: string): boolean {
 /** Store the furthest step reached, beside the draft. */
 export function writeWizardReached(key: string, index: number): void {
   try {
-    sessionStorage.setItem(`${key}:reached`, String(index))
+    draftStorage().setItem(`${key}:reached`, String(index))
   } catch {
     /* quota/unavailable — a reload starts at step 1 */
   }
 }
 
 /**
- * Mirrors `form` into sessionStorage whenever it differs from `baseline`
+ * Mirrors `form` into the draft's storage whenever it differs from `baseline`
  * (the pristine initial state) and returns that dirty flag. A form that
  * reverts to pristine keeps its stored draft — cheaper to reason about, and
  * clearWizardDraft() runs on every exit path anyway.
@@ -119,7 +132,7 @@ export function useWizardDraftSync<T>(key: string, form: T, baseline: T): boolea
     }
     if (!dirty) return
     try {
-      sessionStorage.setItem(key, serialized)
+      draftStorage().setItem(key, serialized)
     } catch {
       /* quota/unavailable — draft protection degrades silently */
     }

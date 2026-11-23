@@ -749,6 +749,19 @@ html[data-srd-signed-in] .su-mediator-acts {
   }
 }
 
+/* Skip to results (RR6-14): off the page until the keyboard reaches it, then
+   a line of its own between the filters and what they found. */
+.su-listing__skip {
+  left: -9999px;
+  position: absolute;
+}
+
+.su-listing__skip:focus {
+  display: inline-block;
+  margin: 0 0 var(--space-8);
+  position: static;
+}
+
 /* What a filtered list is filtered to, said on paper only (r4 E9): there the
    rail that says it on screen is not drawn. */
 .su-listing__printed {
@@ -841,13 +854,27 @@ html[data-listing-pending] .su-listing__groups {
   padding: var(--space-8) var(--space-12);
 }
 
+/* The page column is a screen tall, so a short page's foot reaches the
+   screen's bottom (`BaseLayout`); paper's sheet is no screen. */
+@media screen {
+  .su-page-column {
+    min-height: 100dvh;
+  }
+}
+
+/* A jump to a section stops short of the screen's top edge, so its heading
+   (and a stamp's notch over it) reads whole, never clipped (RR6-19). */
+main [id] {
+  scroll-margin-block-start: var(--space-24);
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
- * A LONG PAGE'S "ON THIS PAGE", ON A PHONE (`PageJump`).
+ * A LONG PAGE'S "ON THIS PAGE", BELOW A DESKTOP (`PageJump`).
  * The header scrolls away with the page, so a small button floats at the
  * screen's lower right once the page has moved (`watchPageJump` shows it) and
  * opens a sheet at the screen's foot: search first, then the page's sections.
- * The sheet is the browser's popover, in the top layer. From `sm` up the
- * header's field is a scroll away and the contents stand beside the page.
+ * The sheet is the browser's popover, in the top layer. From `lg` up the
+ * contents stand beside the page.
  * ══════════════════════════════════════════════════════════════════════ */
 .su-page-jump {
   display: flex;
@@ -868,16 +895,20 @@ html[data-listing-pending] .su-listing__groups {
   display: none;
 }
 
-@media (width >= 40rem) {
+/* A tablet's long page has no contents beside it either: the button stays
+   until the width that stands them there (RR6-19). */
+@media (width >= 64rem) {
   .su-page-jump {
     display: none;
   }
 }
 
-/* On a phone the page's foot leaves the floating buttons room: its last
-   lines scroll clear of them (a button's height and its two gaps). */
-@media not (width >= 40rem) {
-  body:has(.su-page-jump) .su-footer {
+/* Below a desktop the page's foot leaves the floating buttons room: its last
+   lines scroll clear of them (a button's height and its two gaps). The room
+   is the band's own, so the foot still reaches the screen's bottom in ink,
+   never a strip of page ground under it (RR6-12). */
+@media not (width >= 64rem) {
+  body:has(.su-page-jump) .su-footer > .su-chapter-foot {
     padding-block-end: calc(var(--size-full) + var(--space-32));
   }
 }

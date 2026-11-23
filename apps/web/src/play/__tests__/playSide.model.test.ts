@@ -378,8 +378,8 @@ describe('the Feed (play.md §8)', () => {
       rollerName: 'Mediator',
     })
     expect(entries.map((e) => e.text)).toEqual([
-      'You · Core Mechanic · 14 · Success · Private',
-      'You · Morale · 4 · Private',
+      'You · Core Mechanic · 14 · Success · Only you',
+      'You · Morale · 4 · Only you',
     ])
   })
 
@@ -450,8 +450,8 @@ describe('the Feed (play.md §8)', () => {
         { ...older, private: true },
       ])
     ).toEqual([
-      ['You · Warlord Vex · Rifle · 14 · Success · Private', 'e2', 'roll'],
-      ['You · Morale · 4 · Private', 'e1', 'roll'],
+      ['You · Warlord Vex · Rifle · 14 · Success · Only you', 'e2', 'roll'],
+      ['You · Morale · 4 · Only you', 'e1', 'roll'],
     ])
     expect(
       feed([
@@ -487,7 +487,7 @@ describe('the Feed (play.md §8)', () => {
     })
     expect(entries.map((e) => e.text)).toEqual([
       'You · Morale · 4',
-      'Old · Vex · Rifle · 3 · Private',
+      'Old · Vex · Rifle · 3 · Only you',
       'Mediator · Vex · Rifle · 9',
     ])
   })
@@ -631,6 +631,7 @@ describe('the Tables (play.md §8)', () => {
       'Critical Damage',
       'Reactor Overload',
       'Critical Injury',
+      'Group Initiative',
     ])
     // An adventure's rumour table is never pinned for every table (False Flag p.8).
     expect(pinnedTables(true)).toEqual(['Core Mechanic', 'Critical Injury'])
@@ -642,6 +643,7 @@ describe('the Tables (play.md §8)', () => {
       'Bio-Chassis Damage Table',
       'Bio-Chassis Overload Table',
       'Critical Injury',
+      'Group Initiative',
     ])
     expect(pinnedTables(true, 'bio')).toEqual(['Core Mechanic', 'Critical Injury'])
   })
@@ -682,7 +684,7 @@ describe('Discord channels (play.md §9)', () => {
 // MD2-12: one Feed called the Mediator 'You', 'Mediator' and 'Crewmate'.
 describe('the Mediator on the Feed', () => {
   const event = (
-    kind: 'alert' | 'proposal' | 'session' | 'join' | 'downtime' | 'role',
+    kind: 'alert' | 'proposal' | 'session' | 'join' | 'downtime' | 'role' | 'stop' | 'leave',
     text: string,
     actorId: string,
     over: Partial<TableEvent> = {}
@@ -752,5 +754,14 @@ describe('the Mediator on the Feed', () => {
     }
     expect(tableLine(rolled, 'med')).toBe('You · Morale · 4')
     expect(tableLine(rolled, 'nell')).toBe('Mediator · Morale · 4')
+  })
+
+  test('the Stop Sign lifted and a removal read You on your own screen (r6 A9)', () => {
+    const lifted = event('stop', 'Nell lifted the Stop Sign. Play resumes.', 'nell')
+    expect(tableLine(lifted, 'nell')).toBe('You lifted the Stop Sign. Play resumes.')
+    expect(tableLine(lifted, 'med')).toBe('Nell lifted the Stop Sign. Play resumes.')
+    const removed = event('leave', 'Nell was removed from the Game', 'org', { about: 'nell' })
+    expect(tableLine(removed, 'nell')).toBe('You were removed from the Game')
+    expect(tableLine(removed, 'med')).toBe('Nell was removed from the Game')
   })
 })

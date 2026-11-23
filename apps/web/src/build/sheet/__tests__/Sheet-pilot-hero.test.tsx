@@ -279,7 +279,10 @@ describe('Pilot hero — readOnly identity', () => {
       screen.getByRole('heading', { level: 1 }).closest<HTMLElement>('.su-chapter-band')
     )
     expect(within(band).getByRole('heading', { level: 1 }).textContent).toContain('Ghost')
-    expect(within(band).getByText('Yara Voss')).toBeTruthy()
+    // One heading, its two names apart to the ear as to the eye (r6 E20).
+    expect(
+      within(band).getByRole('heading', { level: 1, name: 'Ghost · Yara Voss (Pilot)' })
+    ).toBeTruthy()
   })
 
   test('a callsign that is the name is the band’s title alone', () => {

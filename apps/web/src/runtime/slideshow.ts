@@ -56,10 +56,11 @@ function turn(show: HTMLElement, by: number): void {
 export function watchSlideshow(root: ParentNode): void {
   for (const show of root.querySelectorAll<HTMLElement>('.su-front__show')) {
     const controls = show.querySelector<HTMLElement>('[data-show-controls]')
+    // A show that holds still has no Pause (`HERO_TURNS_ITSELF`), only its turns.
     const pause = show.querySelector<HTMLButtonElement>('[data-show-pause]')
-    if (!controls || !pause) continue
+    if (!controls) continue
     controls.hidden = false
-    pause.addEventListener('click', () => {
+    pause?.addEventListener('click', () => {
       const paused = pause.getAttribute('aria-pressed') !== 'true'
       pause.setAttribute('aria-pressed', String(paused))
       pause.classList.toggle('su-btn--ink', paused)

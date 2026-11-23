@@ -19,6 +19,15 @@ export function downtimeHealOpId(run: string, pilotId: string, stepIndex: number
   return `${downtimeStepOpId(run, pilotId, stepIndex)}:heal`
 }
 
+/**
+ * Tally Salvage's move of a pilot's carried Scrap to the crawler (r6 D1): the
+ * crawler's op, once per run and pilot; the pilot's and mech's halves carry
+ * this id with `:pilot` and `:mech`.
+ */
+export function downtimeScrapOpId(run: string, pilotId: string): string {
+  return `${PREFIX}${run}:${pilotId}:scrap`
+}
+
 /** What a Downtime does once to its crawler, in its own step: pay the Upkeep, process the Nanites. */
 export type DowntimeClaim = 'upkeep' | 'nanites'
 

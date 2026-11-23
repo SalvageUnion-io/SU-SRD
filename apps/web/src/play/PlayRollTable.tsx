@@ -1,7 +1,7 @@
 import { Copy } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
-import { NO_EFFECT, plainTraitText, rollOnTable } from 'salvageunion-reference'
+import { NO_EFFECT, rollOnTable } from 'salvageunion-reference'
 import { CopiedIcon, CopiedStatus, useCopied } from '../components/app'
 import type { RollTableType } from '../components/index'
 import {
@@ -11,13 +11,13 @@ import {
   RollTableInstrument,
   TraitProse,
   toast,
-  toastRoll,
   tokens,
 } from '../components/index'
 import { dieForTable } from '../lib/dice'
 import { playCopy } from '../messages/play'
+import { useFoldRolledTables, usePrivateRolls } from './privateRolls.model'
 
-/** Where a roll landed, and the words it reads as (the toast, the log, Copy). */
+/** Where a roll landed, and the words it reads as (the log, Copy). */
 type Landed =
   | { kind: 'bands'; key: string; roll: number; text: string }
   | { kind: 'columns'; column: string; entry: string; text: string }
@@ -26,17 +26,17 @@ type Landed =
 /**
  * Play's roll table (the Tables column): the shared
  * `RollTableInstrument` (hard rule R8), as every card and SRD page draws it, banded
- * in the surface's `tone`. This file is only the host: the dice, the toast, the
- * Game log hand-off and the Copy of the last result.
+ * in the surface's `tone`. This file is only the host: the dice, the Game log hand-off
+ * and the Copy of the last result.
  *
  * - The instrument's Roll the Die button is the one roll control; pressing it
  *   again rolls again, and the mark moves.
  * - A named table rolls through @randsum/salvageunion (`dieForTable`), any
  *   other on a plain d20; `rollOnTable` reads the row by the same total, or
  *   for a COLUMNS table (Callsign) two d20s: the column, then the entry.
- * - Every roll is a toast (`toastRoll`) and is handed to `onRollResult`, which
- *   Play records on its roll log (ruleset §1.3), a roll on no row as
- *   `NO_EFFECT`.
+ * - Every roll is handed to `onRollResult`, which Play records on its roll
+ *   log (ruleset §1.3), a roll on no row as `NO_EFFECT`. No toast repeats
+ *   it: the marked row is the result, shown once (r6 A4).
  */
 export function PlayRollTable({
   table,
@@ -49,7 +49,7 @@ export function PlayRollTable({
   table: RollTableType
   /** Roll once as it opens: a press made elsewhere for it (the zero toast's, r5 A1). */
   rollNow?: boolean
-  /** The table's name: the bar's title, the toast's, and its die. */
+  /** The table's name: the bar's title and its die. */
   name: string
   /** `full` reads a table on its own; `mini` is the Tables column's. */
   size?: 'full' | 'mini'
@@ -62,6 +62,10 @@ export function PlayRollTable({
   onRollResult?: (text: string, key: string, dice: number[]) => void
 }) {
   const [landed, setLanded] = useState<Landed | null>(null)
+  const privately = usePrivateRolls()
+  // The Mediator's: rolled, the table folds to the row it landed on (r6 B6).
+  const fold = useFoldRolledTables()
+  const [whole, setWhole] = useState(false)
   const isColumns = table.type === 'columns'
   const rows = isColumns ? [] : digestRollTable(table)
 
@@ -71,6 +75,7 @@ export function PlayRollTable({
    * a roll that lands on no row (`NO_EFFECT`), which is still a roll.
    */
   const roll = () => {
+    setWhole(false)
     dieForTable(name)
       .then((d20) => {
         const outcome = rollOnTable(table as RefObjectTable, d20)
@@ -80,18 +85,11 @@ export function PlayRollTable({
           const entryKey = String(outcome.entryKey)
           setLanded({ kind: 'columns', column: columnKey, entry: entryKey, text: value })
           onRollResult?.(value, entryKey, [columnRoll, entryRoll])
-          toastRoll({
-            table: name,
-            roll: entryRoll,
-            range: `column ${columnKey.replace('-', '–')}`,
-            text: value,
-          })
           return
         }
         if (outcome.kind === 'no-effect') {
           setLanded({ kind: 'none', roll: outcome.roll, text: NO_EFFECT })
           onRollResult?.(NO_EFFECT, '', [outcome.roll])
-          toastRoll({ table: name, roll: outcome.roll, text: NO_EFFECT })
           return
         }
         const { key, roll: die } = outcome
@@ -103,13 +101,6 @@ export function PlayRollTable({
         const text = entry.label ? `${entry.label}: ${entry.value}` : entry.value
         setLanded({ kind: 'bands', key, roll: die, text })
         onRollResult?.(text, key, [die])
-        toastRoll({
-          table: name,
-          roll: die,
-          range: key.replace('-', '–'),
-          ...(entry.label ? { label: entry.label } : {}),
-          text: plainTraitText(entry.value),
-        })
       })
       .catch(() => toast(playCopy('rollFailed')))
   }
@@ -129,17 +120,37 @@ export function PlayRollTable({
     navigator.clipboard.writeText(text).then(flash, () => toast(playCopy('copyFailed')))
   }
 
+  const landedKey = landed?.kind === 'bands' ? landed.key : null
+  const folded = fold && !whole && landedKey !== null
+  const bands = folded ? rows.filter((row) => row.key === landedKey) : rows
+
   return (
     <RollTableInstrument
       name={name}
       title={name}
       size={size}
       tone={tone}
-      stamp={isColumns ? playCopy('rollTheDiceStamp') : undefined}
+      stamp={
+        privately
+          ? playCopy('rollPrivatelyStamp')
+          : isColumns
+            ? playCopy('rollTheDiceStamp')
+            : undefined
+      }
       onRoll={roll}
       actions={
         landed ? (
           <>
+            {fold && landed.kind === 'bands' && (
+              <Button
+                size="compact"
+                className="su-roll__control"
+                aria-expanded={!folded}
+                onClick={() => setWhole(folded)}
+              >
+                {folded ? playCopy('wholeTable') : playCopy('foldTable')}
+              </Button>
+            )}
             <Button
               size="compact"
               className="su-roll__control"
@@ -169,7 +180,7 @@ export function PlayRollTable({
             }
           : {
               kind: 'bands',
-              rows: rows.map((row) => ({ ...row, value: <TraitProse text={row.value} /> })),
+              rows: bands.map((row) => ({ ...row, value: <TraitProse text={row.value} /> })),
               mark: landed?.kind === 'bands' ? { key: landed.key, roll: landed.roll } : undefined,
             }
       }

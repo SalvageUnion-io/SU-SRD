@@ -12,7 +12,7 @@ const open = (choices: { value: string; disabled: boolean }[]) =>
 
 describe('the same three answers for every kind', () => {
   test('a sheet (pilot, mech, crawler, NPC) and a pattern ask in the same words', () => {
-    const words = ['Only me', 'My Game’s crew', 'Public']
+    const words = ['Only me', 'My Game’s crew', 'Public (anyone with the link)']
     expect(labels(sheetChoices({ inGame: false, gameName: null }))).toEqual(words)
     expect(labels(patternChoices({ gameName: 'Dustbowl Run' }))).toEqual(words)
   })
@@ -52,7 +52,11 @@ describe('an NPC in a Game', () => {
 
   test('says only the Mediator can see it, on the field too, and when the crew would (r5 B12)', () => {
     const choices = sheetChoices({ inGame: true, gameName: 'Rust Coast', mediatorOnly: true })
-    expect(labels(choices)).toEqual(['Only the Mediator', 'My Game’s crew', 'Public'])
+    expect(labels(choices)).toEqual([
+      'Only the Mediator',
+      'My Game’s crew',
+      'Public (anyone with the link)',
+    ])
     expect(open(choices)).toEqual(['private', 'link'])
     expect(choices[0]?.description).toBe(
       'It is in Rust Coast. Only its Mediator can see it, on the field too: players never see the Opposition.'

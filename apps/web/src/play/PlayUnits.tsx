@@ -33,7 +33,8 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RangeBand } from 'game-domain/schemas/seat'
 import { RANGE_BANDS } from 'game-domain/schemas/seat'
 import type { CSSProperties, ReactNode } from 'react'
-import { toEntityModel } from 'salvageunion-reference'
+import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { resolveInstalledRef } from 'salvageunion-reference/rules'
 import { heatDangerFrom } from '../components/app'
 import type { TagItem } from '../components/index'
 import {
@@ -41,6 +42,7 @@ import {
   Button,
   Chips,
   Entity,
+  Mention,
   relation,
   Segmented,
   SegmentedOption,
@@ -52,6 +54,7 @@ import {
 } from '../components/index'
 import { changeUndoToast } from '../lib/changeUndoToast'
 import { resolveClassName } from '../lib/classRef'
+import type { ActivatableEffect } from '../lib/rules/activatableEffects'
 import { activatableEffects } from '../lib/rules/activatableEffects'
 import { runWrite } from '../lib/runWrite'
 import { unitRowModel } from '../lib/units/unitModel'
@@ -64,7 +67,8 @@ import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.mode
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
 import { headedVital, vitalNow, vitalSettled } from './vitalWrites.model'
-import { useDownResult, zeroUnit, zeroVitalNotice } from './zeroVital.model'
+import type { DownResult } from './zeroVital.model'
+import { askPlayTable, useDownResult, zeroUnit, zeroVitalNotice } from './zeroVital.model'
 
 /** The store a box writes through; the app's own unless a test hands one in. */
 type UnitStore = UnitsStore
@@ -228,7 +232,7 @@ export function PlayPilotUnit({
           injuries.map((line) => <Stat key={line} label={line} size="mini" state="critical" />)
         )}
       </div>
-      {result === null ? null : <Text variant="note">{result}</Text>}
+      {result === null ? null : <DownResultLine result={result} />}
     </TitledBox>
   )
 }
@@ -378,6 +382,9 @@ export function PlayMechUnit({
               )
             })}
           </Segmented>
+          {effects.map((e) => (
+            <EffectLine key={e.ref} effect={e} />
+          ))}
         </>
       ) : null}
       {place === 'boarded' && range ? (
@@ -398,9 +405,40 @@ export function PlayMechUnit({
           </Segmented>
         </div>
       ) : null}
-      {result === null ? null : <Text variant="note">{result}</Text>}
+      {result === null ? null : <DownResultLine result={result} />}
       {place === 'parked' ? <Text variant="note">{playCopy('readOnlyUntilBoarded')}</Text> : null}
     </TitledBox>
+  )
+}
+
+/** A Down unit's Critical result, named once: a press opens its row (r6 A4). */
+function DownResultLine({ result }: { result: DownResult }) {
+  return (
+    <Text variant="note">
+      <Button variant="ghost" size="compact" onClick={() => askPlayTable(result.table)}>
+        {result.text}
+      </Button>
+    </Text>
+  )
+}
+
+/**
+ * What an Effect does, under its toggle (r6 A11): its name Peeking the full
+ * text, what turning it on changes, its cost, and the rule's line.
+ */
+function EffectLine({ effect }: { effect: ActivatableEffect }) {
+  const record =
+    effect.source === 'ability'
+      ? SalvageUnionReference.Abilities.getBySlug(effect.ref)
+      : resolveInstalledRef(effect.ref)
+  const entityRef = record ? toEntityModel(record as never).ref : undefined
+  const facts = [effect.summary, effect.cost].filter((f) => f !== null).join(' · ')
+  return (
+    <Text variant="note">
+      <Mention entityRef={entityRef}>{effect.name}</Mention>
+      {`: ${facts}.`}
+      {effect.rule === null ? null : ` ${effect.rule}`}
+    </Text>
   )
 }
 

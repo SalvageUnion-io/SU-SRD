@@ -3,7 +3,7 @@ import type { LinkShape } from 'game-domain/links/linkRules'
 import { downtimeStepNames } from 'game-domain/rules/downtime'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
-import type { Stored } from './eventLines'
+import type { NamesNow, Stored } from './eventLines'
 import {
   CONDITION_WORDS,
   CONDITIONS,
@@ -11,148 +11,63 @@ import {
   effectName,
   eventOf,
   mergeLine,
+  namedNow,
+  namesOf,
   signedBy,
   UNDO_SOURCE,
   VITALS,
   vitalLine,
+  withSaid,
 } from './eventLines'
 import type { EventsBefore } from './eventsBefore'
 import { downtimeStepNow, eventsBefore, unappliedOf } from './eventsBefore'
 import { isPrivateRoll, isRevealedRoll, rollLineFor } from './log'
 import { undoes } from './proposals'
 import type { GameStore, StoredOp } from './store'
+import type { TableEvent, TableEventKind } from './tableEvent'
+import { MERGE_MS } from './tableEvent'
 import type { SubmitResult } from './units'
 import { unitName } from './units'
 
 export type { EventsBefore } from './eventsBefore'
 
-/**
- * The table's event stream (ADR-063 §7, as amended): one line per thing a member did in a
- * Game, in the order the room saw it. The Feed lists it, every other
- * member's screen toasts it, and the bound Discord channel mirrors it
- * (`../../worker/shared/tableEvents.ts`): one source, three readers.
- *
- * An event is a `change_log` row (`field` 'event'); a roll and the Mediator's
- * alert keep their own rows (`log.ts`) and are read here as events too, so
- * the stream is whole without a second copy of either.
- *
- * - **Who:** an event names its actor by Discord id, so a screen never toasts
- *   its own act. The Stop Sign names nobody (`safety.ts`).
- * - **Rapid repeats merge:** a second − / + nudge (a change of one) to the
- *   same vital of the same unit, or the same line again, inside `MERGE_MS`
- *   rewrites the line it follows ("HP 8 → 5", "×3") until the line is sealed
- *   (posted to Discord). A hit, any larger change to a vital, is a line of its
- *   own, so two hits are two lines (r2 I3). A change Undo wrote
- *   (`eventLines.ts`) is a line of its own too, marked "· Undo" (r3 B2).
- * - **A mech's line names its pilot:** "Reaper (GHOST) · Heat 2 → 3", whoever
- *   is aboard, else whoever it is assigned to (r3 B2).
- * - **Private:** a row marked `private` (the Mediator's private roll) is
- *   served to Mediators only and is never mirrored (`isMirrored`), until a
- *   Mediator reveals it.
- * - **Veiled:** an Opposition roll is served to a player as its veiled line,
- *   without the NPC's or the weapon's name, until a Mediator reveals it
- *   (`log.ts`, ADR-051 §9b).
- * - **Revealed:** a roll a Mediator revealed is everyone's, whole, wherever
- *   the stream is read: the Feed, a toast, "Last session", and the bound
- *   channel, which gets its line once (r3 A1).
- */
-
-export type TableEventKind =
-  | 'vitals'
-  | 'action'
-  | 'roll'
-  | 'board'
-  | 'assign'
-  | 'join'
-  | 'leave'
-  | 'role'
-  | 'session'
-  | 'downtime'
-  | 'proposal'
-  | 'alert'
-  | 'stop'
-  /** A player ended their own turn (r4 B1): the Feed's line, and the Mediator's toast. */
-  | 'turn'
-  /** The Mediator took an alert back (r4 B4): the line left where the alert was. */
-  | 'withdrawn'
-
-/** One event as every reader gets it. */
-export type TableEvent = {
-  _id: string
-  ts: number
-  kind: TableEventKind
-  /** The line: who and what, as the Feed, a toast and Discord all read it. */
-  text: string
-  /** Whose act it was; null for the Stop Sign, which names nobody but whoever lifted someone else's. */
-  actorId: string | null
-  /** Mediators' eyes only: never toasted to a player, never mirrored. */
-  private?: true
-  /**
-   * A Mediator's copy of an Opposition roll the players read without its names
-   * (ADR-051 §9b): theirs to reveal. Never set on what a player is served.
-   */
-  veiled?: true
-  /**
-   * A roll a Mediator showed the table (`changeLog.reveal`): no longer private
-   * or veiled for anyone. A player's screen toasts it as it arrives, and the
-   * bound channel is sent its line (`isMirrored`).
-   */
-  revealed?: true
-  /** A roll a Mediator made: the one roll a screen toasts (`tableNotices.model.ts`). */
-  mediator?: true
-  /** The group session began or ended here: an end is what "Last time at the table" is cut by. */
-  session?: 'start' | 'end'
-  /**
-   * A proposal's line that changed a sheet: its player accepted it, or undid
-   * that (r3 A5). "Last session" counts both as changes to vitals (r3 K6).
-   */
-  answer?: 'accepted' | 'undone'
-  /**
-   * The member the event is about. An assignment taken from them: their
-   * screen says so itself (`assignmentNotices`). A `role` event: who mediates
-   * now, whose screen pins it. A proposal: whose it is to answer, whose
-   * screen pins it.
-   */
-  about?: string
-}
-
-/** How long a line stays open to a repeat. */
-export const MERGE_MS = 10_000
-
 /** The most events a room keeps; older ones are dropped as new ones land. */
 const KEPT = 600
 
-/** The most events a read returns: the stream's newest page. */
+/** The most events a read returns, but the live session's, which are all served (r6 A8). */
 const SERVED = 200
 
-/** A proposal's Undo: its Mediator's row changes with it, so every list is served again (r5 A2). */
-export const isUndone = (event: TableEvent): boolean => event.answer === 'undone'
-
-/** Whether an event goes to the bound channel as a line: never a private one, nor one with its own post. */
-export function isMirrored(event: TableEvent): boolean {
-  if (event.private === true) return false
-  // A roll posts as its card (`channelBindings.postRoll`), which a private one
-  // never did and a veiled one did without its names: the reveal is its line.
-  if (event.kind === 'roll') return event.revealed === true
-  // An alert and the Stop Sign post as their own (`stopSign.ts`).
-  return event.kind !== 'alert' && !event._id.startsWith('stop-up:')
-}
+export type { TableEvent, TableEventKind } from './tableEvent'
+export { isMirrored, isUndone, MERGE_MS } from './tableEvent'
 
 export class GameEvents {
   constructor(
     private readonly store: GameStore,
     private readonly newId: () => string
   ) {}
+  private readonly namesNow: NamesNow = (userId) => namesOf(this.store)(userId)
 
-  /** The newest events, newest first; a private one only for a Mediator. */
+  /**
+   * The newest events, newest first, and every one of the live session, so a
+   * member who joins mid-session reads it from its start (r6 A8); a private
+   * one only for a Mediator.
+   */
   list(actor: string): TableEvent[] {
     const member = this.store.member(actor)
     if (member === null) return []
+    const started = Number(this.store.rows('select started_at from session')[0]?.started_at ?? 0)
+    const inSession =
+      started === 0
+        ? 0
+        : this.store.rows(
+            `select count(*) as n from change_log where field in ('event', 'roll', 'alert') and ts >= ?`,
+            started
+          )[0]?.n
     return this.store
       .rows(
         `select * from change_log where field in ('event', 'roll', 'alert')
          order by ts desc, id limit ?`,
-        SERVED
+        Math.min(KEPT, Math.max(SERVED, Number(inSession ?? 0)))
       )
       .map((row) => this.read(row, member.mediator, actor))
       .filter((event) => event.private !== true || member.mediator)
@@ -191,6 +106,11 @@ export class GameEvents {
             text: `${unit(u.pilotId)} · ${u.name}: not applied`,
           })
         )
+    // A table act that started the group session says so first (r6 C3, `startWithPlay`).
+    const started = () =>
+      before.session === false && this.store.rows('select 1 from session where id = 1').length > 0
+        ? this.after(actor, 'session.start', undefined, true, {}, at)
+        : []
     switch (name) {
       case 'submit':
         return this.vitals(actor, value as SubmitResult, at)
@@ -238,6 +158,11 @@ export class GameEvents {
       }
       case 'redeem':
         return value === 'joined' ? say('join', `${who} joined the Game`) : []
+      case 'returned': {
+        // Rejoining brought their units back (r6 C7).
+        const back = (value as string[]).map((id) => unit(id))
+        return back.length === 0 ? [] : say('join', `${who} is back, with ${back.join(' and ')}`)
+      }
       case 'session.start':
         return value === true
           ? [
@@ -288,6 +213,11 @@ export class GameEvents {
               }),
             ]
           : []
+      // Tally Salvage's move and an opened area are said to the table (r6 D1, D3).
+      case 'downtime.moveScrap':
+        return value === null ? [] : say('downtime', `${unit(a.pilotId)} moved their Scrap`)
+      case 'salvageAreas.set':
+        return a.area && !before.area ? say('action', 'A salvage area is open') : []
       case 'ops.propose': {
         const op = this.store.op(String(value))
         if (op === null) return []
@@ -345,7 +275,7 @@ export class GameEvents {
                 }),
               ]
             : []
-        return [...closed(), ...given]
+        return [...started(), ...closed(), ...given]
       }
       case 'scenes.endTurn':
         return [
@@ -370,7 +300,7 @@ export class GameEvents {
             ]
           : [this.note(null, at, { kind: 'stop', text: 'The Stop Sign is lifted. Play resumes.' })]
       default:
-        return []
+        return started()
     }
   }
 
@@ -382,6 +312,7 @@ export class GameEvents {
     return this.note(actor, at, {
       kind: 'leave',
       text: `${this.memberName(userId)} was removed from the Game`,
+      about: userId,
     })
   }
 
@@ -428,7 +359,14 @@ export class GameEvents {
         // change) is its own line, and ends the nudged line it follows (r2 I3).
         const key = `v:${op.unitId}:${field}`
         const nudge = !undo && (from === null || Math.abs(to - from) === 1)
-        const vital = { who, label, from, to, ...(undo ? { undo: true as const } : {}) }
+        const vital = {
+          who,
+          label,
+          from,
+          to,
+          unitId: op.unitId,
+          ...(undo ? { undo: true as const } : {}),
+        }
         out.push(
           this.note(actor, at, {
             kind: 'vitals',
@@ -461,7 +399,8 @@ export class GameEvents {
   }
 
   /** Write one line, or rewrite the open line it repeats. */
-  private note(actor: string | null, at: number, next: Stored): TableEvent {
+  private note(actor: string | null, at: number, line: Stored): TableEvent {
+    const next = withSaid(this.namesNow, actor, line)
     const open = next.key === undefined ? undefined : this.open(actor, next.key, at)
     if (open !== undefined) {
       const merged = mergeLine(open.stored, next)
@@ -529,7 +468,8 @@ export class GameEvents {
     const ts = Number(row.ts)
     const actorId = row.actor_id == null ? null : String(row.actor_id)
     const after = typeof row.after === 'string' ? (JSON.parse(row.after) as unknown) : null
-    if (row.field === 'event') return eventOf(id, ts, actorId, after as Stored)
+    if (row.field === 'event')
+      return eventOf(id, ts, actorId, namedNow(after as Stored, actorId, this.namesNow))
     if (row.field === 'alert') {
       return { _id: id, ts, kind: 'alert', text: `Mediator · ${String(after)}`, actorId }
     }
@@ -560,9 +500,7 @@ export class GameEvents {
    * name, or by that role when their account has none: never "Crewmate".
    */
   private runnerName(userId: string): string {
-    const member = this.store.member(userId)
-    if (member?.mediator) return 'Mediator'
-    return member?.displayName ?? (member?.organizer ? 'Organiser' : 'Crewmate')
+    return this.namesNow(userId)?.runner ?? 'Crewmate'
   }
 
   private unitLabel(unitId: string): string {

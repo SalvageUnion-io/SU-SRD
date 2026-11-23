@@ -9,9 +9,10 @@
  *    switch), and the tabs along the foot at thumb height, in the order the
  *    screen gives them. Closed panes stay mounted, `hidden`, so a
  *    half-typed Find, an open filter or a resolve in hand survives a switch.
- *    Toasts stand under the bar and the pinned row (`holdToastsOnTop`,
- *    `useToastsUnderHead`), so the bar's ‹ Sheet and Stop stay in reach and
- *    no toast lands on the tabs' thumb-height controls (r3 H2). Table mode's `focus` takes the panes' place, the panes kept under it;
+ *    A toast stands above the tab row, one at a time (`holdPlayToasts`, r6
+ *    A3), never over the bar, the table's strip or the first action; a
+ *    search that holds them at the top puts them under the head
+ *    (`useToastsUnderHead`). Table mode's `focus` takes the panes' place, the panes kept under it;
  *    a `sheet` (play.md §18) takes the open pane's, the tabs kept under it.
  *  - **From `lg`**: the same panes as three columns, start | centre | end
  *    (the player's Units | Actions | Crew, Tables and Feed; the Mediator's
@@ -19,10 +20,15 @@
  *    column stacks its panes in one scroller; a `dock` pane sits at its foot.
  *    A `sheet` stands in the centre column, its panes kept mounted under it.
  *
+ * Under the bar stands the table's strip (r6 A1, `tableStripSlot.model.ts`): the
+ * root's `TableNotices` draws a Game's notices there at one height, so a
+ * notice arriving or leaving never moves the panes.
+ *
  * A screen with a long way to its panes gives `jumps` (r4 D6, the Mediator's):
  * skip links ahead of the bar, off screen until focused, each opening its
  * pane (its tab below `lg`) and moving focus into it, onto its `first` where
- * it names one (r5 A17: a unit's vitals, Add).
+ * it names one (a heading takes focus by script; r6 B11: Mediate's are four,
+ * whatever the fight, and Opposition's units are its own heading's list).
  *
  * The arrangement is CSS (`styles/play/frame.css`); `wide` (`usePlayWide`,
  * the same rung) decides only what a reader is told, so crossing it re-lays
@@ -51,19 +57,20 @@
 
 import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { SkipLink, Tab, TabList, Tabs } from '../components/app'
 import {
   capsLabel,
   cn,
   EntitySurfaceProvider,
-  holdToastsOnTop,
+  holdPlayToasts,
   SlabLookProvider,
   tokens,
 } from '../components/index'
 import { playCopy } from '../messages/play'
 import type { PaneSpec, PlayColumn } from './playPanes.model'
 import { NOTICES_RESIZED } from './tableNotices.model'
+import { setTableStripSlot } from './tableStripSlot.model'
 
 /**
  * Play's brand-colour grounds wear the speckle as the sheet's do (ruleset
@@ -156,10 +163,9 @@ export function PlayFrame<Value extends string>({
   const [jump, setJump] = useState<{ pane: Value; first?: string | undefined } | null>(null)
   const hostRef = useRef<HTMLElement>(null)
   const hostH = useHostHeight(hostRef)
-  // Below `lg` the controls are at thumb height, where a toast at the foot
-  // lands: the toasts are held at the top instead (r2 C4), under the bar and
-  // the pinned row, whose buttons stay in reach (r3 H2).
-  useEffect(() => (wide ? undefined : holdToastsOnTop()), [wide])
+  // One toast at a time, never over the strip or the first action (r6 A3):
+  // bottom left from `lg`, above the tab row below it (`--su-foot-clear`).
+  useEffect(() => holdPlayToasts(), [])
   useToastsUnderHead(hostRef, !wide)
   const focused = !wide && focus !== undefined && focus !== null
   const sheetOn = !focused && sheet !== undefined && sheet !== null
@@ -167,10 +173,22 @@ export function PlayFrame<Value extends string>({
   const open = panes.some((p) => p.value === tab) ? tab : tabbed[0]?.value
   const tabId = (value: string) => `${id}-tab-${value}`
   const paneId = (value: string) => `${id}-pane-${value}`
+  // A hidden pane forgets where it was scrolled; each tab keeps its own (r6 A10).
+  const scrolled = useRef(new Map<string, number>())
+  useLayoutEffect(() => {
+    if (wide || focused || sheetOn || open === undefined) return
+    const shown = document.getElementById(`${id}-pane-${open}`)
+    const top = scrolled.current.get(open)
+    if (shown !== null && top !== undefined) shown.scrollTop = top
+  }, [open, wide, focused, sheetOn, id])
   useEffect(() => {
     if (jump === null) return
     const pane = document.getElementById(`${id}-pane-${jump.pane}`)
     const first = jump.first ? pane?.querySelector<HTMLElement>(jump.first) : null
+    // A heading named as `first` takes focus by script alone (r6 B11).
+    if (first && first.tabIndex < 0 && !first.hasAttribute('tabindex')) {
+      first.setAttribute('tabindex', '-1')
+    }
     ;(first ?? pane)?.focus()
     setJump(null)
   }, [jump, id])
@@ -190,6 +208,10 @@ export function PlayFrame<Value extends string>({
       aria-labelledby={wide ? undefined : tabId(p.value)}
       // A skip link's target: focusable by script alone.
       tabIndex={skip?.pane === p.value || jumps?.some((j) => j.pane === p.value) ? -1 : undefined}
+      onScroll={(event) => {
+        if (!event.currentTarget.hidden)
+          scrolled.current.set(p.value, event.currentTarget.scrollTop)
+      }}
     >
       {p.node}
     </section>
@@ -244,6 +266,8 @@ export function PlayFrame<Value extends string>({
                   </nav>
                 ) : null}
                 {bar}
+                {/* The table's strip, drawn here by the root's notices (r6 A1). */}
+                <div className="su-play-frame__strip" ref={setTableStripSlot} />
               </div>
               {!wide && pinned ? <div className="su-play-frame__pinned">{pinned}</div> : null}
               {focused ? <div className="su-play-pane su-play-frame__focus">{focus}</div> : null}

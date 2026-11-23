@@ -1,6 +1,6 @@
 /**
- * The NPC designer's form (`docs/architecture/npc-builder.md` §4.1):
- * five steps, a template that fills the stat block, and the projection to the
+ * The NPC designer's form (`docs/architecture/npc-builder.md` §4.1): its
+ * steps, a template that fills the stat block, and the projection to the
  * store's create input.
  *
  * Pure: the designer component owns the state, this owns what it means. The
@@ -13,22 +13,26 @@ import type { CreateInput } from '../../replica/types'
 import type { DenizenTemplate, NpcStatFill } from '../npcs/npcModel'
 import { statFillFromReference } from '../npcs/npcModel'
 
-/** The designer's steps, in order. */
-export const NPC_STEPS = ['template', 'stats', 'actions', 'identity', 'review'] as const
-export type NpcStepId = (typeof NPC_STEPS)[number]
+/**
+ * A blank start's steps, in order: Template, then the stat block a step at a
+ * time. There is no Review step: the live preview is the card (r6 B3).
+ */
+export const NPC_STEPS = ['template', 'stats', 'actions', 'identity'] as const
 
 /**
- * A saved NPC's redesign: the same steps without Template. What it was built
- * from is kept; a new template is a new NPC.
+ * A template's steps, and a saved NPC's redesign: Template, then one page with
+ * the name first and the template's stats and actions below (r6 B3).
  */
-export const NPC_REDESIGN_STEPS = ['stats', 'actions', 'identity', 'review'] as const
+export const NPC_TEMPLATE_STEPS = ['template', 'design'] as const
+
+export type NpcStepId = (typeof NPC_STEPS)[number] | (typeof NPC_TEMPLATE_STEPS)[number]
 
 export const NPC_STEP_LABELS: Record<NpcStepId, string> = {
   template: 'Template',
   stats: 'Stats',
   actions: 'Actions & traits',
   identity: 'Identity',
-  review: 'Review',
+  design: 'Design',
 }
 
 export type NpcFormState = {

@@ -80,11 +80,14 @@ export function FocusPane({
       : cost?.breaks && !chosen
         ? // Said before the press, never only in the toast after it (r4 E12).
           compositionsCopy('addAnywayRuleBreaking')
-        : chosen
-          ? compositionsCopy('addAnother')
-          : railName
-            ? compositionsCopy('addTo', { name: railName })
-            : compositionsCopy('add')
+        : cost && !chosen
+          ? // Paying is the add; the free one is Free Edit's override (r6 E19).
+            compositionsCopy('addWithoutSpending')
+          : chosen
+            ? compositionsCopy('addAnother')
+            : railName
+              ? compositionsCopy('addTo', { name: railName })
+              : compositionsCopy('add')
   const canAdd = mode === 'count' || !chosen
 
   return (
@@ -140,8 +143,20 @@ export function FocusPane({
         {canAdd && cost && <Badge shape="stamp">{cost.label}</Badge>}
         <span style={GROW_STYLE} />
         {extra}
-        {canAdd && (
-          <Button variant={cost ? undefined : 'primary'} size="compact" onClick={onAdd}>
+        {/* With a price, the one add is the one the rules pay for (r6 E19);
+            adding free is a small override beside it, never a second equal button. */}
+        {canAdd && cost && (
+          <Button
+            variant="ghost"
+            size="mini"
+            title={compositionsCopy('freeEditOverride')}
+            onClick={onAdd}
+          >
+            {addLabel}
+          </Button>
+        )}
+        {canAdd && !cost && (
+          <Button variant="primary" size="compact" onClick={onAdd}>
             {addLabel}
           </Button>
         )}

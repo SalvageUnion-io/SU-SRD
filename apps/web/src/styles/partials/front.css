@@ -203,6 +203,13 @@ body:has(.su-front--show) main {
   white-space: nowrap;
 }
 
+/* Start building and Look something up, under the name in its dress and
+   outside the slides: in place whichever slide is in view (r6 G14). */
+.su-front__show-fixed {
+  background-color: var(--color-ink-deep);
+  padding: 0 var(--space-16) var(--space-12);
+}
+
 /* A slide's words, at its lower right in the same place on every slide: one
    plate in the footer's dress (paper on ink-deep) notched into it, as wide as its words, its heading and
    line first and its action at the right, on one row at every width. */

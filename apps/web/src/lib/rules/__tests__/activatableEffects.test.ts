@@ -40,6 +40,14 @@ describe('activatableEffects', () => {
     expect(effect?.summary).toBe("Cargo Capacity by this Mech's System Slots")
   })
 
+  test('says its rule, what it changes and its cost (r6 A11)', () => {
+    const [effect] = activatableEffects({ systems: [], modules: [] }, ['squeeze-it-in'])
+    expect(effect?.rule).toStartWith('When activated')
+    expect(effect?.summary).toBe('+4 Cargo Capacity')
+    expect(effect?.cost).toBe('1 AP')
+    expect(effect?.source).toBe('ability')
+  })
+
   test('an empty loadout offers nothing to switch on', () => {
     expect(activatableEffects({ systems: [], modules: [] }, [])).toEqual([])
   })

@@ -52,10 +52,21 @@ export function ListingPrinted({
  */
 export const TOOLBAR_MIN_ENTRIES = 12
 
+/** The listing's results, which Skip to results and Enter in the name filter reach. */
+export const RESULTS_ID = 'srd-listing-results'
+
+/** Focus the first result's link, else the results themselves (RR6-14). */
+export function focusFirstResult(): void {
+  const results = document.getElementById(RESULTS_ID)
+  ;(results?.querySelector<HTMLElement>('a[href]') ?? results)?.focus()
+}
+
 /** What the rail offers, from build-time data: it decides which controls it has. */
 type RailFacets = {
   /** The listing's size: the toolbar shows above `TOOLBAR_MIN_ENTRIES`. */
   count: number
+  /** How many the other filters leave: what the name filter would search (RR6-17). */
+  shown?: number
   /** In the book's order (`orderTechLevels`). */
   techLevels: TechLevel[]
   sources: string[]
@@ -99,6 +110,8 @@ export type RailActions = {
   setWeapons: (only: boolean) => void
   setView: (view: ListingView) => void
   toggleFacets: () => void
+  /** Enter in the name filter: focus moves to the first result (RR6-14). */
+  focusResults: () => void
 }
 
 const IDLE: RailActions = {
@@ -113,6 +126,7 @@ const IDLE: RailActions = {
   setWeapons: noop,
   setView: noop,
   toggleFacets: noop,
+  focusResults: noop,
 }
 
 function noop() {
@@ -158,7 +172,7 @@ type ListingRailProps = {
  * behind Filters.
  */
 export function ListingRail({
-  facets: { count, techLevels, sources, trees, traits = [], fields, views },
+  facets: { count, shown = count, techLevels, sources, trees, traits = [], fields, views },
   filters = NO_FILTERS,
   facetsOpen = false,
   view,
@@ -207,7 +221,13 @@ export function ListingRail({
           name="name-filter"
           value={filters.name}
           onChange={(e) => on.setName(e.target.value)}
-          placeholder={islandsCopy('filterByName', { count })}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter' || e.nativeEvent.isComposing) return
+            e.preventDefault()
+            on.focusResults()
+          }}
+          // The count is what is shown: the other filters' leavings (RR6-17).
+          placeholder={islandsCopy('filterByName', { count: shown })}
           aria-label={islandsCopy('filterItemsByName')}
           containerClassName="su-rail__search"
           glyph="full"

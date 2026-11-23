@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { scoreSearchMatch } from 'salvageunion-reference'
-import { searchCompactIndex } from '../searchCompactIndex'
+import { aboveFloor, searchCompactIndex } from '../searchCompactIndex'
+import { buildSearchIndexEntries } from '../searchIndexBuild'
 import type { CompactSearchEntry } from '../searchIndexTypes'
 
 function entry(name: string, text = name.toLowerCase()): CompactSearchEntry {
@@ -80,5 +81,20 @@ describe('searchCompactIndex', () => {
     expect(searchCompactIndex([rule, guide], { query: 'tp' })[0]?.pattern?.href).toBe(
       '/guides/crawler-downtime/#train-your-pilot'
     )
+  })
+})
+
+describe('aboveFloor: the dropdown leaves out what only mentions the query (SB6-28)', () => {
+  test('"pinning" is Pinning, never the entries whose words say it', () => {
+    const results = aboveFloor(searchCompactIndex(buildSearchIndexEntries(), { query: 'pinning' }))
+    const names = results.map((r) => r.entityName)
+    expect(names[0]).toBe('Pinning')
+    for (const prose of ['Retreat', 'Leviathan', 'Mazona']) expect(names).not.toContain(prose)
+  })
+
+  test('with nothing named, every match stays: the words are the only answer', () => {
+    const prose = searchCompactIndex(INDEX, { query: 'odd' })
+    expect(prose.length).toBeGreaterThan(0)
+    expect(aboveFloor(prose)).toEqual(prose)
   })
 })

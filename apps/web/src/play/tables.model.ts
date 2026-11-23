@@ -6,7 +6,8 @@
  * "Roll a table…" search away (`findTables`).
  *
  * A rumour table is an adventure's own (False Flag p.8), never the core
- * book's, so it is never pinned: Gather Cantina Rumours rolls a plain d20.
+ * book's, so it is never pinned: Gather Cantina Rumours rolls it itself
+ * (`rumours.model.ts`).
  *
  * Boarded in a Bio-Chassis, the fight pins its own Damage and Overload tables
  * in place of Critical Damage and Reactor Overload (We Were Here First
@@ -16,16 +17,20 @@
 import type { OverloadTable } from 'salvageunion-reference/rules'
 import { damageTableName, overloadTableName } from 'salvageunion-reference/rules'
 
-/** The combat tables, On foot or Boarded. */
+/** The combat tables, On foot or Boarded; Group Initiative says who acts first each round (r6 B4). */
 const COMBAT_TABLES = [
   'Core Mechanic',
   'Critical Damage',
   'Reactor Overload',
   'Critical Injury',
+  'Group Initiative',
 ] as const
 
 /** The Core Mechanic, first of the combat tables: the table every check rolls on. */
 export const CORE_MECHANIC_TABLE = COMBAT_TABLES[0]
+
+/** The table New round on Mediate offers, to say who acts first (r6 B4). */
+export const INITIATIVE_TABLE = COMBAT_TABLES[4]
 
 /** The table a pilot at 0 HP rolls on. */
 export const CRITICAL_INJURY_TABLE = COMBAT_TABLES[3]
@@ -40,8 +45,8 @@ export function pinnedTables(
 ): readonly string[] {
   if (downtime) return DOWNTIME_TABLES
   if (mechTables === 'reactor') return COMBAT_TABLES
-  const [core, , , injury] = COMBAT_TABLES
-  return [core, damageTableName(mechTables), overloadTableName(mechTables), injury]
+  const [core, , , injury, initiative] = COMBAT_TABLES
+  return [core, damageTableName(mechTables), overloadTableName(mechTables), injury, initiative]
 }
 
 /** How many tables a search lists at once. */

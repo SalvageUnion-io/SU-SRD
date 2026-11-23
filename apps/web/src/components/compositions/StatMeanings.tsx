@@ -20,6 +20,8 @@ const KEYWORDS: Readonly<Record<string, string>> = {
   sp: 'structure-points',
   ep: 'energy-points',
   heat: 'heat',
+  // A chassis's cost, on the mech wizard's chassis legend (r6 F3).
+  sv: 'salvage-value',
   // A mech's slot budgets, and an item's EP cost (r5 C8).
   systemSlots: 'system-slots',
   moduleSlots: 'module-slots',
@@ -29,7 +31,8 @@ const KEYWORDS: Readonly<Record<string, string>> = {
 /** A stat's key on a sheet, and the term's (`statTerms`) where they differ. */
 const TERMS: Readonly<Record<string, string>> = { tp: 'training-points' }
 
-function StatMeaning({ statKey, children }: { statKey: string; children: ReactNode }) {
+/** One stat label as the control that opens its definition, outside a sheet: the chassis legend's (r6 F3). */
+export function StatMeaning({ statKey, children }: { statKey: string; children: ReactNode }) {
   const slug = KEYWORDS[statKey]
   const entry = slug
     ? readReference(
@@ -55,7 +58,14 @@ function StatMeaning({ statKey, children }: { statKey: string; children: ReactNo
     )
   }
   const term = statTerm({ key: TERMS[statKey] ?? statKey })
-  return term ? <TermChip term={term}>{children}</TermChip> : children
+  // Its controls (the TP − and +) sit below the label: the Peek opens above (r6 E20).
+  return term ? (
+    <TermChip term={term} above>
+      {children}
+    </TermChip>
+  ) : (
+    children
+  )
 }
 
 const meaning = (key: string, label: ReactNode): ReactNode => (

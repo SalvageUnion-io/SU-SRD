@@ -5,8 +5,9 @@
  * row a lot.
  *
  * Edit adds its controls in place: Adjust turns the board's counts into
- * steppers (so the bay is not eighteen controls at rest; each step a Free
- * Edit of the pool, ADR-021), each lot's Load onto the docked mech and its
+ * steppers whose numbers are typed too (r6 E18: 8 Scrap is "8, Enter"; so
+ * the bay is not eighteen controls at rest; each a Free Edit of the pool,
+ * ADR-021), each lot's Load onto the docked mech and its
  * Unstow, and the Stow intake under the rows. Unstow asks how many and where
  * they go (`UnstowDialog`), and its toast carries Undo (r5 B4).
  */
@@ -165,6 +166,8 @@ export function StorageBay({
                   value={count}
                   min={0}
                   mode="edit"
+                  typeable
+                  stepperLabel={buildSheetCopy('tlScrap', { t: level })}
                   onChange={(next) => setScrap(level, next)}
                 />
               ) : (
@@ -186,6 +189,7 @@ export function StorageBay({
                   value={exoticBucket(pool, resource.key)}
                   min={0}
                   mode="edit"
+                  typeable
                   onChange={(next) => setExotic(resource.key, next)}
                 />
               ) : (

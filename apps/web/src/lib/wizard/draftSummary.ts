@@ -6,7 +6,7 @@
  * different pick than the draft's (`draftConflict`): a link never reopens an
  * old draft silently, and never discards one.
  *
- * Pure but for the read of this tab's session draft and the reference data.
+ * Pure but for the read of the browser's draft and the reference data.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'

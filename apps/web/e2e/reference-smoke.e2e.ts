@@ -91,7 +91,11 @@ test('the home page opens every way in; the Reference indexes the book’s chapt
   await expect(
     show.getByRole('link', { name: 'Roll in Discord', includeHidden: true })
   ).toHaveCount(1)
-  // The first slide stands in view on load, its action with it.
+  // The show holds still (r6 G14): the two ways forward stand in view on
+  // load, outside the slides; Next turns it by hand to the first action.
+  await expect(show.getByRole('link', { name: 'Start building' })).toBeVisible()
+  await expect(show.getByRole('link', { name: 'Look something up' })).toBeVisible()
+  await show.getByRole('button', { name: 'Next slide' }).click()
   await expect(show.getByRole('link', { name: 'Know the rules' })).toBeVisible()
   expect((await pageOverflow(page)).across).toBeLessThanOrEqual(0)
 

@@ -5,6 +5,7 @@ import { messages } from './define'
 export const libSharingCopy = messages({
   onlyMe: 'Only me',
   myGamesCrew: 'My Game’s crew',
+  publicLink: 'Public (anyone with the link)',
   itsGame: 'its Game',
   sheetPrivateInGame:
     'It is in {game}, so its crew can see it. Move it to your Training Bay to keep it to yourself.',
@@ -23,4 +24,6 @@ export const libSharingCopy = messages({
   patternNoGame: 'Join or start a Game to share with its crew.',
   patternGame: 'Everyone in {game} can see it and build from it.',
   patternLink: 'A public pattern page, like a reference page, that anyone can read and copy.',
+  patternLinkCredited:
+    'A public pattern page, like a reference page, that anyone can read and copy. It says it was made by you, by your display name.',
 })

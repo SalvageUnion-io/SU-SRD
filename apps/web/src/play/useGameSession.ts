@@ -8,7 +8,7 @@
 import { toast } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
-import { useSync } from '../replica/syncContext'
+import { readsHeld, useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
 
 export type GameSession = {
@@ -18,8 +18,11 @@ export type GameSession = {
   canWrite: boolean
   /** Start it; resolves true once the room has it running. */
   start: () => Promise<boolean>
-  end: () => void
+  /** End it; resolves true once the room has it ended. */
+  end: () => Promise<boolean>
   pending: boolean
+  /** Its Game: ending lands its Mediator on the Game's page and its recap (r6 C1). */
+  gameId?: string
 }
 
 /** The Game's session, or null solo, signed out or while it loads. */
@@ -27,7 +30,7 @@ export function useGameSession(gameId: string | null): GameSession | null {
   const { status, canWrite } = useSync()
   const read = useTableRead(
     'session.state',
-    gameId !== null && status === 'live' ? { gameId } : 'skip'
+    gameId !== null && readsHeld(status) ? { gameId } : 'skip'
   )
   const start = useServerAction(useTableAct('session.start', gameId), {
     failure: playCopy('couldNotStartSession'),
@@ -49,7 +52,8 @@ export function useGameSession(gameId: string | null): GameSession | null {
       }
       return result.ok
     },
-    end: () => void end.run({}),
+    end: async () => (await end.run({})).ok,
     pending: start.pending || end.pending,
+    gameId,
   }
 }

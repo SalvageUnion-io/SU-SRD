@@ -76,7 +76,7 @@ export function StarterHere({
             aria-label={playGamesCopy('starterHereCopy', { name: pilot.name })}
             onClick={() => void copy(pilot.id, pilot.name)}
           >
-            {pilot.name}
+            {playGamesCopy('starterHereButton', { name: pilot.name })}
           </Button>
         ))}
       </div>

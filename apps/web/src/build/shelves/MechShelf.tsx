@@ -10,9 +10,10 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { RuleBreakMark } from '../../components/app'
+import { UnitDown } from '../../components/entity/UnitDown'
 import type { HeaderMenuItem, LedgerSort } from '../../components/index'
 import { chassisFact } from '../../lib/shelves/shelfItems'
-import { VITAL } from '../../lib/units/readings'
+import { isDown, VITAL } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { usePatterns } from '../../replica/collections'
@@ -26,7 +27,8 @@ import {
 } from './mechShelf.model'
 import { findMatches, useShelfFind } from './ShelfFind'
 import { ShelfLedger } from './ShelfLedger'
-import { inGame, MECH_COLUMNS, read } from './shelfColumns'
+import { useShelfSelect } from './ShelfSelect'
+import { inGame, MECH_COLUMNS, read, scrapCell } from './shelfColumns'
 
 type MechLine = {
   /** Its own labels (`Shared by link`), under its name. */
@@ -34,6 +36,8 @@ type MechLine = {
   /** The Game it is in. */
   game: readonly { value: string; href: string }[]
   menu: HeaderMenuItem[][]
+  /** The row's Copy (r6 E9). */
+  copy?: (() => void) | undefined
 }
 
 export function MechShelf({
@@ -42,6 +46,7 @@ export function MechShelf({
   line,
   action,
   empty,
+  remove,
 }: {
   mechs: readonly Mech[]
   readings: ReadonlyMap<string, readonly UnitReading[]>
@@ -49,6 +54,8 @@ export function MechShelf({
   line: (mech: Mech) => MechLine
   action?: ReactNode
   empty: string
+  /** Select's `Delete N` (r6 E3): the Training Bay's Mechs, one notice for all. */
+  remove?: ((mechs: Mech[]) => void) | undefined
 }) {
   // The sort is kept for the next visit (this browser's storage, a convenience).
   const [sort, setSort] = useState<LedgerSort | undefined>(storedSort)
@@ -66,15 +73,34 @@ export function MechShelf({
       [buildShelvesCopy('tl')]: figures.techLevel ?? '',
       [buildShelvesCopy('sys')]: figures.systems,
       [buildShelvesCopy('mod')]: figures.modules,
-      [buildShelvesCopy('cost')]: figures.scrap > 0 ? figures.scrap : '',
+      [buildShelvesCopy('cost')]: figures.scrap,
       [VITAL.sp]: read(r, VITAL.sp),
       [VITAL.ep]: read(r, VITAL.ep),
       [VITAL.heat]: read(r, VITAL.heat),
     }
-    return { mech, name: mech.name, own, values, over: figures.over, what: figures.overWhat }
+    return {
+      mech,
+      name: mech.name,
+      own,
+      values,
+      scrapSort: figures.scrapSort,
+      over: figures.over,
+      what: figures.overWhat,
+    }
   })
   const found = rows.filter((row) =>
     findMatches(find.query, [row.name, row.values.chassis, row.values.pattern])
+  )
+  const sorted = sortShelfRows(found, sort, (row, key) =>
+    // Scrap sorts by its highest Tech Level, then its amount (r6 E4).
+    key === buildShelvesCopy('cost') ? row.scrapSort : row.values[key]
+  )
+  // A Mech in a Game is not Select's: its delete asks first.
+  const select = useShelfSelect(
+    sorted.map((row) => row.mech.id),
+    mechs.map((m) => m.id),
+    (id) => typeof mechs.find((m) => m.id === id)?.gameId !== 'string',
+    remove && ((ids) => remove(mechs.filter((m) => ids.includes(m.id))))
   )
   return (
     <ShelfLedger
@@ -93,27 +119,34 @@ export function MechShelf({
         rememberSort(next)
         setSort(next)
       }}
-      rows={sortShelfRows(found, sort, (row, key) => row.values[key]).map(
-        ({ mech, own, values, over, what }) => ({
-          id: mech.id,
-          name: mech.name,
-          href: `/mechs/${mech.id}`,
-          // A build over its chassis's slots says so in words, and which limit
-          // it is over, under its name (R71, r3 L5).
-          under: over ? (
+      select={select}
+      rows={sorted.map(({ mech, own, values, over, what }) => ({
+        id: mech.id,
+        name: mech.name,
+        href: `/mechs/${mech.id}`,
+        // A build over its chassis's slots says so in words, and which limit
+        // it is over, under its name (R71, r3 L5).
+        // A mech at 0 SP says Down and needs repair under its name (r6 C6).
+        under:
+          over || isDown(readings.get(mech.id)) ? (
             <>
               {own.under}
-              <RuleBreakMark what={what} />
+              <UnitDown readings={readings.get(mech.id)} />
+              {over && <RuleBreakMark what={what} />}
             </>
           ) : (
             own.under
           ),
-          cells: MECH_COLUMNS.map((column) =>
-            column.key === 'game' ? inGame(own.game) : (values[column.key] ?? '')
-          ),
-          menu: own.menu,
-        })
-      )}
+        cells: MECH_COLUMNS.map((column) =>
+          column.key === 'game'
+            ? inGame(own.game)
+            : column.key === buildShelvesCopy('cost')
+              ? scrapCell(values[column.key])
+              : (values[column.key] ?? '')
+        ),
+        menu: own.menu,
+        copy: own.copy,
+      }))}
     />
   )
 }

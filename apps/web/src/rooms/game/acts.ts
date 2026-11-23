@@ -8,11 +8,18 @@ import { answerOrRefuse, RoomRefusal } from '../refusal'
 import type { GameRoomLogic } from './gameRoomLogic'
 import type { LogEntry } from './log'
 import type { TrayPatch } from './opposition'
+import { noteReturned, owedTo } from './rejoin'
 import type { Profile } from './roster'
 import { seedTemplate } from './template'
 
 /** Who is acting, in which Game, and when: the Worker vouches for the first, the room supplies the rest. */
 type ActContext = { room: GameRoomLogic; actor: string; gameId: string; at: number }
+
+/** A table act that played: it starts the group session when none is live (r6 C3, `startWithPlay`). */
+function withPlay<T>(c: ActContext, value: T): T {
+  c.room.session.startWithPlay(c.actor, c.at)
+  return value
+}
 
 /** A seat write's address. */
 type SeatArgs = { pilotId: string }
@@ -39,7 +46,10 @@ const GAME_ACTS = {
   setMediator: (c: ActContext, a: { userId: string; mediator: boolean }) => {
     // Notes written before they had authors stay with whoever runs the table now.
     c.room.plan.settle(c.at)
+    const already = c.room.opposition.mediates(a.userId)
     c.room.roster.setMediator(c.actor, a.userId, a.mediator)
+    // A new Mediator starts with empty notes, the running encounter's too (r6 B1).
+    if (a.mediator) c.room.opposition.handOver(a.userId, already)
   },
   updateSettings: (c: ActContext, a: { name?: string; description?: string }) =>
     c.room.roster.updateSettings(c.actor, a),
@@ -49,6 +59,10 @@ const GAME_ACTS = {
   resetInvite: (c: ActContext) => c.room.roster.resetInvite(c.actor, c.at),
   redeem: (c: ActContext, a: { code: string; profile: Profile }) =>
     c.room.roster.redeem(c.actor, a.code, a.profile, c.at),
+  // Rejoining after a removal (r6 C7): what is owed, then what came back.
+  returning: (c: ActContext) => owedTo(c.room.store, c.actor),
+  returned: (c: ActContext, a: { moved: string[] }) =>
+    noteReturned(c.room.store, c.room.units, c.actor, a.moved, c.at),
 
   createUnit: (c: ActContext, a: { id: string; kind: EntityKind; body: unknown }) =>
     c.room.units.create(c.actor, { ...a, at: c.at }),
@@ -111,6 +125,7 @@ const GAME_ACTS = {
     const began = c.room.play.beginDowntime(c.actor, c.at)
     // A turn is a Scene's: nobody is up in Downtime (r2 E1), and the turn's resolve is closed (r5 A7).
     if (began) c.room.scene.clearUpNow(c.at)
+    if (began) c.room.opposition.endInitiative(c.at)
     if (began && was !== undefined) c.room.play.closeUnapplied([was], c.at)
     return began
   },
@@ -120,11 +135,15 @@ const GAME_ACTS = {
   'downtime.end': (c: ActContext) => c.room.play.endDowntime(c.actor),
   'downtime.claim': (c: ActContext, a: { claim: DowntimeClaim; op: OpInput }) =>
     c.room.play.claim(c.actor, a.claim, a.op),
+  'downtime.moveScrap': (
+    c: ActContext,
+    a: { pilotId: string; mechId: string | null; crawlerId: string }
+  ) => c.room.play.moveScrap(c.actor, a, c.at),
 
   'changeLog.appendChangeLog': (c: ActContext, a: { entries: LogEntry[] }) =>
     c.room.log.append(c.actor, a.entries),
   'changeLog.broadcast': (c: ActContext, a: { message: string }) =>
-    c.room.log.broadcast(c.actor, a.message, c.at),
+    withPlay(c, c.room.log.broadcast(c.actor, a.message, c.at)),
   'changeLog.withdrawAlert': (c: ActContext, a: { alertId: string }) =>
     c.room.log.withdrawAlert(c.actor, a.alertId),
   'changeLog.reveal': (c: ActContext, a: { rollId: string }) =>
@@ -150,12 +169,15 @@ const GAME_ACTS = {
   'mediator.runEncounter': (
     c: ActContext,
     a: { encounter: unknown; clear: boolean; waves?: boolean }
-  ) => c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at),
+  ) => withPlay(c, c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at)),
   'mediator.bringInWave': (c: ActContext, a: { wave: number }) =>
     c.room.opposition.bringInWave(c.actor, a.wave, c.at),
   'mediator.endEncounter': (c: ActContext, a?: { clear?: boolean }) =>
     c.room.opposition.endEncounter(c.actor, { clear: a?.clear === true }),
   'mediator.clearTray': (c: ActContext) => c.room.opposition.clearTray(c.actor),
+  'mediator.initiative': (c: ActContext) => c.room.opposition.initiative(c.actor),
+  'mediator.setInitiative': (c: ActContext, a: { initiative: unknown }) =>
+    c.room.opposition.setInitiative(c.actor, a.initiative, c.at),
 
   // The table's state, under the names a client's act carries.
   'scenes.current': (c: ActContext) => c.room.scene.scene(c.actor),
@@ -165,12 +187,19 @@ const GAME_ACTS = {
   'scenes.setUpNow': (c: ActContext, a: { pilotId: string | null }) => {
     const was = c.room.scene.scene(c.actor).upNow
     c.room.scene.setUpNow(c.actor, a.pilotId, c.at)
-    // The turn moved on: what its pilot left unapplied is closed (r5 A7).
-    if (was !== undefined && was !== a.pilotId) c.room.play.closeUnapplied([was], c.at)
+    // The turn moved on: what its pilot left unapplied is closed (r5 A7), and
+    // they have acted this round (r6 B4).
+    if (was !== undefined && was !== a.pilotId) {
+      c.room.play.closeUnapplied([was], c.at)
+      c.room.opposition.markActed(was, c.at)
+    }
+    // Giving the turn is playing (r6 C3); taking it back is not.
+    if (a.pilotId !== null) withPlay(c, undefined)
   },
   'scenes.endTurn': (c: ActContext) => {
     const pilotId = c.room.scene.endTurn(c.actor, c.at)
     c.room.play.closeUnapplied([pilotId], c.at)
+    c.room.opposition.markActed(pilotId, c.at)
     return pilotId
   },
   'salvageAreas.here': (c: ActContext) => c.room.scene.salvageArea(c.actor),
@@ -189,6 +218,7 @@ const GAME_ACTS = {
     c.room.session.end(c.actor)
     // The table got up: nobody is up now (r2 E1), and nothing is left resolving (r5 A7).
     c.room.scene.clearUpNow(c.at)
+    c.room.opposition.endInitiative(c.at)
     c.room.play.closeUnapplied(null, c.at)
   },
   'safety.showStop': (c: ActContext) => c.room.safety.showStop(c.actor, c.at),
@@ -230,6 +260,7 @@ export type GameActResult<N extends GameActName> = ReturnType<Act<N>>
 export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'read',
   'members',
+  'returning',
   'inviteCode',
   'units',
   'links',
@@ -244,6 +275,7 @@ export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'mediator.npcs',
   'mediator.amMediator',
   'mediator.running',
+  'mediator.initiative',
   'unitsFor',
   'unit',
   'scenes.current',

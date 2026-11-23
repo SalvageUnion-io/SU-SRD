@@ -95,6 +95,12 @@ function seatVitals(
 }
 
 /** The table's seats, in the order their players joined, each with every live vital. */
+/** The first problem, and how many more, or null with none. */
+function problemLine(problems: readonly string[]): string | null {
+  if (problems.length === 0) return null
+  return `${problems[0]}${problems.length > 1 ? ` +${problems.length - 1}` : ''}`
+}
+
 /** "HP 8/10" read aloud: "HP 8 of 10". */
 function spoken(text: string): string {
   return text.replace(/(\d+)\/(\d+)/g, '$1 of $2')
@@ -131,11 +137,11 @@ export function mediatorSeats(
       mech: line.unitMech,
       vitals: seatVitals(pilot, mech, line.vital),
       attention: line.attention,
-      // The first problem, and how many more.
-      problem:
-        problems.length === 0
-          ? null
-          : `${problems[0]}${problems.length > 1 ? ` +${problems.length - 1}` : ''}`,
+      // The first problem, and how many more; not the word the head's chip
+      // already says ("Down" is said once, r6 A4).
+      problem: problemLine(
+        problems.filter((p) => !(line.vital.attention && p === line.vital.label))
+      ),
       resolving: line.resolving,
       label: [
         line.name,

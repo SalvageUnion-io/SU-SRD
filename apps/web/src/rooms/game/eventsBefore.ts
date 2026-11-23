@@ -6,6 +6,7 @@
 import { seatOf } from '../seats'
 import type { GameActName } from './acts'
 import { isRevealedRoll } from './log'
+import { STARTS_THE_SESSION } from './session'
 import type { GameStore, StoredOp } from './store'
 
 /** What an act needs remembered from before it ran, to say what changed. */
@@ -28,12 +29,25 @@ export type EventsBefore = {
   revealed?: boolean
   /** Who was up: giving the same pilot the turn again tells nobody. */
   upNow?: string | null
+  /** Whether an area with Supply left stood to salvage: setting another says nothing new (r6 D3). */
+  area?: boolean
   /** The resolves nobody applied that the act may close (r5 A7). */
   unapplied?: { pilotId: string; name: string }[]
 }
 
 /** What `after` needs from before the act ran. */
 export function eventsBefore(store: GameStore, name: GameActName, args: unknown): EventsBefore {
+  const before = beforeAct(store, name, args)
+  // A table act that may start the session says so, if it did (r6 C3).
+  return (STARTS_THE_SESSION as readonly string[]).includes(name)
+    ? { ...before, session: sessionLive(store) }
+    : before
+}
+
+const sessionLive = (store: GameStore) =>
+  store.rows('select 1 from session where id = 1').length > 0
+
+function beforeAct(store: GameStore, name: GameActName, args: unknown): EventsBefore {
   const a = (args ?? {}) as Record<string, unknown>
   switch (name) {
     case 'seats.setResolving': {
@@ -67,6 +81,8 @@ export function eventsBefore(store: GameStore, name: GameActName, args: unknown)
     case 'downtime.advance':
     case 'downtime.setStep':
       return { downtimeStep: downtimeStepNow(store) }
+    case 'salvageAreas.set':
+      return { area: store.rows('select 1 from salvage_area where supply > 0').length > 0 }
     case 'downtime.begin':
     case 'downtime.end': {
       const was = name === 'downtime.begin' ? upNowOf(store) : null

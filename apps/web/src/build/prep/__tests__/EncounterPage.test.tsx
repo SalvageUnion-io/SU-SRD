@@ -126,6 +126,16 @@ async function editField(label: string, value: string) {
   await settle()
 }
 
+/** Type into the notes box and leave it, which saves it. */
+async function typeNotes(value: string) {
+  const box = screen.getByLabelText('Your notes') as HTMLTextAreaElement
+  await act(async () => {
+    fireEvent.change(box, { target: { value } })
+    fireEvent.blur(box)
+  })
+  await settle()
+}
+
 describe('an encounter page', () => {
   // MD3-10: a unit could not be opened to read what it does, in Edit or in Read.
   // The one Compact that expands in place (ruleset §1.5): read-only, no dialog.
@@ -207,8 +217,26 @@ describe('an encounter page', () => {
 
   test('notes save as written', async () => {
     await renderPage()
-    await editField('your notes', 'Raiders on the gantry.')
+    await typeNotes('Raiders on the gantry.')
+    await settle(() => current()?.notes === 'Raiders on the gantry.')
     expect(current()?.notes).toBe('Raiders on the gantry.')
+    expect(screen.getByText('Saved')).toBeTruthy()
+  })
+
+  // MD6-02: typed notes were lost to a refresh unless the field was left first.
+  test('notes typed and never left are saved when the page is hidden or left (r6 B2)', async () => {
+    await renderPage()
+    const box = screen.getByLabelText('Your notes') as HTMLTextAreaElement
+    await act(async () => {
+      fireEvent.change(box, { target: { value: 'Kade surrenders at half HP.' } })
+    })
+    expect(screen.getByText('Saving…')).toBeTruthy()
+    expect(current()?.notes).toBe('Behind the crusher.')
+    await act(async () => {
+      window.dispatchEvent(new Event('pagehide'))
+    })
+    await settle(() => current()?.notes === 'Kade surrenders at half HP.')
+    expect(current()?.notes).toBe('Kade surrenders at half HP.')
   })
 
   test('a table is pinned from the search and unpinned from its open view', async () => {
@@ -270,7 +298,7 @@ describe('an encounter page', () => {
     const picker = screen.getByRole('dialog', { name: 'Add opposition from the reference' })
     const raider = picker.querySelector('[data-searcher-open="raider"]') as HTMLElement
     await click(raider)
-    await click(within(picker).getAllByRole('button', { name: /^Add/ })[0] as HTMLElement)
+    await click(within(picker).getAllByRole('button', { name: /^Add.*Raider/ })[0] as HTMLElement)
     await settle(() => current()?.opposition.length === 2)
     // The first reads "Raider 1" once a second is added (r4 D5).
     expect(current()?.opposition.map((o) => o.name)).toEqual(['Raider 1', 'Raider 2'])
@@ -308,7 +336,7 @@ describe('an encounter page', () => {
       await renderPage()
       await click(screen.getByRole('button', { name: 'More for Raider' }))
       await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Remove' }))
-      await editField('your notes', 'Raiders on the gantry.')
+      await typeNotes('Raiders on the gantry.')
       await settle(() => refuse.mock.calls.length >= 2)
       // One macrotask, so a rejection with no handler has been reported.
       await act(async () => {

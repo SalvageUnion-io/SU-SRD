@@ -16,6 +16,7 @@
  * each press does is `Play`'s (`usePlaySituation`); this only draws it.
  */
 
+import type { Mech } from 'game-domain/schemas/mech'
 import { ChevronDown, Lock } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { HeaderMenu, Segmented, SegmentedOption, tokens } from '../components/index'
@@ -24,6 +25,7 @@ import type { BoardOption } from './boardMenu.model'
 import { boardable, boardedMechName, boardMenuSections } from './boardMenu.model'
 import type { Play } from './situation.model'
 import { useSituationMoves } from './useSituationMoves'
+import { isDown } from './zeroVital.model'
 
 const ROW = {
   alignItems: 'center',
@@ -56,8 +58,11 @@ const GROW = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 export function PlaySituationSwitch({
   play,
   fill = false,
+  downtimeMech = null,
 }: {
   play: Play
+  /** The mech the pilot has in the Mech Bay during Downtime, as the Units show it. */
+  downtimeMech?: Mech | null
   /** Pinned below `lg` (Downtime on a phone, r4 A10): no leading label, the options share the row. */
   fill?: boolean
 }) {
@@ -68,6 +73,14 @@ export function PlaySituationSwitch({
 
   const boardedName = boardedMechName(play)
   const boarded = situation === 'boarded'
+  // A Down Mech is never offered as boarded (r6 A7): that it is Down, and where:
+  // in the field, or in Downtime the Mech Bay.
+  const watched = boarded ? play.boardedMech : situation === 'downtime' ? downtimeMech : null
+  const downMech = watched !== null && isDown(watched.currentSP) ? watched.name : null
+  const downName =
+    downMech === null
+      ? null
+      : playCopy(boarded ? 'mechIsDownHere' : 'mechIsDownInBay', { name: downMech })
 
   return (
     <div style={fill ? FILL_ROW : ROW}>
@@ -93,6 +106,7 @@ export function PlaySituationSwitch({
           mechs={mechs}
           pressed={boarded}
           boardedName={boardedName}
+          downName={downName}
           disabled={!canWrite}
           onChoose={(option) => go({ kind: 'board', option })}
         />
@@ -129,17 +143,27 @@ function BoardOptionControl({
   mechs,
   pressed,
   boardedName,
+  downName = null,
   disabled,
   onChoose,
 }: {
   mechs: readonly BoardOption[]
   pressed: boolean
   boardedName: string | null
+  /** What the option says of the boarded Mech, while it is Down at 0 SP (r6 A7). */
+  downName?: string | null
   disabled: boolean
   onChoose: (option: BoardOption) => void
 }) {
   const only = mechs.length === 1 ? mechs[0] : undefined
-  const label = pressed ? (boardedName === null ? 'Boarded' : `Boarded · ${boardedName}`) : 'Board'
+  const label =
+    downName !== null
+      ? downName
+      : pressed
+        ? boardedName === null
+          ? 'Boarded'
+          : `Boarded · ${boardedName}`
+        : 'Board'
 
   if (mechs.length === 0) {
     return (
@@ -155,7 +179,10 @@ function BoardOptionControl({
   }
 
   if (only !== undefined) {
-    const text = `${pressed ? 'Boarded' : 'Board'} · ${pressed && boardedName !== null ? boardedName : only.name}`
+    const text =
+      downName !== null
+        ? label
+        : `${pressed ? 'Boarded' : 'Board'} · ${pressed && boardedName !== null ? boardedName : only.name}`
     return (
       <SegmentedOption
         pressed={pressed}

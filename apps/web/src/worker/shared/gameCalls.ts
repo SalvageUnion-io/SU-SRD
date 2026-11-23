@@ -42,6 +42,7 @@ import { gameBindingView, rollChannel, soloBindingView } from './channelBindings
 import type { SharedDb } from './db'
 import { CALL_ARGS } from './gameCallArgs'
 import { gameOfInvite, gamesOf, memberAccountNames, membershipOf } from './games'
+import { bringBack } from './rejoin'
 
 /** A player's account room, as these calls use it. */
 type AccountStub = UnitHome & {
@@ -336,6 +337,9 @@ const CALLS = {
     // they are not in, which deletion's forget passes over.
     await deps.account(who.discordId).joinedGame(gameId)
     const kind = await act(room, who.discordId, 'redeem', { code: a.code, profile })
+    // Back after a removal: what it took comes back too (r6 C7).
+    if (kind === 'joined')
+      await bringBack(room, deps.account(who.discordId), gameId, who.discordId, deps.newId)
     return republished(room, { kind, gameId })
   },
 

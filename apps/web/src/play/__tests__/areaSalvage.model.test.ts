@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { AreaSalvageResult } from 'salvageunion-reference/rules'
-import { areaSalvageRowText, haulText, isExpertSalvager } from '../areaSalvage.model'
+import { areaSalvageRowText, haulFeedText, haulText, isExpertSalvager } from '../areaSalvage.model'
 
 /** What an Area Salvage's resolve says (Core Book p.248). */
 
@@ -24,6 +24,17 @@ const JACKPOT: AreaSalvageResult = {
 }
 
 const haul = (carried: number, leftBehind: number) => ({ carried, leftBehind, patch: null })
+
+// r6 D3 (LG6-11): the Mediator's Feed said only the roll.
+describe('haulFeedText', () => {
+  test('the roll, what went where, and what stayed', () => {
+    expect(haulFeedText(SCRAP, haul(1, 1), 'inventory')).toBe(
+      '12: 1 T3 Scrap to inventory, 1 left in the area'
+    )
+    expect(haulFeedText({ ...SCRAP, scrapQty: 0 }, haul(0, 0), 'Cargo')).toBe('12: nothing found')
+    expect(haulFeedText(JACKPOT, haul(0, 0), 'Cargo')).toBe('20: 1 T3 item to pick')
+  })
+})
 
 describe('haulText', () => {
   test('what was carried, and what stayed for want of room', () => {

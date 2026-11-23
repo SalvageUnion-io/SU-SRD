@@ -99,8 +99,8 @@ describe('Downtime', () => {
     expect(room.play.downtime(PLAYER)?.completedBy).toEqual([
       { userId: PLAYER, displayName: 'Player' },
     ])
-    room.play.advanceDowntime(MEDIATOR)
-    expect(room.play.downtime(PLAYER)).toMatchObject({ stepIndex: 1, completedBy: [] })
+    room.play.setDowntimeStep(MEDIATOR, 2)
+    expect(room.play.downtime(PLAYER)).toMatchObject({ stepIndex: 2, completedBy: [] })
     // Back to a step already taken: still done, never offered again.
     room.play.setDowntimeStep(MEDIATOR, 0)
     expect(room.play.downtime(PLAYER)?.completedBy.map((m) => m.userId)).toEqual([PLAYER])
@@ -120,6 +120,66 @@ describe('Downtime', () => {
     expect(room.play.downtime(PLAYER)?.completedBy).toEqual([])
     room.units.submit(PLAYER, [take('p3')])
     expect(room.play.downtime(PLAYER)?.completedBy.map((m) => m.userId)).toEqual([PLAYER])
+  })
+
+  // r6 D2 (LG6-13): Upkeep has nothing for a player's seat, so nobody presses Mark done on it.
+  test('a seat-free step counts as done for every member with a pilot', () => {
+    const { room } = seated()
+    room.play.beginDowntime(MEDIATOR, AT)
+    const upkeep = Array.from({ length: downtimeStepCount() }, (_, i) => i).find(isUpkeepStep)
+    if (upkeep === undefined) throw new Error('the guide has no upkeep step')
+    room.play.setDowntimeStep(MEDIATOR, upkeep)
+    expect(room.play.downtime(PLAYER)?.completedBy.map((m) => m.userId)).toEqual(
+      [ORGANIZER, PLAYER].sort()
+    )
+    room.play.advanceDowntime(MEDIATOR)
+    expect(room.play.downtime(PLAYER)?.completedBy).toEqual([])
+  })
+
+  // r6 D1 (LG6-12): Tally Salvage told players to write their Scrap down.
+  test('Tally Salvage moves a pilot’s carried Scrap into the crawler, once, at its player’s press', () => {
+    const { room } = seated()
+    room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
+    room.units.submit(PLAYER, [
+      op('p1', {
+        genericInventory: [
+          { id: 'a', name: 'Tech 1 Scrap', slotCost: 3, qty: 2 },
+          { id: 'b', name: 'Rope', slotCost: 1 },
+        ],
+      }),
+      op('m1', {
+        cargoLots: [
+          { id: 'l', kind: 'bulk', name: 'Tech 2 Scrap', cat: 'SCRAP', tl: 2, qty: 3, units: 3 },
+        ],
+      }),
+    ])
+    const args = { pilotId: 'p1', mechId: 'm1', crawlerId: 'c1' }
+    expect(() => room.play.moveScrap(PLAYER, args, AT)).toThrow('Downtime is not running')
+    room.play.beginDowntime(MEDIATOR, AT)
+    // Another player's pilot is not theirs to move, nor is it the Mediator's under the recommended ruling.
+    expect(() => room.play.moveScrap(ORGANIZER, args, AT)).toThrow()
+    expect(() => room.play.moveScrap(MEDIATOR, args, AT)).toThrow()
+    expect(room.play.moveScrap(PLAYER, args, AT)).toEqual({ 1: 2, 2: 3 })
+    expect(room.store.unit('c1')?.body).toMatchObject({ scrapPool: { tl1: 2, tl2: 3 } })
+    expect(room.store.unit('p1')?.body.genericInventory).toEqual([
+      { id: 'b', name: 'Rope', slotCost: 1 },
+    ])
+    expect(room.store.unit('m1')?.body.cargoLots).toEqual([])
+    const read = room.play.downtime(MEDIATOR)
+    expect(read?.scrapMoved).toEqual(['p1'])
+    // The move took the step.
+    expect(read?.completedBy.map((m) => m.userId)).toEqual([PLAYER])
+    expect(room.play.moveScrap(PLAYER, args, AT)).toBeNull()
+    expect(room.store.unit('c1')?.body).toMatchObject({ scrapPool: { tl1: 2, tl2: 3 } })
+    // Out of Tally Salvage, and with nothing to move, it is refused in words.
+    room.play.advanceDowntime(MEDIATOR)
+    expect(() =>
+      room.play.moveScrap(ORGANIZER, { pilotId: 'p2', mechId: null, crawlerId: 'c1' }, AT)
+    ).toThrow('Scrap is moved in the Tally Salvage step')
+    room.play.setDowntimeStep(MEDIATOR, 0)
+    expect(() =>
+      room.play.moveScrap(ORGANIZER, { pilotId: 'p2', mechId: null, crawlerId: 'c1' }, AT)
+    ).toThrow('There is no Scrap to move')
   })
 
   /** The run's claim op on the crawler: its id names the run and the claim. */

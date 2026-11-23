@@ -35,11 +35,13 @@ async function renderTell({
   canWrite = true,
   send = sender(),
   withdrawn = [],
+  sent = [],
 }: {
   alerts?: AlertLine[]
   canWrite?: boolean
   send?: Sender
   withdrawn?: string[]
+  sent?: true[]
 } = {}) {
   await act(async () => {
     render(
@@ -49,6 +51,7 @@ async function renderTell({
         canWrite={canWrite}
         onSend={send.onSend}
         onWithdraw={(id) => withdrawn.push(id)}
+        onSent={() => sent.push(true)}
       />
     )
   })
@@ -105,9 +108,21 @@ describe('sending', () => {
     expect(send.sent).toEqual([])
   })
 
+  // MD6-18: a mid-fight shout cost an Esc to get back to the fight.
+  test('a sent alert closes the dialog; a refusal keeps it open (r6 B9)', async () => {
+    const closed: true[] = []
+    const { box, button } = await renderTell({ sent: closed })
+    await type(box, 'Hold')
+    await act(async () => {
+      fireEvent.click(button)
+    })
+    expect(closed).toEqual([true])
+  })
+
   test('a refusal keeps the message, ready to send again', async () => {
     const send = sender('refused')
-    const { box, button } = await renderTell({ send })
+    const closed: true[] = []
+    const { box, button } = await renderTell({ send, sent: closed })
     await type(box, 'Storm incoming')
     await act(async () => {
       fireEvent.click(button)
@@ -115,6 +130,7 @@ describe('sending', () => {
     expect(send.sent).toEqual(['Storm incoming'])
     expect(box.value).toBe('Storm incoming')
     expect(button.disabled).toBe(false)
+    expect(closed).toEqual([])
   })
 
   test('offline, the box and Send are disabled', async () => {

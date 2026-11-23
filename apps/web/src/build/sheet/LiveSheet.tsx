@@ -58,9 +58,9 @@ import type { SheetBand } from './sheetViewProps.model'
 /** The band's strip draws only the host's stamps: the unit's own chips are its body's. */
 const NO_CHIPS = { durations: [], facts: [], tags: [] }
 
-/** The pattern relation's label: PATTERN while the mech is the pattern, BASED ON once its loadout changed. */
-const patternLabel = (stamp: PatternStamp) =>
-  stamp.changed ? buildSheetCopy('basedOn') : buildSheetCopy('pattern')
+/** The pattern relation has one label (r6 E1), PATTERN: its name says "differs" once the loadout drifts. */
+const patternName = (stamp: PatternStamp) =>
+  stamp.changed ? buildSheetCopy('patternDiffers', { name: stamp.name }) : stamp.name
 
 /** No "View in the Reference" in a sheet's body (the surface's `externalLink`, E13). */
 const NO_REFERENCE_LINK: Partial<EntitySurfaceValue> = { externalLink: null }
@@ -151,6 +151,11 @@ type LiveSheetProps = {
   kindAction?: ReactNode
   /** A mech's pattern (`PATTERN | Nimble Hauler`), linked to its page. */
   fromPattern?: PatternStamp | undefined
+  /**
+   * The body's first line, over its regions: a mech's drift from its pattern,
+   * with what to do about it (r6 E2), in Read and Edit alike.
+   */
+  lead?: ReactNode
   /**
    * Where it came from, when not a blank build (R49): the
    * Starter Set (`seedRef`) is a STARTER SET chip, a saved pattern
@@ -255,6 +260,7 @@ export function LiveSheet({
   kindDetail: stamp,
   kindAction,
   fromPattern,
+  lead,
   source,
   rank,
   out,
@@ -348,7 +354,11 @@ export function LiveSheet({
                 {actions}
               </div>
             )}
-            {condensed && segments?.some((segment) => !segment.active) && (
+          </div>
+          {/* Its own row on a phone, under the name and the acts, so the bar
+              never clips it (r6 E10); beside the acts from `sm`. */}
+          {condensed && segments?.some((segment) => !segment.active) && (
+            <div className="su-sheet-bar__linked">
               <LinkedUnits
                 linked={segments
                   .filter((segment) => !segment.active)
@@ -359,8 +369,8 @@ export function LiveSheet({
                     href: segment.href,
                   }))}
               />
-            )}
-          </div>
+            </div>
+          )}
         </section>
       </div>
 
@@ -423,18 +433,26 @@ export function LiveSheet({
                     {fromPattern &&
                       (fromPattern.href || fromPattern.page ? (
                         <Tag
-                          tag={relation('pattern', patternLabel(fromPattern), fromPattern.name, {
-                            href: fromPattern.href,
-                            page: fromPattern.page,
-                          })}
+                          tag={relation(
+                            'pattern',
+                            buildSheetCopy('pattern'),
+                            patternName(fromPattern),
+                            {
+                              href: fromPattern.href,
+                              page: fromPattern.page,
+                            }
+                          )}
                           linkable
                           wrap
                         />
                       ) : (
-                        <Stat label={patternLabel(fromPattern)} value={fromPattern.name} wrap />
+                        <Stat
+                          label={buildSheetCopy('pattern')}
+                          value={patternName(fromPattern)}
+                          wrap
+                        />
                       ))}
-                    {/* What differs from the pattern now (r5 D2). */}
-                    {fromPattern?.differs && <Stat label={fromPattern.differs} wrap />}
+                    {/* What differs is the body's first line, with what to do about it (r6 E2). */}
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />
                     )}
@@ -498,7 +516,13 @@ export function LiveSheet({
         }
       >
         {title}
-        {nameAside && <span className="su-title-aka">{nameAside}</span>}
+        {/* "Stumpy · Mara Voss", to the eye and to a screen reader alike (r6 E20). */}
+        {nameAside && (
+          <>
+            {' '}
+            <span className="su-title-aka">{buildSheetCopy('titleAka', { name: nameAside })}</span>
+          </>
+        )}
         {/* The kind is never stamped (EDL E9): the h1 says it to screen readers. */}
         <KindLabel kind={KIND_LABEL[variant]} />
       </ChapterBand>
@@ -523,6 +547,7 @@ export function LiveSheet({
                 {out.note}
               </p>
             )}
+            {lead}
             {/* A stat's label opens what the number means (r4 E21). */}
             <StatMeanings>{renderBody()}</StatMeanings>
           </EntitySurfaceProvider>

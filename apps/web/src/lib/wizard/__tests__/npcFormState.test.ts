@@ -124,9 +124,9 @@ describe('the gates are a name and HP ≥ 1', () => {
         toggleNpcAction(form, 'improvised-melee-weapon-wastelander', false)
       ).ok
     ).toBe(true)
-    expect(npcCreationStepGate('review', form).ok).toBe(false)
-    expect(npcCreationStepGate('review', { ...form, name: 'Rook' }).ok).toBe(true)
-    expect(npcCreationStepGate('review', { ...form, name: 'Rook', hitPoints: '0' }).ok).toBe(false)
+    expect(npcCreationStepGate('design', form).ok).toBe(false)
+    expect(npcCreationStepGate('design', { ...form, name: 'Rook' }).ok).toBe(true)
+    expect(npcCreationStepGate('design', { ...form, name: 'Rook', hitPoints: '0' }).ok).toBe(false)
   })
 })
 

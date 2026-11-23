@@ -114,7 +114,7 @@ describe('a crawler’s chips', () => {
 
 describe('shared by link', () => {
   test('a pilot, mech or crawler anyone with the link may read says so', () => {
-    expect(chipLabels(linkChip(['p1'], 'p1'))).toEqual(['Shared by link'])
+    expect(chipLabels(linkChip(['p1'], 'p1'))).toEqual(['Public (anyone with the link)'])
     expect(linkChip(['p1'], 'p2')).toEqual([])
     expect(linkChip(undefined, 'p1')).toEqual([])
   })
@@ -125,8 +125,12 @@ describe('shared by link', () => {
     expect(chipLabels(npcChips({ npc: shelf }))).toEqual(['Only me'])
     expect(chipLabels(npcChips({ npc: inGame }))).toEqual(['Only the Mediator'])
     expect(chipLabels(npcChips({ npc: inGame, crews: true }))).toEqual(['The table'])
-    expect(chipLabels(npcChips({ npc: shelf, sharedByLink: true }))).toEqual(['Shared by link'])
-    expect(chipLabels(npcChips({ npc: inGame, sharedByLink: true }))).toEqual(['Shared by link'])
+    expect(chipLabels(npcChips({ npc: shelf, sharedByLink: true }))).toEqual([
+      'Public (anyone with the link)',
+    ])
+    expect(chipLabels(npcChips({ npc: inGame, sharedByLink: true }))).toEqual([
+      'Public (anyone with the link)',
+    ])
   })
 })
 
@@ -137,7 +141,7 @@ describe('a pattern’s chips', () => {
     const crew = { ...base, visibility: 'game' as const, gameId: 'g1' }
     expect(chipLabels(patternChips({ ...base, visibility: 'private' }, games))).toEqual(['Only me'])
     expect(chipLabels(patternChips({ ...base, visibility: 'link', builtCount: 2 }, games))).toEqual(
-      ['Shared by link']
+      ['Public (anyone with the link)']
     )
     expect(chipLabels(patternChips(crew, games))).toEqual(['Shared with Dustbowl Run'])
     expect(patternChips(undefined, games)).toEqual([])

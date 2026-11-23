@@ -3,7 +3,7 @@ import { downtimeStepNames } from 'game-domain/rules/downtime'
 import type { GameActArgs, GameActName } from '../acts'
 import { runAct } from '../acts'
 import { isMirrored, MERGE_MS } from '../events'
-import { AT, bodies, MEDIATOR, op, PLAYER, STRANGER, table } from './harness'
+import { AT, bodies, MEDIATOR, op, PLAYER, profile, STRANGER, table } from './harness'
 
 /** A table with PLAYER's pilot and mech, and acts run as the room's Durable Object runs them. */
 function seated() {
@@ -32,6 +32,15 @@ describe('the table’s events', () => {
       about: PLAYER,
     })
     expect(act('d-org', 'setMediator', { userId: MEDIATOR, mediator: false })).toEqual([])
+  })
+
+  test('a line names its people as they are now: a former Mediator by name (r6 A9)', () => {
+    const { act, texts } = seated()
+    act(MEDIATOR, 'session.start', undefined as never, AT + 1)
+    act('d-org', 'setMediator', { userId: PLAYER, mediator: true }, AT + 2)
+    act('d-org', 'setMediator', { userId: MEDIATOR, mediator: false }, AT + 3)
+    expect(texts()).toContain('Med started the group session')
+    expect(texts()).toContain('Player now mediates this Game')
   })
 
   test('a vital’s change is one line naming the unit, from and to', () => {
@@ -504,6 +513,19 @@ describe('the table’s events', () => {
     ])
   })
 
+  // r6 D3 (LG6-11): players were not told an area was set until they opened Area Salvage.
+  test('an area opened to salvage is one line; setting it again says nothing', () => {
+    const { act, texts } = seated()
+    const area = { name: 'Raider Camp', techLevel: 2, supply: 3 }
+    const [opened] = act(MEDIATOR, 'salvageAreas.set', { area }, AT + 1)
+    expect(opened).toMatchObject({ kind: 'action', text: 'A salvage area is open' })
+    expect(act(MEDIATOR, 'salvageAreas.set', { area: { ...area, supply: 2 } }, AT + 2)).toEqual([])
+    expect(act(MEDIATOR, 'salvageAreas.set', { area: null }, AT + 3)).toEqual([])
+    expect(act(MEDIATOR, 'salvageAreas.set', { area }, AT + 4)).toHaveLength(1)
+    // Opened again a moment later, it merges into the line before (MERGE_MS).
+    expect(texts(PLAYER)).toEqual(['A salvage area is open ×2'])
+  })
+
   test('Downtime beginning and ending are each one line for everyone (r2 E2)', () => {
     const { act, texts } = seated()
     const [began] = act(MEDIATOR, 'downtime.begin', undefined as never, AT + 1)
@@ -623,8 +645,33 @@ describe('the table’s events', () => {
     expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
   })
 
+  // r6 C3 (MD6-07): the first table act is the table sitting down.
+  test('giving the turn with no session live starts one, and the Feed says so first', () => {
+    const { act, room, texts } = seated()
+    const told = act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    expect(told.map((e) => e.text)).toEqual([
+      'Mediator started the group session',
+      expect.stringContaining(' the turn'),
+    ])
+    expect(told[0]).toMatchObject({ kind: 'session', session: 'start' })
+    expect(room.session.session(PLAYER)).toEqual({ live: true, startedAt: AT + 1 })
+    // Once it is live, the next act starts nothing more.
+    expect(act(MEDIATOR, 'changeLog.broadcast', { message: 'Hold' }, AT + 2)).not.toContainEqual(
+      expect.objectContaining({ kind: 'session' })
+    )
+    expect(texts(PLAYER).filter((t) => t.includes('started the group session'))).toHaveLength(1)
+  })
+
+  test('taking the turn back, or a player’s own act, starts no session', () => {
+    const { act, room } = seated()
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: null }, AT + 1)
+    act(PLAYER, 'seats.board', { pilotId: 'p1', mechId: 'm1' } as never, AT + 2)
+    expect(room.session.session(PLAYER).live).toBe(false)
+  })
+
   test('giving the turn is a line for the whole table, once per pilot given it (r5 A4)', () => {
     const { act, texts } = seated()
+    act(MEDIATOR, 'session.start', undefined as never, AT)
     const [given] = act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
     expect(given).toMatchObject({ kind: 'turn', actorId: MEDIATOR })
     expect(given?.text).toStartWith('The Mediator gave ')
@@ -706,7 +753,8 @@ describe('the table’s events', () => {
     const [told] = act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 2)
     expect(told).toMatchObject({ kind: 'withdrawn', text: 'Mediator withdrew an alert' })
     expect(room.log.alerts(PLAYER)).toEqual([])
-    expect(texts()).toEqual(['Mediator withdrew an alert'])
+    // The first alert started the session (r6 C3); its own line is withdrawn.
+    expect(texts()).toEqual(['Mediator withdrew an alert', 'Mediator started the group session'])
     expect(() => act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 3)).toThrow(
       'That alert is no longer there'
     )
@@ -769,5 +817,19 @@ describe('the table’s events', () => {
     const { act, room } = seated()
     act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 4 }, AT + 1)
     expect(room.proposals.pending(PLAYER)[0]?.current).toBe(10)
+  })
+})
+
+describe('a late joiner reads the session (r6 A8)', () => {
+  test('one who joins mid-session is served the session from its start, past the newest page', () => {
+    const { act, texts, code } = seated()
+    act(MEDIATOR, 'session.start', undefined as never, AT + 1)
+    for (let i = 1; i <= 220; i += 1) {
+      const at = AT + 2 + i * (MERGE_MS + 1)
+      act(PLAYER, 'submit', { ops: [op('p1', { currentHP: i % 2 }, { baseSeq: i - 1 })] }, at)
+    }
+    act(STRANGER, 'redeem', { code, profile: profile('Cal') }, AT + 10 ** 9)
+    expect(texts(STRANGER).at(-1)).toMatch(/started the group session$/)
+    expect(texts(STRANGER).length).toBeGreaterThan(220)
   })
 })

@@ -3,12 +3,6 @@
 import { messages } from './define'
 
 export const libGamesCopy = messages({
-  assignSelfTitle: 'Assign {name} to you?',
-  assignSelfBody:
-    '{name} is unassigned — the Mediator left them for somebody to take. Assigned to you, they are yours to edit in this Game, they open in this browser, and every change saves back to the Game. The rest of the crew can still read them.',
-  assignSelfUndo: 'Changed your mind later? Hand them back with “Unassign”.',
-  assignToMe: 'Assign to me',
-  assigning: 'Assigning…',
   assignSelfFailed: '{name} could not be assigned to you. Try again.',
   assignToFailed: '{name} could not be assigned to {to}. Try again.',
   unassignTitle: 'Unassign {name}?',

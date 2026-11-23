@@ -1,13 +1,16 @@
 /**
- * CreateDoors — `NewEntityScreen` outside the guided wizard: the chooser, with
- * the Blank dialog open over it at `mode === 'blank'`. Its own chunk, so a
- * guided build does not download the doors or the pattern lists behind them.
+ * CreateDoors — `NewEntityScreen` outside the guided wizard: a mech's patterns
+ * at `mode === 'pattern'` (`PatternStart`, r6 F2), else the chooser, with the
+ * Blank dialog open over it at `mode === 'blank'`. Its own chunk, so a guided
+ * build does not download the doors or the pattern lists behind them.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CreateMode } from '../../lib/wizard/createMode'
 import { BlankCreateDialog } from './BlankCreateDialog'
 import { CreateModeChooser } from './CreateModeChooser'
+import { PatternStart } from './PatternStart'
+import { forLine } from './wizStarts.model'
 
 type CreateDoorsProps = {
   kind: SheetKind
@@ -32,6 +35,17 @@ export function CreateDoors({
   forCrew,
   book,
 }: CreateDoorsProps) {
+  if (mode === 'pattern' && kind === 'mech') {
+    return (
+      <PatternStart
+        onBuilt={onCreated}
+        onGuided={() => onModeChange('guided')}
+        gameId={gameId}
+        book={book}
+        forLine={forLine({ forPilot })}
+      />
+    )
+  }
   return (
     <>
       <CreateModeChooser

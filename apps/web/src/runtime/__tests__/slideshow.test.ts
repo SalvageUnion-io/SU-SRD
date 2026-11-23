@@ -37,13 +37,13 @@ describe('turnedClock', () => {
   })
 })
 
-function show(slideCount: number, animated = true) {
+function show(slideCount: number, animated = true, still = false) {
   document.body.innerHTML = `
-    <section class="su-front__show">
+    <section class="su-front__show"${still ? ' data-paused' : ''}>
       <ul>${'<li class="su-front__show-slide"></li>'.repeat(slideCount)}</ul>
       <div data-show-controls hidden>
         <button data-show-turn="-1"></button>
-        <button data-show-pause aria-pressed="false" class="su-btn--default"></button>
+        ${still ? '' : '<button data-show-pause aria-pressed="false" class="su-btn--default"></button>'}
         <button data-show-turn="1"></button>
       </div>
     </section>`
@@ -75,6 +75,15 @@ describe('watchSlideshow', () => {
     press('[data-show-pause]')
     expect(root.hasAttribute('data-paused')).toBe(false)
     expect(pause.classList.contains('su-btn--default')).toBe(true)
+  })
+
+  test('a show that holds still has no Pause: its turns still show and work (r6 G14)', () => {
+    const { press, root, clocks } = show(8, true, true)
+    expect(root.querySelector('[data-show-pause]')).toBeNull()
+    expect(root.querySelector<HTMLElement>('[data-show-controls]')?.hidden).toBe(false)
+    press('[data-show-turn="1"]')
+    // Held, Next lands on the next slide standing still.
+    expect(clocks.every((clock) => clock.currentTime === STEP * 2)).toBe(true)
   })
 
   test('Next and Previous set every slide to one clock', () => {

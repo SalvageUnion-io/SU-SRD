@@ -8,7 +8,7 @@ A built NPC is the app's fourth entity, designed by anyone and able to crew a cr
    A linked slot replaces the inline crew without writing it, so unlinking restores it; conflicts live in `packages/game-domain/src/links/linkRules.ts`.
 3. **§3 Storage modes** — Solo: sign-in panel. Disconnected or Outdated: designer opens but cannot save; crew board read-only. A Game shows an NPC to its Mediator and maker read-only.
 4. **§4 Surfaces** — Designer (`/npcs/new`), sheet, crew board, an NPC shelf on Shelves (`apps/web/src/build/shelves/Shelves.tsx`), and linked slots on the crawler sheet (`apps/web/src/build/npc/`).
-   - **§4.1 Designer** — Template → Stats → Actions & traits → Identity → Review beside a live preview; Any denizen is a template (ADR-067 §2); blank is a tile.
+   - **§4.1 Designer** — beside a live preview: Template, then one page; blank, Stats → Actions & traits → Identity. Any denizen is a template (ADR-067 §2).
      Form state: `apps/web/src/lib/wizard/npcFormState.ts`. Gates: a name and HP ≥ 1; Roll only where data has a table.
    - **§4.2 Sheet** — `/npcs/:id`: the user-made card and the identity panel, with move, delete, redesign.
    - **§4.3 Crew board** — The crawler type's slot and one per bay: design, assign, unassign.

@@ -30,14 +30,14 @@ import { Button, HeaderMenu, toast, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { copyAsking, keptMech } from '../../lib/copiedToast'
+import { copyAsking } from '../../lib/copiedToast'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
-import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { runWrite } from '../../lib/runWrite'
 import { useOpenedOnce } from '../../lib/useOpenedOnce'
 import { buildExportCopy } from '../../messages/build-export'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { askToBoard } from '../../play/boardIntent.model'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
@@ -55,6 +55,7 @@ import { PilotLiveSheet } from './PilotLiveSheet'
 import { usePrinting } from './printing.model'
 import { SheetFallback } from './SheetFallback'
 import { SheetModeToggle } from './SheetModeToggle'
+import { sheetDeleteItem } from './sheetDelete.model'
 import { useSheetMode } from './sheetMode.model'
 import { useSheetUndo } from './sheetUndo.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
@@ -308,15 +309,24 @@ export function Sheet({
               pilotAbilities: pilotAbilities ?? composition.pilot?.abilities,
             })
         : undefined
+  const exportFlown = resolved.kind === 'pilot' ? composition.mech?.name : undefined
   const menu: HeaderMenuItem[][] = [
     [
       { id: 'print', label: buildSheetCopy('print'), onSelect: () => window.print() },
       {
         id: 'export',
-        label: buildExportCopy('export'),
+        // A pilot's export takes the Mech they fly, and says so (r6 E17).
+        label: exportFlown
+          ? buildExportCopy('exportWith', { name: entity.name, mech: exportFlown })
+          : buildExportCopy('export'),
         onSelect: () => {
           void exportOne.run(entity.name).then((result) => {
-            if (result.ok) toast.success(buildExportCopy('exported', { name: entity.name }))
+            if (result.ok)
+              toast.success(
+                exportFlown
+                  ? buildExportCopy('exportedWith', { name: entity.name, mech: exportFlown })
+                  : buildExportCopy('exported', { name: entity.name })
+              )
           })
         },
       },
@@ -333,7 +343,10 @@ export function Sheet({
       // One change back at a time, as Ctrl+Z does (r4 E3).
       {
         id: 'undo',
-        label: buildSheetCopy('undoLastChange'),
+        // It names what it takes back once the log has said (r6 E15).
+        label: undo.next
+          ? buildSheetCopy('undoNamed', { what: undo.next })
+          : buildSheetCopy('undoLastChange'),
         onSelect: writesBlocked || status !== 'live' ? undefined : () => void undo.undoLast(),
       },
     ],
@@ -368,27 +381,13 @@ export function Sheet({
         : []),
     ],
     [
-      {
-        id: 'delete',
-        label: buildSheetCopy('delete'),
-        tone: 'danger',
-        onSelect: writable(() =>
-          confirm({
-            ...(inGame
-              ? ROW_ACTION_COPY.deleteFromGame(entity.name, keptMech(kind, id, storeState))
-              : kind === 'mech'
-                ? ROW_ACTION_COPY.deleteMech(entity.name)
-                : ROW_ACTION_COPY.deleteBuild(entity.name, keptMech(kind, id, storeState))),
-            onConfirm: async () => {
-              // A Training Bay Mech's notice undoes it (r5 D9).
-              await (kind === 'mech' && !inGame
-                ? import('../mech/deleteMech.model').then((m) => m.deleteMech(id))
-                : storeState.delete(kind, id))
-              go(back.href)
-            },
-          })
-        ),
-      },
+      sheetDeleteItem(
+        { kind, id, name: entity.name, inGame },
+        storeState,
+        confirm,
+        () => go(back.href),
+        writable
+      ),
     ],
   ]
   // The sheet's Play mode (ADR-066): a pilot's own Play, in its Game or solo;
@@ -406,7 +405,11 @@ export function Sheet({
       ? {
           name: playPilot.name,
           gameId: playPilot.gameId ?? null,
-          onPlay: () => go(cockpitPath(playPilot.id)),
+          onPlay: () => {
+            // From a Mech's sheet, Play opens boarded in it (r6 A10).
+            if (resolved.kind === 'mech') askToBoard(playPilot.id, resolved.entity.id)
+            go(cockpitPath(playPilot.id))
+          },
         }
       : undefined
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
@@ -438,6 +441,9 @@ export function Sheet({
         trigger={null}
         label={buildSheetCopy('moreActions')}
         sections={menu}
+        onOpenChange={(open) => {
+          if (open && !writesBlocked && status === 'live') void undo.look()
+        }}
       />
     </div>
   ) : undefined
@@ -493,10 +499,7 @@ export function Sheet({
     ) : null
   const band: SheetBand = {
     game,
-    doorNote:
-      modeToggle !== null && play?.gameId != null && game
-        ? buildSheetCopy('soloIsNowTable', { game: game.name })
-        : undefined,
+    // The Play tab is the door; no line under it repeats it (r6 C4).
     actions:
       modeToggle === null && bandActions === undefined ? undefined : (
         <>

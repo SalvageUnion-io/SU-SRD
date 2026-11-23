@@ -17,6 +17,10 @@
  * - **A menu choice** (`<select>`, which has no `name` to carry it by) is
  *   chosen again on the same menu.
  * - **A press on a `trigger`** is never held: it is a link, and follows (E27).
+ *   A finger's tap is the exception (RR6-03): touch has no hover, so a tap on
+ *   a term explains it in place. It is held, and tapped again once the island
+ *   listens, so the Peek opens instead of the page leaving. A trigger island
+ *   wakes on a finger's first touch anywhere, so it is near ready by the tap.
  * - **Hover and focus on a `trigger`** are announced again, so a host that
  *   reacts to `pointerover` or `focusin` (the Peek) sees the one that woke it.
  *
@@ -75,6 +79,8 @@ export type PendingInteraction = {
   changes: { path: ElementPath; value: string }[]
   /** The page-wide trigger (`trigger` islands) whose hover or focus woke the island. */
   trigger: Element | null
+  /** The trigger a finger tapped before the island listened: tapped again on replay. */
+  tap: HTMLElement | null
 }
 
 export type InteractionWatch = {
@@ -107,8 +113,11 @@ export function watchInteraction(
     focus: null,
     changes: [],
     trigger: null,
+    tap: null,
   }
   let woken = false
+  /** The last press was a finger's. */
+  let touched = false
 
   /** The element this gesture is aimed at, when it is one the island answers. */
   const aimedAt = (target: EventTarget | null): Element | null => {
@@ -117,14 +126,33 @@ export function watchInteraction(
     return el.contains(target) ? target : null
   }
 
-  const onIntentEvent = (event: Event) => {
-    const aimed = aimedAt(event.target)
-    if (!aimed) return
-    if (trigger) pending.trigger = aimed
-    else if (event.type === 'focusin') pending.focus = pathTo(el, aimed)
+  const wake = () => {
     if (woken) return
     woken = true
     onIntent()
+  }
+
+  const onIntentEvent = (event: Event) => {
+    if (event.type === 'pointerdown') touched = (event as PointerEvent).pointerType === 'touch'
+    const aimed = aimedAt(event.target)
+    // Any touch wakes a page-wide island: the tap on a term comes next (RR6-03).
+    if (trigger && event.type === 'touchstart') touched = true
+    if (!aimed) {
+      if (trigger && touched) wake()
+      return
+    }
+    if (trigger) pending.trigger = aimed
+    else if (event.type === 'focusin') pending.focus = pathTo(el, aimed)
+    wake()
+  }
+
+  // A finger's tap on a trigger is held until the island can explain it in place.
+  const onTap = (event: Event) => {
+    const aimed = touched ? aimedAt(event.target) : null
+    if (!(aimed instanceof HTMLElement)) return
+    event.preventDefault()
+    event.stopPropagation()
+    pending.tap = aimed
   }
 
   // Capture, so a press is held before anything else on the page sees it.
@@ -149,8 +177,10 @@ export function watchInteraction(
   const scope: Document | HTMLElement = trigger ? doc : el
   for (const type of INTENT_EVENTS)
     scope.addEventListener(type, onIntentEvent, { capture: true, passive: true })
-  // A page-wide trigger is a link: its press is never held (E27).
-  if (!trigger) {
+  // A page-wide trigger is a link: its press is never held (E27), a finger's aside.
+  if (trigger) {
+    doc.addEventListener('click', onTap, true)
+  } else {
     el.addEventListener('click', onClick, true)
     el.addEventListener('change', onChange, true)
   }
@@ -158,6 +188,7 @@ export function watchInteraction(
   return {
     finish() {
       for (const type of INTENT_EVENTS) scope.removeEventListener(type, onIntentEvent, true)
+      doc.removeEventListener('click', onTap, true)
       if (!trigger) {
         el.removeEventListener('click', onClick, true)
         el.removeEventListener('change', onChange, true)
@@ -197,6 +228,14 @@ export function replayInteraction(el: HTMLElement, pending: PendingInteraction):
   if (pending.press) {
     const control = elementAt(el, pending.press)
     if (control instanceof HTMLElement) control.click()
+  }
+  // A finger's tap, again, as the host hears one: it explains the term in place.
+  const tap = pending.tap
+  if (tap?.isConnected) {
+    for (const type of ['pointerdown', 'pointerup'])
+      tap.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerType: 'touch' }))
+    tap.click()
+    return
   }
   const target = pending.trigger
   if (!target?.isConnected) return

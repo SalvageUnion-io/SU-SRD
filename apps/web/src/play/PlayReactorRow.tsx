@@ -27,7 +27,7 @@ import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   canPush,
   overloadTableName,
@@ -100,6 +100,15 @@ export function PlayReactorRow({
   const pushLocked = !canPush(heat, cap, pushHeat)
   const away = need !== null
   const off = !canWrite || away
+  // At its Heat Capacity the rules call for a Heat Check (Core Book p.234):
+  // the row says so over its roll (r6 A6), as the Actions' head does.
+  const due = !away && cap > 0 && heat >= cap
+  // What the roll came to stays on screen, a phone's Act tab too (r6 A6).
+  const noteRef = useRef<HTMLParagraphElement>(null)
+  const logText = log?.text
+  useEffect(() => {
+    if (logText !== undefined) noteRef.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [logText])
 
   async function doPush() {
     setPushing(false)
@@ -206,7 +215,12 @@ export function PlayReactorRow({
   )
 
   return (
-    <li className="su-play-act" data-away={away || undefined} data-action-key="reactor">
+    <li
+      className="su-play-act"
+      data-away={away || undefined}
+      data-action-key="reactor"
+      data-heat-due={due || undefined}
+    >
       <Entity
         size="mini"
         context="play"
@@ -222,14 +236,20 @@ export function PlayReactorRow({
                 text: false,
                 children: (
                   <div className="su-play-resolve">
+                    {due && (
+                      <p className="su-play-resolve__note" role="status">
+                        {playCopy('heatCheckDue', { heat, cap })}
+                      </p>
+                    )}
                     <PlayRollInstrument
                       table={overloadTableTitle}
                       roll={log?.overloadRoll ?? null}
                       stamp={playCopy(pushing ? 'pushStamp' : 'heatCheckStamp')}
+                      pressAs={pushing ? 'push' : 'heat'}
                       onRoll={off ? undefined : () => void (pushing ? doPush() : doHeatCheck())}
                     />
                     {log ? (
-                      <p className="su-play-resolve__note" aria-live="polite">
+                      <p ref={noteRef} className="su-play-resolve__note" aria-live="polite">
                         {log.text}
                       </p>
                     ) : null}

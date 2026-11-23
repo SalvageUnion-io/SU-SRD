@@ -8,7 +8,7 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EMPTY_PILOT_FORM_STATE } from '../../../lib/wizard/pilotFormState'
-import { readWizardDraft, wizardDraftKey } from '../../../lib/wizard/wizardDraft'
+import { draftStorage, readWizardDraft, wizardDraftKey } from '../../../lib/wizard/wizardDraft'
 import { DraftGate } from '../DraftGate'
 import { WizardDrafts } from '../WizardDrafts'
 
@@ -16,10 +16,10 @@ const KEY = wizardDraftKey('pilot')
 const hacker = () => {
   const cls = SalvageUnionReference.Classes.getByName('Hacker')
   if (!cls) throw new Error('no Hacker')
-  sessionStorage.setItem(KEY, JSON.stringify({ ...EMPTY_PILOT_FORM_STATE, classId: cls.id }))
+  draftStorage().setItem(KEY, JSON.stringify({ ...EMPTY_PILOT_FORM_STATE, classId: cls.id }))
 }
 
-afterEach(() => sessionStorage.clear())
+afterEach(() => draftStorage().clear())
 
 async function press(name: string) {
   await act(async () => {

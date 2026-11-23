@@ -2,7 +2,7 @@
  * Whether `el` is wholly on screen: inside the viewport and inside every
  * ancestor that clips it (a scrolling panel, a phone frame).
  */
-function whollyVisible(el: Element): boolean {
+export function whollyVisible(el: Element): boolean {
   const box = el.getBoundingClientRect()
   let top = 0
   let bottom = window.innerHeight

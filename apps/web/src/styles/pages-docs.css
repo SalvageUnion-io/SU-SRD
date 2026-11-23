@@ -304,11 +304,14 @@
   gap: var(--space-4);
 }
 
-/* A user, a Ledger row: its name, then its kind, on a hairline. */
+/* A user, a Ledger row: its name, then its kind, on a hairline. As tall as
+   its words: a name that wraps takes two lines, never shrunk to the scroll's
+   24px (its explicit floor would otherwise let the column squeeze it, RR6-01). */
 .su-sparse-rail__row {
   align-items: baseline;
   border-top: var(--bw-hairline) solid var(--color-ink-15);
   display: flex;
+  flex: none;
   gap: var(--space-8);
   justify-content: space-between;
   min-height: var(--space-24);

@@ -65,6 +65,15 @@ function rowModel(entity: RefEntity, pattern?: RefObjectAnyPattern): EntityFormM
   }
 }
 
+/** The rules terms a search result defines in a line (RR6-04): a keyword's, a trait's. */
+const DEFINED: ReadonlySet<string> = new Set(['keywords', 'traits'])
+
+/** The first sentence of a rules term's lead: the dropdown's one line under its name. */
+function definitionOf(entity: RefEntity): string | undefined {
+  const lead = toEntityModel(entity).lead
+  return lead?.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? lead ?? undefined
+}
+
 /** A search result's kind for a rule told inside a guide. */
 const RULE_KIND = 'Rule'
 
@@ -174,7 +183,9 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
         schemaName: schema.id,
         schemaTitle: schema.title,
         text: parts.join(' ').toLowerCase(),
-        model: rowModel(entity),
+        model: DEFINED.has(schema.id)
+          ? { ...rowModel(entity), lead: definitionOf(entity) }
+          : rowModel(entity),
         ...(aliases.length > 0 ? { aliases: [...aliases] } : {}),
         ...(schema.id === 'roll-tables' && embedded.has(entity.name) ? { embedded: true } : {}),
       })

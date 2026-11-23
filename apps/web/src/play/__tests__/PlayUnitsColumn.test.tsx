@@ -160,6 +160,7 @@ function playFor({
       markStepDone: gameId === null ? async () => true : null,
       healAgain: null,
       claim: async () => true,
+      moveScrap: null,
     },
     canWrite: true,
     readOnly: null,

@@ -7,14 +7,16 @@
  * closes. `onChange` gets the next value, clamped to 0…max (`vitalAfter`),
  * and, when the amount was more than there was, a note that it was capped
  * (r2 C6). The line under the row says so before the press, and says what an
- * amount must be when the one typed is not one.
+ * amount must be when the one typed is not one. An amount typed with its sign
+ * ("-12", "+3") sets the direction: Enter goes that way, and its button leads
+ * (r6 A15). The field never asks the browser to check its format.
  */
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { Button, CloseButton, capsLabel, Input, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
-import { amountOf, vitalAfter } from './unitStats.model'
+import { signedAmountOf, vitalAfter } from './unitStats.model'
 
 const AMOUNT = {
   alignItems: 'center',
@@ -54,7 +56,10 @@ export function PlayVitalAmount({
   size?: 'compact' | 'full'
 }) {
   const [amount, setAmount] = useState('')
-  const n = amountOf(amount)
+  const typed = signedAmountOf(amount)
+  const n = typed?.amount ?? null
+  // Typed with a sign, that is the way Enter goes; bare, Enter takes (damage).
+  const way = typed?.sign ?? -1
   const change = (sign: 1 | -1) => {
     if (n === null) return
     const next = vitalAfter(value, sign * n, max)
@@ -76,9 +81,10 @@ export function PlayVitalAmount({
     <form
       style={AMOUNT}
       aria-label={playCopy('changeByAmount', { label })}
+      noValidate
       onSubmit={(event) => {
         event.preventDefault()
-        change(-1)
+        change(way)
       }}
       onKeyDown={(event) => {
         if (event.key === 'Escape') onClose()
@@ -92,12 +98,15 @@ export function PlayVitalAmount({
         numeric
         size={size}
         style={AMOUNT_INPUT}
+        // A sign may lead: never the keypad hint's digits-only pattern (r6 A15).
+        pattern={undefined}
         value={amount}
         aria-label={playCopy('amountOf', { label })}
         onChange={(event) => setAmount(event.target.value)}
       />
       <Button
         type="button"
+        variant={typed?.sign === -1 ? 'primary' : 'default'}
         size={size}
         disabled={n === null}
         aria-label={playCopy('takeAmount', { label, amount: n ?? '' })}
@@ -107,6 +116,7 @@ export function PlayVitalAmount({
       </Button>
       <Button
         type="button"
+        variant={typed?.sign === 1 ? 'primary' : 'default'}
         size={size}
         disabled={n === null}
         aria-label={playCopy('addAmount', { label, amount: n ?? '' })}

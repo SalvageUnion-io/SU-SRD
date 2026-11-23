@@ -165,10 +165,10 @@ describe('CompactIndex chips for systems and modules', () => {
     ).map((chip) => (chip.textContent ?? '').replace(/\s+/g, ' ').trim())
   }
 
-  test("a system's chips are one strip in the stat order, without SV, its range as the book's code", () => {
+  test("a system's chips are one strip in the stat order, without SV, its range spelled out (RR6-09)", () => {
     // One flat strip in reading order, beside the name and rising over it,
     // on one line wherever it fits: never split into fixed lines.
-    expect(chips('systems', 'Red Laser')).toEqual(['TL1', 'Slots3', 'RNGC', 'DMG3 SP'])
+    expect(chips('systems', 'Red Laser')).toEqual(['TL1', 'Slots3', 'RNGClose', 'DMG3 SP'])
   })
 
   test("a module's salvage value stays off its tile; its cost is its last chip", () => {

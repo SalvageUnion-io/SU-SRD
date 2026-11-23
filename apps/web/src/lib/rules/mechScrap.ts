@@ -42,5 +42,37 @@ export function mechScrap(mech: Pick<Mech, 'chassisRef' | 'systems' | 'modules'>
  * Nano read by their letter.
  */
 export function scrapSplit(scrap: MechScrap): string {
-  return scrap.byTechLevel.map((level) => `TL${level.techLevel} ${level.scrap}`).join(' · ')
+  return scrapParts(scrap).join(' · ')
+}
+
+/** The same, a part a Tech Level (`TL1 18`), for a cell that breaks between them (r6 E4). */
+export function scrapParts(scrap: MechScrap): string[] {
+  return scrap.byTechLevel.map((level) => `TL${level.techLevel} ${level.scrap}`)
+}
+
+/** A Tech Level's rank for sorting: the number, and Bio and Nano above every number. */
+const levelRank = (techLevel: number | string): number =>
+  typeof techLevel === 'number'
+    ? techLevel
+    : Number.isFinite(Number(techLevel))
+      ? Number(techLevel)
+      : 99
+
+/**
+ * The order builds sort by their Scrap (r6 E4): the highest Tech Level they
+ * need, then how much Scrap of it, then the next level down; never a sum
+ * across levels (Core Book p.223 values them apart). One number, larger
+ * later.
+ */
+export function scrapSortKey(scrap: MechScrap): number {
+  const levels = [...scrap.byTechLevel].sort(
+    (a, b) => levelRank(b.techLevel) - levelRank(a.techLevel)
+  )
+  return levels
+    .slice(0, 2)
+    .reduce(
+      (key, level, at) =>
+        key + (levelRank(level.techLevel) * 1000 + level.scrap) * 10 ** (6 * (1 - at)),
+      0
+    )
 }

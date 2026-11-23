@@ -19,7 +19,7 @@ import { expect, test } from './fixtures'
 
 /**
  * A boarded turn in Play (play.md §3, §5, §8, §11): Board from the Situation
- * switch, Use an action from the list, Activate, Roll and Apply in its row,
+ * switch, Use an action from the list, Activate, Roll and Done in its row,
  * and the roll on the Feed. Once in a 1440 × 900 window, on the three columns,
  * and once on a 390 × 844 phone, where Board is a row in ⋯, the list is the
  * Act tab and the Feed is on Rolls. The page never
@@ -43,7 +43,7 @@ import { expect, test } from './fixtures'
  * PR, and the nightly `e2e` job again.
  */
 
-/** Board, Use, Activate, Roll, Apply; resolves to the action's name. */
+/** Board, Use, Activate, Roll, Done; resolves to the action's name. */
 async function boardedTurn(page: Page): Promise<string> {
   await board(page, 'Scrapper')
 
@@ -78,11 +78,13 @@ async function boardedTurn(page: Page): Promise<string> {
   await expect(marked.locator('.su-roll__tag')).toHaveText('Rolled 14')
   await expect(marked.locator('.su-roll__label')).toHaveText('Success')
 
-  await row.getByRole('button', { name: 'Apply', exact: true }).click()
+  // A Success writes nothing to a unit: no Apply, the row's Done finishes it (r6 A5).
+  await expect(row.getByRole('button', { name: 'Apply', exact: true })).toHaveCount(0)
+  await row.getByRole('button', { name: `Done with ${name}` }).click()
   // A finished action closes itself and reads Done (LG-12); the finish is said once, as a status.
   await expect(row).toHaveAttribute('data-done', 'true')
   await expect(row).not.toHaveAttribute('data-open', 'true')
-  await expect(row.getByRole('status')).toHaveText('Result applied')
+  await expect(row.getByRole('status')).toHaveText('Rolled 14 · Success')
   await expect(row.getByText('Done', { exact: true })).toBeVisible()
   return name
 }

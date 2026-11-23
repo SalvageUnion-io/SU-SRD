@@ -28,6 +28,18 @@ describe('EntitySearcher — a phone (390×844)', () => {
   afterEach(() => setViewport(initial.width, initial.height))
 
   it(
+    'a row’s + adds it in one press, and the + leaves once it is chosen (r6 E8)',
+    () => {
+      const eq = nth(allEquipment(), 0)
+      render(<ControlledEquipment initial={[]} />)
+      fireEvent.click(screen.getByRole('button', { name: `Add ${eq.name}` }))
+      expect(within(rail()).getByRole('heading', { name: 'Equipped · 1' })).toBeTruthy()
+      expect(screen.queryByRole('button', { name: `Add ${eq.name}` })).toBeNull()
+    },
+    POOL_RENDER_MS
+  )
+
+  it(
     'puts the rail in a bar BELOW the list, in DOM (and so focus) order',
     () => {
       const eq = nth(allEquipment(), 0)
@@ -56,8 +68,8 @@ describe('EntitySearcher — a phone (390×844)', () => {
       )
       const region = rail()
       const toggle = within(region).getByRole('button', { expanded: false })
-      // The count is the heading Slab's, at its rule's end.
-      expect(within(region).getByText('1')).toBeTruthy()
+      // The heading says the count beside its word, `Equipped · 1` (r6 E8).
+      expect(within(region).getByRole('heading', { name: 'Equipped · 1' })).toBeTruthy()
       const list = document.getElementById(toggle.getAttribute('aria-controls') ?? '')
       expect(list?.hidden).toBe(true)
       expect(within(region).getByText('Inventory slots')).toBeTruthy()

@@ -1,13 +1,25 @@
 // A listing's List as data: the columns a kind's entries fill, a phone's two,
 // and the order a sort puts them in. `IndexLedger` draws them; a view with no
 // columns of its own (the Catalog, a chapter's index) reads them here.
-import type { EntityModel, RefEntity, RefMetaEntity } from 'salvageunion-reference'
-import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
-import { entityTraitLabels } from '../../lib/listingTraits'
+import type { EntityModel, EntityRef, RefEntity, RefMetaEntity } from 'salvageunion-reference'
+import {
+  entityRef,
+  getChassisAbilities,
+  SalvageUnionReference,
+  toEntityModel,
+} from 'salvageunion-reference'
+import { entityTraitLabels, entityTraitTerms } from '../../lib/listingTraits'
 import { islandsCopy } from '../../messages/components-islands'
 import type { LedgerColumn, LedgerSort } from '../entity/Ledger'
 
-type IndexColumn = LedgerColumn & { value: (item: RefEntity, model: EntityModel) => string }
+/** A name a cell prints, with the entry it names, which Peeks (r6 G2, G7). */
+export type IndexTerm = { label: string; ref?: EntityRef | undefined }
+
+type IndexColumn = LedgerColumn & {
+  value: (item: RefEntity, model: EntityModel) => string
+  /** The names the cell prints (`value`, joined), each its entry's Peek. */
+  terms?: (item: RefEntity, model: EntityModel) => readonly IndexTerm[]
+}
 
 /** A book stat's column, by the model's key (`book-Structure Points`). */
 function stat(label: string, title: string, key: string, phone: boolean): IndexColumn {
@@ -52,6 +64,9 @@ const COST: IndexColumn = {
   value: (_item, model) => model.cost ?? '',
 }
 
+/** A name's ` (Host)` suffix, which a row of that host need not repeat. */
+const SUFFIX = / \([^)]*\)$/
+
 /** A list of names a record carries (`actions`, `systems`, `coreTrees`), less a ` (Host)` suffix. */
 function names(label: string, field: string): IndexColumn {
   return {
@@ -63,7 +78,7 @@ function names(label: string, field: string): IndexColumn {
       if (!Array.isArray(list)) return ''
       return list
         .map((entry) => (typeof entry === 'string' ? entry : String(entry?.name ?? '')))
-        .map((name) => name.replace(/ \([^)]*\)$/, ''))
+        .map((name) => name.replace(SUFFIX, ''))
         .filter((name) => name && name !== item.name)
         .join(', ')
     },
@@ -101,6 +116,20 @@ const TRAITS: IndexColumn = {
   label: islandsCopy('traits'),
   kind: 'quiet',
   value: (_item, model) => entityTraitLabels(model).join(', '),
+  // Each trait Peeks its meaning in place: no page load to learn a word (r6 G2).
+  terms: (_item, model) => entityTraitTerms(model),
+}
+
+const CHASSIS_ABILITY = names(islandsCopy('chassisAbility'), 'chassisAbilities')
+
+/** A chassis's abilities, each Peeking its rules where the row stands (r6 G7). */
+const CHASSIS_ABILITIES: IndexColumn = {
+  ...CHASSIS_ABILITY,
+  // The names `value` prints, each with the action it names.
+  terms: (item) =>
+    (getChassisAbilities(item as RefMetaEntity) ?? [])
+      .map((action) => ({ label: action.name.replace(SUFFIX, ''), ref: entityRef(action) }))
+      .filter(({ label }) => label && label !== item.name),
 }
 
 /** The row's Tech Level, sorted by its stamp on the head strip: the name's rank, not a column (ledger L4). */
@@ -126,7 +155,7 @@ const CLASS_TREES: IndexColumn = {
 
 /** The quiet line a kind's rows end on; every other kind's is its opening words. */
 const QUIET: Readonly<Record<string, IndexColumn>> = {
-  chassis: names(islandsCopy('chassisAbility'), 'chassisAbilities'),
+  chassis: CHASSIS_ABILITIES,
   npcs: ACTIONS,
   'bio-titans': ACTIONS,
   creatures: ACTIONS,

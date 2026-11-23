@@ -8,7 +8,9 @@ import {
 import type { RunningEncounter } from 'game-domain/schemas/encounter'
 import { EncounterSchema, RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { EncounterNpcSchema, MediatorRollResultSchema } from 'game-domain/schemas/encounterNpc'
-import { isDown } from '../../lib/rules/opposition'
+import type { Initiative } from '../../lib/rules/initiative'
+import { InitiativeSchema, withActed } from '../../lib/rules/initiative'
+import { groupedInOneGo, isDown } from '../../lib/rules/opposition'
 import { RoomRefusal } from '../refusal'
 import type { GameStore } from './store'
 import { fromJson } from './store'
@@ -173,13 +175,66 @@ export class GameOpposition {
    * The socket's one `mediator` record, for the Mediator only: the encounter
    * being run, or null. A reader without it does not mediate here.
    */
-  mediatorRecords(
-    actor: string
-  ): { appId: string; body: { running: RunningEncounter | null }; updatedAt: number }[] {
+  mediatorRecords(actor: string): {
+    appId: string
+    body: { running: RunningEncounter | null; initiative: Initiative | null }
+    updatedAt: number
+  }[] {
     if (!this.mediates(actor)) return []
     const running = this.running(actor)
-    const updatedAt = running === null ? 0 : Date.parse(running.startedAt)
-    return [{ appId: 'mediator', body: { running }, updatedAt }]
+    const kept = this.initiativeRow()
+    const updatedAt = Math.max(running === null ? 0 : Date.parse(running.startedAt), kept?.at ?? 0)
+    return [
+      { appId: 'mediator', body: { running, initiative: kept?.initiative ?? null }, updatedAt },
+    ]
+  }
+
+  /** The Group Initiative tracker (r6 B4), for the Mediator; null when none is kept. */
+  initiative(actor: string): Initiative | null {
+    if (!this.mediates(actor)) return null
+    return this.initiativeRow()?.initiative ?? null
+  }
+
+  /**
+   * Keep the tracker as the Mediator moved it, or end it with null: a tracker
+   * only, which refuses no turn (ARCHITECTURE.md#combat). One `change_log`
+   * row (field `initiative`), kept when ended so the record reads newer.
+   */
+  setInitiative(actor: string, initiative: unknown, at: number): void {
+    this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      this.putInitiative(initiative === null ? null : InitiativeSchema.parse(initiative), at)
+    })
+  }
+
+  /**
+   * A pilot's turn ended (they ended it, or the turn was given to another):
+   * their mark fills, while a tracker is kept. Nothing else moves.
+   */
+  markActed(pilotId: string, at: number): void {
+    const kept = this.initiativeRow()?.initiative ?? null
+    if (kept === null || kept.acted.includes(pilotId)) return
+    this.putInitiative(withActed(kept, pilotId, true), at)
+  }
+
+  /** The table got up, or Downtime began: no action scene, so no tracker. */
+  endInitiative(at: number): void {
+    if ((this.initiativeRow()?.initiative ?? null) === null) return
+    this.putInitiative(null, at)
+  }
+
+  /**
+   * The table changed hands to `to` (r6 B1): the running encounter goes
+   * across without its notes, which are the old Mediator's ("Only you") and
+   * stay on their own encounter in Prep. Its name, briefing, tables and
+   * waves are the table's, so they stay. Called after `to` is appointed;
+   * nothing changes when they already mediated.
+   */
+  handOver(to: string, wasMediator: boolean): void {
+    if (wasMediator || !this.mediates(to)) return
+    const running = this.running(to)
+    if (running === null || running.notes === '') return
+    this.putRunning({ ...running, notes: '' })
   }
 
   /** The encounter being run, or null. */
@@ -198,7 +253,8 @@ export class GameOpposition {
    * account room's shelf) and copied, never moved. `clear` empties the tray
    * first: their choice, made in a dialog that names what it removes
    * (ADR-007). `waves` fields only the first wave, each opponent with its
-   * group; the rest wait on the running encounter for `bringInWave`.
+   * group; the rest wait on the running encounter for `bringInWave`. Two or
+   * more of one kind in no group form one (`groupedInOneGo`, r6 B5).
    */
   runEncounter(
     actor: string,
@@ -212,9 +268,12 @@ export class GameOpposition {
       if (options.clear) this.store.rows('delete from tray')
       const now = new Date(at).toISOString()
       const waves = options.waves === true ? splitWaves(parsed) : null
-      const fielded = waves
-        ? trayNpcsFor(waves.first, this.names(), now, parsed.groups ?? [])
-        : trayNpcsFor(preppedOrder(parsed), this.names(), now)
+      const fielded = groupedInOneGo(
+        waves
+          ? trayNpcsFor(waves.first, this.names(), now, parsed.groups ?? [])
+          : trayNpcsFor(preppedOrder(parsed), this.names(), now),
+        this.newId
+      )
       for (const npc of fielded) this.insert(TrayBodySchema.parse(npc), at)
       this.putRunning(runningFrom(parsed, now, waves ? { held: waves.held } : undefined))
       return { added: fielded.length }
@@ -273,6 +332,26 @@ export class GameOpposition {
       .rows('select body from tray')
       .map((row) => fromJson<{ name?: unknown }>(row.body).name)
       .map((name) => (typeof name === 'string' ? name : ''))
+  }
+
+  private initiativeRow(): { initiative: Initiative | null; at: number } | null {
+    const row = this.store.rows("select after, ts from change_log where field = 'initiative'")[0]
+    if (row === undefined) return null
+    const kept = InitiativeSchema.nullable().safeParse(fromJson<unknown>(row.after))
+    return { initiative: kept.success ? kept.data : null, at: Number(row.ts) }
+  }
+
+  private putInitiative(initiative: Initiative | null, at: number): void {
+    this.store.rows("delete from change_log where field = 'initiative'")
+    this.store.rows(
+      'insert into change_log (id, field, after, source, actor_id, ts) values (?, ?, ?, ?, ?, ?)',
+      'initiative',
+      'initiative',
+      JSON.stringify(initiative),
+      'mediator-initiative',
+      null,
+      at
+    )
   }
 
   private putRunning(running: RunningEncounter): void {

@@ -159,3 +159,88 @@ html[data-signed-out-view]:not([data-signed-out-fonts]) .su-signed-out-static {
   flex-wrap: wrap;
   gap: var(--space-6);
 }
+
+/* Offline the strip still shows, read-only, and says so (r6 A14). */
+.su-table-notice__offline {
+  align-self: center;
+}
+
+/* The ruling's other choice (`stripRuling.model.ts`): a notice cut to its line. */
+[data-line] .su-table-notice__text > :not(:first-child) {
+  display: none;
+}
+
+/*
+ * On a Play screen the strip stands under the bar (`PlayFrame`'s slot, r6
+ * A1) at one height: a notice is one line of words, its controls beside it
+ * from `lg` and under it below, so nothing under the strip moves when one
+ * arrives, leaves or is answered. "N more" opens over the screen.
+ */
+.su-play-frame__strip {
+  min-width: 0;
+}
+
+.su-table-notices[data-in-play] {
+  --su-strip-h: calc(var(--size-compact) + 1.375rem + var(--space-6) + 2 * var(--space-8));
+
+  block-size: var(--su-strip-h);
+  padding: var(--space-4) var(--space-8);
+  position: relative;
+}
+
+.su-table-notices[data-in-play] [data-line] .su-table-notice__text {
+  display: block;
+  flex: 1 1 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.su-table-notices[data-in-play] [data-line] .su-table-notice__text > * {
+  display: inline;
+}
+
+.su-table-notices[data-in-play] [data-line] .su-table-notice__text > :not(:first-child)::before {
+  content: ' · ';
+}
+
+.su-table-notices[data-in-play] [data-line] .su-table-notice {
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.su-table-notices[data-in-play] [data-line] .su-table-notice__actions {
+  flex-wrap: nowrap;
+}
+
+.su-table-notices__more {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.su-table-notices__more[data-over] {
+  background: var(--color-paper);
+  box-shadow: var(--shadow-lift);
+  inset-inline: var(--space-8);
+  max-block-size: 60vh;
+  overflow-y: auto;
+  padding: var(--space-6);
+  position: absolute;
+  top: calc(100% - var(--space-4));
+  z-index: var(--z-popover);
+}
+
+@container play (width >= 64rem) {
+  .su-table-notices[data-in-play] {
+    --su-strip-h: calc(var(--size-compact) + 2 * var(--space-8));
+  }
+
+  .su-table-notices[data-in-play] [data-line] .su-table-notice {
+    flex-wrap: nowrap;
+  }
+
+  .su-table-notices[data-in-play] [data-line] .su-table-notice__text {
+    flex: 1 1 0;
+  }
+}

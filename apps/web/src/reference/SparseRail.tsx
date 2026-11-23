@@ -93,6 +93,8 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
       <aside
         className={cn('su-sparse-rail', usedBy.length > USED_BY_FLOOR && 'su-sparse-rail--long')}
         aria-label={referenceCopy('relatedRules')}
+        // Where else the entry is named is the screen's way on: paper prints the entry (RR6-08).
+        data-print="hide"
       >
         {first}
         {rest.length > 0 && <div className="su-sparse-rail__rest">{rest}</div>}

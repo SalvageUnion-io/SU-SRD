@@ -18,6 +18,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../../components/__tests__/must'
 import { isStartingEquipment } from '../../../lib/rules/startingEquipment'
+import { draftStorage } from '../../../lib/wizard/wizardDraft'
 import { useUnits } from '../../../replica/units'
 import {
   clickButton,
@@ -95,10 +96,11 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     }
     await clickNext()
 
-    // --- Step 3: Who They Are (Name + Callsign required; the rest optional) ---
+    // --- Step 3: Who They Are (only the Name is required, r6 F5) ---
     expect(getNextButton().disabled).toBe(true)
     await fillCallsign('Mira Voss', '')
-    expect(getNextButton().disabled).toBe(true) // a name alone does not open it
+    expect(getNextButton().disabled).toBe(false) // a blank Callsign is the Name
+    expect(screen.getByPlaceholderText('Mira Voss')).toBeTruthy()
     await fillCallsign('Mira Voss', 'Sparks')
     await clickNext()
 
@@ -253,7 +255,7 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
     const a2 = nameToSlug('Jury Rig')
     const a3 = nameToSlug('Mass Field Maintenance')
     const item = firstTech1Equipment()
-    sessionStorage.setItem(
+    draftStorage().setItem(
       'app-wizard-draft:pilot:new',
       JSON.stringify({
         name: 'Legacy',
@@ -293,7 +295,7 @@ describe('PilotWizard — session drafts', () => {
     await act(async () => {
       unmount()
     })
-    expect(sessionStorage.getItem('app-wizard-draft:pilot:new')).not.toBeNull()
+    expect(draftStorage().getItem('app-wizard-draft:pilot:new')).not.toBeNull()
 
     const onCancel = mock(() => {})
     render(<PilotWizard onComplete={() => {}} onCancel={onCancel} />)
@@ -304,7 +306,7 @@ describe('PilotWizard — session drafts', () => {
     await clickButton('Cancel')
     await clickButton('Discard')
     expect(onCancel).toHaveBeenCalledTimes(1)
-    expect(sessionStorage.getItem('app-wizard-draft:pilot:new')).toBeNull()
+    expect(draftStorage().getItem('app-wizard-draft:pilot:new')).toBeNull()
   })
 
   it('a reload reopens at the furthest step reached, and every step up to it is open', async () => {

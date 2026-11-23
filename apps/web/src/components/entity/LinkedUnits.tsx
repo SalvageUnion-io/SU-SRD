@@ -1,7 +1,9 @@
+import { isDown } from '../../lib/units/readings'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { Entity } from './Entity'
 import type { TagItem } from './parts/tagItems'
+import { UnitDown } from './UnitDown'
 
 /** One unit linked to the one drawn: its kind, its name, and its sheet. */
 export type LinkedUnit = {
@@ -35,6 +37,8 @@ export function LinkedUnits({ linked }: { linked: readonly LinkedUnit[] }) {
           model={unitRowModel({ kind: unit.kind, name: unit.name, readings: unit.readings ?? [] })}
           {...(unit.relations?.length ? { relations: [...unit.relations] } : {})}
           {...(unit.href ? { mode: { kind: 'link' as const, href: unit.href } } : {})}
+          // A unit at 0 SP or 0 HP says Down, after its cost (r6 C6).
+          {...(isDown(unit.readings) ? { state: <UnitDown readings={unit.readings} /> } : {})}
         />
       ))}
     </div>

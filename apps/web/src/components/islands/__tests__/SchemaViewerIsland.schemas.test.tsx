@@ -39,7 +39,7 @@ describe('SchemaViewerIsland', () => {
         />
       )
 
-      const links = container.querySelectorAll('tbody a')
+      const links = container.querySelectorAll('tbody th a')
       expect(links.length).toBe(entities.length)
     })
   }

@@ -69,24 +69,30 @@ describe('home: the front door, its slideshow alone', () => {
     expect(show).toMatch(/su-front__show-plate--quote[^"]*"><figure class="su-tagline"/)
   })
 
-  it('names the site in the head; the first slide says the pitch over its two ways forward (SB-08)', () => {
+  // The show holds still (r6 G14, `HERO_TURNS_ITSELF` in HomeFront.tsx): the
+  // two ways forward stand under the name, outside the slides, on every slide.
+  it('names the site in the head, its two ways forward under it; the first slide says the pitch (SB-08, r6 G14)', () => {
     const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
     expect(head).toContain('su-front__show-name')
     expect(head).not.toContain('su-front__show-pitch')
     const first = show.slice(0, show.indexOf('</li>'))
     expect(first).toContain('su-front__show-copy')
     expect(first).toContain('su-front__show-pitch')
-    expect(first).toMatch(/href="\/build\/"[^>]*>(?:<[^>]+>)*Start building</)
+    expect(first).not.toContain('su-front__show-act')
+    const fixed = head.slice(head.indexOf('su-front__show-fixed'))
+    expect(fixed).toMatch(/href="\/build\/"[^>]*>(?:<[^>]+>)*Start building</)
     // Opens the Reference, as its link says, never only the search field below (r5 E12).
-    const lookUp = first.match(/<a[^>]*href="\/reference\/"[^>]*>(?:<[^>]+>)*Look something up</)
+    const lookUp = fixed.match(/<a[^>]*href="\/reference\/"[^>]*>(?:<[^>]+>)*Look something up</)
     expect(lookUp?.[0]).toBeDefined()
     expect(lookUp?.[0]).not.toContain('data-search-open')
   })
 
-  it('gives every slide a way forward', () => {
+  it('gives every slide a way forward: its own, or the two that stand under the name', () => {
     const slides = show.split('class="su-front__show-slide"').slice(1)
     expect(slides).toHaveLength(8)
-    for (const slide of slides) expect(slide).toContain('su-front__show-act')
+    expect(show.slice(show.indexOf('su-front__show-fixed'))).toContain('su-front__show-act')
+    const own = slides.filter((slide) => slide.includes('su-front__show-act'))
+    expect(own.length).toBeGreaterThanOrEqual(6)
   })
 
   it('serves a signed-in reader the doors to their Training Bay and Games, out of the page until then (MD-28)', () => {
@@ -101,10 +107,10 @@ describe('home: the front door, its slideshow alone', () => {
 
   it('shows the pitch, six action slides each one action to one part of the site, then the tagline', () => {
     expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(8)
-    // The six, and "Start building" on the pitch and on the tagline.
+    // The six; "Start building" stands under the name, outside the slides (r6 G14).
     // Counted in the slides alone: the strip and the search under them have their own.
     const slides = show.slice(0, show.indexOf('class="su-front__show-head"'))
-    expect(slides.match(/su-btn--primary/g)).toHaveLength(8)
+    expect(slides.match(/su-btn--primary/g)).toHaveLength(6)
     for (const href of ['/reference/', '/build/', '/games/']) {
       expect(show).toContain(`href="${href}"`)
     }
@@ -427,7 +433,7 @@ describe('a pattern page names and links its base chassis', () => {
     // The band's mark: a chip of its strip, at the strip's Size (`labelChips`).
     expect(html).toMatch(/data-chip-class="mark"[^>]*>(?:<[^>]*>)*Legal Starting Pattern<\/span>/)
     expect(html).toMatch(
-      /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard"[^>]*>Build With This<\/a>/
+      /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard&amp;build=now"[^>]*>Build With This<\/a>/
     )
   })
 
@@ -435,7 +441,7 @@ describe('a pattern page names and links its base chassis', () => {
     const untagged = page('/chassis/jackhammer/pattern/auger')
     expect(untagged).not.toContain('Legal Starting Pattern')
     expect(untagged).toContain('Build With This')
-    expect(untagged).toContain('mechs/new?chassis=jackhammer&amp;pattern=auger')
+    expect(untagged).toContain('mechs/new?chassis=jackhammer&amp;pattern=auger&amp;build=now')
     expect(untagged).not.toContain('mode=guided')
   })
 

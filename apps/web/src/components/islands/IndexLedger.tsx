@@ -1,15 +1,17 @@
 // A listing's List: one Ledger, its entities a line each, their stats in
 // §2.6 order in fixed columns.
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { islandsCopy } from '../../messages/components-islands'
 import { Stat } from '../atoms/Stat'
 import { paintFor } from '../entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
+import { Mention } from '../entity/forms/Mention'
 import type { LedgerSort } from '../entity/Ledger'
 import { Ledger } from '../entity/Ledger'
 import { Button, Select } from '../index'
+import type { IndexTerm } from './indexColumns.model'
 import {
   DENSE_COLUMNS,
   indexColumns,
@@ -20,6 +22,26 @@ import {
   sortModels,
   withPhoneColumns,
 } from './indexColumns.model'
+
+/**
+ * A cell of names (a chassis's abilities, a part's traits), each one its
+ * entry's Peek (r6 G2, G7): hover, or a phone's tap, reads it where the row
+ * stands. Never a Tab stop of its own: the row's name is the keyboard's.
+ */
+function TermCell({ terms, text }: { terms: readonly IndexTerm[]; text: string }) {
+  return (
+    <span title={text}>
+      {terms.map((term, at) => (
+        <Fragment key={term.label}>
+          {at > 0 && ', '}
+          <Mention entityRef={term.ref} repeat>
+            {term.label}
+          </Mention>
+        </Fragment>
+      ))}
+    </span>
+  )
+}
 
 type IndexLedgerProps = {
   schemaId: string
@@ -85,7 +107,15 @@ export function IndexLedger({
           entityRef: model.ref,
           techLevel,
           tone: model.tone,
-          cells: columns.map((column) => column.value(item, model)),
+          cells: columns.map((column) => {
+            const text = column.value(item, model)
+            const terms = text && column.terms?.(item, model)
+            return terms && terms.length > 0 ? (
+              <TermCell key={column.key} terms={terms} text={text} />
+            ) : (
+              text
+            )
+          }),
         }
       }),
     [models, columns, schemaId]

@@ -72,7 +72,7 @@ const OK: StepGateResult = { ok: true }
  * the Augmented crawler's A.I. has none. Its one gate is `npcNameGate`.
  */
 export function npcCreationStepGate(
-  step: 'template' | 'stats' | 'actions' | 'identity' | 'review',
+  step: 'template' | 'stats' | 'actions' | 'identity' | 'design',
   form: { templateChosen: boolean; name: string; hitPoints: string }
 ): StepGateResult {
   switch (step) {
@@ -84,7 +84,7 @@ export function npcCreationStepGate(
       return OK
     case 'identity':
       return npcNameGate(form.name)
-    case 'review': {
+    case 'design': {
       const hp = npcHitPointsGate(form.hitPoints)
       return hp.ok ? npcNameGate(form.name) : hp
     }
@@ -174,8 +174,8 @@ function equipmentGate(form: PilotWizardFormState): StepGateResult {
 }
 
 function callsignGate(form: PilotWizardFormState): StepGateResult {
-  if (form.name.trim() === '' || form.callsign.trim() === '') {
-    return { ok: false, reason: libRulesCopy('enterANameAndCallsign') }
+  if (form.name.trim() === '') {
+    return { ok: false, reason: libRulesCopy('enterANameToContinue') }
   }
   return OK
 }

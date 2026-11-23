@@ -34,6 +34,7 @@ import { cn } from '../../lib/cn'
 import { atomsCopy } from '../../messages/components-atoms'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
+import { NumeralField } from './NumeralField'
 import { StatMeaningContext } from './statMeaning'
 import type { PhoneVital } from './vitalControl'
 import { meterColumns, useVitalControl } from './vitalControl'
@@ -138,7 +139,14 @@ function Row({ vital }: { vital: PhoneVital }) {
         </button>
       ) : (
         <span className="su-phone-vitals__value" data-over={control.over ? '' : undefined}>
-          <b>{shown}</b>
+          {/* A live counter is typed as well as stepped (r6 E18). */}
+          <b>
+            {onChange && max === undefined ? (
+              <NumeralField label={name} value={shown} onSet={onChange} />
+            ) : (
+              shown
+            )}
+          </b>
           {max !== undefined && <i>/{max}</i>}
         </span>
       )}

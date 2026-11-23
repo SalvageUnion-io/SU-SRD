@@ -178,18 +178,10 @@ export function SelectionRail({
     else onToggle?.(entry.ref)
   }
 
-  // The Slab's count, at its rule's end: how many are chosen, and for whom.
-  const count = (
-    <>
-      {entries.length}
-      {name && (
-        <>
-          <span aria-hidden="true"> · </span>
-          {name}
-        </>
-      )}
-    </>
-  )
+  // The heading says how many are chosen, `Installed · 6`, and whose they are
+  // on a line of its own, so the count never reads as part of the name (r6 E8).
+  const heading = compositionsCopy('chosenCount', { label: chosenLabel, count: entries.length })
+  const whose = name ? <Text variant="note">{name}</Text> : null
 
   const listNode = (
     <div id={list.panelId} hidden={!expanded} className="su-searcher__rail-list" style={LIST_STYLE}>
@@ -253,15 +245,8 @@ export function SelectionRail({
     return (
       <section aria-labelledby={headingId} className="su-searcher__rail" style={RAIL_STYLE}>
         <div style={HEAD_STYLE}>
-          <Slab
-            as="h2"
-            id={headingId}
-            ref={headingRef}
-            tabIndex={-1}
-            label={chosenLabel}
-            count={count}
-            flush
-          />
+          <Slab as="h2" id={headingId} ref={headingRef} tabIndex={-1} label={heading} flush />
+          {whose}
           {budgetNode}
         </div>
         {listNode}
@@ -278,9 +263,8 @@ export function SelectionRail({
           <Slab
             as="h2"
             id={headingId}
-            count={count}
             flush
-            label={chosenLabel}
+            label={heading}
             actions={
               // The fold, as a SlabSection's (R1): the Compact `iconOnly` ghost.
               <Button
@@ -302,6 +286,7 @@ export function SelectionRail({
               </Button>
             }
           />
+          {whose}
         </div>
         {budgetNode}
         {actions && <div style={BAR_ACTIONS_STYLE}>{actions}</div>}

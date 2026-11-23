@@ -23,6 +23,7 @@ import {
   newTrayNpc,
   readSavedPattern,
   readTrayNpc,
+  sinkDowned,
   trayEntries,
 } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
@@ -44,7 +45,8 @@ describe('the seats, in one layer over the crew lines', () => {
     expect(bonesaw).toMatchObject({ problem: null, attention: false })
     expect(bonesaw?.label).toContain('HP 8 of 10, AP 3 of 5, On foot, Scrapper parked')
     expect(pickle).toMatchObject({ problem: 'Overheating' })
-    expect(judge).toMatchObject({ mount: 'On foot', problem: 'Ejected', attention: true })
+    // Ejected is the head's chip: the problem line does not say it again (r6 A4).
+    expect(judge).toMatchObject({ mount: 'On foot', problem: null, attention: true })
     expect(driftwood?.label).toContain('In Mazona, SP 9 of 9')
   })
 
@@ -398,6 +400,28 @@ describe('groups on the tray (ADR-059 §5)', () => {
     expect(
       entries.map((e) => (e.kind === 'alone' ? e.npc.id : e.members.map((m) => m.id)))
     ).toEqual(['a', ['b', 'd'], 'c'])
+  })
+
+  // MD6-16: downed mooks kept full cards among the living.
+  test('the downed sink below the living, alone and inside a group (r6 B8)', () => {
+    const down = (id: string, group?: { id: string; name: string }) =>
+      readTrayNpc({
+        _id: id,
+        body: { name: id, refSchema: 'npcs', refSlug: 'raider', currentHp: 0, maxHp: 3, group },
+      })
+    const entries = sinkDowned(
+      trayEntries([
+        down('a'),
+        row('b', band),
+        down('c', band),
+        row('d'),
+        down('e', band),
+        row('f', band),
+      ])
+    )
+    expect(
+      entries.map((e) => (e.kind === 'alone' ? e.npc.id : e.members.map((m) => m.id)))
+    ).toEqual([['b', 'f', 'c', 'e'], 'd', 'a'])
   })
 
   test('a malformed group reads as none', () => {

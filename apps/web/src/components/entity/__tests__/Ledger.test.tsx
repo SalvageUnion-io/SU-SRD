@@ -6,7 +6,7 @@
  * a row with the picked row inked.
  */
 import { describe, expect, mock, test } from 'bun:test'
-import { fireEvent, render, within } from '@testing-library/react'
+import { act, fireEvent, render, within } from '@testing-library/react'
 import type { LedgerColumn, LedgerRow } from '../Ledger'
 import { Ledger } from '../Ledger'
 
@@ -141,6 +141,28 @@ describe('Ledger: a head stamp sorts only where the list asks (L2)', () => {
     const sorted = container.querySelector('thead th[aria-sort]')
     expect(sorted?.getAttribute('aria-sort')).toBe('descending')
     expect(sorted?.textContent).toContain('Slots')
+  })
+
+  test('its sorting labels are one Tab stop, the sorted one, and the arrows move between them (r6 E13)', () => {
+    const { container } = draw({ onSort: () => {}, sort: { key: 'rng', descending: false } })
+    const buttons = [...container.querySelectorAll<HTMLButtonElement>('thead button')]
+    expect(buttons.map((b) => b.tabIndex)).toEqual([-1, -1, 0, -1])
+    const rng = buttons[2] as HTMLButtonElement
+    act(() => rng.focus())
+    act(() => {
+      fireEvent.keyDown(rng, { key: 'ArrowRight' })
+    })
+    expect(document.activeElement).toBe(buttons[3] as HTMLButtonElement)
+    act(() => {
+      fireEvent.keyDown(document.activeElement as Element, { key: 'Home' })
+    })
+    expect(document.activeElement).toBe(buttons[0] as HTMLButtonElement)
+    act(() => {
+      fireEvent.keyDown(document.activeElement as Element, { key: 'ArrowLeft' })
+    })
+    expect(document.activeElement).toBe(buttons[3] as HTMLButtonElement)
+    // The stop follows the focus, so Tab comes back where it left.
+    expect(buttons.map((b) => b.tabIndex)).toEqual([-1, -1, -1, 0])
   })
 
   test('sortTab false: the stamps sort and the tab stays a title (L2, a mark beside it)', () => {

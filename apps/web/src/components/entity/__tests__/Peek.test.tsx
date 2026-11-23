@@ -50,6 +50,54 @@ describe('PeekHost', () => {
     expect(link.getAttribute('aria-describedby')).toBeNull()
   })
 
+  // r6 G8: the keyboard reads on below the line it Tabs through, so its
+  // Peek stands above; a hover's hangs below as ever.
+  test("keyboard focus's Peek stands above the line, a hover's below", async () => {
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
+    const link = screen.getByRole('link', { name: 'Burn' })
+    act(() => link.focus())
+    const peek = await screen.findByRole('tooltip')
+    await waitFor(() => expect(peek.getAttribute('data-side')).toBe('top'))
+    act(() => {
+      fireEvent.keyDown(link, { key: 'Escape' })
+      link.blur()
+    })
+    await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+    act(() => {
+      fireEvent.pointerOver(link, { pointerType: 'mouse' })
+    })
+    const hovered = await screen.findByRole('tooltip')
+    await waitFor(() => expect(hovered.getAttribute('data-side')).toBe('bottom'))
+  })
+
+  // r6 G7: a list's row prints the stats; its chassis's Peek leads with the ability.
+  test("a chassis Peeked from a list's row leaves the row's stats out", async () => {
+    const mule = SalvageUnionReference.Chassis.getByName('Mule')
+    if (!mule) throw new Error('fixture missing: Mule')
+    render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <table className="su-ledger__table">
+          <tbody>
+            <tr>
+              <th>
+                <Mention entityRef={toEntityModel(mule).ref} goes>
+                  Mule
+                </Mention>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+        <PeekHost />
+      </EntitySurfaceProvider>
+    )
+    act(() => screen.getByRole('link', { name: 'Mule' }).focus())
+    const peek = await screen.findByRole('tooltip')
+    await waitFor(() => expect(peek.textContent).toContain('Integrated Cargo Bay'))
+    expect(peek.textContent).not.toContain('MODS')
+    // A row is no sentence: its Peek hangs under it, focus's too.
+    expect(peek.getAttribute('data-side')).toBe('bottom')
+  })
+
   test('focus a pointer press gave does not open it: the press is a click', async () => {
     render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
     const link = screen.getByRole('link', { name: 'Burn' })

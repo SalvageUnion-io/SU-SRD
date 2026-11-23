@@ -11,9 +11,12 @@
  * (offline, not on hand, a down NPC) the stamp only reads.
  */
 
+import type { CSSProperties } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import { digestRollTable, RollTableInstrument, TraitProse } from '../components/index'
+import { playCopy } from '../messages/play'
+import { usePrivateRolls } from './privateRolls.model'
 
 export type PlayRollInstrumentProps = {
   /** The table rolled on, by its name ("Core Mechanic"): its bands and its accessible name. */
@@ -24,21 +27,32 @@ export type PlayRollInstrumentProps = {
   stamp?: string
   /** Roll it; absent, the stamp only reads. */
   onRoll?: () => void
+  /** What a key or a prompt presses it as (`data-play-roll`): roll, push, heat (r6 A13). */
+  pressAs?: 'roll' | 'push' | 'heat'
   /** Why there is nothing to roll now (no area to salvage): the roll stands as a Button, off. */
   off?: string | undefined
 }
 
-export function PlayRollInstrument({ table, roll, stamp, onRoll, off }: PlayRollInstrumentProps) {
+export function PlayRollInstrument({
+  table,
+  roll,
+  stamp,
+  onRoll,
+  off,
+  pressAs,
+}: PlayRollInstrumentProps) {
+  // The Mediator's Private rolls is on: a plain roll says it stays theirs (r6 B10).
+  const privately = usePrivateRolls()
   const data = SalvageUnionReference.RollTables.getByName(table)?.table as
     | RefObjectTable
     | undefined
   const rows = data ? digestRollTable(data) : []
   const key = roll === null || !data ? null : resultForTable(data, roll).key || null
-  return (
+  const instrument = (
     <RollTableInstrument
       name={table}
       size="mini"
-      stamp={stamp}
+      stamp={privately && stamp === undefined ? playCopy('rollPrivatelyStamp') : stamp}
       onRoll={onRoll}
       off={off}
       // The bar names the table it rolls on, as the Tables column's does.
@@ -50,4 +64,14 @@ export function PlayRollInstrument({ table, roll, stamp, onRoll, off }: PlayRoll
       }}
     />
   )
+  return pressAs === undefined ? (
+    instrument
+  ) : (
+    <div data-play-roll={pressAs} style={CONTENTS}>
+      {instrument}
+    </div>
+  )
 }
+
+/** A wrapper that only marks: no box of its own. */
+const CONTENTS = { display: 'contents' } satisfies CSSProperties

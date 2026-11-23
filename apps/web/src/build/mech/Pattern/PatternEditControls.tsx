@@ -3,8 +3,8 @@
  * its ⋯ menu as a sheet's are (r5 D7): Rename, Edit description, its Systems and Modules in the one picker (the
  * count picker a mech sheet's Manage opens), and Delete (r4 E13), so a pattern
  * is changed where it is, not by building a mech from it and saving that over
- * again. Each act's dialog is titled as its button reads; Delete asks first,
- * as its shelf's does, and leaves for the Patterns page. The pickers open at the pattern's Tech Level and
+ * again. Each act's dialog is titled as its button reads; Delete leaves for
+ * the Patterns page, its notice's Undo bringing the pattern back (r6 E3). The pickers open at the pattern's Tech Level and
  * an edit over its chassis's slots says so, both as on a mech sheet.
  *
  * The page reads the pattern from the public query, so these read the shelf's
@@ -22,9 +22,10 @@ import { loadoutSlots, patternChassis } from '../../../lib/patterns/patterns'
 import { mechRuleBreaks, ruleBreaksMade } from '../../../lib/rules/ruleBreaks'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
+import { PATTERN_DELETE_SKIPS_CONFIRM } from '../../rulings.model'
 import { ruleBreakToast } from '../../sheet/ruleBreakToast.model'
 import { SheetPickerModal } from '../../sheet/SheetPickerModal'
-import { deletePattern, deletePatternCopy } from '../../shelves/patternMenu.model'
+import { deletePatternCopy, deletePatternsHeld } from '../../shelves/patternMenu.model'
 import { RenameDialog } from '../../shelves/RenameDialog'
 import { PatternDescriptionDialog } from './PatternDescriptionDialog'
 
@@ -103,14 +104,16 @@ export function PatternEditControls({ pattern }: { pattern: MechPattern }) {
               id: 'delete',
               label: mechCopy('delete'),
               tone: 'danger' as const,
-              onSelect: () =>
-                confirm({
-                  ...deletePatternCopy(own),
-                  onConfirm: async () => {
-                    await deletePattern(own.id)
-                    void navigate({ to: '/patterns' })
-                  },
-                }),
+              // Its notice undoes it, so it asks nothing (r6 E3,
+              // `PATTERN_DELETE_SKIPS_CONFIRM`); the shelf it leaves for drops it.
+              onSelect: () => {
+                const leave = () => {
+                  deletePatternsHeld([own])
+                  void navigate({ to: '/patterns' })
+                }
+                if (PATTERN_DELETE_SKIPS_CONFIRM) leave()
+                else confirm({ ...deletePatternCopy(own), onConfirm: leave })
+              },
             },
           ],
         ]}

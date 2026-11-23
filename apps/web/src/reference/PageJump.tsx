@@ -21,8 +21,8 @@ import {
  * them once a page has scrolled past its header and lists the sections
  * it finds; the sheet itself is the browser's popover, so it opens, closes on
  * a press outside or Escape, and holds the top layer with no script at all.
- * At `sm` and up the header's own field is a scroll away and the sections
- * stand beside the page, so the button is not drawn (`shell.css`).
+ * From `lg` up the sections stand beside the page, so the button is not
+ * drawn (`pages.css`); a tablet keeps it (RR6-19).
  */
 export function PageJump() {
   return (

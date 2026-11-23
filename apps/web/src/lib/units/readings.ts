@@ -8,6 +8,7 @@
 
 import { STAT_LABELS } from 'salvageunion-reference'
 import { resolveChassisRef, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { libCopy } from '../../messages/lib'
 import type { UnitReading } from './unitModel'
 
 /** The vitals' printed short names. */
@@ -45,6 +46,27 @@ export function pool(label: string, current: number | null, max: number | null):
 export function gauge(label: string, current: number | null, max: number | null): VitalReading[] {
   if (max === null) return []
   return [vitalReading(label, resolveGauge(current ?? undefined, max), max)]
+}
+
+/**
+ * A unit Down, read off its own readings (r6 C6): its SP at 0 (a mech or
+ * crawler, which repair brings back: `DOWN | needs repair`), else its HP at
+ * 0 (`DOWN`). Its state chip, after the cost, wherever a unit is listed;
+ * none for a unit still standing.
+ */
+export function downReading(readings: readonly UnitReading[]): UnitReading[] {
+  const atZero = (label: string) =>
+    readings.some((r) => String(r.label) === label && /^0\/[1-9]\d*\b/.test(String(r.value)))
+  if (atZero(VITAL.sp)) {
+    return [{ label: libCopy('down'), value: libCopy('needsRepair'), chip: 'state' }]
+  }
+  if (atZero(VITAL.hp)) return [{ label: libCopy('down'), value: '', chip: 'state' }]
+  return []
+}
+
+/** Whether these readings make a unit Down (`downReading`). */
+export function isDown(readings: readonly UnitReading[] | undefined): boolean {
+  return downReading(readings ?? []).length > 0
 }
 
 /** A unit's Tech Level, `TL | 2`, its first reading; none when it is unknown. */

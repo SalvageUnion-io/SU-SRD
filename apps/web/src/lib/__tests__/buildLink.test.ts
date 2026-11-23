@@ -73,7 +73,7 @@ describe('patternBuildLinkFor', () => {
 
   test('a legal starting pattern opens the mech wizard on its chassis and pattern', () => {
     expect(patternBuildLinkFor('chassis', mule(), patternOf('Hauler'))).toEqual({
-      href: `${appPath('/mechs/new?mode=guided&chassis=mule&pattern=hauler')}`,
+      href: `${appPath('/mechs/new?mode=guided&chassis=mule&pattern=hauler&build=now')}`,
       label: 'Build With This',
       ariaLabel: 'Build With This: the Hauler mech',
     })
@@ -91,7 +91,7 @@ describe('patternBuildLinkFor', () => {
       }
     }
     expect(patternBuildLinkFor('chassis', mule(), patternOf('Crusher'))?.href).toBe(
-      appPath('/mechs/new?chassis=mule&pattern=crusher')
+      appPath('/mechs/new?chassis=mule&pattern=crusher&build=now')
     )
   })
 

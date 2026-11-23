@@ -14,9 +14,11 @@
 import { Unlink } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { iconSize } from '../../design/tokens'
+import { isDown } from '../../lib/units/readings'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 import { unitChipOf, unitRowModel } from '../../lib/units/unitModel'
 import { sharedCopy } from '../../messages/components-shared'
+import { UnitDown } from '../entity/UnitDown'
 import type { EntityFormModel, EntityMode, LinkedUnit, TagItem } from '../index'
 import { Button, Entity, relation, Stat } from '../index'
 
@@ -115,7 +117,11 @@ export function UnitRow({
   // rides the marks lane, where the Compact would have set it.
   const noteMark = unkinded && note ? [<Stat key="note" label={note} size="mini" />] : []
   const marks = [...noteMark, ...byChip('mark').map((r) => cell(r))]
-  const state = byChip('state')
+  // A unit at 0 SP or 0 HP says Down, wherever it is listed (r6 C6).
+  const state = [
+    ...byChip('state').map(cell),
+    ...(isDown(readings) ? [<UnitDown key="down" readings={readings} />] : []),
+  ]
   return (
     <Entity
       size="compact"
@@ -133,7 +139,7 @@ export function UnitRow({
       {...(unkinded ? { omit: ['kind'] } : {})}
       {...(allRelations.length > 0 ? { relations: allRelations } : {})}
       {...(linked?.length ? { linked } : {})}
-      {...(state.length > 0 ? { state: state.map(cell) } : {})}
+      {...(state.length > 0 ? { state } : {})}
       trailing={trailing}
       controls={all}
     />

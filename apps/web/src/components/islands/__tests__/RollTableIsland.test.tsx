@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -84,14 +84,40 @@ describe('the roll-table page, before a roll (the server markup)', () => {
     expect(credit.getAttribute('href')).toBe('https://randsum.dev')
   })
 
-  test('draws no result panel: a roll’s result is a toast', () => {
+  test('draws no result panel: a roll’s result is its marked row', () => {
     render(<RollTableView data={coreMechanic()} roll={14} />)
     expect(screen.queryByRole('region', { name: 'You rolled' })).toBeNull()
     expect(screen.queryByText('Earlier rolls')).toBeNull()
   })
 })
 
+/** Every row stands below the screen, so the roll lands out of sight. */
+function rowsOffScreen() {
+  return spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+    this: HTMLElement
+  ) {
+    const below = this.hasAttribute('aria-current') ? window.innerHeight + 400 : 0
+    return {
+      top: below,
+      bottom: below + 40,
+      left: 0,
+      right: 0,
+      width: 0,
+      height: 40,
+      x: 0,
+      y: below,
+      toJSON: () => ({}),
+    } as DOMRect
+  })
+}
+
 describe('RollTableIsland', () => {
+  let spy: ReturnType<typeof rowsOffScreen> | undefined
+  afterEach(() => {
+    spy?.mockRestore()
+    spy = undefined
+  })
+
   test('the Roll the Die button is its one roll control', () => {
     render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
     const controls = screen.getAllByRole('button')
@@ -100,18 +126,23 @@ describe('RollTableIsland', () => {
     expect(controls[0]?.textContent).toBe('Roll the Die')
   })
 
-  test('the button raises the result as a toast and marks the row it lands on', async () => {
+  test('a row on screen is the result, shown once: it is marked and no toast repeats it (RR6-16)', async () => {
     render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
     await roll()
-
-    // The result, the band it lands on, then the outcome and its text.
-    const title = await screen.findByText('Core Mechanic: rolled 14 (11–19)')
-    const toast = title.closest('[data-sonner-toast]')
-    expect(toast?.querySelector('[data-description]')?.textContent).toMatch(/^Success: .+/)
-
     const rolled = screen.getByText('Rolled 14').closest('li')
     expect(rolled?.getAttribute('aria-current')).toBe('true')
     expect(rolled?.textContent).toContain('Success')
+    expect(screen.queryByText(/Core Mechanic: rolled 14/)).toBeNull()
+  })
+
+  test('a row off screen raises one short line: the roll and its range, no text', async () => {
+    spy = rowsOffScreen()
+    render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
+    await roll()
+    const title = await screen.findByText('Core Mechanic: rolled 14 (11–19)')
+    const toast = title.closest('[data-sonner-toast]')
+    expect(toast?.querySelector('[data-description]')).toBeNull()
+    expect(screen.getByText('Rolled 14').closest('li')?.getAttribute('aria-current')).toBe('true')
   })
 
   test('rolls the die for this table, by its name', async () => {
@@ -128,11 +159,11 @@ describe('RollTableIsland', () => {
     )
     await roll()
     expect(asked).toEqual(['Core Mechanic'])
-    // Let the toast land, so its Toaster settles inside the test.
-    await screen.findByText('Core Mechanic: rolled 14 (11–19)')
+    expect(screen.getByText('Rolled 14')).toBeTruthy()
   })
 
   test('pressing the button again replaces the toast rather than stacking another', async () => {
+    spy = rowsOffScreen()
     render(<RollTableIsland data={coreMechanic()} dieFor={dice(7, 20)} />)
     await roll()
     await screen.findByText('Core Mechanic: rolled 7 (6–10)')

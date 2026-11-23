@@ -40,7 +40,7 @@
 import { pilotCallsign } from 'game-domain/pilotLabel'
 import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { SeatResolving } from 'game-domain/schemas/seat'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { AreaSalvageResult, CoreRollResult } from 'salvageunion-reference/rules'
 import {
   AREA_SALVAGE_TABLE,
@@ -80,9 +80,10 @@ import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
 import { useUnits } from '../replica/units'
 import type { ActionsDeck, ActionsDeckProps, ResolveModel } from './actionsDeck.model'
-import { areaSalvageRowText, haulText, isExpertSalvager } from './areaSalvage.model'
+import { areaSalvageRowText, haulFeedText, haulText, isExpertSalvager } from './areaSalvage.model'
 import { actionUsesLeft, companionNow, payActivation } from './deckActivation.model'
 import type { PlayStore } from './play.model'
+import { recordPlayRoll } from './playRolls.model'
 import { confirmMeltdown, pushMech } from './reactorWrites.model'
 import { CORE_MECHANIC_TABLE } from './tables.model'
 
@@ -142,6 +143,8 @@ export function useActionsDeck({
   const [hotX, setHotX] = useState(1)
   const [currency, setCurrency] = useState<PlayActionCurrency>('EP')
   const [doneKey, setDoneKey] = useState<string | null>(null)
+  // What the finished row says: its roll, when the roll closed it (r6 A5).
+  const [doneSays, setDoneSays] = useState<string>(playCopy('resultApplied'))
   // One spend at a time: a second press while it lands pays nothing more.
   const paying = useRef(false)
 
@@ -201,7 +204,9 @@ export function useActionsDeck({
     }
     // A finished action closes itself: its row says Done, and the seat stops
     // saying it is being resolved.
+    // A Core Mechanic roll writes nothing to a unit: the row says what it came to (r6 A5).
     setDoneKey(current.ref)
+    setDoneSays(playCopy('rolledSays', { roll: result.roll, band: coreRollBandLabel(result.band) }))
     close()
   }
 
@@ -255,6 +260,7 @@ export function useActionsDeck({
    */
   function doSalvageApply(current: SeatResolving, result: AreaSalvageResult) {
     let said: string | null = null
+    let feed: string | null = null
     if (!onFoot && mech) {
       const fresh = s.get('mech', mech.id) ?? mech
       const cap = mechMaxCargo(fresh, undefined, { abilities: pilot?.abilities })
@@ -262,6 +268,7 @@ export function useActionsDeck({
       const { patch } = carried
       if (patch) runWrite(() => s.update('mech', mech.id, patch, meta))
       said = haulText(result, carried, playCopy('salvageMechCargo', { name: fresh.name }))
+      feed = haulFeedText(result, carried, playCopy('salvageFeedCargo'))
     } else if (pilot) {
       const fresh = s.get('pilot', pilot.id) ?? pilot
       const carried = areaSalvageToPilot(fresh, pilotMaxInventorySlots(fresh), result)
@@ -272,7 +279,18 @@ export function useActionsDeck({
         carried,
         playCopy('salvagePilotInventory', { name: pilotCallsign(fresh) })
       )
+      feed = haulFeedText(result, carried, playCopy('salvageFeedInventory'))
     }
+    // What it found and where it went reaches the table's Feed (r6 D3): a
+    // line without dice reaches the Game's log only in a slot.
+    if (feed !== null)
+      recordPlayRoll({
+        tableName: '',
+        rolls: [],
+        label: playCopy('salvageFeedLabel'),
+        outcome: feed,
+        slot: `area-salvage:${current.ref}:${Date.now()}`,
+      })
     // It finishes like any other action (LG-12): the row says Done, the seat
     // stops saying it is being resolved, and a toast keeps what was loaded.
     if (said !== null) toast(said, { id: `area-salvage-${current.ref}` })
@@ -388,10 +406,30 @@ export function useActionsDeck({
     // Heat Cap, so it is refused where that would — as `PlayReactorRow` refuses it.
     const pushHeat = pushHeatAt(heatScale)
     const pushLocked = !canPush(heatCtx.currentHeat, heatCtx.heatCap, pushHeat)
+    // A roll whose result writes nothing (every band but a Cascade Failure,
+    // which the player takes on the gauge): there is nothing to Apply (r6 A5),
+    // so the row's own Done finishes it, and a Failure with no Push open to it
+    // closes itself once the roll is logged.
+    // Unpaid, it still waits on Apply, which stands off until it is (r4 A1).
+    const nothingToApply =
+      !salvaging && activated && roll !== null && !isDestructiveOutcome(roll.band) && !applied
+    const pushOpen = !(isPilotAction || salvaging || selected.companion) && !pushed && !pushLocked
 
+    const rolledSays =
+      roll === null
+        ? null
+        : playCopy('rolledSays', { roll: roll.roll, band: coreRollBandLabel(roll.band) })
     return {
       kind: 'resolve',
-      onBack: close,
+      // Done on a roll that writes nothing finishes it: the row says what it came to.
+      onBack:
+        nothingToApply && rolledSays !== null
+          ? () => {
+              setDoneKey(current.ref)
+              setDoneSays(rolledSays)
+              close()
+            }
+          : close,
       cost,
       free: cost.amount <= 0 && cost.heat <= 0 && cost.uses <= 0,
       rollLeads: !salvaging && selected.action.damage !== undefined,
@@ -481,9 +519,26 @@ export function useActionsDeck({
       meltdown: meltdown ? { onConfirm: meltDown, onDismiss: () => setMeltdown(false) } : null,
       applied,
       applyRouted,
+      nothingToApply,
+      // A Failure has nothing to apply and nothing to read on: with no Push
+      // open it closes itself; any other result stays to be read, closed by Done.
+      closesItself:
+        nothingToApply && !pushOpen && !applyRouted && roll?.band === 'failure' ? rolledSays : null,
       progressed: activated || roll !== null || salvageRoll !== null || applied,
     }
   })()
+
+  // The roll changed nothing and nothing can follow it: the card closes, the
+  // Feed line stays, and the row says what it came to (r6 A5).
+  const closing = resolve.kind === 'resolve' ? resolve.closesItself : null
+  const closingRef = resolving?.ref ?? null
+  // biome-ignore lint/correctness/useExhaustiveDependencies: closes once per roll that says so
+  useEffect(() => {
+    if (closing === null || closingRef === null) return
+    setDoneKey(closingRef)
+    setDoneSays(closing)
+    close()
+  }, [closing, closingRef])
 
   return {
     open: (key) => {
@@ -492,5 +547,6 @@ export function useActionsDeck({
     },
     resolve,
     doneKey: resolving === null ? doneKey : null,
+    doneSays,
   }
 }

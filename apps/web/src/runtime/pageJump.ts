@@ -52,7 +52,9 @@ export function pageSections(doc: Document): PageSection[] {
     `[${PAGE_CONTENTS_ATTRIBUTE}] a[href^="#"]`
   )) {
     const id = decodeURIComponent(link.getAttribute('href')?.slice(1) ?? '')
-    add(link.textContent ?? '', id ? doc.getElementById(id) : null)
+    // A numbered entry's number and label are two spans: read them apart (RR6-05).
+    const parts = link.children.length > 0 ? link.children : [link]
+    add(Array.from(parts, (part) => part.textContent).join(' '), id ? doc.getElementById(id) : null)
   }
   if (sections.length === 0) {
     for (const heading of main.querySelectorAll<HTMLElement>('h2')) {

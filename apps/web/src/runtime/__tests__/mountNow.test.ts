@@ -59,6 +59,9 @@ describe('mountsNow', () => {
   test("the bar's search on the Reference page mounts now for a query, to open on it", () => {
     window.location.href = 'http://localhost/reference/?q=mule'
     expect(mountsNow('SearchIsland', {})).toBe(true)
+    // The results page's bar keeps its query (RR6-02).
+    window.location.href = 'http://localhost/search/?q=mule'
+    expect(mountsNow('SearchIsland', {})).toBe(true)
     window.location.href = 'http://localhost/chassis/?q=mule'
     expect(mountsNow('SearchIsland', {})).toBe(false)
     expect(mountsNow('SearchIsland', { variant: 'hero' })).toBe(true)

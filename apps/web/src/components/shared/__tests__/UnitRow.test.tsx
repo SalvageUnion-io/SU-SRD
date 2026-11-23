@@ -199,3 +199,25 @@ describe('UnitRow', () => {
     expect(names).toEqual(['Change Mech', 'View Iron Fist', 'Unassign Iron Fist'])
   })
 })
+
+describe('a unit Down says so wherever it is listed (r6 C6)', () => {
+  test('a mech at 0 SP wears DOWN | needs repair after its cost; a pilot at 0 HP, DOWN', () => {
+    render(
+      <>
+        <UnitRow
+          kind="mech"
+          name="Thresher"
+          readings={[
+            { label: 'TL', value: 1, chip: 'rank' },
+            { label: 'SP', value: '0/15' },
+          ]}
+        />
+        <UnitRow kind="pilot" name="Razor" readings={[{ label: 'HP', value: '0/10' }]} />
+        <UnitRow kind="mech" name="Mule" readings={[{ label: 'SP', value: '10/15' }]} />
+      </>
+    )
+    expect(lanesOf('Thresher')).toContainEqual(['state', 'Downneeds repair'])
+    expect(lanesOf('Razor')).toContainEqual(['state', 'Down'])
+    expect(lanesOf('Mule').some(([lane]) => lane === 'state')).toBe(false)
+  })
+})

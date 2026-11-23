@@ -117,6 +117,45 @@ describe('SearchListbox', () => {
     expect(seen(mule)).toBe('Mule')
   })
 
+  test('a dropdown row answers in place: its range and damage, a term its meaning, a shared name its kind (RR6-04, RR6-15)', () => {
+    const facts = [
+      {
+        key: 'range',
+        label: 'Range',
+        short: 'RNG',
+        value: 'Long',
+        shortValue: 'Long',
+        kind: 'fact',
+      },
+      { key: 'damage', label: 'Damage', short: 'DMG', value: '9 SP', kind: 'fact' },
+    ]
+    const railgun = {
+      result: { ...MULE, id: 'railgun', title: 'Railgun', group: 'Systems', schemaId: 'systems' },
+      model: { ...model, title: 'Railgun', facts },
+    }
+    const heat = (id: string, schemaId: string, lead?: string) => ({
+      result: { ...MULE, id, title: 'Heat', schemaId } as SearchComboboxResult,
+      model: { ...model, title: 'Heat', ...(lead ? { lead } : {}) },
+    })
+    const rows = [
+      railgun,
+      heat('k', 'keywords', 'Generates on your Mech when you perform various tasks.'),
+      heat('g', 'guides'),
+    ]
+    list({
+      size: 'mini',
+      results: rows.map((r) => r.result as SearchComboboxResult),
+      selectedIndex: -1,
+      modelOf: (r) => rows.find((row) => row.result.id === r.id)?.model as typeof model,
+    })
+    const [gun, keyword, guide] = screen.getAllByRole('option')
+    expect(gun?.closest('tr')?.textContent).toContain('Long')
+    expect(gun?.closest('tr')?.textContent).toContain('9 SP')
+    expect(keyword?.textContent).toBe('Heat · Keyword')
+    expect(guide?.textContent).toBe('Heat · Guide')
+    expect(keyword?.closest('tr')?.textContent).toContain('Generates on your Mech')
+  })
+
   test('"Show more" is an option that acts, never a link (r4 F1)', () => {
     const more: SearchComboboxResult = {
       kind: 'more',

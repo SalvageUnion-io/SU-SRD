@@ -231,6 +231,20 @@ export function trayEntries(npcs: readonly TrayNpc[]): TrayEntry[] {
   return entries
 }
 
+/**
+ * The list with the downed below the living (r6 B8): a downed unit alone goes
+ * to the list's foot, and a group's downed members to the group's; the rest
+ * keep their order.
+ */
+export function sinkDowned(entries: readonly TrayEntry[]): TrayEntry[] {
+  const living = (e: TrayEntry) => e.kind === 'group' || !e.npc.down
+  const sunk = (e: TrayEntry): TrayEntry =>
+    e.kind === 'group'
+      ? { ...e, members: [...e.members.filter((m) => !m.down), ...e.members.filter((m) => m.down)] }
+      : e
+  return [...entries.filter(living), ...entries.filter((e) => !living(e))].map(sunk)
+}
+
 /** A group's last roll: the newest of its members', as a group roll writes each one's. */
 export function groupRoll(members: readonly TrayNpc[]): MoraleRoll | null {
   return members.reduce<MoraleRoll | null>(

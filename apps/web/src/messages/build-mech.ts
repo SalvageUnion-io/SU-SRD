@@ -11,6 +11,9 @@ export const mechCopy = messages({
   yourLoadoutStaysWhereItFits: 'Your loadout stays where it fits the new chassis.',
   willNotFit: 'Will not fit, and comes off: {names}. The rest stays.',
   keepEverything: 'Keep everything (rule breaking)',
+  yourLoadoutComesAlong: 'Your whole loadout comes along to the new chassis.',
+  overTheSlots: 'Will not fit: {names}. Choose keeps them, marked rule breaking.',
+  leaveThemOff: 'Leave them off',
   chassisChangedKeptAll: 'Chassis changed to {name}. Everything stays, over its slots.',
   chassisChanged: 'Chassis changed to {name}.',
   chassisChangedLeftOff: 'Chassis changed to {name}. Left off: {names}.',
@@ -73,6 +76,8 @@ export const mechCopy = messages({
   buildNotUndone: '{name} could not be removed. Delete it from its sheet.',
   mechDeleted: 'Deleted {name}.',
   mechPutBack: '{name} is back.',
+  mechsDeleted: 'Deleted {count} Mechs.',
+  mechsPutBack: '{count} Mechs are back.',
   mechNotPutBack: '{name} could not be put back. Try again.',
   noPatternsYet: 'No Patterns yet',
   useSaveAsPatternFrom:

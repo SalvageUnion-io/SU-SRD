@@ -5,11 +5,11 @@ import { messages } from './define'
 export const npcCopy = messages({
   theNpcCouldNotBe: 'The NPC could not be saved. Try again.',
   denizensNewNpc: 'Denizens · New NPC',
-  denizensEditDesign: 'Denizens · Edit design',
+  denizensEditDesign: 'Denizens · Redesign',
   saveNpc: 'Save NPC',
   saveChanges: 'Save changes',
-  editDesign: 'Edit design',
-  editDesignOf: 'Edit the design of {name}',
+  editDesign: 'Redesign from a template',
+  editDesignOf: 'Redesign {name} from a template',
   redesign: 'Redesign {name}',
   backToTheSheet: 'Sheet',
   crewDesignIsTheSlots:
@@ -123,9 +123,10 @@ export const npcCopy = messages({
   introActions:
     'Actions and traits come from the reference, so the rules text is always the book’s. You choose which ones this NPC carries.',
   introIdentity: 'Who they are. Only the name is required.',
-  introReview: 'Check the card, then save the NPC to your Mediator’s Kit.',
-  introReviewRedesign:
-    'Check the card, then save your changes. Every encounter of yours that fields this NPC takes them.',
+  introDesign:
+    'Name them, change what you like of the template’s stats, actions and traits, and save the NPC to your Mediator’s Kit.',
+  introDesignRedesign:
+    'Change what you like, then save your changes. Every encounter of yours that fields this NPC takes them.',
   aDesignedNpcKeeps:
     'A designed NPC keeps its template’s link to the reference, but wears the user-made frame and your name. It is kept in your Mediator’s Kit, and can go into a Game or a crawler’s crew.',
   startAgainFrom: 'Start again from {name}?',

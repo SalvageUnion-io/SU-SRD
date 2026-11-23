@@ -142,7 +142,8 @@ export function MechWizard({
         : s === 'review'
           ? mechCreationStepGate('review', form)
           : mechCreationStepGate('systems', form),
-    initialStep: 'chassis',
+    // A Reference pattern's link opens at the review, its pattern chosen (r6 E6).
+    initialStep: preselectPattern ? 'review' : 'chassis',
     submitStep: 'review',
     form,
     draftKey,

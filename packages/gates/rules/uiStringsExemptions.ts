@@ -94,7 +94,13 @@ export const EXEMPTIONS: readonly StringExemption[] = [
   },
   {
     file: 'apps/web/src/play/tables.model.ts',
-    strings: ['Core Mechanic', 'Critical Damage', 'Reactor Overload', 'Critical Injury'],
+    strings: [
+      'Core Mechanic',
+      'Critical Damage',
+      'Reactor Overload',
+      'Critical Injury',
+      'Group Initiative',
+    ],
     reason:
       "Roll tables by their names in the reference data (`RollTables.getByName`): the dataset's keys, which a translated word would not find. What is drawn is the table's own name from the data.",
   },
@@ -126,6 +132,11 @@ export const EXEMPTIONS: readonly StringExemption[] = [
     file: 'apps/web/src/build/sheet/CrawlerEconomyControl.tsx',
     strings: ['Crawler Deterioration', 'Trading Bay'],
     reason: 'Roll-table names passed to rollFor: lookup keys into the dataset, never drawn.',
+  },
+  {
+    file: 'apps/web/src/play/craftTrade.model.ts',
+    strings: ['Trading Bay'],
+    reason: 'Roll-table name passed to rollFor: a lookup key into the dataset, never drawn.',
   },
   {
     file: 'apps/web/src/build/sheet/crawlerEconomyDialogState.model.ts',

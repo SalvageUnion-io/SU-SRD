@@ -84,3 +84,6 @@ export const HINT = {
   fontSize: tokens.fontSize.caption,
   margin: 0,
 } satisfies CSSProperties
+
+/** The name field: the one page a template opens onto focuses it (WizShell's `focusId`, r6 B3). */
+export const NPC_NAME_ID = 'npc-name'

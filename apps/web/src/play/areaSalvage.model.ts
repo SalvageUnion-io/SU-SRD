@@ -46,3 +46,22 @@ export function haulText(
   const left = haul.leftBehind > 0 ? playCopy('salvageLeftBehind', { count: haul.leftBehind }) : ''
   return [carried, left].filter((t) => t !== '').join(' ')
 }
+
+/**
+ * The Feed's line for an Area Salvage's Apply (r6 D3), after the roll:
+ * "6: 1 T1 Scrap to inventory, 1 left in the area". `where` is the short
+ * name of what took it ("inventory", "Cargo").
+ */
+export function haulFeedText(
+  result: AreaSalvageResult,
+  haul: AreaSalvageHaul<unknown>,
+  where: string
+): string {
+  const parts: string[] = []
+  if (result.itemCount > 0)
+    parts.push(playCopy('salvageFeedItems', { count: result.itemCount, tl: result.areaTl }))
+  if (haul.carried > 0)
+    parts.push(playCopy('salvageFeedCarried', { count: haul.carried, tl: result.areaTl, where }))
+  if (haul.leftBehind > 0) parts.push(playCopy('salvageFeedLeft', { count: haul.leftBehind }))
+  return `${result.roll}: ${parts.length > 0 ? parts.join(', ') : playCopy('salvageFeedNothing')}`
+}

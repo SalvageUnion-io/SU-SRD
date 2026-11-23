@@ -17,7 +17,7 @@
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
-import { Fragment, useState } from 'react'
+import { Fragment, useContext, useState } from 'react'
 import { Cluster } from '../../components/app'
 import {
   Button,
@@ -31,6 +31,7 @@ import {
 import { unitRowModel } from '../../lib/units/unitModel'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { AssignedSlot, AssignedUnit } from './assignedUnits.model'
+import { FoldEmptyRelated } from './relatedUnitsFold.model'
 
 const KIND_NAME: Record<SheetKind, string> = {
   pilot: 'Pilot',
@@ -63,11 +64,15 @@ export function RelatedUnits({
   // A place of many (a crawler's bay) that holds some reads by its units alone
   // to a viewer who cannot add one.
   const open = slots.filter((slot) => writes || (!slot.many?.filled && !slot.writerOnly))
+  const fold = useContext(FoldEmptyRelated) && units.length === 0 && open.length > 0
   return (
     <SlabSection
       id="linked-units"
       title={buildSheetCopy('relatedUnits')}
       bodyClassName="su-sheet-linked"
+      {...(fold
+        ? { fold: 'closed' as const, count: open.map((slot) => noneOf(slot.kind)).join(' · ') }
+        : {})}
     >
       {units.length > 0 && (
         <MiniGrid label={buildSheetCopy('relatedUnits')} edit={editable}>

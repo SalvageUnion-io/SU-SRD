@@ -13,6 +13,23 @@ import type { GameStore } from './store'
 
 export type SessionRead = { live: boolean; startedAt: number | null }
 
+/**
+ * The owner's ruling on whether playing starts the session (r6 C3, MD6-07):
+ * `'auto'` (recommended) — the table runner's first table act (running an
+ * encounter, giving the turn, telling the table, as `STARTS_THE_SESSION`
+ * lists them) starts the group session when none is live, and the Feed says
+ * so; `'manual'` — sessions start only from Start group session. The one
+ * place the ruling is kept.
+ */
+export const PLAY_STARTS_SESSION: 'auto' | 'manual' = 'auto'
+
+/** The table acts that start the group session under `'auto'`. */
+export const STARTS_THE_SESSION = [
+  'mediator.runEncounter',
+  'scenes.setUpNow',
+  'changeLog.broadcast',
+] as const
+
 const NOT_LIVE: SessionRead = { live: false, startedAt: null }
 
 export class GameSession {
@@ -37,6 +54,23 @@ export class GameSession {
       )
       return true
     })
+  }
+
+  /**
+   * After a table act (`STARTS_THE_SESSION`), start the session if none is
+   * live and the ruling says playing starts it (`PLAY_STARTS_SESSION`);
+   * true when this started one. Never for anyone but the table runner.
+   */
+  startWithPlay(actor: string, at: number): boolean {
+    if (PLAY_STARTS_SESSION !== 'auto' || this.startedAt() !== null) return false
+    const member = this.store.member(actor)
+    if (member === null || !this.store.isTableRunner(member)) return false
+    return this.start(actor, at)
+  }
+
+  /** Whether a session is running, whoever asks (`eventsBefore`). */
+  isLive(): boolean {
+    return this.startedAt() !== null
   }
 
   /** End the group session. None running is not an error. */

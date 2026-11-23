@@ -19,9 +19,11 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayCrewSheet } from '../PlayCrewSheet'
 import { PlayCrawlerUnit } from '../PlayUnits'
 import { useOpenSheet } from '../useOpenSheet'
+import { MediatorInitiative } from './MediatorInitiative'
 import type { MediatorSeat } from './mediatorTable.model'
 import { seatDone, seatStepLine } from './mediatorTable.model'
 import { PlayMediatorSeat } from './PlayMediatorSeat'
+import { useInitiative } from './useInitiative'
 import type { PlayMediator } from './usePlayMediator'
 
 type PlayMediatorTableProps = {
@@ -37,10 +39,14 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
   const { seats, downtime, crawler, canWrite } = mediator
   const running = downtime.downtime.running
   const stepIndex = currentDowntimeStep(downtime.downtime.stepIndex).index
+  // Group Initiative (r6 B4): an action scene's, so not while Downtime runs.
+  const tracker = useInitiative(mediator.gameId, mediator.onFailure)
+  const kept = running ? null : tracker.initiative
 
   return (
     <>
       <Slab as="h2" label={mediatorCopy('theTable')} flush />
+      {!running && seats.length > 0 && <MediatorInitiative mediator={mediator} tracker={tracker} />}
       {mediator.crew === null ? (
         <EmptyState variant="inline" body={mediatorCopy('theTableAppearsOnceThe')} />
       ) : seats.length === 0 ? (
@@ -59,6 +65,16 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
               onPick={() => onPick(seat)}
               onOpenSheet={() => setCrewSheet(seat)}
               upNow={mediator.scene.upNow === seat.pilotId}
+              acted={
+                kept === null
+                  ? undefined
+                  : {
+                      acted: kept.acted.includes(seat.pilotId),
+                      onToggle: canWrite
+                        ? () => tracker.setActed(seat.pilotId, !kept.acted.includes(seat.pilotId))
+                        : undefined,
+                    }
+              }
               onUpNow={
                 canWrite
                   ? () =>

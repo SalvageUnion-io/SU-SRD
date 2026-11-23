@@ -143,6 +143,8 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'channelBindings.current': null,
     // A member's own notes from when they ran the table: none, for most.
     'plan.mine': null,
+    // The table runner's plan, for the recap's next session (r6 C1).
+    'plan.get': null,
     ...over,
   }
 }
@@ -374,6 +376,54 @@ describe('the sections under the roster', () => {
       true
     )
     expect(screen.getByText(/Hand over needs another member/)).toBeTruthy()
+  })
+
+  test('the Mediator’s band has one Mediate, the session’s state under it, and no Start (r6 C3)', async () => {
+    await renderHub({
+      'games.get': { ...GAME, mediator: true, tableRunner: true },
+      'session.state': { live: false, startedAt: null },
+    })
+    const mediate = screen.getByRole('link', { name: 'Mediate' })
+    expect(mediate.getAttribute('href')).toBe('/games/g1/mediate')
+    expect(screen.getByText('The session starts when you play')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Start group session' })).toBeNull()
+  })
+
+  test('the Organiser renames the Game in place, on its band (r6 C9)', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, mediator: true },
+    })
+    fireEvent.click(screen.getByRole('button', { name: `Rename ${GAME.name}` }))
+    const field = screen.getByRole('textbox', { name: 'Game name' }) as HTMLInputElement
+    expect(field.value).toBe(GAME.name)
+    fireEvent.change(field, { target: { value: 'Rust Coast' } })
+    await act(async () => {
+      fireEvent.keyDown(field, { key: 'Enter' })
+    })
+    expect(mutations).toContainEqual({
+      name: 'games.update',
+      args: { gameId: 'g1', name: 'Rust Coast' },
+    })
+  })
+
+  test('a player reads the Game’s name and cannot rename it', async () => {
+    await renderHub({})
+    expect(screen.queryByRole('button', { name: /^Rename / })).toBeNull()
+  })
+
+  test('members with no name go by their joining order, never one word for all (r6 C11)', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, mediator: true },
+      'games.members': [
+        { userId: 'u1', displayName: 'Ash', mediator: true, organizer: true, joinedAt: 1 },
+        { userId: 'u2', displayName: null, mediator: false, organizer: false, joinedAt: 2 },
+        { userId: 'u3', displayName: null, mediator: false, organizer: false, joinedAt: 3 },
+      ],
+    })
+    const members = screen.getByRole('list', { name: 'Members' })
+    expect(within(members).getByText('Player 2')).toBeTruthy()
+    expect(within(members).getByText('Player 3')).toBeTruthy()
+    expect(within(members).queryByText('Crewmate')).toBeNull()
   })
 
   test('Hand over appoints the chosen member first, then stands the old Mediator down', async () => {

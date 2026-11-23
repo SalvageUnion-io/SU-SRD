@@ -17,6 +17,7 @@
  * Its words are one set (`rosterCopy`), each area's pitch by its name.
  */
 
+import { cockpitPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { ReactNode } from 'react'
 import { FrontPitch, PageShell, StartHere } from '../../components/app'
@@ -24,7 +25,9 @@ import { Button, ChapterBand } from '../../components/index'
 import { Tagline } from '../../components/Tagline'
 import { appPath } from '../../lib/appBase'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { STARTER_ROSTERS } from '../../lib/starterSet/starterTemplates'
 import { rosterCopy } from '../../messages/build-roster'
+import { playTrialCopy } from '../../messages/play-trial'
 import { SignInControl } from '../account/SignInControl'
 import { StarterSetCrew } from '../starterSet/StarterSetCrew'
 import { WizardDrafts } from '../wizard/WizardDrafts'
@@ -41,6 +44,7 @@ const AREAS = {
     signInTo: '/',
     starterId: 'front-door-starter',
     starterNote: rosterCopy('starterNote'),
+    trial: null,
   },
   play: {
     name: PRODUCT.play,
@@ -52,6 +56,8 @@ const AREAS = {
     signInTo: '/games/',
     starterId: 'play-starter',
     starterNote: undefined,
+    // The outline is a round of Play signed out, on the first book pilot (r6 F1).
+    trial: STARTER_ROSTERS[0]?.pilots[0]?.id ?? null,
   },
 } as const
 
@@ -81,9 +87,15 @@ export function FrontDoor({ area, steps, lead }: FrontDoorProps) {
         actions={
           <>
             <SignInControl size="full" redirectTo={door.signInTo} />
-            <Button href={`#${door.starterId}`} variant="default" size="full">
-              {rosterCopy('meetTheStarterCrew')}
-            </Button>
+            {door.trial === null ? (
+              <Button href={`#${door.starterId}`} variant="default" size="full">
+                {rosterCopy('meetTheStarterCrew')}
+              </Button>
+            ) : (
+              <Button href={appPath(cockpitPath(door.trial))} variant="default" size="full">
+                {playTrialCopy('tryARound')}
+              </Button>
+            )}
           </>
         }
         note={door.pitch.note}

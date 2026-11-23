@@ -30,6 +30,7 @@ import {
   toEntityModel,
 } from 'salvageunion-reference'
 import { AREA_SALVAGE_TABLE, resolveChassisRef } from 'salvageunion-reference/rules'
+import { copiesOf, copyCondition } from './equipmentCopies'
 import type { MechItemEconomy } from './mechItems'
 import { actionEconomy, resolveModule, resolveSystem } from './mechItems'
 import { isPartnerEquipment } from './partnerGrants'
@@ -370,8 +371,12 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
     })
   }
 
-  for (const { slug, equip } of carried) {
-    const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
+  const copies = copiesOf(carried.map(({ slug }) => slug))
+  for (const [at, { slug, equip }] of carried.entries()) {
+    // Each copy its own condition (r6 E16), and its own keys.
+    const { copy = 1, count = 1 } = copies[at] ?? {}
+    const condition = copyCondition(pilot.equipmentConditions, slug, copy, count)
+    const copyTag = copy > 1 ? `#${copy}` : ''
     const itemChoices = equip.choices ?? []
     const choices =
       itemChoices.length > 0
@@ -384,7 +389,7 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
         ? { ...printed, actionSource: 'equipment' as const }
         : printed
       out.push({
-        key: `equipment:${slug}:${action.id ?? i}`,
+        key: `equipment:${slug}${copyTag}:${action.id ?? i}`,
         name: action.name,
         kind: 'equipment',
         stamp: 'EQP',

@@ -33,6 +33,8 @@ export function patternLine(
       [buildShelvesCopy('sys')]: figures.systems,
       [buildShelvesCopy('mod')]: figures.modules,
       [buildShelvesCopy('cost')]: figures.scrap,
+      // What the Scrap column sorts by, never shown (r6 E4).
+      scrapSort: figures.scrapSort,
       // Sorted by the moment, read as the day.
       saved: Number.isNaN(at) ? '' : at,
     },

@@ -308,7 +308,7 @@ describe('MechWizard — preselected chassis', () => {
     expect(onCancel).toHaveBeenCalledTimes(1)
   }, 30000)
 
-  it('a deep-linked pattern starts with its loadout prefilled, with nothing to discard', async () => {
+  it('a deep-linked pattern opens at the review with its loadout prefilled, with nothing to discard', async () => {
     const hauler = must(mule().patterns.find((p) => p.name === 'Hauler'))
     const onCancel = mock(() => {})
     render(
@@ -319,9 +319,9 @@ describe('MechWizard — preselected chassis', () => {
         preselectPattern={hauler}
       />
     )
-    // The pattern's loadout is debited along with the chassis.
+    // It opens at the review (r6 E6), the pattern's loadout debited along with the chassis.
+    expect(screen.getAllByText('Name your Mech and review it').length).toBeGreaterThan(0)
     expect(screen.getByTestId('scrap-spent').textContent).not.toContain(`${mule().salvageValue}/`)
-    expect(isPicked(hauler.name)).toBe(true)
     // The preselection is the baseline: cancelling asks nothing.
     await clickButton('Cancel')
     expect(onCancel).toHaveBeenCalledTimes(1)

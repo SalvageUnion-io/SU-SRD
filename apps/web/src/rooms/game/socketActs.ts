@@ -2,6 +2,7 @@ import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { z } from 'salvageunion-reference/zod'
+import { InitiativeSchema } from '../../lib/rules/initiative'
 import type { ClientMessage, ServerMessage } from '../protocol'
 import { OpInputSchema } from '../protocol'
 import type { GameActAnswer, GameActName } from './acts'
@@ -82,6 +83,12 @@ const DOWNTIME_ACTS = {
   'downtime.setStep': PLACE.extend({ stepIndex: z.number() }),
   'downtime.end': PLACE,
   'downtime.claim': PLACE.extend({ claim: z.enum(['upkeep', 'nanites']), op: OpInputSchema }),
+  /** Tally Salvage: a pilot's carried Scrap into the crawler (r6 D1); the room builds the patches. */
+  'downtime.moveScrap': z.object({
+    pilotId: z.string(),
+    mechId: z.string().nullable(),
+    crawlerId: z.string(),
+  }),
 }
 
 /** A unit's Change Log, as the drawer reads it. */
@@ -103,6 +110,7 @@ export const GAME_SOCKET_ACTS = {
   'mediator.bringInWave': z.object({ wave: z.number().int() }),
   'mediator.endEncounter': z.object({ clear: z.boolean().optional() }).optional(),
   'mediator.clearTray': NONE,
+  'mediator.setInitiative': z.object({ initiative: InitiativeSchema.nullable() }),
   'scenes.setConditions': z.object({ conditions: z.array(z.string()) }),
   'scenes.passHour': NONE,
   'scenes.setUpNow': z.object({ pilotId: z.string().nullable() }),

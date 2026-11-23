@@ -16,8 +16,10 @@
  * - Down at 0 HP is the one unit-out treatment.
  *
  * Read is the printed sheet: an empty line is left out and nothing writes;
- * Edit gives the fields, the HP track and the photo control back, and "Edit
- * design", which opens the designer on this NPC (`NpcRedesignPage`). A crewmate's
+ * Edit gives the fields, the HP track and the photo control back, and its
+ * stats and actions (`NpcSheetDesign`, r6 B12): one Edit edits everything.
+ * "⋯" holds "Redesign from a template", the designer on this NPC
+ * (`NpcRedesignPage`). A crewmate's
  * NPC, read live from the Game's listing, and a shared one at `/p/npc/:id`
  * render read-only with no toggle, and say why.
  */
@@ -25,7 +27,7 @@
 import type { Npc } from 'game-domain/schemas/npc'
 import type { CrewSlot } from 'game-domain/schemas/softLink'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
 import {
   ActionMinis,
@@ -77,6 +79,11 @@ import { SheetVitalGauge } from '../sheet/SheetVitalGauge'
 import { useSheetMode } from '../sheet/sheetMode.model'
 import { NOTE } from './npcStyles.model'
 import { deleteNpcDesign } from './redesign.model'
+
+// Edit's stat block: only an Edit press loads the designer's fields.
+const NpcSheetDesign = lazy(() =>
+  import('./NpcSheetDesign').then((m) => ({ default: m.NpcSheetDesign }))
+)
 
 /** Where the NPC crews, when it does. */
 export type NpcCrewing = {
@@ -213,17 +220,6 @@ export function NpcSheet({
         <Button href={inGame?.href ?? KIT_PATH} back variant="ink" size="compact">
           {inGame ? npcCopy('gamePrep') : npcCopy('mediatorsKit')}
         </Button>
-        {/* The way into the designer, its stats, role and actions (MD2-03), in
-            Sheet view too: a fresh copy opens there (MD3-06). */}
-        {isRedesignable(npc) && (
-          <Button
-            href={npcDesignHref(npc.id)}
-            size="compact"
-            aria-label={npcCopy('editDesignOf', { name: npc.name })}
-          >
-            {npcCopy('editDesign')}
-          </Button>
-        )}
         <SheetModeToggle mode={sheetMode} kind="NPC" />
       </>
     ) : undefined
@@ -248,6 +244,17 @@ export function NpcSheet({
             entity={npc}
             confirm={confirm}
           />
+          {/* A new template on this NPC (MD2-03), in Sheet view too: a fresh copy
+              opens there (MD3-06). Its stats and actions are Edit's (r6 B12). */}
+          {!writesBlocked && isRedesignable(npc) && (
+            <Button
+              variant="ghost"
+              href={npcDesignHref(npc.id)}
+              aria-label={npcCopy('editDesignOf', { name: npc.name })}
+            >
+              {npcCopy('editDesign')}
+            </Button>
+          )}
           {!writesBlocked && (
             <Button
               variant="ghost"
@@ -380,16 +387,22 @@ export function NpcSheet({
                 />
               }
             >
-              {npcActions.length > 0 && (
-                <SlabSection fold="open" title={npcCopy('actions')} count={npcActions.length}>
-                  <ActionMinis
-                    actions={npcActions}
-                    size="compact"
-                    hostName={npc.name}
-                    chassisName={undefined}
-                    grid
-                  />
-                </SlabSection>
+              {editable && isRedesignable(npc) ? (
+                <Suspense fallback={null}>
+                  <NpcSheetDesign key={npc.id} npc={npc} />
+                </Suspense>
+              ) : (
+                npcActions.length > 0 && (
+                  <SlabSection fold="open" title={npcCopy('actions')} count={npcActions.length}>
+                    <ActionMinis
+                      actions={npcActions}
+                      size="compact"
+                      hostName={npc.name}
+                      chassisName={undefined}
+                      grid
+                    />
+                  </SlabSection>
+                )
               )}
             </SheetColumns>
           </section>

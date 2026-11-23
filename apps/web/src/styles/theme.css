@@ -483,6 +483,16 @@
     display: none;
   }
 
+  /* A homebrew section with none listed says nothing on paper (RR6-08). */
+  .su-homebrew:not(:has(.su-ledger)):not(#\#) {
+    display: none;
+  }
+
+  /* A page's citation prints with its last lines, never alone on a sheet. */
+  .su-footer:not(#\#) {
+    break-before: avoid;
+  }
+
   /* The footer keeps where the page came from (r5 E9): the book's citation
      and the page's address, ink on the paper, one under the other. */
   .su-footer .su-chapter-foot:not(#\#) {

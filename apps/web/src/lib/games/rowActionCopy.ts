@@ -129,22 +129,6 @@ function clearedOnEntry(kind: RowActionKind, cleared: readonly ClearedAssignment
 
 export const ROW_ACTION_COPY = {
   /**
-   * Assigning an unassigned character to yourself. Constructive, so the
-   * default tone — the dialog exists to say what happens next (you edit it,
-   * and it lands in this browser), which the seal alone cannot.
-   */
-  assignSelf(name: string): ConfirmCopy {
-    return {
-      title: libGamesCopy('assignSelfTitle', { name }),
-      body: [libGamesCopy('assignSelfBody', { name }), libGamesCopy('assignSelfUndo')],
-      confirmLabel: libGamesCopy('assignToMe'),
-      pendingLabel: libGamesCopy('assigning'),
-      tone: 'default',
-      failure: libGamesCopy('assignSelfFailed', { name }),
-    }
-  },
-
-  /**
    * Unassigning: by its holder, or the table runner on their behalf. Reversible
    * — but only while nobody else takes it, so the undo is stated with its
    * condition.
@@ -224,12 +208,14 @@ export const ROW_ACTION_COPY = {
     }
   },
 
-  /** Deleting a Mech of the Training Bay (r5 D9): one confirm, and the notice after it undoes. */
+  /**
+   * Deleting a Mech of the Training Bay (r5 D9), where a confirm is still
+   * asked: its own notice undoes it, so the confirm says no `done` of its own
+   * (one notice, r6 E3).
+   */
   deleteMech(name: string): ConfirmCopy {
-    return {
-      ...ROW_ACTION_COPY.deleteBuild(name),
-      body: [libGamesCopy('deleteMechBody', { name })],
-    }
+    const { done: _done, ...build } = ROW_ACTION_COPY.deleteBuild(name)
+    return { ...build, body: [libGamesCopy('deleteMechBody', { name })] }
   },
 
   /**
