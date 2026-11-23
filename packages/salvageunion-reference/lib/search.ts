@@ -10,6 +10,7 @@ import {
   matchSearchTokens,
   scoreSearchMatch,
   searchAliases,
+  searchKindQuery,
   searchNameWords,
   searchSquashedName,
   searchWordStem,
@@ -393,6 +394,17 @@ export function search(options: SearchOptions): SearchResult[] {
         matchedFields,
         matchScore,
       })
+    }
+  }
+
+  // "engineer class": the Engineer of the Classes listing, ranked as its
+  // name, as on the site's compact index (r8 G1).
+  const kind = searchKindQuery(parsed)
+  if (kind && (!schemasToSearch || schemasToSearch.has(kind.schemaName))) {
+    for (const hit of search({ query: kind.query, schemas: [kind.schemaName] })) {
+      const found = results.find((result) => result.entityId === hit.entityId)
+      if (found) found.matchScore = Math.max(found.matchScore, hit.matchScore)
+      else results.push({ ...hit })
     }
   }
 

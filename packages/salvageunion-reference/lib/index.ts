@@ -148,6 +148,7 @@ export {
   matchSearchTokens,
   scoreSearchMatch,
   searchAliases,
+  searchKindQuery,
   searchNameWords,
   searchOneSlipAway,
   searchSquashedName,

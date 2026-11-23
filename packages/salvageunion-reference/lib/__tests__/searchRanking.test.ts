@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   matchSearchTokens,
   scoreSearchMatch,
+  searchKindQuery,
   searchNameWords,
   searchOneSlipAway,
   searchSquashedName,
@@ -321,5 +322,44 @@ describe('a rules term inside a phrase (r7 E1)', () => {
     expect(searchTermScore('traits', 0.02)).toBeGreaterThan(searchTermScore('keywords', 0.5))
     expect(searchTermScore('keywords', 1)).toBeGreaterThan(20)
     expect(searchTermScore('keywords', 0)).toBeLessThan(80)
+  })
+})
+
+describe('everyday phrasing (r8 G1)', () => {
+  test('a word naming a kind is read as the kind, the rest as the query', () => {
+    expect(searchKindQuery(tokenizeSearchQuery('engineer class'))).toEqual({
+      schemaName: 'classes',
+      query: 'engineer',
+    })
+    expect(searchKindQuery(tokenizeSearchQuery('Railgun systems'))?.schemaName).toBe('systems')
+    expect(searchKindQuery(tokenizeSearchQuery('hot trait'))?.query).toBe('hot')
+  })
+
+  test('a kind word alone, or none, is not a kind query', () => {
+    expect(searchKindQuery(tokenizeSearchQuery('class'))).toBeNull()
+    expect(searchKindQuery(tokenizeSearchQuery('heavy laser'))).toBeNull()
+    expect(searchKindQuery(null)).toBeNull()
+  })
+
+  test('another form of the word finds it: "grapple" finds Grappling', () => {
+    const text = 'grappling harpoon fires a hook'
+    expect(
+      matchSearchTokens(['grapple'], ['grappling', 'harpoon'], (t) => text.includes(t)).matches
+    ).toBe(true)
+    // A short word is not cut to a stub: "move" never finds "mov…".
+    expect(matchSearchTokens(['move'], ['removal'], (t) => 'removal'.includes(t)).matches).toBe(
+      false
+    )
+    const grapple = tokenizeSearchQuery('grapple')
+    if (!grapple) throw new Error('blank query in test')
+    expect(
+      scoreSearchMatch({ ...grapple, nameText: 'grappling harpoon', usedTypo: false })
+    ).toBeGreaterThanOrEqual(20)
+  })
+
+  test('a typo across a split word is put right: "rail gunn" is Railgun', () => {
+    expect(suggestSearchQuery('rail gunn', ['Railgun', 'Rail', 'Heat Sink'])).toBe('railgun')
+    expect(suggestSearchQuery('rail gunn', ['Railgun', 'Heat Sink'])).toBe('railgun')
+    expect(suggestSearchQuery('heat sinkk', ['Railgun', 'Heat Sink'])).toBe('heat sink')
   })
 })
