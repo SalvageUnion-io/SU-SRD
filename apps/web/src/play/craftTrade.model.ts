@@ -5,7 +5,8 @@
  *  - **Craft** (Core Book p.222): a System or Module of the crawler's Tech
  *    Level or lower costs its Salvage Value in Scrap of its Tech Level or
  *    higher from the crawler's pool. Short, nothing is spent and the shortfall
- *    is said. Crafting spends Scrap in Play alone (`DOWNTIME_RULINGS.craftSpends`):
+ *    is said. Crafting spends Scrap in Play's panel alone (`DOWNTIME_RULINGS.craftSpends`;
+ *    the crawler sheet's Crafting Bay opens the same panel, r7 D7):
  *    the Live Sheet's Manage Systems stays free hand-editing (surfaces §2).
  *  - **Trade** (p.223): after the availability roll the wares are picked at
  *    random at the rolled Tech Level (the rules allow random or the

@@ -146,7 +146,8 @@ function WareLine({ ware, children }: { ware: Ware; children: ReactNode }) {
   )
 }
 
-function CraftingBay({
+/** The Crafting Bay's search and Craft; the crawler sheet's Crafting Bay opens it too (r7 D7). */
+export function CraftingBay({
   crawler,
   mech,
   store,

@@ -337,6 +337,7 @@ export const buildSheetCopy = messages({
   manageAbilities: 'Manage Abilities',
   costsTp: 'Costs {cost} TP · {left} left',
   spendTpAndAdd: 'Spend {cost} TP and add',
+  craft: 'Craft',
   notYet: 'Not yet',
   notYetTreeOrder: 'Earlier level first · TP',
   notYetAdvanced: 'Needs 6 Core · TP',
