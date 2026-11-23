@@ -246,10 +246,10 @@ describe('a Game’s encounters', () => {
     )
   })
 
-  test('Open goes to the encounter', async () => {
+  test('Open goes to the encounter, in Edit (r7 C13)', async () => {
     await renderPrep()
     await choose('Ambush', 'Open')
-    expect(assigned).toEqual(['/encounters/e-two'])
+    expect(assigned).toEqual(['/encounters/e-two?edit=1'])
   })
 
   test('+ New encounter makes one for this Game, last, and opens it in Edit', async () => {
@@ -293,7 +293,9 @@ describe('a Game’s NPCs', () => {
     })
     await renderPrep()
     const npcs = within(screen.getByRole('region', { name: /NPCs/ }))
-    expect(npcs.getByRole('link', { name: /Kessler/ }).getAttribute('href')).toBe('/npcs/n-here')
+    expect(npcs.getByRole('link', { name: /Kessler/ }).getAttribute('href')).toBe(
+      '/npcs/n-here?edit=1'
+    )
     expect(npcs.getByText('Sergeant')).toBeTruthy()
     expect(npcs.queryByText('Voss')).toBeNull()
     expect(npcs.getByRole('link', { name: '+ Design an NPC' }).getAttribute('href')).toBe(

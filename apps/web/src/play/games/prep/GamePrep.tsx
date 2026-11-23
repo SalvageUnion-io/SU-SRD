@@ -16,6 +16,7 @@ import type { Encounter } from 'game-domain/schemas/encounter'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { blankEncounter, encounterHref } from '../../../build/prep/encounter.model'
+import { inEdit } from '../../../build/prep/openInEdit'
 import { useSheetModeStore } from '../../../build/sheet/sheetMode.model'
 import { undoToast } from '../../../build/sheet/undoToast.model'
 import { ShelfLedger } from '../../../build/shelves/ShelfLedger'
@@ -138,7 +139,7 @@ function PrepSections({ gameId }: { gameId: string }) {
   function menu(encounter: Encounter, at: number): HeaderMenuItem[][] {
     return [
       [
-        { id: 'open', label: 'Open', onSelect: () => go(encounterHref(encounter.id)) },
+        { id: 'open', label: 'Open', onSelect: () => go(inEdit(encounterHref(encounter.id))) },
         {
           id: 'up',
           label: playGamesCopy('moveUp'),
@@ -194,7 +195,8 @@ function PrepSections({ gameId }: { gameId: string }) {
           rows={inGame.map((e, at) => ({
             id: e.id,
             name: e.name,
-            href: encounterHref(e.id),
+            // From Prep it opens in Edit (r7 C13).
+            href: inEdit(encounterHref(e.id)),
             cells: [
               String(at + 1),
               String(encounterReading(e).value),
@@ -256,7 +258,7 @@ function PrepSections({ gameId }: { gameId: string }) {
           rows={npcs.map((n) => ({
             id: n.id,
             name: n.name,
-            href: `/npcs/${n.id}`,
+            href: inEdit(`/npcs/${n.id}`),
             cells: [n.position ?? '', hpColumnCell(npcReading(n))],
             menu: [],
           }))}

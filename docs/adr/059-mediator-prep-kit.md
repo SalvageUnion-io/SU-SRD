@@ -64,7 +64,8 @@ Mediator to be upfront about the situation (p.252).
   alert. Nothing reaches a player until the Mediator presses it.
 - **Threat read.** Under the opposition, the inputs p.255 eyeballs a fight
   by, against a crew size and Tech Level the Mediator steps (remembered on the
-  device, never saved to the encounter): how many meet the Pilots first, how
+  device, never saved to the encounter; for an encounter bound to a Game they
+  open at its Pilots and its crawler's Tech Level, r7 C13): how many meet the Pilots first, how
   many are held back, the Tech Level spread, total SP and HP, and whether
   either side is outnumbered or out-teched. No difficulty score: the book says
   fights are not balanced.
