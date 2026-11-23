@@ -169,7 +169,7 @@ export function HomeSearchBand({ children }: { children: ReactNode }) {
  * by hand, the slide they land on starting its turn afresh. Under reduced motion it never
  * turns: the slides stand one under another, every action in view.
  */
-export function HomeHero() {
+export function HomeHero({ search }: { search?: ReactNode } = {}) {
   const slides = heroSlides()
   return (
     <section
@@ -257,9 +257,13 @@ export function HomeHero() {
           h1. */}
       <div className="su-front__show-head">
         <div className="su-front__show-brand">
-          <h1 className={cn('su-front__show-name su-grain--paper', capsLabel())}>
-            {referenceCopy('siteName')}
-          </h1>
+          <div className="su-front__show-title">
+            <h1 className={cn('su-front__show-name su-grain--paper', capsLabel())}>
+              {referenceCopy('siteName')}
+            </h1>
+            {/* A laptop's search, beside the name (RR7-14); smaller screens use the band under the show. */}
+            {search && <div className="su-front__show-search su-grain--paper">{search}</div>}
+          </div>
           {/* The two things a visit is for, under the name, in place on every slide. */}
           {!HERO_TURNS_ITSELF && (
             <div className="su-front__show-fixed su-grain--paper" data-ground="ink">
