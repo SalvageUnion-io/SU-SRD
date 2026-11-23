@@ -288,6 +288,7 @@ describe('activated effects (ADR-029 §4)', () => {
         place="boarded"
         live
         pilotAbilities={['squeeze-it-in']}
+        activeEffects={['squeeze-it-in']}
         onToggleEffect={() => undefined}
       />
     )
@@ -295,6 +296,20 @@ describe('activated effects (ADR-029 §4)', () => {
       n.textContent?.startsWith('Squeeze it in: +4 Cargo Capacity · 1 AP. When activated')
     )
     expect(line).toBeTruthy()
+  })
+
+  test('a Pilot ability is an Effect only once used: unused, it stays the Pilot’s action (r8 A8)', () => {
+    render(
+      <PlayMechUnit
+        mech={magnetised}
+        place="boarded"
+        live
+        pilotAbilities={['squeeze-it-in']}
+        onToggleEffect={() => undefined}
+      />
+    )
+    expect(screen.queryByRole('button', { name: /Squeeze it in/ })).toBeNull()
+    expect(effect()).toBeTruthy()
   })
 
   test('an effect the seat has on reads pressed', () => {

@@ -22,7 +22,7 @@ import { expect, test } from './fixtures'
  * switch, Use an action from the list, Activate, Roll and Done in its row,
  * and the roll on the Feed. Once in a 1440 × 900 window, on the three columns,
  * and once on a 390 × 844 phone, where Board is a row in ⋯, the list is the
- * Act tab and the Feed is on Rolls. The page never
+ * Act tab and the Feed is its own tab. The page never
  * scrolls on the way, at 1440, 1024 and 390, and axe finds nothing there.
  *
  * ## The table
@@ -151,9 +151,11 @@ test('a boarded turn on a 390 × 844 phone: the Act tab, then Rolls', { tag: '@p
   // Boarded, the mech's vitals are pinned too.
   await expect(pinned.getByRole('button', { name: /^Scrapper SP / })).toBeVisible()
 
-  await tabs.getByRole('tab', { name: 'Rolls' }).click()
+  // The Feed is a tab of its own (r8 A5); the roll tables head Rules.
+  await tabs.getByRole('tab', { name: 'Feed' }).click()
   await expectOnFeed(page, action)
-  expect(await findSearchWidths(page), 'Rolls tab searches narrower than their line').toEqual([])
+  await tabs.getByRole('tab', { name: 'Rules' }).click()
+  expect(await findSearchWidths(page), 'Rules tab searches narrower than their line').toEqual([])
 
   // The tabs fit the screen: only the open pane scrolls.
   const { down, across } = await pageOverflow(page)

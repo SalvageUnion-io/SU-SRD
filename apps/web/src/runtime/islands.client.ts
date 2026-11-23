@@ -18,12 +18,16 @@ import { correctShortcutHints, isSearchShortcut } from '../lib/searchShortcut'
 import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { installTrustedTypesPolicy } from '../lib/trustedTypes'
+import { focusMarkedContent } from './focusMarked'
+import { isInstalledApp } from './installedApp'
 import { ISLAND_COMMIT } from './islandCommit'
 import { trackScrollbarWidth } from './scrollbarWidth'
 import { shrinkWrap } from './shrinkWrap'
 import { watchSlideshow } from './slideshow'
 import { whenShown } from './whenShown'
 
+// A page opened from search: the next Tab starts in its content, the page at its top (r8 G3).
+focusMarkedContent()
 // Browser error reporting to the Worker (production builds), from the single client entry.
 trackScrollbarWidth()
 initBrowserObservability()
@@ -127,11 +131,11 @@ whenShown(registerSiteWorker)
  * the page the reader actually asked for has been dealt with.
  *
  * Hung off `load` rather than `DOMContentLoaded`, so a background warm of every page can never compete with first paint or with
- * the interactive parts of the page. In a browser tab this costs one function
- * call and a `matchMedia` check — see `offlineWarm.client.ts` for why the guard
- * is the first thing it does.
+ * the interactive parts of the page. In a browser tab it costs a `matchMedia`
+ * check and nothing more: the warm's chunk loads only in an installed app.
  */
 function startOfflineWarm(): void {
+  if (!isInstalledApp()) return
   void import('./offlineWarm.client')
     .then((m) => m.warmOfflineCacheIfInstalled())
     .catch((error: unknown) => {

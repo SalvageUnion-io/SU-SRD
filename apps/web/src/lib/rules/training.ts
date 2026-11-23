@@ -42,7 +42,8 @@ export function abilityRequirementsUnmet(
  * bar it has not met (its tree's order, the Advanced or Legendary bar, the one
  * Legendary, the ability cap), else too few Training Points to pay. Null when
  * it can be learned now, is already learned, or no tree prices it. A reason,
- * never a gate: the trainer still adds it, for house rules.
+ * never a gate, but for Training Points from Play's Spend TP (r8 D4,
+ * `SPEND_TP_REFUSES_SHORT`), where only the rule-breaking add learns it.
  */
 export type NotYet =
   | { why: 'tree-order' | 'advanced' | 'legendary' | 'one-legendary' | 'cap' }

@@ -61,6 +61,7 @@ import {
   Pending,
   SlabSection,
   Stat,
+  Text,
   tokens,
 } from '../components/index'
 import { RoutePending } from '../components/shared/RouteFallbacks'
@@ -75,6 +76,8 @@ import { MEDIATORS_KIT_ANCHOR } from '../lib/games/gameRoster'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { playCopy } from '../messages/play'
+import { playGamesCopy } from '../messages/play-games'
+import { useEncounters } from '../replica/collections'
 import { useGameListing } from '../replica/gameListing'
 import type { GameCallResult } from '../replica/roomCalls'
 import { useGamesQuery, useViewerId } from '../replica/roomCalls'
@@ -261,6 +264,15 @@ type PlayLandingViewProps = {
 function PlayLandingView({ games, channels, connected = false }: PlayLandingViewProps) {
   // Your own: the replica also holds every crewmate's pilot, for Play (LG-01).
   const pilots = useOwnUnits('pilot')
+  // The Kit is a Mediator's (r8 C8, LG8-19): shown to whoever runs a table,
+  // and to anyone whose Kit already holds something, so nothing made is out of reach.
+  const npcs = useOwnUnits('npc')
+  const encounters = useEncounters((s) => s.encounters)
+  const showsKit =
+    connected &&
+    ((games ?? []).some((g) => g.mediator || g.tableRunner) ||
+      npcs.length > 0 ||
+      encounters.length > 0)
   const channelOf = new Map(
     (channels?.games ?? []).map((g) => [g.gameId, channelTag(g.binding)] as const)
   )
@@ -314,7 +326,13 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
         <YourPilots games={games} />
         {/* The Mediator's Kit lives with the tables
             it is for. */}
-        {connected && (
+        {/* A plain player's Kit is its one line, the sub-nav's target (r8 C8). */}
+        {connected && !showsKit && (
+          <SlabSection id={MEDIATORS_KIT_ANCHOR} as="h2" title={playCopy('mediatorsKit')}>
+            <Text variant="hint">{playGamesCopy('kitIsTheMediators')}</Text>
+          </SlabSection>
+        )}
+        {showsKit && (
           // A band with its title's cut-out, as Your Games wears.
           <SlabSection
             id={MEDIATORS_KIT_ANCHOR}
@@ -482,7 +500,8 @@ function PlayGameItem({
             pilots: vitals.pilots,
             mechs: vitals.mechs,
           },
-          viewerId
+          viewerId,
+          game.mediator || game.tableRunner
         )
       : []
   return (

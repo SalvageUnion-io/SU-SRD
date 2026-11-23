@@ -37,6 +37,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { ReactNode } from 'react'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { unitDisplayName } from '../../lib/entities/unitDisplayName'
 import {
   partnerDerivedStats,
   partnerTechLevel,
@@ -326,7 +327,7 @@ export function assignedUnitsFor(args: {
       units.push({
         key: place.many ? entity.id : kind,
         kind,
-        name: entity.name,
+        name: unitDisplayName(entity),
         readings: readingsOf(kind, entity, subject, composition),
         href: args.hrefFor(kind, entity.id),
         owner: args.ownerOf?.(kind, entity.id)?.label,

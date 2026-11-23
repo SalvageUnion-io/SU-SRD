@@ -390,7 +390,8 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
     const short = upkeep.spent ? 0 : upkeepShort(crawler)
     lines.push({
       key: 'upkeep',
-      title: 'Upkeep',
+      // The crawler it is paid from: its chip already says Upkeep (r8 D5).
+      title: crawler.name,
       chips: [
         {
           label: 'Upkeep',
@@ -481,6 +482,9 @@ export function carriedScrap(
 
 /** The Trade step's name in the Crawler Downtime guide (p.228). */
 const TRADE_STEP_NAME = 'Trade'
+
+/** Whether a step is Trade, whose roll the step itself offers (r8 D3). */
+export const isTradeStep = (stepName: string) => stepName === TRADE_STEP_NAME
 
 /**
  * Whether nobody at the table can act in a Game's step (r7 D3): Trade and

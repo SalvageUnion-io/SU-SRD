@@ -29,6 +29,7 @@ import { resolveSheetComposition } from '../build/sheet/composition.model'
 import { rollForTable } from '../components/index'
 import { useConfirm } from '../components/shared/useConfirm'
 import { buildCompanionActions, buildMechActions, buildPilotActions } from '../lib/rules/actionList'
+import { activatableEffects, effectUsed } from '../lib/rules/activatableEffects'
 import { playCopy } from '../messages/play'
 import { useUnits } from '../replica/units'
 import type { DeckRoll, ResolveModel } from './actionsDeck.model'
@@ -195,8 +196,20 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     crawler,
     situation,
     resolving,
-    onResolving: (next) =>
-      next === null ? play.seat.clearResolving() : play.seat.setResolving(next),
+    onResolving: (next) => {
+      if (next === null) return play.seat.clearResolving()
+      // A Pilot ability used while Boarded switches its effect on (r8 A8):
+      // the Mech's Effects list it once it is in force.
+      const used = effectUsed(
+        resolving,
+        next,
+        entries.flatMap((e) => (e.kind === 'action' && e.key === next.ref ? [e.action] : []))[0],
+        situation === 'boarded' && mech !== null ? activatableEffects(mech, pilot?.abilities) : [],
+        play.seat.seat.activeEffects
+      )
+      if (used !== null) play.seat.toggleEffect(used)
+      return play.seat.setResolving(next)
+    },
     held: play.seat.seat.held === true,
     store,
     rollFor: deckRoll,

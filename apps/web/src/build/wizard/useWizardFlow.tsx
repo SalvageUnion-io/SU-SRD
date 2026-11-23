@@ -27,6 +27,7 @@ import { startTransition, useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/index'
 import { focusHeadingOnArrival } from '../../lib/arrivalFocus'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { unitDisplayName } from '../../lib/entities/unitDisplayName'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import { draftExportBundle } from '../../lib/export/draftExport'
 import type { StepGateResult } from '../../lib/rules/creation'
@@ -262,7 +263,9 @@ export function useWizardFlow<
    * The build as a file, for a reader with no account (`draftExportBundle`):
    * validated as Save validates it, and the Training Bay's Import… reads it.
    */
-  const fileName = exportFileName(entityType, form.name.trim() || noun)
+  // A pilot's file and its Saved toast go by its callsign (r8 F1).
+  const shownName = unitDisplayName(form).trim() || noun
+  const fileName = exportFileName(entityType, shownName)
   function download(): boolean {
     if (entityType === 'npc') return false
     setInvalid(null)
@@ -292,7 +295,7 @@ export function useWizardFlow<
     }
     const result = await save.run()
     if (!result.ok || result.value === null) return
-    toast.success(buildWizardCopy('saved', { value: form.name.trim() || noun }))
+    toast.success(buildWizardCopy('saved', { value: shownName }))
     leaving.current.settled = true
     clearWizardDraft(draftKey)
     // What was made takes focus on its page's heading (r6 F7).

@@ -64,6 +64,10 @@ export type TrayWrites = {
     npc: TrayNpc,
     patch: { currentEp?: number; currentHeat?: number }
   ) => Promise<unknown>
+  /** What a limited action has spent of its Uses, by `usesKey` (r8 B3). */
+  setUses: (npc: TrayNpc, key: string, spent: number) => Promise<unknown>
+  /** The Titanic Actions a Bio-Titan has spent in `round` (r8 B3). */
+  setTitanic: (npc: TrayNpc, spent: number, round: number) => Promise<unknown>
   /** An important NPC's Critical roll at 0. */
   critical: (npc: TrayNpc) => Promise<unknown>
   /** An important mech's Heat Check. */

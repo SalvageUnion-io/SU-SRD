@@ -94,8 +94,9 @@ describe('PeekHost', () => {
     const peek = await screen.findByRole('tooltip')
     await waitFor(() => expect(peek.textContent).toContain('Integrated Cargo Bay'))
     expect(peek.textContent).not.toContain('MODS')
-    // A row is no sentence: its Peek hangs under it, focus's too.
-    expect(peek.getAttribute('data-side')).toBe('bottom')
+    // A row is no sentence: its Peek stands beside the list where there is
+    // room (here, a box with no width), else under the row, focus's too (RR8-11).
+    expect(peek.getAttribute('data-side')).toBe('right')
   })
 
   test('focus a pointer press gave does not open it: the press is a click', async () => {
@@ -106,6 +107,17 @@ describe('PeekHost', () => {
       link.focus()
     })
     // Give a wrongly-opened Peek the time it would take to appear.
+    await expect(screen.findByRole('tooltip', {}, { timeout: 400 })).rejects.toThrow()
+  })
+
+  test('focus handed back as Escape closes a dialog does not open it (r8 E10)', async () => {
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
+    const link = screen.getByRole('link', { name: 'Burn' })
+    act(() => {
+      // A dialog the label opened closes on Escape, and hands focus back to it.
+      fireEvent.keyDown(document.body, { key: 'Escape' })
+      link.focus()
+    })
     await expect(screen.findByRole('tooltip', {}, { timeout: 400 })).rejects.toThrow()
   })
 

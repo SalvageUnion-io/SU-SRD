@@ -72,7 +72,7 @@ import { overSlots, slotCount } from '../sheet/mechSlots.model'
 import { usePrinting } from '../sheet/printing.model'
 import { FoldEmptyRelated } from '../sheet/relatedUnitsFold.model'
 import { cargoBreakToast } from '../sheet/ruleBreakToast.model'
-import { SHEET_VITALS } from '../sheet/sheetVitals.model'
+import { SHEET_VITALS, vitalName } from '../sheet/sheetVitals.model'
 import { useShownSheet } from '../sheet/useShownSheet'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
@@ -127,6 +127,7 @@ function mechVitalRows({
             from,
             to: next,
             undo: (value) => actions.patchMech({ [field]: value }),
+            sheet: { id: mech.id, field },
           })
         }
       : undefined
@@ -144,7 +145,7 @@ function mechVitalRows({
     return {
       key,
       label: SHEET_VITALS[key].short,
-      name: SHEET_VITALS[key].label,
+      name: vitalName(key),
       value,
       max,
       ...(key === 'heat' && max > 0 ? { danger: heatDangerFrom(max) } : {}),
@@ -229,6 +230,7 @@ export function MechDash({
             from,
             to: from - ep,
             undo: (value) => actions.patchMech({ currentEP: value }),
+            sheet: { id: mech.id, field: 'currentEP' },
           })
         }
       : undefined

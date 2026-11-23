@@ -5,10 +5,15 @@
  * the paper ground of a step still to do (r4 A6).
  * The player's Downtime column and the Mediator's centre both draw it.
  *
+ * A step the table jumped over, never on it, reads skipped too, never done
+ * (r8 B9, SB8-16): the track remembers each jump it sees, until the step is
+ * stood on.
+ *
  * With `onStep` (solo, or the Game's Mediator) a step is a button that puts
  * the Downtime on it; without, the track only shows where the table is.
  */
 
+import { useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
 import { TrackStep } from '../components/app'
 import { playCopy } from '../messages/play'
@@ -32,10 +37,22 @@ export function PlayDowntimeTrack({
   canWrite,
   skipped = [],
 }: PlayDowntimeTrackProps) {
+  const [seen, setSeen] = useState({ at: current, jumped: [] as readonly number[] })
+  if (seen.at !== current) {
+    const over =
+      current > seen.at + 1
+        ? Array.from({ length: current - seen.at - 1 }, (_, i) => seen.at + 1 + i)
+        : []
+    setSeen({
+      at: current,
+      jumped: [...seen.jumped.filter((i) => i !== current), ...over],
+    })
+  }
+  const passedOver = new Set([...skipped, ...seen.jumped])
   return (
     <ol className="su-play-dt-track" aria-label={playCopy('downtimeSteps')}>
       {steps.map((s, i) => {
-        const missed = i < current && skipped.includes(i)
+        const missed = i < current && passedOver.has(i)
         const label = `Step ${i + 1}: ${s.name}${missed ? ', skipped' : i < current ? ', done' : ''}`
         const state = missed ? 'skipped' : i < current ? 'past' : i === current ? 'now' : 'next'
         return (

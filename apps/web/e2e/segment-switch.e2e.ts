@@ -18,7 +18,7 @@ import { expect, test } from './fixtures'
  */
 test.describe('wired sheet segment switch', () => {
   test.beforeEach(async ({ page }) => {
-    await buildPilot(page, 'Mara Vex', 'Wrench')
+    await buildPilot(page, 'Wrench', 'Mara Vex')
     await buildMech(page, 'Stomper')
     await openSheetFor(page, 'Stomper')
     await assignPilotOnMechSheet(page, 'Mara Vex')

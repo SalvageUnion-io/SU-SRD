@@ -131,6 +131,25 @@ export function copyForShelf(
   return copy
 }
 
+/** What a Mech's play has done to it: a copy starts without it (r8 E5). */
+const PLAYED_MECH_FIELDS = [
+  'currentSP',
+  'currentEP',
+  'currentHeat',
+  'systemConditions',
+  'moduleConditions',
+] as const
+
+/**
+ * A Mech's copy starts fresh, as Build With This makes one (r8 E5):
+ * undamaged, its EP full, at 0 Heat, with no conditions. The build stays.
+ */
+export function freshMechCopy(copy: CopyableBody): CopyableBody {
+  const fresh: CopyableBody = { ...copy, conditions: [] }
+  for (const field of PLAYED_MECH_FIELDS) delete fresh[field]
+  return fresh
+}
+
 /**
  * A copy that stays where its original is (MD3-12): an NPC kept in a Game is
  * prepared for that Game, so its copy is too, on the Game's Prep at once.

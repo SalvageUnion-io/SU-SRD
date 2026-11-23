@@ -14,6 +14,7 @@ import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { toast, tokens } from '../components/index'
 import { componentsCopy } from '../messages/components'
+import { stepBackOr } from './sheetHistory'
 
 /** One number a line moves: its name, the value just before the change, and now. */
 export type UndoChange = { key: string; label: string; from: number; to: number }
@@ -70,6 +71,7 @@ export function changeUndoToast({
   to,
   undo,
   did,
+  sheet,
 }: {
   /** The number's own key (`mech:<id>:currentEP`): one line a number. */
   id: string
@@ -81,12 +83,15 @@ export function changeUndoToast({
   undo: (value: number) => void
   /** What made the change, said first: "Used Squeeze It In". */
   did?: string
+  /** The sheet the number is on, and its stored field: Undo steps its history (r8 E1). */
+  sheet?: { id: string; field: string }
 }) {
   changesUndoToast({
     id,
     did,
     changes: [{ key: 'value', label, from, to }],
     undo: (start) => undo(start.value ?? from),
+    ...(sheet && { sheet: { id: sheet.id, fields: { value: sheet.field } } }),
   })
 }
 
@@ -100,12 +105,19 @@ export function changesUndoToast({
   did,
   changes,
   undo,
+  sheet,
 }: {
   id: string
   did?: string
   changes: UndoChange[]
   /** Writes back each number as it was before the change, by its key. */
   undo: (start: Record<string, number>) => void
+  /**
+   * The sheet the change is on, and each number's stored field by its key:
+   * Undo then steps the change back through that sheet's history, as its ⋯
+   * menu does, and writes the values back only where it cannot (r8 E1).
+   */
+  sheet?: { id: string; fields: Record<string, string> }
 }) {
   const moved = changes.filter((c) => c.from !== c.to)
   if (moved.length === 0) return
@@ -134,7 +146,14 @@ export function changesUndoToast({
         label: componentsCopy('undo'),
         onClick: () => {
           open.delete(id)
-          undo(start)
+          const marks = sheet
+            ? moved.flatMap((c) => {
+                const field = sheet.fields[c.key]
+                return field === undefined ? [] : [{ field, to: c.to }]
+              })
+            : []
+          if (sheet) stepBackOr(sheet.id, marks, () => undo(start))
+          else undo(start)
           if (lastUsed instanceof HTMLElement && lastUsed.isConnected) lastUsed.focus()
         },
       },

@@ -24,6 +24,7 @@ import {
   matchSearchTokens,
   SEARCH_NAMES_IT,
   scoreSearchMatch,
+  searchKindQuery,
   searchNamesTerm,
   searchNameWords,
   searchTermScore,
@@ -96,6 +97,19 @@ export function searchCompactIndex(
       matchScore: score,
       ...(entry.pattern ? { pattern: entry.pattern } : {}),
     })
+  }
+
+  // "engineer class": the Engineer of the Classes listing, ranked as its name (r8 G1).
+  const kind = searchKindQuery(parsed)
+  if (kind && (!schemasToSearch || schemasToSearch.has(kind.schemaName))) {
+    for (const hit of searchCompactIndex(index, {
+      query: kind.query,
+      schemas: [kind.schemaName],
+    })) {
+      const found = results.find((result) => result.entityId === hit.entityId)
+      if (found) found.matchScore = Math.max(found.matchScore, hit.matchScore)
+      else results.push(hit)
+    }
   }
 
   // Nothing names the query: a rules term inside it leads (r7 E1).

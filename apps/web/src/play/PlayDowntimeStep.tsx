@@ -42,7 +42,7 @@ import {
   isSeatFreeStep,
   isTallyStep,
 } from 'game-domain/rules/downtime'
-import { useId, useState } from 'react'
+import { lazy, Suspense, useId, useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
 import { ConfirmDialog } from '../components/app'
 import {
@@ -65,10 +65,11 @@ import { playDowntimeCopy } from '../messages/play-downtime'
 import { PLAY_UNDO } from '../replica/provenance'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import { DOWNTIME_FORWARD } from './downtimeRulings.model'
-import type { PlanLine } from './playDowntime.model'
+import type { PlanChip, PlanLine } from './playDowntime.model'
 import {
   carriedScrap,
   healAgainPatch,
+  isTradeStep,
   mechBayOf,
   medBayOf,
   restoreAgainLine,
@@ -84,6 +85,11 @@ import { payDowntimeUpkeep } from './playUpkeep.model'
 import type { Play } from './situation.model'
 import { makeCrawlerHref } from './units.model'
 import type { PlayActions } from './usePlayActions'
+
+/** The Trade step's roll and wares, loaded once the step is up (the sheet route's bundle budget). */
+const TradeStepBay = lazy(() =>
+  import('./PlayDowntimeCraftTrade').then((m) => ({ default: m.TradeStepBay }))
+)
 
 /** A line's title is a caps label; its weight is the `strong`'s. */
 const LINE_LABEL = cn('su-play-dt-line__label', capsLabel({ weight: 'inherit' }))
@@ -141,15 +147,25 @@ export function PlayDowntimeStep({
   const seatFree = inGame && isSeatFreeStep(stepIndex)
   // Tally Salvage: the Scrap this pilot carries home, one press into the crawler (r6 D1).
   const carried = isTallyStep(stepIndex) ? carriedScrap(pilot, mech) : null
-  const canMove = carried !== null && crawler !== null && downtime.moveScrap !== null
-  // Nothing carried: one line says so, never the book's paper-sheet paragraphs (r7 D3).
-  const nothingToTally = isTallyStep(stepIndex) && pilot !== null && carried === null
+  // What this press moved, by Tech Level, and into whose pool (r8 D2).
+  const [moved, setMoved] = useState<{ chips: PlanChip[]; crawler: string } | null>(null)
+  const canMove =
+    moved === null && carried !== null && crawler !== null && downtime.moveScrap !== null
+  // Nothing carried: never the book's paper-sheet paragraphs (r7 D3); one
+  // line says so until the step is taken, never once the Scrap has moved (r8 D2).
+  const tallyEmpty = isTallyStep(stepIndex) && pilot !== null && carried === null
   const members = downtime.downtime.members
   const doneCount = downtime.downtime.completedBy.filter((m) =>
     members.some((member) => member.userId === m.userId)
   ).length
   // This pilot's step is taken (applied, skipped or marked done): never offered again this Downtime.
   const claimed = claimedHere || (downtime.doneSteps?.includes(stepIndex) ?? false)
+  const nothingToTally = tallyEmpty && moved === null && !claimed
+  // Trade solo: the roll the step names is offered here (r8 D3); in a Game
+  // the Mediator rolls it (p.223). With no crawler, what one adds, and the way to one.
+  const trade = isTradeStep(step.name) && !inGame && pilot !== null
+  const tradeHere = trade && crawler !== null ? crawler : null
+  const tradeNeedsCrawler = trade && crawler === null
   // Taken, a line that states a change (`steps`) is the one made; a line that
   // reads a state (Upkeep, Nanites) stays live.
   // Restore taken with no Med Bay: why the HP stays, and solo, once a crawler
@@ -246,7 +262,7 @@ export function PlayDowntimeStep({
     recordPlayChange(
       `${step.name} · ${playCopy('movedScrapTo', { count: carried.count, crawler: crawler.name })}`
     )
-    setNote(playCopy('movedScrapTo', { count: carried.count, crawler: crawler.name }))
+    setMoved({ chips: carried.chips, crawler: crawler.name })
   }
 
   /** Pay this Downtime's Upkeep (`payDowntimeUpkeep`). */
@@ -354,30 +370,49 @@ export function PlayDowntimeStep({
   return (
     <TitledBox title={step.name} as="section" chips={chip}>
       {lead && <p className="su-play-act__need">{lead}</p>}
-      {carried !== null && pilot !== null && (
-        <ul className="su-play-dt-lines" aria-label={playCopy('carriedScrap')}>
+      {moved !== null ? (
+        <ul className="su-play-dt-lines" aria-label={playDowntimeCopy('scrapMoved')}>
           <PlanLineItem
             line={{
               key: 'scrap',
-              title: playCopy('carriedScrap'),
-              chips: carried.chips,
+              title: playDowntimeCopy('intoScrapPool', { crawler: moved.crawler }),
+              chips: moved.chips,
               steps: [],
               skippable: false,
-              ...(crawler === null
-                ? { note: playCopy('scrapNeedsACrawler'), needsCrawler: true }
-                : {}),
             }}
             ticked
             onToggle={() => undefined}
             disabled
-            crawlerHref={inGame ? null : makeCrawlerHref(pilot.id)}
+            crawlerHref={null}
           />
         </ul>
+      ) : (
+        carried !== null &&
+        pilot !== null && (
+          <ul className="su-play-dt-lines" aria-label={playCopy('carriedScrap')}>
+            <PlanLineItem
+              line={{
+                key: 'scrap',
+                title: playCopy('carriedScrap'),
+                chips: carried.chips,
+                steps: [],
+                skippable: false,
+                ...(crawler === null
+                  ? { note: playCopy('scrapNeedsACrawler'), needsCrawler: true }
+                  : {}),
+              }}
+              ticked
+              onToggle={() => undefined}
+              disabled
+              crawlerHref={inGame ? null : makeCrawlerHref(pilot.id)}
+            />
+          </ul>
+        )
       )}
       {nothingToTally && (
         <p className="su-play-resolve__note">{playDowntimeCopy('nothingToTally')}</p>
       )}
-      {carried !== null || nothingToTally ? null : shown.length > 0 ? (
+      {carried !== null || tallyEmpty ? null : shown.length > 0 ? (
         <>
           {/* The ticks the words promise: said only where a line has one (r6 D2). */}
           {!claimed && applicable.length > 0 && (
@@ -396,6 +431,22 @@ export function PlayDowntimeStep({
             ))}
           </ul>
         </>
+      ) : tradeHere !== null ? (
+        <Suspense fallback={null}>
+          <TradeStepBay
+            crawler={tradeHere}
+            store={store}
+            rollFor={actions.rollFor}
+            canWrite={play.canWrite}
+          />
+        </Suspense>
+      ) : tradeNeedsCrawler ? (
+        <div className="su-play-resolve">
+          <p className="su-play-act__need">{playDowntimeCopy('tradeNeedsACrawler')}</p>
+          <Button size="mini" href={makeCrawlerHref(pilot?.id ?? null)}>
+            {playCopy('makeAUnionCrawler')}
+          </Button>
+        </div>
       ) : step.content && step.content.length > 0 ? (
         <>
           {lead && <p className={GENERAL_RULE}>{playCopy('generalRule')}</p>}

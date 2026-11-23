@@ -76,6 +76,8 @@ const TRAY_PATCH = z.object({
   currentEp: z.number().optional(),
   currentHeat: z.number().optional(),
   lastImportantRoll: z.unknown().optional(),
+  usesSpent: z.record(z.string(), z.number()).optional(),
+  titanicSpent: z.unknown().optional(),
 })
 
 const SEAT = z.object({ pilotId: z.string() })
@@ -95,7 +97,8 @@ const SEAT_ACTS = {
 const PLACE = z.object({ pilotId: z.string().optional() })
 const DOWNTIME_ACTS = {
   'downtime.begin': PLACE,
-  'downtime.advance': PLACE,
+  // `auto`: the Mediator's screen passing a step nobody can act in (r7 D3), said as that (r8 A4).
+  'downtime.advance': PLACE.extend({ auto: z.boolean().optional() }),
   'downtime.setStep': PLACE.extend({ stepIndex: z.number() }),
   'downtime.end': PLACE,
   'downtime.claim': PLACE.extend({ claim: z.enum(['upkeep', 'nanites']), op: OpInputSchema }),
@@ -138,7 +141,15 @@ export const GAME_SOCKET_ACTS = {
   'safety.showStop': NONE,
   'safety.liftStop': NONE,
   'session.start': NONE,
-  'session.end': NONE,
+  /** The day by the Mediator's clock, for the plan it marks played (r8 B8). */
+  'session.end': z
+    .object({
+      day: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
+    })
+    .optional(),
 
   ...SEAT_ACTS,
   ...DOWNTIME_ACTS,

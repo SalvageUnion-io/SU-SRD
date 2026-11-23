@@ -27,6 +27,7 @@ import { RollTheRest } from '../wizard/RollTheRest'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { RollTableDeps } from '../wizard/rollTableHelpers.model'
+import { SkipToNext } from '../wizard/SkipToNext'
 import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizTracker } from '../wizard/WizBudget'
@@ -440,6 +441,8 @@ export function PilotWizard({
         // required (r7 F7); Roll the rest fills every empty field at once.
         <>
           <RollTheRest values={form} onRolled={updateForm} _rollDeps={_rollDeps} />
+          {/* Past the six fields and their Rolls to Next, as steps 1 and 2 (r8 F4). */}
+          <SkipToNext />
           <div className="su-wiz-parts">
             <div className="su-wiz-parts__col">
               {part(

@@ -40,7 +40,7 @@ describe('wizardDraftSummary', () => {
       { kind: 'mech', label: 'Old Faithful' },
     ])
     keep('pilot', { ...EMPTY_PILOT_FORM_STATE, callsign: 'Sparks', name: 'Mara Quill' })
-    expect(wizardDraftSummary('pilot')?.label).toBe('Sparks · Mara Quill')
+    expect(wizardDraftSummary('pilot')?.label).toBe('Sparks')
   })
 
   test('a draft with no pick and no name yet is its bare kind', () => {

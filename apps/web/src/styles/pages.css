@@ -610,6 +610,31 @@ html[data-srd-signed-in] .su-mediator-acts {
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-tight);
+  white-space: nowrap;
+}
+
+/* The count stands at the far end of the controls' last line (r8 owner
+   review): it changes with each filter, and nothing after it moves. */
+.su-rail > .su-rail__tally {
+  margin-inline-start: auto;
+}
+
+/* One voice across the rail's controls: every label the menus' size, the
+   Tech Level numerals too, so the strip reads as a filter and never as a
+   pager. */
+.su-rail :is(.su-seg__option, .su-rail__stamp, button[aria-pressed]) {
+  font-size: var(--text-body);
+  letter-spacing: var(--tracking-caps-tight);
+}
+
+/* The stamp parts from a pressed All by a paper rule, as a card's `[TL | 2]` does. */
+.su-rail__stamp {
+  border-inline-end: var(--bw-chrome) solid var(--color-paper);
+}
+
+.su-rail .su-seg__option[data-numeral] {
+  font-variant-numeric: tabular-nums;
+  min-width: var(--size-full);
 }
 
 /* Phone: search takes the row, then Filters and the view toggle; the facets open beneath. */
@@ -646,6 +671,33 @@ html[data-srd-signed-in] .su-mediator-acts {
   .su-rail[data-open] .su-rail__menu {
     max-width: none;
     width: 100%;
+  }
+
+  /* Open, each line of the panel is filled: its controls share the line, and
+     a wrapped Tech Level row's options share theirs, so no line ends short. */
+  .su-rail[data-open] .su-rail__facets > *,
+  .su-rail[data-open] .su-seg[data-wrap] > .su-seg__option {
+    flex: 1 1 auto;
+  }
+
+  /* One line of controls: the name filter folds behind Filters with the
+     facets, so the list starts on the first screen and the Union bar's is
+     the one search in view (RR8-09, r8 G4). */
+  .su-rail:has(> .su-rail__filters):not([data-open]) > .su-rail__search {
+    display: none;
+  }
+
+  /* Filters leads, so the name filter opening under it moves nothing above (K17);
+     the count shares its line, at its end. */
+  .su-rail > :is(.su-rail__filters, .su-rail__tally) {
+    order: -1;
+  }
+
+  /* As wide as its widest count, so a filter changing it never narrows
+     Filters beside it (K17). */
+  .su-rail > .su-rail__tally {
+    min-inline-size: 10ch;
+    text-align: end;
   }
 }
 

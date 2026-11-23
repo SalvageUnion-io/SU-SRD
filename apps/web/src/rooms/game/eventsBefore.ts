@@ -31,8 +31,40 @@ export type EventsBefore = {
   upNow?: string | null
   /** Whether an area with Supply left stood to salvage: setting another says nothing new (r6 D3). */
   area?: boolean
+  /** A tray NPC's name and HP before the Mediator changed it (r8 A3). */
+  npc?: { name: string; hp: number | null } | null
   /** The resolves nobody applied that the act may close (r5 A7). */
   unapplied?: { pilotId: string; name: string; owes: boolean }[]
+  /** Whether an encounter, or Group Initiative, was running: ending none says nothing (r8 B10). */
+  fight?: boolean
+}
+
+/** What of a seat's resolve says how far it got. */
+type Resolving = { activated?: unknown; roll?: unknown; salvage?: unknown; applied?: unknown }
+
+/** Whether a seat's resolve has got anywhere: paid, rolled or applied (r8 A7). */
+export function resolvingDone(resolving: Resolving | null | undefined): boolean {
+  if (resolving == null) return false
+  return (
+    resolving.activated === true ||
+    resolving.roll != null ||
+    resolving.salvage != null ||
+    resolving.applied === true
+  )
+}
+
+/** A tray NPC's name and HP as the room keeps them; null when it is not on the tray. */
+export function trayNpc(
+  store: GameStore,
+  npcId: string
+): { name: string; hp: number | null } | null {
+  const row = store.rows('select body from tray where id = ?', npcId)[0]
+  if (row === undefined) return null
+  const body = JSON.parse(String(row.body)) as { name?: unknown; currentHp?: unknown }
+  return {
+    name: typeof body.name === 'string' ? body.name : 'An NPC',
+    hp: typeof body.currentHp === 'number' ? body.currentHp : null,
+  }
 }
 
 /** What `after` needs from before the act ran. */
@@ -54,10 +86,13 @@ function beforeAct(store: GameStore, name: GameActName, args: unknown): EventsBe
       const row = store.rows('select resolving from seats where pilot_id = ?', String(a.pilotId))[0]
       const resolving =
         typeof row?.resolving === 'string'
-          ? (JSON.parse(row.resolving) as { name?: string } | null)
+          ? (JSON.parse(row.resolving) as Resolving & { name?: string })
           : null
-      return { resolving: resolving?.name ?? null }
+      // Its use is said once it got anywhere (r8 A7): until then it is not yet said.
+      return { resolving: resolvingDone(resolving) ? (resolving?.name ?? null) : null }
     }
+    case 'mediator.updateNpc':
+      return { npc: trayNpc(store, String(a.npcId)) }
     case 'seats.toggleEffect': {
       const row = store.rows('select * from seats where pilot_id = ?', String(a.pilotId))[0]
       return {
@@ -81,6 +116,12 @@ function beforeAct(store: GameStore, name: GameActName, args: unknown): EventsBe
     case 'downtime.advance':
     case 'downtime.setStep':
       return { downtimeStep: downtimeStepNow(store) }
+    case 'mediator.endEncounter':
+      return { fight: store.rows('select 1 from running_encounter').length > 0 }
+    case 'mediator.setInitiative': {
+      const row = store.rows("select after from change_log where field = 'initiative'")[0]
+      return { fight: typeof row?.after === 'string' && JSON.parse(row.after) !== null }
+    }
     case 'salvageAreas.set':
       return { area: store.rows('select 1 from salvage_area where supply > 0').length > 0 }
     case 'downtime.begin':

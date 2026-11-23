@@ -7,6 +7,7 @@
 
 import { toast } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
+import { todayDay } from '../lib/formatDate'
 import { playCopy } from '../messages/play'
 import { readsHeld, useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
@@ -52,7 +53,8 @@ export function useGameSession(gameId: string | null): GameSession | null {
       }
       return result.ok
     },
-    end: async () => (await end.run({})).ok,
+    // The day by this clock: the room marks the plan played on it (r8 B8).
+    end: async () => (await end.run({ day: todayDay() })).ok,
     pending: start.pending || end.pending,
     gameId,
   }

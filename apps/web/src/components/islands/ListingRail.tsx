@@ -201,7 +201,9 @@ export function ListingRail({
   if (part === 'view' && !showView) return null
   if (part === 'filters' && !hasNameFilter && !hasFacets && !status) return null
   const hasStatus = showFilters && (hasToolbar || Boolean(status))
+  // The name filter folds behind Filters on a phone (r8 G4): it counts there too.
   const activeFacets =
+    (filters.name ? 1 : 0) +
     filters.techLevels.size +
     (filters.source ? 1 : 0) +
     (filters.tree ? 1 : 0) +
@@ -387,14 +389,16 @@ export function ListingRail({
         </div>
       )}
       {hasStatus && (
-        // The count, then what is filtered: one line under every control,
-        // there filtered or not, so a filter changes the list alone.
-        <output className="su-rail__status" aria-live="polite">
-          <span className="su-rail__tally">
-            {islandsCopy('of', { count: shown, count2: count })}
-          </span>
-          {status}
+        // The count at the far end of the controls' last line (r8 owner review):
+        // it changes with every filter, and nothing stands after it to move.
+        <output className="su-rail__tally" aria-live="polite">
+          {islandsCopy('of', { count: shown, count2: count })}
         </output>
+      )}
+      {hasStatus && (
+        // What is filtered: one line under every control, there filtered or
+        // not, so a filter changes the list alone (K17).
+        <div className="su-rail__status">{status}</div>
       )}
     </div>
   )

@@ -23,6 +23,14 @@ export type SessionRead = { live: boolean; startedAt: number | null }
  */
 export const PLAY_STARTS_SESSION: 'auto' | 'manual' = 'auto'
 
+/**
+ * The owner's ruling on a forgotten session (r8 B12, MD8-24): a group
+ * session with no play for this long ends itself on the room's next touch
+ * (`GameRoomLogic.endIdleSession`), and the Feed says so; null, never. Play
+ * is the newest line on the table's log, or the start. The one place it is kept.
+ */
+export const SESSION_ENDS_IDLE_MS: number | null = 12 * 60 * 60 * 1000
+
 /** The table acts that start the group session under `'auto'`. */
 export const STARTS_THE_SESSION = [
   'mediator.runEncounter',
@@ -79,6 +87,19 @@ export class GameSession {
       this.store.requireTableRunner(actor)
       this.store.rows('delete from session where id = 1')
     })
+  }
+
+  /** When the live session was last played in: its start or the table's newest line, else null. */
+  lastPlayed(): number | null {
+    const startedAt = this.startedAt()
+    if (startedAt === null) return null
+    const newest = this.store.rows('select max(ts) as ts from change_log')[0]?.ts
+    return Math.max(startedAt, newest == null ? 0 : Number(newest))
+  }
+
+  /** The room ends it, when nobody played for `SESSION_ENDS_IDLE_MS` (no member's act). */
+  endIdle(): void {
+    this.store.rows('delete from session where id = 1')
   }
 
   private startedAt(): number | null {

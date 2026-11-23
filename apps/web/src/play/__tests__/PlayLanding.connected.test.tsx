@@ -380,11 +380,11 @@ describe('the Play landing', () => {
     expect(wren.getAttribute('href')).toBe('/pilots/land-wren/play')
     expect(wren.textContent).toBe('Play solo')
     expect(pilots.getByRole('link', { name: 'Play solo as Kestrel' })).toBeTruthy()
-    // Callsign first, then the name; the door takes the callsign.
-    const rook = pilots.getByRole('link', { name: 'CASTLE · Rook' }).closest('tr') as HTMLElement
-    expect(
-      within(rook).getByRole('link', { name: 'Open table as CASTLE · Rook' }).textContent
-    ).toBe('Open table')
+    // A pilot goes by its callsign, its line and its door alike (r8 F1).
+    const rook = pilots.getByRole('link', { name: 'CASTLE' }).closest('tr') as HTMLElement
+    expect(within(rook).getByRole('link', { name: 'Open table as CASTLE' }).textContent).toBe(
+      'Open table'
+    )
     // The mech a pilot flies rides its line.
     const row = pilots.getByRole('link', { name: 'Wren' }).closest('tr') as HTMLElement
     expect(within(row).getByRole('link', { name: 'Scrapper' })).toBeTruthy()
@@ -456,6 +456,19 @@ describe('the Play landing', () => {
     } finally {
       assign.mockRestore()
     }
+  })
+
+  // r8 C8 (LG8-19): the Kit is a Mediator's.
+  test('the Mediator’s Kit shows to whoever runs a table; a plain player reads one line', async () => {
+    answerReads({ 'games.listMine': [TENACITY], ...QUIET })
+    await renderAs('live')
+    expect(screen.getByText(/Start a Game as its Mediator/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '+ New encounter' })).toBeNull()
+    cleanup()
+    answerReads({ 'games.listMine': [TENACITY, WASTES], ...QUIET })
+    await renderAs('live')
+    expect(screen.queryByText(/Start a Game as its Mediator/)).toBeNull()
+    expect(screen.getByRole('button', { name: '+ New encounter' })).toBeTruthy()
   })
 
   test('a Game’s channel is a chip on its card; there is no Discord section', async () => {

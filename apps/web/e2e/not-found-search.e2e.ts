@@ -27,11 +27,12 @@ test('the bar search opens a reference page in the same tab', async ({ page, con
   const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
   await search.click()
   await search.fill('Mule')
-  // A result opens at its content (RR7-09).
-  const result = page.locator('[role="option"][href="/chassis/mule/#main-content"]')
+  // A result opens at its top, its address clean, the next Tab in its content (r8 G3).
+  const result = page.locator('[role="option"][href="/chassis/mule/"]')
   await expect(result).toBeVisible()
 
   await result.click()
-  await expect(page).toHaveURL(/\/chassis\/mule\/#main-content$/)
+  await expect(page).toHaveURL(/\/chassis\/mule\/$/)
+  await expect(page.locator('#main-content')).toBeFocused()
   expect(context.pages()).toHaveLength(1)
 })

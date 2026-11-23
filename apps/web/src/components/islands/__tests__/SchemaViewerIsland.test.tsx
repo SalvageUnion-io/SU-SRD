@@ -531,21 +531,23 @@ describe('SchemaViewerIsland', () => {
       )
     })
 
-    it('keeps its count line, filtered or not; a removable token only while a filter is on (K17)', () => {
+    it('keeps its count and status line, filtered or not; a removable token only while a filter is on (K17)', () => {
       const { container } = renderChassis()
       const all = chassisEntities().length
+      const tally = () => container.querySelector('.su-rail__tally')?.textContent
       const status = required(container.querySelector('.su-rail__status'), 'the status line')
-      expect(status.textContent).toBe(`${all} of ${all}`)
+      expect(tally()).toBe(`${all} of ${all}`)
+      expect(status.textContent).toBe('')
       fireEvent.click(screen.getByRole('button', { name: 'Tech Level 2' }))
       const matching = chassisEntities().filter((e) => getTechLevel(e) === 2)
-      expect(container.querySelector('.su-rail__status')?.textContent).toContain(
-        `${matching.length} of ${all}`
-      )
+      expect(tally()).toBe(`${matching.length} of ${all}`)
+      expect(container.querySelector('.su-rail__status')?.textContent).toContain('TL 2')
       expect(container.querySelectorAll('tbody:not(.su-ledger__sizer) > tr').length).toBe(
         matching.length
       )
       fireEvent.click(screen.getByRole('button', { name: 'Remove Tech Level 2' }))
-      expect(container.querySelector('.su-rail__status')?.textContent).toBe(`${all} of ${all}`)
+      expect(tally()).toBe(`${all} of ${all}`)
+      expect(container.querySelector('.su-rail__status')?.textContent).toBe('')
     })
 
     it(

@@ -11,6 +11,8 @@
  *    its Tech Level or higher from the pool, then mounts it on the mech or
  *    stores it in the hold, and lands on the Feed. Short, it says how much is
  *    missing and spends nothing.
+ *  - **Scrap Pool** heads it (r8 D1): the crawler's Scrap by Tech Level, and a
+ *    Craft or Buy the pool cannot pay is off, saying how much is short.
  *  - **Trading Bay** (r6 D6, p.223): the availability roll picks the wares at
  *    random at the rolled Tech Level, each with Choose instead and a Buy that
  *    spends the Scrap and stores it; Trade Scrap opens the fixed-rate exchange
@@ -41,6 +43,7 @@ import type { Crafted, Ware } from './craftTrade.model'
 import {
   craftUpdates,
   findCraftables,
+  shortOf,
   spendFor,
   storePatch,
   TRADING_BAY_TABLE,
@@ -49,6 +52,9 @@ import {
   waresAt,
 } from './craftTrade.model'
 import { recordPlayChange } from './playRolls.model'
+import { poolChips } from './scrapPool.model'
+import type { TradeRoll } from './tradeRoll.model'
+import { useTradeRolls } from './tradeRoll.model'
 import { useOpenSheet } from './useOpenSheet'
 import type { PlayActions } from './usePlayActions'
 
@@ -72,11 +78,10 @@ export function PlayDowntimeCraftTrade({
   onClose,
 }: Props) {
   const setSheet = useOpenSheet()
-  const [exchange, setExchange] = useState(false)
   const crafting = bayGate(crawler, 'crafting-bay')
-  const trading = bayGate(crawler, 'trading-bay')
   return (
     <div className="su-play-resolve">
+      <ScrapPoolLine crawler={crawler} />
       <p>
         <Button
           size="mini"
@@ -103,24 +108,77 @@ export function PlayDowntimeCraftTrade({
         <CraftingBay crawler={crawler} mech={mech} store={store} canWrite={canWrite} />
       )}
       <p className={HEAD}>{playCopy('tradingBay')}</p>
-      {trading.damaged ? (
-        <p className="su-play-act__need">{playCopy('tradingBayDamaged')}</p>
-      ) : (
-        <>
-          <TradingBay crawler={crawler} store={store} rollFor={rollFor} canWrite={canWrite} />
-          <Button size="mini" disabled={!canWrite} onClick={() => setExchange(true)}>
-            {playCopy('tradeScrap')}
-          </Button>
-          <CrawlerEconomyControl
-            crawler={crawler}
-            store={useUnits}
-            open={exchange ? 'trade' : null}
-            onClose={() => setExchange(false)}
-          />
-        </>
-      )}
+      <TradingBaySection crawler={crawler} store={store} rollFor={rollFor} canWrite={canWrite} />
     </div>
   )
+}
+
+type TradeProps = Pick<Props, 'crawler' | 'store' | 'rollFor' | 'canWrite'>
+
+/**
+ * The Trade step's body, solo with a crawler (r8 D3, SB8-09): the roll the
+ * step names, here where it is named, with the Scrap Pool it spends from. The
+ * roll is the one Craft · Trade shows (`tradeRoll.model.ts`), so it is made once.
+ */
+export function TradeStepBay(props: TradeProps) {
+  return (
+    <div className="su-play-resolve">
+      <ScrapPoolLine crawler={props.crawler} />
+      <TradingBaySection {...props} />
+    </div>
+  )
+}
+
+/** The Trading Bay: its roll and wares, then Trade Scrap; damaged, why not (p.223). */
+function TradingBaySection({ crawler, store, rollFor, canWrite }: TradeProps) {
+  const [exchange, setExchange] = useState(false)
+  if (bayGate(crawler, 'trading-bay').damaged)
+    return <p className="su-play-act__need">{playCopy('tradingBayDamaged')}</p>
+  return (
+    <>
+      <TradingBay crawler={crawler} store={store} rollFor={rollFor} canWrite={canWrite} />
+      <Button size="mini" disabled={!canWrite} onClick={() => setExchange(true)}>
+        {playCopy('tradeScrap')}
+      </Button>
+      <CrawlerEconomyControl
+        crawler={crawler}
+        store={useUnits}
+        open={exchange ? 'trade' : null}
+        onClose={() => setExchange(false)}
+      />
+    </>
+  )
+}
+
+/**
+ * The panel's head: the crawler's Scrap Pool by Tech Level, so every price
+ * below is read against it (r8 D1, SB8-10).
+ */
+function ScrapPoolLine({ crawler }: { crawler: Crawler }) {
+  const chips = poolChips(crawler.scrapPool)
+  return (
+    <ul className="su-play-dt-lines" aria-label={playDowntimeCopy('scrapPool')}>
+      <li className="su-play-dt-line">
+        <strong className="su-play-dt-line__label">{playDowntimeCopy('scrapPool')}</strong>
+        <span className="su-play-dt-line__chips">
+          {chips.length === 0 ? (
+            <Stat size="mini" label={playDowntimeCopy('scrapPoolNone')} />
+          ) : (
+            chips.map((chip) => (
+              <Stat key={chip.label} size="mini" label={chip.label} value={chip.value} />
+            ))
+          )}
+        </span>
+      </li>
+    </ul>
+  )
+}
+
+/** A price the pool cannot pay: the press is off and this says why (r8 D1). */
+function ShortNeed({ short, tl }: { short: number; tl: number }) {
+  return short > 0 ? (
+    <span className="su-play-act__need">{playDowntimeCopy('shortOfScrap', { short, tl })}</span>
+  ) : null
 }
 
 /** What a spend came to, in words: what was spent, or how much is missing. */
@@ -157,6 +215,7 @@ export function CraftingBay({
   const [query, setQuery] = useState('')
   const [note, setNote] = useState<string | null>(null)
   const found = findCraftables(crawler.techLevel, query)
+  const pool = crawler.scrapPool ?? {}
 
   function craft(ware: Ware, install: boolean) {
     const fresh = store.get('crawler', crawler.id) ?? crawler
@@ -213,18 +272,23 @@ export function CraftingBay({
       />
       {found.length > 0 && (
         <ul className="su-play-dt-lines" aria-label={playCopy('craftables')}>
-          {found.map((ware) => (
-            <WareLine key={`${ware.kind}:${ware.slug}`} ware={ware}>
-              {mech && ware.kind !== 'chassis' && (
-                <Button size="mini" disabled={!canWrite} onClick={() => craft(ware, true)}>
-                  {playCopy('craftOnto', { name: mech.name })}
+          {found.map((ware) => {
+            const short = shortOf(pool, ware)
+            const off = !canWrite || short > 0
+            return (
+              <WareLine key={`${ware.kind}:${ware.slug}`} ware={ware}>
+                <ShortNeed short={short} tl={ware.tl} />
+                {mech && ware.kind !== 'chassis' && (
+                  <Button size="mini" disabled={off} onClick={() => craft(ware, true)}>
+                    {playCopy('craftOnto', { name: mech.name })}
+                  </Button>
+                )}
+                <Button size="mini" disabled={off} onClick={() => craft(ware, false)}>
+                  {playCopy('craftAndStore')}
                 </Button>
-              )}
-              <Button size="mini" disabled={!canWrite} onClick={() => craft(ware, false)}>
-                {playCopy('craftAndStore')}
-              </Button>
-            </WareLine>
-          ))}
+              </WareLine>
+            )
+          })}
         </ul>
       )}
       {note && (
@@ -236,29 +300,34 @@ export function CraftingBay({
   )
 }
 
-function TradingBay({
-  crawler,
-  store,
-  rollFor,
-  canWrite,
-}: Pick<Props, 'crawler' | 'store' | 'rollFor' | 'canWrite'>) {
-  const [rolled, setRolled] = useState<{ roll: number; label: string; tl: number } | null>(null)
-  const [offers, setOffers] = useState<Ware[]>([])
+function TradingBay({ crawler, store, rollFor, canWrite }: TradeProps) {
+  const shared = useTradeRolls((s) => s.byCrawler[crawler.id])
+  const put = useTradeRolls((s) => s.put)
+  const rolled = shared?.rolled ?? null
+  const offers = shared?.offers ?? []
+  const bought = new Set(shared?.bought ?? [])
   const [choosing, setChoosing] = useState<number | null>(null)
-  const [bought, setBought] = useState<ReadonlySet<string>>(new Set())
   const [note, setNote] = useState<string | null>(null)
+  /** The shared roll with `change` made to it, read fresh. */
+  const update = (change: (was: TradeRoll) => Partial<TradeRoll>) => {
+    const was = useTradeRolls.getState().byCrawler[crawler.id]
+    if (was) put(crawler.id, { ...was, ...change(was) })
+  }
 
   async function roll() {
     const die = await rollFor(TRADING_BAY_TABLE, playCopy('tradingBay'))
     const result = performTradingRoll({ crawlerTl: crawler.techLevel, roll: die })
-    // What is for sale is picked at random at the rolled Tech Level (p.223).
-    setOffers(
-      tradeOffers(result.availability, result.sourceTl, (n) => Math.ceil(Math.random() * n))
-    )
-    setRolled({
-      roll: result.roll,
-      label: TRADING_AVAILABILITY_LABEL[result.availability],
-      tl: result.sourceTl,
+    put(crawler.id, {
+      rolled: {
+        roll: result.roll,
+        label: TRADING_AVAILABILITY_LABEL[result.availability],
+        tl: result.sourceTl,
+      },
+      // What is for sale is picked at random at the rolled Tech Level (p.223).
+      offers: tradeOffers(result.availability, result.sourceTl, (n) =>
+        Math.ceil(Math.random() * n)
+      ),
+      bought: [],
     })
   }
 
@@ -274,7 +343,7 @@ function TradingBay({
       () => {
         const said = playCopy('bought', { name: ware.name, scrap: ware.salvageValue, tl: ware.tl })
         recordPlayChange(said)
-        setBought((was) => new Set([...was, `${ware.kind}:${ware.slug}`]))
+        update((was) => ({ bought: [...was.bought, `${ware.kind}:${ware.slug}`] }))
         setNote(said)
       }
     )
@@ -297,6 +366,7 @@ function TradingBay({
         <ul className="su-play-dt-lines" aria-label={playCopy('forSale')}>
           {offers.map((ware, i) => {
             const sold = bought.has(`${ware.kind}:${ware.slug}`)
+            const short = shortOf(crawler.scrapPool ?? {}, ware)
             return (
               <WareLine key={`${ware.kind}:${ware.slug}`} ware={ware}>
                 {sold ? (
@@ -306,7 +376,8 @@ function TradingBay({
                     <Button size="mini" onClick={() => setChoosing(choosing === i ? null : i)}>
                       {playCopy('chooseInstead')}
                     </Button>
-                    <Button size="mini" disabled={!canWrite} onClick={() => buy(ware)}>
+                    <ShortNeed short={short} tl={ware.tl} />
+                    <Button size="mini" disabled={!canWrite || short > 0} onClick={() => buy(ware)}>
                       {playCopy('buyFor', { scrap: ware.salvageValue, tl: ware.tl })}
                     </Button>
                   </>
@@ -323,7 +394,9 @@ function TradingBay({
               <Button
                 size="mini"
                 onClick={() => {
-                  setOffers((was) => was.map((w, i) => (i === choosing ? ware : w)))
+                  update((was) => ({
+                    offers: was.offers.map((w, i) => (i === choosing ? ware : w)),
+                  }))
                   setChoosing(null)
                 }}
               >

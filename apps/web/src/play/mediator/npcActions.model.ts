@@ -76,6 +76,57 @@ export function npcActions(npc: Pick<TrayNpc, 'id' | 'entity' | 'pattern'>): Npc
     .map(({ entry }) => entry)
 }
 
+/** The Uses a limited action has (its `Uses` trait), or null for an unlimited one (r8 B3). */
+export function usesOf(action: RefMetaAction): number | null {
+  const traits = (action as { traits?: { type?: unknown; amount?: unknown }[] }).traits ?? []
+  const uses = traits.find((t) => t.type === 'Uses' && typeof t.amount === 'number')
+  return uses === undefined ? null : (uses.amount as number)
+}
+
+const COUNT_WORDS: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 }
+
+/**
+ * How many Titanic Actions a Bio-Titan takes a round, as its Titanic Actions
+ * entry says it ("can take three Titanic Actions"); null for any other action
+ * (r8 B3).
+ */
+export function titanicOf(action: RefMetaAction): number | null {
+  // The data's own name, matched, never said.
+  if (!/^Titanic Actions/.test(action.name)) return null
+  const content = (action as { content?: { value?: unknown }[] }).content ?? []
+  for (const block of content) {
+    if (typeof block.value !== 'string') continue
+    const said = /\b(one|two|three|four|five|six|\d+) Titanic Actions/i.exec(block.value)?.[1]
+    if (said === undefined) continue
+    return COUNT_WORDS[said.toLowerCase()] ?? Number(said)
+  }
+  return null
+}
+
+/** What a row offers (r8 B3): Use and its roll, or nothing to press (a Passive, the Titanic count). */
+export function usable(entry: Pick<NpcAction, 'type' | 'action'>): boolean {
+  return entry.type !== 'Passive' && titanicOf(entry.action) === null
+}
+
+/** Its spent count, under an action's key in the unit's `usesSpent`. */
+export const usesKey = (action: RefMetaAction): string => action.id ?? action.name
+
+/**
+ * What a unit has left of a count (r8 B3): a limited action's Uses, or its
+ * Titanic Actions this round, which a later round has back.
+ */
+export function usesLeft(max: number, spent: number | undefined): number {
+  return Math.max(0, max - (spent ?? 0))
+}
+
+export function titanicLeft(
+  max: number,
+  spent: { round: number; spent: number } | null,
+  round: number
+): number {
+  return spent === null || spent.round !== round ? max : usesLeft(max, spent.spent)
+}
+
 /**
  * What an NPC is, as its box's chip says it: NPC, Mech, Squad, Bio-Titan, …
  * One of the Mediator's own designs is the kind it was built from.

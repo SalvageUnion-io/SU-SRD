@@ -156,21 +156,19 @@ describe('SearchListbox', () => {
     expect(keyword?.closest('tr')?.textContent).toContain('Generates on your Mech')
   })
 
-  test('"Show more" is an option that acts, never a link (r4 F1)', () => {
+  test('"See all N results" is an option that links to the page of every result (r8 G2)', () => {
     const more: SearchComboboxResult = {
       kind: 'more',
       id: 'more',
-      title: 'Show more',
-      group: '12 more results',
+      title: 'See all 19 results',
+      group: '',
+      query: 'mule',
     }
-    const pressed: SearchComboboxResult[] = []
-    list({ results: [MULE, more], onMore: (result) => pressed.push(result) })
+    list({ results: [MULE, more] })
     const row = screen.getAllByRole('option')[1] as HTMLElement
-    expect(row.textContent).toContain('Show more')
-    expect(row.textContent).toContain('12 more results')
-    expect(row.tagName).not.toBe('A')
-    fireEvent.click(row)
-    expect(pressed).toEqual([more])
+    expect(row.textContent).toBe('See all 19 results')
+    expect(row.tagName).toBe('A')
+    expect(row.getAttribute('href')).toBe('/more')
   })
 
   test('a search waiting on its index says it is searching (r4 F2)', () => {

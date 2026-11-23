@@ -60,6 +60,7 @@ import { activatableEffects } from '../lib/rules/activatableEffects'
 import { runWrite } from '../lib/runWrite'
 import { unitRowModel } from '../lib/units/unitModel'
 import { playCopy } from '../messages/play'
+import { playDowntimeCopy } from '../messages/play-downtime'
 import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import type { EntityForType } from '../replica/types'
 import { useUnits } from '../replica/units'
@@ -67,6 +68,7 @@ import { rolledInjury } from './criticalInjury.model'
 import { PlayVital } from './PlayVital'
 import { usePlayRollLog } from './playRolls.model'
 import { reactorStates } from './reactorWrites.model'
+import { poolText } from './scrapPool.model'
 import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.model'
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
@@ -324,7 +326,13 @@ export function PlayMechUnit({
   const result = useDownResult(down ? mech.id : null)
   // What the mech and its pilot can switch on (ADR-029 §4): the table keeps
   // time, so an effect stays on until the player ends it.
-  const effects = place === 'boarded' ? activatableEffects(mech, pilotAbilities) : []
+  // A Pilot ability's is listed once used, in force (r8 A8): unused, it is the Pilot's action.
+  const effects =
+    place === 'boarded'
+      ? activatableEffects(mech, pilotAbilities).filter(
+          (e) => e.source !== 'ability' || activeEffects.includes(e.ref)
+        )
+      : []
   return (
     <TitledBox
       as="section"
@@ -524,6 +532,12 @@ export function PlayCrawlerUnit({
           <Stat
             label={playCopy('upkeep')}
             value={`${crawlerUpkeepCost(tl, crawler.type)} Scrap · T${tl}`}
+            size="mini"
+          />
+          {/* What pays it, by its name, so Scrap moved in is seen arriving (r8 D2). */}
+          <Stat
+            label={playDowntimeCopy('scrapPool')}
+            value={poolText(crawler.scrapPool, playDowntimeCopy('scrapPoolNone'))}
             size="mini"
           />
         </div>

@@ -77,7 +77,7 @@ import { AssignToPilot } from './AssignToPilot'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
-import { seatRows } from './seatRows.model'
+import { pilotMechIds, seatRows } from './seatRows.model'
 import { useRowActions } from './useRowActions'
 
 /**
@@ -145,10 +145,13 @@ export function GameRoster({ gameId, gameName, pregens }: GameRosterProps) {
   const idOf = (row: { appId: string | null; body: unknown }) =>
     row.appId ?? bodyIdOf(row.body) ?? ''
   const holderOf = new Map((listing?.pilots ?? []).map((p) => [idOf(p), p.ownerId]))
+  // The Pilot each Mech is listed under: the one aboard it, else its assigned one (r8 C5).
   const pilotOf = new Map(
-    (listing?.softLinks ?? []).flatMap((l) =>
-      l.type === 'mech-to-pilot' ? [[l.from.id, l.to.id] as const] : []
-    )
+    listing === undefined
+      ? []
+      : [...pilotMechIds(listing, vitals)].flatMap(([pilot, mech]) =>
+          mech === null ? [] : [[mech, pilot] as const]
+        )
   )
   const ridesItsPilot = (m: { appId: string | null; body: unknown; ownerId: string | null }) => {
     const pilot = pilotOf.get(idOf(m))

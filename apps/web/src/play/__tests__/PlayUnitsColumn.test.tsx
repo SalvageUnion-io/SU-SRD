@@ -290,6 +290,8 @@ describe('the Units column (play.md §4)', () => {
     expect(within(crawlerBox).getByText('Downtime')).toBeTruthy()
     expect(within(crawlerBox).getByRole('button', { name: 'Decrease SP' })).toBeTruthy()
     expect(within(crawlerBox).getByText('Upkeep')).toBeTruthy()
+    // Its Scrap Pool by that name, beside what it pays (r8 D2).
+    expect(within(crawlerBox).getByText('Scrap Pool')).toBeTruthy()
     expect(within(crawlerBox).getByRole('button', { name: 'Open Tenacity’s sheet' })).toBeTruthy()
   })
 

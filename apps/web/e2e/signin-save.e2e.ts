@@ -52,7 +52,7 @@ test('a signed-out visitor is asked to sign in, and what they build then is save
   await expect(page.getByRole('button', { name: /guided/i })).toHaveCount(0)
 
   await signInFresh(page)
-  await buildPilot(page, 'Saved By Signing In', 'Keeper')
+  await buildPilot(page, 'Keeper', 'Saved By Signing In')
   await expect(page.getByText('Saved By Signing In').first()).toBeVisible({ timeout: 30_000 })
 
   // Reload to prove it is DURABLE — on the server, not merely in this tab:

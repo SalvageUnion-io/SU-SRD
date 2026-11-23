@@ -55,3 +55,22 @@ describe('a Mech just built or copied (r7 G4, G5)', () => {
     useSheetModeStore.getState().setEditing(false)
   })
 })
+
+describe('a copy opened over its original’s sheet (r8 E5)', () => {
+  test('still opens with its name selected', async () => {
+    const { typeNameOnArrival } = await import('../nameOnArrival.model')
+    const { useSheetModeStore } = await import('../sheetMode.model')
+    const { rerender } = render(
+      <MechIdentityPanel mech={mechFixture({ id: 'm-a', name: 'Tab B' })} patch={() => {}} />
+    )
+    typeNameOnArrival('m-b')
+    // The same route, the same sheet: only the Mech changes.
+    rerender(
+      <MechIdentityPanel mech={mechFixture({ id: 'm-b', name: 'Tab B 2' })} patch={() => {}} />
+    )
+    const field = screen.getByLabelText('Edit mech name') as HTMLInputElement
+    expect(field.tagName).toBe('INPUT')
+    expect(document.activeElement).toBe(field)
+    useSheetModeStore.getState().setEditing(false)
+  })
+})

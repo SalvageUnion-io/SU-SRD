@@ -359,7 +359,7 @@ describe('Training Bay — items', () => {
     await renderShelves()
 
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const link = within(pilots).getByRole('link', { name: 'Ghost · Nia Vale' })
+    const link = within(pilots).getByRole('link', { name: 'Ghost' })
     expect(link.getAttribute('href')).toBe(`/pilots/${id}`)
     const line = link.closest('tr')
     // What it is built as, never its kind (EDL E9: screen readers hear that).
@@ -387,7 +387,7 @@ describe('Training Bay — items', () => {
     // name for a phone, where the column is hidden.
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     const itsMech = within(
-      within(pilots).getByRole('link', { name: 'Ghost · Mara Vex' }).closest('tr') as HTMLElement
+      within(pilots).getByRole('link', { name: 'Ghost' }).closest('tr') as HTMLElement
     ).getAllByRole('link', { name: 'Iron Fist' })
     expect(itsMech.map((a) => a.getAttribute('href'))).toEqual([
       `/mechs/${mech.id}`,
@@ -396,7 +396,7 @@ describe('Training Bay — items', () => {
     // The Mechs ledger lists it too, as a line that names its pilot (r4 E20): never "None".
     const mechs = screen.getByRole('region', { name: 'Mechs' })
     const line = within(mechs).getByRole('link', { name: 'Iron Fist' }).closest('tr') as HTMLElement
-    expect(within(line).getByRole('link', { name: 'Ghost · Mara Vex' })).toBeTruthy()
+    expect(within(line).getByRole('link', { name: 'Ghost' })).toBeTruthy()
     expect(within(mechs).queryByText(/^None/)).toBeNull()
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
@@ -470,7 +470,7 @@ describe('Training Bay — items', () => {
     await seedEntity('pilot', 'Kael Dusk')
     await renderShelves()
 
-    const menu = await openMenu('Ghost · Kael Dusk')
+    const menu = await openMenu('Ghost')
     expect(within(menu).queryByRole('menuitem', { name: 'Save as pattern' })).toBeNull()
   })
 })
@@ -481,12 +481,12 @@ describe('Training Bay — Make a copy', () => {
     await renderShelves()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Make a copy of Ghost · Fen Oya' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Make a copy of Ghost' }))
     })
-    await settle(() => screen.queryByText('Ghost 2 · Fen Oya 2') !== null)
+    await settle(() => screen.queryByText('Ghost 2') !== null)
 
-    expect(screen.getByText('Ghost 2 · Fen Oya 2')).toBeTruthy()
-    expect(screen.getByText('Ghost · Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Ghost 2')).toBeTruthy()
+    expect(screen.getByText('Ghost')).toBeTruthy()
     const names = useUnits
       .getState()
       .list('pilot')
@@ -500,38 +500,36 @@ describe('Training Bay — delete flow', () => {
     await seedEntity('pilot', 'Mira Cole')
     await renderShelves()
 
-    const menu = await openMenu('Ghost · Mira Cole')
+    const menu = await openMenu('Ghost')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
 
     expect(screen.getByRole('alertdialog')).toBeTruthy()
-    expect(screen.getAllByText(/Delete Ghost · Mira Cole/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Delete Ghost/i).length).toBeGreaterThan(0)
   })
 
   test('confirming removes it from the shelf', async () => {
     await seedEntity('pilot', 'Tov Heln')
     await renderShelves()
 
-    const menu = await openMenu('Ghost · Tov Heln')
+    const menu = await openMenu('Ghost')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
     })
-    await settle(
-      () => screen.queryAllByText('Ghost · Tov Heln').filter((n) => n.isConnected).length === 0
-    )
+    await settle(() => screen.queryAllByText('Ghost').filter((n) => n.isConnected).length === 0)
 
-    expect(screen.queryAllByText('Ghost · Tov Heln').filter((n) => n.isConnected)).toHaveLength(0)
+    expect(screen.queryAllByText('Ghost').filter((n) => n.isConnected)).toHaveLength(0)
   })
 
   test('cancelling leaves it where it was', async () => {
     await seedEntity('pilot', 'Fen Oya')
     await renderShelves()
 
-    const menu = await openMenu('Ghost · Fen Oya')
+    const menu = await openMenu('Ghost')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
@@ -539,7 +537,7 @@ describe('Training Bay — delete flow', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     })
 
-    expect(screen.getByText('Ghost · Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Ghost')).toBeTruthy()
     expect(screen.queryByRole('alertdialog')).toBeFalsy()
   })
 })

@@ -3,7 +3,7 @@
  * whoever runs the table, their plan's sessions from Prep (each its title,
  * else its day). The next is the first whose day has not passed; a plan
  * dated the day the table last played, once that session has ended, is the
- * last session, never the next. For everyone else the next day the table
+ * last session, never the next, as is one the room marked played (r8 B8). For everyone else the next day the table
  * meets. Null with none.
  */
 
@@ -13,7 +13,12 @@ import { useGamesQuery } from '../../replica/roomCalls'
 
 type Game = NonNullable<GameCallResult<'games.get'>>
 
-type PlannedSession = { title?: string | undefined; date?: string | undefined }
+type PlannedSession = {
+  title?: string | undefined
+  date?: string | undefined
+  /** The day the room marked it played (r8 B8). */
+  played?: string | undefined
+}
 
 export type SessionPlans = { next: string | null; last: string | null }
 
@@ -36,10 +41,12 @@ export function sessionPlans(
   const playedToday = playedOn === today
   const passed = (day: string | undefined) =>
     day !== undefined && (day < today || (day === today && playedToday))
-  const upcoming = sessions.find((s) => !passed(s.date))
+  // A plan the room marked played (r8 B8) has passed, whatever its day.
+  const over = (s: PlannedSession) => s.played !== undefined || passed(s.date)
+  const upcoming = sessions.find((s) => !over(s))
   const past = sessions
-    .filter((s) => passed(s.date))
-    .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+    .filter(over)
+    .sort((a, b) => String(a.played ?? a.date).localeCompare(String(b.played ?? b.date)))
     .at(-1)
   const day = days.find((d) => !passed(d) && d >= today)
   const next = upcoming === undefined ? null : named(upcoming)

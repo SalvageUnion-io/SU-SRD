@@ -69,6 +69,21 @@ describe('running an encounter', () => {
   })
 })
 
+// r8 B8 (MD8-09): the Run dialog's default is the first encounter not yet run here.
+describe('the encounters run at this table (r8 B8)', () => {
+  test('each run is kept, once, for the Mediator alone', () => {
+    const { room } = table()
+    expect(room.opposition.ran(MEDIATOR)).toEqual([])
+    room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT)
+    room.opposition.endEncounter(MEDIATOR)
+    room.opposition.runEncounter(MEDIATOR, { ...encounter, id: 'e2' }, { clear: false }, AT + 1)
+    room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT + 2)
+    expect(room.opposition.ran(MEDIATOR)).toEqual(['e1', 'e2'])
+    expect(room.opposition.ran(PLAYER)).toEqual([])
+    expect(room.opposition.mediatorRecords(MEDIATOR)[0]?.body.ran).toEqual(['e1', 'e2'])
+  })
+})
+
 // r7 C6 (MD7-03): running an encounter starts the session unless the Run dialog says not to.
 describe('running an encounter and the group session (r7 C6)', () => {
   const run = (startSession?: boolean) => {
@@ -193,6 +208,23 @@ describe('waves and groups', () => {
     room.opposition.updateNpc(MEDIATOR, first?.appId ?? '', { currentHp: 0 }, AT)
     room.opposition.recordGroupRoll(MEDIATOR, 'gA', roll, AT)
     expect(room.opposition.tray(MEDIATOR).map((n) => n.lastMediatorRoll)).toEqual([undefined, roll])
+  })
+
+  test('a unit keeps the Uses it spent and its Titanic Actions this round (r8 B3)', () => {
+    const { room } = table()
+    const id = room.opposition.addNpc(MEDIATOR, { name: 'Scylla', currentHp: 39, maxHp: 39 }, AT)
+    room.opposition.updateNpc(MEDIATOR, id, { usesSpent: { plating: 1 } }, AT)
+    room.opposition.updateNpc(MEDIATOR, id, { usesSpent: { other: 2 } }, AT)
+    room.opposition.updateNpc(MEDIATOR, id, { titanicSpent: { round: 2, spent: 1 } }, AT)
+    const [scylla] = room.opposition.tray(MEDIATOR)
+    expect(scylla?.usesSpent).toEqual({ plating: 1, other: 2 })
+    expect(scylla?.titanicSpent).toEqual({ round: 2, spent: 1 })
+    expect(() =>
+      room.opposition.updateNpc(MEDIATOR, id, { usesSpent: { plating: -1 } }, AT)
+    ).toThrow()
+    expect(() =>
+      room.opposition.updateNpc(MEDIATOR, id, { titanicSpent: { spent: 1 } }, AT)
+    ).toThrow()
   })
 
   test('a wreck is salvaged once, and only once it is down', () => {

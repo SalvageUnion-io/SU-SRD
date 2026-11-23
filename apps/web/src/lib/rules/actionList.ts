@@ -323,6 +323,19 @@ export function isAreaSalvage(action: RefMetaAction): boolean {
 }
 
 /**
+ * Whether an action rolls (r8 A6): an attack (it deals damage), one with its
+ * own table (Area Salvage), or one whose text says to roll. An item whose
+ * action does not (a First Aid Kit's heal) is used, never rolled: Play draws
+ * it no Core Mechanic table.
+ */
+export function actionRolls(action: RefMetaAction): boolean {
+  if (action.damage !== undefined || action.tableName !== undefined) return true
+  return (action.content ?? []).some(
+    (block) => typeof block.value === 'string' && /\broll/i.test(block.value)
+  )
+}
+
+/**
  * The on-foot pilot's activatable actions, flat — every action of each selected
  * ability, the intrinsic Generic ones, and each carried equipment item. Mirrors
  * `buildMechActions` but on the AP economy (pilots have no Heat/EP):

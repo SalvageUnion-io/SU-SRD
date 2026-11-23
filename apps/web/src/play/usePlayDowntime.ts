@@ -88,6 +88,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
     locked: !mayMove,
     begin: () => guarded.send(() => begin(place)),
     advance: () => guarded.send(() => advance(place)),
+    pass: () => guarded.send(() => advance({ ...place, auto: true })),
     // Solo any step; in a Game the Mediator's Back.
     setStep: mayMove ? (stepIndex) => guarded.send(() => setStep({ ...place, stepIndex })) : null,
     end: () => guarded.send(() => end(place)),

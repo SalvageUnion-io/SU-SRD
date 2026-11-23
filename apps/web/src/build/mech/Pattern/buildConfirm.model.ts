@@ -12,6 +12,7 @@ import { namesOn } from '../../../lib/copyEntity'
 import { sharedPaths } from '../../../lib/sharing/paths'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { useUnits } from '../../../replica/units'
 import { typeNameOnArrival } from '../../sheet/nameOnArrival.model'
 
@@ -115,26 +116,97 @@ async function writeBuild(id: string, build: Build): Promise<void> {
   void refreshWorkerReads(sharedPaths.sheet('pattern', id))
 }
 
+type Loadout = { systems: string[]; modules: string[] }
+
+/** Write each loadout in turn; the first refusal stops the run. */
+async function writeLoadouts(writes: readonly { id: string; loadout: Loadout }[]): Promise<void> {
+  for (const { id, loadout } of writes)
+    await useUnits.getState().update('mech', id, loadout, LIVE_SHEET_MANUAL)
+}
+
+const sameSlugs = (a: readonly string[], b: readonly string[]) =>
+  a.length === b.length && [...a].sort().join() === [...b].sort().join()
+
+/** Whether a Mech's loadout is no longer `build`'s. */
+const differsFrom = (mech: Loadout, build: Build) =>
+  !(sameSlugs(mech.systems, build.systems) && sameSlugs(mech.modules, build.modules))
+
+/**
+ * Bring each Mech to the pattern's loadout (r7 G2, r8 E2); the notice's Undo
+ * puts each back. Damage, Heat and cargo stay.
+ */
+export async function bringUpToDate(
+  pattern: Build & { name: string },
+  mechs: readonly (Loadout & { id: string; name: string })[]
+): Promise<void> {
+  const before = mechs.map((mech) => ({
+    id: mech.id,
+    loadout: { systems: [...mech.systems], modules: [...mech.modules] },
+  }))
+  await writeLoadouts(
+    mechs.map((mech) => ({
+      id: mech.id,
+      loadout: { systems: [...pattern.systems], modules: [...pattern.modules] },
+    }))
+  )
+  const said =
+    mechs.length === 1
+      ? mechCopy('broughtOneUpToDate', { name: mechs[0]?.name ?? '', pattern: pattern.name })
+      : mechCopy('broughtAllUpToDate', { count: mechs.length, pattern: pattern.name })
+  restoreToast(said, () => {
+    void writeLoadouts(before).then(
+      () => toast.success(mechCopy('loadoutsPutBack')),
+      (err: unknown) => toast.error(failureMessage(err, mechCopy('loadoutsNotPutBack')))
+    )
+  })
+}
+
 /**
  * Write a mech's build over a saved pattern (r5 D1): the pattern keeps its id
  * (so its link), its name, description and picture; the mechs built from it
- * keep their loadouts. The notice's Undo puts the old build back.
+ * keep their loadouts. The notice says how many other Mechs use it, and where
+ * any is now behind, Bring them up to date, its Undo the second button (r8
+ * E2); else its Undo puts the old build back. `from` is the Mech it came from.
  */
-export async function replacePattern(id: string, build: Build): Promise<void> {
+export async function replacePattern(id: string, build: Build, from?: string): Promise<void> {
   const before = usePatterns.getState().mechPatterns.find((pattern) => pattern.id === id)
   if (!before) throw new Error(mechCopy('patternNotReplaced'))
   await writeBuild(id, build)
   const { name } = before
-  toast.success(mechCopy('replacedPattern', { name }), {
+  const undo = {
+    label: mechCopy('undo'),
+    onClick: () =>
+      void writeBuild(id, before).then(
+        () => toast.success(mechCopy('patternPutBack', { name })),
+        (err: unknown) => toast.error(failureMessage(err, mechCopy('patternNotPutBack', { name })))
+      ),
+  }
+  const others = useUnits
+    .getState()
+    .list('mech')
+    .filter((mech) => mech.sourcePattern === id && mech.id !== from)
+  const behind = others.filter(
+    (mech) => mech.chassisRef === build.chassisRef && differsFrom(mech, build)
+  )
+  const said =
+    others.length === 0
+      ? mechCopy('replacedPattern', { name })
+      : others.length === 1
+        ? mechCopy('replacedPatternOneOther', { name })
+        : mechCopy('replacedPatternOthers', { name, count: others.length })
+  toast.success(said, {
     duration: RESTORE_MS,
-    action: {
-      label: mechCopy('undo'),
-      onClick: () =>
-        void writeBuild(id, before).then(
-          () => toast.success(mechCopy('patternPutBack', { name })),
-          (err: unknown) =>
-            toast.error(failureMessage(err, mechCopy('patternNotPutBack', { name })))
-        ),
-    },
+    ...(behind.length === 0
+      ? { action: undo }
+      : {
+          action: {
+            label: mechCopy('bringThemUpToDate'),
+            onClick: () =>
+              void bringUpToDate({ ...build, name }, behind).catch((err: unknown) =>
+                toast.error(failureMessage(err, mechCopy('notBroughtUpToDate')))
+              ),
+          },
+          cancel: undo,
+        }),
   })
 }

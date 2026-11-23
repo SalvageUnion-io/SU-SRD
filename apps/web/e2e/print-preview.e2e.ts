@@ -18,10 +18,10 @@ test.describe('sheet print preview', () => {
     // This spec's beforeEach pays two full cold page-loads (buildPilot +
     // openSheetFor), so triple Playwright's time budget for the whole test.
     test.slow()
-    await buildPilot(page, 'Print Test', 'PT')
+    await buildPilot(page, 'PT', 'Print Test')
     await openSheetFor(page, 'Print Test')
-    // The sheet route titles the tab with the pilot's `CALLSIGN · Name` (its `head`).
-    await expect(page).toHaveTitle(/^PT · Print Test · Training Bay · SalvageUnion\.io$/)
+    // The sheet route titles the tab with the pilot's callsign (its `head`, r8 F1).
+    await expect(page).toHaveTitle(/^Print Test · Training Bay · SalvageUnion\.io$/)
   })
 
   test('renders critical content under print @ A4', async ({ page }) => {
@@ -67,6 +67,40 @@ test.describe('sheet print preview', () => {
     // Back on screen the sheet is on the tab it was on.
     await page.emulateMedia({ media: 'screen' })
     await expect(manage).toBeVisible()
+  })
+
+  test('prints on two Letter pages: TP with its number, every ability title whole (r8 F2)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 816, height: 1056 })
+    await page.emulateMedia({ media: 'print' })
+    // TP prints its number, as HP and AP do (its value is a button on screen).
+    await expect(page.locator('[data-vital="tp"] .su-strip__num')).toHaveText(/\d/)
+    await expect(page.locator('[data-vital="tp"] .su-strip__num button')).toBeVisible()
+    // No title breaks inside a word: each word of a Mini's name is one box.
+    const broken = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('.su-entity-mini__name')]
+        .filter((el) => el.getClientRects().length > 0)
+        .flatMap((el) => {
+          const text = el.firstChild
+          if (!(text instanceof Text)) return []
+          const words = [...(text.data.matchAll(/\S+/g) ?? [])]
+          return words
+            .filter((word) => {
+              const range = document.createRange()
+              range.setStart(text, word.index ?? 0)
+              range.setEnd(text, (word.index ?? 0) + word[0].length)
+              const lines = new Set([...range.getClientRects()].map((r) => Math.round(r.top)))
+              return lines.size > 1
+            })
+            .map((word) => word[0])
+        })
+    )
+    expect(broken).toEqual([])
+    // The Pilot sheet fits two pages.
+    const pdf = await page.pdf({ format: 'Letter', preferCSSPageSize: false })
+    const pages = pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) ?? []
+    expect(pages.length).toBeLessThanOrEqual(2)
   })
 
   test('renders critical content under print @ US Letter', async ({ page }) => {

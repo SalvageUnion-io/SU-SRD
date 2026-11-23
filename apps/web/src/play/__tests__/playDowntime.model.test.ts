@@ -140,7 +140,7 @@ describe('a hurt pilot with no Med Bay (r5 A12)', () => {
   // r6 D7 (SB6-06): the step's own line gives the reason, with its page.
   test('Restore leads with why a hurt pilot cannot heal, and only then', () => {
     expect(restoreLead(input({ pilot: hurt() }))).toBe(
-      'Healing in Downtime needs your crawler’s Med Bay (Core Book p.242).'
+      'Healing in Downtime needs your crawler’s Med Bay (Workshop Manual · p.242).'
     )
     const damaged = crawlerFixture({
       id: 'c',
@@ -228,6 +228,9 @@ describe('the other steps', () => {
     const upkeep = (state: StepPlanInput['upkeep'], unit: Crawler = funded) =>
       plan({ stepName: 'Upkeep & Upgrade', crawler: unit, upkeep: state })[0]
     const outstanding = upkeep({ spent: false, canPay: true })
+    // The line is the crawler's; its chip alone says Upkeep, never twice in a row (r8 D5).
+    expect(outstanding?.title).toBe(funded.name)
+    expect(outstanding?.chips[0]?.label).toBe('Upkeep')
     expect(outstanding?.chips[0]?.value).toMatch(/^\d+ Scrap · T2$/)
     expect(outstanding?.chips[1]?.label).toBe('Outstanding')
     expect(outstanding?.skippable).toBe(true)
@@ -243,7 +246,7 @@ describe('the other steps', () => {
       const short = upkeep({ spent: false, canPay }, crawler(2))
       expect(short?.chips[1]?.label).toBe('Short by 5')
       expect(short?.skippable).toBe(false)
-      expect(short?.note).toBe('Unpaid Upkeep: Core Book p.218.')
+      expect(short?.note).toBe('Unpaid Upkeep: Workshop Manual · p.218.')
     }
     expect(upkeep({ spent: true, canPay: true }, crawler(2))?.chips[1]?.label).toBe('Paid')
     // No crawler, no Upkeep to plan.

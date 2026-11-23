@@ -90,6 +90,8 @@ export function GameBand({
       tone="play"
       measure={PAGE_MEASURE}
       id="game-band-heading"
+      // The Organiser's Rename stands in the title: the heading is the name alone (LG8-22).
+      titleLabel={organizer && gameId !== null ? name : undefined}
       asideAt="controls"
       aside={
         mediates || actions || live ? (

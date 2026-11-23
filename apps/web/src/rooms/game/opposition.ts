@@ -8,6 +8,7 @@ import {
 import type { RunningEncounter } from 'game-domain/schemas/encounter'
 import { EncounterSchema, RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { EncounterNpcSchema, MediatorRollResultSchema } from 'game-domain/schemas/encounterNpc'
+import { z } from 'salvageunion-reference/zod'
 import type { Initiative } from '../../lib/rules/initiative'
 import { InitiativeSchema, withActed } from '../../lib/rules/initiative'
 import { groupedInOneGo, isDown } from '../../lib/rules/opposition'
@@ -27,6 +28,10 @@ import { fromJson } from './store'
  * Rows written before the full instance carry only a name, and an update
  * re-parses them, so the whole record is not demanded.
  */
+/** The encounters run here (`ran`), by id: the newest this many are kept. */
+const RAN_KEPT = 200
+const RAN = z.array(z.string())
+
 const TrayBodySchema = EncounterNpcSchema.partial().extend({ name: EncounterNpcSchema.shape.name })
 
 /** A wreck's kept Mech Salvage roll, as the record holds it. */
@@ -49,7 +54,17 @@ export type TrayPatch = {
   currentEp?: number
   currentHeat?: number
   lastImportantRoll?: unknown
+  /** Uses spent, by action id: merged into what the unit has spent (r8 B3). */
+  usesSpent?: Record<string, number>
+  /** Titanic Actions spent this round (r8 B3). */
+  titanicSpent?: unknown
 }
+
+/** A unit's spent Uses, as the record holds them. */
+const UsesSpentSchema = EncounterNpcSchema.shape.usesSpent.unwrap()
+
+/** A Bio-Titan's spent Titanic Actions, as the record holds them. */
+const TitanicSpentSchema = EncounterNpcSchema.shape.titanicSpent.unwrap()
 
 export class GameOpposition {
   constructor(
@@ -144,6 +159,16 @@ export class GameOpposition {
       if (patch.lastImportantRoll !== undefined) {
         next.lastImportantRoll = MediatorRollResultSchema.parse(patch.lastImportantRoll)
       }
+      if (patch.usesSpent !== undefined) {
+        const kept = UsesSpentSchema.safeParse(body.usesSpent)
+        next.usesSpent = {
+          ...(kept.success ? kept.data : {}),
+          ...UsesSpentSchema.parse(patch.usesSpent),
+        }
+      }
+      if (patch.titanicSpent !== undefined) {
+        next.titanicSpent = TitanicSpentSchema.parse(patch.titanicSpent)
+      }
       this.write(npcId, next, at)
     })
   }
@@ -177,16 +202,35 @@ export class GameOpposition {
    */
   mediatorRecords(actor: string): {
     appId: string
-    body: { running: RunningEncounter | null; initiative: Initiative | null }
+    body: { running: RunningEncounter | null; initiative: Initiative | null; ran?: string[] }
     updatedAt: number
   }[] {
     if (!this.mediates(actor)) return []
     const running = this.running(actor)
     const kept = this.initiativeRow()
-    const updatedAt = Math.max(running === null ? 0 : Date.parse(running.startedAt), kept?.at ?? 0)
+    const ran = this.ranRow()
+    const updatedAt = Math.max(
+      running === null ? 0 : Date.parse(running.startedAt),
+      kept?.at ?? 0,
+      ran?.at ?? 0
+    )
+    const body = { running, initiative: kept?.initiative ?? null }
     return [
-      { appId: 'mediator', body: { running, initiative: kept?.initiative ?? null }, updatedAt },
+      {
+        appId: 'mediator',
+        body: ran === null || ran.ids.length === 0 ? body : { ...body, ran: ran.ids },
+        updatedAt,
+      },
     ]
+  }
+
+  /**
+   * The encounters run at this table, by id, first run first (r8 B8): the
+   * Run dialog offers the first one not yet run. The Mediator's alone.
+   */
+  ran(actor: string): string[] {
+    if (!this.mediates(actor)) return []
+    return this.ranRow()?.ids ?? []
   }
 
   /** The Group Initiative tracker (r6 B4), for the Mediator; null when none is kept. */
@@ -276,6 +320,7 @@ export class GameOpposition {
       )
       for (const npc of fielded) this.insert(TrayBodySchema.parse(npc), at)
       this.putRunning(runningFrom(parsed, now, waves ? { held: waves.held } : undefined))
+      this.keepRan(parsed.id, at)
       return { added: fielded.length }
     })
   }
@@ -349,6 +394,29 @@ export class GameOpposition {
       'initiative',
       JSON.stringify(initiative),
       'mediator-initiative',
+      null,
+      at
+    )
+  }
+
+  private ranRow(): { ids: string[]; at: number } | null {
+    const row = this.store.rows("select after, ts from change_log where field = 'ran'")[0]
+    if (row === undefined) return null
+    const kept = RAN.safeParse(fromJson<unknown>(row.after))
+    return { ids: kept.success ? kept.data : [], at: Number(row.ts) }
+  }
+
+  /** One `change_log` row (field `ran`), as `initiative` is: each id once, the newest kept. */
+  private keepRan(encounterId: string, at: number): void {
+    const ids = this.ranRow()?.ids ?? []
+    if (ids.includes(encounterId)) return
+    this.store.rows("delete from change_log where field = 'ran'")
+    this.store.rows(
+      'insert into change_log (id, field, after, source, actor_id, ts) values (?, ?, ?, ?, ?, ?)',
+      'ran',
+      'ran',
+      JSON.stringify([...ids, encounterId].slice(-RAN_KEPT)),
+      'mediator-ran',
       null,
       at
     )

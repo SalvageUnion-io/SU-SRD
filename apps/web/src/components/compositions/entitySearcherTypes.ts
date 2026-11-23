@@ -64,6 +64,12 @@ export type PickCost = {
   breaks?: boolean
   /** The cost on the entry's line in the list: `TP | 1` (r4 E12). */
   row?: { label: string; value: number | string }
+  /**
+   * Too little to pay, where the picker spends (r8 D4): the row's + is off
+   * and titled with this, and Enter passes it by; only the action bar's
+   * rule-breaking add takes it, as a house rule.
+   */
+  refused?: string
 }
 
 /** One facet row: its label and its chips, a Field over its Segmented. */

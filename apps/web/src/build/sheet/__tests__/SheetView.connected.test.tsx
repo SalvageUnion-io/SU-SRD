@@ -439,10 +439,10 @@ describe('the tab title', () => {
     expect(document.title).toBe('Roach-Boy · Tenacity · SalvageUnion.io')
 
     await act(async () => {
-      useUnits.setState({ pilots: [{ ...MY_PILOT, name: 'Roach-Man' }] })
+      useUnits.setState({ pilots: [{ ...MY_PILOT, callsign: 'Roach-Man' }] })
     })
-    // Callsign first, then the name, as everywhere a pilot is named.
-    expect(document.title).toBe('Roach-Boy · Roach-Man · Tenacity · SalvageUnion.io')
+    // By its callsign, as everywhere a pilot is named (r8 F1).
+    expect(document.title).toBe('Roach-Man · Tenacity · SalvageUnion.io')
   })
 
   test('a pilot in no Game is the Training Bay’s', async () => {

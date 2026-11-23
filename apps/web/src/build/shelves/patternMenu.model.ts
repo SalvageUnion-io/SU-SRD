@@ -1,5 +1,5 @@
 /**
- * A saved pattern's ⋯ menu on its shelf: open, rename, export, and its
+ * A saved pattern's ⋯ menu on its shelf: open, rename, share (r8 E4), export, and its
  * delete; Copy is the row's own button (r6 E9). Build With This is the row's own button (`buildFromPattern`, r3 L5).
  */
 import type { MechPattern } from 'game-domain/schemas/pattern'
@@ -16,6 +16,7 @@ import { mechFromPattern, pastStartingRules, savedPatternHref } from '../../lib/
 import { sharedPaths } from '../../lib/sharing/paths'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { usePatterns } from '../../replica/collections'
+import { readTableState } from '../../replica/tableState'
 import { useUnits } from '../../replica/units'
 import { builtToast, deletePatternLines, mechNamesTaken } from '../mech/Pattern/buildConfirm.model'
 import { PATTERN_DELETE_SKIPS_CONFIRM } from '../rulings.model'
@@ -75,11 +76,28 @@ export function deletePatternsHeld(patterns: readonly MechPattern[]): void {
   )
 }
 
+/** Whether any of `ids` is shared by link: its public page goes with it. */
+function sharedByLink(ids: ReadonlySet<string>): boolean {
+  const sharing = readTableState('account', 'sharing') as
+    | readonly { appId: string; visibility: string }[]
+    | undefined
+  return (sharing ?? []).some((each) => ids.has(each.appId) && each.visibility === 'link')
+}
+
 /**
  * What a delete says: what went, and how many Mechs were built from it, which
- * keep their loadout (r7 G2), so nobody learns it from a Mech's chip later.
+ * keep their loadout (r7 G2), so nobody learns it from a Mech's chip later;
+ * and where one was public, that its link stops working (r8 E4).
  */
 export function deletedLine(patterns: readonly MechPattern[]): string {
+  const line = usedLine(patterns)
+  if (!sharedByLink(new Set(patterns.map((p) => p.id)))) return line
+  return patterns.length === 1
+    ? buildShelvesCopy('deletedLinkStops', { line })
+    : buildShelvesCopy('deletedLinksStop', { line })
+}
+
+function usedLine(patterns: readonly MechPattern[]): string {
   const deleted =
     patterns.length === 1
       ? buildShelvesCopy('deletedName', { name: patterns[0]?.name ?? '' })
@@ -124,6 +142,8 @@ export function patternMenuOf(
     /** Write verbs exist only where a write could land. */
     canWrite: boolean
     rename: (subject: RenameSubject) => void
+    /** Who can see it, in its dialog over the shelf (r8 E4). */
+    share?: ((pattern: MechPattern) => void) | undefined
   }
 ): HeaderMenuItem[][] {
   const { go, confirm, canWrite } = host
@@ -132,6 +152,15 @@ export function patternMenuOf(
     [
       { id: 'open', label: 'Open', onSelect: () => go(savedPatternHref(pattern.id)) },
       renameItem(patternRename(pattern), canWrite ? host.rename : undefined),
+      ...(host.share
+        ? [
+            {
+              id: 'share',
+              label: buildShelvesCopy('share'),
+              onSelect: writable(() => host.share?.(pattern)),
+            },
+          ]
+        : []),
       {
         id: 'export',
         label: 'Export',

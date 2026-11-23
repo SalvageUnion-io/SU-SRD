@@ -103,7 +103,13 @@ export function measureFilterFrame(page: Page): Promise<FilterFrame> {
       )
         .replace(/\d+(\s*active)?/g, '')
         .trim()
-      put(`${el.tagName.toLowerCase()} "${name}"`, el, el.closest('.su-rail__facets') !== null)
+      // A phone's name filter folds with the facets, behind Filters (r8 G4).
+      const folds =
+        el.closest('.su-rail__facets') !== null ||
+        (el.closest('.su-rail__search') !== null &&
+          (el.closest('.su-rail')?.querySelector<HTMLElement>(':scope > .su-rail__filters')
+            ?.offsetParent ?? null) !== null)
+      put(`${el.tagName.toLowerCase()} "${name}"`, el, folds)
     }
     const results = document.getElementById('srd-listing-results')
     for (const th of results?.querySelectorAll('thead th') ?? []) {

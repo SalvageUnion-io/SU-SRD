@@ -265,7 +265,8 @@ describe('the Feed (play.md §8)', () => {
       ev('e3', 1200, 'vitals', 'Thresher (Razor) · Heat 0 → 1'),
       ev('e2', 1000, 'action', 'Razor uses Red Laser'),
       ev('e1', 500, 'action', 'Razor uses Provoke'),
-      ev('e0', 600, 'vitals', 'Razor · AP 3 → 2'),
+      // The room says a use once it is paid (r8 A7): its spend lands just before it.
+      ev('e0', 450, 'vitals', 'Razor · AP 3 → 2'),
       // My own vital, which this screen said with what is due.
       ev('m-v', 2000, 'vitals', 'Hotdog · HP 10 → 0', 'me'),
     ]

@@ -307,4 +307,28 @@ describe('waves', () => {
     })
     act(() => useEncounters.setState({ encounters: [] }))
   })
+
+  test('Run an encounter picks the first one not yet run here (r8 B8)', async () => {
+    const shelf = (id: string, name: string) => ({
+      id,
+      schemaVersion: 1 as const,
+      name,
+      opposition: [],
+      tables: [],
+      notes: '',
+      createdAt: STAMP,
+      updatedAt: STAMP,
+    })
+    useEncounters.setState({
+      encounters: [shelf('enc-1', 'Ambush'), shelf('enc-2', 'Spider in the Pass')],
+    })
+    await renderCockpit({ 'mediator.running': null, 'mediator.ran': ['enc-1'] })
+    await click(named('Run an encounter'))
+    const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
+    expect(
+      (dialog.getByRole('radio', { name: /Spider in the Pass/ }) as HTMLInputElement).checked
+    ).toBe(true)
+    expect(dialog.getByRole('button', { name: 'Run Spider in the Pass' })).toBeTruthy()
+    act(() => useEncounters.setState({ encounters: [] }))
+  })
 })

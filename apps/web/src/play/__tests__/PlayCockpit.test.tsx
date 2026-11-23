@@ -49,6 +49,8 @@ const { useUnits } = await import('../../replica/units')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { SyncContext } = await import('../../replica/syncContext')
 const { PlayCockpit } = await import('../PlayCockpit')
+const { PLAY_RULES_ASKED } = await import('../useFindKey')
+const { askPlayTable } = await import('../zeroVital.model')
 
 beforeAll(async () => {
   await hydrateStores()
@@ -85,7 +87,7 @@ describe('the Cockpit frame', () => {
   test('a solo pilot: the bar reads <pilot> with a Solo chip, no LIVE stamp, the way back to its sheet', async () => {
     await renderCockpit({ gameId: null, gameName: null })
     const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture · Wren')
+    expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture')
     expect(bar.getByText('Solo')).toBeTruthy()
     // A solo screen shares nothing: no LIVE stamp.
     expect(bar.queryByText(/● Online/)).toBeNull()
@@ -248,12 +250,12 @@ describe('below `lg`: the same panes as tabs (play.md §11)', () => {
       // No foot: the tabs take the screen's foot.
       expect(screen.queryByRole('contentinfo')).toBeNull()
       const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
-      expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Crew', 'Rolls', 'Rules'])
+      expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Crew', 'Feed', 'Rules'])
       const bar = within(screen.getByRole('banner'))
       // The band's crumb names the Game and the phase; the title says who is playing.
       expect(bar.getByText('Tenacity')).toBeTruthy()
       expect(bar.getByText(/On foot/)).toBeTruthy()
-      expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture · Wren')
+      expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture')
       expect(bar.getByRole('link', { name: 'Back to Sheet' }).textContent).toBe('Back to Sheet')
       // On a phone the Situation switch is pinned (r5 A15), and its moves are ⋯ rows too.
       expect(
@@ -265,6 +267,30 @@ describe('below `lg`: the same panes as tabs (play.md §11)', () => {
       expect(await screen.findByRole('menuitem', { name: /On foot/ })).toBeTruthy()
       expect(screen.getByRole('menuitem', { name: /Downtime/ })).toBeTruthy()
       expect(screen.getByRole('menuitem', { name: /Table mode/ })).toBeTruthy()
+    } finally {
+      restore()
+    }
+  })
+})
+
+describe('Ctrl+K on Play (r8 A7)', () => {
+  test('on a phone it opens the Rules tab, where the search is', async () => {
+    const restore = narrowViewport()
+    try {
+      await renderCockpit({ gameId: null, gameName: null })
+      await act(async () => {
+        window.dispatchEvent(new Event(PLAY_RULES_ASKED))
+      })
+      const rules = screen.getByRole('tab', { name: 'Rules' })
+      expect(rules.getAttribute('aria-selected')).toBe('true')
+      await act(async () => {
+        fireEvent.click(screen.getByRole('tab', { name: 'Act' }))
+      })
+      // A zero-vital notice asks for its roll table: below `lg` the tables head the Rules tab.
+      await act(async () => {
+        askPlayTable('Critical Injury')
+      })
+      expect(screen.getByRole('tab', { name: 'Rules' }).getAttribute('aria-selected')).toBe('true')
     } finally {
       restore()
     }

@@ -34,14 +34,24 @@ export function resultsHref(query: string): string {
   return `${RESULTS_PAGE}?${new URLSearchParams({ [SEARCH_PARAM]: query })}`
 }
 
-/** The page content's anchor: the skip link's target, every reference page's `main`. */
-const CONTENT_ANCHOR = '#main-content'
+/**
+ * The page a search opened, in this tab's session: its content takes the focus
+ * there. The page script reads the same key (`runtime/focusMarked.ts`, kept
+ * apart so the page loads none of this module).
+ */
+const AT_CONTENT = 'su-at-content'
 
 /**
- * A result's page, opened at its content (RR7-09): the browser starts the
- * next Tab inside the page, past its bar, navs and crumbs, with no script on
- * the page. A page already opened on an anchor keeps it.
+ * A result's page is opened at its top with a clean address, the next Tab
+ * starting in its content (RR7-09): the search marks it here, and the page's
+ * script focuses its content on arrival (`focusMarkedContent`), where an
+ * anchor in the address scrolled the bar away and was shared (r8 G3). A page
+ * opened on its own anchor goes there instead.
  */
-export function atContent(href: string): string {
-  return href.includes('#') ? href : `${href}${CONTENT_ANCHOR}`
+export function markAtContent(href: string): void {
+  try {
+    if (!href.includes('#')) sessionStorage.setItem(AT_CONTENT, href.split('?')[0] as string)
+  } catch {
+    // No storage: the page opens at its top all the same.
+  }
 }

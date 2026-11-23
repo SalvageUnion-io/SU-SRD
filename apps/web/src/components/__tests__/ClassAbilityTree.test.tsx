@@ -343,3 +343,18 @@ describe("a class Page's markup reads in the order a phone draws it", () => {
     expect(headings.indexOf('Augmentation')).toBeLessThan(headings.indexOf('Advanced Hacking'))
   })
 })
+
+describe("an Ability's rules, opened in place", () => {
+  test('show its text alone under the row that heads it, never a second head (r8 G5)', () => {
+    render(<ClassPage classEntity={classNamed('Hacker')} />)
+    const bodies = [...document.querySelectorAll('.su-ability-open__body')]
+    expect(bodies.length).toBeGreaterThan(0)
+    for (const body of bodies) {
+      const card = body.querySelector('.su-ec-frame')
+      expect(card).not.toBeNull()
+      // The card's own head (its numeral, name and chips) is the row's above it.
+      expect(card?.querySelector(':scope > .su-entity-compact__head')).toBeNull()
+      expect(card?.textContent?.trim()).not.toBe('')
+    }
+  })
+})

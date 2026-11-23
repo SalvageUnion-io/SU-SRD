@@ -1,6 +1,6 @@
 /**
- * The owner's rulings on round seven's Downtime fixes, each one
- * constant (r7 D1, D3). Each holds the Recommended choice; flipping one
+ * The owner's rulings on Downtime fixes (rounds seven and eight), each one
+ * constant (r7 D1, D3; r8 D4). Each holds the Recommended choice; flipping one
  * switches the behaviour wherever it is read.
  */
 
@@ -20,3 +20,10 @@ export const DOWNTIME_FORWARD: 'apply' | 'skip' = 'apply'
  * Mediator's press on every step.
  */
 export const DOWNTIME_AUTO_PASS = true
+
+/**
+ * r8 D4: Spend TP refuses an ability the Pilot cannot afford (Core Book
+ * p.224): its + is off, and only the Page's "Add anyway (rule breaking)" adds
+ * it, as a house rule. `false`: the + adds it free, saying so as it saves.
+ */
+export const SPEND_TP_REFUSES_SHORT = true

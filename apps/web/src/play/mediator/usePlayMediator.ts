@@ -363,6 +363,10 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
             : { important },
       }),
     setReactor: (npc, patch) => updateNpc({ npcId: npcId(npc), patch }),
+    setUses: (npc, key, spent) =>
+      updateNpc({ npcId: npcId(npc), patch: { usesSpent: { [key]: spent } } }),
+    setTitanic: (npc, spent, round) =>
+      updateNpc({ npcId: npcId(npc), patch: { titanicSpent: { round, spent } } }),
     critical: async (npc) => {
       if (npc.track === null) return
       const tableName = criticalTable(npc.track.critical)?.name
@@ -454,8 +458,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
       ),
     rename: (npc, name) => updateNpc({ npcId: npcId(npc), patch: { name } }),
     field: async (lines) => {
-      // One at a time, each name counted against the ones before it, so four
-      // Contour Hussars come out numbered.
+      // One at a time, each named apart from those before: four Contour Hussars come out numbered.
       const out = (tray ?? []).map(({ id, name }) => ({ id, name }))
       let added = 0
       for (const line of lines) {

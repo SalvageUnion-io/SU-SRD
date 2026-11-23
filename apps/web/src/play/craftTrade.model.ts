@@ -103,6 +103,14 @@ export function spendFor(pool: ScrapPool, ware: Pick<Ware, 'tl' | 'salvageValue'
   return { ok: true, pool: drawn.pool, draws: drawn.draws }
 }
 
+/**
+ * How much Scrap of a ware's Tech Level or higher the pool lacks to pay for
+ * it; 0 when it can (r8 D1: a Buy or Craft it cannot pay is off, with this).
+ */
+export function shortOf(pool: ScrapPool, ware: Pick<Ware, 'tl' | 'salvageValue'>): number {
+  return poolShortfall(pool, ware.tl, ware.salvageValue)
+}
+
 /** The kinds the Trading Bay Table's band offers (p.223), in the order it names them. */
 function offeredKinds(availability: TradingAvailability): WareKind[] {
   switch (availability) {

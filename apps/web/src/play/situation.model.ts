@@ -91,6 +91,8 @@ export type PlayDowntime = {
   begin: () => void
   /** The next step (the Mediator, or solo). */
   advance: () => void
+  /** The Mediator's screen passing a step nobody can act in (r7 D3): the Feed says it passed automatically (r8 A4). */
+  pass?: () => void
   /** Put the Downtime on a step, back or forward: solo, or the Game's Mediator; else null. */
   setStep: ((stepIndex: number) => void) | null
   /** End it: everyone goes back to their seat. */

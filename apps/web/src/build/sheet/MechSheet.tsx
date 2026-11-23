@@ -182,6 +182,7 @@ export function MechSheet({
       <MechSheetPickers
         picker={picker}
         onClose={() => setPicker(null)}
+        onSwitch={setPicker}
         mech={mech}
         model={model}
         actions={actions}

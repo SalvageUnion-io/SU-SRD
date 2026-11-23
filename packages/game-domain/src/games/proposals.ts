@@ -68,15 +68,17 @@ export function fieldLabel(field: string): string {
   return FIELD_LABEL[field] ?? field
 }
 
-/** What a proposal asks, as its line reads it: a number, or "+ Mule (Damaged)" for lots added. */
+/** One lot as a proposal line names it: a bulk lot with its count, "3 Tech 1 Scrap" (r8 B2). */
+function lotText(lot: unknown): string {
+  const { name, qty } = (lot ?? {}) as { name?: unknown; qty?: unknown }
+  if (typeof name !== 'string') return '?'
+  return typeof qty === 'number' ? `${qty} ${name}` : name
+}
+
+/** What a proposal asks, as its line reads it: a number, or "+ 3 Tech 1 Scrap" for lots added. */
 export function proposalValueText(value: unknown): string {
   if (value === null || value === undefined) return '—'
-  if (Array.isArray(value)) {
-    const names = value.map((lot) =>
-      typeof (lot as { name?: unknown })?.name === 'string' ? (lot as { name: string }).name : '?'
-    )
-    return `+ ${names.join(', ')}`
-  }
+  if (Array.isArray(value)) return `+ ${value.map(lotText).join(', ')}`
   return String(value)
 }
 

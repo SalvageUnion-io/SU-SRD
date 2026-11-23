@@ -24,6 +24,8 @@ type MechFlavorStepProps = {
   multiline?: boolean
   /** Optional helper line under the field (e.g. the name-IS-pattern note). */
   note?: string
+  /** Enter in the field: the step's own act (r8 E8). */
+  onEnter?: (() => void) | undefined
   /** Injectable roll deps for testing. */
   _deps?: RollTableDeps
 }
@@ -42,6 +44,7 @@ export function MechFlavorStep({
   placeholder,
   multiline = false,
   note,
+  onEnter,
   _deps,
 }: MechFlavorStepProps) {
   return (
@@ -52,6 +55,7 @@ export function MechFlavorStep({
         onChange={onChange}
         multiline={multiline}
         placeholder={placeholder}
+        onEnter={onEnter}
         labelAction={
           <RollTableButton table={MECH_ROLL_TABLE_NAMES[field]} onRoll={onChange} _deps={_deps} />
         }

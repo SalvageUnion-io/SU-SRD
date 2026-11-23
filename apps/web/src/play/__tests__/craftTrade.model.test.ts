@@ -6,6 +6,7 @@ import {
   craftUpdates,
   findCraftables,
   installPatch,
+  shortOf,
   spendFor,
   storePatch,
   tradeOffers,
@@ -30,6 +31,13 @@ describe('crafting', () => {
       pool: { tl1: 9, tl2: 0, tl3: 2 },
     })
     expect(spendFor({ tl1: 9, tl2: 3 }, ware)).toEqual({ ok: false, short: 2, tl: 2 })
+  })
+
+  test('what a ware lacks is known before the press: 0 when the pool pays it (r8 D1)', () => {
+    const ware = { tl: 2, salvageValue: 5 }
+    expect(shortOf({ tl1: 9, tl2: 3 }, ware)).toBe(2)
+    expect(shortOf({ tl2: 3, tl3: 2 }, ware)).toBe(0)
+    expect(shortOf({}, ware)).toBe(5)
   })
 
   test('a crafted ware mounts on the mech, or goes into the hold', () => {

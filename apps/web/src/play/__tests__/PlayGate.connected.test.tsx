@@ -150,6 +150,35 @@ describe('refusals', () => {
     expect(heading('Pilot not found')).toBeTruthy()
   })
 
+  // r8 C6 (LG8-12): removed while at the table, the page says so, under the site's header.
+  test('a pregen taken away by a removal says you were removed, and leads to Games', async () => {
+    setQueryAnswers({ 'games.get': GAME })
+    const store = useUnits.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'play-pregen', name: 'Sam', gameId: GAME_ID }))
+    const { pageShowsBar } = await import('../../shell/unionSlots')
+    await renderGate('play-pregen')
+    expect(opened()?.pilotId).toBe('play-pregen')
+    expect(pageShowsBar.get()).toBe(false)
+    await act(async () => {
+      await store.forget('pilot', 'play-pregen')
+    })
+    expect(heading('You were removed from Tenacity')).toBeTruthy()
+    expect(screen.queryByText('Pilot not found')).toBeNull()
+    expect(screen.getByRole('link', { name: /Games/ }).getAttribute('href')).toBe('/games/')
+    expect(pageShowsBar.get()).toBe(true)
+  })
+
+  test('a removal that leaves your own Pilot in the Game says so too', async () => {
+    setQueryAnswers({ 'games.get': GAME })
+    const view = await renderGate('play-rook')
+    expect(opened()?.pilotId).toBe('play-rook')
+    setQueryAnswers({ 'games.get': null })
+    await act(async () => {
+      view.rerender(gate('play-rook', 'live'))
+    })
+    expect(heading('You were removed from Tenacity')).toBeTruthy()
+  })
+
   test('the session still settling waits', async () => {
     setQueryAnswers({})
     await renderGate('play-rook', 'syncing')

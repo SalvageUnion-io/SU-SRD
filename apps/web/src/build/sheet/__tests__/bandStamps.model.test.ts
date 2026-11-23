@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { nameToSlug } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { mechPatternStamp } from '../bandStamps.model'
+import { isBookCrewMech, mechPatternStamp, withoutDrift } from '../bandStamps.model'
 
 const none = () => undefined
 
@@ -153,5 +153,27 @@ describe('mechPatternStamp', () => {
 
   test('a blank build says nothing', () => {
     expect(mechPatternStamp({ chassisRef: 'mule' }, none)).toBeUndefined()
+  })
+})
+
+describe('a book crew’s Mech (r8 E9)', () => {
+  test('is the Starter Set’s or the Quickstart’s, or a copy of one', () => {
+    expect(isBookCrewMech({ id: 'starter-mech-mule' })).toBe(true)
+    expect(isBookCrewMech({ id: 'quickstart-mech-magpie' })).toBe(true)
+    expect(isBookCrewMech({ id: 'u-1', seedRef: 'starter-mech-mule' })).toBe(true)
+    expect(isBookCrewMech({ id: 'u-1' })).toBe(false)
+  })
+
+  test('names its pattern without saying how it differs', () => {
+    expect(
+      withoutDrift({
+        name: 'Survivor',
+        page: '/x/',
+        changed: true,
+        differs: 'Survivor has 1 System this Mech lacks: High Pressure Hose',
+        lacksOnly: true,
+        loadout: { systems: [], modules: [] },
+      })
+    ).toEqual({ name: 'Survivor', page: '/x/' })
   })
 })

@@ -23,6 +23,19 @@ export function scrollToAsked(target: Element): void {
   })
 }
 
+/**
+ * Whether a class just picked brings its first-Ability list to the reader
+ * (r8 F3, SB8-17): below lg, where the list opens under the classes and not
+ * beside them, when it opens in the lower half of the screen or past it.
+ */
+export function bringsAbilitiesIntoView(args: {
+  top: number
+  viewportHeight: number
+  wide: boolean
+}): boolean {
+  return !args.wide && args.top > args.viewportHeight / 2
+}
+
 /** Whether to say the prompt: not once pressed, and not while its target shows. */
 export function promptShows(args: { key: string; used: string | null; inView: boolean }): boolean {
   return args.key !== args.used && !args.inView

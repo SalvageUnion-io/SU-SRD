@@ -5,6 +5,7 @@
  */
 import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
+import { search } from 'salvageunion-reference'
 import { schemaPluralLabel } from '../../../lib/schemaLabels'
 import { must } from '../../__tests__/must'
 import { useSearchCombobox } from '../useSearchCombobox'
@@ -50,36 +51,56 @@ describe('useSearchCombobox', () => {
     )
   })
 
-  test('moreRow: "Show more" follows the first ten, and lengthens the list in place (r4 F1)', async () => {
+  test('countAll: "See all N results" follows the list, and opens the page of every result (r8 G2)', async () => {
     const onSubmit = mock(() => {})
-    const { result } = renderHook(() => useSearchCombobox({ onSubmit, moreRow: true }))
+    const queries: string[] = []
+    const { result } = renderHook(() =>
+      useSearchCombobox({
+        onSubmit,
+        onSubmitQuery: (q) => queries.push(q),
+        countAll: () => 42,
+      })
+    )
     await typeAndSettle(result, 'laser')
 
     expect(result.current.results).toHaveLength(11)
     const last = must(result.current.results.at(-1))
     expect(last.kind).toBe('more')
-    expect(last.title).toBe('Show more')
-    expect(last.group).toMatch(/^\d+\+? more results$/)
-    const firstTen = result.current.results.slice(0, 10).map((r) => r.id)
+    expect(last.title).toBe('See all 42 results')
 
     act(() => result.current.submit(last))
-    // Its own act: nothing is opened, the same ten lead and ten more follow.
+    // The page of every result, never a row of it.
     expect(onSubmit).not.toHaveBeenCalled()
-    expect(result.current.results.slice(0, 10).map((r) => r.id)).toEqual(firstTen)
-    expect(result.current.results.filter((r) => r.kind !== 'more').length).toBeGreaterThan(10)
-    expect(result.current.results.length).toBeLessThanOrEqual(21)
-    // The highlight stands on the first row added.
-    expect(result.current.selectedIndex).toBe(10)
-
-    // A new query starts from ten again.
-    await typeAndSettle(result, 'lase')
-    expect(result.current.results).toHaveLength(11)
+    expect(queries).toEqual(['laser'])
   })
 
-  test('moreRow: a list with room for every match has no such row', async () => {
-    const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {}, moreRow: true }))
+  test('countAll: a list holding every match has no such row', async () => {
+    const { result } = renderHook(() =>
+      useSearchCombobox({ onSubmit: () => {}, countAll: () => 1 })
+    )
     await typeAndSettle(result, 'mining laser')
     expect(result.current.results.some((r) => r.kind === 'more')).toBe(false)
+  })
+
+  test('one result listed: bare Enter opens it, not the page of every result (r8 G2)', async () => {
+    const picked: string[] = []
+    const queries: string[] = []
+    const { result } = renderHook(() =>
+      useSearchCombobox({
+        onSubmit: (r) => picked.push(r.id),
+        onSubmitQuery: (q) => queries.push(q),
+        countAll: () => 19,
+        searchFn: (options) => search(options).slice(0, 1),
+      })
+    )
+    await typeAndSettle(result, 'mule')
+    expect(result.current.results.map((r) => r.kind)).toEqual(['entity', 'more'])
+    const preventDefault = () => {}
+    act(() => {
+      result.current.handleKeyDown({ key: 'Enter', preventDefault })
+    })
+    expect(picked).toEqual([must(result.current.results[0]).id])
+    expect(queries).toEqual([])
   })
 
   test('multi-token queries match ("mining laser")', async () => {
@@ -159,12 +180,13 @@ describe('useSearchCombobox', () => {
     expect(queries).toHaveLength(1)
   })
 
-  test('the count announced is the rows listed, "Show more" apart (r5 E3)', async () => {
-    const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {}, moreRow: true }))
+  test('the count announced is the rows listed, then the page of every result (r8 G2)', async () => {
+    const { result } = renderHook(() =>
+      useSearchCombobox({ onSubmit: () => {}, countAll: () => 42 })
+    )
     await typeAndSettle(result, 'laser')
-    const more = must(result.current.results.at(-1))
-    expect(more.kind).toBe('more')
-    expect(result.current.announcement).toBe(`10 results found, ${more.group}`)
+    expect(must(result.current.results.at(-1)).kind).toBe('more')
+    expect(result.current.announcement).toBe('10 results found, See all 42 results')
   })
 
   test('results stay hidden and announcement reads Searching while not ready (r4 F2)', async () => {

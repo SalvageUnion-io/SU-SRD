@@ -34,6 +34,8 @@ type MechChassisPickerModalProps = {
    * the whole loadout, over the new chassis's slots (r5 C10).
    */
   onConfirm: (chassisRef: string, keep?: boolean) => void
+  /** The pattern the Mech is linked to: a new chassis unlinks it, said first (r8 E3). */
+  pattern?: string | undefined
 }
 
 export function MechChassisPickerModal({
@@ -42,7 +44,11 @@ export function MechChassisPickerModal({
   loadout,
   onOpenChange,
   onConfirm,
+  pattern,
 }: MechChassisPickerModalProps) {
+  const loadoutLine = mechCopy(
+    CHASSIS_SWAP_KEEPS_OVERFLOW ? 'yourLoadoutComesAlong' : 'yourLoadoutStaysWhereItFits'
+  )
   /** What `chassisRef` will not hold of the loadout: said beside its Choose. */
   const leftOff = (chassisRef: string) =>
     chassisRef === currentChassisRef
@@ -79,9 +85,9 @@ export function MechChassisPickerModal({
         facets={{ status: false }}
         chosenLabel={mechCopy('chosen')}
         title={mechCopy('changeChassis')}
-        subtitle={mechCopy(
-          CHASSIS_SWAP_KEEPS_OVERFLOW ? 'yourLoadoutComesAlong' : 'yourLoadoutStaysWhereItFits'
-        )}
+        subtitle={
+          pattern ? mechCopy('leavesPattern', { subtitle: loadoutLine, pattern }) : loadoutLine
+        }
         emptyMessage={mechCopy('noMatchingChassis')}
         onClose={() => onOpenChange(false)}
         focusExtra={(item) => {

@@ -43,12 +43,12 @@ const GAME = 'The Rust Belt Run'
 
 /**
  * The player's seat on the Mediator's table: its toggle Mini's name, a button
- * named by what it shows, "<callsign · name> (Pilot), here, …" (aboard, its
+ * named by what it shows, "<callsign> (Pilot), here, …" (aboard, its
  * Mech's first), pressed while Propose is aimed there.
  */
 function seat(page: Page) {
   return page.getByRole('list', { name: 'Seats' }).getByRole('button', {
-    name: /^(?:.+ \(Mech\), )?Sparks · Mira Voss(?: \(Pilot\))?, /,
+    name: /^(?:.+ \(Mech\), )?Sparks(?: \(Pilot\))?, /,
   })
 }
 
@@ -104,8 +104,8 @@ test(
       await expect(newest.getByText('Pending', { exact: true })).toBeVisible()
 
       const accept = player.page.getByRole('button', {
-        // From what the sheet holds to what is asked (r2 C7).
-        name: /^Accept: Mediator proposes .*HP \d+ → 4/,
+        // From what the sheet holds to what is asked (r2 C7); its sender by name (r8 A4).
+        name: /^Accept: .+ proposes .*HP \d+ → 4/,
       })
       await expect(accept).toBeVisible({ timeout: 20_000 })
       // The reason reads on the Feed's own line; the notice over the bar says it too.

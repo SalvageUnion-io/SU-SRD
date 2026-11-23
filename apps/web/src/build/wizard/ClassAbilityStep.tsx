@@ -1,7 +1,9 @@
+import { useEffect, useRef } from 'react'
 import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
 import { EmptyState, ReferenceEntityCard } from '../../components/index'
+import { widthAtLeast } from '../../design/breakpoint'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import type { SelectableBaseClass } from './classOptions.model'
 import { selectableClasses } from './classOptions.model'
@@ -9,7 +11,7 @@ import { PickList } from './PickList'
 import { abilityColumns, modelOf } from './pickColumns'
 import type { PickColumn } from './pickLedger.model'
 import { SkipToNext } from './SkipToNext'
-import { FIRST_ABILITY_ID } from './wizPrompt.model'
+import { bringsAbilitiesIntoView, FIRST_ABILITY_ID, scrollToAsked } from './wizPrompt.model'
 
 type SURClassesAccessor = {
   all: () => unknown[]
@@ -21,19 +23,28 @@ type SURAbilitiesAccessor = {
 
 /**
  * What tells the six classes apart is their trees, so that is the picker's
- * column, as plain text in the book's order. The Salvager's says what the
- * book says of it (p.18).
+ * column, as plain text in the book's order, and then the first abilities
+ * they open (r8 F3), so a class is chosen seeing them. The Salvager's says
+ * what the book says of it (p.18).
  */
-const CLASS_COLUMNS: readonly PickColumn<SelectableBaseClass>[] = [
-  {
-    key: 'core',
-    label: buildWizardCopy('coreTrees'),
-    kind: 'line',
-    phone: true,
-    value: (c) =>
-      c.coreTrees.length > 3 ? buildWizardCopy('anyCoreTree') : c.coreTrees.join(' · '),
-  },
-]
+function classColumns(
+  firstLine: (c: SelectableBaseClass) => string
+): readonly PickColumn<SelectableBaseClass>[] {
+  return [
+    {
+      key: 'core',
+      label: buildWizardCopy('coreTrees'),
+      kind: 'line',
+      phone: true,
+      value: (c) => (anyCore(c) ? buildWizardCopy('anyCoreTree') : c.coreTrees.join(' · ')),
+    },
+    // A phone says them under the name (`phoneUnder`): two columns overrun it.
+    { key: 'first', label: buildWizardCopy('firstAbilities'), kind: 'line', value: firstLine },
+  ]
+}
+
+/** The Salvager's trees: any Core Tree (p.18). */
+const anyCore = (c: SelectableBaseClass) => c.coreTrees.length > 3
 
 /** What tells the Level-1 abilities apart, a line each. */
 const ABILITY_COLUMNS = abilityColumns<RefAbility>()
@@ -86,6 +97,27 @@ export function ClassAbilityStep({
     a.tree.localeCompare(b.tree)
   )
   const pickedAbility = legalPool.find((a) => selectedAbilities.includes(getEntitySlug(a)))
+  const firstLine = (c: SelectableBaseClass) =>
+    anyCore(c)
+      ? buildWizardCopy('level1OfAnyCoreTree')
+      : legalCreationAbilities(allAbilities, c.coreTrees)
+          .sort((a, b) => a.tree.localeCompare(b.tree))
+          .map((a) => a.name)
+          .join(' · ')
+
+  // A class picked below lg opens its first abilities under the list, often
+  // past the screen: the pick brings them up (r8 F3, SB8-17).
+  const picked = useRef(false)
+  useEffect(() => {
+    if (!picked.current || classId === '') return
+    picked.current = false
+    const target = document.getElementById(FIRST_ABILITY_ID)
+    if (!target) return
+    const wide = window.matchMedia?.(widthAtLeast('lg')).matches ?? false
+    const { top } = target.getBoundingClientRect()
+    if (bringsAbilitiesIntoView({ top, viewportHeight: window.innerHeight, wide }))
+      scrollToAsked(target)
+  }, [classId])
 
   const abilityCard = (ability: RefAbility) => (
     <ReferenceEntityCard
@@ -106,9 +138,13 @@ export function ClassAbilityStep({
             rows={legalClasses}
             rowKey={(c) => c.id}
             rowName={(c) => c.name}
-            columns={CLASS_COLUMNS}
+            columns={classColumns(firstLine)}
+            phoneUnder={firstLine}
             selected={classId || undefined}
-            onSelect={onSelectClass}
+            onSelect={(id) => {
+              picked.current = true
+              onSelectClass(id)
+            }}
           />
         </div>
         {selectedClass !== undefined && (

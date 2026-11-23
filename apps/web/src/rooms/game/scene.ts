@@ -1,6 +1,7 @@
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { SCENE_CONDITION_IDS } from 'game-domain/schemas/scene'
+import { PILOTS_SIDE } from '../../lib/rules/initiative'
 import { RoomRefusal } from '../refusal'
 import { salvageAreaOf, setSalvageArea, spendSalvageSupply } from '../salvageArea'
 import type { GameStore } from './store'
@@ -23,6 +24,11 @@ export type SceneRead = {
   hours: number
   /** The pilot the Mediator marked as up now (ADR-051 §9a); absent with none. */
   upNow?: string
+  /**
+   * The Group Initiative round and the side acting, as every seat reads them
+   * (r8 A3): the tracker itself stays the Mediator's. Absent with none kept.
+   */
+  round?: { n: number; acting: 'pilots' | 'opposition' | null }
 }
 
 /** The longest pilot id a marker keeps: an id, never prose. */
@@ -40,7 +46,12 @@ export class GameScene {
   scene(actor: string): SceneRead {
     if (this.store.member(actor) === null) return CLEAR
     const upNow = this.upNow()?.pilotId ?? null
-    return { ...(this.current() ?? CLEAR), ...(upNow === null ? {} : { upNow }) }
+    const round = this.round()
+    return {
+      ...(this.current() ?? CLEAR),
+      ...(upNow === null ? {} : { upNow }),
+      ...(round === null ? {} : { round }),
+    }
   }
 
   /**
@@ -162,7 +173,7 @@ export class GameScene {
     const at = Number(
       this.store.rows(`select updated_at from ${table} where id = 1`)[0]?.updated_at ?? 0
     )
-    return table === 'scene' ? Math.max(at, this.upNow()?.at ?? 0) : at
+    return table === 'scene' ? Math.max(at, this.upNow()?.at ?? 0, this.roundAt()) : at
   }
 
   private upNow(): { pilotId: string | null; at: number } | null {
@@ -170,6 +181,23 @@ export class GameScene {
     if (row === undefined) return null
     const { pilotId } = fromJson<{ pilotId: string | null }>(row.after)
     return { pilotId, at: Number(row.ts) }
+  }
+
+  /** When the initiative tracker last moved: the Scene's record reads newer with it. */
+  private roundAt(): number {
+    const row = this.store.rows("select ts from change_log where field = 'initiative'")[0]
+    return Number(row?.ts ?? 0)
+  }
+
+  /** The tracker's round and acting side, for every seat (r8 A3); null with none kept. */
+  private round(): SceneRead['round'] | null {
+    const row = this.store.rows("select after from change_log where field = 'initiative'")[0]
+    const kept =
+      row === undefined ? null : fromJson<{ round?: unknown; side?: unknown } | null>(row.after)
+    if (kept === null || typeof kept.round !== 'number') return null
+    const acting =
+      kept.side === undefined ? null : kept.side === PILOTS_SIDE ? 'pilots' : 'opposition'
+    return { n: kept.round, acting }
   }
 
   private current(): SceneRead | null {

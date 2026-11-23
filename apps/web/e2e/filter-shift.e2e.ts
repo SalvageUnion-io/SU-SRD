@@ -21,11 +21,14 @@ const LISTINGS = ['/systems/', '/equipment/', '/chassis/', '/abilities/', '/npcs
 /** Wakes the listing's island (it mounts on the first reach) and waits for it. */
 async function openListing(page: Page, route: string): Promise<void> {
   await page.goto(route)
-  await page.locator('.su-rail input[type="search"]').first().click()
+  // A phone's name filter folds behind Filters with the facets (r8 G4): that is the reach there.
+  const search = page.locator('.su-rail input[type="search"]').first()
+  const reach = (await search.isVisible()) ? search : page.locator('.su-rail__filters').first()
+  await reach.click()
   await page
     .locator('[data-island="SchemaViewerIsland"]:not([data-standin])')
     .waitFor({ state: 'attached', timeout: 30_000 })
-  await page.locator('.su-rail input[type="search"]').first().blur()
+  if (reach === search) await search.blur()
 }
 
 /** A frame after layout has settled: two frames on from the press. */

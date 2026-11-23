@@ -28,7 +28,7 @@ describe('PatternCatchUp', () => {
     expect(screen.queryByRole('button', { name: 'Update the pattern from this Mech' })).toBeNull()
     await act(async () => {
       // What the pattern has, brought in (r7 G3).
-      fireEvent.click(screen.getByRole('button', { name: 'Bring them in' }))
+      fireEvent.click(screen.getByRole('button', { name: "Bring in the pattern's changes" }))
     })
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(patch).toHaveBeenCalledWith({ systems: ['red-laser', 'chainsaw-arm'], modules: [] })
@@ -41,13 +41,24 @@ describe('PatternCatchUp', () => {
     expect(patch).toHaveBeenLastCalledWith({ systems: ['red-laser'], modules: [] })
   })
 
-  test('the viewer’s own pattern can be updated from the Mech; a reader gets the words alone', () => {
+  test('a Mech behind its own pattern is never offered to write itself over it (r8 E3)', () => {
     const mech = mechFixture({ id: 'm-1', name: 'Digger 2', sourcePattern: 'p1' })
+    render(<PatternCatchUp mech={mech} stamp={{ ...stamp, own: true }} patch={() => {}} />)
+    expect(screen.queryByRole('button', { name: 'Update the pattern from this Mech' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Save as a new pattern' })).toBeNull()
+    expect(screen.getByRole('button', { name: "Bring in the pattern's changes" })).toBeTruthy()
+  })
+
+  test('the viewer’s own pattern can be updated from a Mech ahead of it; a reader gets the words alone', () => {
+    const mech = mechFixture({ id: 'm-1', name: 'Digger 2', sourcePattern: 'p1' })
+    const { lacksOnly: _only, ...ahead } = stamp
     const { rerender } = render(
-      <PatternCatchUp mech={mech} stamp={{ ...stamp, own: true }} patch={() => {}} />
+      <PatternCatchUp mech={mech} stamp={{ ...ahead, own: true }} patch={() => {}} />
     )
     expect(screen.getByRole('button', { name: 'Update the pattern from this Mech' })).toBeTruthy()
-    rerender(<PatternCatchUp mech={mech} stamp={{ ...stamp, own: true }} />)
+    // Keeping both builds is one press away (r8 E4).
+    expect(screen.getByRole('button', { name: 'Save as a new pattern' })).toBeTruthy()
+    rerender(<PatternCatchUp mech={mech} stamp={{ ...ahead, own: true }} />)
     expect(screen.queryByRole('button')).toBeNull()
     expect(screen.getByText('Digger has 1 System this Mech lacks: Chainsaw Arm')).toBeTruthy()
   })

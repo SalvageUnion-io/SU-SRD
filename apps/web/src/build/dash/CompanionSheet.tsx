@@ -58,7 +58,7 @@ import { useUnits } from '../../replica/units'
 import { partnerDisplayName } from '../sheet/partnerDisplay.model'
 import { makeReadOnlySheetStore, sheetDataFromListing } from '../sheet/readOnlySheetStore.model'
 import { SheetFallback } from '../sheet/SheetFallback'
-import { SHEET_VITALS } from '../sheet/sheetVitals.model'
+import { SHEET_VITALS, vitalName } from '../sheet/sheetVitals.model'
 import { useLocatedSheet } from '../sheet/useLocatedSheet'
 import { Cost } from './Cost'
 import { Dash, DashColumn } from './Dash'
@@ -201,7 +201,7 @@ export function CompanionSheet({
     {
       key: 'heat',
       label: SHEET_VITALS.heat.short,
-      name: SHEET_VITALS.heat.label,
+      name: vitalName('heat'),
       value: resolveGauge(partner.currentHeat),
       max: max.heatCapacity,
       ...step('currentHeat'),

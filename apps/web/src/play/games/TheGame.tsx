@@ -14,7 +14,7 @@
  * yourself is taking the table back, and the dialog says what comes to you. With nobody mediating yet it reads **Appoint**, and a
  * solo Organizer may appoint themselves.
  *
- * Game settings (rename, describe), Remove and Leave are `GameSettings`'s
+ * Game settings (describe), Remove and Leave are `GameSettings`'s
  * dialogs (ADR-067 §3), opened from here. The Discord channel line and
  * Archive are not here: the first is not built yet, and what archiving a
  * Game should mean is the owner's decision.
@@ -283,7 +283,6 @@ export function TheGame({
       <GameSettingsDialog
         key={String(settings)}
         gameId={gameId}
-        name={game.name}
         description={game.description ?? null}
         open={settings}
         onOpenChange={setSettings}

@@ -51,6 +51,7 @@
  */
 
 import { PAGES_CACHE } from '../pwa'
+import { isInstalledApp } from './installedApp'
 
 /** How many pages to fetch at once. Enough to be quick, not enough to be rude. */
 const CONCURRENCY = 6
@@ -93,25 +94,6 @@ function writeStorage(storage: () => Storage, key: string, value: string): void 
     // Storage denied: the marker is lost, so the next run repeats work that
     // was already done. Wasteful, not wrong.
   }
-}
-
-/**
- * Is this an installed app rather than a browser tab?
- *
- * `display-mode: standalone` covers installed PWAs on every engine that
- * implements the manifest; `minimal-ui` covers the installed-but-chromed
- * variants; `navigator.standalone` is iOS Safari's older, non-standard flag,
- * kept because iOS is a realistic place to install a reference book.
- *
- * Deliberately NOT `appinstalled`: that event fires once, at the moment of
- * installation, and a user who installed last week and opened the app today
- * would never warm anything.
- */
-function isInstalled(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-  if (window.matchMedia('(display-mode: standalone)').matches) return true
-  if (window.matchMedia('(display-mode: minimal-ui)').matches) return true
-  return (window.navigator as { standalone?: boolean }).standalone === true
 }
 
 /**
@@ -178,7 +160,7 @@ async function warmOne(cache: Cache, path: string, refresh: boolean): Promise<bo
  * @param build this page's build; a test passes one, the app takes `BUILD`.
  */
 export async function warmOfflineCacheIfInstalled(build: string = BUILD): Promise<void> {
-  if (!isInstalled()) return
+  if (!isInstalledApp()) return
   if (typeof caches === 'undefined') return
 
   const session = () => sessionStorage

@@ -10,7 +10,7 @@ import { buildShelvesCopy } from '../../messages/build-shelves'
 export type RenameSubject = {
   name: string
   label: string
-  /** The dialog's title names this where it is not `name` alone (a pilot's `GHOST · Mara Voss`). */
+  /** The dialog's title names this where it is not `name` alone (a pilot's callsign, `GHOST`). */
   title?: string
   also?: { name: string; label: string }
   save: (name: string, also?: string) => Promise<unknown>

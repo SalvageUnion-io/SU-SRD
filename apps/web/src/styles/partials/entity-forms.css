@@ -1628,15 +1628,35 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* On paper every Mini's name is whole (r4 E9): nothing there can be hovered
-   or opened, so the name wraps under its chips rather than end in "…". */
+   or opened, so the name wraps rather than end in "…", and keeps its words
+   whole (r8 F2: paper is narrower than the screen its chips were fitted on,
+   and a name broken anywhere went to a letter a line). The pill is three
+   columns, the tier, the name and the chips: the name takes the room
+   between, never less than its longest word; the chips stack where the line
+   is short. */
 @media print {
   .su-entity-mini__pill.su-entity-mini__pill {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto minmax(min-content, 1fr) auto;
+    white-space: normal;
   }
 
-  .su-entity-mini__name.su-entity-mini__name {
+  .su-entity-mini__notch.su-entity-mini__notch {
+    grid-column: 2;
+  }
+
+  .su-entity-mini__chips.su-entity-mini__chips {
+    flex-wrap: wrap;
+    grid-column: 3;
+    justify-content: flex-end;
+  }
+
+  /* Three classes: past a whole name's and a names-whole list's own rules. */
+  .su-entity-mini .su-entity-mini__notch.su-entity-mini__notch,
+  .su-entity-mini .su-entity-mini__name.su-entity-mini__name {
+    min-width: auto;
     overflow: visible;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     text-overflow: clip;
     white-space: normal;
   }

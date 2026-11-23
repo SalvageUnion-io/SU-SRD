@@ -228,6 +228,8 @@ export function EntitySearcher({
     if (!item) return
     entered.current = false
     setCursorId(idOf(item))
+    // The Page beside the list follows the highlight, as a press would open it.
+    if (wide && !browse) setFocusId(idOf(item))
     document.getElementById(domId(item))?.scrollIntoView?.({ block: 'nearest' })
   }
 
@@ -253,6 +255,7 @@ export function EntitySearcher({
   function addNow(item: PoolEntity) {
     const price = cost?.(item)
     if (price?.canPay) price.onPay()
+    else if (price?.refused) return
     else add(idOf(item))
     // The Page beside the list shows what was just added (r7 G6).
     if (wide && !browse) setFocusId(idOf(item))
@@ -362,7 +365,7 @@ export function EntitySearcher({
         )}
         {count > 0 && <SelectedSeal word={count > 1 ? `${count} ${chosenLabel}` : chosenLabel} />}
         {!single && (mode === 'count' || count === 0) && (
-          <RowAdd name={item.name} onAdd={() => addNow(item)} />
+          <RowAdd name={item.name} onAdd={() => addNow(item)} refused={price?.refused} />
         )}
         <RowFacts entity={item} wide={wide} />
       </div>

@@ -101,6 +101,7 @@ export const playGamesCopy = messages({
   joinThisGame: 'Join this Game',
   displayName: 'Display name',
   displayNameExample: 'How the table calls you',
+  displayNameHint: 'This is how the table will see you. Left empty, your account name is used.',
   signInToJoinYour:
     'Sign in to join. Your Pilots, Mechs and Crawlers live on your account, and signing in is what seats you at the table.',
   signInToJoin: 'Sign in to join',
@@ -147,7 +148,6 @@ export const playGamesCopy = messages({
   deleteThisGame: 'Delete this Game…',
   gameSettingsMenu: 'Game settings…',
   gameSettings: 'Game settings',
-  gameName: 'Name',
   // Under the band's Mediate (r6 C3).
   sessionStartsWithPlay: 'Running an encounter or telling the table starts the session',
   noSessionYet: 'No session yet',
@@ -163,10 +163,11 @@ export const playGamesCopy = messages({
   leaveThisGame: 'Leave this Game…',
   leaveNamed: 'Leave {name}?',
   leaveBody:
-    'The Pilots and Mechs you brought go back to your Training Bay, and any this Game came with stay here, unassigned; nothing is deleted. You can join again with an invite.',
+    'The Pilots and Mechs you brought go back to your Training Bay, and any this Game came with go back to its spares; nothing is deleted. You can join again with an invite.',
   goesBackToYours: 'Goes back to your Training Bay: {names}.',
   goesBackToTheirs: 'Goes back to their Training Bay: {names}.',
-  staysUnassigned: 'Stays in this Game, unassigned: {names}.',
+  staysUnassigned: 'Back to this Game’s spares: {names}.',
+  staysUnassignedForRejoin: 'Back to this Game’s spares, and offered back if they rejoin: {names}.',
   takeOffRoster: 'Take off the roster',
   tookOffRoster: '{name} is back in your {build}.',
   tookOffRosterWithMech: '{name} and {mech} are back in your {build}.',
@@ -180,7 +181,7 @@ export const playGamesCopy = messages({
   removeWho: 'Remove {name}',
   nameAndPilots: '{name} ({pilots})',
   removeBody:
-    'The Pilots and Mechs they brought go back to their Training Bay, and any this Game came with stay here, unassigned; nothing is deleted. They are told, and can join again with an invite. The link they already have still works unless you reset it.',
+    'The Pilots and Mechs they brought go back to their Training Bay, and any this Game came with go back to its spares; nothing is deleted. They are told, and can join again with an invite. The link they already have still works unless you reset it.',
   resetInviteLinkToo: 'Reset the invite link too',
   removedFrom: 'Removed {name} from {game}.',
   removedAndReset:
@@ -269,13 +270,14 @@ export const playGamesCopy = messages({
   tl: 'TL',
   techLevel: 'Tech Level',
 
-  inviteLinkCopyFailed: 'The invite link could not be copied. Try again, or select it and copy it.',
+  inviteLinkCopyFailed: 'The invite link could not be copied. Select it above and copy it.',
   copyInviteLink: 'Copy invite link',
+  shareInviteLink: 'Share invite link',
   gameDeleteFailed: 'That Game could not be deleted. Try again.',
   goBackToWhoeverOwnsThem: '{who} go back to whoever owns them, in their {bay}.',
   howInvitesWork:
     'A Game is joined from the invite link its Organiser sends you. Open the link and sign in to join; there is no code to type.',
-  inviteLinkDoesNotWork: 'That invite link does not work.',
+  inviteLinkDoesNotWork: 'That invite link has expired.',
   inviteLinkAskAgain:
     'It may have been reset, or not copied whole. Ask whoever invited you for the current link.',
   youreInvitedTo: "You're invited to ",
@@ -292,4 +294,11 @@ export const playGamesCopy = messages({
   runsTheTable: 'Runs the table',
   noPilotYet: 'No Pilot yet',
   waitingForAPlayer: 'Waiting for a player',
+  removedFromGame: 'You were removed from {game}',
+  removedFromGameBody:
+    'What you brought to it is back in your Training Bay. A Pilot the Game came with stays with it, and is yours again if you rejoin while it is free.',
+  kitIsTheMediators:
+    'NPCs and encounters for a table you run. Start a Game as its Mediator and they are here.',
+  sessionEnded: 'The group session has ended.',
+  readTheRecap: 'Read the recap',
 })

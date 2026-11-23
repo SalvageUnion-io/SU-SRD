@@ -27,6 +27,8 @@ import { PilotAbilityTrainer } from '../build/sheet/PilotAbilityTrainer'
 import { Button, Entity, Stat } from '../components/index'
 import { bayGate } from '../lib/rules/crawlerEconomy'
 import { playCopy } from '../messages/play'
+import { playDowntimeCopy } from '../messages/play-downtime'
+import { SPEND_TP_REFUSES_SHORT } from './downtimeRulings.model'
 import { NeedChip } from './PlayActionRow'
 import type { DowntimeActionId } from './playActions.model'
 import { playLineModel } from './playLine.model'
@@ -121,8 +123,11 @@ export function PlayDowntimeActionRow({
       </>
     ) : id === 'craftTrade' ? (
       // No crawler is why there is nothing to open: said, never a greyed button (r3 L2).
+      // Solo, Make a Union Crawler says it, so the title keeps its room (r8 D3).
       crawler === null ? (
-        <NeedChip need={playCopy('needsAUnionCrawler')} />
+        solo ? undefined : (
+          <NeedChip need={playCopy('needsAUnionCrawler')} />
+        )
       ) : (
         damagedBay(crawler, 'trading-bay', playCopy('tradingBay'))
       )
@@ -137,7 +142,8 @@ export function PlayDowntimeActionRow({
     crawler !== null ? (
       open(
         { kind: 'crawler', id: crawler.id, name: crawler.name },
-        'Open',
+        // Open, it reads Close: the press folds it back (r8 D1, SB8-10).
+        solo && crafting ? playDowntimeCopy('closeCraftTrade') : 'Open',
         // Solo the crawler is the player's own: its Crafting and Trading Bays
         // open here, inside Downtime (r6 D4), never in an Edit sheet.
         solo ? () => setCrafting((was) => !was) : undefined
@@ -216,7 +222,11 @@ export function PlayDowntimeActionRow({
           : {})}
       />
       {training && pilot && (
-        <PilotAbilityTrainer pilot={pilot} onClose={() => setTraining(false)} />
+        <PilotAbilityTrainer
+          pilot={pilot}
+          onClose={() => setTraining(false)}
+          spendOnly={SPEND_TP_REFUSES_SHORT}
+        />
       )}
     </li>
   )

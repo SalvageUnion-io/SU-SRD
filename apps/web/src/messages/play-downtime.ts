@@ -10,4 +10,12 @@ export const playDowntimeCopy = messages({
   stepApplied: 'Applied: {step}',
   stepUndone: 'Undid: {step}',
   uncrafted: 'Took back {name}: its Scrap is in the pool again.',
+  scrapPool: 'Scrap Pool',
+  scrapPoolNone: 'No Scrap',
+  shortOfScrap: 'Short {short} T{tl}+',
+  closeCraftTrade: 'Close',
+  scrapMoved: 'Scrap moved',
+  intoScrapPool: 'Into {crawler}’s Scrap Pool',
+  tradeNeedsACrawler:
+    'Trading is done at a Union Crawler’s Trading Bay: it rolls what is for sale each Downtime and trades your Scrap. You have no Crawler yet.',
 })

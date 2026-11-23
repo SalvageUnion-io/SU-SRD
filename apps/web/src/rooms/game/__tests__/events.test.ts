@@ -34,6 +34,19 @@ describe('the table’s events', () => {
     expect(act('d-org', 'setMediator', { userId: MEDIATOR, mediator: false })).toEqual([])
   })
 
+  test('ending Group Initiative or the encounter is a line for the table (r8 B10)', () => {
+    const { act, texts } = seated()
+    act(MEDIATOR, 'mediator.setInitiative', { initiative: { round: 1, acted: [] } }, AT + 1)
+    expect(texts()).not.toContain('Med ended Group Initiative')
+    act(MEDIATOR, 'mediator.setInitiative', { initiative: null }, AT + 2)
+    expect(texts()[0]).toBe('Med ended Group Initiative')
+    // With none running, ending one says nothing.
+    act(MEDIATOR, 'mediator.endEncounter', {}, AT + 3)
+    expect(texts()).not.toContain('Med ended the encounter')
+    act(MEDIATOR, 'mediator.setInitiative', { initiative: null }, AT + 4)
+    expect(texts().filter((t) => t === 'Med ended Group Initiative')).toHaveLength(1)
+  })
+
   test('a line names its people as they are now: a former Mediator by name (r6 A9)', () => {
     const { act, texts } = seated()
     act(MEDIATOR, 'session.start', undefined as never, AT + 1)
@@ -79,7 +92,7 @@ describe('the table’s events', () => {
     const { act, texts } = seated()
     const [event] = act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 6 })] })
     expect(event).toMatchObject({ kind: 'vitals', actorId: PLAYER })
-    expect(texts()).toEqual(['p1 · Pilot p1 · HP 10 → 6'])
+    expect(texts()).toEqual(['p1 · HP 10 → 6'])
   })
 
   test('rapid repeats on one vital merge into the line they follow, keeping where it began', () => {
@@ -104,8 +117,8 @@ describe('the table’s events', () => {
       AT + 62_000
     )
     expect(second[0]?._id).toBe(first[0]?._id as string)
-    expect(third[0]?.text).toBe('p1 · Pilot p1 · HP 8 → 5')
-    expect(texts()).toEqual(['p1 · Pilot p1 · HP 8 → 5', 'p1 · Pilot p1 · HP 10 → 8'])
+    expect(third[0]?.text).toBe('p1 · HP 8 → 5')
+    expect(texts()).toEqual(['p1 · HP 8 → 5', 'p1 · HP 10 → 8'])
     // Past the window, or once the line is sealed (posted), a change starts a new line.
     act(
       PLAYER,
@@ -113,7 +126,7 @@ describe('the table’s events', () => {
       { ops: [op('p1', { currentHP: 4 }, { baseSeq: 4 })] },
       AT + 62_000 + MERGE_MS + 1
     )
-    expect(texts()[0]).toBe('p1 · Pilot p1 · HP 5 → 4')
+    expect(texts()[0]).toBe('p1 · HP 5 → 4')
     room.events.seal()
     act(
       PLAYER,
@@ -121,7 +134,7 @@ describe('the table’s events', () => {
       { ops: [op('p1', { currentHP: 3 }, { baseSeq: 5 })] },
       AT + 62_000 + MERGE_MS + 2
     )
-    expect(texts()[0]).toBe('p1 · Pilot p1 · HP 4 → 3')
+    expect(texts()[0]).toBe('p1 · HP 4 → 3')
     expect(texts()).toHaveLength(4)
   })
 
@@ -134,23 +147,15 @@ describe('the table’s events', () => {
     const first = hp(7, 1, AT + 60_000)
     const second = hp(0, 2, AT + 61_000)
     expect(second[0]?._id).not.toBe(first[0]?._id as string)
-    expect(texts().slice(0, 2)).toEqual(['p1 · Pilot p1 · HP 7 → 0', 'p1 · Pilot p1 · HP 10 → 7'])
+    expect(texts().slice(0, 2)).toEqual(['p1 · HP 7 → 0', 'p1 · HP 10 → 7'])
     // A nudge after a hit starts its own line, and the next nudge folds into that one.
     hp(1, 3, AT + 62_000)
     hp(2, 4, AT + 63_000)
-    expect(texts().slice(0, 3)).toEqual([
-      'p1 · Pilot p1 · HP 0 → 2',
-      'p1 · Pilot p1 · HP 7 → 0',
-      'p1 · Pilot p1 · HP 10 → 7',
-    ])
+    expect(texts().slice(0, 3)).toEqual(['p1 · HP 0 → 2', 'p1 · HP 7 → 0', 'p1 · HP 10 → 7'])
     // A hit between nudges ends the nudged line: the nudge after it is a new one.
     hp(6, 5, AT + 64_000)
     hp(5, 6, AT + 65_000)
-    expect(texts().slice(0, 3)).toEqual([
-      'p1 · Pilot p1 · HP 6 → 5',
-      'p1 · Pilot p1 · HP 2 → 6',
-      'p1 · Pilot p1 · HP 0 → 2',
-    ])
+    expect(texts().slice(0, 3)).toEqual(['p1 · HP 6 → 5', 'p1 · HP 2 → 6', 'p1 · HP 0 → 2'])
   })
 
   test('a change Undo wrote says so, and no nudge folds into it (r3 B2)', () => {
@@ -161,16 +166,16 @@ describe('the table’s events', () => {
     hp(0, 1, AT + 1_000)
     // Undo writes the value before the last change, and its line is marked.
     const [undone] = hp(7, 2, AT + 2_000, 'play-undo')
-    expect(undone?.text).toBe('p1 · Pilot p1 · HP 0 → 7 · Undo')
+    expect(undone?.text).toBe('p1 · HP 0 → 7 · Undo')
     // A nudge taken back is a line of its own too, never folded into the nudge.
     hp(6, 3, AT + 3_000)
     hp(7, 4, AT + 4_000, 'play-undo')
     hp(6, 5, AT + 5_000)
     expect(texts().slice(0, 4)).toEqual([
-      'p1 · Pilot p1 · HP 7 → 6',
-      'p1 · Pilot p1 · HP 6 → 7 · Undo',
-      'p1 · Pilot p1 · HP 7 → 6',
-      'p1 · Pilot p1 · HP 0 → 7 · Undo',
+      'p1 · HP 7 → 6',
+      'p1 · HP 6 → 7 · Undo',
+      'p1 · HP 7 → 6',
+      'p1 · HP 0 → 7 · Undo',
     ])
   })
 
@@ -229,8 +234,8 @@ describe('the table’s events', () => {
     expect(texts().slice(0, 4)).toEqual([
       'Mech m1 (p1) · .50 Cal Machine Gun is repaired',
       'Mech m1 (p1) · .50 Cal Machine Gun is damaged',
-      'p1 · Pilot p1 switches Hull Magnetiser off',
-      'p1 · Pilot p1 switches Hull Magnetiser on',
+      'p1 switches Hull Magnetiser off',
+      'p1 switches Hull Magnetiser on',
     ])
   })
 
@@ -238,16 +243,17 @@ describe('the table’s events', () => {
     const { act, texts, room, code } = seated()
     act(PLAYER, 'seats.board', { pilotId: 'p1', mechId: 'm1' }, AT + 1)
     const using = { ref: 'a', name: 'Patch', activated: false, applied: false }
-    act(PLAYER, 'seats.setResolving', { pilotId: 'p1', resolving: using }, AT + 2)
+    // Opened, nothing is done yet: no line until it is paid or rolled (r8 A7).
+    expect(act(PLAYER, 'seats.setResolving', { pilotId: 'p1', resolving: using }, AT + 2)).toEqual(
+      []
+    )
+    const paid = { ...using, activated: true }
+    act(PLAYER, 'seats.setResolving', { pilotId: 'p1', resolving: paid }, AT + 2)
     // The same resolve moving on is not a second use.
-    expect(
-      act(
-        PLAYER,
-        'seats.setResolving',
-        { pilotId: 'p1', resolving: { ...using, activated: true } },
-        AT + 3
-      )
-    ).toEqual([])
+    const rolled = { ...paid, roll: { roll: 14, band: 'success' } }
+    expect(act(PLAYER, 'seats.setResolving', { pilotId: 'p1', resolving: rolled }, AT + 3)).toEqual(
+      []
+    )
     act(MEDIATOR, 'session.start', undefined as never, AT + 4)
     const id = room.newId()
     void id
@@ -260,18 +266,18 @@ describe('the table’s events', () => {
       'Nell joined the Game',
       // Left resolving when the session ended, with nothing to apply: no line (r7 A5).
       'Med ended the group session',
-      'Player accepted: p1 · Pilot p1 AP → 2',
-      'Mediator proposes p1 · Pilot p1 AP → 2',
+      'Player accepted: p1 AP → 2',
+      'Med proposes p1 AP → 2',
       'Med started the group session',
-      'p1 · Pilot p1 uses Patch',
-      'p1 · Pilot p1 boards Mech m1',
+      'p1 uses Patch',
+      'p1 boards Mech m1',
     ])
   })
 
   test('an assignment taken away says whose it was, so their screen says it once (MD-23)', () => {
     const { act } = seated()
     const [unassigned] = act(MEDIATOR, 'unassign', { unitId: 'p1' }, AT + 1)
-    expect(unassigned).toMatchObject({ kind: 'assign', text: 'p1 · Pilot p1 is unassigned' })
+    expect(unassigned).toMatchObject({ kind: 'assign', text: 'p1 is unassigned' })
     expect(unassigned?.about).toBe(PLAYER)
     // Nobody held it: nobody to tell.
     const [given] = act(MEDIATOR, 'assign', { unitId: 'p1', userId: PLAYER }, AT + 2)
@@ -288,9 +294,9 @@ describe('the table’s events', () => {
     act(PLAYER, 'seats.board', { pilotId: 'p1', mechId: 'm1' }, AT + MERGE_MS + 3)
     act(PLAYER, 'seats.eject', { pilotId: 'p1' }, AT + MERGE_MS + 4)
     expect(texts().slice(0, 3)).toEqual([
-      'p1 · Pilot p1 ejects',
-      'p1 · Pilot p1 boards Mech m1',
-      'p1 · Pilot p1 climbs out, on foot',
+      'p1 ejects',
+      'p1 boards Mech m1',
+      'p1 climbs out, on foot',
     ])
   })
 
@@ -305,8 +311,8 @@ describe('the table’s events', () => {
     act(PLAYER, 'drawLink', { link }, AT + 1)
     act(PLAYER, 'removeLink', { link }, AT + MERGE_MS + 2)
     expect(texts().slice(0, 2)).toEqual([
-      'Mech m1 is no longer p1 · Pilot p1’s Mech',
-      'Mech m1 is p1 · Pilot p1’s Mech, parked',
+      'Mech m1 is no longer p1’s Mech',
+      'Mech m1 is p1’s Mech, parked',
     ])
   })
 
@@ -316,9 +322,9 @@ describe('the table’s events', () => {
     const [again] = act(MEDIATOR, 'assign', { unitId: 'p1', userId: PLAYER }, AT + 2)
     const [third] = act(MEDIATOR, 'assign', { unitId: 'p1', userId: PLAYER }, AT + 3)
     expect(again?._id).toBe(first?._id as string)
-    expect(again?.text).toBe('p1 · Pilot p1 is assigned to Player ×2')
-    expect(third?.text).toBe('p1 · Pilot p1 is assigned to Player ×3')
-    expect(texts()).toEqual(['p1 · Pilot p1 is assigned to Player ×3'])
+    expect(again?.text).toBe('p1 is assigned to Player ×2')
+    expect(third?.text).toBe('p1 is assigned to Player ×3')
+    expect(texts()).toEqual(['p1 is assigned to Player ×3'])
   })
 
   test('a session already running, or none to end, and a Stop Sign already up or not up, say nothing', () => {
@@ -367,10 +373,7 @@ describe('the table’s events', () => {
     room.log.append(PLAYER, [roll('p1 · Core Mechanic · 14 · Success', {}, AT + 1)])
     room.log.append(MEDIATOR, [roll('Mediator · Morale · 3', { private: true }, AT + 2)])
     room.log.broadcast(MEDIATOR, 'Raiders close in', AT + 3)
-    expect(texts(PLAYER)).toEqual([
-      'Mediator · Raiders close in',
-      'p1 · Core Mechanic · 14 · Success',
-    ])
+    expect(texts(PLAYER)).toEqual(['Med · Raiders close in', 'p1 · Core Mechanic · 14 · Success'])
     const mediators = room.events.list(MEDIATOR)
     expect(mediators.map((e) => e.kind)).toEqual(['alert', 'roll', 'roll'])
     // A Mediator's roll says whose it is: a player's screen toasts those alone (r2 C4).
@@ -550,6 +553,26 @@ describe('the table’s events', () => {
     ])
   })
 
+  // r8 A3 (LG8-08): an NPC a hit dropped was in nobody's Feed.
+  test('an NPC’s HP is a Mediator’s line; its Down is the whole table’s', () => {
+    const { act, texts, room } = seated()
+    const npcId = room.opposition.addNpc(MEDIATOR, { name: 'Raider 1', currentHp: 6, maxHp: 6 }, AT)
+    act(MEDIATOR, 'mediator.updateNpc', { npcId, patch: { currentHp: 2 } }, AT + 1)
+    expect(texts(MEDIATOR)[0]).toBe('Raider 1 · HP 6 → 2')
+    expect(texts(PLAYER)).not.toContain('Raider 1 · HP 6 → 2')
+    act(MEDIATOR, 'mediator.updateNpc', { npcId, patch: { currentHp: 0 } }, AT + 2)
+    expect(texts(PLAYER)[0]).toBe('Raider 1 · HP → 0')
+  })
+
+  // r8 A4 (LG8-11): a step that passed by itself credited the Mediator with moving it.
+  test('a Downtime step that passes by itself says so, naming nobody', () => {
+    const { act, texts } = seated()
+    act(MEDIATOR, 'downtime.begin', undefined as never, AT + 1)
+    const [passed] = act(MEDIATOR, 'downtime.advance', { auto: true } as never, AT + 2)
+    expect(passed).toMatchObject({ kind: 'downtime', actorId: null })
+    expect(texts(PLAYER)[0]).toBe(`1 ${downtimeStepNames()[0]} passed automatically`)
+  })
+
   // r6 D3 (LG6-11): players were not told an area was set until they opened Area Salvage.
   test('an area opened to salvage is one line; setting it again says nothing', () => {
     const { act, texts } = seated()
@@ -597,14 +620,11 @@ describe('the table’s events', () => {
     expect(undone).toMatchObject({
       kind: 'proposal',
       answer: 'undone',
-      text: 'Player undid: p1 · Pilot p1 HP → 3',
+      text: 'Player undid: p1 HP → 3',
       actorId: PLAYER,
     })
     expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('undone')
-    expect(texts().slice(0, 2)).toEqual([
-      'Player undid: p1 · Pilot p1 HP → 3',
-      'Player accepted: p1 · Pilot p1 HP → 3',
-    ])
+    expect(texts().slice(0, 2)).toEqual(['Player undid: p1 HP → 3', 'Player accepted: p1 HP → 3'])
     // A later change is its own: the row stays Undone, and the line is a vital's.
     const [later] = act(
       PLAYER,
@@ -628,7 +648,7 @@ describe('the table’s events', () => {
       { ops: [op('p1', { currentHP: 8 }, { baseSeq: 2, kind: 'transaction', source: 'play' })] },
       AT + 4
     )
-    expect(healed).toMatchObject({ kind: 'vitals', text: 'p1 · Pilot p1 · HP 3 → 8' })
+    expect(healed).toMatchObject({ kind: 'vitals', text: 'p1 · HP 3 → 8' })
     expect(room.proposals.sent(MEDIATOR)[0]?.state).toBe('applied')
     // A sheet's own Undo of the accepted change is an Undo too.
     const other = seated()
@@ -711,7 +731,7 @@ describe('the table’s events', () => {
     )
     const [start] = act(MEDIATOR, 'session.start', undefined as never, AT + MERGE_MS + 2)
     expect(start?.text).toBe(
-      'Med started the group session · Still open: p1 · Pilot p1 is Down; the salvage area Mutant Nest is open'
+      'Med started the group session · Still open: p1 is Down; the salvage area Mutant Nest is open'
     )
     expect(start?.session).toBe('start')
   })
@@ -832,10 +852,10 @@ describe('the table’s events', () => {
     const alertId = String(room.log.alerts(PLAYER)[0]?._id)
     expect(() => act(PLAYER, 'changeLog.withdrawAlert', { alertId })).toThrow('Only the Mediator')
     const [told] = act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 2)
-    expect(told).toMatchObject({ kind: 'withdrawn', text: 'Mediator withdrew an alert' })
+    expect(told).toMatchObject({ kind: 'withdrawn', text: 'Med withdrew an alert' })
     expect(room.log.alerts(PLAYER)).toEqual([])
     // The first alert started the session (r6 C3); its own line is withdrawn.
-    expect(texts()).toEqual(['Mediator withdrew an alert', 'Med started the group session'])
+    expect(texts()).toEqual(['Med withdrew an alert', 'Med started the group session'])
     expect(() => act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 3)).toThrow(
       'That alert is no longer there'
     )
@@ -854,7 +874,7 @@ describe('the table’s events', () => {
       code: 'MUL',
     }
     act(MEDIATOR, 'ops.propose', { entityId: 'm1', field: 'cargoLots', after: [part] }, AT + 1)
-    expect(texts()[0]).toBe('Mediator proposes Mech m1 Cargo → + Mule (Damaged)')
+    expect(texts()[0]).toBe('Med proposes Mech m1 Cargo → + Mule (Damaged)')
     // The hold changed after the proposal was sent: accepting keeps both.
     const other = { ...held, id: 'l3', name: 'Ration Pack' }
     act(PLAYER, 'submit', { ops: [op('m1', { cargoLots: [held, other] }, { baseSeq: 1 })] }, AT + 2)
@@ -884,14 +904,14 @@ describe('the table’s events', () => {
     const [told] = act(MEDIATOR, 'ops.withdraw', { opId }, AT + 2)
     expect(told).toMatchObject({
       kind: 'proposal',
-      text: 'Mediator withdrew: p1 · Pilot p1 HP → 0',
+      text: 'Med withdrew: p1 HP → 0',
     })
     expect(room.proposals.pending(PLAYER)).toEqual([])
     expect(room.proposals.sent(MEDIATOR)[0]).toMatchObject({ _id: opId, state: 'withdrawn' })
     // Withdrawn, it can be neither accepted nor withdrawn again.
     expect(() => act(PLAYER, 'ops.accept', { opId }, AT + 3)).toThrow('already been answered')
     expect(act(MEDIATOR, 'ops.withdraw', { opId }, AT + 4)).toEqual([])
-    expect(texts()[0]).toBe('Mediator withdrew: p1 · Pilot p1 HP → 0')
+    expect(texts()[0]).toBe('Med withdrew: p1 HP → 0')
   })
 
   test('a vital never written is proposed from its start (r2 C7)', () => {

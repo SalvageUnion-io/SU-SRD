@@ -35,9 +35,10 @@ import { containerOf } from 'game-domain/container'
 import { cockpitPath, sheetPath } from 'game-domain/entityKinds'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
+import { playGamesCopy } from '../messages/play-games'
 import { useGamesQuery } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
@@ -52,6 +53,9 @@ const TRIAL_PLAY = true
 
 /** Loaded on a signed-out Play alone: it carries the book crews. */
 const PlayTrial = lazy(() => import('./trial/PlayTrial').then((m) => ({ default: m.PlayTrial })))
+
+/** On to Games, where a removed player's other tables are (r8 C6). */
+const TO_GAMES = { href: '/games/', label: PRODUCT.play }
 
 /** Back to the Training Bay, where every pilot of yours is (ADR-066). */
 const TO_TRAINING_BAY = { href: '/', label: PRODUCT.build }
@@ -98,12 +102,28 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
   const container = pilot === null ? null : containerOf(pilot)
   const gameId = container?.kind === 'game' ? container.gameId : null
   const game = useGamesQuery('games.get', gameId === null ? 'skip' : { gameId })
+  // The Game this screen was playing in: removed from it mid-session, the
+  // pilot (a pregen) or the Game's answer goes, and the screen says why (r8 C6).
+  const playing = useRef<{ id: string; game: string } | null>(null)
+  if (pilot !== null && game) playing.current = { id, game: game.name }
+  const removedFrom = playing.current?.id === id ? playing.current.game : null
 
   useEffect(() => {
     if (flownBy !== null) {
       void navigate({ to: '/pilots/$id/play', params: { id: flownBy }, replace: true })
     }
   }, [flownBy, navigate])
+
+  if (removedFrom !== null && (pilot === null || game === null)) {
+    return (
+      <PlayRefusal
+        area="play"
+        title={playGamesCopy('removedFromGame', { game: removedFrom })}
+        body={playGamesCopy('removedFromGameBody')}
+        link={TO_GAMES}
+      />
+    )
+  }
 
   if (pilot === null) {
     return (

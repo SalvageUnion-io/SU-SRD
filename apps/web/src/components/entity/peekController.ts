@@ -9,7 +9,9 @@
  *   trigger: content that scrolls or swaps in under a resting pointer opens
  *   nothing until the pointer moves (RR7-06, LG7-12).
  * - Keyboard focus: opens at once; blur closes. Focus that a pointer press
- *   gave does not (the press is a click: it follows the link).
+ *   gave does not (the press is a click: it follows the link), nor, on a
+ *   screen with no hover, a list's row name's: there a tap on the name opens
+ *   its page, always (r8 G4).
  * - Touch: a long press opens it and swallows the click and the callout the
  *   press would otherwise make; a tap elsewhere closes it.
  * - A press on a button marked `data-peek-press`, which does nothing else,
@@ -17,7 +19,8 @@
  *   soon (E27): a reference term's Peek is hover's and focus's. Touch has no
  *   hover, so there a tap on a term (a link marked `data-peek-press`)
  *   explains it in place: its Peek opens, Open page on it (r5 E4).
- * - Escape closes it, and only it: the dialog or page under it stays.
+ * - Escape closes it, and only it: the dialog or page under it stays. Focus
+ *   an Escape hands back (a closing dialog's opener) opens nothing.
  *
  * A trigger inside the popup never peeks (E16: a Peek is terminal).
  */
@@ -57,6 +60,14 @@ function triggerOf(target: EventTarget | null): HTMLElement | null {
   if (!element || insidePopup(element)) return null
   const trigger = element.closest(`[${PEEK_ATTRIBUTE}]`)
   return trigger instanceof HTMLElement ? trigger : null
+}
+
+/** A list's row (a Ledger's): on a phone its name opens its page (r8 G4). */
+const LIST_ROW = '.su-ledger__table tr'
+
+/** A screen read by touch alone, with no hover. */
+function noHover(): boolean {
+  return typeof window.matchMedia === 'function' && window.matchMedia('(hover: none)').matches
 }
 
 /** Install the listeners on `doc`; returns the uninstaller. */
@@ -164,6 +175,8 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     const trigger = triggerOf(event.target)
     if (!trigger) return
     if (performance.now() - lastPress < POINTER_FOCUS_WINDOW) return
+    // A tap the controller never saw (it mounted under the finger) still opens the page.
+    if (trigger.closest(LIST_ROW) && noHover()) return
     openNow(trigger, 'focus')
   }
 
@@ -172,7 +185,12 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   }
 
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== 'Escape' || !current) return
+    if (event.key !== 'Escape') return
+    // An Escape that closes a dialog hands focus back to its opener: a press, not a Tab (r8 E10).
+    if (!current) {
+      lastPress = performance.now()
+      return
+    }
     // The Peek is the topmost thing: Escape dismisses it and nothing beneath.
     event.stopPropagation()
     closeNow()

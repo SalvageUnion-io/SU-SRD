@@ -75,18 +75,19 @@ const DEAD_ASK = playGamesCopy('inviteLinkAskAgain')
 const BACK = { href: '/games/', label: playGamesCopy('play') }
 
 /**
- * A dead link's ways on: back to Play's hub, as a button-shaped link with a
- * full touch target and, signed out, a sign-in beside it. That sign-in is a way
- * on, not a prompt: the page has already said the link is dead, and signing in
- * lands on your Games rather than pretending it could still join.
+ * A dead link's ways on: back to Play's hub, the page's one rust act with a
+ * full touch target and, signed out, a sign-in beside it, outlined and second
+ * (r8 C7, LG8-21). That sign-in is a way on, not a prompt: the page has
+ * already said the link is dead, and signing in lands on your Games rather
+ * than pretending it could still join.
  */
 function Back({ signIn = false }: { signIn?: boolean }) {
   return (
     <div style={ACTIONS}>
-      <Button href={BACK.href} back size="full">
+      <Button href={BACK.href} back variant="primary" size="full">
         {BACK.label}
       </Button>
-      {signIn && <SignInControl redirectTo={BACK.href} />}
+      {signIn && <SignInControl redirectTo={BACK.href} size="full" variant="default" />}
     </div>
   )
 }

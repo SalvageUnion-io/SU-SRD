@@ -9,8 +9,8 @@
  * opens its actions inside its own card, under the box (r4 D1: pressed while
  * they are open; nothing else on the screen moves), and ⋯: the full reference card, Mark important, Rename and Delete.
  * At 0 it is down: dashed, struck, and never removed for you (ADR-007). It
- * folds to its one-line band (r6 B8), Delete inside its ⋯; the list sinks it
- * below the living (`sinkDowned`). A downed Mech or Vehicle keeps its box
+ * folds to its one-line band (r6 B8), Delete inside its ⋯, and keeps its
+ * place in the list (r8 B5). A downed Mech or Vehicle keeps its box
  * until its wreck is salvaged (`PlayWreckSalvage`, into the crawler or a crew
  * Mech's hold), then folds too.
  *

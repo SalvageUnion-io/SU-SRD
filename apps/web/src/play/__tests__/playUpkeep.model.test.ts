@@ -45,7 +45,7 @@ describe('payDowntimeUpkeep', () => {
     })
     expect(sent).toEqual([])
     expect(said).toBe(
-      'Not paid: the pool is 3 short of 5 Scrap of Tech 2 or higher. Unpaid Upkeep: Core Book p.218.'
+      'Not paid: the pool is 3 short of 5 Scrap of Tech 2 or higher. Unpaid Upkeep: Workshop Manual · p.218.'
     )
     expect(upkeepShort(poor)).toBe(3)
     expect(upkeepShort(crawler)).toBe(0)

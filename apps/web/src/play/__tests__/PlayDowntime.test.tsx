@@ -129,7 +129,29 @@ describe('Tally Salvage moves the Scrap', () => {
       name: 'downtime.moveScrap',
       args: { pilotId: 'dt-p', mechId: 'dt-m', crawlerId: 'dt-c' },
     })
-    expect(within(stepBox()).getByText('Moved 2 Scrap to Tenacity.')).toBeTruthy()
+    // What moved, and where, by Tech Level: never "You carry no Scrap home" (r8 D2).
+    const into = within(within(stepBox()).getByRole('list', { name: 'Scrap moved' }))
+    expect(into.getByText('Into Tenacity’s Scrap Pool')).toBeTruthy()
+    expect(into.getByText('T1')).toBeTruthy()
+    expect(within(stepBox()).queryByRole('list', { name: 'Carried Scrap' })).toBeNull()
+    expect(within(stepBox()).queryByText(/carry no Scrap/)).toBeNull()
+    expect(within(stepBox()).queryByRole('button', { name: 'Move to the crawler' })).toBeNull()
+  })
+
+  test('taken already with nothing carried, the step says Done, never "no Scrap home" (r8 D2)', () => {
+    const { pilot, mech, crawler } = units()
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(pilot, mech, crawler).store}
+        writes={[]}
+        downtime={{ stepIndex: 0, doneSteps: [0] }}
+      />
+    )
+    expect(within(stepBox()).queryByText(/carry no Scrap/)).toBeNull()
+    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
   })
 })
 
@@ -464,9 +486,9 @@ describe('a solo Downtime, end to end', () => {
     expect(
       track.getByRole('button', { name: `Step ${train + 1}: ${STEPS[train]}, skipped` })
     ).toBeTruthy()
-    // A step that previews nothing is done, as before.
+    // A step jumped over, though it previews nothing, is skipped, never done (r8 B9, SB8-16).
     expect(
-      track.getByRole('button', { name: `Step ${train}: ${STEPS[train - 1]}, done` })
+      track.getByRole('button', { name: `Step ${train}: ${STEPS[train - 1]}, skipped` })
     ).toBeTruthy()
     expect(screen.getByText(/^Skipped, nothing applied: /).textContent).toContain(
       `${train + 1} ${STEPS[train]}`
@@ -589,6 +611,10 @@ test('solo, Craft · Trade opens its bays inside Downtime, and crafting spends S
     expect(assigned).toEqual([])
     expect(useSheetModeStore.getState().editing).toBe(false)
     expect(onHand.getByRole('button', { name: 'Back to the step' })).toBeTruthy()
+    // Open, the row's own button reads Close, and the panel heads with the Scrap Pool (r8 D1).
+    expect(onHand.getByRole('button', { name: 'Close' })).toBeTruthy()
+    const pool = within(onHand.getByRole('list', { name: 'Scrap Pool' }))
+    expect(pool.getByText('T2')).toBeTruthy()
     await act(async () => {
       fireEvent.change(find, { target: { value: 'Armour Plating' } })
     })
@@ -609,10 +635,11 @@ test('solo, Craft · Trade opens its bays inside Downtime, and crafting spends S
     await click(onHand.getByRole('button', { name: 'Roll availability' }))
     const forSale = within(onHand.getByRole('list', { name: 'For sale' }))
     expect(forSale.getAllByRole('button', { name: 'Choose instead' })).toHaveLength(2)
-    // A Tech 2 crawler's wares are Tech 3; Tenacity holds Tech 2 Scrap alone, so Buy says the shortfall.
+    // A Tech 2 crawler's wares are Tech 3; Tenacity holds Tech 2 Scrap alone,
+    // so each Buy is off before the press and says the shortfall (r8 D1).
     const buys = forSale.getAllByRole('button', { name: /^Buy · \d+ T3\+$/ })
-    await click(buys[0] as Element)
-    expect(onHand.getByText(/^Short by \d+ Tech 3\+ Scrap: nothing spent\.$/)).toBeTruthy()
+    for (const buy of buys) expect(buy).toHaveProperty('disabled', true)
+    expect(forSale.getAllByText(/^Short \d+ T3\+$/)).toHaveLength(buys.length)
   } finally {
     assign.mockRestore()
     useSheetModeStore.getState().setEditing(false)
@@ -636,10 +663,53 @@ describe('Downtime’s dead ends say why', () => {
     )
     const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
     expect(onHand.queryByRole('button', { name: 'Open' })).toBeNull()
-    expect(onHand.getByText('Needs a Union Crawler')).toBeTruthy()
+    // The link says it: no second chip crowding the title (r8 D3, SB8-09).
+    expect(onHand.queryByText('Needs a Union Crawler')).toBeNull()
     expect(onHand.getByRole('link', { name: 'Make a Union Crawler' }).getAttribute('href')).toBe(
       '/crawlers/new?pilot=dt-p&back=play'
     )
+  })
+
+  // r8 D3 (SB8-09): the Trade step said Roll and offered none, and no crawler was a dead end.
+  test('solo with no crawler, the Trade step says what a Crawler adds and links to making one', () => {
+    const { pilot, mech } = units()
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(pilot, mech).store}
+        writes={[]}
+        downtime={{ stepIndex: STEPS.indexOf('Trade') }}
+      />
+    )
+    expect(within(stepBox()).getByText(/Trading Bay: it rolls what is for sale/)).toBeTruthy()
+    expect(
+      within(stepBox()).getByRole('link', { name: 'Make a Union Crawler' }).getAttribute('href')
+    ).toBe('/crawlers/new?pilot=dt-p&back=play')
+  })
+
+  test('solo with a crawler, the Trade step offers its roll, the one Craft · Trade shows', async () => {
+    const { pilot, mech, crawler } = units()
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(pilot, mech, crawler).store}
+        writes={[]}
+        downtime={{ stepIndex: STEPS.indexOf('Trade') }}
+      />
+    )
+    const roll = await within(stepBox()).findByRole('button', { name: 'Roll availability' })
+    expect(within(stepBox()).getByRole('list', { name: 'Scrap Pool' })).toBeTruthy()
+    await click(roll)
+    expect(within(stepBox()).queryByRole('button', { name: 'Roll availability' })).toBeNull()
+    // Craft · Trade shows the same roll: it is made once a Downtime (p.223).
+    const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
+    await click(onHand.getByRole('button', { name: 'Open' }))
+    await onHand.findByRole('searchbox', { name: 'Find a System or Module to craft' })
+    expect(onHand.queryByRole('button', { name: 'Roll availability' })).toBeNull()
   })
 
   // r5 A12 (SB5-02): Restore with no crawler left the pilot at 0 HP without a word.
@@ -660,7 +730,7 @@ describe('Downtime’s dead ends say why', () => {
     // The reason, with its page, comes first (r6 D7).
     expect(
       within(stepBox()).getByText(
-        'Healing in Downtime needs your crawler’s Med Bay (Core Book p.242).'
+        'Healing in Downtime needs your crawler’s Med Bay (Workshop Manual · p.242).'
       )
     ).toBeTruthy()
     expect(

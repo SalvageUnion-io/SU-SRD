@@ -5,6 +5,7 @@
  * rule-gated (ADR-021).
  */
 
+import { pilotLabel } from 'game-domain/pilotLabel'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
@@ -54,6 +55,7 @@ export function PilotSheetPickers({
   model,
   actions,
   store,
+  spendOnly = false,
 }: {
   /** Which collection's picker is open. */
   picker: PilotPicker | null
@@ -63,6 +65,12 @@ export function PilotSheetPickers({
   actions: PilotSheetActions
   /** Where an added item's choice is saved (`Pilot.equipmentChoices`). */
   store: UnitsStore
+  /**
+   * Play's Spend TP (r8 D4, `SPEND_TP_REFUSES_SHORT`): an ability the Pilot
+   * cannot afford is refused in the list; its Page's rule-breaking add is the
+   * house rule. Off, the sheet's Free Edit: every add stays free.
+   */
+  spendOnly?: boolean
 }) {
   // Equipment that asks a choice asks it as it is added, as a mech's Systems
   // do: its Page opens over the picker (hidden meanwhile, so two dialogs never
@@ -153,6 +161,9 @@ export function PilotSheetPickers({
               // Out of order or unaffordable: the plain add says so first (r4 E12).
               breaks: unmet.length > 0 || price > left,
               row: { label: why ? NOT_YET_LABEL[why.why]() : buildSheetCopy('tp'), value: price },
+              ...(spendOnly && price > left
+                ? { refused: buildSheetCopy('costsTp', { cost: price, left }) }
+                : {}),
             }
           }}
           filter={
@@ -165,7 +176,7 @@ export function PilotSheetPickers({
             order: byTierNow,
             later: { label: buildSheetCopy('notYet'), of: isNotYet },
           }}
-          railName={pilot.name}
+          railName={pilotLabel(pilot)}
           chosenLabel={buildSheetCopy('learned')}
           // The balance each cost is weighed against, in the list's own pane (r4 E12).
           budget={{ label: buildSheetCopy('trainingPointsLeft'), used: pilot.trainingPoints ?? 0 }}
@@ -183,7 +194,7 @@ export function PilotSheetPickers({
           selected={pilot.equipment}
           onToggle={toggleEquipment}
           idOf={(item) => nameToSlug(item.name)}
-          railName={pilot.name}
+          railName={pilotLabel(pilot)}
           chosenLabel={buildSheetCopy('equipped')}
           emptyMessage={buildSheetCopy('noEquipmentMatchesThoseFilters')}
           budget={{

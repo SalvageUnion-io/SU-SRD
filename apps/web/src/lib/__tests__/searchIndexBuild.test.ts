@@ -4,8 +4,8 @@
  * opening the guide step that tells it.
  */
 import { describe, expect, test } from 'bun:test'
-import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import { searchCompactIndex } from '../searchCompactIndex'
+import { nameToSlug, SalvageUnionReference, suggestSearchQuery } from 'salvageunion-reference'
+import { aboveFloor, searchCompactIndex } from '../searchCompactIndex'
 import { buildSearchIndexEntries } from '../searchIndexBuild'
 
 const index = buildSearchIndexEntries()
@@ -118,5 +118,30 @@ describe('search finds the thing named, however it is typed (r4 F1)', () => {
     const embedded = new Set(index.filter((entry) => entry.embedded).map((entry) => entry.id))
     expect(embedded.size).toBeGreaterThan(0)
     expect(found.filter((r) => embedded.has(r.entityId)).length).toBeLessThanOrEqual(2)
+  })
+})
+
+describe('everyday phrasing finds the answer (r8 G1)', () => {
+  const dropdown = (query: string) =>
+    aboveFloor(searchCompactIndex(index, { query })).map((r) => `${r.entityName} (${r.schemaName})`)
+
+  test('a word naming the kind drops out: "engineer class" is the Engineer class', () => {
+    expect(dropdown('engineer class')[0]).toBe('Engineer (classes)')
+    expect(dropdown('hot trait')[0]).toBe('Hot (traits)')
+  })
+
+  test('another form of the word: "grapple" finds the grappling items', () => {
+    expect(dropdown('grapple')).toEqual(
+      expect.arrayContaining(['Grappling Harpoon (systems)', 'Electro Grappling Hook (equipment)'])
+    )
+  })
+
+  test('a typo across a split word offers the name: "rail gunn" is Railgun', () => {
+    const guess = suggestSearchQuery(
+      'rail gunn',
+      index.map((entry) => entry.name)
+    )
+    expect(guess).toBe('railgun')
+    expect(dropdown(guess ?? '')[0]).toBe('Railgun (systems)')
   })
 })

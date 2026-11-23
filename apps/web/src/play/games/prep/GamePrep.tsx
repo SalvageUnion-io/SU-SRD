@@ -17,7 +17,7 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { blankEncounter, encounterHref } from '../../../build/prep/encounter.model'
 import { inEdit } from '../../../build/prep/useOpenInEdit'
-import { useSheetModeStore } from '../../../build/sheet/sheetMode.model'
+import { typeNameOnArrival } from '../../../build/sheet/nameOnArrival.model'
 import { undoToast } from '../../../build/sheet/undoToast.model'
 import { ShelfLedger } from '../../../build/shelves/ShelfLedger'
 import { PageShell } from '../../../components/app'
@@ -123,8 +123,8 @@ function PrepSections({ gameId }: { gameId: string }) {
     const created = await useEncounters
       .getState()
       .create({ ...blankEncounter(), gameId, order: lastOrder(inGame) })
-    // A blank encounter has nothing to read: it opens in Edit.
-    useSheetModeStore.getState().setEditing(true)
+    // A blank encounter has nothing to read: it opens in Edit, its name selected (r8 C2).
+    typeNameOnArrival(created.id)
     go(encounterHref(created.id))
   }
 
