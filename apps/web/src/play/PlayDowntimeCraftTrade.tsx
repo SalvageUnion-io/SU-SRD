@@ -25,24 +25,26 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { CrawlerEconomyControl } from '../build/sheet/CrawlerEconomyControl'
-import { Button, capsLabel, Mention, SearchField, Stat } from '../components/index'
+import { Button, capsLabel, Mention, SearchField, Stat, toast } from '../components/index'
 import {
   bayGate,
   performTradingRoll,
   TRADING_AVAILABILITY_LABEL,
 } from '../lib/rules/crawlerEconomy'
 import { runWrite } from '../lib/runWrite'
+import { componentsCopy } from '../messages/components'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../replica/provenance'
+import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import { useUnits } from '../replica/units'
-import type { Ware } from './craftTrade.model'
+import type { Crafted, Ware } from './craftTrade.model'
 import {
+  craftUpdates,
   findCraftables,
-  installPatch,
   spendFor,
   storePatch,
   TRADING_BAY_TABLE,
   tradeOffers,
+  uncraftUpdates,
   waresAt,
 } from './craftTrade.model'
 import { recordPlayChange } from './playRolls.model'
@@ -156,25 +158,42 @@ function CraftingBay({
 
   function craft(ware: Ware, install: boolean) {
     const fresh = store.get('crawler', crawler.id) ?? crawler
-    const spent = spendFor(fresh.scrapPool ?? {}, ware)
-    if (!spent.ok) {
-      setNote(shortText(spent.short, spent.tl))
+    const freshMech = mech ? (store.get('mech', mech.id) ?? mech) : null
+    // The Scrap and the item are one change, so one Undo takes both back (r7 D6).
+    const done = craftUpdates(fresh, freshMech, ware, install)
+    if (!done.ok) {
+      setNote(shortText(done.short, done.tl))
       return
     }
-    const freshMech = mech ? (store.get('mech', mech.id) ?? mech) : null
-    const mount = install && freshMech ? installPatch(freshMech, ware) : null
-    const crawlerPatch = mount ? { scrapPool: spent.pool } : storePatch(fresh, spent.pool, ware)
     runWrite(
-      () => store.update('crawler', crawler.id, crawlerPatch, PLAY_TXN),
+      () => store.transfer({ updates: done.updates }, PLAY_TXN),
       () => {
-        if (mount && freshMech) runWrite(() => store.update('mech', freshMech.id, mount, PLAY_TXN))
-        const where = mount && freshMech ? freshMech.name : playCopy('craftStorageBay')
+        const where =
+          done.crafted.mechId !== null && freshMech ? freshMech.name : playCopy('craftStorageBay')
         const said = playCopy('crafted', {
           name: ware.name,
           scrap: ware.salvageValue,
           tl: ware.tl,
           where,
         })
+        recordPlayChange(said)
+        setNote(said)
+        toast(said, {
+          id: `craft:${crawler.id}`,
+          action: { label: componentsCopy('undo'), onClick: () => uncraft(done.crafted) },
+        })
+      }
+    )
+  }
+
+  /** The craft's Undo: its Scrap back in the pool and the item off, as one batch. */
+  function uncraft(crafted: Crafted) {
+    const now = store.get('crawler', crawler.id) ?? crawler
+    const onMech = crafted.mechId === null ? null : store.get('mech', crafted.mechId)
+    runWrite(
+      () => store.transfer({ updates: uncraftUpdates(now, onMech, crafted) }, PLAY_UNDO),
+      () => {
+        const said = playCopy('uncrafted', { name: crafted.ware.name })
         recordPlayChange(said)
         setNote(said)
       }

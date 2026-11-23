@@ -501,7 +501,7 @@ test('solo, Craft · Trade opens its bays inside Downtime, and crafting spends S
     assigned.push(String(to))
   })
   try {
-    const { store, calls } = stubStore(pilot, mech, crawler)
+    const { store, calls, metas } = stubStore(pilot, mech, crawler)
     render(
       <Harness
         pilot={pilot}
@@ -529,6 +529,8 @@ test('solo, Craft · Trade opens its bays inside Downtime, and crafting spends S
     expect(spent?.patch.scrapPool).toMatchObject({ tl2: 6 })
     const mounted = calls.find((c) => c.type === 'mech' && 'systems' in c.patch)
     expect(mounted?.patch.systems).toContain('armour-plating')
+    // One change, the Scrap and the item together (r7 D6).
+    expect(metas).toHaveLength(1)
     expect(
       onHand.getByText(/Crafted Armour Plating for 1 Tech 1\+ Scrap, into Buzzard\./)
     ).toBeTruthy()

@@ -163,3 +163,94 @@ export function installPatch(
   if (ware.kind === 'module') return { modules: [...mech.modules, ware.slug] }
   return null
 }
+
+/** One unit's share of a craft, as `store.transfer` takes it. */
+export type CraftUpdate =
+  | { type: 'crawler'; id: string; patch: Partial<Crawler> }
+  | { type: 'mech'; id: string; patch: Partial<Mech> }
+
+/** What a craft wrote, so its Undo takes both halves back. */
+export type Crafted = {
+  ware: Ware
+  draws: readonly PoolDraw[]
+  /** The mech it went onto, or null when it went into the hold as `lotId`. */
+  mechId: string | null
+  lotId: string | null
+}
+
+/**
+ * A craft as ONE change (r7 D6, SB7-15): the Scrap it spends and the item it
+ * makes, mounted or stored, in one batch, so one Undo reverts both. Short,
+ * nothing is written and the shortfall is said.
+ */
+export function craftUpdates(
+  crawler: Crawler,
+  mech: Mech | null,
+  ware: Ware,
+  install: boolean
+):
+  | { ok: false; short: number; tl: number }
+  | { ok: true; updates: CraftUpdate[]; crafted: Crafted } {
+  const spent = spendFor(crawler.scrapPool ?? {}, ware)
+  if (!spent.ok) return spent
+  const mount = install && mech ? installPatch(mech, ware) : null
+  if (mount && mech) {
+    return {
+      ok: true,
+      updates: [
+        { type: 'crawler', id: crawler.id, patch: { scrapPool: spent.pool } },
+        { type: 'mech', id: mech.id, patch: mount },
+      ],
+      crafted: { ware, draws: spent.draws, mechId: mech.id, lotId: null },
+    }
+  }
+  const stored = storePatch(crawler, spent.pool, ware)
+  return {
+    ok: true,
+    updates: [{ type: 'crawler', id: crawler.id, patch: stored }],
+    crafted: { ware, draws: spent.draws, mechId: null, lotId: stored.cargoLots.at(-1)?.id ?? null },
+  }
+}
+
+/** The pool with each draw put back in its Tech Level's bucket. */
+function refund(pool: ScrapPool, draws: readonly PoolDraw[]): ScrapPool {
+  const next: ScrapPool = { ...pool }
+  for (const { tl, count } of draws) {
+    const key = `tl${tl}` as keyof ScrapPool
+    next[key] = (next[key] ?? 0) + count
+  }
+  return next
+}
+
+/** A list with its last `item` taken out (a second of the same stays). */
+function withoutLast(list: readonly string[], item: string): string[] {
+  const at = list.lastIndexOf(item)
+  return at === -1 ? [...list] : [...list.slice(0, at), ...list.slice(at + 1)]
+}
+
+/**
+ * The craft's Undo, as one batch against the units as they are now: its Scrap
+ * back in the pool, and the item off the mech or out of the hold.
+ */
+export function uncraftUpdates(
+  crawler: Crawler,
+  mech: Mech | null,
+  crafted: Crafted
+): CraftUpdate[] {
+  const { ware, draws, mechId, lotId } = crafted
+  const crawlerPatch: Partial<Crawler> = { scrapPool: refund(crawler.scrapPool ?? {}, draws) }
+  if (lotId !== null)
+    crawlerPatch.cargoLots = (crawler.cargoLots ?? []).filter((l) => l.id !== lotId)
+  const updates: CraftUpdate[] = [{ type: 'crawler', id: crawler.id, patch: crawlerPatch }]
+  if (mechId !== null && mech !== null && mech.id === mechId) {
+    updates.push({
+      type: 'mech',
+      id: mech.id,
+      patch:
+        ware.kind === 'module'
+          ? { modules: withoutLast(mech.modules, ware.slug) }
+          : { systems: withoutLast(mech.systems, ware.slug) },
+    })
+  }
+  return updates
+}

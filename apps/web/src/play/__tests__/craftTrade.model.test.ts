@@ -1,11 +1,14 @@
 import { describe, expect, test } from 'bun:test'
+import { crawlerFixture, mechFixture } from '../../components/__tests__/fixtures'
 import {
   craftables,
+  craftUpdates,
   findCraftables,
   installPatch,
   spendFor,
   storePatch,
   tradeOffers,
+  uncraftUpdates,
   waresAt,
 } from '../craftTrade.model'
 
@@ -37,6 +40,46 @@ describe('crafting', () => {
     const stored = storePatch({ cargoLots: [] }, { tl1: 1 }, ware)
     expect(stored.scrapPool).toEqual({ tl1: 1 })
     expect(stored.cargoLots?.[0]).toMatchObject({ name: ware.name, cat: 'SYSTEM', tl: ware.tl })
+  })
+})
+
+// r7 D6 (SB7-15): undoing a craft took the item back and kept the Scrap spent.
+describe('a craft is one change', () => {
+  const [ware] = findCraftables(1, 'armour plating')
+  if (!ware) throw new Error('no Armour Plating')
+  const crawler = crawlerFixture({ id: 'c', name: 'Calypso', techLevel: 1, scrapPool: { tl1: 8 } })
+  const mech = mechFixture({ id: 'm', name: 'Reaver', systems: ['x'] })
+
+  test('mounted, the Scrap and the item go in one batch; its Undo takes both back', () => {
+    const done = craftUpdates(crawler, mech, ware, true)
+    if (!done.ok) throw new Error('short')
+    expect(done.updates).toEqual([
+      { type: 'crawler', id: 'c', patch: { scrapPool: { tl1: 8 - ware.salvageValue } } },
+      { type: 'mech', id: 'm', patch: { systems: ['x', ware.slug] } },
+    ])
+    const after = { ...crawler, scrapPool: { tl1: 8 - ware.salvageValue } }
+    const back = uncraftUpdates(after, { ...mech, systems: ['x', ware.slug] }, done.crafted)
+    expect(back).toEqual([
+      { type: 'crawler', id: 'c', patch: { scrapPool: { tl1: 8 } } },
+      { type: 'mech', id: 'm', patch: { systems: ['x'] } },
+    ])
+  })
+
+  test('stored, its Undo puts the Scrap back and takes the lot out of the hold', () => {
+    const done = craftUpdates(crawler, null, ware, false)
+    if (!done.ok) throw new Error('short')
+    expect(done.updates).toHaveLength(1)
+    const stored = done.updates[0]?.patch as { cargoLots: { id: string }[]; scrapPool: object }
+    const back = uncraftUpdates({ ...crawler, ...stored }, null, done.crafted)
+    expect(back).toEqual([
+      { type: 'crawler', id: 'c', patch: { scrapPool: { tl1: 8 }, cargoLots: [] } },
+    ])
+  })
+
+  test('short, nothing is written', () => {
+    expect(craftUpdates({ ...crawler, scrapPool: {} }, mech, ware, true)).toMatchObject({
+      ok: false,
+    })
   })
 })
 

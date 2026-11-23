@@ -522,6 +522,7 @@ export const playCopy = messages({
   craftables: 'Craftable',
   craftStorageBay: 'the Storage Bay',
   crafted: 'Crafted {name} for {scrap} Tech {tl}+ Scrap, into {where}.',
+  uncrafted: 'Took back {name}: its Scrap is in the pool again.',
   craftOnto: 'Craft onto {name}',
   craftAndStore: 'Craft and store',
   rollAvailability: 'Roll availability',
