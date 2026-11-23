@@ -160,7 +160,6 @@ export function StarterCrewLedger({
         as={as}
         title={buildStarterSetCopy('pilotsAndTheirMechs')}
         className="su-open--pairs"
-        tally={{ label: buildStarterSetCopy('pilots'), value: crew.pilots.length }}
         columns={PAIR_COLUMNS}
         groups={[
           {

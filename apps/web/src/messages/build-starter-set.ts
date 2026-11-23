@@ -48,7 +48,6 @@ export const buildStarterSetCopy = messages({
   mech: 'Mech',
   type: 'Type',
   bays: 'Bays',
-  pilots: 'Pilots',
   pilotsAndTheirMechs: 'Pilots & their Mechs',
   unionCrawler: 'Union Crawler',
   mechsWithNoPilot: 'Mechs with no Pilot',
