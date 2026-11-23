@@ -825,3 +825,31 @@ describe('a notice on a Play screen (r8 A1)', () => {
     expect(notice('proposal')?.hasAttribute('data-whole')).toBe(true)
   })
 })
+
+describe('offline on a Play screen (r8 A1)', () => {
+  test('the strip says it on its own row, above the notices', async () => {
+    const { setTableStripSlot } = await import('../tableStripSlot.model')
+    const slot = document.createElement('div')
+    document.body.append(slot)
+    serveAll(answers())
+    const view = (status: 'live' | 'offline') => (
+      <SyncContext.Provider value={{ status, canWrite: status === 'live', outdated: false }}>
+        <TableNotices pathname="/pilots/p1/play" />
+      </SyncContext.Provider>
+    )
+    try {
+      setTableStripSlot(slot)
+      const { rerender } = render(view('live'))
+      await act(async () => {})
+      expect(slot.querySelector('.su-table-notices__offline')).toBeNull()
+      await act(async () => {
+        rerender(view('offline'))
+      })
+      expect(slot.querySelector('.su-table-notices__offline')).not.toBeNull()
+    } finally {
+      cleanup()
+      setTableStripSlot(null)
+      slot.remove()
+    }
+  })
+})
