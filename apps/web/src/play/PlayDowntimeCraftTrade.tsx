@@ -11,6 +11,8 @@
  *    its Tech Level or higher from the pool, then mounts it on the mech or
  *    stores it in the hold, and lands on the Feed. Short, it says how much is
  *    missing and spends nothing.
+ *  - **Scrap Pool** heads it (r8 D1): the crawler's Scrap by Tech Level, and a
+ *    Craft or Buy the pool cannot pay is off, saying how much is short.
  *  - **Trading Bay** (r6 D6, p.223): the availability roll picks the wares at
  *    random at the rolled Tech Level, each with Choose instead and a Buy that
  *    spends the Scrap and stores it; Trade Scrap opens the fixed-rate exchange
@@ -41,6 +43,7 @@ import type { Crafted, Ware } from './craftTrade.model'
 import {
   craftUpdates,
   findCraftables,
+  shortOf,
   spendFor,
   storePatch,
   TRADING_BAY_TABLE,
@@ -48,6 +51,7 @@ import {
   uncraftUpdates,
   waresAt,
 } from './craftTrade.model'
+import { poolChips } from './playDowntime.model'
 import { recordPlayChange } from './playRolls.model'
 import { useOpenSheet } from './useOpenSheet'
 import type { PlayActions } from './usePlayActions'
@@ -77,6 +81,7 @@ export function PlayDowntimeCraftTrade({
   const trading = bayGate(crawler, 'trading-bay')
   return (
     <div className="su-play-resolve">
+      <ScrapPoolLine crawler={crawler} />
       <p>
         <Button
           size="mini"
@@ -123,6 +128,37 @@ export function PlayDowntimeCraftTrade({
   )
 }
 
+/**
+ * The panel's head: the crawler's Scrap Pool by Tech Level, so every price
+ * below is read against it (r8 D1, SB8-10).
+ */
+function ScrapPoolLine({ crawler }: { crawler: Crawler }) {
+  const chips = poolChips(crawler.scrapPool)
+  return (
+    <ul className="su-play-dt-lines" aria-label={playDowntimeCopy('scrapPool')}>
+      <li className="su-play-dt-line">
+        <strong className="su-play-dt-line__label">{playDowntimeCopy('scrapPool')}</strong>
+        <span className="su-play-dt-line__chips">
+          {chips.length === 0 ? (
+            <Stat size="mini" label={playDowntimeCopy('scrapPoolNone')} />
+          ) : (
+            chips.map((chip) => (
+              <Stat key={chip.label} size="mini" label={chip.label} value={chip.value} />
+            ))
+          )}
+        </span>
+      </li>
+    </ul>
+  )
+}
+
+/** A price the pool cannot pay: the press is off and this says why (r8 D1). */
+function ShortNeed({ short, tl }: { short: number; tl: number }) {
+  return short > 0 ? (
+    <span className="su-play-act__need">{playDowntimeCopy('shortOfScrap', { short, tl })}</span>
+  ) : null
+}
+
 /** What a spend came to, in words: what was spent, or how much is missing. */
 function shortText(short: number, tl: number) {
   return playCopy('craftShort', { short, tl })
@@ -157,6 +193,7 @@ export function CraftingBay({
   const [query, setQuery] = useState('')
   const [note, setNote] = useState<string | null>(null)
   const found = findCraftables(crawler.techLevel, query)
+  const pool = crawler.scrapPool ?? {}
 
   function craft(ware: Ware, install: boolean) {
     const fresh = store.get('crawler', crawler.id) ?? crawler
@@ -213,18 +250,23 @@ export function CraftingBay({
       />
       {found.length > 0 && (
         <ul className="su-play-dt-lines" aria-label={playCopy('craftables')}>
-          {found.map((ware) => (
-            <WareLine key={`${ware.kind}:${ware.slug}`} ware={ware}>
-              {mech && ware.kind !== 'chassis' && (
-                <Button size="mini" disabled={!canWrite} onClick={() => craft(ware, true)}>
-                  {playCopy('craftOnto', { name: mech.name })}
+          {found.map((ware) => {
+            const short = shortOf(pool, ware)
+            const off = !canWrite || short > 0
+            return (
+              <WareLine key={`${ware.kind}:${ware.slug}`} ware={ware}>
+                <ShortNeed short={short} tl={ware.tl} />
+                {mech && ware.kind !== 'chassis' && (
+                  <Button size="mini" disabled={off} onClick={() => craft(ware, true)}>
+                    {playCopy('craftOnto', { name: mech.name })}
+                  </Button>
+                )}
+                <Button size="mini" disabled={off} onClick={() => craft(ware, false)}>
+                  {playCopy('craftAndStore')}
                 </Button>
-              )}
-              <Button size="mini" disabled={!canWrite} onClick={() => craft(ware, false)}>
-                {playCopy('craftAndStore')}
-              </Button>
-            </WareLine>
-          ))}
+              </WareLine>
+            )
+          })}
         </ul>
       )}
       {note && (
@@ -297,6 +339,7 @@ function TradingBay({
         <ul className="su-play-dt-lines" aria-label={playCopy('forSale')}>
           {offers.map((ware, i) => {
             const sold = bought.has(`${ware.kind}:${ware.slug}`)
+            const short = shortOf(crawler.scrapPool ?? {}, ware)
             return (
               <WareLine key={`${ware.kind}:${ware.slug}`} ware={ware}>
                 {sold ? (
@@ -306,7 +349,8 @@ function TradingBay({
                     <Button size="mini" onClick={() => setChoosing(choosing === i ? null : i)}>
                       {playCopy('chooseInstead')}
                     </Button>
-                    <Button size="mini" disabled={!canWrite} onClick={() => buy(ware)}>
+                    <ShortNeed short={short} tl={ware.tl} />
+                    <Button size="mini" disabled={!canWrite || short > 0} onClick={() => buy(ware)}>
                       {playCopy('buyFor', { scrap: ware.salvageValue, tl: ware.tl })}
                     </Button>
                   </>

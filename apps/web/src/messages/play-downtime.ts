@@ -10,4 +10,8 @@ export const playDowntimeCopy = messages({
   stepApplied: 'Applied: {step}',
   stepUndone: 'Undid: {step}',
   uncrafted: 'Took back {name}: its Scrap is in the pool again.',
+  scrapPool: 'Scrap Pool',
+  scrapPoolNone: 'No Scrap',
+  shortOfScrap: 'Short {short} T{tl}+',
+  closeCraftTrade: 'Close',
 })

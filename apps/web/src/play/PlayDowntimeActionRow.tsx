@@ -27,6 +27,7 @@ import { PilotAbilityTrainer } from '../build/sheet/PilotAbilityTrainer'
 import { Button, Entity, Stat } from '../components/index'
 import { bayGate } from '../lib/rules/crawlerEconomy'
 import { playCopy } from '../messages/play'
+import { playDowntimeCopy } from '../messages/play-downtime'
 import { NeedChip } from './PlayActionRow'
 import type { DowntimeActionId } from './playActions.model'
 import { playLineModel } from './playLine.model'
@@ -137,7 +138,8 @@ export function PlayDowntimeActionRow({
     crawler !== null ? (
       open(
         { kind: 'crawler', id: crawler.id, name: crawler.name },
-        'Open',
+        // Open, it reads Close: the press folds it back (r8 D1, SB8-10).
+        solo && crafting ? playDowntimeCopy('closeCraftTrade') : 'Open',
         // Solo the crawler is the player's own: its Crafting and Trading Bays
         // open here, inside Downtime (r6 D4), never in an Edit sheet.
         solo ? () => setCrafting((was) => !was) : undefined

@@ -589,6 +589,10 @@ test('solo, Craft · Trade opens its bays inside Downtime, and crafting spends S
     expect(assigned).toEqual([])
     expect(useSheetModeStore.getState().editing).toBe(false)
     expect(onHand.getByRole('button', { name: 'Back to the step' })).toBeTruthy()
+    // Open, the row's own button reads Close, and the panel heads with the Scrap Pool (r8 D1).
+    expect(onHand.getByRole('button', { name: 'Close' })).toBeTruthy()
+    const pool = within(onHand.getByRole('list', { name: 'Scrap Pool' }))
+    expect(pool.getByText('T2')).toBeTruthy()
     await act(async () => {
       fireEvent.change(find, { target: { value: 'Armour Plating' } })
     })
@@ -609,10 +613,11 @@ test('solo, Craft · Trade opens its bays inside Downtime, and crafting spends S
     await click(onHand.getByRole('button', { name: 'Roll availability' }))
     const forSale = within(onHand.getByRole('list', { name: 'For sale' }))
     expect(forSale.getAllByRole('button', { name: 'Choose instead' })).toHaveLength(2)
-    // A Tech 2 crawler's wares are Tech 3; Tenacity holds Tech 2 Scrap alone, so Buy says the shortfall.
+    // A Tech 2 crawler's wares are Tech 3; Tenacity holds Tech 2 Scrap alone,
+    // so each Buy is off before the press and says the shortfall (r8 D1).
     const buys = forSale.getAllByRole('button', { name: /^Buy · \d+ T3\+$/ })
-    await click(buys[0] as Element)
-    expect(onHand.getByText(/^Short by \d+ Tech 3\+ Scrap: nothing spent\.$/)).toBeTruthy()
+    for (const buy of buys) expect(buy).toHaveProperty('disabled', true)
+    expect(forSale.getAllByText(/^Short \d+ T3\+$/)).toHaveLength(buys.length)
   } finally {
     assign.mockRestore()
     useSheetModeStore.getState().setEditing(false)

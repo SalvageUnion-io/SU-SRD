@@ -14,6 +14,7 @@ import {
   mechBayOf,
   nobodyActs,
   passesByItself,
+  poolChips,
   restoreAgainLine,
   restoreLead,
   stepPlan,
@@ -367,5 +368,15 @@ describe('a step that passes by itself (r7 D3)', () => {
         nanitesWaiting: true,
       })
     ).toBe(false)
+  })
+})
+
+describe('poolChips (r8 D1, D2)', () => {
+  test('the Scrap Pool by Tech Level, lowest first, empty levels left out', () => {
+    expect(poolChips({ tl3: 1, tl1: 4, tl2: 0 })).toEqual([
+      { label: 'T1', value: '4' },
+      { label: 'T3', value: '1' },
+    ])
+    expect(poolChips(undefined)).toEqual([])
   })
 })
