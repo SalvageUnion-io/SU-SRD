@@ -325,17 +325,45 @@ describe('GuideSteps on the page', () => {
         <ReferenceEntityCard data={guide('Create a Mech')} presentation="page" />
       </EntitySurfaceProvider>
     )
-    const list = container.querySelector('ul.su-guide__options[aria-label="Craft your Systems"]')
+    const list = container.querySelector(
+      'ul.su-guide__options[aria-label="Craft your Mech Chassis"]'
+    )
     expect(list).not.toBeNull()
     const items = list?.querySelectorAll(':scope > li') ?? []
     expect(items.length).toBeGreaterThan(0)
     for (const item of items) {
       expect(item.querySelector('.su-entity-compact__frame')).not.toBeNull()
       expect(item.querySelector('.su-entity-mini')).toBeNull()
-      expect(item.querySelector('a[href^="/systems/"]')).not.toBeNull()
+      expect(item.querySelector('a[href^="/chassis/"]')).not.toBeNull()
       // A header alone: none of the option's rules text.
       expect(item.querySelector('.su-ec-frame')).toBeNull()
     }
+  })
+
+  test("a crafting step's options are a Ledger of their Salvage Value and Slots (r8 G7)", () => {
+    const { container } = render(
+      <ReferenceEntityCard data={guide('Create a Mech')} presentation="page" />
+    )
+    const ledger = within(container).getByRole('table', { name: 'Craft your Systems' })
+    const heads = within(ledger)
+      .getAllByRole('columnheader')
+      .map((head) => head.textContent)
+    expect(heads).toEqual(expect.arrayContaining(['SV', 'Slots']))
+    const row = within(ledger)
+      .getByText(/^Locomotion System$/i)
+      .closest('tr')
+    // Locomotion System: Salvage Value 2, 2 Slots, as its page says.
+    expect(
+      [...(row?.querySelectorAll('td') ?? [])].slice(0, 2).map((td) => td.textContent)
+    ).toEqual(['2', '2'])
+  })
+
+  test("a book page pointer over its step's list links to the listing (r8 G7)", () => {
+    const { container } = render(
+      <ReferenceEntityCard data={guide('Create a Mech')} presentation="page" />
+    )
+    const pointer = within(container).getByRole('link', { name: /The System list/ })
+    expect(pointer.getAttribute('href')).toBe('/systems/')
   })
 
   test("a ladder's levels on its Page stay open Compacts (N8)", () => {
