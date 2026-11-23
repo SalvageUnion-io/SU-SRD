@@ -177,17 +177,19 @@ describe('a boarded mech', () => {
 })
 
 describe('Shut down on the unit card (r7 B2)', () => {
-  test('Shut down and Vulnerable are chips, and Power back on clears both', () => {
+  test('Shut down and Vulnerable are chips, and Power back on clears both', async () => {
     const { store, updates } = recordingStore()
-    render(
-      <PlayMechUnit
-        mech={{ ...mech, conditions: ['Shutdown', 'Vulnerable'] }}
-        place="boarded"
-        live
-        store={store}
-      />
-    )
-    expect(screen.getByText('Shut down')).toBeTruthy()
+    await act(async () => {
+      render(
+        <PlayMechUnit
+          mech={{ ...mech, conditions: ['Shutdown', 'Vulnerable'] }}
+          place="boarded"
+          live
+          store={store}
+        />
+      )
+    })
+    expect(await screen.findByText('Shut down')).toBeTruthy()
     expect(screen.getByText('Vulnerable')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Power Buzzard back on' }))
     expect(updates).toEqual([
@@ -195,37 +197,39 @@ describe('Shut down on the unit card (r7 B2)', () => {
     ])
   })
 
-  test('running, there are no such chips; read-only, no Power back on', () => {
+  test('running, there are no such chips; read-only, no Power back on', async () => {
     const { store } = recordingStore()
     const { unmount } = render(<PlayMechUnit mech={mech} place="boarded" live store={store} />)
     expect(screen.queryByText('Shut down')).toBeNull()
     unmount()
-    render(
-      <PlayMechUnit
-        mech={{ ...mech, conditions: ['Shutdown'] }}
-        place="boarded"
-        live={false}
-        store={store}
-      />
-    )
-    expect(screen.getByText('Shut down')).toBeTruthy()
+    await act(async () => {
+      render(
+        <PlayMechUnit
+          mech={{ ...mech, conditions: ['Shutdown'] }}
+          place="boarded"
+          live={false}
+          store={store}
+        />
+      )
+    })
+    expect(await screen.findByText('Shut down')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Power Buzzard back on' })).toBeNull()
   })
 })
 
 describe('a Critical Injury, offered to the sheet (r7 B6)', () => {
   const injure = (die: number) =>
-    act(() => {
+    act(async () => {
       recordPlayRoll({ tableName: 'Critical Injury', rolls: [die], label: 'Critical Injury' })
     })
 
-  test('a Minor Injury roll offers Apply, which writes the injury once', () => {
+  test('a Minor Injury roll offers Apply, which writes the injury once', async () => {
     clearPlayRolls()
     const { store, updates } = recordingStore()
     render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
     expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
-    injure(8)
-    fireEvent.click(screen.getByRole('button', { name: 'Apply Minor Injury to Bonesaw' }))
+    await injure(8)
+    fireEvent.click(await screen.findByRole('button', { name: 'Apply Minor Injury to Bonesaw' }))
     expect(updates).toEqual([
       {
         type: 'pilot',
@@ -239,16 +243,18 @@ describe('a Critical Injury, offered to the sheet (r7 B6)', () => {
     act(() => clearPlayRolls())
   })
 
-  test('a Major Injury reads Major; Unconscious, and a read-only pilot, offer nothing', () => {
+  test('a Major Injury reads Major; Unconscious, and a read-only pilot, offer nothing', async () => {
     clearPlayRolls()
     const { store } = recordingStore()
     const { unmount } = render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
-    injure(3)
-    expect(screen.getByRole('button', { name: 'Apply Major Injury to Bonesaw' })).toBeTruthy()
-    injure(15)
+    await injure(3)
+    expect(
+      await screen.findByRole('button', { name: 'Apply Major Injury to Bonesaw' })
+    ).toBeTruthy()
+    await injure(15)
     expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
     unmount()
-    injure(3)
+    await injure(3)
     render(<PlayPilotUnit pilot={pilot} crawler={null} live={false} store={store} />)
     expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
     act(() => clearPlayRolls())

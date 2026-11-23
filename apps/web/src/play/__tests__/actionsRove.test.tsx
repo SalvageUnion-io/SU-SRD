@@ -6,8 +6,8 @@
 
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { useRef } from 'react'
-import { useActionsRove } from '../useActionsRove'
+import { useEffect, useRef } from 'react'
+import { roveList } from '../actionsRove'
 
 function Row({
   name,
@@ -35,7 +35,7 @@ function Row({
 
 function List({ open = false }: { open?: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
-  useActionsRove(ref)
+  useEffect(() => (ref.current === null ? undefined : roveList(ref.current)), [])
   return (
     <div ref={ref}>
       <ul>

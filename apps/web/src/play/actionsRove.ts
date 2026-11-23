@@ -12,9 +12,6 @@
  * every change under the list (`MutationObserver`).
  */
 
-import type { RefObject } from 'react'
-import { useEffect } from 'react'
-
 /** What a keyboard reaches. */
 const FOCUSABLE = ['a[href]', 'button', 'input', 'select', 'textarea', '[tabindex]'].join()
 
@@ -73,55 +70,55 @@ function setRoveStops(list: HTMLElement, last: HTMLElement | null): void {
   }
 }
 
-/** Keep `ref`'s list one Tab stop, the arrows moving between its Use buttons. */
-export function useActionsRove(ref: RefObject<HTMLElement | null>): void {
-  useEffect(() => {
-    const list = ref.current
-    if (list === null) return
-    let last: HTMLElement | null = null
-    let setting = false
-    const apply = () => {
-      if (setting) return
-      setting = true
-      setRoveStops(list, last)
-      setting = false
-    }
-    const onFocus = (event: FocusEvent) => {
-      const target = event.target as HTMLElement
-      if (!roveStops(list).includes(target) || last === target) return
-      last = target
-      apply()
-    }
-    const onKey = (event: KeyboardEvent) => {
-      const step = { ArrowUp: -1, ArrowDown: 1, ArrowLeft: -1, ArrowRight: 1 }[event.key]
-      const edge = event.key === 'Home' ? 0 : event.key === 'End' ? -1 : undefined
-      if (step === undefined && edge === undefined) return
-      const stops = roveStops(list)
-      const at = stops.indexOf(event.target as HTMLElement)
-      if (at < 0) return
-      event.preventDefault()
-      const next =
-        edge === 0
-          ? stops[0]
-          : edge === -1
-            ? stops.at(-1)
-            : stops[Math.min(Math.max(at + (step ?? 0), 0), stops.length - 1)]
-      next?.focus()
-    }
+/**
+ * Keep `list` one Tab stop, the arrows moving between its stops, until the
+ * answered stop is called. Loaded when the list mounts (`PlayActionsList`),
+ * so the screen's own chunk does not carry it.
+ */
+export function roveList(list: HTMLElement): () => void {
+  let last: HTMLElement | null = null
+  let setting = false
+  const apply = () => {
+    if (setting) return
+    setting = true
+    setRoveStops(list, last)
+    setting = false
+  }
+  const onFocus = (event: FocusEvent) => {
+    const target = event.target as HTMLElement
+    if (!roveStops(list).includes(target) || last === target) return
+    last = target
     apply()
-    const watch = new MutationObserver(apply)
-    watch.observe(list, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['data-open', 'disabled', 'hidden'],
-    })
-    list.addEventListener('focusin', onFocus)
-    list.addEventListener('keydown', onKey)
-    return () => {
-      watch.disconnect()
-      list.removeEventListener('focusin', onFocus)
-      list.removeEventListener('keydown', onKey)
-    }
-  }, [ref])
+  }
+  const onKey = (event: KeyboardEvent) => {
+    const step = { ArrowUp: -1, ArrowDown: 1, ArrowLeft: -1, ArrowRight: 1 }[event.key]
+    const edge = event.key === 'Home' ? 0 : event.key === 'End' ? -1 : undefined
+    if (step === undefined && edge === undefined) return
+    const stops = roveStops(list)
+    const at = stops.indexOf(event.target as HTMLElement)
+    if (at < 0) return
+    event.preventDefault()
+    const next =
+      edge === 0
+        ? stops[0]
+        : edge === -1
+          ? stops.at(-1)
+          : stops[Math.min(Math.max(at + (step ?? 0), 0), stops.length - 1)]
+    next?.focus()
+  }
+  apply()
+  const watch = new MutationObserver(apply)
+  watch.observe(list, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['data-open', 'disabled', 'hidden'],
+  })
+  list.addEventListener('focusin', onFocus)
+  list.addEventListener('keydown', onKey)
+  return () => {
+    watch.disconnect()
+    list.removeEventListener('focusin', onFocus)
+    list.removeEventListener('keydown', onKey)
+  }
 }

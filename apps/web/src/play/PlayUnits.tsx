@@ -33,6 +33,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RangeBand } from 'game-domain/schemas/seat'
 import { RANGE_BANDS } from 'game-domain/schemas/seat'
 import type { CSSProperties, ReactNode } from 'react'
+import { lazy, Suspense } from 'react'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { resolveInstalledRef } from 'salvageunion-reference/rules'
 import { heatDangerFrom } from '../components/app'
@@ -62,14 +63,24 @@ import { playCopy } from '../messages/play'
 import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import type { EntityForType } from '../replica/types'
 import { useUnits } from '../replica/units'
-import { ApplyInjury, ReactorStates } from './PlayUnitStates'
+import { rolledInjury } from './criticalInjury.model'
 import { PlayVital } from './PlayVital'
+import { usePlayRollLog } from './playRolls.model'
+import { reactorStates } from './reactorWrites.model'
 import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.model'
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
 import { headedVital, vitalNow, vitalSettled } from './vitalWrites.model'
 import type { DownResult } from './zeroVital.model'
 import { askPlayTable, useDownResult, zeroUnit, zeroVitalNotice } from './zeroVital.model'
+
+/** What a box says only once it is so (Shut down, an injury to apply): loaded then (r7 B2, B6). */
+const ReactorStates = lazy(() =>
+  import('./PlayUnitStates').then(({ ReactorStates }) => ({ default: ReactorStates }))
+)
+const ApplyInjury = lazy(() =>
+  import('./PlayUnitStates').then(({ ApplyInjury }) => ({ default: ApplyInjury }))
+)
 
 /** The store a box writes through; the app's own unless a test hands one in. */
 type UnitStore = UnitsStore
@@ -189,6 +200,9 @@ export function PlayPilotUnit({
   // At 0 HP the pilot is Down (r5 A1), with its Critical Injury roll's result once rolled.
   const down = hp?.value === 0
   const result = useDownResult(down ? pilot.id : null)
+  // The newest roll a Critical Injury: Apply is offered (r7 B6).
+  const last = usePlayRollLog().at(-1)
+  const injured = last !== undefined && rolledInjury(last) !== null
   return (
     <TitledBox
       as="section"
@@ -234,7 +248,11 @@ export function PlayPilotUnit({
         )}
       </div>
       {result === null ? null : <DownResultLine result={result} />}
-      {live ? <ApplyInjury pilot={pilot} maxHp={hp?.max ?? 0} store={store} /> : null}
+      {live && injured ? (
+        <Suspense fallback={null}>
+          <ApplyInjury pilot={pilot} maxHp={hp?.max ?? 0} store={store} />
+        </Suspense>
+      ) : null}
     </TitledBox>
   )
 }
@@ -363,7 +381,11 @@ export function PlayMechUnit({
           onChange={live ? vital('currentHeat', s.heat, s.maxHeat, playCopy('heat')) : undefined}
         />
       ) : null}
-      <ReactorStates mech={mech} live={live} store={store} />
+      {reactorStates(mech.conditions).length > 0 ? (
+        <Suspense fallback={null}>
+          <ReactorStates mech={mech} live={live} store={store} />
+        </Suspense>
+      ) : null}
       {effects.length > 0 ? (
         <>
           <Slab as="h4" label={playCopy('effects')} />

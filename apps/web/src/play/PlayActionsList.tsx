@@ -30,7 +30,6 @@ import { PlayActionEntry } from './PlayActionEntry'
 import type { ActionTypeKey, ListEntry } from './playActions.model'
 import { ACTION_TYPE_ORDER, TYPE_FILTERS } from './playActions.model'
 import type { Play } from './situation.model'
-import { useActionsRove } from './useActionsRove'
 import { useFindKey } from './useFindKey'
 
 /** "?"'s sheet, loaded when first asked for (r6 A13). */
@@ -208,7 +207,20 @@ export function PlayActionsList({
   const groups = onHandGroups(actions.onHand)
   // The on-hand list is one Tab stop, the arrows between its actions (r7 B8).
   const listRef = useRef<HTMLDivElement>(null)
-  useActionsRove(listRef)
+  const listed = groups.length > 0
+  useEffect(() => {
+    const list = listRef.current
+    if (!listed || list === null) return
+    let stop: (() => void) | null = null
+    let gone = false
+    void import('./actionsRove').then(({ roveList }) => {
+      if (!gone) stop = roveList(list)
+    })
+    return () => {
+      gone = true
+      stop?.()
+    }
+  }, [listed])
   return (
     <>
       <PlayOrphanResolve actions={actions} />
