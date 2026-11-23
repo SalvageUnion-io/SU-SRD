@@ -1,7 +1,7 @@
 /**
  * How many more of one already in the encounter (r7 C13, MD7-11): adding the
  * same NPC again asks for a count, so three Raiders are one add, not three.
- * Each copy is numbered as every add is (`withAdded`); the count stops at the
+ * Each copy is numbered as every add is (`withCopies`); the count stops at the
  * room the encounter has left.
  */
 

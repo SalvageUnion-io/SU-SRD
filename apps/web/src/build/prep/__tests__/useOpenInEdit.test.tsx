@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 import { renderHook } from '@testing-library/react'
 import { useSheetModeStore } from '../../sheet/sheetMode.model'
-import { editSearch, inEdit, useOpenInEdit } from '../openInEdit'
+import { editSearch, inEdit, useOpenInEdit } from '../useOpenInEdit'
 
 /** Opened from a Game's Prep, a sheet opens in Edit (r7 C13, MD7-19). */
 

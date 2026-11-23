@@ -17,6 +17,8 @@ import { threatRead } from 'game-domain/rules/threat'
 import { wreckOf } from 'game-domain/rules/wreck'
 import type { Encounter, EncounterOpponent } from 'game-domain/schemas/encounter'
 import type { RefEntity } from 'salvageunion-reference'
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
+import type { GameListing } from '../../replica/gameListing'
 import { opponentAsTray } from './encounter.model'
 
 /** A reference entity's Tech Level, when it has one (Mechs and Vehicles do). */
@@ -113,4 +115,17 @@ export function spoilsOf(encounter: Encounter): Spoil[] {
       { kind: 'scrap', opponent, salvageValue: wreck.salvageValue, techLevel: wreck.techLevel },
     ]
   })
+}
+
+/**
+ * The crew's Tech Level for an encounter bound to a Game (r7 C13): its
+ * primary crawler's, which bounds what the crew fields; none until the
+ * Game's listing is here.
+ */
+export function crawlerTech(
+  listing: Pick<GameListing, 'crawlers' | 'primaryCrawlerId'> | undefined
+): number | undefined {
+  const primary =
+    listing?.crawlers.find((c) => c._id === listing.primaryCrawlerId) ?? listing?.crawlers[0]
+  return parseCrawlerTechLevel((primary?.body as { techLevel?: unknown } | undefined)?.techLevel)
 }

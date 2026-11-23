@@ -20,7 +20,7 @@ import type { SidesOf } from './initiative.model'
 import { mediatorSides, passedSide, TURNS_RUN_THEMSELVES } from './initiative.model'
 
 /** An automatic step: the tracker before it and after, and who acted, if a unit did. */
-export type AutoStep = { before: Initiative; after: Initiative; acted?: string; passedTo?: string }
+type AutoStep = { before: Initiative; after: Initiative; acted?: string; passedTo?: string }
 
 const steps = new Map<string, AutoStep>()
 /** A state the Mediator undid back to: it stays as it is until they move it. */

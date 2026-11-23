@@ -5,7 +5,7 @@
  */
 import { createFileRoute } from '@tanstack/react-router'
 import { NpcSheetView } from '../../build/npc/NpcSheetView'
-import { editSearch, useOpenInEdit } from '../../build/prep/openInEdit'
+import { editSearch, useOpenInEdit } from '../../build/prep/useOpenInEdit'
 import { SheetSkeleton } from '../../build/sheet/SheetSkeleton'
 import { areaTitle } from '../../lib/pageTitle'
 import { loadSheet } from '../../lib/sheetRoute'

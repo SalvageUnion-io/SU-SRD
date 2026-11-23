@@ -6,7 +6,7 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 import { EncounterPage } from '../../build/prep/EncounterPage'
-import { editSearch, useOpenInEdit } from '../../build/prep/openInEdit'
+import { editSearch, useOpenInEdit } from '../../build/prep/useOpenInEdit'
 import { RosterSkeleton } from '../../components/app'
 import { areaTitle } from '../../lib/pageTitle'
 import { routesCopy } from '../../messages/routes'

@@ -34,7 +34,6 @@ import {
 } from 'game-domain/schemas/encounter'
 import type { CSSProperties, ReactNode } from 'react'
 import { useId, useRef, useState } from 'react'
-import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import { Grid } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import {
@@ -67,7 +66,6 @@ import { OppositionDialogs, OppositionPicker } from '../../play/mediator/Opposit
 import type { SavedPattern, TrayNpc } from '../../play/mediator/opposition.model'
 import { newBuiltTrayNpc, newTrayNpc, slugOf } from '../../play/mediator/opposition.model'
 import { useEncounters, usePatterns } from '../../replica/collections'
-import type { GameListing } from '../../replica/gameListing'
 import { useGameListing } from '../../replica/gameListing'
 import { useSync } from '../../replica/syncContext'
 import { LiveSheet } from '../sheet/LiveSheet'
@@ -91,7 +89,6 @@ import {
   moveMenu,
   moveToGroup,
   opponentAsTray,
-  opponentFrom,
   opponentNote,
   oppositionBlocks,
   pinTable,
@@ -100,8 +97,9 @@ import {
   restoredOpponent,
   setGroupWave,
   unpinTable,
-  withAdded,
+  withCopies,
 } from './encounter.model'
+import { crawlerTech } from './threat.model'
 import { useEncounterGame, useRunGames } from './useEncounterGame'
 
 const LIST = {
@@ -136,13 +134,6 @@ export function EncounterPage({ id }: { id: string }) {
     )
   }
   return <EncounterBody encounter={encounter} />
-}
-
-/** The Game's primary crawler's Tech Level, once its listing is here; else none. */
-function crawlerTech(listing: GameListing | undefined): number | undefined {
-  const primary =
-    listing?.crawlers.find((c) => c._id === listing.primaryCrawlerId) ?? listing?.crawlers[0]
-  return parseCrawlerTechLevel((primary?.body as { techLevel?: unknown } | undefined)?.techLevel)
 }
 
 /** The open card sits under its row, one list gap below it. */
@@ -535,41 +526,23 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
           yours={ownNpcs}
           onAddBuilt={(npc, name) => {
             const add = (count: number) =>
-              write((current) => {
-                let opposition = current.opposition
-                for (let i = 0; i < count && hasRoomFor({ opposition }); i++) {
-                  const body = newBuiltTrayNpc(
-                    npc,
-                    opposition.map((o) => o.name),
-                    new Date().toISOString(),
-                    name
-                  )
-                  const added = opponentFrom(body, crypto.randomUUID())
-                  opposition = withAdded([...opposition, added], added)
-                }
-                return { opposition }
-              })
+              write((current) => ({
+                opposition: withCopies(current.opposition, count, (names) =>
+                  newBuiltTrayNpc(npc, names, new Date().toISOString(), name)
+                ),
+              }))
+            // One already in it, added again: how many more (r7 C13).
             if (encounter.opposition.some((o) => o.built?.npcId === npc.id)) {
               setCounting({ name: npc.name, add })
             } else add(1).catch(() => undefined)
           }}
           onAdd={(schema, entity, draw) => {
             const add = (count: number) =>
-              write((current) => {
-                let opposition = current.opposition
-                for (let i = 0; i < count && hasRoomFor({ opposition }); i++) {
-                  const body = newTrayNpc(
-                    schema,
-                    entity,
-                    opposition.map((o) => o.name),
-                    new Date().toISOString(),
-                    draw
-                  )
-                  const added = opponentFrom(body, crypto.randomUUID())
-                  opposition = withAdded([...opposition, added], added)
-                }
-                return { opposition }
-              })
+              write((current) => ({
+                opposition: withCopies(current.opposition, count, (names) =>
+                  newTrayNpc(schema, entity, names, new Date().toISOString(), draw)
+                ),
+              }))
             const slug = slugOf(entity as { name: string })
             const again = encounter.opposition.some(
               (o) => o.built === undefined && o.refSchema === schema && o.refSlug === slug
