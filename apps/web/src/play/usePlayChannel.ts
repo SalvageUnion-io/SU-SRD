@@ -22,8 +22,9 @@
  * "Not sent yet", and it is logged and posted once the connection returns, or
  * when its Try again is pressed then. It stays held until the Game's log row
  * has landed (r7 B3): back online, the screen is writable a moment before the
- * Game's socket reopens, so the row waits for that room and goes again each
- * time a room opens. Held in memory, for the open tab, oldest first.
+ * replica's writers are and before the Game's socket reopens, so the row
+ * waits for that room and goes again each time the status moves or a room
+ * opens. Held in memory, for the open tab, oldest first.
  */
 
 import type { PostRollResult } from 'game-domain/games/discord'
@@ -33,6 +34,7 @@ import { playCopy } from '../messages/play'
 import { sendChangeLog } from '../replica/outbox'
 import { useGamesCall, useGamesQuery } from '../replica/roomCalls'
 import { onRoomOpen } from '../replica/roomSocket'
+import { subscribeSync } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import type { PlayBinding } from './channels.model'
 import type { PlayScreen, PlayTarget } from './play.model'
@@ -210,11 +212,14 @@ export function usePlayRollDispatch({
     [flush, settle]
   )
 
-  // Back online, and each time a room opens: what was held is sent.
+  // Back online, and each time a room opens: what was held is sent. The
+  // writers' own status is published after this screen's effects run
+  // (`SyncProvider`), so its change sends again too.
   useEffect(() => {
     if (canWrite) void flush()
   }, [canWrite, flush])
   useEffect(() => onRoomOpen(() => void flush()), [flush])
+  useEffect(() => subscribeSync(() => void flush()), [flush])
 
   const postNow = useCallback(
     (roll: PlayRoll) => {

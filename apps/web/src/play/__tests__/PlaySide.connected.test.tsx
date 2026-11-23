@@ -27,6 +27,7 @@ import { pilotFixture } from '../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import { acts, closeRooms, openRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 import type { SyncStatus } from '../../replica/sync'
+import { resetSync, setSyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
 import type { Play } from '../situation.model'
 import type { SheetTarget } from '../useOpenSheet'
@@ -130,6 +131,8 @@ async function renderSide(
   show: (target: SheetTarget) => void = () => {}
 ) {
   const canWrite = status === 'live'
+  // The replica's writers read the status the screen's context says.
+  setSyncStatus(status)
   const target: PlayTarget = {
     pilotId: 'bonesaw',
     gameId,
@@ -187,6 +190,7 @@ beforeEach(() => openRooms(GAME))
 afterEach(() => {
   cleanup()
   closeRooms()
+  resetSync()
   clearPlayRolls()
   postRoll.mockClear()
   postResult = async () => ({ kind: 'posted', channelId: 'c-1', messageId: 'm-1' })
@@ -565,6 +569,8 @@ describe('read-only (play.md §7)', () => {
     expect(feed().getByText('Not sent yet')).toBeTruthy()
     await act(async () => {
       view?.rerender(tree(true))
+      // As `SyncProvider` does, after the screen's own effects.
+      setSyncStatus('live')
     })
     expect(postRoll).toHaveBeenCalledTimes(1)
     await waitFor(() => expect(feed().getByText('Posted')).toBeTruthy())

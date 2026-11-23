@@ -78,9 +78,9 @@ function renderDispatch() {
   )
   return {
     ...hook,
-    online: () => {
+    online: (writersFirst = true) => {
       canWrite = true
-      setSyncStatus('live')
+      if (writersFirst) setSyncStatus('live')
       hook.rerender()
     },
   }
@@ -138,6 +138,27 @@ describe('a roll held offline (r7 B3)', () => {
       socket.readyState = OpeningSocket.OPEN
       socket.onopen?.()
     })
+    await flush()
+    expect(socket.acts.map((a) => a.name)).toEqual(['changeLog.appendChangeLog'])
+    expect(result.current.posts.get(roll.id)).toEqual({ kind: 'unbound' })
+  })
+
+  test('the screen is writable before the writers are: it goes when they are', async () => {
+    setSyncStatus('offline')
+    closeRoom = openRoom('http://localhost/__rooms/games/g1/socket', gameScope('g1'), 'g1')
+    const socket = OpeningSocket.last as OpeningSocket
+    socket.readyState = OpeningSocket.OPEN
+    socket.onopen?.()
+    const { result, online } = renderDispatch()
+    let roll = { id: '' }
+    act(() => {
+      roll = recordPlayRoll({ tableName: 'Core Mechanic', rolls: [12], label: 'Core Mechanic' })
+    })
+    // `SyncProvider` publishes the status after the screen's own effects run.
+    online(false)
+    await flush()
+    expect(result.current.posts.get(roll.id)).toEqual({ kind: 'held' })
+    await act(async () => setSyncStatus('live'))
     await flush()
     expect(socket.acts.map((a) => a.name)).toEqual(['changeLog.appendChangeLog'])
     expect(result.current.posts.get(roll.id)).toEqual({ kind: 'unbound' })
