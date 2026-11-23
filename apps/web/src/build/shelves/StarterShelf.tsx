@@ -41,6 +41,8 @@ export function StarterShelf() {
     <SlabSection
       as="h2"
       id="shelf-starter"
+      // On the page's ground, at the side column's width (`shelves.css`).
+      className="su-starter-shelf"
       title={buildShelvesCopy('starterCrews')}
       count="read-only"
       countAt="label"
