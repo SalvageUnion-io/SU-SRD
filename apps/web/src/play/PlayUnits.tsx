@@ -324,7 +324,13 @@ export function PlayMechUnit({
   const result = useDownResult(down ? mech.id : null)
   // What the mech and its pilot can switch on (ADR-029 §4): the table keeps
   // time, so an effect stays on until the player ends it.
-  const effects = place === 'boarded' ? activatableEffects(mech, pilotAbilities) : []
+  // A Pilot ability's is listed once used, in force (r8 A8): unused, it is the Pilot's action.
+  const effects =
+    place === 'boarded'
+      ? activatableEffects(mech, pilotAbilities).filter(
+          (e) => e.source !== 'ability' || activeEffects.includes(e.ref)
+        )
+      : []
   return (
     <TitledBox
       as="section"

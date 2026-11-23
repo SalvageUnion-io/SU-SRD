@@ -10,6 +10,7 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { mechFixture } from '../../../components/__tests__/fixtures'
 import { actionRolls, buildCompanionActions, buildMechActions } from '../actionList'
 import { actionRow } from '../actionRow'
+import { effectUsed } from '../activatableEffects'
 import { resolveSystem } from '../mechItems'
 
 const TURRET = 'automated-weapon-turret'
@@ -163,5 +164,22 @@ describe('actionRolls (r8 A6)', () => {
     expect(
       actionRolls({ ...named('First Aid Kit'), damage: { amount: 2, type: 'HP' } } as never)
     ).toBe(true)
+  })
+})
+
+describe('effectUsed (r8 A8)', () => {
+  const effects = [{ ref: 'squeeze-it-in', source: 'ability' as const }]
+  const ability = { kind: 'ability', slug: 'squeeze-it-in' }
+  test('a Pilot ability activated switches its effect on, once', () => {
+    expect(effectUsed({ activated: false }, { activated: true }, ability, effects, [])).toBe(
+      'squeeze-it-in'
+    )
+    expect(effectUsed({ activated: true }, { activated: true }, ability, effects, [])).toBeNull()
+    expect(
+      effectUsed({ activated: false }, { activated: true }, ability, effects, ['squeeze-it-in'])
+    ).toBeNull()
+    expect(
+      effectUsed(null, { activated: true }, { kind: 'system', slug: 'x' }, effects, [])
+    ).toBeNull()
   })
 })
