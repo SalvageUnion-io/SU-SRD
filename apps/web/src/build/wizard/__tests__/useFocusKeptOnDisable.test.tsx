@@ -5,7 +5,7 @@
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
-import { nextLiveControl, useFocusKeptOnDisable } from '../focusKept'
+import { nextLiveControl, useFocusKeptOnDisable } from '../useFocusKeptOnDisable'
 
 function Picks() {
   useFocusKeptOnDisable()

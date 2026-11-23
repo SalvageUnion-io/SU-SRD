@@ -328,36 +328,6 @@
     white-space: normal;
   }
 
-  /* A Mini's name keeps its words whole (r8 F2): paper is narrower than the
-     screen its chips were fitted on, and the name gave way to a letter a
-     line. On paper the pill is three columns, the tier, the name and the
-     chips: the name takes the room between, never less than its longest
-     word, and the chips stack where the line is short. */
-  .su-entity-mini__pill:not(#\#) {
-    display: grid;
-    grid-template-columns: auto minmax(min-content, 1fr) auto;
-    white-space: normal;
-  }
-
-  .su-entity-mini__notch:not(#\#) {
-    grid-column: 2;
-  }
-
-  .su-entity-mini__chips:not(#\#) {
-    flex-wrap: wrap;
-    grid-column: 3;
-    justify-content: flex-end;
-  }
-
-  .su-entity-mini__notch:not(#\#),
-  .su-entity-mini__name:not(#\#) {
-    min-width: auto;
-    overflow: visible;
-    overflow-wrap: break-word;
-    text-overflow: clip;
-    white-space: normal;
-  }
-
   /* -------------------------------------------------------------------------
    * Border adjustments for ink-friendliness
    * ------------------------------------------------------------------------- */

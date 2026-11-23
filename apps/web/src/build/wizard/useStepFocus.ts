@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useRef } from 'react'
-import { useFocusKeptOnDisable } from './focusKept'
+import { useFocusKeptOnDisable } from './useFocusKeptOnDisable'
 
 export function useStepFocus(active: number, focusId: string | undefined) {
   const headingRef = useRef<HTMLHeadingElement | null>(null)

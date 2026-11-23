@@ -26,4 +26,6 @@ export function pilotLabel(pilot: Named | null | undefined): string {
 }
 
 /** The same name where a line has room for one word (a door: "Play GHOST"). */
-export const pilotCallsign = pilotLabel
+export function pilotCallsign(pilot: Named | null | undefined): string {
+  return pilotLabel(pilot)
+}
