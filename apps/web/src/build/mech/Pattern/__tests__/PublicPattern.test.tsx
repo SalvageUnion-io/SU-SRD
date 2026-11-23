@@ -329,7 +329,7 @@ describe('signed in', () => {
     await settle(() => serverMocks.navigations.length > 0)
 
     const [mech] = useUnits.getState().mechs
-    expect(mech).toMatchObject({ name: 'Tow Rig', sourcePattern: 'pat-tow-rig', cargoLots: [] })
+    expect(mech).toMatchObject({ name: 'Tow Rig 1', sourcePattern: 'pat-tow-rig', cargoLots: [] })
     expect(serverMocks.navigations).toEqual([{ to: '/mechs/$id', params: { id: mech?.id } }])
   })
 

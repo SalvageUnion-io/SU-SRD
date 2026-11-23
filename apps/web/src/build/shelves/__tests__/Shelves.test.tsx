@@ -528,7 +528,7 @@ describe('Patterns', () => {
     })
     expect(screen.queryByRole('alertdialog')).toBeNull()
     await settle(() => assigned.length > 0)
-    const built = useUnits.getState().mechs.find((m) => m.name === 'Brawler')
+    const built = useUnits.getState().mechs.find((m) => m.name === 'Brawler 1')
     expect(built?.chassisRef).toBe('titan')
     expect(assigned).toEqual([`/mechs/${built?.id}`])
   })

@@ -14,7 +14,6 @@ import {
 } from 'salvageunion-reference'
 import { isLegalCreationChassis, isLegalStartingPattern } from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../replica/types'
-import { freeName } from '../copyEntity'
 import { readReference } from '../readReference'
 import type { MechPattern } from '../wizard/mechFormState'
 import {
@@ -22,6 +21,7 @@ import {
   mechFormToCreateInput,
   withPatternPrefill,
 } from '../wizard/mechFormState'
+import { patternMechName } from './patterns'
 
 /** Every chassis that prints a pattern, by Tech Level then name. */
 export function chassisWithPatterns(): RefChassis[] {
@@ -70,7 +70,7 @@ export function isStartingBookPattern(chassis: RefChassis, pattern: MechPattern)
  * A fresh mech as the book prints the pattern: its chassis and loadout under
  * the pattern's name, pools unset (full), the pattern's drones seeded, and the
  * pattern it started from (`startingPatternRef`), as the wizard's own build.
- * Its name is numbered past the names `taken` in the bay.
+ * Its name is numbered past the names `taken` in the bay (`patternMechName`, r7 G5).
  */
 export function mechFromBookPattern(
   chassis: RefChassis,
@@ -80,5 +80,5 @@ export function mechFromBookPattern(
   const input = mechFormToCreateInput(
     withPatternPrefill({ ...EMPTY_MECH_FORM_STATE, chassisName: nameToSlug(chassis.name) }, pattern)
   )
-  return { ...input, name: freeName(input.name, taken) }
+  return { ...input, name: patternMechName(input.name, taken) }
 }

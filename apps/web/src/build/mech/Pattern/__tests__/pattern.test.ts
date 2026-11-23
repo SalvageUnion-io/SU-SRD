@@ -5,7 +5,7 @@
  * - Schema validation: valid input passes, missing required fields throw
  * - Schema strictness: unknown fields throw
  * - patternStore CRUD round-trip: create → get → list → delete
- * - Instantiate path: mechFromPattern builds a fresh mech (new id, exact name, empty hold, sourcePattern)
+ * - Instantiate path: mechFromPattern builds a fresh mech (new id, numbered name, empty hold, sourcePattern)
  *
  * The stores hold rows in memory; writes run signed in, with server commits
  * stubbed by the test preload. No mock.module() — no global leak risk.
@@ -245,11 +245,11 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
       new Date(pattern.createdAt).getTime()
     )
 
-    // Loadout is copied; the pattern's exact name is kept; the hold starts empty
+    // Loadout is copied; the name is the pattern's, numbered (r7 G5); the hold starts empty
     expect(mech.chassisRef).toBe(pattern.chassisRef)
     expect(mech.systems).toEqual(pattern.systems)
     expect(mech.modules).toEqual(pattern.modules)
-    expect(mech.name).toBe('Heavy Hauler')
+    expect(mech.name).toBe('Heavy Hauler 1')
     expect(mech.cargoLots).toEqual([])
     expect(mech.sourcePattern).toBe(pattern.id)
 

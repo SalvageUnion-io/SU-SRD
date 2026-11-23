@@ -16,6 +16,7 @@ import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { SignInControl } from '../account/SignInControl'
 import { mechNamesTaken } from '../mech/Pattern/buildConfirm.model'
+import { typeNameOnArrival } from './nameOnArrival.model'
 
 type Build = Pick<Mech, 'id' | 'name' | 'chassisRef' | 'systems' | 'modules'>
 
@@ -47,6 +48,8 @@ export function PublicMechBuild({ mech }: { mech: Build }) {
         const result = await build.run()
         if (!result.ok) return
         toast.success(mechCopy('builtFromThisMech', { name: result.value.name }))
+        // It opens with its own name selected for typing (r7 G5).
+        typeNameOnArrival(result.value.id)
         go(`/mechs/${result.value.id}`)
       }}
     >

@@ -20,7 +20,6 @@ import {
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../replica/types'
-import { freeName } from '../copyEntity'
 import { mechScrap } from '../rules/mechScrap'
 import { mechRuleBreaks } from '../rules/ruleBreaks'
 
@@ -65,10 +64,21 @@ export function patternCopy(pattern: MechPattern): PatternInput {
 }
 
 /**
+ * A Mech built from a pattern gets its own name (r7 G5): the pattern's,
+ * numbered from 1 past the names `taken` in the bay ("Longhaul 1",
+ * "Longhaul 2"), never the bare pattern name, so a Mech and its pattern
+ * never read alike. The sheet opens with it selected for typing.
+ */
+export function patternMechName(name: string, taken: readonly string[] = []): string {
+  let n = 1
+  while (taken.includes(`${name} ${n}`)) n += 1
+  return `${name} ${n}`
+}
+
+/**
  * A fresh mech built from a pattern: the chassis and loadout, SP, EP and Heat
  * unset (full and empty by the pool rules), an empty hold — and the pattern it came from
- * (`sourcePattern`). Its name is the pattern's: a mech's name IS its pattern's,
- * numbered past the names `taken` in the bay so two builds read apart.
+ * (`sourcePattern`). Its name is the pattern's, numbered (`patternMechName`).
  */
 export function mechFromPattern(
   pattern: MechPattern,
@@ -76,7 +86,7 @@ export function mechFromPattern(
 ): CreateInput<'mech'> {
   return {
     schemaVersion: 1,
-    name: freeName(pattern.name, taken),
+    name: patternMechName(pattern.name, taken),
     chassisRef: pattern.chassisRef,
     systems: [...pattern.systems],
     modules: [...pattern.modules],

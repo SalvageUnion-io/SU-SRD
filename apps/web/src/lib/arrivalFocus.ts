@@ -1,8 +1,9 @@
 /**
  * Focus lands on what you made (r6 F7, WCAG 2.4.3): after a create that opens
- * its page (Create Pilot, Create Mech, a Blank create, Build With This), the
+ * its page (Create Pilot, Create Mech, a Blank create), the
  * new page's heading takes focus, so a keyboard user carries on from it
- * rather than from Skip to content.
+ * rather than from Skip to content. A Build With This or a Make a copy opens
+ * with the new name selected for typing instead (`nameOnArrival.model.ts`).
  *
  * Called as the create navigates: it waits, a frame at a time, for the
  * address to leave the page it was called on and for that page's `<main>` to
