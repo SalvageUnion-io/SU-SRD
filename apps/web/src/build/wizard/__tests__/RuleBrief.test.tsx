@@ -6,6 +6,7 @@
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { RuleBrief } from '../RuleBrief'
+import { WizTaughtContext } from '../wizTaught.model'
 
 describe('RuleBrief', () => {
   test('renders the rule text and the citation footer, with no title of its own', () => {
@@ -42,5 +43,36 @@ describe('RuleBrief', () => {
   test('fold: a short rule has nothing to fold', () => {
     render(<RuleBrief rule="Check the build, then create." fold />)
     expect(screen.queryByRole('button')).toBeNull()
+  })
+})
+
+describe('RuleBrief, once the wizard has taught (r7 F10)', () => {
+  const long = 'Choose a class, then choose your first ability from its trees. '.repeat(3)
+
+  test('a long rule is one "Rules for this step" line that opens in place', () => {
+    render(
+      <WizTaughtContext.Provider value>
+        <RuleBrief rule={long} cite={{ source: 'Salvage Union Workshop Manual', page: 18 }} fold />
+      </WizTaughtContext.Provider>
+    )
+    expect(screen.queryByText(long.trim())).toBeNull()
+    expect(screen.queryByText(/Workshop Manual/)).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Rules for this step' }))
+    expect(screen.getByText(long.trim())).toBeTruthy()
+    expect(screen.getByText('Workshop Manual · p.18')).toBeTruthy()
+  })
+
+  test('a short rule, and the ask a rule carries, still show', () => {
+    render(
+      <WizTaughtContext.Provider value>
+        <RuleBrief rule="Name your Mech." fold />
+        <RuleBrief rule={long} fold>
+          <input aria-label="Callsign" />
+        </RuleBrief>
+      </WizTaughtContext.Provider>
+    )
+    expect(screen.getByText('Name your Mech.')).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: 'Callsign' })).toBeTruthy()
+    expect(screen.queryByText(long.trim())).toBeNull()
   })
 })

@@ -141,6 +141,7 @@ export const buildWizardCopy = messages({
   steps: 'Steps',
   stepOf: 'Step {value} of {count} ·',
   saved: 'Saved {value}.',
+  rulesForThisStep: 'Rules for this step',
   readTheRule: 'Read the rule',
   foldTheRule: 'Fold the rule',
   moreActions: 'More actions',

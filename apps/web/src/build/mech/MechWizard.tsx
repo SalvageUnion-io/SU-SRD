@@ -352,9 +352,8 @@ export function MechWizard({
     )
   }
 
-  // The action bar's budgets. Scrap rides every step that can spend it; the
-  // slot counts join it on step 2 from sm (a phone's bar is one budget, and
-  // the step's own meters show all three).
+  // The action bar's budgets, the one place they show (r7 F10). Scrap rides
+  // every step that can spend it; the slot counts join it on step 2.
   const trackers = (() => {
     const scrap = (
       // Spent, as the slots read filled: every budget counts up to its cap.
