@@ -163,7 +163,7 @@ function OfflineStop({ compact }: { compact: boolean }) {
           playSafetyCopy('stopSign')
         )}
       </Button>
-      <span id={why} role="status" className="su-play-stop__hint">
+      <span id={why} className="su-play-stop__hint">
         {playSafetyCopy('offlineSayAloud')}
       </span>
     </span>

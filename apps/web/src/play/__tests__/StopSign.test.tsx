@@ -107,8 +107,9 @@ describe('offline (r7 B4)', () => {
       const { unmount } = render(<StopSignButton sign={s.value} compact={compact} />)
       const button = screen.getByRole('button', { name: 'Show the Stop Sign' }) as HTMLButtonElement
       expect(button.disabled).toBe(true)
-      const why = screen.getByRole('status')
-      expect(why.textContent).toBe('You are offline. Say it aloud; the table will not see it.')
+      // The reason, not a second offline notice (R16): the bar's stamp is that.
+      expect(screen.queryByRole('status')).toBeNull()
+      const why = screen.getByText('You are offline. Say it aloud; the table will not see it.')
       expect(button.getAttribute('aria-describedby')).toBe(why.id)
       unmount()
     }
