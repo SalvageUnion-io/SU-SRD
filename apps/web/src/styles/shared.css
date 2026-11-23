@@ -57,6 +57,13 @@
   }
 }
 
+/* The results page's own field: on a phone the bar's holds the query (r7 E2). */
+@media not (width >= 40rem) {
+  .su-search-refine {
+    display: none;
+  }
+}
+
 .su-hero-search__field {
   border-width: var(--bw-chrome);
   min-height: var(--size-full);

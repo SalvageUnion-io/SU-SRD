@@ -41,12 +41,23 @@ describe('SearchResultsIsland (r5 E3)', () => {
     expect(all.length).toBeGreaterThan(10)
     // The count said is the rows listed.
     expect(screen.getByText(`${all.length} results for “shield”`)).toBeTruthy()
-    const links = screen.getAllByRole('link').filter((a) => a.closest('li'))
+    const links = screen.getAllByRole('link').filter((a) => a.closest('table'))
     expect(links).toHaveLength(all.length)
     const kinds = groupResults(all).map((group) => group.kind)
     expect(kinds.length).toBeGreaterThan(1)
     const headings = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent ?? '')
     for (const kind of kinds) expect(headings.some((h) => h.includes(kind))).toBe(true)
+  })
+
+  test("a row says what the dropdown says: a term's definition, a weapon's reach (r7 E2)", async () => {
+    await renderOn('?q=hot')
+    const hot = screen.getAllByRole('link', { name: /^Hot$/ })[0]
+    expect(hot?.closest('tr')?.textContent).toContain('Heat equal to')
+    cleanup()
+    await renderOn('?q=long%20range')
+    expect(
+      screen.getAllByRole('link', { name: /^Long$/ })[0]?.closest('tr')?.textContent
+    ).toContain('outline')
   })
 
   test('keeps the query in a field on the page, to refine it (RR6-02)', async () => {

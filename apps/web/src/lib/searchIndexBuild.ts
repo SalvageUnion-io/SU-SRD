@@ -65,8 +65,8 @@ function rowModel(entity: RefEntity, pattern?: RefObjectAnyPattern): EntityFormM
   }
 }
 
-/** The rules terms a search result defines in a line (RR6-04): a keyword's, a trait's. */
-const DEFINED: ReadonlySet<string> = new Set(['keywords', 'traits'])
+/** The rules terms a search result defines in a line (RR6-04): a keyword's, a trait's, a range band's (RR7-03). */
+const DEFINED: ReadonlySet<string> = new Set(['keywords', 'traits', 'distances'])
 
 /** The first sentence of a rules term's lead: the dropdown's one line under its name. */
 function definitionOf(entity: RefEntity): string | undefined {
