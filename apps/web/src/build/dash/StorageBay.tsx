@@ -15,11 +15,13 @@
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
+import type { CSSProperties } from 'react'
 import { lazy, Suspense, useState } from 'react'
 import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 import { Facts } from '../../components/app'
 import type { CSSVarStyle, LedgerColumn } from '../../components/index'
-import { Button, Ledger, Stat, TechLevel } from '../../components/index'
+import { Button, capsLabel, Ledger, Stat, TechLevel } from '../../components/index'
+import { color, space } from '../../design/tokens'
 import {
   addToScrapPool,
   loadableQty,
@@ -95,6 +97,14 @@ function unstow(
   })
 }
 
+/** The Scrap board's caption: a caps label over its six cells. */
+const POOL_HEAD = capsLabel()
+const POOL_HEAD_STYLE = {
+  margin: 0,
+  padding: `${space[8]} ${space[8]} 0`,
+  backgroundColor: color.paper,
+} satisfies CSSProperties
+
 const STORED_COLUMNS: readonly LedgerColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
   { key: 'units', label: buildSheetCopy('units'), phone: true },
@@ -151,10 +161,14 @@ export function StorageBay({
       }
     >
       <div data-storage-side="crawler">
+        {/* The board by its name, as the wizard asked for it (r8 D2, SB8-18). */}
+        <p className={POOL_HEAD} style={POOL_HEAD_STYLE}>
+          {buildSheetCopy('scrapPool')}
+        </p>
         <Facts
           className={stepping ? 'su-scrap su-scrap--stepping' : 'su-scrap'}
           itemClassName="su-scrap__cell"
-          label={buildSheetCopy('scrapByTechLevel')}
+          label={buildSheetCopy('scrapPool')}
           facts={NUMERIC_TECH_LEVELS.map((level) => {
             const count = scrapPoolBucket(pool, level)
             return {

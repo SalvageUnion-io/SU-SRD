@@ -51,8 +51,8 @@ import {
   uncraftUpdates,
   waresAt,
 } from './craftTrade.model'
-import { poolChips } from './playDowntime.model'
 import { recordPlayChange } from './playRolls.model'
+import { poolChips } from './scrapPool.model'
 import { useOpenSheet } from './useOpenSheet'
 import type { PlayActions } from './usePlayActions'
 

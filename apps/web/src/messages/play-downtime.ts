@@ -14,4 +14,6 @@ export const playDowntimeCopy = messages({
   scrapPoolNone: 'No Scrap',
   shortOfScrap: 'Short {short} T{tl}+',
   closeCraftTrade: 'Close',
+  scrapMoved: 'Scrap moved',
+  intoScrapPool: 'Into {crawler}’s Scrap Pool',
 })

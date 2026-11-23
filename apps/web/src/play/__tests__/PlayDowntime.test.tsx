@@ -129,7 +129,29 @@ describe('Tally Salvage moves the Scrap', () => {
       name: 'downtime.moveScrap',
       args: { pilotId: 'dt-p', mechId: 'dt-m', crawlerId: 'dt-c' },
     })
-    expect(within(stepBox()).getByText('Moved 2 Scrap to Tenacity.')).toBeTruthy()
+    // What moved, and where, by Tech Level: never "You carry no Scrap home" (r8 D2).
+    const into = within(within(stepBox()).getByRole('list', { name: 'Scrap moved' }))
+    expect(into.getByText('Into Tenacity’s Scrap Pool')).toBeTruthy()
+    expect(into.getByText('T1')).toBeTruthy()
+    expect(within(stepBox()).queryByRole('list', { name: 'Carried Scrap' })).toBeNull()
+    expect(within(stepBox()).queryByText(/carry no Scrap/)).toBeNull()
+    expect(within(stepBox()).queryByRole('button', { name: 'Move to the crawler' })).toBeNull()
+  })
+
+  test('taken already with nothing carried, the step says Done, never "no Scrap home" (r8 D2)', () => {
+    const { pilot, mech, crawler } = units()
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(pilot, mech, crawler).store}
+        writes={[]}
+        downtime={{ stepIndex: 0, doneSteps: [0] }}
+      />
+    )
+    expect(within(stepBox()).queryByText(/carry no Scrap/)).toBeNull()
+    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
   })
 })
 

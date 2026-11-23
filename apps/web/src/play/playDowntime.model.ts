@@ -25,18 +25,16 @@ import {
 } from 'game-domain/rules/downtime'
 import type { ScrapByTl } from 'game-domain/rules/tallyScrap'
 import { mechScrap, pilotScrap, scrapCount, sumScrap } from 'game-domain/rules/tallyScrap'
-import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import {
   crawlerUpkeepCost,
-  NUMERIC_TECH_LEVELS,
   pilotMaxAP,
   pilotMaxHP,
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { scrapPoolBucket } from '../lib/cargo/cargoTransfer'
 import { resolveModule, resolveSystem } from '../lib/rules/mechItems'
 import { resolveEquipment } from '../lib/rules/pilotInventory'
 import { playCopy } from '../messages/play'
@@ -467,18 +465,6 @@ function scrapChips(tally: ScrapByTl): PlanChip[] {
     .filter(([, n]) => (n ?? 0) > 0)
     .sort(([a], [b]) => Number(a) - Number(b))
     .map(([tl, n]) => ({ label: `T${tl}`, value: String(n) }))
-}
-
-/**
- * A crawler's Scrap Pool as chips by Tech Level, lowest first (`T1 | 3`):
- * what Craft · Trade heads with and the crawler card shows (r8 D1, D2).
- * Empty when the pool holds no Scrap.
- */
-export function poolChips(pool: ScrapPool | undefined): PlanChip[] {
-  return NUMERIC_TECH_LEVELS.flatMap((tl) => {
-    const count = scrapPoolBucket(pool ?? {}, tl)
-    return count > 0 ? [{ label: `T${tl}`, value: String(count) }] : []
-  })
 }
 
 /**

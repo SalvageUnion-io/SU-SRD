@@ -447,7 +447,7 @@ export const buildSheetCopy = messages({
   crawlerType: '{type} Crawler',
   typeCrew: 'Type crew',
   bayRulesOf: '{name} rules and crew',
-  scrapByTechLevel: 'Scrap by Tech Level',
+  scrapPool: 'Scrap Pool',
   noSuchCompanion: 'No such companion.',
   companionGone: 'Its {kind} no longer fields it.',
   backToItsHost: 'Back to its {kind}',

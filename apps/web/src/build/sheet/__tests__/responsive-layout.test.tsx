@@ -104,6 +104,10 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
     expect(container.querySelector('section[aria-label$="crawler sheet"] .su-dash')).toBeTruthy()
     const side = container.querySelector(`[aria-label="What ${fakeCrawler.name} carries"]`)
     expect(side?.querySelector('[data-storage-side="crawler"]')).toBeTruthy()
+    // Its Scrap board is named the Scrap Pool, as the wizard asked for it (r8 D2).
+    expect(side?.querySelector('[data-storage-side="crawler"]')?.textContent).toContain(
+      'Scrap Pool'
+    )
   })
 })
 
