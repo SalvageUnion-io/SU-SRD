@@ -438,10 +438,20 @@ export function MechWizard({
       )}
       {step === 'loadout' && (
         <>
-          <div className="su-wiz-parts">
-            {brief('systems')}
-            {brief('modules')}
-          </div>
+          {/* One brief for the step's one pick, the book's two rules in it (r8 E8). */}
+          <RuleBrief
+            rule={`${String(ruleFor('systems').rule)} ${String(ruleFor('modules').rule)}`}
+            cite={{
+              source: BOOK,
+              page: 95,
+              see: [
+                { label: mechCopy('theSystemList'), page: 162 },
+                { label: mechCopy('theModulesList'), page: 188 },
+              ],
+            }}
+            className="su-wiz-rule-brief"
+            fold
+          />
           <MechLoadoutStep
             systems={form.systems}
             modules={form.modules}
@@ -500,6 +510,8 @@ export function MechWizard({
               value={form.name}
               onChange={setMechName}
               placeholder={mechCopy('eGBullseyePatternMule')}
+              // Enter in the last step's one field creates the Mech (r8 E8).
+              onEnter={shell.nextDisabled || shell.busy ? undefined : shell.onNext}
             />
           )}
         />

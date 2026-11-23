@@ -1,5 +1,5 @@
 /**
- * ChassisLegend — the line over the mech wizard's chassis cards that spells
+ * ChassisLegend — the line under the mech wizard's chassis cards that spells
  * out their figures (r6 F3): SV, SP, EP, SYS, MOD, HEAT and CARGO, each label
  * opening the glossary Peek the sheet's own labels open (`StatMeaning`). The
  * cards are radios, so their labels stay plain: a control inside a radio
@@ -19,7 +19,7 @@ const STAT_KEY: Readonly<Record<string, string>> = {
   cargo: 'cargoCapacity',
 }
 
-const LINE = { margin: `0 0 ${tokens.space[12]}` } satisfies CSSProperties
+const LINE = { margin: `${tokens.space[12]} 0 0` } satisfies CSSProperties
 
 export function ChassisLegend() {
   return (

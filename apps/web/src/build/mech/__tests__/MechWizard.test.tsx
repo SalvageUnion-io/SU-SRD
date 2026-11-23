@@ -11,7 +11,7 @@
  */
 
 import { describe, expect, it, mock } from 'bun:test'
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { must } from '../../../components/__tests__/must'
@@ -289,7 +289,11 @@ describe('MechWizard — legalStarting pattern strip', () => {
     await clickNext() // → Quirk & Look
     await clickNext() // → Name & Review
     expect(getCreateButton().disabled).toBe(false)
-    await clickButton(/Create Mech/i)
+    // Enter in the name field creates the Mech (r8 E8).
+    const nameField = screen.getByRole('textbox', { name: /^mech name/i })
+    await act(async () => {
+      fireEvent.keyDown(nameField, { key: 'Enter' })
+    })
 
     await waitFor(() => {
       const m = must(useUnits.getState().list('mech')[0])
