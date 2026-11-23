@@ -2,15 +2,14 @@ import { describe, expect, test } from 'bun:test'
 import {
   matchSearchTokens,
   scoreSearchMatch,
-  searchNamesTerm,
   searchNameWords,
   searchOneSlipAway,
   searchSquashedName,
-  searchTermScore,
   searchWordStem,
   suggestSearchQuery,
   tokenizeSearchQuery,
 } from '../searchRanking'
+import { searchNamesTerm, searchTermScore } from '../searchTerms'
 
 describe('tokenizeSearchQuery', () => {
   test('lowers, trims and splits on whitespace', () => {

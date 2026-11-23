@@ -58,7 +58,7 @@ export function focusSearchLanding(doc: Document): void {
   } catch {
     return
   }
-  const heading = doc.querySelector<HTMLElement>('main h1')
+  const heading = doc.querySelector('main')?.querySelector('h1')
   if (!heading || doc.location.hash) return
   heading.tabIndex = -1
   heading.focus({ preventScroll: true })

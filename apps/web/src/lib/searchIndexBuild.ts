@@ -36,6 +36,7 @@ import {
 // ORM-backed `search()` it mirrors.
 import { TRAINING_POINTS } from '../components/entity'
 import type { EntityFormModel } from '../components/index'
+import { libCopy } from '../messages/lib'
 import { buildChapters } from './chapters'
 import { itemHref, patternHref } from './entityHref'
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
@@ -123,7 +124,7 @@ function ruleEntries(): CompactSearchEntry[] {
 }
 
 /** A search result's kind for one of the Reference's chapters (its sections: Pilot Bay, Mech Workshop…). */
-const SECTION_KIND = 'Reference section'
+const SECTION_KIND = libCopy('referenceSection')
 
 /**
  * The Reference's chapters as rows of their own, each opening its page

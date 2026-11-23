@@ -8,16 +8,14 @@ import { getPatterns } from './patterns'
 import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from './schemas/index'
 import {
   matchSearchTokens,
-  SEARCH_NAMES_IT,
   scoreSearchMatch,
   searchAliases,
-  searchNamesTerm,
   searchNameWords,
   searchSquashedName,
-  searchTermScore,
   searchWordStem,
   tokenizeSearchQuery,
 } from './searchRanking'
+import { SEARCH_NAMES_IT, searchNamesTerm, searchTermScore } from './searchTerms'
 import { embeddedRollTableNames } from './topLevelRollTables'
 
 /** Lazily-built membership set: the non-meta schema catalog ids. */

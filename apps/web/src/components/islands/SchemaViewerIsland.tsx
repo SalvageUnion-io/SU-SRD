@@ -216,12 +216,7 @@ function SchemaViewer({
   const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
   // The filters, the sort and a phone's columns open on the URL's query and
   // write themselves back to it: a shared link restores the exact view.
-  const filters = useListingFilters({
-    schemaId,
-    techLevels: orderedTechLevels,
-    view,
-    viewInUrl,
-  })
+  const filters = useListingFilters({ schemaId, techLevels: orderedTechLevels, view, viewInUrl })
   const {
     techLevelFilters,
     source: sourceFilter,

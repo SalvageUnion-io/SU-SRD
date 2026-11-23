@@ -146,17 +146,15 @@ export {
 // browser bundle pays only for these functions.
 export {
   matchSearchTokens,
-  SEARCH_NAMES_IT,
   scoreSearchMatch,
   searchAliases,
-  searchNamesTerm,
   searchNameWords,
   searchOneSlipAway,
   searchSquashedName,
-  searchTermScore,
   suggestSearchQuery,
   tokenizeSearchQuery,
 } from './searchRanking'
+export { SEARCH_NAMES_IT, searchNamesTerm, searchTermScore } from './searchTerms'
 export { findEntityBySlug, getEntitySlug } from './slug'
 export { topLevelRollTables } from './topLevelRollTables'
 export { parseTraitReferences, plainTraitText } from './traitText'

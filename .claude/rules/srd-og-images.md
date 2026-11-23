@@ -16,11 +16,10 @@ paths:
   `apps/web/scripts/og-screenshots.ts` shoots it at 1200×630 to
   `dist/{schemaId}/{itemId}.og.png`; a pattern's is
   `…/pattern/{patternId}.og.png`.
-- `og:title` is the name, its kind and the game ("Hot · Salvage Union
-  trait"), `og:description` its stats and summary,
+- `og:title` names it and its kind, `og:description` its stats and summary,
   `theme-color` the band's tone. With art, `og:image` is the art
-  (`entityPageHead`): the generator skips it.
-- Opt-in: `bun --filter web og:generate` (chromium via `og:install-browser`);
+  (`entityPageHead`), never generated.
+- Opt-in: `bun --filter web og:generate` (`og:install-browser` first);
   a plain build never renders images. The default image is
   `public/og-image.png` (`BrandCard` at `/og-card?brand`), and a skipped,
   capped or failed render falls back to it, **never failing the build**.

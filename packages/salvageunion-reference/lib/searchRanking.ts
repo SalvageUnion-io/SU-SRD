@@ -181,7 +181,7 @@ const QUESTION_WORDS = new Set([
 const SENTENCE_MARKS = '?!,;:'
 
 /** A word without the sentence marks it ends on. A loop, not a pattern: a pattern backtracks on a long run of marks. */
-function withoutSentenceMarks(word: string): string {
+export function withoutSentenceMarks(word: string): string {
   let end = word.length
   while (end > 0 && SENTENCE_MARKS.includes(word[end - 1] as string)) end--
   return word.slice(0, end)
@@ -238,20 +238,11 @@ export function searchWordStem(word: string): string {
 /**
  * A word as one form of it, for comparing two words: its stem without a
  * final "e", so "salvage" and "salvaging" are one ("salvag"), as are "move"
- * and "moves". Never used to match by substring: it is only compared whole.
+ * and "moves". Compared whole, never matched as a substring.
  */
-function searchWordForm(word: string): string {
+export function searchWordForm(word: string): string {
   const stem = searchWordStem(word)
   return stem.length >= STEM_MIN_LENGTH && stem.endsWith('e') ? stem.slice(0, -1) : stem
-}
-
-/** Whether `words` holds `run` as consecutive words. */
-function holdsRun(words: readonly string[], run: readonly string[]): boolean {
-  if (run.length === 0 || run.length > words.length) return false
-  for (let i = 0; i + run.length <= words.length; i++) {
-    if (run.every((word, j) => words[i + j] === word)) return true
-  }
-  return false
 }
 
 /** A name with nothing but its letters and digits: "bio-titan" as "biotitan". */
@@ -335,7 +326,7 @@ function saysAlias(nameText: string, queries: readonly string[]): boolean {
  * order", "combat") they come ahead of the hundreds of entities whose text
  * happens to hold the words. Smaller than every name tier.
  */
-const RULES_KIND_BOOST: Readonly<Record<string, number>> = {
+export const RULES_KIND_BOOST: Readonly<Record<string, number>> = {
   guides: 4,
   keywords: 3,
   traits: 3,
@@ -560,55 +551,4 @@ export function scoreSearchMatch(facts: SearchMatchFacts): number {
 
   if (facts.usedTypo) score -= TYPO_PENALTY
   return score
-}
-
-/**
- * The lowest literal name tier ({@link scoreSearchMatch}): a result at or over
- * it names the query.
- */
-export const SEARCH_NAMES_IT = 20
-
-/** The kinds a term asked about inside a phrase is: the rules' own words. */
-const TERM_KINDS: ReadonlySet<string> = new Set(['guides', 'keywords', 'traits'])
-
-/**
- * A term asked about inside a phrase ("overheat" in "what happens when my
- * mech overheats"): over every hit in the prose, under the name tiers that
- * name the whole query.
- */
-const TERM_IN_QUERY_SCORE = 70
-
-/** How much a term found in every entry loses: a common word ("mech") ranks under a rare one. */
-const TERM_SHARE_WEIGHT = 10
-
-/**
- * Whether the query holds this rules term (a guide's, keyword's or trait's
- * name, or one of its aliases) among its words, in any form of them:
- * "overheat" in "overheat mech", Map Movement in "how far can my mech move".
- * A matcher asks it only when no result names the whole query
- * ({@link SEARCH_NAMES_IT}), and ranks each term found with
- * {@link searchTermScore}: the rules term leads the prose that holds the
- * other words.
- */
-export function searchNamesTerm(
-  query: SearchQuery,
-  nameText: string,
-  schemaName?: string
-): boolean {
-  if (!TERM_KINDS.has(schemaName ?? '')) return false
-  const said = (query.rawQuery ?? query.loweredQuery).split(/\s+/).map(withoutSentenceMarks)
-  const forms = (words: readonly string[]) => words.map(searchWordForm)
-  const name = forms(searchNameWords(nameText))
-  if (holdsRun(forms(query.tokens.map(withoutSentenceMarks)), name) || holdsRun(forms(said), name))
-    return true
-  return searchAliases(nameText).some((alias) => holdsRun(said, alias.split(/\s+/)))
-}
-
-/**
- * A term's score ({@link searchNamesTerm}), by its kind and by `share`, the
- * part of the corpus (0 to 1) whose text holds its name: of two terms in one
- * question, the rarer is what is asked about ("overheat" before "mech").
- */
-export function searchTermScore(schemaName: string, share: number): number {
-  return TERM_IN_QUERY_SCORE + (RULES_KIND_BOOST[schemaName] ?? 0) - share * TERM_SHARE_WEIGHT
 }
