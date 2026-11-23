@@ -378,6 +378,9 @@ describe('the Scene', () => {
 
   test('every condition is a toggle; pressing one puts the Scene under it', async () => {
     await renderCockpit()
+    // One row until Change opens it in place (r7 C8, MD7-16).
+    expect(screen.queryByRole('list', { name: 'Scene conditions' })).toBeNull()
+    await click(named('Change the Scene conditions'))
     const storm = named('The Scene is under Radiation Storm')
     expect(storm.getAttribute('aria-pressed')).toBe('false')
     expect(named('An hour passes').hasAttribute('disabled')).toBe(true)
@@ -1397,18 +1400,23 @@ describe('below `lg`, on a phone (play.md §11)', () => {
     return within(open[0] as HTMLElement)
   }
 
-  test('Table, Opposition, Tables, Propose under the pinned Scene / Downtime switch', async () => {
+  // r7 C8 (MD7-16): the sticky head is the game bar alone; the switch heads the Table pane.
+  test('Table, Opposition, Tables, Propose, the Scene / Downtime switch heading the Table', async () => {
     await renderCockpit()
     expect(screen.queryByRole('region', { name: 'The table' })).toBeNull()
     const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
     expect(tabs.map((t) => t.textContent)).toEqual(['Table', 'Opposition', 'Rolls', 'Propose'])
-    const state = screen.getByRole('group', { name: 'Game state' })
-    expect(state.closest('[role="tabpanel"]')).toBeNull()
+    expect(document.querySelector('.su-play-frame__pinned')).toBeNull()
+    expect(openPanel().getByRole('group', { name: 'Game state' })).toBeTruthy()
     expect(openPanel().getByRole('heading', { name: 'The table' })).toBeTruthy()
     // The Feed, the table's log, runs under the Table.
     expect(openPanel().getByRole('heading', { name: 'Feed' })).toBeTruthy()
     await click(phoneTab('Opposition'))
     expect(openPanel().getAllByText('Strikebreaker').length).toBeGreaterThan(0)
+    // The units come before the Scene, in reading and Tab order (r7 C8, MD7-16, MD7-21).
+    const units = openPanel().getByRole('list', { name: 'Opposition' })
+    const scene = openPanel().getByRole('heading', { name: 'Scene' })
+    expect(units.compareDocumentPosition(scene) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     await click(phoneTab('Rolls'))
     expect(
       openPanel()
@@ -1458,6 +1466,9 @@ describe('below `lg`, on a phone (play.md §11)', () => {
       'Skip to Rolls',
       'Skip to Feed',
     ])
+    // Skip to Feed points at the Feed, never at the Table pane (r7 C8, MD7-21).
+    expect(jumps[3]?.getAttribute('href')).toBe('#mediate-feed')
+    expect(jumps[0]?.getAttribute('href')).not.toBe('#mediate-feed')
     // The Opposition jump lands on its heading, which leads into its own list of units.
     await click(jumps[1] as HTMLElement)
     expect(phoneTab('Opposition').getAttribute('aria-selected')).toBe('true')

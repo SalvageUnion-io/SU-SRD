@@ -44,6 +44,7 @@ export function PlayVitalAmount({
   onChange,
   onClose,
   size = 'compact',
+  initial = '',
 }: {
   /** The stamp: HP, AP, SP, EP, Heat. */
   label: string
@@ -54,8 +55,10 @@ export function PlayVitalAmount({
   onClose: () => void
   /** The controls' Size: Compact in a unit box, Full (44px) on the phone's pinned strip. */
   size?: 'compact' | 'full'
+  /** What was typed on the number that opened it: the amount starts there (r7 C8). */
+  initial?: string
 }) {
-  const [amount, setAmount] = useState('')
+  const [amount, setAmount] = useState(initial)
   const typed = signedAmountOf(amount)
   const n = typed?.amount ?? null
   // Typed with a sign, that is the way Enter goes; bare, Enter takes (damage).
@@ -101,6 +104,11 @@ export function PlayVitalAmount({
         // A sign may lead: never the keypad hint's digits-only pattern (r6 A15).
         pattern={undefined}
         value={amount}
+        // The caret after a digit carried in, so the next one follows it.
+        onFocus={(event) => {
+          const end = event.currentTarget.value.length
+          event.currentTarget.setSelectionRange(end, end)
+        }}
         aria-label={playCopy('amountOf', { label })}
         onChange={(event) => setAmount(event.target.value)}
       />

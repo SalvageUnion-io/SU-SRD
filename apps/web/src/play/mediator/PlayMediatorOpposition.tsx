@@ -1,14 +1,15 @@
 /**
  * PlayMediatorOpposition — the Mediator's centre column in a Scene (play.md
- * §10): the Scene's conditions (`PlayMediatorScene`), then "Opposition", a Slab with Run an encounter and + Add, the encounter
+ * §10): "Opposition", a Slab with Run an encounter and + Add, the encounter
  * running (`RUNNING | its name`, End; ADR-059), the area the crew is
  * salvaging (`AREA | its name, Tech Level and Supply`, set through
  * `SalvageAreaDialog`, Core Book p.245), then each NPC,
  * mech, squad or Bio-Titan on the tray as a unit box (`PlayNpcBox`, level 1);
  * Actions on a box opens that unit's actions inside its own card
  * (`PlayNpcActions`, r4 D1), each unit's on its own, shut until asked for.
- * On a phone the running encounter's Briefing and Notes stand under its name
- * (`notes`, r4 D3).
+ * The units come first (r7 C8): on a phone the running encounter's Briefing
+ * and Notes (`notes`, r4 D3), then the Scene's conditions (`PlayMediatorScene`,
+ * one row), stand under them.
  *
  * Behind the `encounterSheet` flag (ADR-059 §5), an encounter's groups sit
  * together under their own Slab (`PlayNpcGroup`), with one Reaction and one
@@ -215,7 +216,6 @@ export function PlayMediatorOpposition({
 
   return (
     <>
-      <PlayMediatorScene mediator={mediator} rollFor={rollFor} />
       <Slab
         as="h2"
         id="mediate-opposition"
@@ -271,7 +271,6 @@ export function PlayMediatorOpposition({
           </Button>
         </div>
       )}
-      {prep.running !== null ? notes : null}
       {prep.running !== null &&
         held.map((wave) => (
           <div key={wave} style={RUNNING} role="status">
@@ -357,6 +356,9 @@ export function PlayMediatorOpposition({
           </Button>
         </div>
       )}
+      {/* The units first (r7 C8, MD7-16): the briefing, then the Scene, under them. */}
+      {prep.running !== null ? notes : null}
+      <PlayMediatorScene mediator={mediator} rollFor={rollFor} />
       <SheetPickerModal
         open={picking}
         onClose={() => setPicking(false)}
