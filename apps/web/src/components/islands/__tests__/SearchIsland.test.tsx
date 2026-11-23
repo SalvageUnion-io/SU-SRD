@@ -300,7 +300,7 @@ describe('SearchIsland', () => {
     expect(categoryRows.length).toBeLessThanOrEqual(3)
   })
 
-  test('Escape ends the lookup: the list closes, the field empties and lets go of focus', async () => {
+  test('Escape ends the lookup: the list closes, the field empties and keeps the focus (RR7-08)', async () => {
     render(<SearchIsland navigate={mock(() => {})} />)
     const input = screen.getByRole('combobox')
     await act(async () => {
@@ -314,7 +314,7 @@ describe('SearchIsland', () => {
     })
     expect(screen.queryByRole('listbox')).toBeNull()
     expect(input.getAttribute('aria-expanded')).toBe('false')
-    expect(document.activeElement).not.toBe(input)
+    expect(document.activeElement).toBe(input)
     // The next lookup starts clean (RR-20): nothing to delete first.
     expect((input as HTMLInputElement).value).toBe('')
 
@@ -324,7 +324,7 @@ describe('SearchIsland', () => {
     expect(screen.queryByRole('listbox')).toBeNull()
   })
 
-  test('Escape gives the focus back to where the shortcut took it from (r4 F9)', async () => {
+  test('Escape after the shortcut leaves the focus in the field, to type again (RR7-08)', async () => {
     render(
       <div>
         <a href="/chassis/mule/">Mule</a>
@@ -343,7 +343,7 @@ describe('SearchIsland', () => {
       fireEvent.keyDown(input, { key: 'Escape' })
     })
     expect(screen.queryByRole('listbox')).toBeNull()
-    expect(document.activeElement).toBe(link)
+    expect(document.activeElement).toBe(input)
   })
 
   test('"/" outside a field focuses the search; inside one it is typed', async () => {

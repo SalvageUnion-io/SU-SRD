@@ -7,7 +7,7 @@ import { itemHref } from '../../lib/entityHref'
 import { schemaPluralLabel } from '../../lib/schemaLabels'
 import type { CompactSearchResult } from '../../lib/searchCompactIndex'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
-import { searchQuery } from '../../lib/searchHref'
+import { markSearchLanding, searchQuery } from '../../lib/searchHref'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { compositionsCopy } from '../../messages/components-compositions'
@@ -185,26 +185,34 @@ export function SearchResultsIsland({ search }: SearchResultsIslandProps = {}) {
             ? islandsCopy('oneResultFor', { query })
             : islandsCopy('resultsFor', { count, query })}
         </p>
-        <DocumentLinks>
-          {groupResults(results).map((group, i) => {
-            const first = models.get(group.results[0]?.entityId ?? '')
-            return (
-              <section key={group.kind} aria-labelledby={`results-${i}`}>
-                <h2 id={`results-${i}`} className={SR_ONLY}>
-                  {group.kind}
-                </h2>
-                <Ledger
-                  label={group.kind}
-                  nameLabel={group.kind}
-                  tone={first?.tone ?? 'ink'}
-                  count={group.results.length}
-                  columns={COLUMNS}
-                  rows={group.results.map((result) => rowOf(result, models.get(result.entityId)))}
-                />
-              </section>
-            )
-          })}
-        </DocumentLinks>
+        {/* A row followed opens its page with the heading in focus (RR7-09). */}
+        <div
+          onClickCapture={(e) => {
+            if (e.target instanceof Element && e.target.closest('a[href]')) markSearchLanding()
+          }}
+          style={SECTIONS}
+        >
+          <DocumentLinks>
+            {groupResults(results).map((group, i) => {
+              const first = models.get(group.results[0]?.entityId ?? '')
+              return (
+                <section key={group.kind} aria-labelledby={`results-${i}`}>
+                  <h2 id={`results-${i}`} className={SR_ONLY}>
+                    {group.kind}
+                  </h2>
+                  <Ledger
+                    label={group.kind}
+                    nameLabel={group.kind}
+                    tone={first?.tone ?? 'ink'}
+                    count={group.results.length}
+                    columns={COLUMNS}
+                    rows={group.results.map((result) => rowOf(result, models.get(result.entityId)))}
+                  />
+                </section>
+              )
+            })}
+          </DocumentLinks>
+        </div>
       </div>
     </IslandErrorBoundary>
   )

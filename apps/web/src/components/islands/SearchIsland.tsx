@@ -19,7 +19,13 @@ import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { aboveFloor, searchCompactIndex } from '../../lib/searchCompactIndex'
-import { RESULTS_PAGE, resultsHref, SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
+import {
+  markSearchLanding,
+  RESULTS_PAGE,
+  resultsHref,
+  SEARCH_PAGE,
+  searchQuery,
+} from '../../lib/searchHref'
 import { isSearchShortcut } from '../../lib/searchShortcut'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
@@ -131,9 +137,6 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const [quiet, setQuiet] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  // What had the focus before the field took it (the shortcut, a Tab): Escape
-  // gives it back, so a keyboard reader goes on from where they were.
-  const fromRef = useRef<HTMLElement | null>(null)
 
   const doNavigate = useCallback(
     (url: string) => {
@@ -162,7 +165,11 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   } = useSearchCombobox({
     ready,
     moreRow: true,
-    onSubmit: (result) => doNavigate(resultUrl(result)),
+    onSubmit: (result) => {
+      // The page it opens puts its heading in focus (RR7-09).
+      markSearchLanding()
+      doNavigate(resultUrl(result))
+    },
     // Enter with no row highlighted: the page of every result.
     onSubmitQuery: (term) => doNavigate(resultsHref(term)),
     searchFn,
@@ -178,6 +185,12 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   const isOpen = hasSearched && !quiet && dismissedResults !== results
 
+  // A result followed by a press opens its page with the heading in focus, as Enter does.
+  const onClickResult = useCallback((e: React.MouseEvent) => {
+    if (e.target instanceof Element && e.target.closest('[role="listbox"] a[href]'))
+      markSearchLanding()
+  }, [])
+
   // An empty result's next step: the query with its slipped words put right,
   // where that finds something ("Did you mean").
   const names = useMemo(() => index.map((entry) => entry.name), [index])
@@ -191,13 +204,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       // Escape ends the lookup: the list closes and the field empties, so the
-      // next one starts clean.
+      // next one starts clean, and the focus stays in it to type it (RR7-08).
       if (e.key === 'Escape' && (isOpen || query)) {
         clear()
-        const from = fromRef.current
-        fromRef.current = null
-        if (from?.isConnected) from.focus()
-        else inputRef.current?.blur()
         return
       }
       if (!isOpen) return
@@ -246,9 +255,6 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (!isSearchShortcut(e)) return
       e.preventDefault()
-      const active = document.activeElement
-      if (active instanceof HTMLElement && active !== inputRef.current && active !== document.body)
-        fromRef.current = active
       inputRef.current?.focus()
       inputRef.current?.select()
     }
@@ -280,13 +286,10 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       value={query}
       onChange={(e) => onInput(e.target.value)}
       onKeyDown={onKeyDown}
-      onFocus={(e) => {
+      onFocus={() => {
         load()
         setDismissedResults(null)
         setQuiet(false)
-        const from = e.relatedTarget
-        if (from instanceof HTMLElement && !containerRef.current?.contains(from))
-          fromRef.current = from
       }}
       // The bar's width is the Union bar's (The app's trigger shares it), a class
       // so the mobile sheet can widen it.
@@ -361,7 +364,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     return (
       <IslandErrorBoundary>
         <HeroSearchForm onSubmit={onSubmit}>
-          <div className="su-hero-search__box" ref={containerRef}>
+          <div className="su-hero-search__box" ref={containerRef} onClickCapture={onClickResult}>
             {live}
             {field}
             {listbox}
@@ -373,7 +376,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   return (
     <IslandErrorBoundary>
-      <div style={RELATIVE} ref={containerRef}>
+      <div style={RELATIVE} ref={containerRef} onClickCapture={onClickResult}>
         {live}
         {field}
         {listbox}

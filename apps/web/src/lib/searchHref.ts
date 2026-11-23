@@ -33,3 +33,33 @@ export const RESULTS_PAGE = '/search/'
 export function resultsHref(query: string): string {
   return `${RESULTS_PAGE}?${new URLSearchParams({ [SEARCH_PARAM]: query })}`
 }
+
+/** The session's mark that the next page was opened from search. */
+const LANDING_KEY = 'su:from-search'
+
+/** Mark the page about to open as opened from search (RR7-09). Storage may throw. */
+export function markSearchLanding(): void {
+  try {
+    sessionStorage.setItem(LANDING_KEY, '1')
+  } catch {
+    // Not marked: the page opens as any other does.
+  }
+}
+
+/**
+ * On a page opened from search, its heading takes the focus (RR7-09): the
+ * next Tab is in the page's own content, not its bar. A page opened on an
+ * anchor keeps the anchor's place. Run once, by the page script.
+ */
+export function focusSearchLanding(doc: Document): void {
+  try {
+    if (!sessionStorage.getItem(LANDING_KEY)) return
+    sessionStorage.removeItem(LANDING_KEY)
+  } catch {
+    return
+  }
+  const heading = doc.querySelector<HTMLElement>('main h1')
+  if (!heading || doc.location.hash) return
+  heading.tabIndex = -1
+  heading.focus({ preventScroll: true })
+}
