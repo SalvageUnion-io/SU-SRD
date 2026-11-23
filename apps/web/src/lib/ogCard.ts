@@ -79,10 +79,13 @@ export function ogMetaFor(card: OgCardProps): {
   themeColor: string
 } {
   return {
-    ogTitle: libCopy('previewTitle', {
-      name: displayTitle(ogCardTitle(card)),
-      kind: (card.kicker.split(' · ')[0] ?? card.kicker).toLowerCase(),
-    }),
+    ogTitle:
+      card.kind === 'private'
+        ? ogCardTitle(card)
+        : libCopy('previewTitle', {
+            name: displayTitle(ogCardTitle(card)),
+            kind: (card.kicker.split(' · ')[0] ?? card.kicker).toLowerCase(),
+          }),
     ogDescription: ogCardDescription(card),
     themeColor: ogCardThemeColor(card),
   }

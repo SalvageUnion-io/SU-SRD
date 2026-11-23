@@ -55,7 +55,7 @@ describe('useParseTraitReferences', () => {
 
   test("a page reference to what its paragraph just linked is that link's citation: one link (RR7-16)", () => {
     const ref = {
-      schemaName: 'crawler-bays',
+      schemaName: 'crawler-bays' as const,
       id: 'pilot-bay-id',
       slug: 'pilot-bay',
       name: 'Pilot Bay',
