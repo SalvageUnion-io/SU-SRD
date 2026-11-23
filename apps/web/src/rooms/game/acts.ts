@@ -230,9 +230,11 @@ const GAME_ACTS = {
   'session.state': (c: ActContext) => c.room.session.session(c.actor),
   'session.start': (c: ActContext) => c.room.session.start(c.actor, c.at),
   'session.end': (c: ActContext, a?: { day?: string }) => {
+    const wasLive = c.room.session.isLive()
     c.room.session.end(c.actor)
-    // The plan just played is played (r8 B8), by the Mediator's own day, else the room's.
-    c.room.plan.markPlayed(a?.day ?? new Date(c.at).toISOString().slice(0, 10), c.at)
+    // The plan just played is played (r8 B8), by the Mediator's day, else the room's;
+    // only once, so a second End (or one after an idle end) marks nothing.
+    if (wasLive) c.room.plan.markPlayed(a?.day ?? new Date(c.at).toISOString().slice(0, 10), c.at)
     // The table got up: nobody is up now (r2 E1), and nothing is left resolving (r5 A7).
     c.room.scene.clearUpNow(c.at)
     c.room.opposition.endInitiative(c.at)

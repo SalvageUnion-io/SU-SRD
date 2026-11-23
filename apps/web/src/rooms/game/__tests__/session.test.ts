@@ -49,6 +49,9 @@ describe('the group session', () => {
       undefined,
     ])
     expect(room.plan.sessionDays('2026-11-22')).toEqual(['2026-11-30'])
+    // A second End, with no session live, marks nothing more.
+    runAct({ room, actor: MEDIATOR, gameId, at: AT + 2 }, 'session.end', { day: '2026-11-30' })
+    expect(room.plan.read(MEDIATOR).sessions[1]?.played).toBeUndefined()
   })
 
   test('a session with no play for twelve hours ends itself, with a line for the table (r8 B12)', () => {
