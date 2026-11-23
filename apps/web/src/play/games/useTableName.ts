@@ -8,6 +8,10 @@
  *
  * Nothing new is stored: a changed name is saved to the profile before the
  * Game is made or joined, and the rosters follow (`showOnRosters`).
+ *
+ * A field left empty is the account's name, never "Player N" (r8 C1, MD8-13):
+ * an account with no name of its own or Discord's takes its email's first
+ * part, shown in the empty field before it is kept.
  */
 
 import { useState } from 'react'
@@ -16,6 +20,8 @@ import { useMe, useUpdateProfile } from '../../lib/account/accountApi'
 export type TableName = {
   /** What the field shows: the typed name, else the account's. */
   value: string
+  /** The name an empty field is kept as: the account's, else its email's first part. */
+  fallback: string
   setValue: (value: string) => void
   /** Who is signed in has been read; false until then. */
   loaded: boolean
@@ -25,6 +31,15 @@ export type TableName = {
   keep: () => Promise<void>
 }
 
+/** The account's name for a blank field: its own or Discord's, else its email's first part. */
+export function accountName(
+  me: { displayName: string | null; email?: string | null } | null | undefined
+): string {
+  const own = me?.displayName?.trim() ?? ''
+  if (own !== '') return own
+  return (me?.email ?? '').split('@')[0]?.trim() ?? ''
+}
+
 /** The Display name's state, for a door that makes or joins a Game. */
 export function useTableName(): TableName {
   const me = useMe()
@@ -32,13 +47,15 @@ export function useTableName(): TableName {
   const [typed, setTyped] = useState<string | null>(null)
   const shown = me?.displayName ?? ''
   const value = typed ?? shown
+  const fallback = accountName(me)
   return {
     value,
+    fallback,
     setValue: setTyped,
     loaded: me !== undefined,
     known: shown.trim() !== '',
     keep: async () => {
-      const name = value.trim()
+      const name = value.trim() === '' ? fallback : value.trim()
       if (name === '' || name === shown.trim()) return
       // The name is a courtesy to the table: the Game is made or joined either way.
       await update({ displayName: name }).catch(() => undefined)

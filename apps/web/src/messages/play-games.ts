@@ -101,6 +101,7 @@ export const playGamesCopy = messages({
   joinThisGame: 'Join this Game',
   displayName: 'Display name',
   displayNameExample: 'How the table calls you',
+  displayNameHint: 'This is how the table will see you. Left empty, your account name is used.',
   signInToJoinYour:
     'Sign in to join. Your Pilots, Mechs and Crawlers live on your account, and signing in is what seats you at the table.',
   signInToJoin: 'Sign in to join',

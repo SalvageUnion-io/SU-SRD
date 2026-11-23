@@ -72,46 +72,39 @@ const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 type Template = NonNullable<GameCallResult<'templates.list'>>[number]
 
 /**
- * One template, started under the name its starter gives it (r6 C9): the
- * field is filled with the campaign's short name, the crawler it comes with
- * named on its own line, so the Game's title is short enough to read and
- * theirs to change before it exists.
+ * One template, started under the dialog's one Game name (r8 C1, LG8-16): a
+ * name typed there is the Game's whichever button starts it. Left as
+ * suggested, the Game takes the campaign's short name (r6 C9), which the
+ * section says, its crawler named on its own line.
  */
 function TemplateStart({
   template,
   busy,
+  named,
   onStart,
 }: {
   template: Template
   busy: boolean
-  onStart: (name: string) => void
+  /** A name was typed in the Game name field, so it is this Game's too. */
+  named: boolean
+  onStart: () => void
 }) {
-  const [name, setName] = useState<string>(template.shortName)
-  const ready = !busy && name.trim().length > 0
   return (
     <SlabSection as="h4" title={template.shortName} bodyStyle={STACK}>
       <Text variant="hint">{template.description}</Text>
       <div style={ROW}>
-        <div style={GROW}>
-          <Field label={buildGamesCopy('gameName')}>
-            <Input
-              aria-label={buildGamesCopy('templateGameName', { template: template.shortName })}
-              value={name}
-              maxLength={80}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && ready) onStart(name)
-              }}
-            />
-          </Field>
-        </div>
-        <Button variant="default" size="full" disabled={!ready} onClick={() => onStart(name)}>
+        <Button variant="default" size="full" disabled={busy} onClick={onStart}>
           {buildGamesCopy('startThisGame')}
         </Button>
       </div>
       <Text variant="hint">
         {buildGamesCopy('comesWithCrawler', { crawler: template.crawler })}
       </Text>
+      {!named && (
+        <Text variant="hint">
+          {buildGamesCopy('templateNamedAs', { name: template.shortName })}
+        </Text>
+      )}
     </SlabSection>
   )
 }
@@ -136,6 +129,8 @@ function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDia
   // The suggested name is a real value, so Create works from the start (r7 C15, LG7-04).
   const suggested = buildGamesCopy('unionCrawler430')
   const [name, setName] = useState(suggested)
+  // One Game name for both ways to start (r8 C1): typed, it names a template's Game too.
+  const named = name.trim() !== '' && name !== suggested
   // How the table will call its maker, asked here once and filled in (r7 C1).
   const you = useTableName()
   // Typing starts in the name, never on Close (MD2-04).
@@ -196,7 +191,7 @@ function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDia
         <SlabSection as="h3" id="new-game-start" title={buildGamesCopy('startAGame')}>
           <div style={ROW}>
             <div style={GROW}>
-              <Field label={buildGamesCopy('name')}>
+              <Field label={buildGamesCopy('gameName')}>
                 <Input
                   ref={nameField}
                   aria-label={buildGamesCopy('newGameName')}
@@ -239,7 +234,10 @@ function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDia
               template={t}
               busy={busy}
               // `t.id`, not a hardcoded template id — see `templates.list`.
-              onStart={(gameName) => void startGame({ templateId: t.id, name: gameName })}
+              named={named}
+              onStart={() =>
+                void startGame({ templateId: t.id, name: named ? name.trim() : t.shortName })
+              }
             />
           ))}
         </SlabSection>

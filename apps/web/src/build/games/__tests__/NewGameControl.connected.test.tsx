@@ -212,13 +212,17 @@ describe('starting a game', () => {
     expect(assigned).toEqual(['/games/g-template'])
   })
 
-  // r6 C9 (MD6-13): the Game is named before it exists, its crawler on a line of its own.
-  test('a template asks for its name, filled with the campaign’s short name', async () => {
+  // r6 C9 (MD6-13), r8 C1 (LG8-16): one Game name field names either way to start.
+  test('a template takes the one Game name, else the campaign’s short name', async () => {
     await renderOpen()
-    const name = screen.getByLabelText(/^Name of the Game from /) as HTMLInputElement
-    expect(name.value).toBe('Reclamation of the Wastes')
+    expect(screen.queryByLabelText(/^Name of the Game from /)).toBeNull()
+    expect(screen.getAllByRole('textbox', { name: /Game name/ })).toHaveLength(1)
+    expect(
+      screen.getByText('Named Reclamation of the Wastes unless you name it above.')
+    ).toBeTruthy()
     expect(screen.getByText("Your crawler: Union Crawler #430 'Tenacity'")).toBeTruthy()
-    fireEvent.change(name, { target: { value: 'Rust Coast' } })
+    fireEvent.change(screen.getByLabelText('New Game name'), { target: { value: 'Rust Coast' } })
+    expect(screen.queryByText(/unless you name it above/)).toBeNull()
     await press('Start this Game')
     expect(mutations).toEqual([
       {
@@ -247,6 +251,18 @@ describe('the Display name', () => {
     await press('Create')
     expect(accountWrites).toEqual([])
     expect(mutations.map((m) => m.name)).toEqual(['games.create'])
+  })
+
+  // r8 C1 (MD8-13): an empty name is the account's, never "Player 1".
+  test('left empty, the account’s name is kept, shown in the field first', async () => {
+    accountAnswers.me = { displayName: null, email: 'mara.k@example.com' }
+    await renderOpen()
+    const field = screen.getByLabelText('Display name') as HTMLInputElement
+    expect(field.value).toBe('')
+    expect(field.placeholder).toBe('mara.k')
+    expect(screen.getByText(/This is how the table will see you/)).toBeTruthy()
+    await press('Create')
+    expect(accountWrites).toEqual([{ name: 'updateProfile', args: { displayName: 'mara.k' } }])
   })
 
   test('a changed name is saved to the profile before the Game is made', async () => {
