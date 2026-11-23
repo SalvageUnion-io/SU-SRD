@@ -238,7 +238,7 @@ describe('groups on the tray', () => {
     }
     await renderCockpit({
       'mediator.npcs': TRAY.map((row) =>
-        row.body.group === BAND ? { ...row, body: { ...row.body, lastMediatorRoll: rolled } } : row
+        'group' in row.body ? { ...row, body: { ...row.body, lastMediatorRoll: rolled } } : row
       ),
     })
     expect(screen.getAllByText(/Keep Fighting/)).toHaveLength(1)
