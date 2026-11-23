@@ -301,16 +301,16 @@ export class GameRoom extends Room {
     return name
   }
 
-  /**
-   * One member's act, by name (`GAME_ACTS`); a refusal comes back as an
-   * answer. Every open socket then hears what changed.
-   */
+  /** One member's act by name (`GAME_ACTS`), a refusal as an answer; every socket hears it. */
   act<N extends GameActName>(
     actor: string,
     name: N,
     args: GameActArgs<N>
   ): GameActAnswer<GameActResult<N>> {
     const at = Date.now()
+    // A forgotten session ends itself first (r8 B12): every socket and the Feed hear it.
+    const idle = this.logic.endIdleSession(at)
+    if (idle.length > 0) this.broadcastSnapshots()
     const before = GAME_READ_ACTS.has(name) ? null : this.logic.events.before(name, args)
     const answer = runAct({ room: this.logic, actor, gameId: this.gameId, at }, name, args)
     // What the act did, as the table's events: the Feed, the toasts, Discord.
@@ -318,7 +318,7 @@ export class GameRoom extends Room {
       answer.ok && before !== null
         ? this.logic.events.after(actor, name, args, answer.value, before, at)
         : []
-    this.mirror(events)
+    this.mirror([...idle, ...events])
     if (name === 'safety.showStop' && answer.ok && answer.value === true) {
       this.ctx.waitUntil(this.postStop())
     }

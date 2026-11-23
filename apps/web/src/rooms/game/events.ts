@@ -354,6 +354,15 @@ export class GameEvents {
     })
   }
 
+  /** The room ended a forgotten group session (r8 B12): nobody did, so nobody is named. */
+  endedIdle(at: number): TableEvent {
+    return this.note(null, at, {
+      kind: 'session',
+      text: 'The group session ended after twelve hours with no play',
+      session: 'end',
+    })
+  }
+
   /**
    * Seal every open line: the next repeat starts a new one. The room calls it
    * when it posts the lines to Discord, so a posted line is never rewritten.
