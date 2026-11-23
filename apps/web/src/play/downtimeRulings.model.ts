@@ -1,6 +1,6 @@
 /**
- * The owner's rulings on round seven's Downtime and salvage fixes, each one
- * constant (r7 D1, D3, D8). Each holds the Recommended choice; flipping one
+ * The owner's rulings on round seven's Downtime fixes, each one
+ * constant (r7 D1, D3). Each holds the Recommended choice; flipping one
  * switches the behaviour wherever it is read.
  */
 
@@ -20,10 +20,3 @@ export const DOWNTIME_FORWARD: 'apply' | 'skip' = 'apply'
  * Mediator's press on every step.
  */
 export const DOWNTIME_AUTO_PASS = true
-
-/**
- * D8: a wreck's rolled part. `'crew'` (built): it goes to the table as a
- * proposal any player answers, or changes to another part, as damage does.
- * `'mediator'`: the Mediator picks and takes it, and the Feed says which.
- */
-export const WRECK_PART_PICK: 'crew' | 'mediator' = 'crew'
