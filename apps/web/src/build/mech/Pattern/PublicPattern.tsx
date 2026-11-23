@@ -25,7 +25,7 @@ import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Photo } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import type { RefObjectPattern } from 'salvageunion-reference'
 import { getAssetUrl, toEntityModel } from 'salvageunion-reference'
 import {
@@ -77,6 +77,9 @@ import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
 import { RailActs } from '../../sheet/RailActs'
 import { builtToast, mechNamesTaken } from './buildConfirm.model'
 import { PatternEditControls } from './PatternEditControls'
+
+/** The viewer's Mechs built from it, and Bring all up to date (r7 G2): loaded where there are any. */
+const PatternMechs = lazy(() => import('./PatternMechs').then((m) => ({ default: m.PatternMechs })))
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
 export type PublicPatternAnswer = {
@@ -178,6 +181,8 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const writable = canWrite && status === 'live'
   // Neither connected nor reconnecting: the page offers Sign in instead.
   const signedOut = !writable && status !== 'live' && status !== 'offline'
+  // The viewer's own Mechs built from it: the page lists them (r7 G2).
+  const fromIt = useUnits((s) => s.mechs.some((mech) => mech.sourcePattern === pattern.id))
 
   async function build() {
     setBusy('build')
@@ -345,6 +350,11 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             <Text variant="hint">{builtLine}</Text>
             {mine && visibility && <Text variant="hint">{VISIBILITY_COPY[visibility]}</Text>}
           </section>
+          {writable && fromIt && (
+            <Suspense fallback={null}>
+              <PatternMechs pattern={pattern} />
+            </Suspense>
+          )}
         </div>
       </article>
       {mine && (

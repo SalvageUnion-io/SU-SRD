@@ -69,12 +69,34 @@ export function deletePatternsHeld(patterns: readonly MechPattern[]): void {
   const names = new Map(patterns.map((p) => [p.id, p.name]))
   holdDelete(
     patterns.map((p) => p.id),
-    patterns.length === 1
-      ? buildShelvesCopy('deletedName', { name: patterns[0]?.name ?? '' })
-      : buildShelvesCopy('deletedCount', { count: String(patterns.length) }),
+    deletedLine(patterns),
     deletePattern,
     (id) => buildShelvesCopy('patternNotDeleted', { name: names.get(id) ?? '' })
   )
+}
+
+/**
+ * What a delete says: what went, and how many Mechs were built from it, which
+ * keep their loadout (r7 G2), so nobody learns it from a Mech's chip later.
+ */
+export function deletedLine(patterns: readonly MechPattern[]): string {
+  const deleted =
+    patterns.length === 1
+      ? buildShelvesCopy('deletedName', { name: patterns[0]?.name ?? '' })
+      : buildShelvesCopy('deletedCount', { count: String(patterns.length) })
+  const ids = new Set(patterns.map((p) => p.id))
+  const used = useUnits
+    .getState()
+    .list('mech')
+    .filter((mech) => mech.sourcePattern !== undefined && ids.has(mech.sourcePattern)).length
+  if (used === 0) return deleted
+  if (patterns.length > 1)
+    return used === 1
+      ? buildShelvesCopy('deletedUsedOneOfThem', { deleted })
+      : buildShelvesCopy('deletedUsedManyOfThem', { deleted, count: used })
+  return used === 1
+    ? buildShelvesCopy('deletedUsedOne', { deleted })
+    : buildShelvesCopy('deletedUsedMany', { deleted, count: used })
 }
 
 /** A pattern's Rename…: its one name. */
