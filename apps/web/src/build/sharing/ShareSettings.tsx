@@ -29,6 +29,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { CopiedIcon, CopiedStatus, FieldError, Switch, useCopied } from '../../components/app'
 import { Button, Field, Select, Stack, tokens } from '../../components/index'
+import { useMe } from '../../lib/account/accountApi'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useSoftLinkList } from '../../lib/entities'
 import { crewLinkOf } from '../../lib/npcs/npcModel'
@@ -170,6 +171,9 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
   }>('shelf.setPatternVisibility', null)
   const sharing = usePatternSharing()
   const games = useGamesQuery('games.listMine', {})
+  // The name Public credits, said before it is chosen (r8 E12).
+  const me = useMe()
+  const maker = me === undefined ? undefined : (me?.displayName ?? null)
   const [pickedGame, setPickedGame] = useState<string | null>(null)
   const share = useServerAction(
     (next: Visibility, nextGame: string | null) =>
@@ -196,7 +200,7 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
     <Stack gap={12}>
       <WhoCanSee
         name={`share-pattern-${appId}`}
-        choices={patternChoices({ gameName: gameChoices.length > 0 ? gameName : null })}
+        choices={patternChoices({ gameName: gameChoices.length > 0 ? gameName : null, maker })}
         value={value}
         onChange={(next) => choose(next)}
         disabled={busy}
