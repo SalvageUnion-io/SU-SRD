@@ -10,7 +10,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
@@ -18,6 +18,7 @@ import { ToasterMount } from '../../components/index'
 import { PLAY_TXN, PLAY_UNDO } from '../../replica/provenance'
 import type { ChangeMeta, EntityType } from '../../replica/units'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from '../PlayUnits'
+import { clearPlayRolls, recordPlayRoll } from '../playRolls.model'
 
 type Update = { type: EntityType; id: string; patch: Record<string, unknown>; meta?: ChangeMeta }
 
@@ -209,6 +210,48 @@ describe('Shut down on the unit card (r7 B2)', () => {
     )
     expect(screen.getByText('Shut down')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Power Buzzard back on' })).toBeNull()
+  })
+})
+
+describe('a Critical Injury, offered to the sheet (r7 B6)', () => {
+  const injure = (die: number) =>
+    act(() => {
+      recordPlayRoll({ tableName: 'Critical Injury', rolls: [die], label: 'Critical Injury' })
+    })
+
+  test('a Minor Injury roll offers Apply, which writes the injury once', () => {
+    clearPlayRolls()
+    const { store, updates } = recordingStore()
+    render(<PlayPilotUnit pilot={pilot} live store={store} />)
+    expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
+    injure(8)
+    fireEvent.click(screen.getByRole('button', { name: 'Apply Minor Injury to Bonesaw' }))
+    expect(updates).toEqual([
+      {
+        type: 'pilot',
+        id: 'w-pilot',
+        patch: { injuries: [{ severity: 'minor', note: '' }] },
+        meta: PLAY_TXN,
+      },
+    ])
+    // Applied: it is not offered again.
+    expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
+    act(() => clearPlayRolls())
+  })
+
+  test('a Major Injury reads Major; Unconscious, and a read-only pilot, offer nothing', () => {
+    clearPlayRolls()
+    const { store } = recordingStore()
+    const { unmount } = render(<PlayPilotUnit pilot={pilot} live store={store} />)
+    injure(3)
+    expect(screen.getByRole('button', { name: 'Apply Major Injury to Bonesaw' })).toBeTruthy()
+    injure(15)
+    expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
+    unmount()
+    injure(3)
+    render(<PlayPilotUnit pilot={pilot} live={false} store={store} />)
+    expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
+    act(() => clearPlayRolls())
   })
 })
 
