@@ -34,8 +34,8 @@ const SERVED_HINT = '⌘K'
 /**
  * The served key caps read "⌘K" (the server cannot know the keyboard); this
  * corrects them before a search has mounted, so a reader off a Mac is never
- * shown a key they do not have. A cap that names another key (the home's "/")
- * is every keyboard's and stays.
+ * shown a key they do not have. A cap that names another key ("/") is every
+ * keyboard's and stays.
  */
 export function correctShortcutHints(root: ParentNode, platform: string): void {
   const hint = modKeyHint(platform)

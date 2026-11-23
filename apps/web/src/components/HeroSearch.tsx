@@ -6,7 +6,7 @@ import { Button, SearchField } from './index'
 
 /**
  * A page's own search: a wide field and a Search button, on the 404's band
- * and under the home's slideshow (where its key cap reads "/").
+ * and atop the results page (where it carries no key cap).
  *
  * Two renderings share this shell so the page never shifts when the island
  * mounts: `HeroSearchStatic` is the server markup (a plain GET form to the

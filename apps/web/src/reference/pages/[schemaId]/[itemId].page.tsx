@@ -31,7 +31,7 @@ import { itemHref, schemaHref } from '../../../lib/entityHref'
 import { entityPageHead, previewDescriptionFor } from '../../../lib/entityPageHead'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
-import { relationsFor } from '../../../lib/pageRelations'
+import { relationsFor, sideLinksOf } from '../../../lib/pageRelations'
 import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
 import { isSparse, oneRelatedRules, sparseRailFor, tableRailFor } from '../../../lib/sparseRail'
@@ -104,6 +104,9 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         : null,
     relationsFor(schemaId, item)
   )
+  // The tables it is rolled on stand in the side column, a compact box: a
+  // sparse Page's rail, or under the card's art (r7 review).
+  const { side: sideLinks, rest: fullWidth } = sideLinksOf(relations)
   // An ability's Preceding and Next in its tree, at the Page's foot; a
   // guide's Previous and Next in the book's order (r5 E6).
   const neighbours = [
@@ -185,7 +188,11 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         buy={'purchaseLink' in item ? item.purchaseLink : undefined}
         exits={guideExitsFor(schemaId, item)}
         mediator={mediatorLinksFor(schemaId, item)}
-        rail={sparse ? <SparseRail rail={sparse} tone={chapter.tone} /> : undefined}
+        rail={
+          sparse ? (
+            <SparseRail rail={sparse} tone={chapter.tone} sideLinks={sideLinks} />
+          ) : undefined
+        }
         foot={
           // An ability's neighbours in its tree, or a guide's in the book, under the body.
           <NeighbourRow as="h2" neighbours={neighbours} />
@@ -197,10 +204,14 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           (techLevelPage ? (
             <CrawlerTechLevelPage item={item} />
           ) : (
-            <EntityView item={item} schemaId={schemaId} />
+            <EntityView
+              item={item}
+              schemaId={schemaId}
+              sideLinks={sparse ? undefined : sideLinks}
+            />
           ))}
         {/* What links here, listed back (E26). */}
-        <PageRelations relations={relations} />
+        <PageRelations relations={fullWidth} />
         {/* A chassis's players' patterns, under the book's (ADR-061). It waits
             for its switch (`interaction` holds the press that wakes it and
             plays it back), or mounts in view when the reader left it on

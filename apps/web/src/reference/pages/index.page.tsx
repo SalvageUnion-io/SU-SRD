@@ -7,17 +7,14 @@
  * the page's one rust action beside the art plate, the three ways in
  * (Reference, Build, Play), the Contents (the book's chapters, each opened by
  * its band, then the rules a table reaches for under an ink band), Buy the
- * game, and the Discord bot. Search is the page's own: a field under the
- * slideshow, always in view on a phone and a tablet (r2 H6), in place of the
- * Union bar's; on a laptop it stands in the hero beside the name (RR7-14). Server-rendered and static: every row is a plain link.
+ * game, and the Discord bot. Search is the Union bar's, as on every other
+ * page. Server-rendered and static: every row is a plain link.
  */
 
-import { HeroSearchStatic } from '../../components/HeroSearch'
 import { DEFAULT_DESCRIPTION, WEBSITE } from '../../lib/constants'
 import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
-import { Island } from '../../runtime/Island'
-import { HomeHero, HomeSearchBand } from '../HomeFront'
+import { HomeHero } from '../HomeFront'
 import type { PageModule, PageResult } from '../types'
 import '../../lib/gameData'
 
@@ -38,21 +35,9 @@ function page(): PageResult {
       },
     },
     children: (
-      // The home is its slideshow, between the header and the footer, over the
-      // one thing a reader can always do there: look something up.
+      // The home is its slideshow, between the header and the footer.
       <div className="su-front su-front--show">
-        <HomeHero
-          search={
-            <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'hero' }}>
-              <HeroSearchStatic />
-            </Island>
-          }
-        />
-        <HomeSearchBand>
-          <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'home' }}>
-            <HeroSearchStatic shortcut="/" />
-          </Island>
-        </HomeSearchBand>
+        <HomeHero />
       </div>
     ),
   }

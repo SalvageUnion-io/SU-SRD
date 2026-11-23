@@ -130,8 +130,7 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
   test('search never loads the salvageunion-reference data chunks — only the compact index', async ({
     page,
   }) => {
-    // The Reference's home: the site's home carries no search.
-    await page.goto('/reference/')
+    await page.goto('/')
 
     let sawSearchIndex = false
     page.on('response', (response) => {

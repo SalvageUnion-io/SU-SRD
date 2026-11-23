@@ -83,11 +83,9 @@ export function TopNavigation({
       noCurrent={home}
       railCurrent={section ? { href: section, page: section === pathname } : undefined}
       breadcrumbs={breadcrumbs}
-      // The 404 carries its own, and so does the home: its field stands under
-      // its slideshow, always in view (r2 H6), where "/", Cmd/Ctrl+K and
-      // "Look something up" focus it.
+      // The 404 carries its own.
       search={
-        pageHasSearch || home ? null : (
+        pageHasSearch ? null : (
           <Island name="SearchIsland" client="interaction" ssr>
             <SearchIsland />
           </Island>
@@ -101,11 +99,9 @@ export function TopNavigation({
       }
       mobile={
         <>
-          {home ? null : (
-            <Island name="MobileSearchIsland" client="interaction" ssr>
-              <MobileSearchIsland />
-            </Island>
-          )}
+          <Island name="MobileSearchIsland" client="interaction" ssr>
+            <MobileSearchIsland />
+          </Island>
           <Island name="AccountAvatarIsland" client="idle" when="signed-in" />
           <Island name="MobileNavIsland" client="interaction" ssr>
             <MobileNavIsland />

@@ -30,7 +30,7 @@ describe('PatternLedger', () => {
     expect(container.querySelector('[data-foot-band]')).toBeNull()
   })
 
-  test('a mech pattern says what it uses and costs: slots of the chassis’s, and Scrap (r2 G4)', () => {
+  test('a mech pattern says what it uses: slots of the chassis’s, and no Scrap column', () => {
     const mule = SalvageUnionReference.Chassis.getByName('Mule')
     if (!mule || !('patterns' in mule)) throw new Error('mule fixture missing')
     const { container } = render(
@@ -39,20 +39,20 @@ describe('PatternLedger', () => {
       </EntitySurfaceProvider>
     )
     const heads = [...container.querySelectorAll('thead th')].map((th) => th.textContent)
-    expect(heads.join(' ')).toMatch(/Sys.*Mod.*Scrap/)
+    expect(heads.join(' ')).toMatch(/Sys.*Mod/)
+    expect(heads.join(' ')).not.toContain('Scrap')
     const cells = [...(container.querySelector('tbody tr')?.querySelectorAll('td') ?? [])].map(
       (td) => td.textContent ?? ''
     )
-    // The loadout line, then System Slots and Module Slots of the Mule's, then its Scrap.
+    // The loadout line, then System Slots and Module Slots of the Mule's.
     expect(cells[1]).toMatch(/^\d+\/\d+$/)
     expect(cells[2]).toMatch(/^\d+\/\d+$/)
-    // By Tech Level, never one sum across them (r6 E4).
-    expect(cells[3]).toMatch(/^TL\d+ \d+( · TL\S+ \d+)*$/)
+    expect(cells).toHaveLength(3)
     // A phone keeps the figures; the packed loadout line gives way to the name.
     const phone = [...container.querySelectorAll('thead th[data-phone]')].map(
       (th) => th.textContent
     )
-    expect(phone.join(' ')).toMatch(/Sys.*Mod.*Scrap/)
+    expect(phone.join(' ')).toMatch(/Sys.*Mod/)
   })
 
   test('a book pattern over its chassis’s slots says it is as printed (r3 C5)', () => {

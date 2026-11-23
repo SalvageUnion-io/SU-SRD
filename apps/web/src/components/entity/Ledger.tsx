@@ -27,6 +27,8 @@ import { CostMark } from './CostMark'
 import { useEntitySurface } from './entitySurfaceContext'
 import { Mention } from './forms/Mention'
 import { LedgerOpen } from './LedgerOpen'
+import { LedgerSizer } from './LedgerSizer'
+import { cellBody, isEmpty, MARKUP } from './ledgerCell'
 import type { LedgerSort } from './ledgerSort'
 import { sortSlot, useSortRove } from './ledgerSort'
 import type { Paint } from './parts/paint'
@@ -164,28 +166,11 @@ const NAME = cn('su-ledger__name', capsLabel({ size: 'lede', weight: 'inherit' }
 
 export type { LedgerSort } from './ledgerSort'
 
-/** A cell with nothing to say draws `—` (L5); a `0` is a value. */
-const isEmpty = (cell: ReactNode) =>
-  cell === '' || cell === null || cell === undefined || cell === false
-
-/** `[[Trait]]` markup in rules text (the dataset's own). */
-const MARKUP = /\[\[([^\]]+)\]\]/g
-
 /** A quiet line is cut short on its one line: its words, markup read as words, are its hover title. */
 function cellTitle(column: LedgerColumn, cell: ReactNode): string | undefined {
   return column.kind === 'quiet' && typeof cell === 'string'
     ? cell.replace(MARKUP, '$1')
     : undefined
-}
-
-/**
- * A cell's words; rules text's `[[Trait]]` reads as its word, never as markup.
- * A quiet line, cut to its one line, holds no links but its names' Peeks (an
- * index's abilities and traits, `IndexLedger`); a Page's loadout line links
- * its parts (L4).
- */
-function cellBody(cell: ReactNode): ReactNode {
-  return typeof cell === 'string' ? cell.replace(MARKUP, '$1') : cell
 }
 
 /** A bare count of the rows (a number, or a numeral as text): the tab no longer prints it. */
@@ -241,6 +226,12 @@ type LedgerListProps = {
    * each row's `role="option"` link sits directly in the listbox (SC 4.1.2).
    */
   presentation?: boolean
+  /**
+   * Rows the list holds but a filter hides: drawn in no line, they still set
+   * which columns stand and how wide, so filtering the list never reflows
+   * its columns sideways (chrome K17).
+   */
+  sizer?: readonly LedgerRow[]
 }
 
 /** The indices of the columns some row fills: a list drops a column no row fills (L5). */
@@ -277,15 +268,16 @@ export function Ledger(props: LedgerListProps | LedgerOpenProps) {
       />
     )
   }
-  const kept = filledColumns(props.columns, props.rows)
+  const kept = filledColumns(props.columns, [...props.rows, ...(props.sizer ?? [])])
   if (kept.length === props.columns.length) return <LedgerList {...props} />
-  const { total } = props
+  const { total, sizer } = props
   return (
     <LedgerList
       {...props}
       columns={keep(props.columns, kept)}
       rows={props.rows.map((row) => keepRow(row, kept))}
       {...(total ? { total: { ...total, cells: keep(total.cells, kept) } } : {})}
+      {...(sizer ? { sizer: sizer.map((row) => keepRow(row, kept)) } : {})}
     />
   )
 }
@@ -313,6 +305,7 @@ function LedgerList({
   note,
   footMeta,
   presentation = false,
+  sizer = [],
 }: LedgerListProps) {
   const group = useId()
   const surface = useEntitySurface()
@@ -542,6 +535,16 @@ function LedgerList({
             </tr>
           )}
         </tbody>
+        {sizer.length > 0 && (
+          <LedgerSizer
+            rows={sizer}
+            columns={columns}
+            nameClass={NAME}
+            phoneLine={phoneLine}
+            hasTrailing={hasTrailing}
+            hasFill={hasFill}
+          />
+        )}
         {total && rows.length > 0 && (
           <tfoot>
             <tr className="su-ledger__total">

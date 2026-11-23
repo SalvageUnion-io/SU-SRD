@@ -22,8 +22,10 @@ import {
   getTechLevel,
   isBioTitanPattern,
   SalvageUnionReference,
+  toEntityModel,
 } from 'salvageunion-reference'
 import { findNameRefs } from '../components/index'
+import type { SideLinkList } from '../components/SideLinks'
 import { referenceCopy } from '../messages/reference'
 import { buildChapters } from './chapters'
 import { nameRefIndexWithout } from './nameRefIndex'
@@ -275,4 +277,36 @@ export function relationsFor(schema: string, item: RefEntity): Relation[] {
     out.push(...listOf('tables', referenceCopy('rolledOn'), tables))
   }
   return out
+}
+
+/** The key of a Page's Rolled on list (`relationsFor`): its side column's. */
+const ROLLED_ON = 'tables'
+
+/** The band a list wears: its rows' kind's, or ink where they mix. */
+export function relationTone(relation: Relation): string {
+  const kinds = new Set(relation.rows.map((row) => row.ref.schemaName))
+  const [first] = relation.rows
+  if (kinds.size !== 1 || !first) return 'ink'
+  const entity = SalvageUnionReference.get(first.ref.schemaName as never, first.ref.id)
+  return entity ? toEntityModel(entity as RefMetaEntity).tone : 'ink'
+}
+
+/**
+ * A Page's relations split: the Rolled on list goes to the side column, a
+ * compact box of links (r7 review), and the rest stay full width.
+ */
+export function sideLinksOf(relations: readonly Relation[]): {
+  side: SideLinkList | undefined
+  rest: readonly Relation[]
+} {
+  const rolled = relations.find((relation) => relation.key === ROLLED_ON)
+  if (!rolled) return { side: undefined, rest: relations }
+  return {
+    side: {
+      label: rolled.label,
+      tone: relationTone(rolled),
+      rows: rolled.rows.map(({ ref, name }) => ({ ref, name })),
+    },
+    rest: relations.filter((relation) => relation !== rolled),
+  }
 }

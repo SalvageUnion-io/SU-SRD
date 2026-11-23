@@ -54,7 +54,7 @@ describe('a sort in the address', () => {
   })
 
   it(
-    'a listing opened on ?sort=-name is sorted, and says so',
+    'a listing opened on ?sort=-name is sorted, its Name head marked, and no caption says so',
     () => {
       window.location.href = 'http://localhost/chassis/?sort=-name'
       listing('chassis')
@@ -62,7 +62,13 @@ describe('a sort in the address', () => {
         .map((e) => e.name)
         .sort((a, b) => b.localeCompare(a))
       expect(names()).toEqual(sorted)
-      expect(screen.getByText('Sorted by Name, Z to A.')).toBeTruthy()
+      expect(
+        screen
+          .getByRole('button', { name: 'Sort by Name' })
+          .closest('th')
+          ?.getAttribute('aria-sort')
+      ).toBe('descending')
+      expect(screen.queryByText(/^Sorted by/)).toBeNull()
     },
     HEAVY
   )
@@ -71,8 +77,9 @@ describe('a sort in the address', () => {
     'pressing a column writes the sort to the address; Book order takes it off',
     () => {
       listing('chassis')
-      // Unsorted, the list says whose order it is in (RR-09).
-      expect(screen.getByText(/In the book’s order/)).toBeTruthy()
+      // Unsorted, no caption says whose order it is in, and no way back is offered.
+      expect(screen.queryByText(/In the book’s order/)).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Book order' })).toBeNull()
       // The Tech Level sorts from the head strip, as every column does (RR-09):
       // its stamp stands over the rows' own, and no button beside the list.
       expect(screen.queryByRole('button', { name: 'Sort by Tech Level' })).toBeNull()
@@ -81,7 +88,7 @@ describe('a sort in the address', () => {
       // A number column's first press is highest first (r4 F5).
       fireEvent.click(rank)
       expect(window.location.search).toBe('?sort=-tl')
-      expect(screen.getByText('Sorted by Tech Level, high to low.')).toBeTruthy()
+      expect(screen.queryByText(/^Sorted by/)).toBeNull()
       expect(rank.closest('th')?.getAttribute('aria-sort')).toBe('descending')
       fireEvent.click(rank)
       expect(window.location.search).toBe('?sort=tl')
@@ -99,19 +106,16 @@ describe('a sort in the address', () => {
       expect(window.location.search).toMatch(/^\?sort=-/)
       fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
       expect(window.location.search).toBe('?sort=name')
-      expect(screen.getByText('Sorted by Name, A to Z.')).toBeTruthy()
     },
     HEAVY
   )
 
   it(
-    'the Abilities list runs A to Z and says so, never "the book’s order" (r4 F5)',
+    'the Abilities list runs A to Z, and its way back from a sort says A to Z (r4 F5)',
     () => {
       listing('abilities')
       const shown = names()
       expect(shown).toEqual([...shown].sort((a, b) => a.localeCompare(b)))
-      expect(screen.getByText(/^A to Z\./)).toBeTruthy()
-      expect(screen.queryByText(/In the book’s order/)).toBeNull()
       // The way back from a sort names that order too.
       fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
       fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
@@ -173,9 +177,9 @@ describe('sorting by damage (r2 H3)', () => {
         window.location.href = `http://localhost/systems/?trait=Hot&sort=${sort}`
         const { container } = listing('systems')
         const at = heads(container).indexOf('DMG')
-        const dmg = Array.from(container.querySelectorAll('.su-listing__groups tbody tr')).map(
-          (row) => (row.children[at]?.textContent ?? '').replace('—', '').trim()
-        )
+        const dmg = Array.from(
+          container.querySelectorAll('.su-listing__groups tbody:not(.su-ledger__sizer) tr')
+        ).map((row) => (row.children[at]?.textContent ?? '').replace('—', '').trim())
         const firstBlank = dmg.indexOf('')
         if (firstBlank !== -1) expect(dmg.slice(firstBlank).every((cell) => cell === '')).toBe(true)
         expect(dmg[0]).not.toBe('')
@@ -217,9 +221,9 @@ describe('the trait filter (RR-05)', () => {
       expect(shown.length).toBeGreaterThan(3)
       expect(shown.length).toBeLessThan(all('systems').length)
       const at = heads(container).indexOf('Traits')
-      const traitCells = Array.from(container.querySelectorAll('.su-listing__groups tbody tr')).map(
-        (row) => row.children[at]?.textContent ?? ''
-      )
+      const traitCells = Array.from(
+        container.querySelectorAll('.su-listing__groups tbody:not(.su-ledger__sizer) tr')
+      ).map((row) => row.children[at]?.textContent ?? '')
       expect(
         traitCells.every((cell) => cell.split(', ').some((trait) => /^Hot( |$)/.test(trait)))
       ).toBe(true)
@@ -270,8 +274,8 @@ describe("the List's columns", () => {
       <IndexLedger schemaId="systems" noun="Systems" items={all('systems')} />
     )
     const at = heads(container).indexOf('Traits')
-    const row = Array.from(container.querySelectorAll('tbody tr')).find((tr) =>
-      tr.querySelector('th')?.textContent?.startsWith('Blue Mining Laser')
+    const row = Array.from(container.querySelectorAll('tbody:not(.su-ledger__sizer) tr')).find(
+      (tr) => tr.querySelector('th')?.textContent?.startsWith('Blue Mining Laser')
     )
     expect(row?.children[at]?.textContent).toBe('Energy, Hot 3')
     const cost = Array.from(container.querySelectorAll('thead th')).find((th) =>
@@ -304,8 +308,8 @@ describe("the List's columns", () => {
     )
     const at = heads(container).indexOf('Core Trees')
     expect(at).toBeGreaterThan(0)
-    const row = Array.from(container.querySelectorAll('tbody tr')).find((tr) =>
-      tr.textContent?.startsWith('Fabricator')
+    const row = Array.from(container.querySelectorAll('tbody:not(.su-ledger__sizer) tr')).find(
+      (tr) => tr.textContent?.startsWith('Fabricator')
     )
     expect(row?.children[at]?.textContent).toBe('Forging, Electronics')
   })
@@ -316,8 +320,8 @@ describe("the List's columns", () => {
       <IndexLedger schemaId="classes" noun="Hybrid Classes" items={hybrids} orderNote />
     )
     const at = heads(container).indexOf('Advances into')
-    const row = Array.from(container.querySelectorAll('tbody tr')).find((tr) =>
-      tr.textContent?.startsWith('Fabricator')
+    const row = Array.from(container.querySelectorAll('tbody:not(.su-ledger__sizer) tr')).find(
+      (tr) => tr.textContent?.startsWith('Fabricator')
     )
     expect(row?.children[at]?.textContent).toBe('Legendary Fabricator')
     expect(container.textContent).not.toContain('to sort by it')
@@ -447,9 +451,9 @@ describe("a kind's one stat, for a chapter's index (RR-18)", () => {
 describe('Systems by Range, Action and Weapons only (r4 F6)', () => {
   const column = (container: HTMLElement, label: string) => {
     const at = heads(container).indexOf(label)
-    return Array.from(container.querySelectorAll('.su-listing__groups tbody tr')).map((row) =>
-      (row.children[at]?.textContent ?? '').replace('—', '').trim()
-    )
+    return Array.from(
+      container.querySelectorAll('.su-listing__groups tbody:not(.su-ledger__sizer) tr')
+    ).map((row) => (row.children[at]?.textContent ?? '').replace('—', '').trim())
   }
 
   it('the facets come from what the List prints: the bands in the book’s order, the action types', () => {

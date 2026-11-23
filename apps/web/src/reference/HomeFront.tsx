@@ -5,7 +5,7 @@
 // footer, then the tagline's slide. Every slide has a way forward. A
 // signed-in reader also gets the doors to their own Training Bay and Games.
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import { Button, capsLabel, Toggle } from '../components/index'
@@ -119,8 +119,8 @@ function heroSlides(): Slide[] {
 
 /**
  * The two things a visit is for: build, or look something up. "Look something
- * up" opens the Reference, as its link says: the search band is already in
- * view below.
+ * up" opens the Reference, as its link says; the Union bar's search is
+ * already in view above.
  */
 function HeroActs() {
   return (
@@ -147,15 +147,6 @@ function HeroActs() {
   )
 }
 
-/** The home's search band under the show: an ink ground of its own (chrome K1), its field the child. */
-export function HomeSearchBand({ children }: { children: ReactNode }) {
-  return (
-    <div className="su-front__search su-grain--paper" data-ground="ink">
-      {children}
-    </div>
-  )
-}
-
 /**
  * The home is its slideshow, edge to edge and the whole height between the
  * header and the footer. Each slide's art covers the ground. The site's name
@@ -169,7 +160,7 @@ export function HomeSearchBand({ children }: { children: ReactNode }) {
  * by hand, the slide they land on starting its turn afresh. Under reduced motion it never
  * turns: the slides stand one under another, every action in view.
  */
-export function HomeHero({ search }: { search?: ReactNode } = {}) {
+export function HomeHero() {
   const slides = heroSlides()
   return (
     <section
@@ -257,13 +248,9 @@ export function HomeHero({ search }: { search?: ReactNode } = {}) {
           h1. */}
       <div className="su-front__show-head">
         <div className="su-front__show-brand">
-          <div className="su-front__show-title">
-            <h1 className={cn('su-front__show-name su-grain--paper', capsLabel())}>
-              {referenceCopy('siteName')}
-            </h1>
-            {/* A laptop's search, beside the name (RR7-14); smaller screens use the band under the show. */}
-            {search && <div className="su-front__show-search su-grain--paper">{search}</div>}
-          </div>
+          <h1 className={cn('su-front__show-name su-grain--paper', capsLabel())}>
+            {referenceCopy('siteName')}
+          </h1>
           {/* The two things a visit is for, under the name, in place on every slide. */}
           {!HERO_TURNS_ITSELF && (
             <div className="su-front__show-fixed su-grain--paper" data-ground="ink">

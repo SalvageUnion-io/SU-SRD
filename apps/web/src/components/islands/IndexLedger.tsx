@@ -1,14 +1,15 @@
 // A listing's List: one Ledger, its entities a line each, their stats in
 // §2.6 order in fixed columns.
+import type { ReactNode } from 'react'
 import { Fragment, useMemo, useState } from 'react'
-import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
+import type { EntityRef, RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { islandsCopy } from '../../messages/components-islands'
 import { Stat } from '../atoms/Stat'
 import { paintFor } from '../entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { Mention } from '../entity/forms/Mention'
-import type { LedgerSort } from '../entity/Ledger'
+import type { LedgerRow, LedgerSort } from '../entity/Ledger'
 import { Ledger } from '../entity/Ledger'
 import { Button, Select } from '../index'
 import type { IndexTerm } from './indexColumns.model'
@@ -43,6 +44,25 @@ function TermCell({ terms, text }: { terms: readonly IndexTerm[]; text: string }
   )
 }
 
+/** An index row as the Ledger draws it: its name, its Tech Level stamp, its cells. */
+function ledgerRow(row: {
+  id: string
+  name: string
+  entityRef: EntityRef
+  techLevel: string
+  cells: ReactNode[]
+}): LedgerRow {
+  return {
+    id: row.id,
+    name: row.name,
+    entityRef: row.entityRef,
+    stamp: row.techLevel ? (
+      <Stat label={islandsCopy('tl')} value={row.techLevel} size="mini" />
+    ) : undefined,
+    cells: row.cells,
+  }
+}
+
 type IndexLedgerProps = {
   schemaId: string
   /** The listing's plural name: the name column's label. */
@@ -50,6 +70,12 @@ type IndexLedgerProps = {
   /** The list is named by the page's own header: its cut-out reads `Name`. */
   plain?: boolean
   items: readonly RefEntity[]
+  /**
+   * Every entry of the listing, of which `items` are what its filters leave:
+   * they choose the columns and set their widths, so a filter never moves a
+   * column (chrome K17). Left out, `items` do.
+   */
+  all?: readonly RefEntity[]
   /**
    * The listing's sort, where it keeps one (in the URL, `useListingFilters`):
    * `sort`, what a pressed column asks, and the way back to the book's order.
@@ -60,25 +86,23 @@ type IndexLedgerProps = {
     sortBy: (key: string, highFirst?: boolean) => void
     clear: () => void
   }
-  /** The items come A to Z, not in the book's order (a tree listing's List): the note says so. */
+  /** The items come A to Z, not in the book's order (a tree listing's List): the way back says so. */
   byName?: boolean
   /**
    * The columns a phone's row shows, where the reader chose them, and the
    * choice. With it the List offers its Columns control on a phone (RR-06).
    */
   phone?: { columns: readonly string[]; setColumns: (keys: readonly string[]) => void }
-  /** Say the order above the list, with the way back to the book's (the first of a listing's lists). */
+  /** Once sorted, the way back to the book's order above the list (the first of a listing's lists). */
   orderNote?: boolean
 }
-
-/** From this many rows a List says it can be sorted; a shorter one reads at a glance. */
-const SORT_HINT_ROWS = 10
 
 export function IndexLedger({
   schemaId,
   noun,
   plain = false,
   items,
+  all = items,
   order,
   phone,
   orderNote = false,
@@ -88,19 +112,25 @@ export function IndexLedger({
   // The listing's own order (the book's) until the reader sorts.
   const [ownSort, setOwnSort] = useState<LedgerSort | undefined>(undefined)
   const sort = order ? order.sort : ownSort
-  const models = useMemo(
-    () => items.map((item) => ({ item, model: toEntityModel(item as RefMetaEntity) })),
-    [items]
+  const allModels = useMemo(
+    () => all.map((item) => ({ item, model: toEntityModel(item as RefMetaEntity) })),
+    [all]
   )
-  const found = useMemo(() => indexColumns(schemaId, models), [schemaId, models])
+  const models = useMemo(() => {
+    const byId = new Map(allModels.map((entry) => [entry.item.id, entry]))
+    return items.map(
+      (item) => byId.get(item.id) ?? { item, model: toEntityModel(item as RefMetaEntity) }
+    )
+  }, [items, allModels])
+  const found = useMemo(() => indexColumns(schemaId, allModels), [schemaId, allModels])
   // A phone's two columns: the reader's, else the kind's own (its vitals).
   const columns = useMemo(
     () => withPhoneColumns(found, phoneColumnKeys(found, phone?.columns ?? [], Boolean(phone))),
     [found, phone]
   )
-  const built = useMemo(
-    () =>
-      models.map(({ item, model }) => {
+  const buildRows = useMemo(
+    () => (entries: typeof models) =>
+      entries.map(({ item, model }) => {
         // A tech-level listing's rows are named by their level: no stamp.
         const techLevel =
           model.techLevel != null && !/tech-levels$/.test(schemaId) ? String(model.techLevel) : ''
@@ -121,8 +151,15 @@ export function IndexLedger({
           }),
         }
       }),
-    [models, columns, schemaId]
+    [columns, schemaId]
   )
+  const built = useMemo(() => buildRows(models), [buildRows, models])
+  // The rows the filters hide: they size the columns, drawn in no line.
+  const hidden = useMemo(() => {
+    if (all === items) return []
+    const shownIds = new Set(items.map((item) => item.id))
+    return buildRows(allModels.filter(({ item }) => !shownIds.has(item.id)))
+  }, [all, items, allModels, buildRows])
   const rows = useMemo(() => {
     if (!sort) return built
     const rowOf = new Map(built.map((row) => [row.id, row]))
@@ -134,21 +171,12 @@ export function IndexLedger({
   // MOCK (best, revision 8): no count on the tab and no books on a foot cut-out.
   const first = built[0]
   if (!first) return null
-  const hasTechLevels = built.some((row) => row.techLevel)
-  const sortColumn = columns.find((column) => column.key === sort?.key)
-  const sorted =
-    sort &&
-    (sort.key === 'name'
-      ? islandsCopy('name')
-      : sort.key === SORT_TECH_LEVEL
-        ? islandsCopy('techLevel')
-        : (sortColumn?.title ?? sortColumn?.label))
+  const hasTechLevels = built.some((row) => row.techLevel) || hidden.some((row) => row.techLevel)
   // Words sort by spelling, measures by size.
   const measures = (key: string | undefined) =>
     key === SORT_TECH_LEVEL ||
     columns.find((column) => column.key === key)?.kind === 'figure' ||
     ['range', 'damage'].includes(key ?? '')
-  const measured = measures(sort?.key)
   // A measure's first press is highest first: the biggest is nearly always the question.
   const sortBy = (key: string) =>
     order
@@ -157,14 +185,6 @@ export function IndexLedger({
           key,
           descending: now?.key === key ? !now.descending : measures(key),
         }))
-  const sortedLine = (column: string) =>
-    sort?.descending
-      ? measured
-        ? islandsCopy('sortedDown', { column })
-        : islandsCopy('sortedZa', { column })
-      : measured
-        ? islandsCopy('sortedUp', { column })
-        : islandsCopy('sortedAz', { column })
   const shown = pickable(columns)
   const onPhone = shown.filter((column) => column.phone).map((column) => column.key)
   /** Slot `slot` of the phone's row shows `key`; the other slot keeps its own, or swaps. */
@@ -177,25 +197,11 @@ export function IndexLedger({
   }
   return (
     <>
+      {/* No caption says the order: the sorted column's head marks it
+          (`aria-sort`). Once sorted, the way back stands above the list, in a
+          line always drawn at its height, so a sort moves nothing (K17). */}
       {orderNote && (
-        <p className="su-listing__order" aria-live="polite">
-          {sorted ? (
-            sortedLine(sorted)
-          ) : (
-            <span>
-              {islandsCopy(byName ? 'azOrder' : 'bookOrder')}
-              {/* A short list reads at a glance: no prompt to sort it (RR7-13).
-                  A phone's row with no column beside its name has none to press (RR2-17). */}
-              {rows.length >= SORT_HINT_ROWS && (
-                <>
-                  {' '}
-                  <span className={onPhone.length === 0 ? 'su-listing__sort-hint' : undefined}>
-                    {islandsCopy('sortHint')}
-                  </span>
-                </>
-              )}
-            </span>
-          )}
+        <p className="su-listing__order">
           {sort && order && (
             <Button variant="ghost" size="compact" onClick={order.clear}>
               {islandsCopy(byName ? 'backToAzOrder' : 'backToBookOrder')}
@@ -232,15 +238,8 @@ export function IndexLedger({
           paint={paintFor(first.tone, { texture: surface.texture })}
           nameLabel={plain ? islandsCopy('name') : noun}
           columns={columns}
-          rows={rows.map((row) => ({
-            id: row.id,
-            name: row.name,
-            entityRef: row.entityRef,
-            stamp: row.techLevel ? (
-              <Stat label={islandsCopy('tl')} value={row.techLevel} size="mini" />
-            ) : undefined,
-            cells: row.cells,
-          }))}
+          rows={rows.map(ledgerRow)}
+          sizer={hidden.map(ledgerRow)}
           sort={sort}
           onSort={sortBy}
           {...(hasTechLevels

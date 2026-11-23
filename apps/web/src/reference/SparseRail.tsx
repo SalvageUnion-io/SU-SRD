@@ -10,6 +10,8 @@
 import type { CSSProperties } from 'react'
 import { cn, Mention, TitledBox } from '../components/index'
 import { ReferenceSurface } from '../components/ReferenceSurface'
+import type { SideLinkList } from '../components/SideLinks'
+import { SideLinks } from '../components/SideLinks'
 import type { SparseRail as Rail } from '../lib/sparseRail'
 import { referenceCopy } from '../messages/reference'
 
@@ -29,11 +31,21 @@ const BAND_TOKEN: Record<string, string> = {
  */
 const USED_BY_FLOOR = 14
 
-export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: string }) {
+export function SparseRail({
+  rail,
+  tone: chapterTone,
+  sideLinks,
+}: {
+  rail: Rail
+  tone: string
+  /** The tables the entry is rolled on, the rail's last piece. */
+  sideLinks?: SideLinkList
+}) {
   const { usedBy, rules } = rail
   const tone = BAND_TOKEN[chapterTone] ?? chapterTone
+  const linked = (sideLinks?.rows.length ?? 0) > 0
   // An empty piece fills nothing: it is not drawn, and a rail with none is none.
-  if (usedBy.length === 0 && rules.length === 0) return null
+  if (usedBy.length === 0 && rules.length === 0 && !linked) return null
   const pieces = [
     usedBy.length > 0 && (
       <TitledBox
@@ -85,6 +97,9 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
           ))}
         </ul>
       </TitledBox>
+    ),
+    linked && sideLinks && (
+      <SideLinks key="side-links" list={sideLinks} className="su-sparse-rail__piece" />
     ),
   ].filter(Boolean)
   const [first, ...rest] = pieces

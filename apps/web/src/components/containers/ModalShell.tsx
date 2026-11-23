@@ -60,6 +60,8 @@ type ModalShellProps = {
    * entire modal body inside a NON-scrolling, fit-height popup. The child owns
    * its own frame + header + close control + any internal scroll (e.g. the
    * floating EntitySearcher). `title` is still used for the sr-only a11y label.
+   * It stands from the top, never centred: its filters change its height, and
+   * a centred popup would move its own head and search (chrome K17).
    */
   bare?: boolean
   /**
@@ -151,7 +153,7 @@ export function ModalShell({
     ...POPUP,
     ...(bare ? { overflow: 'hidden' } : { overflowY: 'auto' }),
     maxWidth: DIALOG_WIDTH[width],
-    margin: align === 'center' ? 'auto' : `${space[32]} auto auto`,
+    margin: align === 'center' && !bare ? 'auto' : `${space[32]} auto auto`,
   } satisfies CSSProperties
 
   // An Escape something inside the dialog already handled (an inline edit

@@ -1,14 +1,14 @@
 // A Page's cross-references back (EDL E26, `lib/pageRelations.ts`): one
 // Ledger a list (ledger.md L9, a Page's list), full width under the body, its
-// rows' names the links. A list of one kind wears that kind's band; a mixed
+// rows' names the links. The tables an entry is rolled on are a short list
+// of links in its side column instead (`sideLinksOf`, `lib/pageRelations.ts`). A list of one kind wears that kind's band; a mixed
 // one ink, with a Kind column (L9).
 import type { CSSProperties } from 'react'
-import type { RefMetaEntity } from 'salvageunion-reference'
-import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Ledger } from '../components/index'
 import { ReferenceSurface } from '../components/ReferenceSurface'
 import { space } from '../design/tokens'
 import type { Relation } from '../lib/pageRelations'
+import { relationTone } from '../lib/pageRelations'
 
 /** The key of a Page's Related rules list (`relationsFor`). */
 const RELATED_RULES = 'guides'
@@ -21,15 +21,6 @@ const STACK = {
   marginTop: space[12],
 } satisfies CSSProperties
 
-/** The band a list wears: its rows' kind's, or ink where they mix. */
-function toneOf(relation: Relation): string {
-  const kinds = new Set(relation.rows.map((row) => row.ref.schemaName))
-  const [first] = relation.rows
-  if (kinds.size !== 1 || !first) return 'ink'
-  const entity = SalvageUnionReference.get(first.ref.schemaName as never, first.ref.id)
-  return entity ? toEntityModel(entity as RefMetaEntity).tone : 'ink'
-}
-
 export function PageRelations({ relations }: { relations: readonly Relation[] }) {
   if (relations.length === 0) return null
   return (
@@ -41,7 +32,7 @@ export function PageRelations({ relations }: { relations: readonly Relation[] })
               key={relation.key}
               label={relation.label}
               nameLabel={relation.label}
-              tone={toneOf(relation)}
+              tone={relationTone(relation)}
               columns={relation.columns}
               rows={relation.rows.map((row, index) => ({
                 id: `${row.ref.id}:${row.ref.pattern ?? ''}:${index}`,
