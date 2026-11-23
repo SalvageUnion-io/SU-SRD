@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { TechLevel } from './listingGroups'
 import {
+  listingColumnsStorageKey,
   PARAM_ACTION,
   PARAM_COLUMNS,
   PARAM_NAME,
@@ -38,6 +39,26 @@ function readUrlChoice(name: string): string {
   return readUrlParam(name).split(',')[0] ?? ''
 }
 
+/** The phone columns last chosen on this listing, or none. Storage can be absent or throw. */
+function readStoredColumns(schemaId: string | undefined): string[] {
+  if (!schemaId || typeof window === 'undefined') return []
+  try {
+    const raw = window.localStorage.getItem(listingColumnsStorageKey(schemaId)) ?? ''
+    return raw.split(',').filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
+function storeColumns(schemaId: string | undefined, columns: readonly string[]) {
+  if (!schemaId) return
+  try {
+    window.localStorage.setItem(listingColumnsStorageKey(schemaId), columns.join(','))
+  } catch {
+    // Not remembered past this page; the choice still holds here.
+  }
+}
+
 /** `sp` sorts up by that column, `-sp` down; anything else is the book's order. */
 export function parseSort(raw: string): ListingSort | undefined {
   const descending = raw.startsWith('-')
@@ -56,10 +77,13 @@ export function formatSort(sort: ListingSort | undefined): string {
  * itself back there (`replaceState`: no history entry a keystroke).
  */
 export function useListingFilters({
+  schemaId,
   techLevels,
   view,
   viewInUrl,
 }: {
+  /** The listing: the phone columns last chosen on it are remembered in this browser. */
+  schemaId?: string
   /** Every Tech Level the listing offers: all of them picked is none picked. */
   techLevels: readonly TechLevel[]
   /** The listing's view, which rides the same query once the reader chose it. */
@@ -78,7 +102,21 @@ export function useListingFilters({
   const [weapons, setWeapons] = useState(() => readUrlParam(PARAM_WEAPONS) === '1')
   const [name, setName] = useState(() => readUrlParam(PARAM_NAME))
   const [sort, setSort] = useState(() => parseSort(readUrlParam(PARAM_SORT)))
-  const [columns, setColumns] = useState<readonly string[]>(() => readUrlList(PARAM_COLUMNS))
+  // A link's columns, else the ones last chosen here (r7 E5); they ride the
+  // URL only once chosen on this page, or arrived on a link that named them.
+  const [columns, setChosenColumns] = useState<readonly string[]>(() => {
+    const fromUrl = readUrlList(PARAM_COLUMNS)
+    return fromUrl.length > 0 ? fromUrl : readStoredColumns(schemaId)
+  })
+  const [columnsInUrl, setColumnsInUrl] = useState(() => readUrlList(PARAM_COLUMNS).length > 0)
+  const setColumns = useCallback(
+    (next: readonly string[]) => {
+      setChosenColumns(next)
+      setColumnsInUrl(true)
+      storeColumns(schemaId, next)
+    },
+    [schemaId]
+  )
 
   // Idempotent: only writes when the resulting query string actually differs
   // from the current one, so the mount-time run never clobbers an incoming
@@ -99,7 +137,7 @@ export function useListingFilters({
     setOrDelete(PARAM_WEAPONS, weapons ? '1' : '')
     setOrDelete(PARAM_NAME, name)
     setOrDelete(PARAM_SORT, formatSort(sort))
-    setOrDelete(PARAM_COLUMNS, columns.join(','))
+    setOrDelete(PARAM_COLUMNS, columnsInUrl ? columns.join(',') : '')
     setOrDelete(PARAM_VIEW, viewInUrl ? view : '')
     const qs = params.toString()
     const nextUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname
@@ -118,6 +156,7 @@ export function useListingFilters({
     name,
     sort,
     columns,
+    columnsInUrl,
     view,
     viewInUrl,
   ])

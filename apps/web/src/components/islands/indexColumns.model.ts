@@ -183,10 +183,11 @@ const WORDS: Readonly<Record<string, readonly IndexColumn[]>> = {
       key: 'kind',
       label: islandsCopy('advancesInto'),
       kind: 'text',
+      // A Hybrid Class's advanced tree is itself: it advances into its Legendary class alone (RR7-13).
       value: (item) =>
         ['advancedTree', 'legendaryTree']
           .map((field) => (item as unknown as Record<string, unknown>)[field])
-          .filter((tree) => typeof tree === 'string' && tree)
+          .filter((tree) => typeof tree === 'string' && tree && tree !== item.name)
           .join(' · '),
     },
   ],
@@ -265,7 +266,7 @@ export function indexColumns(
   const cells = (column: IndexColumn) =>
     models.map(({ item, model }) => column.value(item, model)).join('\u0000')
   const seen = new Set<string>()
-  return kept
+  const shown = kept
     .filter((column) => {
       if (!stats.has(column.key) || models.length < 2) return true
       const key = cells(column)
@@ -279,6 +280,22 @@ export function indexColumns(
       // dashes never pushes the traits out (r5 E8).
       column === COST && filled(column) * 4 < models.length ? { ...column, spare: true } : column
     )
+  return leadWithReach(schemaId, shown)
+}
+
+/**
+ * The listings whose rows a phone opens on how far and how hard (RR7-04), as
+ * Equipment's do: "which hits hardest" is the table's question of a weapon,
+ * not its slots.
+ */
+const PHONE_REACH: ReadonlySet<string> = new Set(['systems'])
+
+/** A `PHONE_REACH` listing's phone columns: Range and Damage, where its rows carry both. */
+function leadWithReach(schemaId: string, columns: readonly IndexColumn[]): IndexColumn[] {
+  const reach = ['range', 'damage']
+  if (!PHONE_REACH.has(schemaId) || !reach.every((key) => columns.some((c) => c.key === key)))
+    return [...columns]
+  return columns.map((column) => ({ ...column, phone: reach.includes(column.key) }))
 }
 
 /** The columns a phone can show: every one but the quiet line, which has no room there. */
@@ -453,7 +470,10 @@ export function indexLeadStat(
 ): (item: RefEntity) => string | undefined {
   const models = items.map((item) => ({ item, model: toEntityModel(item as RefMetaEntity) }))
   const columns = indexColumns(schemaId, models)
-  const measure = columns.find((column) => column.kind === 'figure' && column.phone)
+  // A listing whose phone leads with its reach keeps its first measure here.
+  const measure =
+    columns.find((column) => column.kind === 'figure' && column.phone) ??
+    (PHONE_REACH.has(schemaId) ? columns.find((column) => column.kind === 'figure') : undefined)
   // A cost only a few entries pay (nine of the equipment) is no stat of the kind.
   const paid = models.filter(({ item, model }) => COST.value(item, model)).length
   const lead = measure ?? (paid * 4 >= models.length ? COST : undefined)

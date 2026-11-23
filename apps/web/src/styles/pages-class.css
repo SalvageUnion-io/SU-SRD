@@ -336,3 +336,46 @@
 .su-class-brief__cards[data-rows] > .su-class-brief__card:nth-child(even) {
   background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
 }
+
+/* A tablet sets a class's art beside its flavour text, so the trees start in
+   the first screens (RR7-10): On this page over both, the training and the
+   trees under them, the page's measure. */
+@media (width >= 40rem) and (not (width >= 64rem)) {
+  .su-manual:has(.su-manual__after > .su-ability-tree) {
+    column-gap: var(--space-24);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .su-manual:has(.su-manual__after > .su-ability-tree) > :is(.su-manual__side, .su-manual__main) {
+    display: contents;
+  }
+
+  .su-manual:has(.su-manual__after > .su-ability-tree) > *,
+  .su-manual:has(.su-manual__after > .su-ability-tree)
+    > :is(.su-manual__side, .su-manual__main)
+    > * {
+    grid-column: 1 / -1;
+  }
+
+  .su-manual:has(.su-manual__after > .su-ability-tree) > .su-manual__side > .su-manual__art {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .su-manual:has(.su-manual__after > .su-ability-tree) > .su-manual__main > .su-entity-page__prose {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+/* Print opens every Ability's rules: a fold is no use on paper (RR7-07). */
+@media print {
+  .su-ability-open::details-content {
+    content-visibility: visible;
+  }
+
+  .su-ability-open > .su-ability-open__summary {
+    display: none;
+  }
+}

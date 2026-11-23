@@ -310,6 +310,19 @@ describe("the List's columns", () => {
     expect(row?.children[at]?.textContent).toBe('Forging, Electronics')
   })
 
+  it('a Hybrid Class advances into its Legendary class alone, and a short list asks no sort (RR7-13)', () => {
+    const hybrids = all('classes').filter((item) => !('coreTrees' in item))
+    const { container } = render(
+      <IndexLedger schemaId="classes" noun="Hybrid Classes" items={hybrids} orderNote />
+    )
+    const at = heads(container).indexOf('Advances into')
+    const row = Array.from(container.querySelectorAll('tbody tr')).find((tr) =>
+      tr.textContent?.startsWith('Fabricator')
+    )
+    expect(row?.children[at]?.textContent).toBe('Legendary Fabricator')
+    expect(container.textContent).not.toContain('to sort by it')
+  })
+
   it('a list of many columns is dense, a list of few is not (RR-24’s frame)', () => {
     const chassis = render(<IndexLedger schemaId="chassis" noun="Chassis" items={all('chassis')} />)
     expect(chassis.container.querySelector('table')?.hasAttribute('data-dense')).toBe(true)
@@ -330,6 +343,37 @@ describe("the List's columns", () => {
     fireEvent.change(slots[0] as HTMLElement, { target: { value: 'action' } })
     expect(new URLSearchParams(window.location.search).get('cols')).toBe('action,damage')
   })
+
+  it(
+    'Systems opens a phone on Range and Damage, as Equipment does (r7 E5)',
+    () => {
+      window.localStorage.clear()
+      const { container } = listing('systems')
+      expect(phoneHeads(container)).toEqual(['RNG', 'DMG'])
+      // Nothing chosen: the address stays clean.
+      expect(new URLSearchParams(window.location.search).get('cols')).toBeNull()
+    },
+    HEAVY
+  )
+
+  it(
+    'a listing remembers the columns last chosen on it, in this browser (r7 E5)',
+    () => {
+      window.localStorage.clear()
+      listing('chassis')
+      const slots = within(screen.getByRole('group', { name: 'Columns' })).getAllByRole('combobox')
+      const options = Array.from(slots[0]?.querySelectorAll('option') ?? []).map((o) => o.value)
+      const later = options[options.length - 1] as string
+      fireEvent.change(slots[0] as HTMLElement, { target: { value: later } })
+      const chosen = slotValues()
+      cleanup()
+      window.location.href = 'http://localhost/chassis/'
+      listing('chassis')
+      expect(slotValues()).toEqual(chosen)
+      window.localStorage.clear()
+    },
+    HEAVY
+  )
 
   const phoneHeads = (container: HTMLElement) =>
     Array.from(container.querySelectorAll('thead th[data-phone]'))

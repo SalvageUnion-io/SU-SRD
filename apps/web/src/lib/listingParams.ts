@@ -43,3 +43,8 @@ export const LISTING_PARAMS: readonly string[] = [
 export function listingViewStorageKey(schemaId: string): string {
   return `srd:listing-view:${schemaId}`
 }
+
+/** The phone columns the reader last chose on a listing, kept across visits (r7 E5). */
+export function listingColumnsStorageKey(schemaId: string): string {
+  return `srd:listing-cols:${schemaId}`
+}

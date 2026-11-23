@@ -147,7 +147,7 @@ describe('SearchIsland', () => {
     await typeAndSettle(input, 'ironmonger')
 
     const first = screen.getAllByRole('option')[0]
-    expect(first?.getAttribute('href')).toBe('/chassis/magpie/pattern/ironmonger/')
+    expect(first?.getAttribute('href')).toBe('/chassis/magpie/pattern/ironmonger/#main-content')
     expect(screen.getByRole('listbox').textContent).toContain('Pattern · Magpie')
     // The option is named with its kind, as the row reads (r2 G7).
     expect(first?.getAttribute('aria-label')).toMatch(/^Ironmonger, Pattern · Magpie$/i)
@@ -158,13 +158,15 @@ describe('SearchIsland', () => {
     await act(async () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
-    expect(navigate).toHaveBeenCalledWith('/chassis/magpie/pattern/ironmonger/')
+    expect(navigate).toHaveBeenCalledWith('/chassis/magpie/pattern/ironmonger/#main-content')
   })
 
   test('a question, a word form and a stat abbreviation find their rule (RR-04)', async () => {
     render(<SearchIsland />)
     const input = screen.getByRole('combobox')
-    const firstHref = () => screen.getAllByRole('option')[0]?.getAttribute('href')
+    // A result opens at its content (RR7-09): the page is what is compared.
+    const firstHref = () =>
+      screen.getAllByRole('option')[0]?.getAttribute('href')?.replace('#main-content', '')
 
     await typeAndSettle(input, 'how does salvaging work')
     expect(firstHref()).toBe('/guides/salvaging/')
@@ -300,7 +302,7 @@ describe('SearchIsland', () => {
     expect(categoryRows.length).toBeLessThanOrEqual(3)
   })
 
-  test('Escape ends the lookup: the list closes, the field empties and lets go of focus', async () => {
+  test('Escape ends the lookup: the list closes, the field empties and keeps the focus (RR7-08)', async () => {
     render(<SearchIsland navigate={mock(() => {})} />)
     const input = screen.getByRole('combobox')
     await act(async () => {
@@ -314,7 +316,7 @@ describe('SearchIsland', () => {
     })
     expect(screen.queryByRole('listbox')).toBeNull()
     expect(input.getAttribute('aria-expanded')).toBe('false')
-    expect(document.activeElement).not.toBe(input)
+    expect(document.activeElement).toBe(input)
     // The next lookup starts clean (RR-20): nothing to delete first.
     expect((input as HTMLInputElement).value).toBe('')
 
@@ -324,7 +326,7 @@ describe('SearchIsland', () => {
     expect(screen.queryByRole('listbox')).toBeNull()
   })
 
-  test('Escape gives the focus back to where the shortcut took it from (r4 F9)', async () => {
+  test('Escape after the shortcut leaves the focus in the field, to type again (RR7-08)', async () => {
     render(
       <div>
         <a href="/chassis/mule/">Mule</a>
@@ -343,7 +345,7 @@ describe('SearchIsland', () => {
       fireEvent.keyDown(input, { key: 'Escape' })
     })
     expect(screen.queryByRole('listbox')).toBeNull()
-    expect(document.activeElement).toBe(link)
+    expect(document.activeElement).toBe(input)
   })
 
   test('"/" outside a field focuses the search; inside one it is typed', async () => {
@@ -465,7 +467,7 @@ describe('SearchIsland', () => {
       expect(option.tagName).toBe('A')
       expect(option.hasAttribute('data-router')).toBe(false)
       expect(option.hasAttribute('target')).toBe(false)
-      expect(option.getAttribute('href')).toMatch(/^\/[a-z-]+\/([a-z0-9-]+\/)?$/)
+      expect(option.getAttribute('href')).toMatch(/^\/[a-z-]+\/([a-z0-9-]+\/)?(#main-content)?$/)
     }
   })
 

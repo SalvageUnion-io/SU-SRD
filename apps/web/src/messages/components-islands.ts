@@ -14,6 +14,7 @@ export const islandsCopy = messages({
   resultsFor: '{count} results for “{query}”',
   oneResultFor: '1 result for “{query}”',
   searchForSomething: 'Type a word in the search above to find it in the Reference.',
+  rollSpoken: 'Rolled {roll}: {result}',
   patternsGroup: 'Patterns',
   rulesGroup: 'Rules',
   somethingWentWrong: 'Something went wrong',

@@ -762,3 +762,17 @@
   max-width: none;
   vertical-align: -0.125em;
 }
+
+/* A pattern loadout's reach under a weapon's name: a phone's, where its
+   RNG and DMG columns give way (RR7-11). */
+.su-loadout-reach {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+@media (width >= 40rem) {
+  .su-loadout-reach {
+    display: none;
+  }
+}

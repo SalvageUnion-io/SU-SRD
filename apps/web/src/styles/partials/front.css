@@ -203,6 +203,37 @@ body:has(.su-front--show) main {
   white-space: nowrap;
 }
 
+/* The hero's own search, beside the name over the two actions: a laptop's
+   (RR7-14), where it is the page's search; under `lg` the band under the
+   show is (`.su-front__search`). */
+.su-front__show-title {
+  align-items: stretch;
+  display: flex;
+}
+
+.su-front__show-search {
+  display: none;
+}
+
+@media (width >= 64rem) {
+  .su-front__show-search {
+    align-items: center;
+    background-color: var(--color-ink-deep);
+    display: flex;
+    padding: var(--space-12) var(--space-16) var(--space-12) 0;
+    width: 36rem;
+  }
+
+  .su-front__show-search > * {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .su-front__search {
+    display: none;
+  }
+}
+
 /* Start building and Look something up, under the name in its dress and
    outside the slides: in place whichever slide is in view (r6 G14). */
 .su-front__show-fixed {
@@ -431,15 +462,16 @@ html[data-srd-signed-in] .su-front__show-yours {
     font-size: var(--text-display-lg);
   }
 
-  /* The controls stand in a column, one control wide, so the plate beside
-     them keeps its width; each keeps the act's Full height (§4.7). */
+  /* The controls in a row at the foot of the art, under the plate, never
+     over the picture (RR7-14); each keeps the act's Full height (§4.7). */
   .su-front__show-controls {
-    flex-direction: column;
+    bottom: var(--space-8);
     left: var(--space-12);
   }
 
   .su-front__show-copy {
-    max-width: calc(100% - var(--space-12) * 2 - var(--space-8) - var(--size-full));
+    bottom: calc(var(--size-full) + var(--space-8) * 2);
+    max-width: calc(100% - var(--space-12) * 2);
     right: var(--space-12);
   }
 
