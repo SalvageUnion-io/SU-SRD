@@ -326,6 +326,8 @@ function NpcActionRow({
                     ) : null}
                     <PlayRollInstrument
                       table={NPC_ACTION}
+                      // R presses it (r8 B10, `useMediatorKeys`).
+                      pressAs="roll"
                       roll={rolled?.die ?? null}
                       onRoll={live && rolled === null ? () => void roll() : undefined}
                     />

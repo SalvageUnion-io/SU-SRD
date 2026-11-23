@@ -10,9 +10,24 @@ import { playCopy } from '../messages/play'
 
 const LIST = { display: 'grid', gap: tokens.space[6] } satisfies CSSProperties
 
-export function PlayKeysSheet({ onClose }: { onClose: () => void }) {
+/** Mediate's keys (r8 B10, `useMediatorKeys`). */
+const MEDIATOR_KEYS = [
+  ['T', playCopy('keyTell')],
+  ['R', playCopy('keyRollNpc')],
+  ['N', playCopy('keyNextSide')],
+  ['?', playCopy('keyThisSheet')],
+] as const
+
+export function PlayKeysSheet({
+  onClose,
+  mediator = false,
+}: {
+  onClose: () => void
+  /** Mediate's keys, not a player's turn's (r8 B10). */
+  mediator?: boolean
+}) {
   // Each key and what it presses, a Stat (ruleset §3.7).
-  const keys = [
+  const player = [
     ['/', playCopy('keyFind')],
     ['R', playCopy('keyRoll')],
     ['A', playCopy('keyApply')],
@@ -20,6 +35,7 @@ export function PlayKeysSheet({ onClose }: { onClose: () => void }) {
     ['N', playCopy('keyNotice')],
     ['?', playCopy('keyThisSheet')],
   ] as const
+  const keys = mediator ? MEDIATOR_KEYS : player
   return (
     <ModalShell
       open

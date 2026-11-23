@@ -202,6 +202,8 @@ export function MediatorInitiative({
           {rounds && !asking && !done && (
             <Button
               size="compact"
+              // N presses it (r8 B10, `useMediatorKeys`).
+              data-initiative-next=""
               onClick={() => set({ ...initiative, side: nextSide(sides, initiative.side) })}
             >
               {mediatorCopy('nextSide')}
@@ -214,12 +216,8 @@ export function MediatorInitiative({
           >
             {mediatorCopy('newRound')}
           </Button>
-          <Button
-            variant="ghost"
-            size="compact"
-            aria-label={mediatorCopy('endInitiativeLabel')}
-            onClick={() => set(null)}
-          >
+          {/* Says what it ends, as the encounter's and the session's do (r8 B10). */}
+          <Button variant="ghost" size="compact" onClick={() => set(null)}>
             {mediatorCopy('endInitiative')}
           </Button>
         </div>

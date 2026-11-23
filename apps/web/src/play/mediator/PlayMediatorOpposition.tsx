@@ -311,7 +311,7 @@ export function PlayMediatorOpposition({
               (npcs?.length ?? 0) > 0 || sceneOn !== '' ? setEnding(true) : fail(prep.end())
             }
           >
-            {mediatorCopy('end')}
+            {mediatorCopy('endTheEncounter')}
           </Button>
         </div>
       )}

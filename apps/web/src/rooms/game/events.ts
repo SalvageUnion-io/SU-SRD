@@ -298,6 +298,28 @@ export class GameEvents {
           this.note(actor, at, { kind: 'turn', text: `${unit(value)} ended their turn` }),
           ...closed(),
         ]
+      // The fight's end is the table's to read, as its start is (r8 B10): the
+      // encounter unnamed, since its tray is the Mediator's alone.
+      case 'mediator.setInitiative':
+        return a.initiative === null && before.fight === true
+          ? [
+              ...started(),
+              this.note(actor, at, {
+                kind: 'action',
+                text: `${this.runnerName(actor)} ended Group Initiative`,
+              }),
+            ]
+          : started()
+      case 'mediator.endEncounter':
+        return before.fight === true
+          ? [
+              ...started(),
+              this.note(actor, at, {
+                kind: 'action',
+                text: `${this.runnerName(actor)} ended the encounter`,
+              }),
+            ]
+          : started()
       case 'safety.showStop':
         // Nobody is named: who showed it stays in the room.
         return before.stop === true

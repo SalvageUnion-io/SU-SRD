@@ -351,6 +351,37 @@ describe('the bar', () => {
     ).toBeTruthy()
   })
 
+  // MD8-19: Tell the table was twenty Shift+Tabs away, and "?" showed nothing.
+  test('T opens Tell the table, N moves initiative on, "?" lists the keys (r8 B10)', async () => {
+    await renderCockpit({ 'mediator.initiative': { round: 2, side: 'pilots', acted: [] } })
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 't' })
+    })
+    frame.mockRestore()
+    expect(screen.getByRole('dialog', { name: 'Tell the table' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'Escape' })
+    })
+    acts.length = 0
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'n' })
+    })
+    expect(
+      sent()
+        .filter((s) => s.name === 'mediator.setInitiative')
+        .map((s) => s.args.initiative)
+    ).toEqual([{ round: 2, side: 'opposition', acted: [] }])
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: '?' })
+    })
+    const keys = await screen.findByRole('dialog', { name: 'Keys' })
+    expect(within(keys).getByText('Tell the table')).toBeTruthy()
+  })
+
   test('Tell the table sends one word to every player', async () => {
     await renderCockpit()
     // The dialog focuses on the next frame; the frame is run here, so the
@@ -1153,7 +1184,7 @@ describe('the Opposition', () => {
     })
     expect(screen.getByText('Behind the crusher.')).toBeTruthy()
     expect(screen.getByRole('list', { name: "This encounter's tables" })).toBeTruthy()
-    await click(named('End Ambush'))
+    await click(named('End encounter: Ambush'))
     // With opposition still out, End asks whether to clear it (ADR-007: never for you).
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'End' }))
     expect(sent()).toContainEqual({ name: 'mediator.endEncounter', args: {} })
@@ -1173,7 +1204,7 @@ describe('the Opposition', () => {
       },
     })
     expect(within(screen.getByRole('banner')).getByText('Scene · Radiation Storm')).toBeTruthy()
-    await click(named('End Ambush'))
+    await click(named('End encounter: Ambush'))
     const dialog = within(screen.getByRole('alertdialog'))
     expect(dialog.getByLabelText('Keep the Scene under Radiation Storm')).toBeTruthy()
     await click(dialog.getByLabelText('Clear Radiation Storm'))

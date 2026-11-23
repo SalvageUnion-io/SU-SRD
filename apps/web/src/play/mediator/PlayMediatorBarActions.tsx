@@ -1,14 +1,14 @@
 /**
  * The end of the Mediator's Play bar (play.md §10), after the
- * channel button: **Tell the table** and ⋯. On a phone the bar is one line, so
- * Tell the table is the ⋯'s first item.
+ * channel button: **Start / End group session**, **Tell the table** and ⋯,
+ * on a phone's bar too (r8 B10): the live moves are never in a menu.
  *
  *  - **Plan** (a phone's ⋯; from `lg` a pane) opens the session plan and Game notes (`MediatorPlan`, r6 B7)
  *  - **Tell the table** opens its form (`TellTheTable`)
  *    in a dialog: one word to every player at once (`changeLog.broadcast`),
  *    which lands on each of their Feeds, with the last five sent under it.
  *  - **Start / End group session** (`SessionControl`, play.md §10): a bar
- *    button from `lg`, the ⋯'s row on a phone; End asks first.
+ *    button; End asks first.
  *  - **⋯**: Undo last change while an Opposition vital's change can be
  *    undone (r8 B4), the
  *    Game's own page, the reference (the SRD Explorer, `SrdExplorer`) in
@@ -19,21 +19,26 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { gamePath } from 'game-domain/entityKinds'
-import { lazy, Suspense, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useRef, useState } from 'react'
 import type { HeaderMenuItem } from '../../components/index'
 import { Button, HeaderMenu, ModalShell } from '../../components/index'
 import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { SessionControl } from '../SessionControl'
-import { useEndSession } from '../useEndSession'
 import { useGameSession } from '../useGameSession'
 import { undoLastChange, useLastChange } from './oppositionUndo.model'
 import { SrdExplorer } from './SrdExplorer'
 import { TellTheTable } from './TellTheTable'
+import { useMediatorKeys } from './useMediatorKeys'
 import type { PlayMediator } from './usePlayMediator'
 
 /** Only needed once opened: its own file (the app's bundle budget). */
 const MediatorPlan = lazy(() => import('./MediatorPlan').then((m) => ({ default: m.MediatorPlan })))
+
+/** Only once "?" is pressed (`useMediatorKeys`). */
+const PlayKeysSheet = lazy(() =>
+  import('../PlayKeysSheet').then(({ PlayKeysSheet }) => ({ default: PlayKeysSheet }))
+)
 
 export function PlayMediatorBarActions({
   mediator,
@@ -43,7 +48,7 @@ export function PlayMediatorBarActions({
   mediator: PlayMediator
   /** The "Discord channel" row while none is bound (`usePlayChannelControls`). */
   channel?: HeaderMenuItem | null
-  /** From `lg`: Tell the table is a bar button; below it, the ⋯'s first item. */
+  /** From `lg`: the Rules and the Plan are panes; below it, the ⋯'s items. */
   wide?: boolean
 }) {
   const router = useRouter({ warn: false })
@@ -54,57 +59,25 @@ export function PlayMediatorBarActions({
   const [planning, setPlanning] = useState(false)
   const gameHref = gamePath(mediator.gameId)
   const session = useGameSession(mediator.gameId)
-  const mayRun = session?.canWrite && !session.pending
-  const end = useEndSession(session)
   // The last Opposition vital changed, undoable after its toast has gone (r8 B4).
   const lastChange = useLastChange(mediator.gameId)
+  // T, R, N and "?" (r8 B10).
+  const tell = useCallback(() => setTelling(true), [])
+  const { keysOpen, closeKeys } = useMediatorKeys(tell)
 
   return (
     <>
-      {/* On the board, not in a menu: the table's own switch (play.md §10). */}
-      {wide && <SessionControl session={session} inBar />}
-      {wide && (
-        <Button variant="ink" size="compact" onClick={() => setTelling(true)}>
-          {mediatorCopy('tellTheTable')}
-        </Button>
-      )}
+      {/* On the board, never in a menu, a phone's bar too (r8 B10): the table's own switch, and its word. */}
+      <SessionControl session={session} inBar />
+      <Button variant="ink" size="compact" onClick={() => setTelling(true)}>
+        {mediatorCopy('tellTheTable')}
+      </Button>
       <HeaderMenu
         variant="overflow"
         size="compact"
         label={mediatorCopy('more')}
         trigger={null}
         sections={[
-          ...(wide
-            ? []
-            : [
-                [
-                  {
-                    id: 'tell',
-                    label: mediatorCopy('tellTheTable'),
-                    onSelect: () => setTelling(true),
-                  },
-                ],
-              ]),
-          // A phone's bar is one line, so its session control is the ⋯'s row; End asks first.
-          wide
-            ? []
-            : [
-                {
-                  id: 'session',
-                  label: session?.live
-                    ? playCopy('endGroupSession')
-                    : playCopy('startGroupSession'),
-                  ...(session?.live ? {} : { hint: playCopy('startGroupSessionHint') }),
-                  ...(mayRun
-                    ? {
-                        onSelect: () => {
-                          if (session.live) end.ask()
-                          else void session.start()
-                        },
-                      }
-                    : {}),
-                },
-              ],
           lastChange
             ? [
                 {
@@ -145,7 +118,11 @@ export function PlayMediatorBarActions({
           channel ? [channel] : [],
         ]}
       />
-      {!wide && end.dialog}
+      {keysOpen && (
+        <Suspense fallback={null}>
+          <PlayKeysSheet mediator onClose={closeKeys} />
+        </Suspense>
+      )}
       <ModalShell
         open={telling}
         onOpenChange={setTelling}

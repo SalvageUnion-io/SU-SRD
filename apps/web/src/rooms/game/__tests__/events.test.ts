@@ -34,6 +34,19 @@ describe('the table’s events', () => {
     expect(act('d-org', 'setMediator', { userId: MEDIATOR, mediator: false })).toEqual([])
   })
 
+  test('ending Group Initiative or the encounter is a line for the table (r8 B10)', () => {
+    const { act, texts } = seated()
+    act(MEDIATOR, 'mediator.setInitiative', { initiative: { round: 1, acted: [] } }, AT + 1)
+    expect(texts()).not.toContain('Med ended Group Initiative')
+    act(MEDIATOR, 'mediator.setInitiative', { initiative: null }, AT + 2)
+    expect(texts()[0]).toBe('Med ended Group Initiative')
+    // With none running, ending one says nothing.
+    act(MEDIATOR, 'mediator.endEncounter', {}, AT + 3)
+    expect(texts()).not.toContain('Med ended the encounter')
+    act(MEDIATOR, 'mediator.setInitiative', { initiative: null }, AT + 4)
+    expect(texts().filter((t) => t === 'Med ended Group Initiative')).toHaveLength(1)
+  })
+
   test('a line names its people as they are now: a former Mediator by name (r6 A9)', () => {
     const { act, texts } = seated()
     act(MEDIATOR, 'session.start', undefined as never, AT + 1)
