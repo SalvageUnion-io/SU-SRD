@@ -308,11 +308,12 @@ export class GameRoom extends Room {
     args: GameActArgs<N>
   ): GameActAnswer<GameActResult<N>> {
     const at = Date.now()
+    const gameId = this.gameId
     // A forgotten session ends itself first (r8 B12): every socket and the Feed hear it.
     const idle = this.logic.endIdleSession(at)
     if (idle.length > 0) this.broadcastSnapshots()
     const before = GAME_READ_ACTS.has(name) ? null : this.logic.events.before(name, args)
-    const answer = runAct({ room: this.logic, actor, gameId: this.gameId, at }, name, args)
+    const answer = runAct({ room: this.logic, actor, gameId, at }, name, args)
     // What the act did, as the table's events: the Feed, the toasts, Discord.
     const events =
       answer.ok && before !== null
@@ -368,8 +369,7 @@ export class GameRoom extends Room {
    * Mirror events to the bound Discord channel, a burst as one message: it
    * posts once the table has been quiet for `MIRROR_QUIET_MS`, or
    * `MIRROR_MAX_MS` after the burst began. Posting seals the lines, so a
-   * later repeat starts a new one. A private event never enters
-   * (`isMirrored`).
+   * later repeat starts a new one. A private event never enters (`isMirrored`).
    */
   private mirror(events: readonly TableEvent[]): void {
     const lines = events.filter(isMirrored)
