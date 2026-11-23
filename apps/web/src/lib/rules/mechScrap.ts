@@ -45,8 +45,8 @@ export function scrapSplit(scrap: MechScrap): string {
   return scrapParts(scrap).join(' · ')
 }
 
-/** The same, a part a Tech Level (`TL1 18`), for a cell that breaks between them (r6 E4). */
-export function scrapParts(scrap: MechScrap): string[] {
+/** The same, a part a Tech Level (`TL1 18`). */
+function scrapParts(scrap: MechScrap): string[] {
   return scrap.byTechLevel.map((level) => `TL${level.techLevel} ${level.scrap}`)
 }
 
