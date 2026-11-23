@@ -35,7 +35,15 @@ type MechIdentityPanelProps = {
   after?: ReactNode
 }
 
-export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps) {
+/**
+ * Keyed by the Mech: a copy opened over its original's sheet (the same route)
+ * is a fresh panel, so it reads that its name awaits typing (r8 E5).
+ */
+export function MechIdentityPanel(props: MechIdentityPanelProps) {
+  return <MechIdentityFields key={props.mech.id} {...props} />
+}
+
+function MechIdentityFields({ mech, patch, after }: MechIdentityPanelProps) {
   // A Mech just built or copied opens with its name selected (r7 G4, G5).
   const [typeName] = useState(() => patch !== undefined && nameAwaitsTyping(mech.id))
   useEffect(() => {

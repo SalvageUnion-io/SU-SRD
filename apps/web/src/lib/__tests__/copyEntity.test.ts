@@ -103,3 +103,20 @@ describe('copyName', () => {
     expect(copyName('Unit 7', ['Unit 7'])).toBe('Unit 7 2')
   })
 })
+
+describe('a Mech’s copy starts fresh (r8 E5)', () => {
+  test('undamaged, at full EP and 0 Heat, with no conditions; its build stays', async () => {
+    const { freshMechCopy } = await import('../copyEntity')
+    const copy = freshMechCopy({
+      name: 'Tab B 2',
+      systems: ['red-laser'],
+      currentSP: 10,
+      currentEP: 3,
+      currentHeat: 2,
+      systemConditions: { 'red-laser': 'damaged' },
+      moduleConditions: {},
+      conditions: ['Vulnerable'],
+    })
+    expect(copy).toEqual({ name: 'Tab B 2', systems: ['red-laser'], conditions: [] })
+  })
+})
