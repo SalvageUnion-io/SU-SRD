@@ -35,6 +35,7 @@ import { SkipLink } from '../../components/app'
 import type { rollForTable } from '../../components/index'
 import { Button, EmptyState, Slab, Stat, toast, tokens } from '../../components/index'
 import { flagOn } from '../../lib/flags'
+import type { MoraleRoll } from '../../lib/rules/opposition'
 import { moraleDue } from '../../lib/rules/opposition'
 import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
@@ -44,7 +45,7 @@ import { useSessionLive } from '../useSessionLive'
 import { ClearFieldDialog, EndEncounterDialog } from './ClearFieldDialogs'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
-import { sinkDowned, trayEntries } from './opposition.model'
+import { groupRoll, sinkDowned, trayEntries } from './opposition.model'
 import { PlayMediatorScene } from './PlayMediatorScene'
 import type { NpcHit } from './PlayNpcActions'
 import { PlayNpcActions } from './PlayNpcActions'
@@ -152,7 +153,15 @@ export function PlayMediatorOpposition({
     .filter((t) => t.kind === 'mech')
     .map((t) => ({ id: t.id, label: t.label }))
 
-  const box = (npc: TrayNpc) => (
+  // A group's roll reads once, under its header (r7 C7, MD7-08): never again on its members.
+  const box = (unit: TrayNpc, groupLast: MoraleRoll | null = null) => {
+    const npc =
+      groupLast !== null && unit.lastRoll?.rolledAt === groupLast.rolledAt
+        ? { ...unit, lastRoll: null }
+        : unit
+    return boxOf(npc)
+  }
+  const boxOf = (npc: TrayNpc) => (
     <PlayNpcBox
       key={npc.id}
       npc={npc}
@@ -324,7 +333,7 @@ export function PlayMediatorOpposition({
                 canWrite={canWrite}
                 onRoll={(table) => fail(tray.groupRoll(entry, table))}
               >
-                {entry.members.map(box)}
+                {entry.members.map((npc) => box(npc, groupRoll(entry.members)))}
               </PlayNpcGroup>
             )
           )}

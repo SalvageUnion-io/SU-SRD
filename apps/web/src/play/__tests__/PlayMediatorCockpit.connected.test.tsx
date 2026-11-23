@@ -818,7 +818,7 @@ describe('the Opposition', () => {
             entityType: 'pilot',
             field: 'currentHP',
             after: 1,
-            reason: 'Raider · Improvised Firearm (Raider)',
+            reason: 'Mediator rolled · NPC Action',
           },
         },
       ])

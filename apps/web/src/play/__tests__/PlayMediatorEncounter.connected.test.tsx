@@ -227,6 +227,23 @@ describe('groups on the tray', () => {
     expect(screen.getAllByText('Reaction 4 · Hostile').length).toBeGreaterThan(0)
   })
 
+  // r7 C7 (MD7-08): a group's roll reads once, under its header, never again on its members.
+  test('a group roll kept on every member reads once', async () => {
+    const rolled = {
+      table: 'morale',
+      roll: 14,
+      label: 'Keep Fighting',
+      value: 'The NPCs continue.',
+      rolledAt: STAMP,
+    }
+    await renderCockpit({
+      'mediator.npcs': TRAY.map((row) =>
+        row.body.group === BAND ? { ...row, body: { ...row.body, lastMediatorRoll: rolled } } : row
+      ),
+    })
+    expect(screen.getAllByText(/Keep Fighting/)).toHaveLength(1)
+  })
+
   test('a Mech at half its SP shows Morale due with Roll; Roll checks it', async () => {
     await renderCockpit()
     const mule = within(screen.getByRole('region', { name: 'Mech: Mule' }))
