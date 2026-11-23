@@ -173,9 +173,9 @@ describe('sorting by damage (r2 H3)', () => {
         window.location.href = `http://localhost/systems/?trait=Hot&sort=${sort}`
         const { container } = listing('systems')
         const at = heads(container).indexOf('DMG')
-        const dmg = Array.from(container.querySelectorAll('.su-listing__groups tbody tr')).map(
-          (row) => (row.children[at]?.textContent ?? '').replace('—', '').trim()
-        )
+        const dmg = Array.from(
+          container.querySelectorAll('.su-listing__groups tbody:not(.su-ledger__sizer) tr')
+        ).map((row) => (row.children[at]?.textContent ?? '').replace('—', '').trim())
         const firstBlank = dmg.indexOf('')
         if (firstBlank !== -1) expect(dmg.slice(firstBlank).every((cell) => cell === '')).toBe(true)
         expect(dmg[0]).not.toBe('')
@@ -217,9 +217,9 @@ describe('the trait filter (RR-05)', () => {
       expect(shown.length).toBeGreaterThan(3)
       expect(shown.length).toBeLessThan(all('systems').length)
       const at = heads(container).indexOf('Traits')
-      const traitCells = Array.from(container.querySelectorAll('.su-listing__groups tbody tr')).map(
-        (row) => row.children[at]?.textContent ?? ''
-      )
+      const traitCells = Array.from(
+        container.querySelectorAll('.su-listing__groups tbody:not(.su-ledger__sizer) tr')
+      ).map((row) => row.children[at]?.textContent ?? '')
       expect(
         traitCells.every((cell) => cell.split(', ').some((trait) => /^Hot( |$)/.test(trait)))
       ).toBe(true)
@@ -270,8 +270,8 @@ describe("the List's columns", () => {
       <IndexLedger schemaId="systems" noun="Systems" items={all('systems')} />
     )
     const at = heads(container).indexOf('Traits')
-    const row = Array.from(container.querySelectorAll('tbody tr')).find((tr) =>
-      tr.querySelector('th')?.textContent?.startsWith('Blue Mining Laser')
+    const row = Array.from(container.querySelectorAll('tbody:not(.su-ledger__sizer) tr')).find(
+      (tr) => tr.querySelector('th')?.textContent?.startsWith('Blue Mining Laser')
     )
     expect(row?.children[at]?.textContent).toBe('Energy, Hot 3')
     const cost = Array.from(container.querySelectorAll('thead th')).find((th) =>
@@ -304,8 +304,8 @@ describe("the List's columns", () => {
     )
     const at = heads(container).indexOf('Core Trees')
     expect(at).toBeGreaterThan(0)
-    const row = Array.from(container.querySelectorAll('tbody tr')).find((tr) =>
-      tr.textContent?.startsWith('Fabricator')
+    const row = Array.from(container.querySelectorAll('tbody:not(.su-ledger__sizer) tr')).find(
+      (tr) => tr.textContent?.startsWith('Fabricator')
     )
     expect(row?.children[at]?.textContent).toBe('Forging, Electronics')
   })
@@ -316,8 +316,8 @@ describe("the List's columns", () => {
       <IndexLedger schemaId="classes" noun="Hybrid Classes" items={hybrids} orderNote />
     )
     const at = heads(container).indexOf('Advances into')
-    const row = Array.from(container.querySelectorAll('tbody tr')).find((tr) =>
-      tr.textContent?.startsWith('Fabricator')
+    const row = Array.from(container.querySelectorAll('tbody:not(.su-ledger__sizer) tr')).find(
+      (tr) => tr.textContent?.startsWith('Fabricator')
     )
     expect(row?.children[at]?.textContent).toBe('Legendary Fabricator')
     expect(container.textContent).not.toContain('to sort by it')
@@ -447,9 +447,9 @@ describe("a kind's one stat, for a chapter's index (RR-18)", () => {
 describe('Systems by Range, Action and Weapons only (r4 F6)', () => {
   const column = (container: HTMLElement, label: string) => {
     const at = heads(container).indexOf(label)
-    return Array.from(container.querySelectorAll('.su-listing__groups tbody tr')).map((row) =>
-      (row.children[at]?.textContent ?? '').replace('—', '').trim()
-    )
+    return Array.from(
+      container.querySelectorAll('.su-listing__groups tbody:not(.su-ledger__sizer) tr')
+    ).map((row) => (row.children[at]?.textContent ?? '').replace('—', '').trim())
   }
 
   it('the facets come from what the List prints: the bands in the book’s order, the action types', () => {

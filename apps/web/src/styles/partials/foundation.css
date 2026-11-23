@@ -113,6 +113,12 @@ button {
  * at the call sites (`atoms/SearchField.tsx`, `atoms/inputs.tsx`,
  * `compositions/EntitySearcherFilters.tsx`).
  */
+/* The window's scrollbar keeps its room whether the page scrolls or not, so
+   a filter that shortens the page never moves it sideways (chrome K17). */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background-color: var(--color-paper);
   color: var(--color-ink);

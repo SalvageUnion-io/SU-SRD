@@ -9,7 +9,7 @@
 // stamp beside its tab (ruleset §3.9, ledger.md L9).
 import { Copy } from 'lucide-react'
 import type { ReactNode } from 'react'
-import type { HeaderMenuItem, LedgerColumn, LedgerSort } from '../../components/index'
+import type { HeaderMenuItem, LedgerColumn, LedgerRow, LedgerSort } from '../../components/index'
 import { Button, HeaderMenu, HomebrewStamp, InlineRef, Ledger, Text } from '../../components/index'
 import { iconSize } from '../../design/tokens'
 import { buildShelvesCopy } from '../../messages/build-shelves'
@@ -69,6 +69,8 @@ type ShelfLedgerProps = {
   /** With `onSort`, a column's label sorts the shelf by it. */
   sort?: LedgerSort | undefined
   onSort?: (key: string) => void
+  /** The lines its find hides: they keep the columns where the whole shelf sets them (chrome K17). */
+  sizer?: readonly ShelfLedgerRow[]
 }
 
 /** A cell that opens something (the paired unit, the Game). */
@@ -174,12 +176,24 @@ export function ShelfLedger({
   select,
   sort,
   onSort,
+  sizer = [],
 }: ShelfLedgerProps) {
   const check = select?.check
   // A list drops a column no row fills (ledger.md L5): the rest keep their order.
   const kept = columns.flatMap((column, index) =>
-    rows.some((row) => filled(row.cells[index])) ? [{ column, index }] : []
+    [...rows, ...sizer].some((row) => filled(row.cells[index])) ? [{ column, index }] : []
   )
+  const ledgerRow = (row: ShelfLedgerRow): LedgerRow => ({
+    id: row.id,
+    name: row.name,
+    entityRef: undefined,
+    ...(row.href ? { href: row.href } : {}),
+    cells: kept.map(({ index }) => row.cells[index]),
+    ...(row.under ? { under: row.under } : {}),
+    ...(row.copy && !check ? { stamp: <CopyButton name={row.name} onCopy={row.copy} /> } : {}),
+    // While selecting, a line's check stands in for its acts.
+    trailing: check ? check(row.id, row.name) : trailingOf(row),
+  })
   return (
     <section id={id} aria-label={title} className="su-shelf-ledger">
       {select?.bar ? (
@@ -198,19 +212,8 @@ export function ShelfLedger({
         // A tab with a mark beside it stays a title: its stamps sort (L2).
         {...(homebrew ? { mark: <HomebrewStamp size="mini" />, sortTab: false } : {})}
         columns={kept.map(({ column }) => column)}
-        rows={rows.map((row) => ({
-          id: row.id,
-          name: row.name,
-          entityRef: undefined,
-          ...(row.href ? { href: row.href } : {}),
-          cells: kept.map(({ index }) => row.cells[index]),
-          ...(row.under ? { under: row.under } : {}),
-          ...(row.copy && !check
-            ? { stamp: <CopyButton name={row.name} onCopy={row.copy} /> }
-            : {}),
-          // While selecting, a line's check stands in for its acts.
-          trailing: check ? check(row.id, row.name) : trailingOf(row),
-        }))}
+        rows={rows.map(ledgerRow)}
+        sizer={sizer.map(ledgerRow)}
         action={action}
         empty={empty}
         {...(onSort ? { onSort, ...(sort ? { sort } : {}) } : {})}

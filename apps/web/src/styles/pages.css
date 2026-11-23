@@ -582,29 +582,25 @@ html[data-srd-signed-in] .su-mediator-acts {
   padding: 0 var(--space-8);
 }
 
-/* What is filtered: the count, a token per filter, Clear all. On an index it
-   sits in the rail between the search and the menus, taking the room between
-   them (the spring steps aside) and wrapping its tokens there. Below 15rem of
-   room it is the next line's lead instead, and the controls after it follow. */
+/* What is filtered: the count, a token per filter, Clear all. The rail's last
+   line, under every control and a token's height even unfiltered, so a
+   filter moves no control (chrome K17): its tokens wrap onto lines of their
+   own, which push only the list down. */
 .su-rail__status {
   align-items: center;
   color: var(--color-ink-2);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-6) var(--space-8);
+  min-height: var(--size-compact);
 }
 
 .su-rail > .su-rail__status {
-  flex: 1 1 0;
-  min-width: min(100%, 15rem);
+  flex: 1 1 100%;
 }
 
 .su-rail__status > * {
   white-space: nowrap;
-}
-
-.su-rail__status ~ .su-rail__spring {
-  display: none;
 }
 
 .su-rail__tally {
@@ -623,8 +619,10 @@ html[data-srd-signed-in] .su-mediator-acts {
     max-width: none;
   }
 
+  /* Across the line, so its count badge never widens it. */
   .su-rail__filters {
     display: inline-flex;
+    flex: 1 1 auto;
   }
 
   .su-rail__facets {
@@ -648,16 +646,6 @@ html[data-srd-signed-in] .su-mediator-acts {
   .su-rail[data-open] .su-rail__menu {
     max-width: none;
     width: 100%;
-  }
-
-  /* On its own line under the controls, above any open facets, so the count
-     stays in view while the reader chooses (r5 E8). */
-  .su-rail > .su-rail__status {
-    flex-basis: 100%;
-  }
-
-  .su-rail__status ~ .su-rail__spring {
-    display: block;
   }
 }
 
@@ -791,6 +779,8 @@ html[data-srd-signed-in] .su-mediator-acts {
   font-size: var(--text-caption);
   gap: var(--space-4) var(--space-12);
   margin: 0 0 var(--space-8);
+  /* Its way back's height, sorted or not, so a sort moves no line (K17). */
+  min-height: var(--size-compact);
 }
 
 /* A list a phone draws with no column beside its names (Classes) offers none

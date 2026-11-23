@@ -758,8 +758,9 @@ describe('finding a Mech, and its pattern (r5 D4)', () => {
     await act(async () => {
       fireEvent.change(find, { target: { value: 'brawl' } })
     })
-    expect(within(mechs).getByText('Digger 2')).toBeTruthy()
-    expect(within(mechs).queryByText('Iron Jaw')).toBeNull()
+    expect(within(mechs).getByRole('link', { name: 'Digger 2' })).toBeTruthy()
+    // A hidden line still sizes the columns (chrome K17), unread: no line, no link.
+    expect(within(mechs).queryByRole('link', { name: 'Iron Jaw' })).toBeNull()
     await act(async () => {
       fireEvent.change(find, { target: { value: 'nothing like it' } })
     })

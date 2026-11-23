@@ -153,8 +153,9 @@ type ListingRailProps = {
    */
   awaitsIsland?: boolean
   /**
-   * What is filtered (the count, the tokens, Clear all): inline between the
-   * search and the menus where it fits, its own line beneath on a phone.
+   * What is filtered (a token per filter, Clear all), after the count on the
+   * status line: the rail's last line, drawn whenever it has a toolbar,
+   * filtered or not, so a filter never moves a control (chrome K17).
    */
   status?: ReactNode
   /**
@@ -199,6 +200,7 @@ export function ListingRail({
   const showFilters = part !== 'view'
   if (part === 'view' && !showView) return null
   if (part === 'filters' && !hasNameFilter && !hasFacets && !status) return null
+  const hasStatus = showFilters && (hasToolbar || Boolean(status))
   const activeFacets =
     filters.techLevels.size +
     (filters.source ? 1 : 0) +
@@ -251,7 +253,6 @@ export function ListingRail({
           )}
         </Button>
       )}
-      {showFilters && status}
       {part === 'all' && <span className="su-rail__spring" />}
       {showView && (
         <Segmented label={islandsCopy('view')} className="su-rail__view">
@@ -384,6 +385,16 @@ export function ListingRail({
             </Toggle>
           )}
         </div>
+      )}
+      {hasStatus && (
+        // The count, then what is filtered: one line under every control,
+        // there filtered or not, so a filter changes the list alone.
+        <output className="su-rail__status" aria-live="polite">
+          <span className="su-rail__tally">
+            {islandsCopy('of', { count: shown, count2: count })}
+          </span>
+          {status}
+        </output>
       )}
     </div>
   )

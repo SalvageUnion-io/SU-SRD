@@ -118,6 +118,39 @@ export function MechShelf({
     (id) => typeof mechs.find((m) => m.id === id)?.gameId !== 'string',
     remove && ((ids) => remove(mechs.filter((m) => ids.includes(m.id))))
   )
+  const shelfRow = ({ mech, own, values, over, what }: (typeof rows)[number]) => ({
+    id: mech.id,
+    name: mech.name,
+    href: `/mechs/${mech.id}`,
+    // A build over its chassis's slots says so in words, and which limit
+    // it is over, under its name (R71, r3 L5).
+    // A mech at 0 SP says Down and needs repair under its name (r6 C6).
+    under:
+      over || isDown(readings.get(mech.id)) ? (
+        <>
+          {own.under}
+          <UnitDown readings={readings.get(mech.id)} />
+          {over && <RuleBreakMark what={what} />}
+        </>
+      ) : (
+        own.under
+      ),
+    cells: MECH_COLUMNS.map((column) =>
+      column.key === 'game' ? (
+        inGame(own.game)
+      ) : column.key === buildShelvesCopy('cost') ? (
+        scrapCell(values[column.key])
+      ) : column.key === 'pattern' &&
+        mech.sourcePattern !== undefined &&
+        !patterns.some((p) => p.id === mech.sourcePattern) ? (
+        <ElsewherePattern key="pattern" mech={mech} fallback={String(values.pattern)} />
+      ) : (
+        (values[column.key] ?? '')
+      )
+    ),
+    menu: own.menu,
+    copy: own.copy,
+  })
   return (
     <ShelfLedger
       id="shelf-mechs"
@@ -136,39 +169,8 @@ export function MechShelf({
         setSort(next)
       }}
       select={select}
-      rows={sorted.map(({ mech, own, values, over, what }) => ({
-        id: mech.id,
-        name: mech.name,
-        href: `/mechs/${mech.id}`,
-        // A build over its chassis's slots says so in words, and which limit
-        // it is over, under its name (R71, r3 L5).
-        // A mech at 0 SP says Down and needs repair under its name (r6 C6).
-        under:
-          over || isDown(readings.get(mech.id)) ? (
-            <>
-              {own.under}
-              <UnitDown readings={readings.get(mech.id)} />
-              {over && <RuleBreakMark what={what} />}
-            </>
-          ) : (
-            own.under
-          ),
-        cells: MECH_COLUMNS.map((column) =>
-          column.key === 'game' ? (
-            inGame(own.game)
-          ) : column.key === buildShelvesCopy('cost') ? (
-            scrapCell(values[column.key])
-          ) : column.key === 'pattern' &&
-            mech.sourcePattern !== undefined &&
-            !patterns.some((p) => p.id === mech.sourcePattern) ? (
-            <ElsewherePattern key="pattern" mech={mech} fallback={String(values.pattern)} />
-          ) : (
-            (values[column.key] ?? '')
-          )
-        ),
-        menu: own.menu,
-        copy: own.copy,
-      }))}
+      rows={sorted.map(shelfRow)}
+      sizer={rows.filter((row) => !found.includes(row)).map(shelfRow)}
     />
   )
 }

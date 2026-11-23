@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import type { RefAbility, RefEntity } from 'salvageunion-reference'
 import {
   getEntitySlug,
@@ -272,13 +272,19 @@ function SchemaViewer({
     ? catalogGroupBy(schemaId)
     : resolveGroupBy(initialData, trees, orderedTechLevels, schemaId)
   const byName = flat && TREE_LISTINGS.has(schemaId)
-  const groups = useMemo(
-    () =>
+  const grouped = useCallback(
+    (data: RefEntity[]) =>
       groupEntities(
-        byName ? [...filteredData].sort((a, b) => a.name.localeCompare(b.name)) : filteredData,
+        byName ? [...data].sort((a, b) => a.name.localeCompare(b.name)) : data,
         groupBy
       ),
-    [filteredData, groupBy, byName]
+    [groupBy, byName]
+  )
+  const groups = useMemo(() => grouped(filteredData), [grouped, filteredData])
+  // Each List's every entry, unfiltered: what sets its columns (chrome K17).
+  const unfiltered = useMemo(
+    () => new Map(grouped(initialData).map((group) => [group.key, group.items])),
+    [grouped, initialData]
   )
   // The Tree draws each tree on its track, as the class page does: a Core,
   // Advanced or Hybrid tree's tiers 1-2-3, a Legendary tree's "or".
@@ -359,18 +365,10 @@ function SchemaViewer({
       view={view}
       actions={serverRender ? undefined : railActions}
       awaitsIsland={serverRender}
-      // What is filtered, only while something is: the count, a token per
-      // filter that removes it, and Clear all.
+      // What is filtered, while something is: a token per filter that
+      // removes it, and Clear all, after the count on the rail's status line.
       status={
-        hasActiveFilters &&
-        filteredData.length > 0 && (
-          <ListingFilterStatus
-            shown={filteredData.length}
-            total={initialData.length}
-            techLevels={orderedTechLevels}
-            filters={filters}
-          />
-        )
+        hasActiveFilters && <ListingFilterStatus techLevels={orderedTechLevels} filters={filters} />
       }
     />
   )
@@ -461,6 +459,7 @@ function SchemaViewer({
                       noun={group.label || band?.title || ''}
                       plain={!group.label || group.label === band?.title}
                       items={group.items}
+                      all={hasActiveFilters ? unfiltered.get(group.key) : undefined}
                       order={{
                         sort: filters.sort,
                         sortBy: filters.sortBy,
