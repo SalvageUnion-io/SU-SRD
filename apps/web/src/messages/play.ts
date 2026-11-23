@@ -115,6 +115,7 @@ export const playCopy = messages({
   done: 'Done ✓',
   markDone: 'Mark done',
   carriedScrap: 'Carried Scrap',
+  nothingToTally: 'You carry no Scrap home: nothing to tally.',
   moveToTheCrawler: 'Move to the crawler',
   movedScrapTo: 'Moved {count} Scrap to {crawler}.',
   scrapNeedsACrawler: 'Your Scrap goes to a Union Crawler’s pool: there is none yet.',

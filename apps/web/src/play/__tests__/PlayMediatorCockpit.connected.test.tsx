@@ -1161,6 +1161,33 @@ describe('Downtime', () => {
     ])
   })
 
+  // r7 D3 (LG7-23): a step every seat had finished still waited for the Mediator's Next.
+  test('a step every seat has finished moves on by itself, once, and says so', async () => {
+    const everyone = ['u-bonesaw', 'u-mags', 'u-rook', 'u-wren'].map((userId) => ({
+      userId,
+      displayName: userId,
+    }))
+    await renderCockpit({
+      'downtime.state': { running: true, stepIndex: 5, completedBy: everyone, upkeepSpent: true },
+    })
+    expect(sent()).toEqual([{ name: 'downtime.advance', args: {} }])
+    expect(screen.getByText(/^Moved on by itself, nothing left to do: 6 /)).toBeTruthy()
+  })
+
+  test('the last step, and one a seat is still working in, wait for the Mediator', async () => {
+    await renderCockpit(downtimeAt(5))
+    expect(names()).toEqual([])
+    cleanup()
+    const everyone = ['u-bonesaw', 'u-mags', 'u-rook', 'u-wren'].map((userId) => ({
+      userId,
+      displayName: userId,
+    }))
+    await renderCockpit({
+      'downtime.state': { running: true, stepIndex: 9, completedBy: everyone, upkeepSpent: true },
+    })
+    expect(names()).toEqual([])
+  })
+
   test('End Downtime before the last step asks first', async () => {
     await renderCockpit(downtimeAt(2))
     await click(named('End Downtime'))

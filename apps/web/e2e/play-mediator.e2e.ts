@@ -23,11 +23,12 @@ import { expect, test } from './fixtures'
  *     Propose, and proposes HP → 4; the proposal reads Pending. The player
  *     Accepts it on their Feed, and the Mediator's reads Applied — without the
  *     Mediator ever writing the sheet (ADR-030 §4).
- *  2. **Begin Downtime → a step → Advance.** Begin Downtime puts the table on
- *     step 1, and the player's screen follows into Downtime, locked for them.
- *     The player applies the step (or marks it done where it applies nothing),
- *     the Mediator sees them done, Advances, and the player's screen moves on.
- *     Back brings it back; Scene ends it.
+ *  2. **Begin Downtime → a step → it moves on.** Begin Downtime puts the
+ *     table on step 1, and the player's screen follows into Downtime, locked
+ *     for them; steps nobody can act in, and one every seat finished, pass
+ *     by themselves (r7 D3), and Back holds the step it lands on.
+ *     The player applies the step (or marks it done where it applies nothing)
+ *     and both screens move on. Scene ends it.
  *
  * Along the way both screens are held to the layout law at every Play
  * viewport (the page never scrolls) and scanned with axe in each state: the
@@ -122,22 +123,34 @@ test(
         .getByRole('alertdialog', { name: 'Begin Downtime?' })
         .getByRole('button', { name: 'Begin Downtime' })
         .click()
-      await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 1' })).toBeVisible({
-        timeout: 15_000,
-      })
-      await expect(page.getByRole('heading', { name: /^Downtime · Step 1 of \d+$/ })).toBeVisible()
+      // On step 1, or already past steps nobody can act in (r7 D3).
+      await expect(
+        gameState(page).getByRole('button', { name: /^Downtime · Step \d+$/ })
+      ).toBeVisible({ timeout: 15_000 })
+      await expect(
+        page.getByRole('heading', { name: /^Downtime · Step \d+ of \d+$/ })
+      ).toBeVisible()
 
       // The player's screen follows the table, and the Downtime is not theirs to end.
       await expect(
         situation(player.page).getByRole('button', { name: 'Downtime, set by the Mediator' })
       ).toHaveAttribute('aria-pressed', 'true', { timeout: 20_000 })
       await expect(
-        player.page.getByRole('heading', { name: /^Downtime · Step 1 of \d+$/ })
+        player.page.getByRole('heading', { name: /^Downtime · Step \d+ of \d+$/ })
       ).toBeVisible()
       await expectNoPageScroll(player.page, 'player in a Game, Downtime')
       a11y.push(...(await axeViolations(player.page, 'player in a Game, Downtime')))
       await expectNoPageScroll(page, 'Mediator, Downtime')
       a11y.push(...(await axeViolations(page, 'Mediator, Downtime')))
+
+      // Steps nobody can act in pass by themselves (r7 D3): no Scrap carried and
+      // no crawler, so the table moves past Tally Salvage and Upkeep to Restore.
+      await expect(page.getByRole('heading', { name: /^Downtime · Step 3 of \d+$/ })).toBeVisible({
+        timeout: 20_000,
+      })
+      await expect(
+        player.page.getByRole('heading', { name: /^Downtime · Step 3 of \d+$/ })
+      ).toBeVisible({ timeout: 20_000 })
 
       // The step box: the innermost region carrying its stamp (the Actions
       // column around it carries the text too).
@@ -146,23 +159,24 @@ test(
         .filter({ hasText: /Mediator advances · \d+ of \d+ done/ })
         .last()
       await step.getByRole('button', { name: /^(Apply & mark done|Mark done)$/ }).click()
-      await expect(step.getByText('Done ✓')).toBeVisible({ timeout: 15_000 })
-      await expect(page.getByText(/^1 of \d+ done$/)).toBeVisible({ timeout: 20_000 })
-      await expect(
-        page.getByRole('list', { name: 'Who is done' }).getByText('Done', { exact: true })
-      ).toBeVisible()
 
-      await page.getByRole('button', { name: 'Next: Step 2' }).click()
-      await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 2' })).toBeVisible({
-        timeout: 15_000,
+      // Every seat done, it moves on by itself, past Trade and Craft (no crawler), to step 6.
+      await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 6' })).toBeVisible({
+        timeout: 20_000,
       })
       await expect(
-        player.page.getByRole('heading', { name: /^Downtime · Step 2 of \d+$/ })
+        page.getByText(/^Moved on by itself, nothing left to do: .*3 Restore/)
+      ).toBeVisible()
+      await expect(
+        player.page.getByRole('heading', { name: /^Downtime · Step 6 of \d+$/ })
       ).toBeVisible({ timeout: 20_000 })
 
-      // Back brings the table back; Scene ends it, behind its confirm.
-      await page.getByRole('button', { name: 'Back to Step 1' }).click()
-      await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 1' })).toBeVisible()
+      // Back brings the table back, and the step stepped back to waits for Next;
+      // Scene ends it, behind its confirm.
+      await page.getByRole('button', { name: 'Back to Step 5' }).click()
+      await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 5' })).toBeVisible()
+      await page.getByRole('button', { name: 'Next: Step 6' }).waitFor()
+      await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 5' })).toBeVisible()
       await gameState(page).getByRole('button', { name: 'Scene' }).click()
       await page.getByRole('alertdialog').getByRole('button', { name: 'End Downtime' }).click()
       await expect(gameState(page).getByRole('button', { name: 'Begin Downtime' })).toBeVisible({

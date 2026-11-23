@@ -12,6 +12,8 @@ import {
   healAgainPatch,
   leftOnMove,
   mechBayOf,
+  nobodyActs,
+  passesByItself,
   restoreAgainLine,
   restoreLead,
   stepPlan,
@@ -309,5 +311,58 @@ describe('leftOnMove (r5 A3)', () => {
   test('a Back, or a step already left behind before, says nothing', () => {
     expect(leftOnMove(3, 1, [0, 2])).toEqual([])
     expect(leftOnMove(3, 4, [0, 2])).toEqual([])
+  })
+})
+
+// r7 D3 (MD7-14, LG7-23): ten Next presses for a Downtime where the player did one thing.
+describe('a step that passes by itself (r7 D3)', () => {
+  const base = {
+    stepName: 'Customise your Mech',
+    last: false,
+    held: false,
+    done: 1,
+    of: 2,
+    crawler: true,
+    carried: 0,
+    upkeepUnpaid: false,
+    nanitesWaiting: false,
+  }
+
+  test('nobody acts in Trade or Craft with no crawler, nor in Tally with no Scrap carried', () => {
+    expect(nobodyActs({ stepName: 'Trade', crawler: false, carried: 3 })).toBe(true)
+    expect(
+      nobodyActs({
+        stepName: 'Craft Mech Chassis, Systems, and Modules',
+        crawler: false,
+        carried: 3,
+      })
+    ).toBe(true)
+    expect(nobodyActs({ stepName: 'Trade', crawler: true, carried: 0 })).toBe(false)
+    expect(nobodyActs({ stepName: 'Tally Salvage', crawler: true, carried: 0 })).toBe(true)
+    expect(nobodyActs({ stepName: 'Tally Salvage', crawler: true, carried: 2 })).toBe(false)
+    // Units not read yet: nothing passes on a guess.
+    expect(nobodyActs({ stepName: 'Tally Salvage', crawler: true, carried: null })).toBe(false)
+  })
+
+  test('every seat done passes it; one still working does not', () => {
+    expect(passesByItself(base)).toBe(false)
+    expect(passesByItself({ ...base, done: 2 })).toBe(true)
+    expect(passesByItself({ ...base, done: 0, of: 0 })).toBe(false)
+  })
+
+  test('never the last step, one stepped back to, unpaid Upkeep or waiting Nanites', () => {
+    const all = { ...base, done: 2 }
+    expect(passesByItself({ ...all, last: true })).toBe(false)
+    expect(passesByItself({ ...all, held: true })).toBe(false)
+    expect(passesByItself({ ...all, stepName: 'Upkeep & Upgrade', upkeepUnpaid: true })).toBe(false)
+    expect(passesByItself({ ...all, stepName: 'Upkeep & Upgrade' })).toBe(true)
+    expect(
+      passesByItself({
+        ...base,
+        stepName: 'Craft Mech Chassis, Systems, and Modules',
+        crawler: false,
+        nanitesWaiting: true,
+      })
+    ).toBe(false)
   })
 })

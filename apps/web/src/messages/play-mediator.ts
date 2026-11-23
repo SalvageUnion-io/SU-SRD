@@ -84,6 +84,7 @@ export const mediatorCopy = messages({
     'Steps {from}–{to} are passed over for everyone: nothing in them is applied, and each player is told.',
   jumpToStep: 'Jump',
   passedOver: 'Passed over: {steps}.',
+  movedOnByItself: 'Moved on by itself, nothing left to do: {steps}.',
   leftWorking: '{step} ({who} still working)',
   done: 'Done',
   working: 'Working',

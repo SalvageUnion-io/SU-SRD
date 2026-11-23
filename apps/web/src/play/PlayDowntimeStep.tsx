@@ -141,6 +141,8 @@ export function PlayDowntimeStep({
   // Tally Salvage: the Scrap this pilot carries home, one press into the crawler (r6 D1).
   const carried = isTallyStep(stepIndex) ? carriedScrap(pilot, mech) : null
   const canMove = carried !== null && crawler !== null && downtime.moveScrap !== null
+  // Nothing carried: one line says so, never the book's paper-sheet paragraphs (r7 D3).
+  const nothingToTally = isTallyStep(stepIndex) && pilot !== null && carried === null
   const members = downtime.downtime.members
   const doneCount = downtime.downtime.completedBy.filter((m) =>
     members.some((member) => member.userId === m.userId)
@@ -371,7 +373,8 @@ export function PlayDowntimeStep({
           />
         </ul>
       )}
-      {carried !== null ? null : shown.length > 0 ? (
+      {nothingToTally && <p className="su-play-resolve__note">{playCopy('nothingToTally')}</p>}
+      {carried !== null || nothingToTally ? null : shown.length > 0 ? (
         <>
           {/* The ticks the words promise: said only where a line has one (r6 D2). */}
           {!claimed && applicable.length > 0 && (
@@ -442,7 +445,7 @@ export function PlayDowntimeStep({
           </>
         ) : seatFree ? (
           <span className="su-play-act__state">{playCopy('nothingForYourSeat')}</span>
-        ) : inGame ? (
+        ) : nothingToTally ? null : inGame ? (
           <Button size="compact" onClick={() => void skip()} disabled={off}>
             {playCopy('markDone')}
           </Button>

@@ -133,6 +133,25 @@ describe('Tally Salvage moves the Scrap', () => {
   })
 })
 
+// r7 D3 (LG7-22): a seat with no Scrap read four paragraphs about a paper Crawler Sheet.
+test('in a Game, a seat carrying no Scrap reads one line in Tally Salvage, and nothing to press', () => {
+  const { pilot, mech, crawler } = units()
+  render(
+    <Harness
+      pilot={pilot}
+      mech={mech}
+      situation="downtime"
+      store={stubStore(pilot, mech, crawler).store}
+      writes={[]}
+      gameId="g1"
+      downtime={{ stepIndex: 0, members: [{ userId: 'u-me', displayName: 'Me' }] }}
+    />
+  )
+  expect(within(stepBox()).getByText('You carry no Scrap home: nothing to tally.')).toBeTruthy()
+  expect(within(stepBox()).queryByText(/Crawler Sheet/i)).toBeNull()
+  expect(within(stepBox()).queryByRole('button')).toBeNull()
+})
+
 describe('a solo Downtime, end to end', () => {
   test('every step in turn: Upkeep paid once, Restore and Train applied, then End', async () => {
     const { pilot, mech, crawler } = units()

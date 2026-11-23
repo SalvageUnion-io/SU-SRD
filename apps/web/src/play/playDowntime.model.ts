@@ -19,6 +19,7 @@ import {
   mechBayStatus,
   medBayStatus,
   RESTORE_STEP_NAME,
+  TALLY_STEP_NAME,
   TRAIN_STEP_NAME,
   UPKEEP_STEP_NAME,
 } from 'game-domain/rules/downtime'
@@ -476,4 +477,48 @@ export function carriedScrap(
   const tally = sumScrap(pilotScrap(pilot), mechScrap(mech))
   const count = scrapCount(tally)
   return count === 0 ? null : { tally, count, chips: scrapChips(tally) }
+}
+
+/** The Trade step's name in the Crawler Downtime guide (p.228). */
+export const TRADE_STEP_NAME = 'Trade'
+
+/**
+ * Whether nobody at the table can act in a Game's step (r7 D3): Trade and
+ * Craft with no Union Crawler, Tally Salvage with no Scrap carried. `carried`
+ * is null while a seat's units are not yet read, so nothing passes on a guess.
+ */
+export function nobodyActs(input: {
+  stepName: string
+  crawler: boolean
+  carried: number | null
+}): boolean {
+  const { stepName, crawler, carried } = input
+  if (stepName === TRADE_STEP_NAME || stepName === CRAFT_STEP_NAME) return !crawler
+  if (stepName === TALLY_STEP_NAME) return carried === 0
+  return false
+}
+
+/**
+ * Whether a Game's step moves on by itself on the Mediator's screen (r7 D3,
+ * `DOWNTIME_AUTO_PASS`): every seat has finished it, or nobody can act in it.
+ * Never the last step (ending asks first), never one the Mediator stepped
+ * back to (`held`), never Upkeep while the crawler's is unpaid (the
+ * Mediator's to pay), and never Craft while Nanites wait to be processed.
+ */
+export function passesByItself(input: {
+  stepName: string
+  last: boolean
+  held: boolean
+  done: number
+  of: number
+  crawler: boolean
+  carried: number | null
+  upkeepUnpaid: boolean
+  nanitesWaiting: boolean
+}): boolean {
+  const { stepName, last, held, done, of } = input
+  if (last || held) return false
+  if (stepName === UPKEEP_STEP_NAME && input.upkeepUnpaid) return false
+  if (stepName === CRAFT_STEP_NAME && input.nanitesWaiting) return false
+  return nobodyActs(input) || (of > 0 && done >= of)
 }
