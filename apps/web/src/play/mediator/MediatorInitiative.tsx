@@ -35,7 +35,7 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollTable } from '../PlayRollTable'
 import { recordPlayRoll } from '../playRolls.model'
 import { INITIATIVE_TABLE } from '../tables.model'
-import { mediatorSides } from './initiative.model'
+import { fieldGroups } from './initiative.model'
 import { NOTE, NOTE_MUTED } from './mediatorStyles.model'
 import type { InitiativeTracker } from './useInitiative'
 import { usePassingSides } from './useInitiative'
@@ -63,9 +63,9 @@ export function MediatorInitiative({
 }) {
   const { initiative, set, lastStep } = tracker
   const live = mediator.canWrite
-  const sides = mediatorSides(mediator)
+  const { sides } = tracker
   // A pilot's End my turn marks them Acted in the room; the side passes here (r7 C3).
-  usePassingSides(mediator.gameId, tracker, sides, live)
+  usePassingSides(mediator.gameId, tracker, live)
   if (initiative === null) {
     return live ? (
       <div style={ROW}>
@@ -77,6 +77,8 @@ export function MediatorInitiative({
   }
 
   const rounds = INITIATIVE_MODE === 'rounds'
+  const groups = fieldGroups(mediator)
+  const split = initiative.split ?? []
   const done = roundDone(initiative, sides)
   // What the app just did by itself, said once, with its Undo (r7 C3).
   const nameOf = (id: string) =>
@@ -121,6 +123,31 @@ export function MediatorInitiative({
             </SegmentedOption>
           ))}
         </Segmented>
+      )}
+      {/* One Opposition, however prep added them; a group can be split off (r7 C4, p.236). */}
+      {live && groups.length > 0 && (
+        <div style={ROW}>
+          {groups.map((group) => {
+            const isSplit = split.includes(group.id)
+            return (
+              <Toggle
+                key={group.id}
+                size="mini"
+                pressed={isSplit}
+                glyph={isSplit ? '✓' : undefined}
+                onClick={() => {
+                  const next = isSplit
+                    ? split.filter((id) => id !== group.id)
+                    : [...split, group.id]
+                  const { split: _was, ...rest } = initiative
+                  set(next.length === 0 ? rest : { ...rest, split: next })
+                }}
+              >
+                {mediatorCopy('splitOff', { name: group.name })}
+              </Toggle>
+            )
+          })}
+        </div>
       )}
       {asking && live && (
         <>

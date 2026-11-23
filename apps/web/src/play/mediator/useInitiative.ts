@@ -16,7 +16,8 @@ import { useEffect, useSyncExternalStore } from 'react'
 import type { Initiative, InitiativeSide } from '../../lib/rules/initiative'
 import { withActed } from '../../lib/rules/initiative'
 import { useTableAct, useTableRead } from '../../replica/useTable'
-import { passedSide, TURNS_RUN_THEMSELVES } from './initiative.model'
+import type { SidesOf } from './initiative.model'
+import { mediatorSides, passedSide, TURNS_RUN_THEMSELVES } from './initiative.model'
 
 /** An automatic step: the tracker before it and after, and who acted, if a unit did. */
 export type AutoStep = { before: Initiative; after: Initiative; acted?: string; passedTo?: string }
@@ -53,6 +54,8 @@ export function actedAndPassed(
 export type InitiativeTracker = {
   /** The tracker kept; null when none is (or while it loads). */
   initiative: Initiative | null
+  /** The sides as the tracker keeps them: one Opposition, but for the groups split off (r7 C4). */
+  sides: readonly InitiativeSide[]
   /** Keep it as moved, or end it with null. */
   set: (next: Initiative | null) => void
   /** Mark one seat or unit as having acted this round, or not. */
@@ -70,9 +73,11 @@ export type InitiativeTracker = {
 export function useInitiative(
   gameId: string,
   onFailure: (err: unknown) => void,
-  sides: readonly InitiativeSide[] = []
+  /** Whose sides they are: the seats and the units standing (`mediatorSides`). */
+  table?: SidesOf
 ): InitiativeTracker {
   const initiative = useTableRead('mediator.initiative', { gameId }) ?? null
+  const sides = table === undefined ? [] : mediatorSides(table, initiative?.split)
   const act = useTableAct('mediator.setInitiative', gameId)
   const send = (next: Initiative | null) => {
     act({ initiative: next }).catch(onFailure)
@@ -104,6 +109,7 @@ export function useInitiative(
   }
   return {
     initiative,
+    sides,
     set,
     setActed: (id, acted) => {
       if (initiative === null) return
@@ -141,13 +147,8 @@ export function useInitiative(
  * marks them Acted in the room, and the side moves here, on the Mediator's
  * screen, with the same Undo. A state the Mediator set or undid to is left alone.
  */
-export function usePassingSides(
-  gameId: string,
-  tracker: InitiativeTracker,
-  sides: readonly InitiativeSide[],
-  live: boolean
-): void {
-  const { initiative } = tracker
+export function usePassingSides(gameId: string, tracker: InitiativeTracker, live: boolean): void {
+  const { initiative, sides } = tracker
   const passed = initiative === null ? null : passedSide(initiative, sides)
   const key = initiative === null ? '' : keyOf(initiative)
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the tracker's state, which `key` spells; `tracker` is rebuilt every render

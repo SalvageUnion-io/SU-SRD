@@ -41,7 +41,6 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { SalvageAreaDialog } from '../SalvageAreaDialog'
 import { sceneConditionNames } from '../useScene'
 import { ClearFieldDialog, EndEncounterDialog } from './ClearFieldDialogs'
-import { mediatorSides } from './initiative.model'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
 import { sinkDowned, trayEntries } from './opposition.model'
@@ -90,11 +89,7 @@ export function PlayMediatorOpposition({
   const [ending, setEnding] = useState(false)
   const { area } = mediator
   // Each unit standing carries its Group Initiative mark while one is kept (r6 B4).
-  const { initiative, setActed, markActed } = useInitiative(
-    mediator.gameId,
-    onFailure,
-    mediatorSides(mediator)
-  )
+  const { initiative, setActed, markActed } = useInitiative(mediator.gameId, onFailure, mediator)
   // The Scene's conditions that are on: End asks whether to clear them (r4 A11).
   const sceneOn = sceneConditionNames(mediator.scene.conditions)
   const fail = (write: Promise<unknown>) => void write.catch(onFailure)

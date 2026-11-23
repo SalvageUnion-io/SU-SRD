@@ -35,6 +35,8 @@ export const InitiativeSchema = z
     side: ID.optional(),
     /** The pilots and opposition units that have taken their turn this round. */
     acted: z.array(ID).max(200),
+    /** The encounter groups the Mediator split off the Opposition as sides of their own (r7 C4). */
+    split: z.array(ID).max(50).optional(),
   })
   .strict()
 
@@ -107,7 +109,11 @@ export function nextSide(sides: readonly InitiativeSide[], current: string | und
 
 /** A new round: the first, or the one after `previous`; nobody acted, who goes first not yet said. */
 export function newRound(previous: Initiative | null): Initiative {
-  return { round: previous === null ? 1 : previous.round + 1, acted: [] }
+  const round = previous === null ? 1 : previous.round + 1
+  // The groups split off stay split from round to round.
+  return previous?.split?.length
+    ? { round, acted: [], split: previous.split }
+    : { round, acted: [] }
 }
 
 /** Mark `id` as having acted this round, or not. */
