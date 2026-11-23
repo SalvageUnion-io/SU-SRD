@@ -502,6 +502,8 @@ export const playCopy = messages({
   readOnlySignedOut: 'Read-only · signed out',
   readOnlySignedOutSays: 'Read-only: sign in to play.',
   readOnlyServerSays: 'Read-only: the server is not taking changes right now.',
+  actionOfMech: '{name} · Mech',
+  actionOfPilot: '{name} · Pilot',
   needsBoarded: 'needs Boarded',
   needsDowntime: 'needs Downtime',
   afterDowntime: 'after Downtime',

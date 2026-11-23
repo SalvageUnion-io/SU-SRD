@@ -149,7 +149,7 @@ export function buildActionList({
     ...pilotActions.map((action) => unitEntry(action, 'pilot', situation)),
     ...companionActions.map((action) => unitEntry(action, 'companion', situation)),
   ]
-  const sorted = units
+  const sorted = sayWhose(units)
     .map((entry, i) => ({ entry, i }))
     .sort((a, b) => rankOf(a.entry) - rankOf(b.entry) || a.i - b.i)
     .map(({ entry }) => entry)
@@ -182,6 +182,26 @@ function unitEntry(action: PlayAction, source: ActionSource, situation: Situatio
     action,
     need: needFor(reach, type, situation),
   }
+}
+
+/**
+ * A Mech's action and a Pilot's that share a name each say whose they are
+ * ("System Repair · Mech", "System Repair · Pilot", r7 B5); any other name
+ * stays bare.
+ */
+function sayWhose(entries: ListEntry[]): ListEntry[] {
+  const sources = new Map<string, Set<ActionSource>>()
+  for (const entry of entries) {
+    if (entry.kind !== 'action') continue
+    sources.set(entry.name, (sources.get(entry.name) ?? new Set()).add(entry.source))
+  }
+  return entries.map((entry) => {
+    if (entry.kind !== 'action' || entry.source === 'companion') return entry
+    const whose = sources.get(entry.name)
+    if (!(whose?.has('mech') && whose.has('pilot'))) return entry
+    const key = entry.source === 'mech' ? 'actionOfMech' : 'actionOfPilot'
+    return { ...entry, name: playCopy(key, { name: entry.name }) }
+  })
 }
 
 function rankOf(entry: ListEntry): number {

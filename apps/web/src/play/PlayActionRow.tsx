@@ -144,6 +144,8 @@ export function PlayActionRow({
       }),
     [entry.action, techLevel, grouped, usesLeft, usesMax]
   )
+  // A name two of the list's actions share says whose this one is (r7 B5).
+  const titled = entry.name === entry.action.name ? model : { ...model, title: entry.name }
   const wide = usePlayWide()
   const companion = entry.action.companion
   const open = resolve !== null
@@ -243,7 +245,7 @@ export function PlayActionRow({
       <Entity
         size="mini"
         context="play"
-        model={model}
+        model={titled}
         mode={OPENS_SOURCE}
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
         tint={companion?.tone ?? entry.source}
