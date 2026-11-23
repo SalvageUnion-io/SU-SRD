@@ -196,12 +196,16 @@ describe('the card as a page', () => {
     expect(column?.nextElementSibling?.classList.contains('su-manual__ability')).toBe(true)
   })
 
-  test('the chassis ability follows the stats in the main column under its own h2: its rules text, never a heading', () => {
+  test('the chassis ability follows the stats in the main column, its name the h2 and "Chassis Ability" beside it: its rules text, never a heading', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     const section = need(
-      screen.getByRole('heading', { name: 'Chassis Ability', level: 2 }).closest('section') ??
-        undefined,
+      screen
+        .getByRole('heading', { name: 'Integrated Expanded Transport Hold', level: 2 })
+        .closest('section') ?? undefined,
       'the chassis ability section'
+    )
+    expect(section.querySelector('.su-slab-section__head')?.textContent).toContain(
+      'Chassis Ability'
     )
     expect(section.closest('.su-manual__main')).not.toBeNull()
     expect(section.querySelector('.su-row-rules')?.textContent).toContain('Cargo Capacity')

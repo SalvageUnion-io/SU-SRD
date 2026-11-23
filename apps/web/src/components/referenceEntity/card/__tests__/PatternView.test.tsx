@@ -89,7 +89,7 @@ describe('the chassis ability shows only on a page', () => {
     const { container } = render(<ReferenceEntityCard data={mule()} presentation="page" />)
     expect(abilityCount(container)).toBe(1)
     // Under its own section in the side column, its rules text.
-    const section = screen.getByRole('heading', { name: 'Chassis Ability', level: 2 })
+    const section = screen.getByRole('heading', { name: 'Integrated Cargo Bay', level: 2 })
     expect(section.closest('section')?.querySelectorAll('.su-row-rules')).toHaveLength(1)
   })
 

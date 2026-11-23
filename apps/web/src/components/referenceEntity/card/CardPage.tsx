@@ -261,8 +261,8 @@ export function CardPage({
     // The chassis ability follows the stats in the main track (RR6-06): the
     // rule a reader came for, beside the numbers, the art after it. Its tab is
     // the paper of its panel.
-    // The strip reads "Chassis ability" with the ability's name in it; its
-    // body is the ability's words (as a mech sheet's side cell).
+    // The strip's tab is the ability's name, "Chassis Ability" the label
+    // beside it; its body is the ability's words.
     const ability =
       leadActions.length > 0 &&
       leadActions.map((data) => {
@@ -271,8 +271,8 @@ export function CardPage({
           <SlabSection
             key={lead.ref.slug}
             as={sectionAs}
-            title={referenceEntityCopy('chassisAbility')}
-            count={<Mention entityRef={lead.ref}>{lead.title}</Mention>}
+            title={<Mention entityRef={lead.ref}>{lead.title}</Mention>}
+            count={referenceEntityCopy('chassisAbility')}
             page
             className="su-manual__ability"
             bodyClassName={cn('su-entity-page__section-body', 'su-chassis-ability')}
