@@ -94,11 +94,11 @@ const LEDGER_ROW = '.su-ledger__table > tbody > tr'
  * edge (the name's, an ability's or a trait's), so the columns it is read
  * beside stay in view. Read live, so it follows a scroll.
  */
-function underRow(trigger: HTMLElement, row: HTMLElement) {
+function underRow(trigger: HTMLElement, row: HTMLElement, whole = false) {
   return {
     contextElement: trigger,
     getBoundingClientRect: () => {
-      const own = trigger.getBoundingClientRect()
+      const own = whole ? row.getBoundingClientRect() : trigger.getBoundingClientRect()
       const line = row.getBoundingClientRect()
       return DOMRect.fromRect({
         x: own.left,
@@ -107,6 +107,38 @@ function underRow(trigger: HTMLElement, row: HTMLElement) {
         height: line.height,
       })
     },
+  }
+}
+
+/** The Peek plate's width, by its form: a contentful Mini's, else a Compact's. */
+const plateWidth = (size: PeekSize | undefined) => (size === 'mini' ? 360 : 500)
+
+/**
+ * Where a Peek from a list's row stands so the rows a reader compares stay in
+ * view (RR8-11): beside the list, level with the row, where the screen has
+ * the room; else under the row at its far end, clear of the names and figures
+ * read down its first columns. Read as the Peek opens.
+ */
+function besideList(trigger: HTMLElement, row: HTMLElement, width: number) {
+  const list = row.closest('table') ?? row
+  const room = (side: 'left' | 'right') => {
+    const box = list.getBoundingClientRect()
+    return side === 'right' ? window.innerWidth - box.right : box.left
+  }
+  const side = (['right', 'left'] as const).find((edge) => room(edge) >= width + 16)
+  if (!side)
+    return { at: underRow(trigger, row, true), side: 'bottom' as const, align: 'end' as const }
+  return {
+    at: {
+      contextElement: trigger,
+      getBoundingClientRect: () => {
+        const box = list.getBoundingClientRect()
+        const line = row.getBoundingClientRect()
+        return DOMRect.fromRect({ x: box.left, y: line.top, width: box.width, height: line.height })
+      },
+    },
+    side,
+    align: 'start' as const,
   }
 }
 
@@ -216,9 +248,14 @@ export function PeekPopup({
 }) {
   const [loaded, setLoaded] = useState(false)
   const [sheet] = useState(onPhone)
-  // From a list's row the Peek hangs under the whole row (r6 G7).
+  // From a list's row the Peek stands beside the list, or under the row's far
+  // end, clear of the rows compared (r6 G7, RR8-11).
   const row = anchor.closest<HTMLElement>(LEDGER_ROW)
-  const at = useMemo(() => (row ? underRow(anchor, row) : anchor), [anchor, row])
+  const place = useMemo(
+    () => (row && !sheet ? besideList(anchor, row, plateWidth(size)) : undefined),
+    [anchor, row, sheet, size]
+  )
+  const at = place?.at ?? anchor
   useEffect(() => {
     let live = true
     // A term is the app's own words: no schema to read.
@@ -304,11 +341,12 @@ export function PeekPopup({
           // A trigger whose controls sit below it asks for the room above (r6 E20);
           // a Peek opened by focus sits above its line, a row's below the row (r6 G8).
           side={
-            anchor.getAttribute('data-peek-side') === 'top' || (how === 'focus' && !row)
+            place?.side ??
+            (anchor.getAttribute('data-peek-side') === 'top' || (how === 'focus' && !row)
               ? 'top'
-              : 'bottom'
+              : 'bottom')
           }
-          align="start"
+          align={place?.align ?? 'start'}
           sideOffset={5}
           collisionPadding={8}
           style={PEEK_LAYER}
@@ -322,7 +360,7 @@ export function PeekPopup({
               background: 'transparent',
               maxHeight: '80vh',
               overflowY: 'auto',
-              width: size === 'mini' ? '360px' : '500px',
+              width: `${plateWidth(size)}px`,
             }}
           >
             {card ? (

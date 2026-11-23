@@ -144,10 +144,11 @@ describe('a sort in the address', () => {
 describe('sorting by damage (r2 H3)', () => {
   const cells = ['2d20 SP', '3 SP', '', 'X SP', '9 SP', '', '4 SP', '1d6 HP']
 
-  it('low to high: numbers and dice (by their average) in order, then X, then the blanks', () => {
+  // A unit is its own scale (a Mech takes half from HP): HP and SP never interleave (RR8-10).
+  it('low to high: HP, then SP, each by value (dice by their average), then X, then the blanks', () => {
     expect([...cells].sort((a, b) => compareCells(a, b, false))).toEqual([
-      '3 SP',
       '1d6 HP',
+      '3 SP',
       '4 SP',
       '9 SP',
       '2d20 SP',
@@ -157,13 +158,13 @@ describe('sorting by damage (r2 H3)', () => {
     ])
   })
 
-  it('high to low: the values run down, and X and the blanks still trail', () => {
+  it('high to low: SP, then HP, the values running down, and X and the blanks still trail', () => {
     expect([...cells].sort((a, b) => compareCells(a, b, true))).toEqual([
       '2d20 SP',
       '9 SP',
       '4 SP',
-      '1d6 HP',
       '3 SP',
+      '1d6 HP',
       'X SP',
       '',
       '',
