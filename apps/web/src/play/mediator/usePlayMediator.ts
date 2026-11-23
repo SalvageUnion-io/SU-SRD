@@ -363,6 +363,10 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
             : { important },
       }),
     setReactor: (npc, patch) => updateNpc({ npcId: npcId(npc), patch }),
+    setUses: (npc, key, spent) =>
+      updateNpc({ npcId: npcId(npc), patch: { usesSpent: { [key]: spent } } }),
+    setTitanic: (npc, spent, round) =>
+      updateNpc({ npcId: npcId(npc), patch: { titanicSpent: { round, spent } } }),
     critical: async (npc) => {
       if (npc.track === null) return
       const tableName = criticalTable(npc.track.critical)?.name

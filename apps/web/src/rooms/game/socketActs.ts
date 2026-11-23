@@ -76,6 +76,8 @@ const TRAY_PATCH = z.object({
   currentEp: z.number().optional(),
   currentHeat: z.number().optional(),
   lastImportantRoll: z.unknown().optional(),
+  usesSpent: z.record(z.string(), z.number()).optional(),
+  titanicSpent: z.unknown().optional(),
 })
 
 const SEAT = z.object({ pilotId: z.string() })

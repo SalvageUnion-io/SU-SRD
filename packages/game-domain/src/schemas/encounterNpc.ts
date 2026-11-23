@@ -173,6 +173,20 @@ export const EncounterNpcSchema = z
     /** Its last Critical roll or Heat Check, kept apart from its Morale. */
     lastImportantRoll: MediatorRollResultSchema.optional(),
 
+    /**
+     * The Uses its limited actions have spent, by action id (r8 B3): what the
+     * book's Uses trait counts, kept on the unit as a Pilot's are.
+     */
+    usesSpent: z.record(z.string(), z.number().int().min(0)).optional(),
+    /**
+     * The Titanic Actions a Bio-Titan has spent, and the initiative round they
+     * were spent in (r8 B3): a later round has them all back.
+     */
+    titanicSpent: z
+      .object({ round: z.number().int().min(0), spent: z.number().int().min(0) })
+      .strict()
+      .optional(),
+
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

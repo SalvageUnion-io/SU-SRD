@@ -25,6 +25,11 @@
  * Rolled, an action is done with (r8 B5): its line is on the Feed and its panel
  * folds, so only one Roll the die is ever open; a hit to offer keeps the
  * result, its roll read-only, until it is proposed or cancelled.
+ *
+ * The book's bookkeeping is counted (r8 B3): a limited action shows its Uses
+ * left and spends one when rolled; a Passive reads as text with no Use; a
+ * Bio-Titan's Titanic Actions show what is left this round, a later round
+ * having them all back. − / + on either corrects it.
  */
 
 import type { ProposalTarget } from 'game-domain/games/proposals'
@@ -46,11 +51,20 @@ import {
 import { actionEffect } from '../../lib/rules/actionEffect'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollInstrument } from '../PlayRollInstrument'
+import { PlayVital } from '../PlayVital'
 import { playLineModel } from '../playLine.model'
 import { reportingRoll } from '../playRolls.model'
 import { usePlayWide } from '../usePlayWide'
 import type { NpcAction } from './npcActions.model'
-import { npcActions } from './npcActions.model'
+import {
+  npcActions,
+  titanicLeft,
+  titanicOf,
+  usable,
+  usesKey,
+  usesLeft,
+  usesOf,
+} from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
 import type { ProposeArgs } from './ProposeDock'
 import type { HitDamage } from './proposalLine.model'
@@ -102,6 +116,15 @@ type PlayNpcActionsProps = {
   rollFor?: typeof rollForTable | undefined
   /** An action was rolled: the unit has taken its turn (r7 C3). */
   onActed?: (() => void) | undefined
+  /** The unit's counted Uses and Titanic Actions (r8 B3); absent, they only read. */
+  counts?: NpcCounts | undefined
+}
+
+/** Where a unit's counts are written (r8 B3), and the round its Titanic Actions are spent in. */
+export type NpcCounts = {
+  round: number
+  onUses: (key: string, spent: number) => void
+  onTitanic: (spent: number) => void
 }
 
 export function PlayNpcActions({
@@ -111,6 +134,7 @@ export function PlayNpcActions({
   hit,
   rollFor = rollForTable,
   onActed,
+  counts,
 }: PlayNpcActionsProps) {
   const actions = useMemo(() => npcActions(npc), [npc])
   // The action resolving in its Mini: one at a time, as a player's.
@@ -138,6 +162,7 @@ export function PlayNpcActions({
             hit={live ? hit : undefined}
             rollFor={rollFor}
             onActed={onActed}
+            counts={live ? counts : undefined}
           />
         ))}
         <li className="su-play-act" data-action-key="morale">
@@ -171,6 +196,7 @@ function NpcActionRow({
   hit,
   rollFor,
   onActed,
+  counts,
 }: {
   npc: TrayNpc
   entry: NpcAction
@@ -180,6 +206,7 @@ function NpcActionRow({
   hit: NpcHit | undefined
   rollFor: typeof rollForTable
   onActed: (() => void) | undefined
+  counts: NpcCounts | undefined
 }) {
   // The same row text as the player's board: the effect alone.
   // A chassis ability names its chassis by a token: the row reads the name (r5 B9).
@@ -200,6 +227,33 @@ function NpcActionRow({
   const wide = usePlayWide()
   const [rolled, setRolled] = useState<{ die: number; band: string } | null>(null)
   const damage = useMemo(() => hitDamageOf(entry.action), [entry.action])
+  // Its book bookkeeping (r8 B3): a limited action's Uses, a Bio-Titan's Titanic Actions this round.
+  const key = usesKey(entry.action)
+  const uses = usesOf(entry.action)
+  const titanic = titanicOf(entry.action)
+  const usesNow = uses === null ? null : usesLeft(uses, npc.usesSpent[key])
+  const titanicNow =
+    titanic === null ? null : titanicLeft(titanic, npc.titanicSpent, counts?.round ?? 0)
+  const counter =
+    uses !== null && usesNow !== null ? (
+      <PlayVital
+        label={mediatorCopy('usesLabel')}
+        value={usesNow}
+        max={uses}
+        tone="adversary"
+        onChange={counts ? (next) => counts.onUses(key, uses - next) : undefined}
+      />
+    ) : titanic !== null && titanicNow !== null ? (
+      <PlayVital
+        label={mediatorCopy('titanicLabel')}
+        value={titanicNow}
+        max={titanic}
+        tone="adversary"
+        onChange={counts ? (next) => counts.onTitanic(titanic - next) : undefined}
+      />
+    ) : null
+  // A Passive, and the Titanic count, are read, never rolled (r8 B3).
+  const canUse = usable(entry)
 
   async function roll() {
     let said: string | undefined
@@ -210,6 +264,8 @@ function NpcActionRow({
     }))(20)
     said = npcActionOutcome(die) || undefined
     onActed?.()
+    // A limited action spends one of its Uses (r8 B3).
+    if (uses !== null && usesNow !== null) counts?.onUses(key, uses - usesNow + 1)
     // Rolled, the action is done with (r8 B5): its line is on the Feed, and
     // the panel folds, so only one Roll the die is ever open. A hit to offer
     // keeps it, without the roll, until it is proposed.
@@ -237,12 +293,13 @@ function NpcActionRow({
             >
               {mediatorCopy('cancel')}
             </Button>
-          ) : (
+          ) : !canUse ? undefined : (
             <Button
               // Every Use is rust; a phone's is a 44px target.
               size={wide ? 'mini' : 'full'}
               variant="primary"
-              disabled={!live}
+              // A limited action with no Uses left is spent (r8 B3).
+              disabled={!live || usesNow === 0}
               aria-label={mediatorCopy('useFor', { name: entry.name, name2: npc.name })}
               onClick={() => onOpen(true)}
             >
@@ -255,6 +312,7 @@ function NpcActionRow({
               body: {
                 children: (
                   <div className="su-play-resolve">
+                    {counter}
                     {/* The result and its hit sit at the top, above the table (r5 B6). */}
                     {rolled ? (
                       <div style={RESULT}>
@@ -280,10 +338,14 @@ function NpcActionRow({
               // range, damage and traits before Use (r5 B8).
               body: {
                 text: false,
-                children:
-                  typeof first === 'string' ? (
-                    <TraitProse as="p" className="su-play-act__effect" text={first} />
-                  ) : null,
+                children: (
+                  <>
+                    {counter}
+                    {typeof first === 'string' ? (
+                      <TraitProse as="p" className="su-play-act__effect" text={first} />
+                    ) : null}
+                  </>
+                ),
               },
             })}
       />

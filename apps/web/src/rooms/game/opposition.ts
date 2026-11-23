@@ -49,7 +49,17 @@ export type TrayPatch = {
   currentEp?: number
   currentHeat?: number
   lastImportantRoll?: unknown
+  /** Uses spent, by action id: merged into what the unit has spent (r8 B3). */
+  usesSpent?: Record<string, number>
+  /** Titanic Actions spent this round (r8 B3). */
+  titanicSpent?: unknown
 }
+
+/** A unit's spent Uses, as the record holds them. */
+const UsesSpentSchema = EncounterNpcSchema.shape.usesSpent.unwrap()
+
+/** A Bio-Titan's spent Titanic Actions, as the record holds them. */
+const TitanicSpentSchema = EncounterNpcSchema.shape.titanicSpent.unwrap()
 
 export class GameOpposition {
   constructor(
@@ -143,6 +153,16 @@ export class GameOpposition {
       }
       if (patch.lastImportantRoll !== undefined) {
         next.lastImportantRoll = MediatorRollResultSchema.parse(patch.lastImportantRoll)
+      }
+      if (patch.usesSpent !== undefined) {
+        const kept = UsesSpentSchema.safeParse(body.usesSpent)
+        next.usesSpent = {
+          ...(kept.success ? kept.data : {}),
+          ...UsesSpentSchema.parse(patch.usesSpent),
+        }
+      }
+      if (patch.titanicSpent !== undefined) {
+        next.titanicSpent = TitanicSpentSchema.parse(patch.titanicSpent)
       }
       this.write(npcId, next, at)
     })

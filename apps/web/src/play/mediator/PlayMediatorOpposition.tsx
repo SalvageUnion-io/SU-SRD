@@ -183,6 +183,11 @@ export function PlayMediatorOpposition({
             rollFor={rollFor}
             // Rolling an action is its turn: it is marked Acted (r7 C3).
             onActed={() => markActed(npc.id)}
+            counts={{
+              round: initiative?.round ?? 0,
+              onUses: (key, spent) => fail(tray.setUses(npc, key, spent)),
+              onTitanic: (spent) => fail(tray.setTitanic(npc, spent, initiative?.round ?? 0)),
+            }}
           />
         ) : null
       }

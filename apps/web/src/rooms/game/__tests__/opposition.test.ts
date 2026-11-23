@@ -195,6 +195,23 @@ describe('waves and groups', () => {
     expect(room.opposition.tray(MEDIATOR).map((n) => n.lastMediatorRoll)).toEqual([undefined, roll])
   })
 
+  test('a unit keeps the Uses it spent and its Titanic Actions this round (r8 B3)', () => {
+    const { room } = table()
+    const id = room.opposition.addNpc(MEDIATOR, { name: 'Scylla', currentHp: 39, maxHp: 39 }, AT)
+    room.opposition.updateNpc(MEDIATOR, id, { usesSpent: { plating: 1 } }, AT)
+    room.opposition.updateNpc(MEDIATOR, id, { usesSpent: { other: 2 } }, AT)
+    room.opposition.updateNpc(MEDIATOR, id, { titanicSpent: { round: 2, spent: 1 } }, AT)
+    const [scylla] = room.opposition.tray(MEDIATOR)
+    expect(scylla?.usesSpent).toEqual({ plating: 1, other: 2 })
+    expect(scylla?.titanicSpent).toEqual({ round: 2, spent: 1 })
+    expect(() =>
+      room.opposition.updateNpc(MEDIATOR, id, { usesSpent: { plating: -1 } }, AT)
+    ).toThrow()
+    expect(() =>
+      room.opposition.updateNpc(MEDIATOR, id, { titanicSpent: { spent: 1 } }, AT)
+    ).toThrow()
+  })
+
   test('a wreck is salvaged once, and only once it is down', () => {
     const { room } = table()
     const id = room.opposition.addNpc(MEDIATOR, { name: 'Raider', currentHp: 2, maxHp: 4 }, AT)

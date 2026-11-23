@@ -8,7 +8,7 @@ import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { rollForTable } from '../../../components/index'
-import { npcActions } from '../npcActions.model'
+import { npcActions, titanicLeft, titanicOf, usable, usesKey, usesOf } from '../npcActions.model'
 import { newTrayNpc, readTrayNpc } from '../opposition.model'
 import { PlayNpcActions } from '../PlayNpcActions'
 import { hitDamageOf } from '../proposalLine.model'
@@ -109,3 +109,65 @@ describe('an NPC action, rolled (r8 B5)', () => {
     ).toBeNull()
   })
 })
+
+function scylla(body: Record<string, unknown> = {}) {
+  const titan = SalvageUnionReference.BioTitans.getByName('Scylla')
+  if (titan === undefined) throw new Error('no Scylla')
+  return readTrayNpc({ _id: 's1', body: { ...newTrayNpc('bio-titans', titan, [], NOW), ...body } })
+}
+
+const NOW = '2026-11-22T00:00:00.000Z'
+
+describe('a Bio-Titan’s bookkeeping (r8 B3)', () => {
+  test('the data names its Uses and its Titanic Actions', () => {
+    const actions = npcActions(scylla())
+    const plating = actions.find((a) => a.name.startsWith('Armour Plating'))
+    const titanic = actions.find((a) => a.name.startsWith('Titanic Actions'))
+    if (plating === undefined || titanic === undefined) throw new Error('no Scylla actions')
+    expect(usesOf(plating.action)).toBe(3)
+    expect(titanicOf(titanic.action)).toBe(3)
+    expect(usable(plating)).toBe(false)
+    expect(usable(titanic)).toBe(false)
+    expect(titanicLeft(3, { round: 2, spent: 2 }, 2)).toBe(1)
+    // A later round has them all back.
+    expect(titanicLeft(3, { round: 2, spent: 2 }, 3)).toBe(3)
+  })
+
+  test('a Passive and the Titanic count offer no Use; each shows what is left and steps', async () => {
+    const npc = scylla({
+      usesSpent: { [usesKey(platingOf())]: 1 },
+      titanicSpent: { round: 1, spent: 1 },
+    })
+    const said: unknown[] = []
+    render(
+      <PlayNpcActions
+        npc={npc}
+        canWrite
+        onMorale={() => {}}
+        counts={{
+          round: 1,
+          onUses: (key, spent) => void said.push(['uses', key, spent]),
+          onTitanic: (spent) => void said.push(['titanic', spent]),
+        }}
+      />
+    )
+    expect(screen.queryByRole('button', { name: /^Use Armour Plating/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Use Titanic Actions/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Use Climb/ })).toBeNull()
+    expect(screen.getByRole('button', { name: /^Use Scythe Attack/ })).toBeTruthy()
+    const plating = screen
+      .getAllByRole('listitem')
+      .find((li) => li.textContent?.startsWith('Armour Plating'))
+    expect(plating?.textContent).toContain('2/3')
+    const titanic = screen
+      .getAllByRole('listitem')
+      .find((li) => li.textContent?.startsWith('Titanic Actions'))
+    expect(titanic?.textContent).toContain('2/3')
+  })
+})
+
+function platingOf() {
+  const found = npcActions(scylla()).find((a) => a.name.startsWith('Armour Plating'))
+  if (found === undefined) throw new Error('no Armour Plating')
+  return found.action
+}

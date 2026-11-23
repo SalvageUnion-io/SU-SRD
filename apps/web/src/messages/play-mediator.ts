@@ -145,6 +145,8 @@ export const mediatorCopy = messages({
   hitProposed: 'Proposed to {name}: {unit} {before} → {after}',
   noOneToHit: 'No one at the table takes {unit} damage.',
   useFor: 'Use {name} for {name2}',
+  usesLabel: 'Uses',
+  titanicLabel: 'Titanic',
   down: 'down',
   actions2: 'Actions',
   moreFor: 'More for {name}',
