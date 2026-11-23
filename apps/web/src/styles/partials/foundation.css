@@ -114,9 +114,13 @@ button {
  * `compositions/EntitySearcherFilters.tsx`).
  */
 /* The window's scrollbar keeps its room whether the page scrolls or not, so
-   a filter that shortens the page never moves it sideways (chrome K17). */
-html {
-  scrollbar-gutter: stable;
+   a filter that shortens the page never moves it sideways (chrome K17). A
+   phone's scrollbar lies over the page and takes no room, so there the page
+   keeps its whole width for a count's steps (R44). */
+@media (width >= 40rem) {
+  html {
+    scrollbar-gutter: stable;
+  }
 }
 
 body {
