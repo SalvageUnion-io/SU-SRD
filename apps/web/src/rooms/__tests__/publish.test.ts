@@ -64,7 +64,7 @@ describe('what a Game room publishes', () => {
       kind: 'mech',
       appId: 'm1',
       pilotAbilities: ['a'],
-      linked: [{ kind: 'pilot', id: 'p1', name: 'p1 · Pilot p1' }],
+      linked: [{ kind: 'pilot', id: 'p1', name: 'p1' }],
       withheld: [],
     })
     expect(pilot?.preview).toEqual({

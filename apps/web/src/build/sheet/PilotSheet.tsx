@@ -15,6 +15,7 @@
  * the freshest record. Which picker is open is render state, kept here.
  */
 
+import { pilotLabel } from 'game-domain/pilotLabel'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
@@ -127,7 +128,7 @@ export function PilotSheet({
 
   return (
     <section
-      aria-label={buildSheetCopy('pilotDetails', { name: pilot.name })}
+      aria-label={buildSheetCopy('pilotDetails', { name: pilotLabel(pilot) })}
       // `.su-sheet-section` is a print-stylesheet target (page-break rules).
       className="su-sheet-section"
       style={BODY}

@@ -20,6 +20,7 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import { isSheetKind } from 'game-domain/entityKinds'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import { parseMechPattern } from 'game-domain/schemas/pattern'
@@ -54,8 +55,12 @@ type OnAddress = (segment: string) => void
 type QueryProps = { appId: string; onAddress?: OnAddress | undefined }
 
 /** The name a body carries, for the readable half of its address. */
+/** Its name, a pilot's callsign (r8 F1): the tab and the share link say it as the owner's sheet does. */
 function nameOf(body: unknown): string | undefined {
-  const name = (body as { name?: unknown } | null)?.name
+  const named = body as { name?: unknown; callsign?: unknown } | null
+  if (named !== null && typeof named === 'object' && 'callsign' in named)
+    return pilotLabelOf(named) ?? undefined
+  const name = named?.name
   return typeof name === 'string' ? name : undefined
 }
 

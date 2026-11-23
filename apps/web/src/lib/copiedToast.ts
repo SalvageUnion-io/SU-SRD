@@ -17,6 +17,7 @@ import { subscribe } from '../replica/replica'
 import { useUnits } from '../replica/units'
 import { failureMessage } from './connection/useServerAction'
 import { copyBeside, copyForShelf, copyName, namesOn } from './copyEntity'
+import { unitDisplayName } from './entities/unitDisplayName'
 import { patternCopy, savedPatternHref } from './patterns/patterns'
 
 /** What a copy answers: its name, where it opens, whether it is still there, and the mech copied with it. */
@@ -181,7 +182,8 @@ function copyUnit(
       }
       landed?.(created.id)
       return {
-        name: created.name,
+        // A pilot's copy is toasted by its callsign (r8 F1).
+        name: unitDisplayName(created),
         href: `/${type}s/${created.id}`,
         exists: () => (given ?? useUnits.getState()).get(type, created.id) !== null,
         ...(withMech ? { mech: withMech } : {}),

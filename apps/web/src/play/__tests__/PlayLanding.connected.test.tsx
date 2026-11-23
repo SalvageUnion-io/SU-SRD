@@ -380,11 +380,11 @@ describe('the Play landing', () => {
     expect(wren.getAttribute('href')).toBe('/pilots/land-wren/play')
     expect(wren.textContent).toBe('Play solo')
     expect(pilots.getByRole('link', { name: 'Play solo as Kestrel' })).toBeTruthy()
-    // Callsign first, then the name; the door takes the callsign.
-    const rook = pilots.getByRole('link', { name: 'CASTLE · Rook' }).closest('tr') as HTMLElement
-    expect(
-      within(rook).getByRole('link', { name: 'Open table as CASTLE · Rook' }).textContent
-    ).toBe('Open table')
+    // A pilot goes by its callsign, its line and its door alike (r8 F1).
+    const rook = pilots.getByRole('link', { name: 'CASTLE' }).closest('tr') as HTMLElement
+    expect(within(rook).getByRole('link', { name: 'Open table as CASTLE' }).textContent).toBe(
+      'Open table'
+    )
     // The mech a pilot flies rides its line.
     const row = pilots.getByRole('link', { name: 'Wren' }).closest('tr') as HTMLElement
     expect(within(row).getByRole('link', { name: 'Scrapper' })).toBeTruthy()

@@ -31,6 +31,7 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyAsking } from '../../lib/copiedToast'
+import { unitDisplayName } from '../../lib/entities/unitDisplayName'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import { runWrite } from '../../lib/runWrite'
@@ -310,6 +311,8 @@ export function Sheet({
               pilotAbilities: pilotAbilities ?? composition.pilot?.abilities,
             })
         : undefined
+  // A pilot goes by its callsign in the menu, its toasts and its file (r8 F1).
+  const shownName = unitDisplayName(entity)
   const exportFlown = resolved.kind === 'pilot' ? composition.mech?.name : undefined
   const menu: HeaderMenuItem[][] = [
     [
@@ -318,15 +321,15 @@ export function Sheet({
         id: 'export',
         // A pilot's export takes the Mech they fly, and says so (r6 E17).
         label: exportFlown
-          ? buildExportCopy('exportWith', { name: entity.name, mech: exportFlown })
+          ? buildExportCopy('exportWith', { name: shownName, mech: exportFlown })
           : buildExportCopy('export'),
         onSelect: () => {
-          void exportOne.run(entity.name).then((result) => {
+          void exportOne.run(shownName).then((result) => {
             if (result.ok)
               toast.success(
                 exportFlown
-                  ? buildExportCopy('exportedWith', { name: entity.name, mech: exportFlown })
-                  : buildExportCopy('exported', { name: entity.name })
+                  ? buildExportCopy('exportedWith', { name: shownName, mech: exportFlown })
+                  : buildExportCopy('exported', { name: shownName })
               )
           })
         },
@@ -362,7 +365,7 @@ export function Sheet({
         // leads back (r7 G4).
         onSelect: writable(
           () =>
-            void copyAsking(confirm, kind, entity.name, entity, go, {
+            void copyAsking(confirm, kind, shownName, entity, go, {
               units: storeState,
               ...(kind === 'mech' && { openCopy: true, landed: typeNameOnArrival }),
             })
@@ -381,7 +384,7 @@ export function Sheet({
     ],
     [
       sheetDeleteItem(
-        { kind, id, name: entity.name, inGame },
+        { kind, id, name: shownName, inGame },
         storeState,
         confirm,
         () => go(back.href),
@@ -402,7 +405,7 @@ export function Sheet({
   const play =
     playPilot && status !== 'signedOut'
       ? {
-          name: playPilot.name,
+          name: unitDisplayName(playPilot),
           gameId: playPilot.gameId ?? null,
           onPlay: () => {
             // From a Mech's sheet, Play opens boarded in it (r6 A10).
@@ -464,7 +467,14 @@ export function Sheet({
     for (const { key, label, unit } of counterparts) {
       const href = unit ? hrefFor(key, unit.id) : undefined
       if (unit && href !== undefined) {
-        segments.push({ key, label, name: unit.name, id: unit.id, href, active: kind === key })
+        segments.push({
+          key,
+          label,
+          name: unitDisplayName(unit),
+          id: unit.id,
+          href,
+          active: kind === key,
+        })
       }
     }
   }
@@ -550,7 +560,7 @@ export function Sheet({
               <ChangeLogDrawer
                 entityType={kind}
                 entityId={id}
-                entityName={entity.name}
+                entityName={shownName}
                 open={changeLogOpen}
                 onOpenChange={setChangeLogOpen}
                 defaults={defaults}
@@ -569,7 +579,7 @@ export function Sheet({
           <ShareStatusDialog
             kind={kind}
             id={id}
-            name={entity.name}
+            name={shownName}
             gameId={entity.gameId ?? null}
             open={shareOpen}
             onOpenChange={setShareOpen}

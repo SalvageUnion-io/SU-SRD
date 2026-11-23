@@ -204,7 +204,7 @@ describe("a shared pattern's Discord card", () => {
 describe('a Discordbot fetch of a pilot sheet', () => {
   it('unfurls as the pilot: callsign, class, player and Game, the pilot tone', async () => {
     const html = await unfurl('/p/pilot/p-1')
-    expect(meta(html, 'og:title')).toBe('Bonesaw · Rosa Vance')
+    expect(meta(html, 'og:title')).toBe('Bonesaw')
     expect(meta(html, 'og:description')).toBe(
       "Pilot · Engineer · Rosa's pilot · Reclamation of the Wastes"
     )

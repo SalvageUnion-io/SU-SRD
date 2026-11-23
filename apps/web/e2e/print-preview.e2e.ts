@@ -18,10 +18,10 @@ test.describe('sheet print preview', () => {
     // This spec's beforeEach pays two full cold page-loads (buildPilot +
     // openSheetFor), so triple Playwright's time budget for the whole test.
     test.slow()
-    await buildPilot(page, 'Print Test', 'PT')
+    await buildPilot(page, 'PT', 'Print Test')
     await openSheetFor(page, 'Print Test')
-    // The sheet route titles the tab with the pilot's `CALLSIGN · Name` (its `head`).
-    await expect(page).toHaveTitle(/^PT · Print Test · Training Bay · SalvageUnion\.io$/)
+    // The sheet route titles the tab with the pilot's callsign (its `head`, r8 F1).
+    await expect(page).toHaveTitle(/^Print Test · Training Bay · SalvageUnion\.io$/)
   })
 
   test('renders critical content under print @ A4', async ({ page }) => {

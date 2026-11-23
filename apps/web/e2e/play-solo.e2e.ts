@@ -26,7 +26,7 @@ import { expect, test } from './fixtures'
 test('solo: On foot, Boarded and Downtime fit and pass axe', { tag: '@pr' }, async ({ page }) => {
   test.setTimeout(10 * 60_000)
   const a11y: string[] = []
-  await buildPilot(page, 'Rook Hale', 'Rook')
+  await buildPilot(page, 'Rook', 'Rook Hale')
   await buildMech(page, 'Ironclad')
 
   // A pilot in no Game plays from its own Play mode (ADR-066).

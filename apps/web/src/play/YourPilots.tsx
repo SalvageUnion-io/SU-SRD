@@ -5,7 +5,7 @@
  * needed for neither this strip nor the door.
  *
  * It is the Training Bay's own Ledger (`ShelfLedger`) with a Play door a line:
- * the pilot by callsign then name (`pilotLabel`), their Class, the mech they
+ * the pilot by callsign (`pilotLabel`), their Class, the mech they
  * fly and the Game they are in. Nothing here makes or keeps a unit (ADR-052
  * §3): each name opens its sheet in Build, and bare, the strip says Play works
  * solo and offers the way to build one.

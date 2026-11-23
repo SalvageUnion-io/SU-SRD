@@ -43,12 +43,12 @@ const GAME = 'The Rust Belt Run'
 
 /**
  * The player's seat on the Mediator's table: its toggle Mini's name, a button
- * named by what it shows, "<callsign · name> (Pilot), here, …" (aboard, its
+ * named by what it shows, "<callsign> (Pilot), here, …" (aboard, its
  * Mech's first), pressed while Propose is aimed there.
  */
 function seat(page: Page) {
   return page.getByRole('list', { name: 'Seats' }).getByRole('button', {
-    name: /^(?:.+ \(Mech\), )?Sparks · Mira Voss(?: \(Pilot\))?, /,
+    name: /^(?:.+ \(Mech\), )?Sparks(?: \(Pilot\))?, /,
   })
 }
 

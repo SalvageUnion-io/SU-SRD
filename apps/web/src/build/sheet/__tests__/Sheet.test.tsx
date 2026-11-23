@@ -116,8 +116,8 @@ describe('Sheet — a mech band', () => {
 describe('Sheet — wired (mech WITH pilot link)', () => {
   test('renders both units, and no Assign pilot control', () => {
     renderSheet('mech', { others: [fakePilot], links: [mechToPilot] })
-    // Pilot name — PilotSheet h2 also includes callsign, use partial match
-    expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
+    // The pilot, by its callsign on the mech's Related units (r8 F1).
+    expect(screen.getAllByText(/Ghost/).length).toBeGreaterThan(0)
     // Mech name — in the hero chip and condensed strip
     expect(screen.getAllByText('Iron Fist').length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: 'Assign Pilot to Mech' })).toBeNull()

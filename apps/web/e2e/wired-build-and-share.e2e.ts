@@ -32,7 +32,7 @@ import { expect, test } from './fixtures'
  */
 
 test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
-  await buildPilot(page, 'Mira Voss', 'Sparks')
+  await buildPilot(page, 'Sparks', 'Mira Voss')
   await buildMech(page, 'Iron Fist')
   await buildCrawler(page, 'Iron Wagon')
 
@@ -70,7 +70,7 @@ test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
 test('publish the live public sheet and open it with no account', async ({ page, browser }) => {
   // A public pilot is the whole round-trip; the wiring above is the other
   // test's subject, so this one builds only what it shares.
-  await buildPilot(page, 'Mira Voss', 'Sparks')
+  await buildPilot(page, 'Sparks', 'Mira Voss')
   await openSheetFor(page, 'Mira Voss')
 
   // Sharing is a dialog on the sheet, not a screen you navigate to.

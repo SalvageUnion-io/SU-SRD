@@ -33,7 +33,7 @@ describe('rejoining after a removal', () => {
       room.units.create(PLAYER, { id: 'p1', kind: 'pilot', body: bodies.pilot('p1'), at: AT + 2 })
     const { value, events } = act(PLAYER, 'returned', { moved: ['p1'] }, AT + 3)
     expect(value).toEqual(['p1'])
-    expect(events.map((e) => e.text)).toEqual(['Player is back, with p1 · Pilot p1'])
+    expect(events.map((e) => e.text)).toEqual(['Player is back, with p1'])
     expect(act(PLAYER, 'returning', undefined as never).value).toEqual({ moved: [], kept: [] })
   })
 

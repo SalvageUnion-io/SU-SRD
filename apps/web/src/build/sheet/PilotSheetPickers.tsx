@@ -5,6 +5,7 @@
  * rule-gated (ADR-021).
  */
 
+import { pilotLabel } from 'game-domain/pilotLabel'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
@@ -165,7 +166,7 @@ export function PilotSheetPickers({
             order: byTierNow,
             later: { label: buildSheetCopy('notYet'), of: isNotYet },
           }}
-          railName={pilot.name}
+          railName={pilotLabel(pilot)}
           chosenLabel={buildSheetCopy('learned')}
           // The balance each cost is weighed against, in the list's own pane (r4 E12).
           budget={{ label: buildSheetCopy('trainingPointsLeft'), used: pilot.trainingPoints ?? 0 }}
@@ -183,7 +184,7 @@ export function PilotSheetPickers({
           selected={pilot.equipment}
           onToggle={toggleEquipment}
           idOf={(item) => nameToSlug(item.name)}
-          railName={pilot.name}
+          railName={pilotLabel(pilot)}
           chosenLabel={buildSheetCopy('equipped')}
           emptyMessage={buildSheetCopy('noEquipmentMatchesThoseFilters')}
           budget={{

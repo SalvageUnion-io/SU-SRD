@@ -232,7 +232,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     await open(/assign pilot to mech/i)
-    expect(offered()).toEqual(['p-shelf-callsign · Dag'])
+    expect(offered()).toEqual(['p-shelf-callsign'])
   })
 
   test('a Mech in a Game is offered only the Pilots it may take, and its note says so (r5 B16)', async () => {
@@ -271,7 +271,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     await open(/assign pilot to mech/i)
-    expect(offered()).toEqual(['p-free-callsign · Free', 'p-mine-callsign · Hotdog'])
+    expect(offered()).toEqual(['p-free-callsign', 'p-mine-callsign'])
     expect(screen.getByText(/^Your Pilots and this Game’s unassigned ones\./)).toBeTruthy()
   })
 
@@ -341,7 +341,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     await open(/add crew/i)
-    expect(offered()).toEqual(['p-new-callsign · Dag'])
+    expect(offered()).toEqual(['p-new-callsign'])
   })
 })
 
