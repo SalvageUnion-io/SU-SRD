@@ -90,3 +90,18 @@ describe('the pinned vitals', () => {
     expect(screen.getByRole('button', { name: 'Decrease Bonesaw Hit Points' })).toBeTruthy()
   })
 })
+
+describe('a Shut down mech on the strip (r7 B2)', () => {
+  test('says Shut down and Vulnerable under the five', () => {
+    const [pilot, mech] = PINNED as [PinnedUnit, PinnedUnit]
+    render(
+      <PlayPinnedVitals
+        units={[pilot, { ...mech, states: ['shutdown', 'vulnerable'] }]}
+        live={{ pilot: true, mech: true }}
+        onWrite={() => undefined}
+      />
+    )
+    expect(screen.getByText('Shut down')).toBeTruthy()
+    expect(screen.getByText('Vulnerable')).toBeTruthy()
+  })
+})

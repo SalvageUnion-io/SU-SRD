@@ -14,9 +14,11 @@ import { useState } from 'react'
 import { SHEET_VITALS } from '../build/sheet/sheetVitals.model'
 import { heatDangerFrom, PhoneVitals, PhoneVitalsGlance } from '../components/app'
 import type { CSSVarStyle, PhoneVitalCell } from '../components/index'
+import { Stat } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayVitalAmount } from './PlayVitalAmount'
 import type { PinnedUnit } from './playPanes.model'
+import { REACTOR_STATE_TEXT } from './reactorWrites.model'
 import { tableUnits } from './tableMode.model'
 
 /** Each vital's words in full, for assistive tech (`PhoneVitals`' `name`). */
@@ -71,9 +73,18 @@ export function PlayPinnedVitals({
       ...(live[unit.kind] ? { onPress: () => setOpen(open === v.label ? null : v.label) } : {}),
     }
   })
+  // A mech's Shut down and Vulnerable, under the five (r7 B2).
+  const states = units.flatMap((unit) => unit.states ?? [])
   return (
     <section aria-label={playCopy('pinnedVitals')} className="su-play-pins">
       <PhoneVitalsGlance cells={cells} />
+      {states.length > 0 ? (
+        <div className="su-play-pins__states">
+          {states.map((state) => (
+            <Stat key={state} size="mini" state="critical" label={REACTOR_STATE_TEXT[state]} />
+          ))}
+        </div>
+      ) : null}
       {picked && asked ? (
         <div className="su-play-pins__amount" style={tone(picked.unit.kind)}>
           <PlayVitalAmount

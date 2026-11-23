@@ -70,6 +70,8 @@ type PlayActionRowProps = {
   grouped?: boolean
   /** The Uses it has left and counts from, where it counts them (r4 A2). */
   uses?: { left: number; max: number } | null
+  /** It needs power its Mech has not (Shut down, r7 B2): its Use says so, off. */
+  unpowered?: string | null
 }
 
 /**
@@ -131,6 +133,7 @@ export function PlayActionRow({
   techLevel,
   grouped = false,
   uses = null,
+  unpowered = null,
 }: PlayActionRowProps) {
   const usesLeft = uses?.left
   const usesMax = uses?.max
@@ -192,13 +195,17 @@ export function PlayActionRow({
       <Button
         size={size}
         // A faded row's Use is ink: the accent does not hold its contrast dimmed.
-        variant={locked !== null || !canWrite ? 'ink' : 'primary'}
+        variant={locked !== null || !canWrite || unpowered !== null ? 'ink' : 'primary'}
         className="su-play-act__use"
         onClick={onUse}
-        disabled={!canWrite}
-        aria-label={playCopy('use2', { name: entry.name })}
+        disabled={!canWrite || unpowered !== null}
+        aria-label={
+          unpowered === null
+            ? playCopy('use2', { name: entry.name })
+            : playCopy('useUnpowered', { name: entry.name, why: unpowered })
+        }
       >
-        {playCopy('use')}
+        {unpowered ?? playCopy('use')}
       </Button>
     )
   const effect = !open && summary ? <RowEffect text={summary} name={entry.name} /> : null

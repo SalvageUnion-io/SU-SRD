@@ -63,6 +63,7 @@ import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import type { EntityForType } from '../replica/types'
 import { useUnits } from '../replica/units'
 import { PlayVital } from './PlayVital'
+import { powerBackOn, REACTOR_STATE_TEXT, reactorStates } from './reactorWrites.model'
 import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.model'
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
@@ -361,6 +362,7 @@ export function PlayMechUnit({
           onChange={live ? vital('currentHeat', s.heat, s.maxHeat, playCopy('heat')) : undefined}
         />
       ) : null}
+      <ReactorStates mech={mech} live={live} store={store} />
       {effects.length > 0 ? (
         <>
           <Slab as="h4" label={playCopy('effects')} />
@@ -408,6 +410,39 @@ export function PlayMechUnit({
       {result === null ? null : <DownResultLine result={result} />}
       {place === 'parked' ? <Text variant="note">{playCopy('readOnlyUntilBoarded')}</Text> : null}
     </TitledBox>
+  )
+}
+
+/**
+ * Shut down and Vulnerable, as chips under the vitals (r7 B2), never only the
+ * Reactor row's toggle: a live mech's Shut down offers Power back on, as the
+ * result's own duration says (Core Book p.235). Nothing shows while it runs.
+ */
+function ReactorStates({ mech, live, store }: { mech: Mech; live: boolean; store: UnitStore }) {
+  const states = reactorStates(mech.conditions)
+  if (states.length === 0) return null
+  const shut = states.includes('shutdown')
+  return (
+    <div style={CHIPS}>
+      {states.map((state) => (
+        <Stat
+          key={state}
+          size="mini"
+          state="critical"
+          label={REACTOR_STATE_TEXT[state]}
+          {...(state === 'shutdown' ? { hoverText: playCopy('shutDownReactivates') } : {})}
+        />
+      ))}
+      {shut && live ? (
+        <Button
+          size="mini"
+          aria-label={playCopy('powerBackOnOf', { name: mech.name })}
+          onClick={() => powerBackOn(store.getState(), mech)}
+        >
+          {playCopy('powerBackOn')}
+        </Button>
+      ) : null}
+    </div>
   )
 }
 

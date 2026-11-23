@@ -175,6 +175,43 @@ describe('a boarded mech', () => {
   })
 })
 
+describe('Shut down on the unit card (r7 B2)', () => {
+  test('Shut down and Vulnerable are chips, and Power back on clears both', () => {
+    const { store, updates } = recordingStore()
+    render(
+      <PlayMechUnit
+        mech={{ ...mech, conditions: ['Shutdown', 'Vulnerable'] }}
+        place="boarded"
+        live
+        store={store}
+      />
+    )
+    expect(screen.getByText('Shut down')).toBeTruthy()
+    expect(screen.getByText('Vulnerable')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Power Buzzard back on' }))
+    expect(updates).toEqual([
+      { type: 'mech', id: 'w-mech', patch: { conditions: [] }, meta: PLAY_TXN },
+    ])
+  })
+
+  test('running, there are no such chips; read-only, no Power back on', () => {
+    const { store } = recordingStore()
+    const { unmount } = render(<PlayMechUnit mech={mech} place="boarded" live store={store} />)
+    expect(screen.queryByText('Shut down')).toBeNull()
+    unmount()
+    render(
+      <PlayMechUnit
+        mech={{ ...mech, conditions: ['Shutdown'] }}
+        place="boarded"
+        live={false}
+        store={store}
+      />
+    )
+    expect(screen.getByText('Shut down')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Power Buzzard back on' })).toBeNull()
+  })
+})
+
 describe('activated effects (ADR-029 §4)', () => {
   const magnetised = { ...mech, modules: ['hull-magnetiser'] }
   const effect = () => screen.getByRole('button', { name: /hull magnetiser/i })

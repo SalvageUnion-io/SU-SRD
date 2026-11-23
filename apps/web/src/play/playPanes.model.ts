@@ -24,6 +24,8 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { playCopy } from '../messages/play'
 import { mediatorCopy } from '../messages/play-mediator'
+import type { ReactorState } from './reactorWrites.model'
+import { reactorStates } from './reactorWrites.model'
 import type { Situation } from './situation.model'
 import type { UnitGauge } from './unitStats.model'
 import { mechStats, pilotVitals } from './unitStats.model'
@@ -124,7 +126,13 @@ export function mediatorPanes(downtime: boolean, wide = false): readonly PaneSpe
 }
 
 /** One unit's pinned vitals, under its name. */
-export type PinnedUnit = { kind: 'pilot' | 'mech'; name: string; vitals: UnitGauge[] }
+export type PinnedUnit = {
+  kind: 'pilot' | 'mech'
+  name: string
+  vitals: UnitGauge[]
+  /** A mech's Shut down and Vulnerable, which the strip says too (r7 B2). */
+  states?: ReactorState[]
+}
 
 type PinnedArgs = {
   situation: Situation
@@ -168,6 +176,7 @@ export function pinnedUnits({
         { label: 'EP', value: s.ep, max: s.maxEP },
         { label: 'Heat', value: s.heat, max: s.maxHeat },
       ],
+      states: reactorStates(mech.conditions),
     })
   }
   return units
