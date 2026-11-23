@@ -137,7 +137,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Amended by ADR-030 and ADR-034: the log is account data on Convex; by ADR-063: the log is the op log.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 (§1, §4) and ADR-064.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 (§1, §4) and ADR-064; §4 in place: the crew answers a wreck's salvage.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
     Amends ADR-030's visibility rule; amended by ADR-036, ADR-061.

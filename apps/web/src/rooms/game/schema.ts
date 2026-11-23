@@ -171,6 +171,18 @@ export const GAME_ROOM_PREP: readonly string[] = [
 ]
 
 /**
+ * Step 8 of `GAME_ROOM` (r7 D8, ADR-030 §4 as amended): what a wreck's
+ * salvage proposal offers the crew, by its op's id (`SalvageOffer`): the band,
+ * the wreck's parts and the Mediator's pick. Only such a proposal has a row.
+ */
+export const GAME_ROOM_SALVAGE_OFFERS: readonly string[] = [
+  `create table salvage_offers (
+        op_id text primary key,
+        body text not null
+      )`,
+]
+
+/**
  * Step 3 of `GAME_ROOM`: what the table plays under, beside its units.
  *
  * - `scene`: the Scene's conditions and the hours passed under them.

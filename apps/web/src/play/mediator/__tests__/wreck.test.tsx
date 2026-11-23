@@ -104,7 +104,7 @@ describe('the Salvage control', () => {
 
   const crawler = { scrapPool: {}, cargoLots: [] } as unknown as Crawler
 
-  test('an 11–19 offers the Chassis or one part, and takes the pick to the hold', async () => {
+  test('an 11–19 offers the Chassis or one part, and offers the pick to the crew', async () => {
     const settled: Haul[] = []
     renderSalvage(15, settled)
     await act(async () => {
@@ -117,11 +117,20 @@ describe('the Salvage control', () => {
       .getAllByRole('button', { pressed: false })
       .filter((b) => b.textContent?.includes(' · T'))
     expect(others.every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
+    // The crew picks a wreck's part (r7 D8): the Mediator's pick goes to the table.
     await act(async () => {
-      fireEvent.click(screen.getByText('Take to the crawler'))
+      fireEvent.click(screen.getByText('Offer to the crew'))
     })
     expect(settled).toHaveLength(1)
-    expect(onCrawler(settled[0])?.cargoLots?.[0]).toMatchObject({ name: 'Mule (Damaged)' })
+    const haul = settled[0]
+    if (haul === undefined || typeof haul === 'function') throw new Error('expected an offer')
+    expect(haul.mechId).toBeNull()
+    expect(haul.lots[0]).toMatchObject({ name: 'Mule (Damaged)' })
+    expect(haul.offer?.band).toBe('meat')
+    const chassisKey = haul.offer?.parts.find((p) => p.kind === 'chassis')?.key
+    expect(haul.offer?.picked).toEqual(chassisKey === undefined ? [] : [chassisKey])
+    expect(chassisKey).toBeDefined()
+    expect(haul.offer?.parts.length).toBeGreaterThan(1)
   })
 
   test('a 1 takes nothing, and settles the wreck', async () => {
@@ -181,6 +190,8 @@ describe('the Salvage control', () => {
     if (haul === undefined || typeof haul === 'function') throw new Error('expected a Mech haul')
     expect(haul.mechId).toBe('m1')
     expect(haul.lots[0]).toMatchObject({ name: 'Mule (Damaged)' })
+    // Its holder may change the pick too (r7 D8).
+    expect(haul.offer?.band).toBe('meat')
   })
 
   test('once salvaged, nothing is left to take', () => {

@@ -1,9 +1,12 @@
 import type { EntityKind } from 'game-domain/entityKinds'
+import type { SalvageOffer } from 'game-domain/games/proposals'
 import {
   CARGO_PROPOSAL_FIELD,
   normalizeReason,
   PROPOSAL_REASON_MAX,
 } from 'game-domain/games/proposals'
+import { mechSalvageAllows } from 'salvageunion-reference/rules'
+import { wreckHaulLots } from '../../lib/rules/downtimeEconomy'
 import type { OpState } from '../ops'
 import { RoomRefusal } from '../refusal'
 import { unsetVital } from '../vitals'
@@ -15,7 +18,10 @@ import { BatchRefused, PROPOSAL_SOURCE, unitName } from './units'
 /**
  * A Mediator's proposals (ADR-030 §4): an op in `proposed` state on a
  * player's pilot or mech (ADR-063 §5), applied or declined only by the
- * member it is assigned to.
+ * member it is assigned to. A wreck's salvage offered to the crawler (r7 D8,
+ * §4 as amended) is the one proposal on a crawler: any member of the crew
+ * answers it, and may change its pick to another the roll allows
+ * (`salvage_offers`).
  */
 
 /** A proposal as `ops.pending` and `ops.sent` serve it; `_id` is its op's id. */
@@ -35,6 +41,8 @@ export type ProposalRead = {
   current?: number | null
   /** Who sent it, on one awaiting its answer: a Mediator who handed the table on signs theirs still (r5 A11). */
   byName?: string | null
+  /** A wreck's salvage: the parts its roll lets the answer pick from (r7 D8). */
+  offer?: SalvageOffer
 }
 
 export type SentProposal = ProposalRead & {
@@ -58,6 +66,25 @@ const WITHDRAWN = 'withdrawn'
 /** The most proposals `sent` returns. */
 const MAX_SENT = 100
 
+/** The id of the op a crewmate's changed pick writes in place of `id`'s (r7 D8). */
+const pickedId = (id: string) => `${id}:picked`
+
+/** Refused copy for a pick a Mech Salvage band does not allow. */
+const PICK_REFUSED = 'That pick is not one the roll allows'
+
+/** Whether `picked` names parts of `offer`'s wreck that its band lets the salvager take. */
+function allowed(offer: SalvageOffer, picked: readonly string[]): boolean {
+  const keys = new Set(offer.parts.map((p) => p.key))
+  if (picked.length === 0 || new Set(picked).size !== picked.length) return false
+  if (!picked.every((key) => keys.has(key))) return false
+  const chosen = offer.parts.filter((p) => picked.includes(p.key))
+  return mechSalvageAllows(offer.band, {
+    chassis: chosen.some((p) => p.kind === 'chassis'),
+    systems: chosen.filter((p) => p.kind === 'system').length,
+    modules: chosen.filter((p) => p.kind === 'module').length,
+  })
+}
+
 export class GameProposals {
   constructor(
     private readonly store: GameStore,
@@ -72,20 +99,35 @@ export class GameProposals {
    */
   propose(
     actor: string,
-    args: { id: string; unitId: string; field: string; value: unknown; reason?: string; at: number }
+    args: {
+      id: string
+      unitId: string
+      field: string
+      value: unknown
+      reason?: string
+      /** A wreck's salvage (r7 D8): what the answer may pick from instead. */
+      offer?: SalvageOffer
+      at: number
+    }
   ): void {
     this.store.sql.transaction(() => {
       this.store.requireMediator(actor)
       if (this.store.op(args.id) !== null) return
       const unit = this.store.requireUnit(args.unitId)
-      if (unit.kind !== 'pilot' && unit.kind !== 'mech') {
+      const toCrew = unit.kind === 'crawler' && args.offer !== undefined
+      if (unit.kind !== 'pilot' && unit.kind !== 'mech' && !toCrew) {
         throw new RoomRefusal('Only a Pilot or a Mech takes a proposal')
       }
-      if (unit.ownerId === null) {
+      if (args.offer !== undefined) {
+        if (args.field !== CARGO_PROPOSAL_FIELD)
+          throw new RoomRefusal('Salvage is offered as cargo')
+        if (!allowed(args.offer, args.offer.picked)) throw new RoomRefusal(PICK_REFUSED)
+      }
+      if (unit.ownerId === null && !toCrew) {
         throw new RoomRefusal('That entity is unassigned — assign it before proposing changes')
       }
       if (args.field === CARGO_PROPOSAL_FIELD) {
-        if (unit.kind !== 'mech') throw new RoomRefusal('Only a Mech takes cargo')
+        if (unit.kind === 'pilot') throw new RoomRefusal('Only a Mech takes cargo')
         if (!Array.isArray(args.value) || args.value.length === 0) {
           throw new RoomRefusal('A cargo proposal names what it adds')
         }
@@ -115,22 +157,54 @@ export class GameProposals {
         ...(reason === undefined ? {} : { reason }),
         supersededBy: null,
       })
+      if (args.offer !== undefined) this.putOffer(args.id, args.offer)
     })
   }
 
-  /** Proposals waiting on this player, newest first: only those on units assigned to them. */
+  /** What a salvage proposal offers (r7 D8), or null for any other. */
+  offerOf(opId: string): SalvageOffer | null {
+    const row = this.store.rows('select body from salvage_offers where op_id = ?', opId)[0]
+    return row === undefined ? null : (JSON.parse(String(row.body)) as SalvageOffer)
+  }
+
+  private putOffer(opId: string, offer: SalvageOffer): void {
+    this.store.sql.exec(
+      'insert or replace into salvage_offers (op_id, body) values (?, ?)',
+      opId,
+      JSON.stringify(offer)
+    )
+  }
+
+  /**
+   * Whether `actor` answers `op` on `unit`: its holder, or for a wreck's
+   * salvage offered to the crawler, any member of the crew (r7 D8).
+   */
+  private answers(actor: string, op: StoredOp, unit: UnitRow): boolean {
+    if (unit.ownerId === actor) return true
+    if (unit.kind !== 'crawler' || this.offerOf(op.id) === null) return false
+    return this.store.member(actor) !== null
+  }
+
+  /**
+   * Proposals waiting on this player, newest first: those on units assigned
+   * to them, and a wreck's salvage offered to the crew (r7 D8), but to the
+   * Mediator who offered it.
+   */
   pending(actor: string): ProposalRead[] {
     if (this.store.member(actor) === null) return []
     const out: ProposalRead[] = []
     for (const op of this.store.opsIn('proposed')) {
       const unit = this.store.unit(op.unitId)
-      if (unit === null || unit.ownerId !== actor) continue
+      if (unit === null || !this.answers(actor, op, unit)) continue
+      if (unit.ownerId !== actor && op.author === actor) continue
+      const offer = this.offerOf(op.id)
       const read = proposalRead(op, unit)
       const held = unit.body[read.field]
       out.push({
         ...read,
         current: typeof held === 'number' ? held : unsetVital(this.store, unit.id, read.field),
         byName: this.store.member(op.author)?.displayName ?? null,
+        ...(offer === null ? {} : { offer }),
       })
     }
     return out.sort((a, b) => b.ts - a.ts)
@@ -178,8 +252,16 @@ export class GameProposals {
   /**
    * Apply a proposal to your own unit: the player makes the write, against
    * the sheet as it is now, so a value they changed since does not bounce it.
+   * A wreck's salvage (r7 D8) may be answered with another pick its roll
+   * allows (`picked`): that pick is written as its own op, under its own id
+   * (`pickedId`), and the offer reads superseded by it.
    */
-  applyProposal(actor: string, proposalId: string, at: number): SubmitResult {
+  applyProposal(
+    actor: string,
+    proposalId: string,
+    at: number,
+    picked?: readonly string[]
+  ): SubmitResult {
     try {
       return this.store.sql.transaction(() => {
         const proposal = this.proposal(proposalId)
@@ -188,15 +270,36 @@ export class GameProposals {
           throw new RoomRefusal('That proposal has already been answered')
         }
         const unit = this.store.requireUnit(proposal.unitId)
-        if (unit.ownerId !== actor) throw new RoomRefusal('Only the owner can apply this')
-        this.units.assertMayWrite(actor, unit)
+        if (!this.answers(actor, proposal, unit)) {
+          throw new RoomRefusal('Only the owner can apply this')
+        }
+        // The crew's crawler is written as the Mediator who offered it (§5): still theirs to write.
+        if (unit.kind === 'crawler') this.units.assertMayWrite(proposal.author, unit)
+        else this.units.assertMayWrite(actor, unit)
+        const offer = this.offerOf(proposal.id)
+        const changed =
+          offer !== null &&
+          picked !== undefined &&
+          [...picked].sort().join('\n') !== [...offer.picked].sort().join('\n')
+        let answer: StoredOp = proposal
+        if (changed && offer !== null && picked !== undefined) {
+          if (!allowed(offer, picked)) throw new RoomRefusal(PICK_REFUSED)
+          answer = {
+            ...proposal,
+            id: pickedId(proposal.id),
+            author: actor,
+            patch: { [CARGO_PROPOSAL_FIELD]: wreckHaulLots(offer.parts, offer.band, picked).lots },
+          }
+          this.store.putOp({ ...proposal, state: 'declined', supersededBy: answer.id })
+          this.putOffer(answer.id, { ...offer, picked: [...picked] })
+        }
         const seq = this.units.applyTo(
           unit,
-          { ...proposal, patch: appliedPatch(proposal, unit), baseSeq: unit.headSeq, at },
-          proposal.author,
-          proposal.reason
+          { ...answer, patch: appliedPatch(answer, unit), baseSeq: unit.headSeq, at },
+          answer.author,
+          answer.reason
         )
-        return { ok: true, applied: [{ id: proposal.id, seq }], fresh: [proposal.id] } as const
+        return { ok: true, applied: [{ id: answer.id, seq }], fresh: [answer.id] } as const
       })
     } catch (error) {
       if (error instanceof BatchRefused) {
@@ -235,7 +338,9 @@ export class GameProposals {
       const proposal = this.proposal(proposalId)
       if (proposal === null || proposal.state !== 'proposed') return
       const unit = this.store.unit(proposal.unitId)
-      if (unit?.ownerId !== actor) throw new RoomRefusal('Only the owner can decline this')
+      if (unit === null || !this.answers(actor, proposal, unit)) {
+        throw new RoomRefusal('Only the owner can decline this')
+      }
       this.store.putOp({ ...proposal, state: 'declined' })
     })
   }

@@ -248,7 +248,12 @@ export class GameEvents {
       case 'ops.decline': {
         const op = before.proposal
         if (op == null || op.state !== 'proposed') return []
-        const text = `${who} ${name === 'ops.accept' ? 'accepted' : 'declined'}: ${this.proposalLine(op)}`
+        // A crewmate's own pick of a wreck's salvage says what they took (r7 D8).
+        const picked = typeof value === 'string' && value !== op.id ? this.store.op(value) : null
+        const text =
+          picked !== null
+            ? `${who} chose instead: ${this.proposalLine(picked)}`
+            : `${who} ${name === 'ops.accept' ? 'accepted' : 'declined'}: ${this.proposalLine(op)}`
         return [
           this.note(actor, at, {
             kind: 'proposal',
