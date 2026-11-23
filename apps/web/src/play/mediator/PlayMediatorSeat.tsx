@@ -177,7 +177,8 @@ export function PlayMediatorSeat({
                 <p style={NOTE_MUTED}>{mediatorCopy('playedBy', { name: seat.player })}</p>
               )}
               <SeatMount mount={mount} />
-              <div style={CHIPS}>
+              {/* The seat's vitals are its measure chips, pressable or read (C2). */}
+              <div style={CHIPS} data-chip-class="measure">
                 {/* A word (Down) is the head's chip alone: said once (r6 A4). */}
                 {seat.vitals
                   .filter((v) => v.value !== null)

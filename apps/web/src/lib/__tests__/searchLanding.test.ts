@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { focusMarkedContent, markAtContent } from '../searchHref'
+import { focusMarkedContent } from '../../runtime/focusMarked'
+import { markAtContent } from '../searchHref'
 
 /**
  * A page opened from search lands at its top, its address clean, and the

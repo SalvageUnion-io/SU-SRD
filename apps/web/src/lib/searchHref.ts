@@ -34,7 +34,11 @@ export function resultsHref(query: string): string {
   return `${RESULTS_PAGE}?${new URLSearchParams({ [SEARCH_PARAM]: query })}`
 }
 
-/** The page a search opened, in this tab's session: its content takes the focus there. */
+/**
+ * The page a search opened, in this tab's session: its content takes the focus
+ * there. The page script reads the same key (`runtime/focusMarked.ts`, kept
+ * apart so the page loads none of this module).
+ */
 const AT_CONTENT = 'su-at-content'
 
 /**
@@ -49,16 +53,5 @@ export function markAtContent(href: string): void {
     if (!href.includes('#')) sessionStorage.setItem(AT_CONTENT, href.split('?')[0] as string)
   } catch {
     // No storage: the page opens at its top all the same.
-  }
-}
-
-/** The page's script, on arrival: the page a search marked focuses its content, once, unscrolled. */
-export function focusMarkedContent(): void {
-  try {
-    if (sessionStorage.getItem(AT_CONTENT) !== location.pathname) return
-    sessionStorage.removeItem(AT_CONTENT)
-    document.getElementById('main-content')?.focus({ preventScroll: true })
-  } catch {
-    // No storage: nothing was marked.
   }
 }
