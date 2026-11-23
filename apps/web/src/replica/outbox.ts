@@ -215,11 +215,13 @@ export function forgetOutbox(): void {
  * `entityLog`), so only a Game's own rows (its rolls) are written, each to its
  * Game's room.
  *
- * Never throws, and its callers do not await it: the log is provenance ABOUT a
- * write that has already happened and been committed, and failing the user's
- * edit because its audit row did not land would trade a real write for a
- * record of one. A failure is reported here, once, under one fingerprint —
- * not by each caller, which filed one fault as an issue per call site.
+ * Never throws: the log is provenance ABOUT a write that has already
+ * happened, and failing the user's edit because its row did not land would
+ * trade a real write for a record of one. A failure is reported here, once,
+ * under one fingerprint, not by each caller. Each Game's room is waited for
+ * while its socket is still opening (`roomReady`), as every other write is;
+ * answers whether every row landed, so a roll held offline stays held until
+ * it has (r7 B3).
  */
 export async function sendChangeLog(
   entries: readonly {
@@ -233,9 +235,9 @@ export async function sendChangeLog(
     after: unknown
     source: string
   }[]
-): Promise<void> {
-  if (!writable()) return
-  if (entries.length === 0) return
+): Promise<boolean> {
+  if (!writable()) return false
+  if (entries.length === 0) return true
 
   const byGame = new Map<string, typeof entries>()
   for (const e of entries) {
@@ -244,7 +246,9 @@ export async function sendChangeLog(
   }
   try {
     for (const [gameId, rows] of byGame) {
-      await roomOrStandIn(gameId)?.act('changeLog.appendChangeLog', {
+      const room = await roomReady(gameId)
+      if (room === null) return false
+      await room.act('changeLog.appendChangeLog', {
         entries: rows.map(({ entityType, field, after, source, ts }) => ({
           entityType,
           field,
@@ -254,8 +258,13 @@ export async function sendChangeLog(
         })),
       })
     }
+    return true
   } catch (err) {
-    captureException(err, undefined, { fingerprint: ['rooms', 'changeLog:appendChangeLog'] })
+    // A connection gone again is not a fault: the row waits with its roll.
+    if (!(err instanceof WritesBlockedOffline)) {
+      captureException(err, undefined, { fingerprint: ['rooms', 'changeLog:appendChangeLog'] })
+    }
+    return false
   }
 }
 

@@ -10,7 +10,7 @@
 
 import { OctagonPause } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Button, tokens } from '../components/index'
 import { playSafetyCopy } from '../messages/play-safety'
 import type { StopSign } from './useStopSign'
@@ -69,6 +69,7 @@ export function StopSignButton({
     [timer]
   )
   if (sign === null) return null
+  if (sign.offline) return <OfflineStop compact={compact} />
   const disabled = !sign.canWrite || sign.shown || sign.pending
   if (!compact) {
     return (
@@ -133,6 +134,37 @@ export function StopSignButton({
       {/* Always there, so it is announced as it fills; empty, it takes no room. */}
       <span role="status" className="su-play-stop__hint">
         {hinted && !sign.shown ? playSafetyCopy('holdToShow') : ''}
+      </span>
+    </span>
+  )
+}
+
+/**
+ * Offline the sign cannot reach the table (r7 B4): the button is greyed, and
+ * carries one line at it, as the hold's hint does: say it aloud.
+ */
+function OfflineStop({ compact }: { compact: boolean }) {
+  const why = useId()
+  return (
+    <span className="su-play-stop">
+      <Button
+        variant="primary"
+        size="compact"
+        aria-label={playSafetyCopy('showTheStopSign')}
+        aria-describedby={why}
+        disabled
+      >
+        {compact ? (
+          <span style={LABELLED}>
+            <OctagonPause size={tokens.iconSize.mini} aria-hidden="true" />
+            {playSafetyCopy('stopHold')}
+          </span>
+        ) : (
+          playSafetyCopy('stopSign')
+        )}
+      </Button>
+      <span id={why} className="su-play-stop__hint">
+        {playSafetyCopy('offlineSayAloud')}
       </span>
     </span>
   )

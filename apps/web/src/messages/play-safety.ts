@@ -8,6 +8,7 @@ export const playSafetyCopy = messages({
   showTheStopSign: 'Show the Stop Sign',
   stopHold: 'Stop · hold',
   holdToShow: 'Hold to show the Stop Sign',
+  offlineSayAloud: 'You are offline. Say it aloud; the table will not see it.',
   stopSignMeans:
     'Anyone can show the Stop Sign at any time, from here or from Play, with no reason needed. On a phone, hold it to show it. It asks the table to pause, on every screen and without saying who; sheets stay usable. It posts to the Discord channel while one is bound.',
   pausedBody:

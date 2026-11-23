@@ -51,7 +51,13 @@ import { PlayRollInstrument } from './PlayRollInstrument'
 import type { PlayStore } from './play.model'
 import { playLineModel } from './playLine.model'
 import { recordPlayChange } from './playRolls.model'
-import { confirmMeltdown, hurtPilot, pushMech } from './reactorWrites.model'
+import {
+  confirmMeltdown,
+  hurtPilot,
+  noteShutdown,
+  powerBackOn,
+  pushMech,
+} from './reactorWrites.model'
 import type { PlayActions } from './usePlayActions'
 
 /** What the last roll or act came to; `overloadRoll` marks the table. */
@@ -149,6 +155,7 @@ export function PlayReactorRow({
       () => {
         setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
         hurtPilot(store, { pilot, crawler }, effect)
+        if (effect.shutdown) noteShutdown(mech.name)
       }
     )
   }
@@ -169,9 +176,11 @@ export function PlayReactorRow({
 
   function doShutdown() {
     const shutting = !mechHasCondition(fresh(), 'Shutdown')
+    // Back on is the unit card's Power back on, one way (r7 B2).
+    if (!shutting) return powerBackOn(store, fresh())
     runWrite(
       () => store.update('mech', mech.id, shutdownTogglePatch(fresh().conditions), PLAY_TXN),
-      () => recordPlayChange(`${playCopy(shutting ? 'shutDown' : 'restart')} · ${mech.name}`)
+      () => noteShutdown(mech.name)
     )
   }
 
@@ -209,7 +218,7 @@ export function PlayReactorRow({
         {playCopy('vent')}
       </Button>
       <Toggle size="mini" onClick={doShutdown} disabled={off} pressed={shutDown}>
-        {shutDown ? playCopy('restart') : playCopy('shutDown')}
+        {shutDown ? playCopy('powerBackOn') : playCopy('shutDown')}
       </Toggle>
     </>
   )

@@ -567,7 +567,8 @@ describe('the resolve — unrecorded live stats default to full, not empty', () 
     clickPrimaryAction(container)
     // Push stays disabled until a roll exists (Core Book p.233).
     await clickRolling('Roll the Die')
-    await clickRolling('Push')
+    // A Success: Push is the quiet button that says its Heat (r7 B1).
+    await clickRolling('Push · +2 Heat')
 
     const spWrites = calls
       .map((c) => c.patch.currentSP)

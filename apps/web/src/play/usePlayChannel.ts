@@ -20,7 +20,11 @@
  *
  * A roll made while Play cannot write (offline) is held (r5 A6): its line says
  * "Not sent yet", and it is logged and posted once the connection returns, or
- * when its Try again is pressed then. Held in memory, for the open tab.
+ * when its Try again is pressed then. It stays held until the Game's log row
+ * has landed (r7 B3): back online, the screen is writable a moment before the
+ * replica's writers are and before the Game's socket reopens, so the row
+ * waits for that room and goes again each time the status moves or a room
+ * opens. Held in memory, for the open tab, oldest first.
  */
 
 import type { PostRollResult } from 'game-domain/games/discord'
@@ -29,6 +33,8 @@ import { failureMessage } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
 import { sendChangeLog } from '../replica/outbox'
 import { useGamesCall, useGamesQuery } from '../replica/roomCalls'
+import { onRoomOpen } from '../replica/roomSocket'
+import { subscribeSync } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import type { PlayBinding } from './channels.model'
 import type { PlayScreen, PlayTarget } from './play.model'
@@ -139,12 +145,15 @@ export function usePlayRollDispatch({
     [settle]
   )
 
-  /** The roll to the Game's log and its post: once Play can write. */
+  /**
+   * The roll to the Game's log and its post: once Play can write. Answers
+   * whether its log row landed; one that did not is left held, unposted.
+   */
   const deliver = useCallback(
-    (roll: PlayRoll) => {
+    async (roll: PlayRoll): Promise<boolean> => {
       const { target: t, rollerName: name } = latest.current
       if (t.gameId !== null) {
-        void sendChangeLog([
+        const landed = await sendChangeLog([
           rollLogEntry(
             t.gameId,
             {
@@ -162,42 +171,62 @@ export function usePlayRollDispatch({
             roll.at
           ),
         ])
+        if (!landed) return false
       }
       // A private roll stays off Discord: nothing mirrors it out of the room.
       if (roll.private || !isDiceRoll(roll)) forget(roll.id)
       else send(roll)
+      return true
     },
     [send, forget]
   )
+
+  // What waits goes, oldest first, each once the one before it landed.
+  const sending = useRef(false)
+  const flush = useCallback(async () => {
+    if (sending.current) return
+    sending.current = true
+    try {
+      for (const roll of held.current.values()) {
+        if (!latest.current.canWrite) return
+        if (!(await deliver(roll))) {
+          settle(roll.id, { kind: 'held' })
+          return
+        }
+        held.current.delete(roll.id)
+      }
+    } finally {
+      sending.current = false
+    }
+  }, [deliver, settle])
 
   useEffect(
     () =>
       onPlayRoll((roll) => {
         // A line in a slot is the Game's to read even without dice: what a wreck yielded (r5 B2).
         if (!isDiceRoll(roll) && roll.slot === undefined) return
-        if (latest.current.canWrite) return deliver(roll)
         held.current.set(roll.id, roll)
-        settle(roll.id, { kind: 'held' })
+        if (!latest.current.canWrite) settle(roll.id, { kind: 'held' })
+        void flush()
       }),
-    [deliver, settle]
+    [flush, settle]
   )
 
-  // Back online: what was held is sent, oldest first.
+  // Back online, and each time a room opens: what was held is sent. The
+  // writers' own status is published after this screen's effects run
+  // (`SyncProvider`), so its change sends again too.
   useEffect(() => {
-    if (!canWrite) return
-    const waiting = [...held.current.values()]
-    held.current.clear()
-    for (const roll of waiting) deliver(roll)
-  }, [canWrite, deliver])
+    if (canWrite) void flush()
+  }, [canWrite, flush])
+  useEffect(() => onRoomOpen(() => void flush()), [flush])
+  useEffect(() => subscribeSync(() => void flush()), [flush])
 
   const postNow = useCallback(
     (roll: PlayRoll) => {
       if (!held.current.has(roll.id)) return send(roll)
-      if (!latest.current.canWrite) return
-      held.current.delete(roll.id)
-      deliver(roll)
+      void flush()
     },
-    [send, deliver]
+    [send, flush]
   )
 
   return { posts, postNow }

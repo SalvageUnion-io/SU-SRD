@@ -99,3 +99,24 @@ describe('the Stop Sign button', () => {
     expect(s.shown()).toBe(1)
   })
 })
+
+describe('offline (r7 B4)', () => {
+  test('the greyed sign says why, at the button, on a phone and a desk', () => {
+    for (const compact of [true, false]) {
+      const s = sign({ canWrite: false, offline: true })
+      const { unmount } = render(<StopSignButton sign={s.value} compact={compact} />)
+      const button = screen.getByRole('button', { name: 'Show the Stop Sign' }) as HTMLButtonElement
+      expect(button.disabled).toBe(true)
+      // The reason, not a second offline notice (R16): the bar's stamp is that.
+      expect(screen.queryByRole('status')).toBeNull()
+      const why = screen.getByText('You are offline. Say it aloud; the table will not see it.')
+      expect(button.getAttribute('aria-describedby')).toBe(why.id)
+      unmount()
+    }
+  })
+
+  test('online, there is no such line', () => {
+    render(<StopSignButton sign={sign({ canWrite: true, offline: false }).value} />)
+    expect(screen.queryByText(/You are offline/)).toBeNull()
+  })
+})

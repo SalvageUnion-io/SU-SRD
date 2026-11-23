@@ -70,6 +70,8 @@ type PlayActionRowProps = {
   grouped?: boolean
   /** The Uses it has left and counts from, where it counts them (r4 A2). */
   uses?: { left: number; max: number } | null
+  /** It needs power its Mech has not (Shut down, r7 B2): its Use says so, off. */
+  unpowered?: string | null
 }
 
 /**
@@ -131,6 +133,7 @@ export function PlayActionRow({
   techLevel,
   grouped = false,
   uses = null,
+  unpowered = null,
 }: PlayActionRowProps) {
   const usesLeft = uses?.left
   const usesMax = uses?.max
@@ -144,6 +147,8 @@ export function PlayActionRow({
       }),
     [entry.action, techLevel, grouped, usesLeft, usesMax]
   )
+  // A name two of the list's actions share says whose this one is (r7 B5).
+  const titled = entry.name === entry.action.name ? model : { ...model, title: entry.name }
   const wide = usePlayWide()
   const companion = entry.action.companion
   const open = resolve !== null
@@ -190,13 +195,17 @@ export function PlayActionRow({
       <Button
         size={size}
         // A faded row's Use is ink: the accent does not hold its contrast dimmed.
-        variant={locked !== null || !canWrite ? 'ink' : 'primary'}
+        variant={locked !== null || !canWrite || unpowered !== null ? 'ink' : 'primary'}
         className="su-play-act__use"
         onClick={onUse}
-        disabled={!canWrite}
-        aria-label={playCopy('use2', { name: entry.name })}
+        disabled={!canWrite || unpowered !== null}
+        aria-label={
+          unpowered === null
+            ? playCopy('use2', { name: entry.name })
+            : playCopy('useUnpowered', { name: entry.name, why: unpowered })
+        }
       >
-        {playCopy('use')}
+        {unpowered ?? playCopy('use')}
       </Button>
     )
   const effect = !open && summary ? <RowEffect text={summary} name={entry.name} /> : null
@@ -235,6 +244,8 @@ export function PlayActionRow({
       data-locked={(!away && locked !== null) || undefined}
       data-action-key={entry.key}
       data-done={done || undefined}
+      // A Passive never opens: the list's keyboard stops at its name (r7 B8).
+      data-passive={entry.type === 'Passive' || undefined}
     >
       {/* Mounted with the row, so the finish is spoken as the resolve closes. */}
       <span className="su-sr-only" role="status">
@@ -243,7 +254,7 @@ export function PlayActionRow({
       <Entity
         size="mini"
         context="play"
-        model={model}
+        model={titled}
         mode={OPENS_SOURCE}
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
         tint={companion?.tone ?? entry.source}

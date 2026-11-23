@@ -205,13 +205,29 @@ export function PlayActionsList({
   head: 'h2' | 'h3'
 }) {
   const groups = onHandGroups(actions.onHand)
+  // The on-hand list is one Tab stop, the arrows between its actions (r7 B8).
+  const listRef = useRef<HTMLDivElement>(null)
+  const listed = groups.length > 0
+  useEffect(() => {
+    const list = listRef.current
+    if (!listed || list === null) return
+    let stop: (() => void) | null = null
+    let gone = false
+    void import('./actionsRoveDom.model').then(({ roveList }) => {
+      if (!gone) stop = roveList(list)
+    })
+    return () => {
+      gone = true
+      stop?.()
+    }
+  }, [listed])
   return (
     <>
       <PlayOrphanResolve actions={actions} />
       {groups.length === 0 ? (
         <EmptyState variant="inline" body={playCopy('nothingOnHandMatches')} />
       ) : (
-        <div className="su-play-timings">
+        <div ref={listRef} className="su-play-timings">
           {groups.map((group) => (
             <SlabSection
               key={group.key}

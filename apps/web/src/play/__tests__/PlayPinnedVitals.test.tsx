@@ -85,8 +85,43 @@ describe('the pinned vitals', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Take 3 from HP' }))
     expect(onWrite).toHaveBeenCalledTimes(1)
     expect(onWrite).toHaveBeenLastCalledWith('pilot', 'currentHP', 4, 'HP', undefined)
-    // The form is gone, the rows are back.
+    // Saved, the form and the rows close (r7 B7).
     expect(screen.queryByRole('textbox', { name: 'HP amount' })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Decrease Bonesaw Hit Points' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Decrease Bonesaw Hit Points' })).toBeNull()
+  })
+
+  test('a saved step closes the rows at the next press outside them (r7 B7)', () => {
+    render(
+      <>
+        <PlayPinnedVitals units={PINNED} live={{ pilot: true, mech: true }} onWrite={() => {}} />
+        <button type="button">Elsewhere</button>
+      </>
+    )
+    fireEvent.click(cell('SP'))
+    // Nothing changed yet: a press elsewhere leaves it open.
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Elsewhere' }))
+    const less = screen.getByRole('button', { name: 'Decrease Buzzard Structure Points' })
+    // A run of steps stays open.
+    fireEvent.pointerDown(less)
+    fireEvent.click(less)
+    fireEvent.click(less)
+    expect(screen.getByRole('button', { name: 'Decrease Buzzard Structure Points' })).toBeTruthy()
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Elsewhere' }))
+    expect(screen.queryByRole('button', { name: /^Decrease/ })).toBeNull()
+  })
+})
+
+describe('a Shut down mech on the strip (r7 B2)', () => {
+  test('says Shut down and Vulnerable under the five', () => {
+    const [pilot, mech] = PINNED as [PinnedUnit, PinnedUnit]
+    render(
+      <PlayPinnedVitals
+        units={[pilot, { ...mech, states: ['shutdown', 'vulnerable'] }]}
+        live={{ pilot: true, mech: true }}
+        onWrite={() => undefined}
+      />
+    )
+    expect(screen.getByText('Shut down')).toBeTruthy()
+    expect(screen.getByText('Vulnerable')).toBeTruthy()
   })
 })

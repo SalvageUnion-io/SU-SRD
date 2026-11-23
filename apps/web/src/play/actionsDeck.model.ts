@@ -83,6 +83,8 @@ export type ResolveModel =
         push?: {
           disabled: boolean
           pushed: boolean
+          /** The Heat a Push adds (Core Book p.233), which its label says (r7 B1). */
+          heat: number
           onPush: () => void
           /** Why Push is refused at this Heat, or undefined when it is not. */
           lockedReason?: string
