@@ -65,6 +65,11 @@ describe('Try a round in Play', () => {
     expect(href?.split(APP_BASE).length).toBe(2)
   })
 
+  test('Build’s front door offers the trial too, beside the Starter crew (r7 F4)', async () => {
+    render(underAppRouter(<FrontDoor area="build" steps={null} />))
+    expect(await trialHref()).toBe(appPath(cockpitPath(pilot)))
+  })
+
   test('a Starter pilot’s sheet links the trial under the base once', async () => {
     render(underAppRouter(<MakeACopy kind="pilot" templateId={pilot} name="Starter" />))
     const href = await trialHref()
