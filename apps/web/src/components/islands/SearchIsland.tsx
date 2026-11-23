@@ -1,6 +1,6 @@
 /**
  * The site's one search: the reference pages hydrate it as an island (the
- * Union bar's field, the home and 404 hero), and the app renders the same
+ * Union bar's field, the 404's hero), and the app renders the same
  * component in its bar. One engine, the build-time compact index
  * (`/search-index.json`, `searchCompactIndex`); one panel, hung under the
  * field; Cmd/Ctrl+K focuses it. Every result is a reference page, followed in
@@ -46,11 +46,9 @@ type SearchIslandProps = {
   /**
    * `bar` (default) — the Union bar's compact field. `hero` — the 404's wide
    * field and Search button on its band, over the
-   * same `HeroSearchForm` the page server-renders. `home` — the hero's form
-   * under the home's slideshow, at the page's foot: its list opens upward,
-   * over the slides, and its key cap reads "/".
+   * same `HeroSearchForm` the page server-renders.
    */
-  variant?: 'bar' | 'hero' | 'home'
+  variant?: 'bar' | 'hero'
 }
 
 /**
@@ -72,19 +70,6 @@ const LISTBOX = {
 } satisfies CSSProperties
 
 const LISTBOX_HERO = { ...LISTBOX, left: 0, width: '100%' } satisfies CSSProperties
-
-/** The home's, hung over its field: the field stands at the page's foot. */
-const LISTBOX_HOME = {
-  ...LISTBOX_HERO,
-  bottom: '100%',
-  marginBottom: space[4],
-  marginTop: 0,
-  maxHeight: 'min(30rem, 60dvh)',
-  top: 'auto',
-} satisfies CSSProperties
-
-/** The key that focuses the home's field, on every keyboard. */
-const HOME_SHORTCUT = '/'
 
 const LISTBOX_BAR = {
   ...LISTBOX,
@@ -114,8 +99,7 @@ function resultUrl(result: SearchComboboxResult): string {
 }
 
 export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = {}) {
-  const hero = variant !== 'bar'
-  const home = variant === 'home'
+  const hero = variant === 'hero'
   // Deferred: the compact search index doesn't download until first user
   // intent (focusing the input or typing) — keeps it off every page's
   // critical path. Unlike the reference-entity islands, search never
@@ -262,8 +246,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   // Search container — the header's compact look, via the shared SearchField. The
   // inner input keeps focus:outline-none, so the container carries the
   // visible keyboard-focus indicator via focus-within (WCAG 2.4.7).
-  const modKey = useModKeyHint()
-  const shortcut = home ? HOME_SHORTCUT : modKey
+  const shortcut = useModKeyHint()
   const field = (
     <SearchField
       ref={inputRef}
@@ -315,7 +298,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
           // The press took the focus off the field; typing and the arrows go on.
           inputRef.current?.focus()
         }}
-        style={home ? LISTBOX_HOME : hero ? LISTBOX_HERO : LISTBOX_BAR}
+        style={hero ? LISTBOX_HERO : LISTBOX_BAR}
         none={
           suggestion ? (
             <p style={NEXT}>

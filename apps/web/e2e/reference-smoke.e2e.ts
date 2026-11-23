@@ -10,11 +10,10 @@ test.use({ account: 'anonymous' })
  * as fixtures (the same chassis the app's e2e builds against).
  */
 
-// (a) The Reference's home loads and search returns results (the site's home
-// carries no search: it is the Reference's).
-test('the Reference loads and search returns results', { tag: '@pr' }, async ({ page }) => {
-  await page.goto('/reference/')
-  await expect(page).toHaveTitle(/Reference/i)
+// (a) Landing page loads and search returns results.
+test('landing page loads and search returns results', { tag: '@pr' }, async ({ page }) => {
+  await page.goto('/')
+  await expect(page).toHaveTitle(/Salvage Union/i)
 
   // The bar's field is on every width: on a phone, a row of its own under
   // the bar.

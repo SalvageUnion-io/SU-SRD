@@ -39,25 +39,12 @@ describe('home: the front door, its slideshow alone', () => {
     expect(html).not.toContain('su-chapter-band')
   })
 
-  it('shows its search under the slides to a tablet, its key cap "/"; the bar serves none (r2 H6)', () => {
-    // The band's, and a laptop's beside the name (RR7-14): CSS shows one.
-    expect(islands(html, 'SearchIsland')).toBe(2)
-    expect(islands(html, 'MobileSearchIsland')).toBe(0)
-    const afterShow = html.slice(html.lastIndexOf('data-show-controls'), html.indexOf('<footer'))
-    expect(afterShow).toMatch(
-      /class="su-front__search[^"]*"[^>]*><astro-island[^>]*data-island="SearchIsland"/
-    )
-    expect(afterShow).toContain('su-hero-search')
-    expect(afterShow).toMatch(/<kbd[^>]*>\/<\/kbd>/)
+  it('searches from the Union bar, as every page does: one search island, no hero', () => {
+    expect(islands(html, 'SearchIsland')).toBe(1)
+    expect(islands(html, 'MobileSearchIsland')).toBe(1)
     const bar = html.slice(0, html.indexOf('<main'))
-    expect(bar).not.toContain('data-island="SearchIsland"')
-  })
-
-  it('stands a laptop’s search beside the name, over the two actions (RR7-14)', () => {
-    const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
-    expect(head).toMatch(
-      /<h1[^>]*>[^<]*<\/h1><div class="su-front__show-search[^"]*"><astro-island[^>]*data-island="SearchIsland"/
-    )
+    expect(bar).toContain('data-island="SearchIsland"')
+    expect(html).not.toContain('su-hero-search')
   })
 
   it('serves the welcome-back strip its link to the last Game, hidden until the script names one', () => {
