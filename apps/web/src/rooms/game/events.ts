@@ -21,7 +21,7 @@ import {
   withSaid,
 } from './eventLines'
 import type { EventsBefore } from './eventsBefore'
-import { downtimeStepNow, eventsBefore, resolvingDone, unappliedOf } from './eventsBefore'
+import { downtimeStepNow, eventsBefore, resolvingDone, trayNpc, unappliedOf } from './eventsBefore'
 import { isPrivateRoll, isRevealedRoll, rollLineFor } from './log'
 import { undoes } from './proposals'
 import type { GameStore, StoredOp } from './store'
@@ -307,6 +307,17 @@ export class GameEvents {
           this.note(actor, at, { kind: 'turn', text: `${unit(value)} ended their turn` }),
           ...closed(),
         ]
+      case 'mediator.updateNpc': {
+        // An NPC's HP moved: the Mediator's Feed says it, and its Down is the
+        // whole table's, so whoever hit it learns it dropped (r8 A3).
+        const was = before.npc
+        const now = trayNpc(this.store, String(a.npcId))
+        if (was == null || now === null || now.hp === null || now.hp === was.hp) return []
+        if (now.hp === 0) return say('vitals', `${now.name} · HP → 0`)
+        const from = was.hp === null ? '' : `${was.hp} `
+        const text = `${now.name} · HP ${from}→ ${now.hp}`
+        return [this.note(actor, at, { kind: 'vitals', text, private: true })]
+      }
       case 'safety.showStop':
         // Nobody is named: who showed it stays in the room.
         return before.stop === true

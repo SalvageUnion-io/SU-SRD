@@ -21,6 +21,7 @@ import {
   stackNotices,
   standingDownOnPurpose,
   stripLine,
+  tableTurnLine,
 } from '../tableNotices.model'
 
 const event = (over: Partial<TableEvent> & { _id: string }): TableEvent => ({
@@ -523,5 +524,21 @@ describe('gamesGone (r2 B4)', () => {
     expect(gamesGone([rust], [])).toEqual([])
     leavingOnPurpose('g1')()
     expect(gamesGone([rust], [])).toEqual([rust])
+  })
+})
+
+describe('tableTurnLine (r8 A3)', () => {
+  const words = {
+    round: (n: number) => `Round ${n}`,
+    pilots: 'Pilots to act',
+    opposition: 'Opposition to act',
+    up: (name: string) => `${name} is up`,
+  }
+  test('the round, the side acting and who else is up, as the bar says them', () => {
+    expect(tableTurnLine({ n: 2, acting: 'pilots' }, 'Razor', words)).toBe(
+      'Round 2 · Pilots to act · Razor is up'
+    )
+    expect(tableTurnLine({ n: 1, acting: null }, null, words)).toBe('Round 1')
+    expect(tableTurnLine(undefined, null, words)).toBeNull()
   })
 })

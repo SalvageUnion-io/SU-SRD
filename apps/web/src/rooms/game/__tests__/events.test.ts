@@ -548,6 +548,17 @@ describe('the table’s events', () => {
     ])
   })
 
+  // r8 A3 (LG8-08): an NPC a hit dropped was in nobody's Feed.
+  test('an NPC’s HP is a Mediator’s line; its Down is the whole table’s', () => {
+    const { act, texts, room } = seated()
+    const npcId = room.opposition.addNpc(MEDIATOR, { name: 'Raider 1', currentHp: 6, maxHp: 6 }, AT)
+    act(MEDIATOR, 'mediator.updateNpc', { npcId, patch: { currentHp: 2 } }, AT + 1)
+    expect(texts(MEDIATOR)[0]).toBe('Raider 1 · HP 6 → 2')
+    expect(texts(PLAYER)).not.toContain('Raider 1 · HP 6 → 2')
+    act(MEDIATOR, 'mediator.updateNpc', { npcId, patch: { currentHp: 0 } }, AT + 2)
+    expect(texts(PLAYER)[0]).toBe('Raider 1 · HP → 0')
+  })
+
   // r8 A4 (LG8-11): a step that passed by itself credited the Mediator with moving it.
   test('a Downtime step that passes by itself says so, naming nobody', () => {
     const { act, texts } = seated()

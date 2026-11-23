@@ -130,6 +130,8 @@ export type PlayBarProps = {
   stamp?: string
   /** The Scene conditions that are on, as one stamp ("Scene · Radiation Storm"); absent with none. */
   scene?: string | undefined
+  /** The fight as a player reads it, "Round 2 · Pilots to act · Razor is up" (r8 A3); absent with none. */
+  turn?: string | null
   /** A phone's bar, kept to one line: the ONLINE stamp says its count alone (`liveLabel`). */
   short?: boolean
   /**
@@ -169,6 +171,7 @@ export function PlayBar({
   of = null,
   stamp,
   scene,
+  turn = null,
   short = false,
   readOnly = null,
   situation,
@@ -196,6 +199,7 @@ export function PlayBar({
           <span>
             {line.game !== null && ' · '}
             {line.phase}
+            {turn !== null && ` · ${turn}`}
           </span>
         </p>
         <Button
@@ -277,6 +281,11 @@ export function PlayBar({
         )
       )}
       {situation && <div style={SLOT}>{situation}</div>}
+      {turn !== null && (
+        <Badge shape="stamp" size="compact" className={STAMP} style={ONLINE} role="status">
+          {turn}
+        </Badge>
+      )}
       {/* A condition left on is never unseen (r4 A11). */}
       {scene && (
         <Badge shape="stamp" size="compact" surface="inverse" className={STAMP} style={ONLINE}>

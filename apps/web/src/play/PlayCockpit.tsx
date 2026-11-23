@@ -49,6 +49,7 @@ import { useEffect, useState } from 'react'
 import type { HeaderMenuItem } from '../components/index'
 import { Button, HeaderMenu, tokens } from '../components/index'
 import { changeUndoToast } from '../lib/changeUndoToast'
+import { usePilots } from '../lib/entities'
 import { areaTitle } from '../lib/pageTitle'
 import { runWrite } from '../lib/runWrite'
 import { useTabTitle } from '../lib/useTabTitle'
@@ -77,6 +78,7 @@ import type { PlayerPane } from './playPanes.model'
 import { PLAYER_TABS, pinnedUnits, playerPanes, playerPhonePanes } from './playPanes.model'
 import { StopSignButton } from './StopSign'
 import { tableUnits } from './tableMode.model'
+import { tableTurnLine } from './tableNotices.model'
 import { useFeedMark } from './useFeedMark'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
@@ -88,6 +90,7 @@ import { usePlaySide } from './usePlaySide'
 import { usePlaySituation } from './usePlaySituation'
 import { usePlayUnits } from './usePlayUnits'
 import { usePlayWide } from './usePlayWide'
+import { useScene } from './useScene'
 import type { SheetOnScreen } from './useSheetOnScreen'
 import { useSheetOnScreen } from './useSheetOnScreen'
 import { situationRows, useSituationMoves } from './useSituationMoves'
@@ -146,6 +149,20 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
   const sign = useStopSign(target.gameId)
   const session = useGameSession(target.gameId)
   const here = useGamePresence(target.gameId, 'seat')
+  // The round, the side acting and who else is up, on the bar (r8 A3).
+  const scene = useScene(target.gameId)
+  const everyPilot = usePilots()
+  const upPilot = everyPilot.find((pilot) => pilot.id === scene.upNow)
+  const turnLine = tableTurnLine(
+    scene.round,
+    upPilot === undefined || upPilot.id === target.pilotId ? null : pilotLabel(upPilot),
+    {
+      round: (n) => playCopy('roundOf', { n }),
+      pilots: playCopy('pilotsToAct'),
+      opposition: playCopy('oppositionToAct'),
+      up: (name) => playCopy('nameIsUp', { name }),
+    }
+  )
   const wide = usePlayWide()
   const [tab, setTab] = useState<PlayerPane>('act')
   const side = usePlaySide({ target, play })
@@ -296,6 +313,7 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
                     }
               }
               stamp={playStamp(target)}
+              turn={turnLine}
               tone={PHASE_TONE[play.situation]}
               paused={sign?.shown === true}
               // Back to the pilot's own page (ADR-066); its Game is in ⋯.

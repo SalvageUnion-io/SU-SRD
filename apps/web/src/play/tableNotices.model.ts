@@ -369,6 +369,30 @@ export function myTurn<P extends { id: string }>(
 }
 
 /**
+ * What a player's Play bar says of the fight (r8 A3): the round, the side
+ * acting and who is up, when it is not the viewer: "Round 2 · Pilots to act ·
+ * Razor is up". Null with nothing kept.
+ */
+export function tableTurnLine(
+  round: { n: number; acting: 'pilots' | 'opposition' | null } | undefined,
+  upName: string | null,
+  words: {
+    round: (n: number) => string
+    pilots: string
+    opposition: string
+    up: (name: string) => string
+  }
+): string | null {
+  const parts = [
+    ...(round === undefined ? [] : [words.round(round.n)]),
+    ...(round?.acting === 'pilots' ? [words.pilots] : []),
+    ...(round?.acting === 'opposition' ? [words.opposition] : []),
+    ...(upName === null ? [] : [words.up(upName)]),
+  ]
+  return parts.length === 0 ? null : parts.join(' · ')
+}
+
+/**
  * Whom the turn passes to when the pilot who is up has gone Away (r7 A3):
  * the next of the Game's pilots, in their order, whose player is here; null,
  * nobody up, when none is. `pilots` are the Game's, each with its player.
