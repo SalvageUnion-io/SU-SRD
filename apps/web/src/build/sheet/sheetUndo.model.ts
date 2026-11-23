@@ -7,7 +7,9 @@
  * Ctrl+Z and "Undo last change" reach only the changes made in this tab
  * (`madeInThisTab`, r5 C2): another tab's change is that tab's to take back,
  * or the Change Log's. What this tab undid, Ctrl+Shift+Z or Ctrl+Y (and the
- * undo's own Redo) puts back, newest first, until the sheet's next change.
+ * undo's own Redo) puts back, newest first, until the sheet's next change;
+ * meanwhile the ⋯ menu offers it too, by name ("Redo: add Armour Plating",
+ * r7 G8), so Redo never lives only in a toast that fades.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
@@ -77,11 +79,20 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
   const busy = useRef(false)
   // What Redo puts back, newest last; the sheet's next change (not ours) clears it.
   const redos = useRef<Undone[]>([])
+  // What the next Redo puts back, in words where the log has them; null with
+  // nothing to redo. The ⋯ menu offers it by name (r7 G8).
+  const [redoNext, setRedoNext] = useState<{ what: string | undefined } | null>(null)
+  const setRedos = (list: Undone[]): void => {
+    redos.current = list
+    const top = list.at(-1)
+    setRedoNext(top ? { what: changeWhat(top.change) } : null)
+  }
   const ours = useRef(false)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `setRedos` writes a ref and a state setter
   useEffect(
     () =>
       onUnitWrite((written) => {
-        if (written === id && !ours.current) redos.current = []
+        if (written === id && !ours.current && redos.current.length > 0) setRedos([])
       }),
     [id]
   )
@@ -96,7 +107,7 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
   }
 
   const redo = (undone: Undone): void => {
-    redos.current = redos.current.filter((each) => each !== undone)
+    setRedos(redos.current.filter((each) => each !== undone))
     taken.current.delete(undone.change.id)
     runWrite(() => write(undone.prior, sheetRedo(undone.change.id)))
     undoToast(buildSheetCopy('changeRedone'), () => void reverse(undone.change, undone.did), id)
@@ -111,7 +122,7 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     const done = write(back, sheetUndo(change.id))
     runWrite(() => done)
     const undone: Undone = { change, did, prior }
-    redos.current = [...redos.current, undone]
+    setRedos([...redos.current, undone])
     undoToast(did.done, () => redo(undone), id, { label: buildSheetCopy('redo') })
     return done.catch(() => undefined)
   }
@@ -174,5 +185,5 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     return () => document.removeEventListener('keydown', onKey)
   }, [blocked])
 
-  return { reverse, undoLast, redoLast, next, look }
+  return { reverse, undoLast, redoLast, next, redoNext, look }
 }

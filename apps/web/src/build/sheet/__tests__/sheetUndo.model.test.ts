@@ -70,3 +70,39 @@ describe('lastUndoableHere', () => {
     expect(lastUndoableHere([change(mine ?? '')], new Set([mine ?? '']))).toBeUndefined()
   })
 })
+
+describe('Redo in the ⋯ menu (r7 G8)', () => {
+  test('what was undone is offered by name until the sheet’s next change', async () => {
+    const { act, renderHook } = await import('@testing-library/react')
+    const { useSheetUndo } = await import('../sheetUndo.model')
+    const units = useUnits.getState()
+    await units.adopt('mech', mechFixture({ id: 'm-redo', systems: ['armour-plating'] }))
+    const { result } = renderHook(() =>
+      useSheetUndo({
+        kind: 'mech',
+        id: 'm-redo',
+        gameId: null,
+        storeState: useUnits.getState(),
+        defaults: {},
+        blocked: false,
+      })
+    )
+    expect(result.current.redoNext).toBeNull()
+    const added: LogChange = {
+      ...change('c-add'),
+      fields: [{ field: 'systems', before: [], after: ['armour-plating'] }],
+    }
+    await act(async () => {
+      await result.current.reverse(added, { done: 'Removed Armour Plating.' } as never)
+    })
+    expect(result.current.redoNext?.what).toBe('add Armour Plating')
+    // Another change to the sheet ends it.
+    await act(async () => {
+      await useUnits
+        .getState()
+        .update('mech', 'm-redo', { currentSP: 3 }, LIVE_SHEET_MANUAL)
+        .catch(() => {})
+    })
+    expect(result.current.redoNext).toBeNull()
+  })
+})

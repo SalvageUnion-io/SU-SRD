@@ -67,6 +67,8 @@ export const buildSheetCopy = messages({
   logEarlier: 'Earlier',
   undoLastChange: 'Undo last change',
   undoNamed: 'Undo: {what}',
+  redoNamed: 'Redo: {what}',
+  redoLastChange: 'Redo last change',
   undoWhatRemoved: 'remove {names}',
   undoWhatAdded: 'add {names}',
   nothingToUndo: 'Nothing to undo in this tab: the Change Log holds every change.',

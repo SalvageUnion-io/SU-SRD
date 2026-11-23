@@ -350,6 +350,18 @@ export function Sheet({
           : buildSheetCopy('undoLastChange'),
         onSelect: writesBlocked || status !== 'live' ? undefined : () => void undo.undoLast(),
       },
+      // What was just undone stays in reach until the next change (r7 G8).
+      ...(undo.redoNext
+        ? [
+            {
+              id: 'redo',
+              label: undo.redoNext.what
+                ? buildSheetCopy('redoNamed', { what: undo.redoNext.what })
+                : buildSheetCopy('redoLastChange'),
+              onSelect: writesBlocked || status !== 'live' ? undefined : () => undo.redoLast(),
+            },
+          ]
+        : []),
     ],
     [
       {
