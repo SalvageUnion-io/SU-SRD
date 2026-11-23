@@ -70,6 +70,8 @@ type WizShellProps = {
   reached?: number
   /** When provided, completed stepper entries navigate back. */
   onStepClick?: (index: number) => void
+  /** Passed steps still empty: the rail leaves them open and unticked (r8 E10). */
+  unfilled?: readonly number[]
   /** Step heading — the page's h1 over the step's content, read as 'Step n of N · {title}'. */
   title: string
   /** Main pane content (detail card, pick grid, form, review). */
@@ -300,13 +302,8 @@ function WizRail({
   active,
   reached,
   onStepClick,
-}: {
-  steps: readonly string[]
-  active: number
-  reached: number
-  /** With it, a step already passed is a way back to it. */
-  onStepClick: ((index: number) => void) | undefined
-}) {
+  unfilled = [],
+}: Pick<WizShellProps, 'steps' | 'active' | 'onStepClick' | 'unfilled'> & { reached: number }) {
   return (
     <aside className="su-wiz-rail" data-print="hide">
       {/* A phone's rail is one line and a track of notches; the h1 reads
@@ -323,7 +320,7 @@ function WizRail({
             label={label}
             index={i}
             active={i === active}
-            done={i < active}
+            done={i < active && !unfilled.includes(i)}
             clickable={!!onStepClick && i !== active && i <= reached}
             onClick={onStepClick ? () => onStepClick(i) : undefined}
           />
@@ -359,6 +356,7 @@ export function WizShell({
   active,
   reached = active,
   onStepClick,
+  unfilled,
   title,
   children,
   trackers,
@@ -519,6 +517,7 @@ export function WizShell({
           active={active}
           reached={reached}
           onStepClick={onStepClick && !busy ? onStepClick : undefined}
+          unfilled={unfilled}
         />
 
         {/* (b) flex-1 main pane — always owns the step heading. A plain

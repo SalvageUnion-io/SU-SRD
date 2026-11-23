@@ -14,6 +14,8 @@ type WizTextFieldProps = {
   ariaLabel?: string
   /** A control on the label's line: the d20 Roll assist. */
   labelAction?: ReactNode
+  /** Enter in a one-line field: the step's own act (Create Mech, r8 E8). */
+  onEnter?: (() => void) | undefined
 }
 
 /**
@@ -31,6 +33,7 @@ export function WizTextField({
   required = false,
   ariaLabel,
   labelAction,
+  onEnter,
 }: WizTextFieldProps) {
   const id = useId()
   return (
@@ -53,6 +56,14 @@ export function WizTextField({
           placeholder={placeholder}
           required={required}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={
+            onEnter &&
+            ((e) => {
+              if (e.key !== 'Enter' || e.nativeEvent.isComposing) return
+              e.preventDefault()
+              onEnter()
+            })
+          }
         />
       )}
     </Field>

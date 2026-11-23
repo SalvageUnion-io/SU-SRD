@@ -199,7 +199,8 @@ export function MechWizard({
    * budget accordingly. The arithmetic stays enforced on the prefilled state
    * — `legalStarting` patterns fit by data, and the Review gate re-checks.
    * A pattern is a whole build, so its pick opens Name & Review; Systems and
-   * Quirk stay one press back on the rail (r7 F9).
+   * Quirk stay one press back on the rail (r7 F9), Quirk & Look unticked
+   * while it is empty (r8 E10).
    */
   function selectPattern(pattern: ChassisPattern) {
     setForm((prev) => withPatternPrefill(prev, pattern))
@@ -406,6 +407,10 @@ export function MechWizard({
       kind="mech"
       eyebrow={routesCopy('newMech')}
       {...shell}
+      // A pattern skips past Quirk & Look; empty, it stays open, never ticked (r8 E10).
+      unfilled={
+        form.quirk.trim() === '' && form.appearance.trim() === '' ? [STEPS.indexOf('look')] : []
+      }
       title={STEP_TITLES[step]}
       trackers={trackers}
       footerNote={footerNote}
@@ -433,10 +438,20 @@ export function MechWizard({
       )}
       {step === 'loadout' && (
         <>
-          <div className="su-wiz-parts">
-            {brief('systems')}
-            {brief('modules')}
-          </div>
+          {/* One brief for the step's one pick, the book's two rules in it (r8 E8). */}
+          <RuleBrief
+            rule={`${String(ruleFor('systems').rule)} ${String(ruleFor('modules').rule)}`}
+            cite={{
+              source: BOOK,
+              page: 95,
+              see: [
+                { label: mechCopy('theSystemList'), page: 162 },
+                { label: mechCopy('theModulesList'), page: 188 },
+              ],
+            }}
+            className="su-wiz-rule-brief"
+            fold
+          />
           <MechLoadoutStep
             systems={form.systems}
             modules={form.modules}
@@ -495,6 +510,8 @@ export function MechWizard({
               value={form.name}
               onChange={setMechName}
               placeholder={mechCopy('eGBullseyePatternMule')}
+              // Enter in the last step's one field creates the Mech (r8 E8).
+              onEnter={shell.nextDisabled || shell.busy ? undefined : shell.onNext}
             />
           )}
         />

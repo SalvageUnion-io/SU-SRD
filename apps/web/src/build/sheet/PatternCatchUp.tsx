@@ -5,25 +5,34 @@
  * first line in Read and Edit alike, and carries what to do about it where
  * the viewer writes the mech:
  *
- * - **Update the pattern from this Mech**, where the pattern is the viewer's
- *   own: the mech's Systems and Modules are written over the pattern, which
- *   keeps its id, links and share settings (`replacePattern`, its notice's
- *   Undo puts the old build back). The pattern alone changes
- *   (the E2 ruling in `build/rulings.model.ts`): other mechs built from it show their own drift.
- * - **Bring back to the pattern** (r5 D2), or **Bring them in** where the
- *   Mech only lacks what the pattern has (r7 G3): the pattern's Systems and
- *   Modules on the mech, at once, with the sheet's Undo line, which says the
- *   Mech now matches it. Damage, Heat and cargo stay.
+ * - **Behind** (r8 E3): the Mech only lacks what the pattern has, as after
+ *   its pattern gained something, so the one way on is **Bring in the
+ *   pattern's changes**. It is never offered to write itself over the
+ *   pattern, which would take the change back for every Mech built from it.
+ * - **Ahead**, where the Mech changed: **Update the pattern from this Mech**,
+ *   where the pattern is the viewer's own (`replacePattern`: the pattern keeps
+ *   its id, links and share; its notice says how many other Mechs use it and
+ *   offers Bring them up to date, r8 E2), **Bring back to the pattern** (r5
+ *   D2), and **Save as a new pattern** (r8 E4), which keeps both builds.
+ *
+ * Bringing in or back writes the pattern's Systems and Modules on the Mech at
+ * once, with the sheet's Undo line. Damage, Heat and cargo stay.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Button, Text, toast, tokens } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { useOpenedOnce } from '../../lib/useOpenedOnce'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { PatternStamp } from './bandStamps.model'
 import type { SheetPatch } from './sheetViewProps.model'
 import { undoToast } from './undoToast.model'
+
+const SavePatternDialog = lazy(() =>
+  import('../mech/Pattern/SavePatternDialog').then((m) => ({ default: m.SavePatternDialog }))
+)
 
 const LINE = {
   alignItems: 'center',
@@ -39,7 +48,7 @@ const WORDS = { flex: '1 1 16rem', margin: 0 } satisfies CSSProperties
 async function updatePattern(mech: Mech, stamp: PatternStamp, patternId: string) {
   try {
     const { replacePattern } = await import('../mech/Pattern/buildConfirm.model')
-    await replacePattern(patternId, mech)
+    await replacePattern(patternId, mech, mech.id)
   } catch (err) {
     toast.error(failureMessage(err, buildSheetCopy('patternNotUpdated', { pattern: stamp.name })))
   }
@@ -56,29 +65,48 @@ export function PatternCatchUp({
   patch?: SheetPatch | undefined
 }) {
   const { loadout } = stamp
+  const [saving, setSaving] = useState(false)
+  const savingMounted = useOpenedOnce(saving)
   const names = { name: mech.name, pattern: stamp.name }
   const patternId = stamp.own ? mech.sourcePattern : undefined
+  // Behind its pattern: only the pattern's changes come in (r8 E3).
+  const behind = stamp.lacksOnly === true
+  const bring = () => {
+    const before = { systems: mech.systems, modules: mech.modules }
+    const wrote = { systems: [...loadout.systems], modules: [...loadout.modules] }
+    patch?.(wrote)
+    undoToast(buildSheetCopy('broughtUpToDate', names), () => patch?.(before), mech.id, {
+      wrote,
+    })
+  }
   return (
     <section aria-label={buildSheetCopy('driftLabel', { name: mech.name })} style={LINE}>
       <Text variant="note" style={WORDS}>
         {stamp.differs}
       </Text>
-      {patch && patternId !== undefined && (
+      {patch && !behind && patternId !== undefined && (
         <Button size="compact" onClick={() => void updatePattern(mech, stamp, patternId)}>
           {buildSheetCopy('updateThePattern')}
         </Button>
       )}
       {patch && (
-        <Button
-          size="compact"
-          onClick={() => {
-            const before = { systems: mech.systems, modules: mech.modules }
-            patch({ systems: [...loadout.systems], modules: [...loadout.modules] })
-            undoToast(buildSheetCopy('broughtUpToDate', names), () => patch(before), mech.id)
-          }}
-        >
-          {stamp.lacksOnly ? buildSheetCopy('bringThemIn') : buildSheetCopy('bringBackToPattern')}
+        <Button size="compact" onClick={bring}>
+          {behind ? buildSheetCopy('bringInPatternChanges') : buildSheetCopy('bringBackToPattern')}
         </Button>
+      )}
+      {patch && !behind && (
+        <Button size="compact" onClick={() => setSaving(true)}>
+          {buildSheetCopy('saveAsNewPattern')}
+        </Button>
+      )}
+      {savingMounted && (
+        <Suspense fallback={null}>
+          <SavePatternDialog
+            source={{ ...mech, sourcePattern: undefined }}
+            open={saving}
+            onOpenChange={setSaving}
+          />
+        </Suspense>
       )}
     </section>
   )

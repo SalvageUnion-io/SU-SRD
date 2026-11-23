@@ -16,7 +16,7 @@ import { usePatterns } from '../replica/collections'
 import { subscribe } from '../replica/replica'
 import { useUnits } from '../replica/units'
 import { failureMessage } from './connection/useServerAction'
-import { copyBeside, copyForShelf, copyName, namesOn } from './copyEntity'
+import { copyBeside, copyForShelf, copyName, freshMechCopy, namesOn } from './copyEntity'
 import { unitDisplayName } from './entities/unitDisplayName'
 import { patternCopy, savedPatternHref } from './patterns/patterns'
 
@@ -151,7 +151,9 @@ function copyUnit(
     make: async () => {
       // An NPC's copy stays in the Game its original is in (MD3-12).
       const taken = namesOn(units.list(type))
-      const copy = type === 'npc' ? copyBeside(body, name, taken) : copyForShelf(body, name, taken)
+      const shelved =
+        type === 'npc' ? copyBeside(body, name, taken) : copyForShelf(body, name, taken)
+      const copy = type === 'mech' ? freshMechCopy(shelved) : shelved
       if (type === 'pilot' && typeof copy.callsign === 'string')
         copy.callsign = copyName(
           copy.callsign,
@@ -165,7 +167,7 @@ function copyUnit(
         try {
           const twin = await units.create(
             'mech',
-            copyForShelf(source, source.name, namesOn(units.list('mech'))) as never
+            freshMechCopy(copyForShelf(source, source.name, namesOn(units.list('mech')))) as never
           )
           made = twin.id
           await units.create('softLink', {

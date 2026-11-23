@@ -183,7 +183,7 @@ export function useMechSheetActions({
         buildSheetCopy('removedName', { name: name ?? buildSheetCopy('item') }),
         () => write(takeBack(freshMech(), fresh, after)),
         mech.id,
-        { stack: true }
+        { stack: true, wrote: after }
       )
     if (kind === 'module') {
       const gone = fresh.modules[index]

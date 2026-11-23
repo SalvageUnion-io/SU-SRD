@@ -76,3 +76,14 @@ describe('a pattern', () => {
     expect(open(patternChoices({ gameName: null }))).toEqual(['private', 'link'])
   })
 })
+
+describe('Public names the maker it will credit (r8 E12)', () => {
+  const publicLine = (maker: string | null | undefined) =>
+    patternChoices({ gameName: null, maker }).find((c) => c.value === 'link')?.description ?? ''
+
+  test('by their display name, or says there is none to credit yet', () => {
+    expect(publicLine('Beefcake')).toContain('made by Beefcake')
+    expect(publicLine(null)).toContain('set one in Settings')
+    expect(publicLine(undefined)).toContain('by your display name')
+  })
+})

@@ -65,15 +65,33 @@ describe('logChanges', () => {
     ).toEqual([['Removed Red Laser', 'Added Mini Mortar']])
   })
 
-  test('a field that was absent reverses to absent, and reads as None', () => {
+  test('an override that was absent reverses to absent, and reads as the book (r8 E6)', () => {
     const [change] = logChanges([
       row({ _id: 'o:maxHpOverride', field: 'maxHpOverride', before: null, after: 14 }),
     ])
-    expect(change?.lines.map(lineText)).toEqual(['Max hp override: None to 14'])
+    expect(change?.lines.map(lineText)).toEqual(['Max HP: book to 14'])
     expect(change && reverseChange(change, { maxHpOverride: 14 })).toEqual({
       maxHpOverride: undefined,
     })
     expect(change && reversal(change).label).toBe('Clear')
+  })
+
+  test("a Mech's pattern reads by its name, never its id (r8 E6)", async () => {
+    const { usePatterns } = await import('../../../replica/collections')
+    usePatterns.setState({
+      mechPatterns: [{ id: 'p-new', name: 'Hauler Laser' } as never],
+      hydrated: true,
+    })
+    try {
+      const [change] = logChanges([
+        row({ _id: 'o:sourcePattern', field: 'sourcePattern', before: 'p-gone', after: 'p-new' }),
+      ])
+      expect(change?.lines.map(lineText)).toEqual([
+        'Pattern: A pattern no longer here to Hauler Laser',
+      ])
+    } finally {
+      usePatterns.setState({ mechPatterns: [], hydrated: false })
+    }
   })
 
   test('a number written over nothing reads from what nothing stood for (r3 B4)', () => {

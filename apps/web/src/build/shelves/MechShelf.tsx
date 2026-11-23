@@ -7,6 +7,7 @@
  * was built from, and its find box keeps the lines that match (r5 D4).
  */
 import type { Mech } from 'game-domain/schemas/mech'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { RuleBreakMark } from '../../components/app'
@@ -47,6 +48,16 @@ type MechLine = {
  * as its link or a crew answers for it, or "Deleted pattern" once neither
  * does, as its sheet says (r7 G7), never "A saved pattern" for one that is gone.
  */
+/**
+ * The Pattern cell: the pattern's name, marked where the Mech is behind it
+ * (only lacks what it gained), as its sheet's band offers its changes (r8 E2).
+ */
+function patternCell(mech: Mech, patterns: readonly MechPattern[]): string {
+  const stamp = mechPatternStamp(mech, (id) => patterns.find((p) => p.id === id))
+  if (stamp === undefined) return ''
+  return stamp.lacksOnly ? buildShelvesCopy('patternBehind', { name: stamp.name }) : stamp.name
+}
+
 function ElsewherePattern({ mech, fallback }: { mech: Mech; fallback: string }) {
   const hydrated = usePatterns((s) => s.hydrated)
   const { status } = useSync()
@@ -77,14 +88,16 @@ export function MechShelf({
   const [sort, setSort] = useState<LedgerSort | undefined>(storedSort)
   const patterns = usePatterns((s) => s.mechPatterns)
   const find = useShelfFind(buildShelvesCopy('findAMech'), mechs.length)
-  const rows = mechs.map((mech) => {
+  // Unsorted, the Mech changed last comes first (r8 E9).
+  const newestFirst = [...mechs].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  const rows = newestFirst.map((mech) => {
     const r = readings.get(mech.id)
     const figures = mechBuildFigures(mech)
     const own = line(mech)
     // One a column of `MECH_COLUMNS`, by its key.
     const values: Record<string, string | number> = {
       chassis: chassisFact(mech.chassisRef) ?? '',
-      pattern: mechPatternStamp(mech, (id) => patterns.find((p) => p.id === id)?.name)?.name ?? '',
+      pattern: patternCell(mech, patterns),
       game: own.game[0]?.value ?? '',
       [buildShelvesCopy('tl')]: figures.techLevel ?? '',
       [buildShelvesCopy('sys')]: figures.systems,

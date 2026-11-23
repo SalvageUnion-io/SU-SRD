@@ -253,3 +253,18 @@ export function mechPatternStamp(
     ...differs(pattern.name, slugs(pattern.systems), slugs(pattern.modules)),
   }
 }
+
+/**
+ * A book crew's own Mech (the Starter Set's, the Quickstart's) or a copy of
+ * one (`seedRef`): its build is the book's, so where it is not its pattern's
+ * that is no drift to flag (r8 E9). Its band names the pattern alone.
+ */
+export const isBookCrewMech = (mech: { id: string; seedRef?: string | undefined }): boolean =>
+  mech.seedRef !== undefined || /^(starter|quickstart)-mech-/.test(mech.id)
+
+/** The pattern's name and page alone, never how a Mech differs from it. */
+export function withoutDrift(stamp: PatternStamp | undefined): PatternStamp | undefined {
+  if (stamp === undefined) return undefined
+  const { changed: _c, loadout: _l, differs: _d, lacksOnly: _o, ...named } = stamp
+  return named
+}

@@ -83,6 +83,27 @@ describe('EntitySearcher: arrows, names and filters', () => {
   )
 
   it(
+    'on a wide screen the Page beside the list follows the highlight (r8 E7)',
+    () => {
+      const initial = { width: window.innerWidth, height: window.innerHeight }
+      setViewport(1280, 900)
+      try {
+        render(<EntitySearcher schema="systems" mode="count" selected={[]} idOf={slug} />)
+        const search = screen.getByRole('textbox', { name: 'Search' })
+        fireEvent.change(search, { target: { value: 'ballistic' } })
+        fireEvent.keyDown(search, { key: 'ArrowDown' })
+        fireEvent.keyDown(search, { key: 'ArrowDown' })
+        const [row] = cursors()
+        expect(row?.hasAttribute('data-focused')).toBe(true)
+        expect(document.querySelectorAll('[data-focused]')).toHaveLength(1)
+      } finally {
+        setViewport(initial.width, initial.height)
+      }
+    },
+    POOL_RENDER_MS
+  )
+
+  it(
     'Filters does not count the Tech level chips set beside it',
     () => {
       const initial = { width: window.innerWidth, height: window.innerHeight }

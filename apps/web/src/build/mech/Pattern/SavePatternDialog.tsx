@@ -147,7 +147,7 @@ function SavePatternBody({
     { failure: mechCopy('patternNotSaved') }
   )
   const held = usePatterns((s) => s.mechPatterns)
-  const replace = useServerAction((id: string) => replacePattern(id, source), {
+  const replace = useServerAction((id: string) => replacePattern(id, source, source.id), {
     failure: mechCopy('patternNotReplaced'),
   })
   const chassis = patternChassis(source)

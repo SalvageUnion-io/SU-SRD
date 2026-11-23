@@ -108,8 +108,15 @@ export function sheetChoices(args: {
   ]
 }
 
-/** A pattern's answers. `gameName` is the Game "My Game's crew" would share it with. */
-export function patternChoices(args: { gameName: string | null }): VisibilityChoice[] {
+/**
+ * A pattern's answers. `gameName` is the Game "My Game's crew" would share it
+ * with; `maker` the viewer's display name, null with none set (undefined: not
+ * known yet), so Public says the name it will credit (r8 E12).
+ */
+export function patternChoices(args: {
+  gameName: string | null
+  maker?: string | null | undefined
+}): VisibilityChoice[] {
   return [
     {
       value: 'private',
@@ -130,9 +137,13 @@ export function patternChoices(args: { gameName: string | null }): VisibilityCho
       value: 'link',
       label: LABEL.link,
       // Public credits its maker by display name (r6 E11, `CREDIT_EVERY_PUBLIC_PATTERN`).
-      description: libSharingCopy(
-        CREDIT_EVERY_PUBLIC_PATTERN ? 'patternLinkCredited' : 'patternLink'
-      ),
+      description: !CREDIT_EVERY_PUBLIC_PATTERN
+        ? libSharingCopy('patternLink')
+        : args.maker === null
+          ? libSharingCopy('patternLinkNoName')
+          : args.maker === undefined
+            ? libSharingCopy('patternLinkCredited')
+            : libSharingCopy('patternLinkCreditedAs', { name: args.maker }),
       disabled: false,
     },
   ]

@@ -276,8 +276,6 @@ function ChassisGallery({
         <h2 className={cn('su-rule-head__label', CAPS)}>{title}</h2>
         <span className={cn('su-rule-head__note', CAPS)}>{note}</span>
       </header>
-      {/* What the cards' figures mean, each opening its glossary entry (r6 F3). */}
-      <ChassisLegend />
       <div
         className="su-grid su-chassis-gallery__grid"
         role="radiogroup"
@@ -323,6 +321,9 @@ function ChassisGallery({
           )
         })}
       </div>
+      {/* What the cards' figures mean, each opening its glossary entry (r6 F3),
+          under the cards so Tab reaches the cards first (r8 E8). */}
+      <ChassisLegend />
     </section>
   )
 }

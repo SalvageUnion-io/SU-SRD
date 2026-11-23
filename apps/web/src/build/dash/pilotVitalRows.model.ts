@@ -112,5 +112,6 @@ function changeUndo(
     from,
     to,
     undo: (value) => actions.patchPilot({ [field]: value }),
+    sheet: { id: pilot.id, field },
   })
 }

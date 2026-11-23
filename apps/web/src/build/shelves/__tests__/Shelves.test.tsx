@@ -602,6 +602,29 @@ describe('Patterns', () => {
     expect(usePatterns.getState().mechPatterns).toHaveLength(0)
   })
 
+  test('a public pattern’s delete says its link stops working (r8 E4)', async () => {
+    serveTableState('account', {
+      sharing: [
+        {
+          appId: 'pat-1',
+          body: { visibility: 'link', gameId: null, builtCount: 0, homebrew: false },
+        },
+      ],
+    })
+    await renderShelves()
+    await choose(await openMenu('Brawler'), 'Delete')
+    expect(await screen.findByText('Deleted Brawler. Its public link stops working.')).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
+    })
+  })
+
+  test('Share… rides the row’s ⋯ menu (r8 E4)', async () => {
+    await renderShelves()
+    const menu = await openMenu('Brawler')
+    expect(within(menu).getByRole('menuitem', { name: 'Share…' })).toBeTruthy()
+  })
+
   test('its Undo keeps the pattern, and writes nothing', async () => {
     await renderShelves()
     await choose(await openMenu('Brawler'), 'Delete')
@@ -614,6 +637,46 @@ describe('Patterns', () => {
       toast.dismiss()
     })
     expect(usePatterns.getState().mechPatterns).toHaveLength(1)
+  })
+})
+
+describe('the Mechs shelf (r8 E2, E9)', () => {
+  test('lists the Mech changed last first, and marks one behind its pattern', async () => {
+    const store = useUnits.getState()
+    await store.adopt(
+      'mech',
+      mechFixture({
+        id: 'm-new',
+        name: 'Newest',
+        chassisRef: 'titan',
+        gameId: null,
+        updatedAt: '2099-01-01T00:00:00.000Z',
+      })
+    )
+    usePatterns.setState({
+      mechPatterns: [{ ...PATTERN, systems: ['armour-plating'] }],
+      hydrated: true,
+    })
+    await store.adopt(
+      'mech',
+      mechFixture({
+        id: 'm-behind',
+        name: 'Behind One',
+        chassisRef: 'titan',
+        gameId: null,
+        systems: [],
+        modules: [],
+        sourcePattern: 'pat-1',
+      })
+    )
+    await renderShelves()
+    const shelf = screen.getByRole('region', { name: 'Mechs' })
+    const names = within(shelf)
+      .getAllByRole('link')
+      .map((link) => link.textContent)
+      .filter((text) => text === 'Newest' || text === 'Iron Jaw')
+    expect(names[0]).toBe('Newest')
+    expect(within(shelf).getByText('Brawler · behind')).toBeTruthy()
   })
 })
 

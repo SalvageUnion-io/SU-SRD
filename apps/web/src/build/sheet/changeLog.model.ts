@@ -19,6 +19,7 @@ import { resolveClass } from '../../lib/classRef'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { usePatterns } from '../../replica/collections'
 import { LIVE_SHEET_MANUAL, SHEET_REDO_SOURCE, SHEET_UNDO_SOURCE } from '../../replica/provenance'
 import type { EntityLogRow } from '../../rooms/ops'
 import { MERGED } from './changeStory.model'
@@ -98,6 +99,25 @@ const REFS: Record<string, { label: string; name: NameOf }> = {
     name: (slug) => resolveChassisRef(slug)?.name,
   },
   classRef: { label: buildSheetCopy('logClass'), name: (slug) => resolveClass(slug)?.name },
+  // A Mech's pattern by its name, never its id (r8 E6).
+  sourcePattern: {
+    label: buildSheetCopy('logPattern'),
+    name: (id) =>
+      usePatterns.getState().mechPatterns.find((each) => each.id === id)?.name ??
+      buildSheetCopy('logPatternGone'),
+  },
+}
+
+/**
+ * A stat's override, by the stat the sheet names (r8 E6): "Max SP: book → 15",
+ * where an absent override is the book's figure.
+ */
+const OVERRIDES: Record<string, string> = {
+  maxSpOverride: buildSheetCopy('logMaxSp'),
+  maxEpOverride: buildSheetCopy('logMaxEp'),
+  maxHeatOverride: buildSheetCopy('logMaxHeat'),
+  maxHpOverride: buildSheetCopy('logMaxHp'),
+  maxCargoOverride: buildSheetCopy('logMaxCargo'),
 }
 
 const LABELS: Record<string, string> = {
@@ -105,9 +125,9 @@ const LABELS: Record<string, string> = {
   callsign: buildSheetCopy('logCallsign'),
 }
 
-/** `currentHP` → "Current HP", `maxHpOverride` → "Max hp override". */
+/** `currentHP` → "Current HP", `maxHpOverride` → "Max HP". */
 export function fieldLabel(field: string): string {
-  const known = REFS[field]?.label ?? LABELS[field]
+  const known = REFS[field]?.label ?? LABELS[field] ?? OVERRIDES[field]
   if (known) return known
   const words = field.replace(/([a-z0-9])([A-Z])/g, '$1 $2').split(' ')
   return words
@@ -195,8 +215,11 @@ function rowLines(row: EntityLogRow, defaults: LogDefaults): LogLine[] {
     ref && typeof value === 'string' && value !== '' ? (ref.name(value) ?? value) : valueText(value)
   // An absent number reads as what it stands for, on either side: a full
   // pool, 0 Heat (r3 B4, r5 C7), never "None".
+  // An absent override is the book's figure (r8 E6).
   const filled = (value: unknown) =>
-    value === null || value === undefined ? (defaults[row.field] ?? value) : value
+    value === null || value === undefined
+      ? (defaults[row.field] ?? (row.field in OVERRIDES ? buildSheetCopy('logBook') : value))
+      : value
   return [
     {
       key: row._id,

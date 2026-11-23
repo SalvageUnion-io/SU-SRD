@@ -26,4 +26,8 @@ export const libSharingCopy = messages({
   patternLink: 'A public pattern page, like a reference page, that anyone can read and copy.',
   patternLinkCredited:
     'A public pattern page, like a reference page, that anyone can read and copy. It says it was made by you, by your display name.',
+  patternLinkCreditedAs:
+    'A public pattern page, like a reference page, that anyone can read and copy. It says it was made by {name}.',
+  patternLinkNoName:
+    'A public pattern page, like a reference page, that anyone can read and copy. It names its maker by display name, and you have none yet: set one in Settings, or it says “a player”.',
 })
