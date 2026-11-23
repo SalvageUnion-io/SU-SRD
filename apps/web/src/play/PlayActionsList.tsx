@@ -30,6 +30,7 @@ import { PlayActionEntry } from './PlayActionEntry'
 import type { ActionTypeKey, ListEntry } from './playActions.model'
 import { ACTION_TYPE_ORDER, TYPE_FILTERS } from './playActions.model'
 import type { Play } from './situation.model'
+import { useActionsRove } from './useActionsRove'
 import { useFindKey } from './useFindKey'
 
 /** "?"'s sheet, loaded when first asked for (r6 A13). */
@@ -205,13 +206,16 @@ export function PlayActionsList({
   head: 'h2' | 'h3'
 }) {
   const groups = onHandGroups(actions.onHand)
+  // The on-hand list is one Tab stop, the arrows between its actions (r7 B8).
+  const listRef = useRef<HTMLDivElement>(null)
+  useActionsRove(listRef)
   return (
     <>
       <PlayOrphanResolve actions={actions} />
       {groups.length === 0 ? (
         <EmptyState variant="inline" body={playCopy('nothingOnHandMatches')} />
       ) : (
-        <div className="su-play-timings">
+        <div ref={listRef} className="su-play-timings">
           {groups.map((group) => (
             <SlabSection
               key={group.key}
