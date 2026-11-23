@@ -92,7 +92,7 @@ export function FrontDoor({ area, steps, lead }: FrontDoorProps) {
                 {rosterCopy('meetTheStarterCrew')}
               </Button>
             ) : (
-              <Button href={appPath(cockpitPath(door.trial))} variant="default" size="full">
+              <Button href={cockpitPath(door.trial)} variant="default" size="full">
                 {playTrialCopy('tryARound')}
               </Button>
             )}
