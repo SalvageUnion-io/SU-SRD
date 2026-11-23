@@ -235,6 +235,25 @@ export function searchWordStem(word: string): string {
   return word
 }
 
+/**
+ * A word as one form of it, for comparing two words: its stem without a
+ * final "e", so "salvage" and "salvaging" are one ("salvag"), as are "move"
+ * and "moves". Never used to match by substring: it is only compared whole.
+ */
+function searchWordForm(word: string): string {
+  const stem = searchWordStem(word)
+  return stem.length >= STEM_MIN_LENGTH && stem.endsWith('e') ? stem.slice(0, -1) : stem
+}
+
+/** Whether `words` holds `run` as consecutive words. */
+function holdsRun(words: readonly string[], run: readonly string[]): boolean {
+  if (run.length === 0 || run.length > words.length) return false
+  for (let i = 0; i + run.length <= words.length; i++) {
+    if (run.every((word, j) => words[i + j] === word)) return true
+  }
+  return false
+}
+
 /** A name with nothing but its letters and digits: "bio-titan" as "biotitan". */
 export function searchSquashedName(nameText: string): string {
   return nameText.replace(/[^a-z0-9]+/g, '')
@@ -258,8 +277,11 @@ const ALIASES_AS_PRINTED: Readonly<Record<string, readonly string[]>> = {
   'Group Initiative': ['initiative', 'turn order', 'who goes first'],
   'Hit Points': ['HP'],
   Long: ['long range', 'range bands'],
+  // How far a Mech goes on its turn, as the table asks it.
+  'Map Movement': ['how far'],
   'Mech Damage': ['my mech hits 0 SP'],
   Medium: ['medium range', 'range bands'],
+  Move: ['how far'],
   'Multi-attack': ['can I shoot twice'],
   Range: ['range bands'],
   'Salvage Value': ['SV'],
@@ -370,6 +392,25 @@ function isNumber(token: string): boolean {
  * looser hits. Under an exact name and its looser readings, over a prefix.
  */
 const NAME_THEN_WORDS_SCORE = 80
+
+/**
+ * The whole name in another form of its words ("salvage" for Salvaging,
+ * "overheats" for Overheat): the thing asked for, just said differently.
+ * Under the name with more words after it, over a prefix.
+ */
+const WORD_FORM_NAME_SCORE = 60
+
+/** The query is the name, word for word, each in some form of it. */
+function sameWordForms(tokens: readonly string[], nameText: string): boolean {
+  const words = searchNameWords(nameText)
+  return (
+    tokens.length === words.length &&
+    tokens.every(
+      (token, i) =>
+        searchWordForm(withoutSentenceMarks(token)) === searchWordForm(words[i] as string)
+    )
+  )
+}
 
 /** What a matcher knows about one hit. The optional facts are ORM-only. */
 export type SearchMatchFacts = SearchQuery & {
@@ -490,8 +531,9 @@ export function suggestSearchQuery(query: string, names: readonly string[]): str
  * The name tiers are tried on the query as typed and on it without a
  * question's filler. Under them, the looser readings of a name: the query is
  * one of the entity's aliases 90 ("sp" → Structure Points), the name without
- * its punctuation 85 ("biotitan" → Bio-Titan), another form of the name's
- * words 20 ("overheating" → Overheat). The rules' own kinds add a few points
+ * its punctuation 85 ("biotitan" → Bio-Titan), the whole name in another form
+ * 60 ("salvage" → Salvaging, "overheating" → Overheat), another form of some
+ * of the name's words 20. The rules' own kinds add a few points
  * (`RULES_KIND_BOOST`). The name with more words after it 80 ("mule sp"); a
  * roll table printed inside another entry, one under its owner.
  */
@@ -504,6 +546,7 @@ export function scoreSearchMatch(facts: SearchMatchFacts): number {
   else if (saysAlias(nameText, queries)) score += 90
   else if (searchSquashedName(nameText) === searchSquashedName(loweredQuery)) score += 85
   else if (queries.some((q) => q.startsWith(`${nameText} `))) score += NAME_THEN_WORDS_SCORE
+  else if (sameWordForms(tokens, nameText)) score += WORD_FORM_NAME_SCORE
   else if (queries.some((q) => nameText.startsWith(q))) score += 50
   else if (queries.some((q) => nameText.includes(q))) score += 25
   else if (tokens.every((t) => nameText.includes(t) || nameText.includes(searchWordStem(t))))
@@ -517,4 +560,55 @@ export function scoreSearchMatch(facts: SearchMatchFacts): number {
 
   if (facts.usedTypo) score -= TYPO_PENALTY
   return score
+}
+
+/**
+ * The lowest literal name tier ({@link scoreSearchMatch}): a result at or over
+ * it names the query.
+ */
+export const SEARCH_NAMES_IT = 20
+
+/** The kinds a term asked about inside a phrase is: the rules' own words. */
+const TERM_KINDS: ReadonlySet<string> = new Set(['guides', 'keywords', 'traits'])
+
+/**
+ * A term asked about inside a phrase ("overheat" in "what happens when my
+ * mech overheats"): over every hit in the prose, under the name tiers that
+ * name the whole query.
+ */
+const TERM_IN_QUERY_SCORE = 70
+
+/** How much a term found in every entry loses: a common word ("mech") ranks under a rare one. */
+const TERM_SHARE_WEIGHT = 10
+
+/**
+ * Whether the query holds this rules term (a guide's, keyword's or trait's
+ * name, or one of its aliases) among its words, in any form of them:
+ * "overheat" in "overheat mech", Map Movement in "how far can my mech move".
+ * A matcher asks it only when no result names the whole query
+ * ({@link SEARCH_NAMES_IT}), and ranks each term found with
+ * {@link searchTermScore}: the rules term leads the prose that holds the
+ * other words.
+ */
+export function searchNamesTerm(
+  query: SearchQuery,
+  nameText: string,
+  schemaName?: string
+): boolean {
+  if (!TERM_KINDS.has(schemaName ?? '')) return false
+  const said = (query.rawQuery ?? query.loweredQuery).split(/\s+/).map(withoutSentenceMarks)
+  const forms = (words: readonly string[]) => words.map(searchWordForm)
+  const name = forms(searchNameWords(nameText))
+  if (holdsRun(forms(query.tokens.map(withoutSentenceMarks)), name) || holdsRun(forms(said), name))
+    return true
+  return searchAliases(nameText).some((alias) => holdsRun(said, alias.split(/\s+/)))
+}
+
+/**
+ * A term's score ({@link searchNamesTerm}), by its kind and by `share`, the
+ * part of the corpus (0 to 1) whose text holds its name: of two terms in one
+ * question, the rarer is what is asked about ("overheat" before "mech").
+ */
+export function searchTermScore(schemaName: string, share: number): number {
+  return TERM_IN_QUERY_SCORE + (RULES_KIND_BOOST[schemaName] ?? 0) - share * TERM_SHARE_WEIGHT
 }

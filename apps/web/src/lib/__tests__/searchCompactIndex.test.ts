@@ -98,3 +98,31 @@ describe('aboveFloor: the dropdown leaves out what only mentions the query (SB6-
     expect(aboveFloor(prose)).toEqual(prose)
   })
 })
+
+describe('a question finds the rules term it holds (r7 E1)', () => {
+  const index = buildSearchIndexEntries()
+  const first = (query: string, n = 1) =>
+    aboveFloor(searchCompactIndex(index, { query }))
+      .slice(0, n)
+      .map((r) => `${r.entityName} (${r.schemaName})`)
+
+  test('the term leads the phrase it is in', () => {
+    expect(first('overheat mech')).toEqual(['Overheat (traits)'])
+    expect(first('what happens when my mech overheats')).toEqual(['Overheat (traits)'])
+    expect(first('how far can my mech move', 2).sort()).toEqual([
+      'Map Movement (guides)',
+      'Move (keywords)',
+    ])
+  })
+
+  test('another form of the name finds the how-to (SB7-20)', () => {
+    expect(first('salvage')).toEqual(['Salvaging (guides)'])
+  })
+
+  test('the prose that holds the rest stays under the term', () => {
+    const names = aboveFloor(searchCompactIndex(index, { query: 'overheat mech' })).map(
+      (r) => r.entityName
+    )
+    expect(names).toContain('Pushing a Mech')
+  })
+})

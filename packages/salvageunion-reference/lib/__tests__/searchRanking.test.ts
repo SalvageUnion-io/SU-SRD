@@ -2,9 +2,11 @@ import { describe, expect, test } from 'bun:test'
 import {
   matchSearchTokens,
   scoreSearchMatch,
+  searchNamesTerm,
   searchNameWords,
   searchOneSlipAway,
   searchSquashedName,
+  searchTermScore,
   searchWordStem,
   suggestSearchQuery,
   tokenizeSearchQuery,
@@ -146,7 +148,14 @@ describe('scoreSearchMatch', () => {
   test('the looser readings of a name: an alias, no punctuation, another word form', () => {
     expect(score('structure points', 'sp')).toBe(90)
     expect(score('bio-titan', 'biotitan')).toBe(85)
-    expect(score('overheat', 'overheating')).toBe(20)
+    // The whole name in another form (r7 E1): over every prefix.
+    expect(score('overheat', 'overheating')).toBe(60)
+    expect(score('salvaging', 'salvage', { schemaName: 'guides' })).toBe(64)
+    expect(score('salvaging', 'salvage', { schemaName: 'guides' })).toBeGreaterThan(
+      score('salvage condition', 'salvage', { schemaName: 'guides' })
+    )
+    // Some of a longer name's words in another form.
+    expect(score('heat spike', 'spikes')).toBe(20)
     // Under every exact name, over every prefix.
     expect(score('sp', 'sp')).toBe(100)
   })
@@ -279,5 +288,39 @@ describe('suggestSearchQuery (r3 D1)', () => {
 
   test('a short word is left alone', () => {
     expect(suggestSearchQuery('het', names)).toBeNull()
+  })
+})
+
+describe('a rules term inside a phrase (r7 E1)', () => {
+  const names = (nameText: string, query: string, schemaName = 'traits') => {
+    const q = tokenizeSearchQuery(query)
+    if (!q) throw new Error('blank query in test')
+    return searchNamesTerm(q, nameText, schemaName)
+  }
+
+  test('the term among the words, in any form of them', () => {
+    expect(names('overheat', 'overheat mech')).toBe(true)
+    expect(names('overheat', 'what happens when my mech overheats')).toBe(true)
+    expect(names('move', 'how far can my mech move', 'keywords')).toBe(true)
+    expect(names('heat spike', 'what does heat spike do')).toBe(true)
+  })
+
+  test('a whole word, never part of one', () => {
+    expect(names('heat', 'what happens when my mech overheats', 'keywords')).toBe(false)
+    expect(names('heat spike', 'heat check')).toBe(false)
+  })
+
+  test('an alias the table says counts as the term', () => {
+    expect(names('map movement', 'how far can my mech move', 'guides')).toBe(true)
+  })
+
+  test("only the rules' own kinds", () => {
+    expect(names('mule', 'can my mule climb', 'chassis')).toBe(false)
+  })
+
+  test('the rarer term ranks first, both over prose', () => {
+    expect(searchTermScore('traits', 0.02)).toBeGreaterThan(searchTermScore('keywords', 0.5))
+    expect(searchTermScore('keywords', 1)).toBeGreaterThan(20)
+    expect(searchTermScore('keywords', 0)).toBeLessThan(80)
   })
 })

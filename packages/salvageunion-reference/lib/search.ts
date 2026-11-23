@@ -8,10 +8,13 @@ import { getPatterns } from './patterns'
 import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from './schemas/index'
 import {
   matchSearchTokens,
+  SEARCH_NAMES_IT,
   scoreSearchMatch,
   searchAliases,
+  searchNamesTerm,
   searchNameWords,
   searchSquashedName,
+  searchTermScore,
   searchWordStem,
   tokenizeSearchQuery,
 } from './searchRanking'
@@ -390,6 +393,33 @@ export function search(options: SearchOptions): SearchResult[] {
         entityId: indexEntry.entityId,
         entityName: indexEntry.entityName,
         matchedFields,
+        matchScore,
+      })
+    }
+  }
+
+  // Nothing names the query: a rules term inside it leads, as on the site's
+  // compact index (`searchNamesTerm`).
+  if (!results.some((result) => result.matchScore >= SEARCH_NAMES_IT)) {
+    for (const indexEntry of index) {
+      if (schemasToSearch && !schemasToSearch.has(indexEntry.schemaName)) continue
+      if (!searchNamesTerm(parsed, indexEntry.nameText, indexEntry.schemaName)) continue
+      const holders = index.filter((other) =>
+        other.fields.some(([, text]) => text.includes(indexEntry.nameText))
+      ).length
+      const matchScore = searchTermScore(indexEntry.schemaName, holders / index.length)
+      const found = results.find((result) => result.entityId === indexEntry.entityId)
+      if (found) {
+        found.matchScore = Math.max(found.matchScore, matchScore)
+        continue
+      }
+      results.push({
+        schemaName: indexEntry.schemaName,
+        schemaTitle: indexEntry.schemaTitle,
+        entity: indexEntry.entity,
+        entityId: indexEntry.entityId,
+        entityName: indexEntry.entityName,
+        matchedFields: ['name'],
         matchScore,
       })
     }

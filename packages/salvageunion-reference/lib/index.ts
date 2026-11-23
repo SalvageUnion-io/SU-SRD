@@ -146,11 +146,14 @@ export {
 // browser bundle pays only for these functions.
 export {
   matchSearchTokens,
+  SEARCH_NAMES_IT,
   scoreSearchMatch,
   searchAliases,
+  searchNamesTerm,
   searchNameWords,
   searchOneSlipAway,
   searchSquashedName,
+  searchTermScore,
   suggestSearchQuery,
   tokenizeSearchQuery,
 } from './searchRanking'
