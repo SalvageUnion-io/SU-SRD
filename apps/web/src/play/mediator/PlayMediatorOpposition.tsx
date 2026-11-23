@@ -40,6 +40,7 @@ import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { SalvageAreaDialog } from '../SalvageAreaDialog'
 import { sceneConditionNames } from '../useScene'
+import { useSessionLive } from '../useSessionLive'
 import { ClearFieldDialog, EndEncounterDialog } from './ClearFieldDialogs'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
@@ -89,6 +90,7 @@ export function PlayMediatorOpposition({
   const [clearing, setClearing] = useState(false)
   const [ending, setEnding] = useState(false)
   const { area } = mediator
+  const sessionLive = useSessionLive(mediator.gameId)
   // A Pilot's hit, offered on each unit it can land on until applied (r7 C5).
   const [spent, setSpent] = useState<ReadonlySet<string>>(() => new Set())
   const pilotHit = canWrite ? newestHit(mediator.rolls, spent) : null
@@ -366,9 +368,10 @@ export function PlayMediatorOpposition({
         encounters={prep.encounters}
         gameId={mediator.gameId}
         onTray={npcs?.length ?? 0}
-        onRun={async (encounterId, clear) => {
+        sessionLive={sessionLive}
+        onRun={async (encounterId, clear, startSession) => {
           try {
-            return await prep.run(encounterId, clear)
+            return await prep.run(encounterId, clear, startSession)
           } catch (err) {
             onFailure(err)
             throw err

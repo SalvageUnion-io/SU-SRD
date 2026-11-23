@@ -268,11 +268,25 @@ describe('waves', () => {
     await renderCockpit({ 'mediator.running': null })
     await click(named('Run an encounter'))
     const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
+    // r7 C6 (MD7-03): with no session live, running one says it starts it, ticked.
+    const tick = dialog.getByRole('checkbox', { name: 'Start the group session too' })
+    expect((tick as HTMLInputElement).checked).toBe(true)
     await click(dialog.getByRole('button', { name: 'Run Ambush' }))
-    expect(sent.find((s) => s.name === 'mediator.runEncounter')?.args).toMatchObject({
+    const args = sent.find((s) => s.name === 'mediator.runEncounter')?.args
+    expect(args).toMatchObject({
       encounter: { id: 'enc-1', name: 'Ambush' },
       clear: false,
       waves: true,
+    })
+    expect(args).not.toHaveProperty('startSession')
+    // A test run clears the tick and starts no session.
+    sent.length = 0
+    await click(named('Run an encounter'))
+    const again = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
+    await click(again.getByRole('checkbox', { name: 'Start the group session too' }))
+    await click(again.getByRole('button', { name: 'Run Ambush' }))
+    expect(sent.find((s) => s.name === 'mediator.runEncounter')?.args).toMatchObject({
+      startSession: false,
     })
     act(() => useEncounters.setState({ encounters: [] }))
   })

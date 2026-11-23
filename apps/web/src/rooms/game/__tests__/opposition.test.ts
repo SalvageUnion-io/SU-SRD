@@ -69,6 +69,29 @@ describe('running an encounter', () => {
   })
 })
 
+// r7 C6 (MD7-03): running an encounter starts the session unless the Run dialog says not to.
+describe('running an encounter and the group session (r7 C6)', () => {
+  const run = (startSession?: boolean) => {
+    const { room } = table()
+    const c = { room, actor: MEDIATOR, gameId: 'g1', at: AT }
+    const answer = runAct(c, 'mediator.runEncounter', {
+      encounter,
+      clear: false,
+      ...(startSession === undefined ? {} : { startSession }),
+    })
+    if (!answer.ok) throw new Error(answer.refusal)
+    return room.session.session(PLAYER).live
+  }
+
+  test('as given, the first run starts the group session', () => {
+    expect(run()).toBe(true)
+  })
+
+  test('a test run that says not to starts none', () => {
+    expect(run(false)).toBe(false)
+  })
+})
+
 // MD6-01: the hand-over dialog says the new Mediator starts with empty notes.
 describe('handing the table over mid-encounter (r6 B1)', () => {
   test('the running encounter goes across without its private notes', () => {
