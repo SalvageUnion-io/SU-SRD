@@ -293,8 +293,10 @@ describe('SearchIsland', () => {
     // 'c' prefix-matches many category names
     await typeAndSettle(input, 'c')
 
-    // Ten rows, then "Show more" (r4 F1).
-    const options = screen.getAllByRole('option').filter((o) => o.tagName === 'A')
+    // Ten rows, then "See all N results" (r8 G2).
+    const options = screen
+      .getAllByRole('option')
+      .filter((o) => !o.textContent?.startsWith('See all'))
     expect(options.length).toBeLessThanOrEqual(10)
 
     // Count category rows (schema: 'Category')
@@ -428,14 +430,26 @@ describe('SearchIsland', () => {
     try {
       render(<SearchIsland />)
       const input = screen.getByRole('combobox')
-      await typeAndSettle(input, 'mule')
+      await typeAndSettle(input, 'laser')
       await act(async () => {
         fireEvent.keyDown(input, { key: 'Enter' })
       })
-      expect(assign).toHaveBeenCalledWith('/search/?q=mule')
+      expect(assign).toHaveBeenCalledWith('/search/?q=laser')
     } finally {
       assign.mockRestore()
     }
+  })
+
+  test('one result listed: Enter opens it, not the page of every result (r8 G2)', async () => {
+    const navigate = mock((_url: string) => {})
+    render(<SearchIsland navigate={navigate} />)
+    const input = screen.getByRole('combobox')
+    await typeAndSettle(input, 'mule')
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Enter' })
+    })
+    expect(navigate).toHaveBeenCalledTimes(1)
+    expect(navigate.mock.calls[0]?.[0]).toMatch(/^\/chassis\/mule\//)
   })
 
   test('inside a host that routes entity links, every result stays a same-tab page link', async () => {
@@ -458,12 +472,13 @@ describe('SearchIsland', () => {
     )
     await typeAndSettle(screen.getByRole('combobox'), 'mule')
 
-    // Every result; "Show more" is the list's own act, never a link (r4 F1).
-    const options = screen
-      .getAllByRole('option')
-      .filter((option) => !option.textContent?.startsWith('Show more'))
+    // Every result, and "See all", a same-tab link to the page of every result (r8 G2).
+    const options = screen.getAllByRole('option')
     expect(options.length).toBeGreaterThan(0)
-    for (const option of options) {
+    const all = options.find((option) => option.textContent?.startsWith('See all'))
+    expect(all?.getAttribute('href')).toBe('/search/?q=mule')
+    expect(all?.hasAttribute('data-router')).toBe(false)
+    for (const option of options.filter((o) => o !== all)) {
       expect(option.tagName).toBe('A')
       expect(option.hasAttribute('data-router')).toBe(false)
       expect(option.hasAttribute('target')).toBe(false)
@@ -498,6 +513,8 @@ describe('SearchIsland', () => {
         expect((input as HTMLInputElement).value).toBe('railgun damage')
         expect(input.getAttribute('aria-expanded')).toBe('false')
         expect(document.activeElement).not.toBe(input)
+        // Its count is the page's to say, never a second one from the bar (RR8-15).
+        expect(document.querySelector('[aria-live]')?.textContent).toBe('')
         await act(async () => {
           input.focus()
         })

@@ -51,16 +51,18 @@ export type SearchComboboxResult =
     }
   | {
       /**
-       * The row after the last result when more matched than the list holds
-       * (`moreRow`): "Show more", which lengthens the list in place. The hook
-       * answers it itself (`submit`); a host never opens it.
+       * The row after the last result when the page of every result holds
+       * more than the list (`countAll`): "See all 19 results", which opens
+       * that page (`onSubmitQuery`, r8 G2).
        */
       kind: 'more'
       id: string
-      /** 'Show more'. */
+      /** 'See all 19 results'. */
       title: string
-      /** '12 more results'. */
+      /** Nothing: the title says it all. */
       group: string
+      /** The query whose page it opens. */
+      query: string
     }
 
 export type UseSearchComboboxOptions = {
@@ -77,18 +79,20 @@ export type UseSearchComboboxOptions = {
   /** Category rows reserved out of `limit`. Default 3. */
   schemaSlots?: number
   /**
-   * End a list that leaves matches out with "Show more" (`kind: 'more'`),
-   * after `limit`'s rows; each press shows `limit` more. Default false: a
-   * host must draw that row as an act, never a link.
+   * How many results the host's page of every result holds for a query: a
+   * list that lists fewer ends with "See all N results" (`kind: 'more'`),
+   * which opens that page through `onSubmitQuery`. None, and there is no
+   * such row.
    */
-  moreRow?: boolean
+  countAll?: (query: string) => number
   /** Invoked on Enter (highlighted row, else first row) — and by row clicks
    *  when the caller wires them through submit(). */
   onSubmit: (result: SearchComboboxResult) => void
   /**
    * Invoked instead of `onSubmit` on Enter with no row highlighted, with the
-   * trimmed query: the host's page of every result (the site's search).
-   * Without it, that Enter opens the first row.
+   * trimmed query: the host's page of every result (the site's search). A
+   * list of one result opens it instead. Without it, that Enter opens the
+   * first row.
    */
   onSubmitQuery?: (query: string) => void
   /**
@@ -145,19 +149,20 @@ function matchSchemas(query: string, slots: number): SearchComboboxResult[] {
   }))
 }
 
-/** Every match is counted up to here; a search this wide is not a list anyone reads. */
+/** Every match is counted up to here, as the page of every result lists them. */
 const COUNT_LIMIT = 200
 
-/** "Show more", for the matches a full list left out. */
-function moreResult(hidden: number): SearchComboboxResult {
+/** "See all N results": the page of every result, with the count it will say. */
+function allResults(query: string, count: number): SearchComboboxResult {
   return {
     kind: 'more',
     id: 'more',
-    title: compositionsCopy('showMore'),
-    // At the count's limit there may be more than were counted.
-    group: compositionsCopy('moreResults', {
-      count: `${hidden}${hidden >= COUNT_LIMIT - 1 ? '+' : ''}`,
+    // At the count's limit there may be more than were counted, as that page says.
+    title: compositionsCopy('seeAllResults', {
+      count: `${count}${count >= COUNT_LIMIT ? '+' : ''}`,
     }),
+    group: '',
+    query,
   }
 }
 
@@ -179,7 +184,7 @@ export function useSearchCombobox({
   debounceMs = 150,
   limit = 10,
   schemaSlots = 3,
-  moreRow = false,
+  countAll,
   onSubmit,
   onSubmitQuery,
   searchFn = search,
@@ -189,8 +194,6 @@ export function useSearchCombobox({
   const [hasSearched, setHasSearched] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  /** The rows "Show more" has added to `limit`, for the query in the field. */
-  const extraRef = useRef(0)
 
   const idPrefix = useId()
   const listboxId = `${idPrefix}-search-results`
@@ -199,10 +202,12 @@ export function useSearchCombobox({
   // Results stay hidden until data is ready — prevents phantom aria-live
   // announcements and Enter navigating to an unseen row.
   const results = useMemo(() => (ready ? rawResults : []), [ready, rawResults])
+  // The rows listed, "See all" apart: it is the way on, not a result.
+  const listed = results.filter((result) => result.kind !== 'more').length
+  const more = results.find((result) => result.kind === 'more')
 
   const performSearch = useCallback(
-    (searchQuery: string, extra = 0) => {
-      extraRef.current = extra
+    (searchQuery: string) => {
       if (!searchQuery.trim()) {
         setRawResults([])
         setHasSearched(false)
@@ -210,22 +215,16 @@ export function useSearchCombobox({
         return
       }
       const schemaResults = matchSchemas(searchQuery, schemaSlots)
-      const room = limit + extra - schemaResults.length
-      if (!moreRow) {
-        const hits = ready ? searchFn({ query: searchQuery, limit: room }) : []
-        setRawResults([...schemaResults, ...hits.map(toEntityResult)])
-      } else {
-        const all = ready ? searchFn({ query: searchQuery, limit: COUNT_LIMIT }) : []
-        const hits = all.slice(0, room)
-        // A full list is followed by the row that lengthens it.
-        const more = all.length > room ? [moreResult(all.length - room)] : []
-        setRawResults([...schemaResults, ...hits.map(toEntityResult), ...more])
-      }
+      const room = limit - schemaResults.length
+      const hits = ready ? searchFn({ query: searchQuery, limit: room }) : []
+      // A list that holds fewer than the page of every result ends with the way to it.
+      const total = ready && countAll ? Math.min(countAll(searchQuery.trim()), COUNT_LIMIT) : 0
+      const more = total > hits.length ? [allResults(searchQuery.trim(), total)] : []
+      setRawResults([...schemaResults, ...hits.map(toEntityResult), ...more])
       setHasSearched(true)
-      // Lengthened, the highlight stands on the first row added.
-      setSelectedIndex(extra > 0 ? extra : -1)
+      setSelectedIndex(-1)
     },
-    [ready, limit, schemaSlots, moreRow, searchFn]
+    [ready, limit, schemaSlots, countAll, searchFn]
   )
 
   const handleInput = useCallback(
@@ -258,11 +257,11 @@ export function useSearchCombobox({
 
   const submit = useCallback(
     (result: SearchComboboxResult) => {
-      // "Show more" is the list's own act: the same query, `limit` rows longer.
-      if (result.kind === 'more') performSearch(query, extraRef.current + limit)
+      // "See all N results" is the page of every result.
+      if (result.kind === 'more') onSubmitQuery?.(result.query)
       else onSubmit(result)
     },
-    [onSubmit, performSearch, query, limit]
+    [onSubmit, onSubmitQuery]
   )
 
   /** Arrow/Enter handling — callers chain their own Escape behavior. */
@@ -276,7 +275,8 @@ export function useSearchCombobox({
         setSelectedIndex((prev) => Math.max(prev - 1, -1))
       } else if (e.key === 'Enter') {
         e.preventDefault()
-        if (selectedIndex < 0 && onSubmitQuery && query.trim()) {
+        // One result listed is the answer: Enter opens it (r8 G2).
+        if (selectedIndex < 0 && onSubmitQuery && query.trim() && listed !== 1) {
           onSubmitQuery(query.trim())
           return
         }
@@ -284,12 +284,8 @@ export function useSearchCombobox({
         if (target) submit(target)
       }
     },
-    [results, selectedIndex, submit, onSubmitQuery, query]
+    [results, selectedIndex, submit, onSubmitQuery, query, listed]
   )
-
-  // The rows listed, "Show more" apart: it is an act, not a result.
-  const listed = results.filter((result) => result.kind !== 'more').length
-  const more = results.find((result) => result.kind === 'more')
 
   /** Screen-reader result-count announcement (render in an aria-live region). */
   const announcement = !hasSearched
@@ -299,7 +295,7 @@ export function useSearchCombobox({
         ? SEARCHING
         : null
       : listed > 0
-        ? `${listed} result${listed === 1 ? '' : 's'} found${more ? `, ${more.group}` : ''}`
+        ? `${listed} result${listed === 1 ? '' : 's'} found${more ? `, ${more.title}` : ''}`
         : NO_RESULTS
 
   /** Spread onto the <input>; add aria-expanded (open semantics differ per shell). */
@@ -311,7 +307,6 @@ export function useSearchCombobox({
   }
 
   const clear = useCallback(() => {
-    extraRef.current = 0
     setQuery('')
     setRawResults([])
     setHasSearched(false)

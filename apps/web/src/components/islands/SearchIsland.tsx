@@ -4,8 +4,9 @@
  * component in its bar. One engine, the build-time compact index
  * (`/search-index.json`, `searchCompactIndex`); one panel, hung under the
  * field; Cmd/Ctrl+K focuses it. Every result is a reference page, followed in
- * the same tab. Enter with no row highlighted, or the hero's Search, opens the
- * page of every result (`/search/?q=`, `SearchResultsIsland`, r5 E3).
+ * the same tab. Enter with no row highlighted, the list's "See all N results"
+ * or the hero's Search opens the page of every result (`/search/?q=`,
+ * `SearchResultsIsland`, r5 E3); a list of one result opens it (r8 G2).
  *
  * The hero, and the bar on the Reference page, open on the address's `?q=`: the
  * retired search page's address lands on the Reference page with it
@@ -92,8 +93,8 @@ const RULES_HREF = '/rules/'
 /** Site URL for a combobox result: category listing or entity item page. */
 function resultUrl(result: SearchComboboxResult): string {
   if (result.kind === 'schema') return schemaHref(result.schemaId)
-  // "Show more" opens nothing: the combobox lengthens its list (`submit`).
-  if (result.kind === 'more') return ''
+  // "See all N results": the page of every result (r8 G2).
+  if (result.kind === 'more') return resultsHref(result.query)
   // Opened at its content: the next Tab is the page's own (RR7-09).
   return atContent(result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity)))
 }
@@ -111,6 +112,11 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const searchFn = useMemo(
     () => (options: Parameters<typeof searchCompactIndex>[1]) =>
       aboveFloor(searchCompactIndex(index, options)),
+    [index]
+  )
+  // The page of every result lists every match: "See all" says how many it holds.
+  const countAll = useCallback(
+    (query: string) => searchCompactIndex(index, { query }).length,
     [index]
   )
   // Dropdown-open is DERIVED: open while a search has run, unless the user
@@ -141,7 +147,6 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     selectedIndex,
     handleInput,
     handleKeyDown,
-    submit,
     listboxId,
     optionId,
     inputProps,
@@ -149,9 +154,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     clear,
   } = useSearchCombobox({
     ready,
-    moreRow: true,
+    countAll,
     onSubmit: (result) => doNavigate(resultUrl(result)),
-    // Enter with no row highlighted: the page of every result.
+    // Enter with no row highlighted, or "See all": the page of every result.
     onSubmitQuery: (term) => doNavigate(resultsHref(term)),
     searchFn,
   })
@@ -239,7 +244,8 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   const live = (
     <div className="su-sr-only" aria-live="polite">
-      {announcement}
+      {/* The results page's held query says nothing: that page says its own count (RR8-15). */}
+      {quiet ? null : announcement}
     </div>
   )
 
@@ -293,11 +299,6 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         optionId={optionId}
         modelOf={(result) => models.get(result.id)}
         target={{ href: resultUrl }}
-        onMore={(result) => {
-          submit(result)
-          // The press took the focus off the field; typing and the arrows go on.
-          inputRef.current?.focus()
-        }}
         style={hero ? LISTBOX_HERO : LISTBOX_BAR}
         none={
           suggestion ? (
