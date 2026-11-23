@@ -166,6 +166,19 @@ describe('a hurt pilot with no Med Bay (r5 A12)', () => {
   })
 })
 
+describe('the Reactor’s conditions (r7 D2)', () => {
+  // r7 D2 (SB7-14): Restore proposed SP and Heat but left the Shutdown on.
+  test('a Shutdown, Vulnerable mech reads both cleared, and the step clears them', () => {
+    const mech = mechFixture({ id: 'm', name: 'Buzzard', conditions: ['Shutdown', 'Vulnerable'] })
+    const [line] = plan({ mech })
+    expect(line?.chips).toEqual([
+      { label: 'Shutdown', value: 'clears' },
+      { label: 'Vulnerable', value: 'clears' },
+    ])
+    expect(line?.steps).toContain('restoreMechs')
+  })
+})
+
 describe('what else the restore step resets', () => {
   test('a mech’s spent EP is shown going back to full', () => {
     const mech = mechFixture({ id: 'm', name: 'Buzzard', chassisRef: 'mule', currentEP: 1 })

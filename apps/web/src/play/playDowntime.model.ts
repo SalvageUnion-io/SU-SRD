@@ -1,4 +1,5 @@
 import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
+import { hasCondition } from 'game-domain/mechConditions'
 import { pilotLabel } from 'game-domain/pilotLabel'
 /**
  * The Downtime step box's plan (play.md §6): what the current step will apply,
@@ -11,6 +12,7 @@ import { pilotLabel } from 'game-domain/pilotLabel'
 import { mechMaxima } from 'game-domain/rules/crewStatus'
 import type { DowntimeStepKey, DowntimeSteps, MedBayStatus } from 'game-domain/rules/downtime'
 import {
+  CHASSIS_DAMAGED_CONDITION,
   CRAFT_STEP_NAME,
   downtimeMechPatch,
   downtimePilotPatch,
@@ -114,6 +116,9 @@ export function mechBayOf(crawler: Crawler | null): { operational: boolean } | u
 
 const arrow = (from: number, to: number) => `${from}→${to}`
 
+/** The Reactor's conditions Restore clears (r7 D2), as the unit card names them. */
+const REACTOR_RESTS = ['Shutdown', 'Vulnerable'] as const
+
 function mechLine(mech: Mech, pilot: Pilot | null, crawler: Crawler | null): PlanLine | null {
   const steps: DowntimeStepKey[] = ['restoreMechs', 'repairItems']
   const bay = mechBayOf(crawler)
@@ -145,11 +150,18 @@ function mechLine(mech: Mech, pilot: Pilot | null, crawler: Crawler | null): Pla
   const repaired = (next: Mech['systemConditions'], was: Mech['systemConditions']) =>
     Object.entries(next ?? {}).filter(([ref, c]) => c === 'intact' && was?.[ref] === 'damaged')
       .length
+  const cleared = (label: string) =>
+    patch.conditions !== undefined &&
+    hasCondition(mech.conditions, label) &&
+    !hasCondition(patch.conditions, label)
   const fixed =
     repaired(patch.systemConditions, mech.systemConditions) +
     repaired(patch.moduleConditions, mech.moduleConditions) +
-    (patch.conditions ? 1 : 0)
+    (cleared(CHASSIS_DAMAGED_CONDITION) ? 1 : 0)
   if (fixed > 0) chips.push({ label: 'Repairs', value: String(fixed) })
+  // The Reactor's conditions, by the names the unit card shows them (r7 D2).
+  for (const label of REACTOR_RESTS)
+    if (cleared(label)) chips.push({ label, value: playCopy('clears') })
   if (chips.length === 0) return null
   return { key: 'mech', title: mech.name, chips, steps, skippable: true }
 }

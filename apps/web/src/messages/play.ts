@@ -543,6 +543,7 @@ export const playCopy = messages({
   generalRule: 'The general rule',
   healAtTheMedBay: 'Heal at the Med Bay',
   injuriesHealed: 'Injuries healed',
+  clears: 'clears',
   usesRecharge: 'Uses recharge',
   abilitiesUsed: 'Abilities used',
   oncePerDowntime: 'Once per Downtime',
