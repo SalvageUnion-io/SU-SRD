@@ -549,7 +549,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
     const mech = useUnits.getState().get('mech', created[0] as string)
     expect(mech?.chassisRef).toBe('magpie')
-    expect(mech?.name).toBe('Stefanus')
+    expect(mech?.name).toBe('Stefanus 1')
     expect(mech?.systems.length).toBeGreaterThan(0)
   })
 
