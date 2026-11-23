@@ -271,7 +271,7 @@ export class GameEvents {
             ? [
                 this.note(actor, at, {
                   kind: 'turn',
-                  text: `The Mediator gave ${unit(pilotId)} the turn`,
+                  text: `${this.runnerName(actor)} gave ${unit(pilotId)} the turn`,
                 }),
               ]
             : []
@@ -475,11 +475,12 @@ export class GameEvents {
     }
     const line = rollLineFor(after, mediates)
     const roller = actorId === null ? null : this.store.member(actorId)
+    const rollerName = actorId === null ? null : (this.namesNow(actorId)?.name ?? null)
     return {
       _id: id,
       ts,
       kind: 'roll',
-      text: actorId === reader ? line.description : signedBy(line.description, roller),
+      text: actorId === reader ? line.description : signedBy(line.description, rollerName),
       actorId,
       ...(isPrivateRoll(after) ? { private: true as const } : {}),
       ...(line.veiled === true ? { veiled: true as const } : {}),
@@ -488,19 +489,18 @@ export class GameEvents {
     }
   }
 
+  /** A member by name, else their place in the joining order (r7 A6): never a role. */
   private memberName(userId: string): string {
-    return this.store.member(userId)?.displayName ?? 'Crewmate'
+    return this.namesNow(userId)?.name ?? 'A member'
   }
 
   /**
-   * Who ran the table's own act (the session, Downtime), as every Feed names them: the
-   * Mediator by role, as their alerts and proposals do, so one screen never
-   * has three words for one person (MD2-12); their own screen says "You"
-   * (`feed.model.ts`). An Organiser running a table with no Mediator goes by
-   * name, or by that role when their account has none: never "Crewmate".
+   * Who ran the table's own act (the session, Downtime), as every Feed names
+   * them (r7 A6): by name, so one screen never has three words for one person
+   * (MD2-12, MD7-13); their own screen says "You" (`feed.model.ts`).
    */
   private runnerName(userId: string): string {
-    return this.namesNow(userId)?.runner ?? 'Crewmate'
+    return this.namesNow(userId)?.runner ?? 'A member'
   }
 
   private unitLabel(unitId: string): string {

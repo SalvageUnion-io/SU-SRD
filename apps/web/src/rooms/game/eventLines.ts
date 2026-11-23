@@ -1,3 +1,4 @@
+import { memberName } from 'game-domain/memberName'
 import { pilotCallsign } from 'game-domain/pilotLabel'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -7,7 +8,7 @@ import {
 } from 'salvageunion-reference/rules'
 import { seatOf } from '../seats'
 import type { TableEvent, TableEventKind } from './events'
-import type { GameStore, Member } from './store'
+import type { GameStore } from './store'
 
 /**
  * The words and the stored shape of the table's event lines (`events.ts`):
@@ -93,14 +94,14 @@ export function namedNow(stored: Stored, actorId: string | null, now: NamesNow):
 const MEDIATOR_SIGNED = 'Mediator · '
 
 /**
- * A roll's line under the name of whoever rolled it (r3 A2): one signed
- * "Mediator" by somebody who mediates no longer reads as theirs, by name, so
- * the Mediator of today is never taken for its roller. Their own screen is
- * served the line as logged, and says "You" (`feed.model.ts`).
+ * A roll's line under the name of whoever rolled it (r3 A2, r7 A6): one a
+ * Mediator's screen signed "Mediator" reads under its roller's name, so the
+ * Feed names people, never their role. Their own screen is served the line
+ * as logged, and says "You" (`feed.model.ts`).
  */
-export function signedBy(line: string, roller: Member | null): string {
-  if (!line.startsWith(MEDIATOR_SIGNED) || roller?.mediator === true) return line
-  return `${roller?.displayName ?? 'Previous Mediator'} · ${line.slice(MEDIATOR_SIGNED.length)}`
+export function signedBy(line: string, rollerName: string | null): string {
+  if (!line.startsWith(MEDIATOR_SIGNED) || rollerName === null) return line
+  return `${rollerName} · ${line.slice(MEDIATOR_SIGNED.length)}`
 }
 
 /** What a switched effect is called: the system, module or ability that declares it. */
@@ -197,19 +198,20 @@ export function eventOf(
 }
 
 /**
- * How the room names a member now: by name ("Crewmate" without one), and as
- * the runner of the table's own acts (`events.ts`'s `runnerName`); null for
- * someone no longer a member.
+ * How the room names a member now (r7 A6): by name, else their place in the
+ * joining order ("Player 2", `memberName`), as the Game page's Members does;
+ * never by a role. The runner of the table's own acts (`events.ts`) goes by
+ * the same name: the role is said only where it is the news ("Sam now
+ * mediates"). Null for someone no longer a member.
  */
 export function namesOf(store: GameStore): NamesNow {
   return (userId) => {
-    const member = store.member(userId)
-    if (member === null) return null
-    const name = member.displayName ?? 'Crewmate'
-    const runner = member.mediator
-      ? 'Mediator'
-      : (member.displayName ?? (member.organizer ? 'Organiser' : 'Crewmate'))
-    return { name, runner }
+    const members = store.members()
+    const at = members.findIndex((member) => member.userId === userId)
+    const member = members[at]
+    if (member === undefined) return null
+    const name = memberName(member.displayName, at)
+    return { name, runner: name }
   }
 }
 
