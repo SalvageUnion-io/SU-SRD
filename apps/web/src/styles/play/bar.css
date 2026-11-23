@@ -122,7 +122,9 @@
 /* The title gives way before a control wraps (r4 A10): it starts from
    nothing, so the line never breaks for it, and grows to its own width. */
 .su-play-bar--line > .su-play-bar__notch {
-  flex: 1 1 0;
+  /* It takes the free room before the spacer does, so the name shows whole
+     where it fits (r7 B7); the spacer has what is left. */
+  flex: 1000 1 0;
   max-width: max-content;
   /* Never under eight characters of the name (r6 A12): the Feed's mark is a row of ⋯ (r7 B7). */
   min-width: calc(8ch + 2 * var(--space-12));
