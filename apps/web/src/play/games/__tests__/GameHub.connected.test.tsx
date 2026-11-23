@@ -260,7 +260,7 @@ describe('the sections under the roster', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Leave this Game…' }))
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain(
-      'The Pilots and Mechs you brought go back to your Training Bay, and any this Game came with stay here, unassigned; nothing is deleted.'
+      'The Pilots and Mechs you brought go back to your Training Bay, and any this Game came with go back to its spares; nothing is deleted.'
     )
     expect(mutations).toHaveLength(0)
     await act(async () => {
@@ -577,7 +577,12 @@ describe('the sections under the roster', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove Cy from this Game' }))
     const dialog = within(screen.getByRole('alertdialog'))
     expect(dialog.getByText('Goes back to their Training Bay: Wrench.')).toBeTruthy()
-    expect(dialog.getByText('Stays in this Game, unassigned: Hotdog, Mazona.')).toBeTruthy()
+    // r8 C6 (LG8-13): rejoining hands them back, and the dialog says so.
+    expect(
+      dialog.getByText(
+        'Back to this Game’s spares, and offered back if they rejoin: Hotdog, Mazona.'
+      )
+    ).toBeTruthy()
   })
 
   // MD2-02: a template tried and deleted left its thirteen units in the Training Bay.

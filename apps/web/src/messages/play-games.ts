@@ -163,10 +163,11 @@ export const playGamesCopy = messages({
   leaveThisGame: 'Leave this Game…',
   leaveNamed: 'Leave {name}?',
   leaveBody:
-    'The Pilots and Mechs you brought go back to your Training Bay, and any this Game came with stay here, unassigned; nothing is deleted. You can join again with an invite.',
+    'The Pilots and Mechs you brought go back to your Training Bay, and any this Game came with go back to its spares; nothing is deleted. You can join again with an invite.',
   goesBackToYours: 'Goes back to your Training Bay: {names}.',
   goesBackToTheirs: 'Goes back to their Training Bay: {names}.',
-  staysUnassigned: 'Stays in this Game, unassigned: {names}.',
+  staysUnassigned: 'Back to this Game’s spares: {names}.',
+  staysUnassignedForRejoin: 'Back to this Game’s spares, and offered back if they rejoin: {names}.',
   takeOffRoster: 'Take off the roster',
   tookOffRoster: '{name} is back in your {build}.',
   tookOffRosterWithMech: '{name} and {mech} are back in your {build}.',
@@ -180,7 +181,7 @@ export const playGamesCopy = messages({
   removeWho: 'Remove {name}',
   nameAndPilots: '{name} ({pilots})',
   removeBody:
-    'The Pilots and Mechs they brought go back to their Training Bay, and any this Game came with stay here, unassigned; nothing is deleted. They are told, and can join again with an invite. The link they already have still works unless you reset it.',
+    'The Pilots and Mechs they brought go back to their Training Bay, and any this Game came with go back to its spares; nothing is deleted. They are told, and can join again with an invite. The link they already have still works unless you reset it.',
   resetInviteLinkToo: 'Reset the invite link too',
   removedFrom: 'Removed {name} from {game}.',
   removedAndReset:

@@ -28,3 +28,31 @@ export const hidesUnionBar = (path: string): boolean =>
   /^\/pilots\/[^/]+\/play\/?$/.test(path) ||
   /^\/games\/[^/]+\/mediate\/?$/.test(path) ||
   path.startsWith('/og/')
+
+/**
+ * A page on a bar-less route that cannot open draws the bar after all (r8 C6,
+ * LG8-12): a refused Play screen has no Play bar, so without the Union bar it
+ * would have no way out. `PlayRefusal` holds it while it is up.
+ */
+let barHolds = 0
+const barListeners = new Set<() => void>()
+
+export const pageShowsBar = {
+  subscribe(listener: () => void): () => void {
+    barListeners.add(listener)
+    return () => barListeners.delete(listener)
+  },
+  get: (): boolean => barHolds > 0,
+  /** Show the bar; the returned function lets it go. */
+  hold(): () => void {
+    barHolds += 1
+    for (const listener of barListeners) listener()
+    let held = true
+    return () => {
+      if (!held) return
+      held = false
+      barHolds -= 1
+      for (const listener of barListeners) listener()
+    }
+  },
+}

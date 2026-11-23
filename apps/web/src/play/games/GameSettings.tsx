@@ -71,7 +71,8 @@ export function GameSettingsDialog({
  * Remove a member, or leave: `member` is who goes, null shuts the dialog.
  *
  * It names what goes home and what stays (`held`, LG4-03): the Game's own
- * pre-generated Pilots and Mechs stay on the roster, unassigned. Removing
+ * pre-generated Pilots and Mechs go back to its spares, theirs again if a
+ * removed player rejoins (LG8-13). Removing
  * someone offers to reset the invite link too, unticked as the words above it
  * say (LG4-04): the link is the whole table's, and resetting it strands
  * anyone who has not joined yet. The Organiser hears what happened; the
@@ -111,7 +112,10 @@ export function LeaveGameDialog({
       )}
       {held !== undefined && held.staying.length > 0 && (
         <Text variant="hint">
-          {playGamesCopy('staysUnassigned', { names: held.staying.join(', ') })}
+          {/* A removal is undone by rejoining (r6 C7, `rooms/game/rejoin.ts`); a leave is not (r8 C6). */}
+          {playGamesCopy(self ? 'staysUnassigned' : 'staysUnassignedForRejoin', {
+            names: held.staying.join(', '),
+          })}
         </Text>
       )}
     </>

@@ -196,6 +196,9 @@ export const playCopy = messages({
   playRunsAPilotAssign: 'Play runs a Pilot. Assign {name} to a Pilot, then play that Pilot.',
   theGame: 'the Game',
   youreNotInThisPilots: "You're not in this Pilot's Game",
+  removedFromGame: 'You were removed from {game}',
+  removedFromGameBody:
+    'What you brought to it is back in your Training Bay. A Pilot the Game came with stays with it, and is yours again if you rejoin while it is free.',
   playOpensForMembersOf: 'Play opens for members of the Game {name} plays in.',
   playRunsYourPilotsSolo2: 'Play runs your Pilots, solo or in a Game. Sign in to open them.',
   yourGames: 'Your Games',
