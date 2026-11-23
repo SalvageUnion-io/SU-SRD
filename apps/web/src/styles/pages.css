@@ -781,8 +781,7 @@ html[data-srd-signed-in] .su-mediator-acts {
   }
 }
 
-/* A listing's List says its order above itself (`IndexLedger`): the book's,
-   or the column it is sorted by, with the ways to change it. */
+/* A sorted List's way back to the book's order, above itself (`IndexLedger`). */
 .su-listing__order {
   align-items: center;
   color: var(--color-ink-2);
@@ -791,14 +790,6 @@ html[data-srd-signed-in] .su-mediator-acts {
   font-size: var(--text-caption);
   gap: var(--space-4) var(--space-12);
   margin: 0 0 var(--space-8);
-}
-
-/* A list a phone draws with no column beside its names (Classes) offers none
-   to press there: the hint waits for the width that has them. */
-@media not (width >= 40rem) {
-  .su-listing__sort-hint {
-    display: none;
-  }
 }
 
 /* A phone's row holds two columns beside the name (ledger L8): the reader

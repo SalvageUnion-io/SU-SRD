@@ -60,19 +60,16 @@ type IndexLedgerProps = {
     sortBy: (key: string, highFirst?: boolean) => void
     clear: () => void
   }
-  /** The items come A to Z, not in the book's order (a tree listing's List): the note says so. */
+  /** The items come A to Z, not in the book's order (a tree listing's List): the way back says so. */
   byName?: boolean
   /**
    * The columns a phone's row shows, where the reader chose them, and the
    * choice. With it the List offers its Columns control on a phone (RR-06).
    */
   phone?: { columns: readonly string[]; setColumns: (keys: readonly string[]) => void }
-  /** Say the order above the list, with the way back to the book's (the first of a listing's lists). */
+  /** Once sorted, the way back to the book's order above the list (the first of a listing's lists). */
   orderNote?: boolean
 }
-
-/** From this many rows a List says it can be sorted; a shorter one reads at a glance. */
-const SORT_HINT_ROWS = 10
 
 export function IndexLedger({
   schemaId,
@@ -135,20 +132,11 @@ export function IndexLedger({
   const first = built[0]
   if (!first) return null
   const hasTechLevels = built.some((row) => row.techLevel)
-  const sortColumn = columns.find((column) => column.key === sort?.key)
-  const sorted =
-    sort &&
-    (sort.key === 'name'
-      ? islandsCopy('name')
-      : sort.key === SORT_TECH_LEVEL
-        ? islandsCopy('techLevel')
-        : (sortColumn?.title ?? sortColumn?.label))
   // Words sort by spelling, measures by size.
   const measures = (key: string | undefined) =>
     key === SORT_TECH_LEVEL ||
     columns.find((column) => column.key === key)?.kind === 'figure' ||
     ['range', 'damage'].includes(key ?? '')
-  const measured = measures(sort?.key)
   // A measure's first press is highest first: the biggest is nearly always the question.
   const sortBy = (key: string) =>
     order
@@ -157,14 +145,6 @@ export function IndexLedger({
           key,
           descending: now?.key === key ? !now.descending : measures(key),
         }))
-  const sortedLine = (column: string) =>
-    sort?.descending
-      ? measured
-        ? islandsCopy('sortedDown', { column })
-        : islandsCopy('sortedZa', { column })
-      : measured
-        ? islandsCopy('sortedUp', { column })
-        : islandsCopy('sortedAz', { column })
   const shown = pickable(columns)
   const onPhone = shown.filter((column) => column.phone).map((column) => column.key)
   /** Slot `slot` of the phone's row shows `key`; the other slot keeps its own, or swaps. */
@@ -177,30 +157,13 @@ export function IndexLedger({
   }
   return (
     <>
-      {orderNote && (
-        <p className="su-listing__order" aria-live="polite">
-          {sorted ? (
-            sortedLine(sorted)
-          ) : (
-            <span>
-              {islandsCopy(byName ? 'azOrder' : 'bookOrder')}
-              {/* A short list reads at a glance: no prompt to sort it (RR7-13).
-                  A phone's row with no column beside its name has none to press (RR2-17). */}
-              {rows.length >= SORT_HINT_ROWS && (
-                <>
-                  {' '}
-                  <span className={onPhone.length === 0 ? 'su-listing__sort-hint' : undefined}>
-                    {islandsCopy('sortHint')}
-                  </span>
-                </>
-              )}
-            </span>
-          )}
-          {sort && order && (
-            <Button variant="ghost" size="compact" onClick={order.clear}>
-              {islandsCopy(byName ? 'backToAzOrder' : 'backToBookOrder')}
-            </Button>
-          )}
+      {/* No caption says the order: the sorted column's head marks it
+          (`aria-sort`). Once sorted, the way back stands above the list. */}
+      {orderNote && sort && order && (
+        <p className="su-listing__order">
+          <Button variant="ghost" size="compact" onClick={order.clear}>
+            {islandsCopy(byName ? 'backToAzOrder' : 'backToBookOrder')}
+          </Button>
         </p>
       )}
       {phone && shown.length > PHONE_COLUMNS && (
