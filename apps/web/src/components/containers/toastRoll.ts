@@ -26,9 +26,23 @@ export type AnnouncedRoll = {
 export function toastRoll({ table, roll, range, label, text }: AnnouncedRoll): void {
   void import('sonner').then(({ toast }) =>
     toast(range ? `${table}: rolled ${roll} (${range})` : `${table}: rolled ${roll}`, {
-      id: `roll-${table}`,
+      id: rollToastId(table),
       description: label ? `${label}: ${text}` : text,
       duration: 8000,
     })
   )
+}
+
+/** A table's one roll toast. */
+function rollToastId(table: string): string {
+  return `roll-${table}`
+}
+
+/**
+ * Takes down a table's roll toast: a new roll shown where the reader looks
+ * replaces the last one's line rather than leaving it to contradict the row
+ * (RR8-05).
+ */
+export function dismissRoll(table: string): void {
+  void import('sonner').then(({ toast }) => toast.dismiss(rollToastId(table)))
 }

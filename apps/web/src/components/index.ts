@@ -214,7 +214,7 @@ export { ToasterMount } from './containers/Toaster'
 export { ACTION_TOAST_MS, MOST_ACTION_TOASTS, toast } from './containers/toast'
 export { holdPlayToasts, holdToastsOnTop } from './containers/toastPlacement'
 export type { AnnouncedRoll } from './containers/toastRoll'
-export { toastRoll } from './containers/toastRoll'
+export { dismissRoll, toastRoll } from './containers/toastRoll'
 // THE ENTITY MODULE'S FACE (`entity/index.ts`, R7): the forms' shared parts,
 // never taken by their paths.
 // - `Chips`: every chip strip, in the class order (C2), a host's own strip
