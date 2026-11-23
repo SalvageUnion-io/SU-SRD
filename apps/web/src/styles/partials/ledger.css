@@ -638,6 +638,15 @@
   width: auto;
 }
 
+/* Wide, a shelf's name keeps room for a short name beside its copy button,
+   so two words never break onto two lines while the word columns have room
+   to give (r8 E9); a long name still wraps. */
+@media (width >= 40rem) {
+  .su-shelf-ledger .su-ledger__table tbody th {
+    min-width: 10rem;
+  }
+}
+
 /* A shelf's names take the room left, so its line's end keeps to its content. */
 .su-shelf-ledger .su-ledger__table [data-kind='trailing'] {
   width: 1%;
