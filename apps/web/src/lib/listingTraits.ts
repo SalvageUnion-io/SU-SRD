@@ -15,14 +15,16 @@ export function entityTraitNames(model: Pick<EntityModel, 'traits'>): string[] {
 }
 
 /**
- * A trait with its value: a number after its name ("Uses 6"), a word after a
- * colon ("Uses: Destroy"), so it never reads as two traits (RR7-17).
+ * A trait with its value: a number or a variable after its name ("Uses 6",
+ * "Hot X"), a word after a colon ("Uses: Destroy"), so it never reads as two
+ * traits (RR7-17).
  */
 function traitLabel(trait: { name: string; param?: string | number | undefined }): string {
   if (trait.param === undefined || trait.param === '') return trait.name
-  return /^\d/.test(String(trait.param))
-    ? `${trait.name} ${trait.param}`
-    : `${trait.name}: ${trait.param}`
+  // A word, not a number or a variable ("Hot X"): "Uses: Destroy".
+  return /^[A-Za-z]{2,}/.test(String(trait.param))
+    ? `${trait.name}: ${trait.param}`
+    : `${trait.name} ${trait.param}`
 }
 
 /**
