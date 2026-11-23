@@ -19,6 +19,8 @@ import { droppedNames, loadoutOnChassis, namedForChassis } from '../../lib/rules
 import { useOpenedOnce } from '../../lib/useOpenedOnce'
 import { mechCopy } from '../../messages/build-mech'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { usePatterns } from '../../replica/collections'
+import { mechPatternStamp } from './bandStamps.model'
 import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'
 import { undoToast } from './undoToast.model'
@@ -34,6 +36,9 @@ const ChassisModderPickerModal = lazy(() =>
 export function ChangeChassis({ mech, patch }: { mech: Mech; patch: SheetPatch }) {
   const [open, setOpen] = useState(false)
   const mounted = useOpenedOnce(open)
+  const saved = usePatterns((s) => s.mechPatterns)
+  // The pattern the band names: a new chassis unlinks it, and the picker says so (r8 E3).
+  const pattern = mechPatternStamp(mech, (id) => saved.find((each) => each.id === id)?.name)?.name
   return (
     <>
       <Button size="compact" onClick={() => setOpen(true)}>
@@ -47,6 +52,7 @@ export function ChangeChassis({ mech, patch }: { mech: Mech; patch: SheetPatch }
             currentChassisRef={mech.chassisRef}
             onOpenChange={setOpen}
             loadout={mech}
+            pattern={pattern}
             onConfirm={(chassisRef, keep = false) => {
               const before = {
                 name: mech.name,

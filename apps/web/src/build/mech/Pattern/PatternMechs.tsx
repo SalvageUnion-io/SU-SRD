@@ -13,22 +13,18 @@
 import type { Mech } from 'game-domain/schemas/mech'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { LedgerColumn } from '../../../components/index'
-import { Button, Ledger, toast } from '../../../components/index'
+import { Button, Ledger } from '../../../components/index'
 import { useConfirm } from '../../../components/shared/useConfirm'
-import { failureMessage } from '../../../lib/connection/useServerAction'
 import { mechCopy } from '../../../messages/build-mech'
 import { buildShelvesCopy } from '../../../messages/build-shelves'
-import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { useUnits } from '../../../replica/units'
 import type { PatternStamp } from '../../sheet/bandStamps.model'
 import { mechPatternStamp } from '../../sheet/bandStamps.model'
-import { restoreToast } from './buildConfirm.model'
+import { bringUpToDate } from './buildConfirm.model'
 
 const COLUMNS: readonly LedgerColumn[] = [
   { key: 'status', label: mechCopy('patternMechStatus'), kind: 'text', phone: true },
 ]
-
-type Loadout = { systems: string[]; modules: string[] }
 
 /** A Mech built from the pattern, beside how it stands against it now. */
 type PatternMech = { mech: Mech; stamp: PatternStamp | undefined }
@@ -42,36 +38,6 @@ function patternMechs(pattern: MechPattern, mechs: readonly Mech[]): PatternMech
 
 /** Behind: its loadout is no longer the pattern's (a Mech moved to another chassis is not compared). */
 const isBehind = (row: PatternMech): boolean => row.stamp?.changed === true
-
-/** Write each loadout in turn; the first refusal stops the run. */
-async function writeLoadouts(writes: readonly { id: string; loadout: Loadout }[]): Promise<void> {
-  for (const { id, loadout } of writes)
-    await useUnits.getState().update('mech', id, loadout, LIVE_SHEET_MANUAL)
-}
-
-/** Bring every behind Mech to the pattern's loadout; the notice's Undo puts each back. */
-async function bringAllUpToDate(pattern: MechPattern, behind: readonly Mech[]) {
-  const before = behind.map((mech) => ({
-    id: mech.id,
-    loadout: { systems: [...mech.systems], modules: [...mech.modules] },
-  }))
-  await writeLoadouts(
-    behind.map((mech) => ({
-      id: mech.id,
-      loadout: { systems: [...pattern.systems], modules: [...pattern.modules] },
-    }))
-  )
-  const said =
-    behind.length === 1
-      ? mechCopy('broughtOneUpToDate', { name: behind[0]?.name ?? '', pattern: pattern.name })
-      : mechCopy('broughtAllUpToDate', { count: behind.length, pattern: pattern.name })
-  restoreToast(said, () => {
-    void writeLoadouts(before).then(
-      () => toast.success(mechCopy('loadoutsPutBack')),
-      (err: unknown) => toast.error(failureMessage(err, mechCopy('loadoutsNotPutBack')))
-    )
-  })
-}
 
 export function PatternMechs({ pattern }: { pattern: MechPattern }) {
   const mechs = useUnits((s) => s.mechs)
@@ -98,7 +64,7 @@ export function PatternMechs({ pattern }: { pattern: MechPattern }) {
       tone: 'default',
       failure: mechCopy('notBroughtUpToDate'),
       onConfirm: () =>
-        bringAllUpToDate(
+        bringUpToDate(
           pattern,
           behind.map((row) => row.mech)
         ),

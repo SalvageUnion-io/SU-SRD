@@ -312,6 +312,13 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
         </ChapterBandTrail.Provider>
 
         <div className="su-entity__body su-page-body">
+          {/* The viewer's Mechs built from it, and Bring all up to date, at
+              the page's head, over the loadout (r8 E2). */}
+          {writable && fromIt && (
+            <Suspense fallback={null}>
+              <PatternMechs pattern={pattern} />
+            </Suspense>
+          )}
           {/* Its loadout at a glance, with what it uses and costs, as a book
               pattern's page opens (r2 G4). */}
           {chassis && <PatternLoadout chassis={chassis} pattern={countedLoadout(pattern)} />}
@@ -350,11 +357,6 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             <Text variant="hint">{builtLine}</Text>
             {mine && visibility && <Text variant="hint">{VISIBILITY_COPY[visibility]}</Text>}
           </section>
-          {writable && fromIt && (
-            <Suspense fallback={null}>
-              <PatternMechs pattern={pattern} />
-            </Suspense>
-          )}
         </div>
       </article>
       {mine && (

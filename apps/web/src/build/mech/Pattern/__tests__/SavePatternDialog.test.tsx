@@ -184,6 +184,47 @@ describe('SavePatternDialog', () => {
     await waitFor(() => expect(usePatterns.getState().mechPatterns[0]?.systems).toEqual([]))
   })
 
+  test('Replace says how many other Mechs use it, and brings them up to date in one press (r8 E2)', async () => {
+    const { mechFixture } = await import('../../../../components/__tests__/fixtures')
+    const { useUnits } = await import('../../../../replica/units')
+    render(<ToasterMount />)
+    const held = await usePatterns.getState().create({
+      schemaVersion: 1,
+      name: 'Iron Jaw',
+      chassisRef: 'mule',
+      systems: [],
+      modules: [],
+    })
+    await useUnits.getState().adopt(
+      'mech',
+      mechFixture({
+        id: 'other-1',
+        name: 'Iron Jaw 2',
+        chassisRef: 'mule',
+        systems: [],
+        modules: [],
+        sourcePattern: held.id,
+      })
+    )
+    renderButton()
+    await open()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Replace Iron Jaw' }))
+    })
+    expect(
+      await screen.findByText('Replaced pattern Iron Jaw. 1 other Mech uses this pattern.')
+    ).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Bring them up to date' }))
+    })
+    await waitFor(() =>
+      expect(useUnits.getState().get('mech', 'other-1')?.systems).toEqual(['red-laser'])
+    )
+  })
+
   test('two patterns of the name: Replace is offered only for the one the mech was built from (r5 D1)', async () => {
     const make = () =>
       usePatterns.getState().create({

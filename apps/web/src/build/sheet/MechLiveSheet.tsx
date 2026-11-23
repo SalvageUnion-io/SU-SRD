@@ -29,7 +29,7 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
 import { useSync } from '../../replica/syncContext'
 import { assignedRail } from './assignedRail'
-import { mechPatternStamp, mechStamp } from './bandStamps.model'
+import { isBookCrewMech, mechPatternStamp, mechStamp, withoutDrift } from './bandStamps.model'
 import { ChangeChassis } from './chassisControls'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
@@ -112,12 +112,14 @@ export function MechLiveSheet({
     askElsewhere || (shown && notHeld),
     askElsewhere
   )
-  const stamped = mechPatternStamp(
+  const drifting = mechPatternStamp(
     mech,
     (id) =>
       savedPatterns.find((p) => p.id === id) ?? (id === mech.sourcePattern ? elsewhere : undefined),
     patternGone
   )
+  // A book crew's Mech is the book's build: never flagged as differing (r8 E9).
+  const stamped = isBookCrewMech(mech) ? withoutDrift(drifting) : drifting
   // A pattern of the viewer's own: the drift line may write the mech's build over it (r6 E2).
   const own = !notHeld && mech.sourcePattern !== undefined
   const fromPattern = stamped && own && stamped.href ? { ...stamped, own: true as const } : stamped

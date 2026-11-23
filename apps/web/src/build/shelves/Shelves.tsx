@@ -48,7 +48,7 @@ import { cockpitPath } from 'game-domain/entityKinds'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { useContext, useState } from 'react'
+import { lazy, Suspense, useContext, useState } from 'react'
 import { PageShell, RosterSkeleton, RuleBreakMark } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import { Button, ChapterBand, HeaderMenu, toast } from '../../components/index'
@@ -158,6 +158,11 @@ export function Shelves() {
 // The page
 // ---------------------------------------------------------------------------
 
+/** A pattern's Share… from its row (r8 E4): the dialog its page opens, fetched when first asked. */
+const ShareStatusDialog = lazy(() =>
+  import('../sharing/ShareStatusDialog').then((m) => ({ default: m.ShareStatusDialog }))
+)
+
 function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const part = useContext(ShelvesPart)
   const { status, canWrite } = useSync()
@@ -167,6 +172,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // The mech being saved as a pattern, in its dialog over the Hangar.
   const [savingPattern, setSavingPattern] = useState<string | null>(null)
   const [renaming, setRenaming] = useState<RenameSubject | null>(null)
+  const [sharingPattern, setSharingPattern] = useState<MechPattern | null>(null)
   const [importResult, setImportResult] = useState<string | null>(null)
   // Menu items have no line of their own, so a failed export is a toast.
   const exportOne = useServerAction(
@@ -268,7 +274,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   }
 
   const patternMenu = (pattern: MechPattern) =>
-    patternMenuOf(pattern, { go, confirm, canWrite, rename: setRenaming })
+    patternMenuOf(pattern, { go, confirm, canWrite, rename: setRenaming, share: setSharingPattern })
 
   // -- the shelves ------------------------------------------------------------
 
@@ -323,6 +329,19 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     <>
       {dialog}
       <RenameDialog subject={renaming} onClose={() => setRenaming(null)} />
+      {sharingPattern && (
+        <Suspense fallback={null}>
+          <ShareStatusDialog
+            kind="pattern"
+            id={sharingPattern.id}
+            name={sharingPattern.name}
+            open
+            onOpenChange={(open) => {
+              if (!open) setSharingPattern(null)
+            }}
+          />
+        </Suspense>
+      )}
       <SavePatternDialog
         source={patternSource ?? { name: '', chassisRef: '', systems: [], modules: [] }}
         open={patternSource !== undefined}
