@@ -61,6 +61,7 @@ import { rollD20 } from '../lib/dice'
 import { runWrite } from '../lib/runWrite'
 import { componentsCopy } from '../messages/components'
 import { playCopy } from '../messages/play'
+import { playDowntimeCopy } from '../messages/play-downtime'
 import { PLAY_UNDO } from '../replica/provenance'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import { DOWNTIME_FORWARD } from './downtimeRulings.model'
@@ -170,8 +171,8 @@ export function PlayDowntimeStep({
   const forward = !pending
     ? undefined
     : forwardApplies
-      ? playCopy('applyAndGoOn')
-      : playCopy('skipStepN', { n: stepIndex + 1 })
+      ? playDowntimeCopy('applyAndGoOn')
+      : playDowntimeCopy('skipStepN', { n: stepIndex + 1 })
   // End Downtime with steps walked past unapplied asks first (r4 A6), as
   // leaving mid-way does (`useSituationMoves`).
   const [ending, setEnding] = useState<readonly number[] | null>(null)
@@ -316,7 +317,7 @@ export function PlayDowntimeStep({
   ) {
     const pilotBack = onPilot && Object.keys(onPilot.prior).length > 0 ? onPilot : null
     if (pilotBack === null && onMech === null) return
-    toast(playCopy('stepApplied', { step: step.name }), {
+    toast(playDowntimeCopy('stepApplied', { step: step.name }), {
       id: `downtime-step:${stepIndex}`,
       action: {
         label: componentsCopy('undo'),
@@ -324,7 +325,7 @@ export function PlayDowntimeStep({
           if (pilotBack)
             runWrite(() => store.update('pilot', pilotBack.id, pilotBack.prior, PLAY_UNDO))
           if (onMech) runWrite(() => store.update('mech', onMech.id, onMech.prior, PLAY_UNDO))
-          recordPlayChange(playCopy('stepUndone', { step: step.name }))
+          recordPlayChange(playDowntimeCopy('stepUndone', { step: step.name }))
         },
       },
     })
@@ -373,7 +374,9 @@ export function PlayDowntimeStep({
           />
         </ul>
       )}
-      {nothingToTally && <p className="su-play-resolve__note">{playCopy('nothingToTally')}</p>}
+      {nothingToTally && (
+        <p className="su-play-resolve__note">{playDowntimeCopy('nothingToTally')}</p>
+      )}
       {carried !== null || nothingToTally ? null : shown.length > 0 ? (
         <>
           {/* The ticks the words promise: said only where a line has one (r6 D2). */}
@@ -432,7 +435,7 @@ export function PlayDowntimeStep({
           </>
         ) : forwardApplies ? (
           <Button size="compact" variant="ghost" onClick={() => void skipAndGoOn()} disabled={off}>
-            {playCopy('skipThisStep')}
+            {playDowntimeCopy('skipThisStep')}
           </Button>
         ) : applicable.length > 0 ? (
           <>

@@ -34,6 +34,7 @@ import {
 import { runWrite } from '../lib/runWrite'
 import { componentsCopy } from '../messages/components'
 import { playCopy } from '../messages/play'
+import { playDowntimeCopy } from '../messages/play-downtime'
 import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import { useUnits } from '../replica/units'
 import type { Crafted, Ware } from './craftTrade.model'
@@ -194,7 +195,7 @@ export function CraftingBay({
     runWrite(
       () => store.transfer({ updates: uncraftUpdates(now, onMech, crafted) }, PLAY_UNDO),
       () => {
-        const said = playCopy('uncrafted', { name: crafted.ware.name })
+        const said = playDowntimeCopy('uncrafted', { name: crafted.ware.name })
         recordPlayChange(said)
         setNote(said)
       }
