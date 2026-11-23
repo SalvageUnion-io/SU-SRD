@@ -247,13 +247,20 @@ export function pairedCrew(sources: Pick<CrewSources, 'pilots' | 'mechs'>): Crew
  * chips that opens its sheet in Build (Play lists the crew, Build keeps it):
  * the viewer's own pilots first, each marked Yours (r7 C11), then the crawler
  * (the primary first), then everyone else's pilots and mechs (`pairedCrew`).
+ * Spares nobody holds (a template's unassigned pregens) are the Mediator's to
+ * hand out, so a plain player's card leaves them out (r8 C8, LG8-19).
  */
-export function gameCrew(sources: CrewSources, viewerId: string | null = null): LinkedUnit[] {
+export function gameCrew(
+  sources: CrewSources,
+  viewerId: string | null = null,
+  /** The viewer runs this table: its unassigned spares are listed. */
+  runsTable = true
+): LinkedUnit[] {
   const crawlers = [...sources.crawlers].sort(
     (a, b) =>
       Number(b._id === sources.primaryCrawlerId) - Number(a._id === sources.primaryCrawlerId)
   )
-  const crew = pairedCrew(sources)
+  const crew = pairedCrew(sources).filter((p) => runsTable || p.ownerId !== null)
   const isMine = (p: CrewEntry) => viewerId !== null && p.pilot && p.ownerId === viewerId
   const mine = crew.filter(isMine).map(
     ({ unit }): LinkedUnit => ({

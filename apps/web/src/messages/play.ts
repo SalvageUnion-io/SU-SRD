@@ -416,6 +416,8 @@ export const playCopy = messages({
     'No Pilots yet. Play works solo: build a Pilot, or copy one from the Starter Set, and play it from here with no Game.',
   gamesListOffline: 'Your Games list once the connection returns.',
   mediatorsKit: 'Mediator’s Kit',
+  kitIsTheMediators:
+    'NPCs and encounters for a table you run. Start a Game as its Mediator and they are here.',
   mediatorProposes: 'Mediator proposes {what}',
   youPropose: 'You propose {what}',
   feedYou: 'You',

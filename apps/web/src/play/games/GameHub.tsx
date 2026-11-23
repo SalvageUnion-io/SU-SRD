@@ -19,7 +19,7 @@
  *     Your prep (`MediatorPrep`): what the Training Bay keeps ready, and the
  *     way there.
  *     Downtime runs in the Cockpit, not here. **The Organiser:** the
- *     Invite link (copy and reset, chips on its head). **Every member**
+ *     Invite link (on show, with copy, share and reset). **Every member**
  *     again: Safety (`GameSafety`: the Stop Sign, whose banner heads the
  *     page while it is up).
  *  2. A small sidebar: The Game (`TheGame`), the table's people as small

@@ -232,6 +232,18 @@ describe('its crew', () => {
     expect(crew[0]?.unit.relations ?? []).toEqual([])
   })
 
+  // r8 C8 (LG8-19): unassigned spares are the Mediator's to hand out.
+  test('a plain player’s card leaves out the spares nobody holds', () => {
+    const sources = {
+      crawlers: [],
+      primaryCrawlerId: null,
+      pilots: [pilot({}), pilot({ _id: 'p9', linkId: 'a-p9', ownerId: null, name: 'Spare' })],
+      mechs: [mech({ _id: 'm9', linkId: 'a-m9', ownerId: null, name: 'Loose' })],
+    }
+    expect(gameCrew(sources, 'u1', false).map((u) => u.name)).toEqual(['Rook'])
+    expect(gameCrew(sources, 'u1', true).map((u) => u.name)).toEqual(['Rook', 'Spare', 'Loose'])
+  })
+
   test('a member’s own: each unit carries whose it is', () => {
     const crew = pairedCrew({
       pilots: [pilot({ mechId: 'a-m1' })],

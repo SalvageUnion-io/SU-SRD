@@ -458,6 +458,19 @@ describe('the Play landing', () => {
     }
   })
 
+  // r8 C8 (LG8-19): the Kit is a Mediator's.
+  test('the Mediator’s Kit shows to whoever runs a table; a plain player reads one line', async () => {
+    answerReads({ 'games.listMine': [TENACITY], ...QUIET })
+    await renderAs('live')
+    expect(screen.getByText(/Start a Game as its Mediator/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '+ New encounter' })).toBeNull()
+    cleanup()
+    answerReads({ 'games.listMine': [TENACITY, WASTES], ...QUIET })
+    await renderAs('live')
+    expect(screen.queryByText(/Start a Game as its Mediator/)).toBeNull()
+    expect(screen.getByRole('button', { name: '+ New encounter' })).toBeTruthy()
+  })
+
   test('a Game’s channel is a chip on its card; there is no Discord section', async () => {
     answerReads({
       'games.listMine': [TENACITY, WASTES],
