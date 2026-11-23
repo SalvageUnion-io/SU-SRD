@@ -32,6 +32,7 @@ import { useOwnUnits, usePilots } from '../lib/entities'
 import { playCopy } from '../messages/play'
 import { playDoorCopy } from '../messages/play-door'
 import { playSafetyCopy } from '../messages/play-safety'
+import { playSalvageCopy } from '../messages/play-salvage'
 import { holderOf } from '../replica/replica'
 import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
@@ -420,10 +421,10 @@ export function GameNotices({
             <Button
               size="compact"
               disabled={!canWrite}
-              aria-label={playCopy('salvageChange2', { text: what })}
+              aria-label={playSalvageCopy('change2', { text: what })}
               onClick={() => setChanging(p)}
             >
-              {playCopy('salvageChange')}
+              {playSalvageCopy('change')}
             </Button>
           )}
           <Button

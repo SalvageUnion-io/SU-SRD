@@ -8,7 +8,7 @@
 import type { SalvageOffer } from 'game-domain/games/proposals'
 import type { WreckPart } from 'game-domain/rules/wreck'
 import { mechSalvageAllows } from 'salvageunion-reference/rules'
-import { playCopy } from '../messages/play'
+import { playSalvageCopy } from '../messages/play-salvage'
 
 /** One part as the dialog offers it: whether it is picked, and whether it may be pressed. */
 export type OfferChoice = { part: WreckPart; label: string; pressed: boolean; enabled: boolean }
@@ -31,8 +31,8 @@ export function offerChoices(offer: SalvageOffer, picked: readonly string[]): Of
       part,
       label:
         part.salvageValue <= 1
-          ? playCopy('salvagePartOne', { name: part.name, tl })
-          : playCopy('salvagePart', { name: part.name, tl, sv: part.salvageValue }),
+          ? playSalvageCopy('partOne', { name: part.name, tl })
+          : playSalvageCopy('part', { name: part.name, tl, sv: part.salvageValue }),
       pressed,
       enabled: pressed || allows(offer, [...picked, part.key]),
     }

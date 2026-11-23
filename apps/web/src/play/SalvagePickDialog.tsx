@@ -10,7 +10,7 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ConfirmDialog } from '../components/app'
 import { Toggle, tokens } from '../components/index'
-import { playCopy } from '../messages/play'
+import { playSalvageCopy } from '../messages/play-salvage'
 import { offerChoices, togglePick } from './salvageOffer.model'
 
 const ROW = {
@@ -33,10 +33,10 @@ export function SalvagePickDialog({ offer, open, onOpenChange, onTake }: Salvage
     <ConfirmDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={playCopy('salvageChangeTitle')}
+      title={playSalvageCopy('changeTitle')}
       body={
         <>
-          <span>{playCopy('salvageChangeBody')}</span>
+          <span>{playSalvageCopy('changeBody')}</span>
           <span style={ROW}>
             {offerChoices(offer, picked).map((choice) => (
               <Toggle
@@ -52,12 +52,12 @@ export function SalvagePickDialog({ offer, open, onOpenChange, onTake }: Salvage
           </span>
         </>
       }
-      confirmLabel={playCopy('salvageTakeThese')}
+      confirmLabel={playSalvageCopy('takeThese')}
       describeError={(error) =>
-        error instanceof Error && error.message !== '' ? error.message : playCopy('salvagePickNone')
+        error instanceof Error && error.message !== '' ? error.message : playSalvageCopy('pickNone')
       }
       onConfirm={async () => {
-        if (picked.length === 0) throw new Error(playCopy('salvagePickNone'))
+        if (picked.length === 0) throw new Error(playSalvageCopy('pickNone'))
         await onTake(picked)
       }}
     />
