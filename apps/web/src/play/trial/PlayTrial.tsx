@@ -7,13 +7,14 @@
  *
  * The tab's room (`trialRoom.model.ts`) stands in for the account room, and the
  * Cockpit's tree reads the sync status as live (`trial` set), so every pane
- * runs as it does solo: actions, rolls, Heat and the Feed. After the first
- * change the strip says once, as a line, that nothing is kept, with Sign in
- * beside it.
+ * runs as it does solo: actions, rolls, Heat and the Feed. From the first
+ * screen the strip says, as a line, that nothing is kept, with Sign in beside
+ * it (r7 F2), so a reload that resets the round is no surprise. It has no
+ * Downtime (r7 F3): the Situation offers only what a round plays.
  */
 
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { SignInControl } from '../../build/account/SignInControl'
 import { playTrialCopy } from '../../messages/play-trial'
 import type { SyncState } from '../../replica/syncContext'
@@ -21,7 +22,7 @@ import { SyncContext } from '../../replica/syncContext'
 import { PlayCockpit } from '../PlayCockpit'
 import { setScreenNotices } from '../tableStripSlot.model'
 import type { TrialCrew } from './trialRoom.model'
-import { openTrial, subscribeTrial, trialChanged, trialCrew } from './trialRoom.model'
+import { openTrial, trialCrew } from './trialRoom.model'
 
 /** The Cockpit's view of the connection during a trial: it writes, to the tab's room. */
 const TRIAL_SYNC: SyncState = {
@@ -63,19 +64,18 @@ function TrialCockpit({ crew }: { crew: TrialCrew }) {
 }
 
 /**
- * "Sign in to keep this", once the first change is made: a line of the strip
- * under the bar (`setScreenNotices`), which the root draws signed out, so its
- * Sign in is the real one.
+ * "Trial: nothing is kept", from the first screen: a line of the strip under
+ * the bar (`setScreenNotices`), which the root draws signed out, so its
+ * "Sign in to keep this" is the real one.
  */
 function KeepThisLine({ pilotId }: { pilotId: string }) {
-  const changed = useSyncExternalStore(subscribeTrial, trialChanged, () => false)
   const [dismissed, setDismissed] = useState(false)
   useEffect(() => {
-    if (!changed || dismissed) {
+    if (dismissed) {
       setScreenNotices('trial', [])
       return
     }
-    const title = playTrialCopy('keepThis')
+    const title = playTrialCopy('nothingIsKept')
     setScreenNotices('trial', [
       {
         key: 'trial',
@@ -96,7 +96,7 @@ function KeepThisLine({ pilotId }: { pilotId: string }) {
         sig: title,
       },
     ])
-  }, [changed, dismissed, pilotId])
+  }, [dismissed, pilotId])
   useEffect(() => () => setScreenNotices('trial', []), [])
   return null
 }

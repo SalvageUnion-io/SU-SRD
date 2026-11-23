@@ -4,7 +4,7 @@ import { roomOf } from '../../../replica/roomSocket'
 import { resetSync, writable } from '../../../replica/sync'
 import { readTableState } from '../../../replica/tableState'
 import { useUnits } from '../../../replica/units'
-import { openTrial, trialChanged, trialCrew } from '../trialRoom.model'
+import { openTrial, trialCrew } from '../trialRoom.model'
 
 /**
  * The signed-out trial's room (r6 F1): a book pilot and their mech held in the
@@ -21,26 +21,15 @@ describe('the trial room', () => {
     expect(crew?.mechs.map((m) => m.id)).toEqual(['starter-mech-scrapper'])
   })
 
-  test('reopened untouched (as React’s dev double effect does), the round is still untouched', () => {
-    const crew = trialCrew('starter-pilot-bonesaw')
-    if (crew === null) throw new Error('no crew')
-    openTrial(crew)()
-    const close = openTrial(crew)
-    expect(trialChanged()).toBe(false)
-    close()
-  })
-
   test('opens writable over the crew, takes a vital and a boarding, and leaves nothing', async () => {
     const crew = trialCrew('starter-pilot-bonesaw')
     if (crew === null) throw new Error('no crew')
     const close = openTrial(crew)
     expect(writable()).toBe(true)
     expect(useUnits.getState().get('pilot', crew.pilot.id)?.name).toBe('Bonesaw')
-    expect(trialChanged()).toBe(false)
 
     await useUnits.getState().update('mech', 'starter-mech-scrapper', { currentHeat: 3 }, PLAY_TXN)
     expect(useUnits.getState().get('mech', 'starter-mech-scrapper')?.currentHeat).toBe(3)
-    expect(trialChanged()).toBe(true)
 
     await roomOf(null)?.act('seats.board', {
       pilotId: crew.pilot.id,

@@ -342,7 +342,9 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
                   channel={channel.row}
                   onScreen={onScreen}
                   // Below `lg`, On foot / Board / Table mode live here.
-                  situation={wide ? null : situationRows({ play, moves, tableOn, setTableOn })}
+                  situation={
+                    wide ? null : situationRows({ play, moves, tableOn, setTableOn, trial })
+                  }
                   // Units has no tab below `lg`: this row opens its pane.
                   onUnits={wide ? null : () => openTab('units')}
                 />
