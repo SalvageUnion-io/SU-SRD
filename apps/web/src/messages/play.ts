@@ -373,6 +373,12 @@ export const playCopy = messages({
   vitals: 'Vitals',
   unitVitals: '{name}’s vitals',
   sessionLive: 'Session live',
+  // Where the campaign is, on a Your Games card (r7 C11).
+  proposals: 'Proposals',
+  nPending: '{n} pending',
+  lastPlayed: 'Last played',
+  nextPlan: 'Next',
+  yours: 'Yours',
   startGroupSession: 'Start group session',
   // A Downtime step waiting, off the Play screen (r6 C5).
   downtimeHasBegunIn: 'Downtime has begun · {game}',

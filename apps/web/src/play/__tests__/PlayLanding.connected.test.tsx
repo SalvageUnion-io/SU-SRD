@@ -318,6 +318,37 @@ describe('the Play landing', () => {
     expect(screen.getAllByRole('link', { name: /^Join session/ })).toHaveLength(1)
   })
 
+  test('a card says where the campaign is: proposals open, when it last played, the next day (r7 C11)', async () => {
+    const ended = Date.now() - 2 * 86_400_000
+    const at = (ts: number, more: Record<string, unknown>) => ({
+      _id: `ev-${ts}`,
+      ts,
+      kind: 'action',
+      text: 'Played',
+      actorId: 'u-me',
+      ...more,
+    })
+    answerReads({
+      'games.listMine': [{ ...TENACITY, sessionDays: ['2999-01-02'] }],
+      'ops.pending': [
+        { _id: 'pr1', entityType: 'pilot', field: 'currentHP', after: 3, reason: null },
+      ],
+      'changeLog.events': [
+        at(ended - 60_000, { kind: 'session', session: 'start' }),
+        at(ended - 30_000, { kind: 'roll' }),
+        at(ended, { kind: 'session', session: 'end' }),
+      ],
+      ...QUIET,
+    })
+    await renderAs('live')
+    const tenacity = card('Tenacity')
+    expect(tenacity.getByText('Proposals')).toBeTruthy()
+    expect(tenacity.getByText('1 pending')).toBeTruthy()
+    expect(tenacity.getByText('Last played')).toBeTruthy()
+    expect(tenacity.getByText('2 days ago')).toBeTruthy()
+    expect(tenacity.getByText('Next')).toBeTruthy()
+  })
+
   test('a Game between Downtimes shows no Downtime chip; one with none of your pilots has no door', async () => {
     answerReads({
       'games.listMine': [{ ...TENACITY, _id: 'land-g9', name: 'Elsewhere' }],
