@@ -31,6 +31,8 @@ describe('nextLiveControl', () => {
     const a = document.getElementById('a') as Element
     expect(nextLiveControl(a)?.id).toBe('d')
     expect(nextLiveControl(document.getElementById('d') as Element)).toBeNull()
+    // The body is shared with every later test file: leave it empty.
+    document.body.innerHTML = ''
   })
 })
 

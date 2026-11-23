@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import type { StoredGamePlan } from '../gamePlan'
-import { markPlayed, planWith, sessionDaysFrom } from '../gamePlan'
+import { markPlayed, ownNotesFor, planFor, planWith, sessionDaysFrom } from '../gamePlan'
 
 const plan = (sessions: StoredGamePlan['sessions']): StoredGamePlan => ({
   schemaVersion: 1,
@@ -42,5 +42,33 @@ describe('a played session plan', () => {
     const once = markPlayed(plan([GULCH, TOLL]), '2026-11-23')
     const saved = once && planWith(once, 'd-med', plan([{ ...GULCH, title: 'Gulch' }, TOLL]))
     expect(saved?.sessions[0]).toMatchObject({ title: 'Gulch', played: '2026-11-23' })
+  })
+})
+
+/** ADR-067 §4: each member reads only the notes they wrote. */
+describe('notes by author', () => {
+  const S1 = { id: 's1', date: '2026-11-23', note: 'old note' }
+  const legacy: StoredGamePlan = { schemaVersion: 1, notes: 'old', sessions: [S1], author: 'a' }
+
+  it('an author reads their own notes; notes with no author yet are the table runner’s', () => {
+    expect(planFor(legacy, 'a').notes).toBe('old')
+    expect(planFor(legacy, 'b')).toEqual({
+      schemaVersion: 1,
+      notes: '',
+      sessions: [{ ...S1, note: '' }],
+    })
+    const mine = { ...legacy, byAuthor: { b: { notes: 'mine', sessions: { s1: 'b note' } } } }
+    expect(planFor(mine, 'b').sessions[0]?.note).toBe('b note')
+  })
+
+  it('reads back a former runner’s notes with their days, and nothing for one who wrote none', () => {
+    expect(ownNotesFor(legacy, 'a')).toEqual({
+      notes: 'old',
+      sessions: [{ date: '2026-11-23', note: 'old note' }],
+    })
+    expect(ownNotesFor(legacy, 'b')).toBeNull()
+    const undated = { ...legacy, sessions: [{ id: 's2', note: 'x' }] }
+    expect(ownNotesFor(undated, 'a')?.sessions).toEqual([{ note: 'x' }])
+    expect(ownNotesFor({ ...legacy, notes: '', sessions: [{ ...S1, note: '' }] }, 'a')).toBeNull()
   })
 })
