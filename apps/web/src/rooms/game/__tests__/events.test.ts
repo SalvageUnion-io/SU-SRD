@@ -226,8 +226,7 @@ describe('the table’s events', () => {
     act(STRANGER, 'redeem', { code, profile: { displayName: 'Nell', avatarUrl: null } }, AT + 8)
     expect(texts()).toEqual([
       'Nell joined the Game',
-      // Left resolving when the session ended (r5 A7).
-      'p1 · Pilot p1 · Patch: not applied',
+      // Left resolving when the session ended, with nothing to apply: no line (r7 A5).
       'Mediator ended the group session',
       'Player accepted: p1 · Pilot p1 AP → 2',
       'Mediator proposes p1 · Pilot p1 AP → 2',
@@ -685,6 +684,7 @@ describe('the table’s events', () => {
 
   test('a resolve nobody applied is closed, not applied, when its turn or the session ends (r5 A7)', () => {
     const { act, room, texts } = seated()
+    // A Cascade Failure is the result the player takes on the gauge: something to apply.
     const open = (name: string) =>
       act(PLAYER, 'seats.setResolving', {
         pilotId: 'p1',
@@ -692,7 +692,7 @@ describe('the table’s events', () => {
           ref: 'k',
           name,
           activated: true,
-          roll: { roll: 12, band: 'success' },
+          roll: { roll: 1, band: 'cascade' },
           applied: false,
         },
       })
@@ -724,6 +724,26 @@ describe('the table’s events', () => {
       expect.stringContaining(' · Red Laser: not applied'),
       expect.stringContaining('ended the group session'),
     ])
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+  })
+
+  test('an action with nothing to apply closes without a "not applied" line (r7 A5)', () => {
+    const { act, room } = seated()
+    act(MEDIATOR, 'session.start', undefined as never, AT)
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    // Improvised Melee Weapon, no cost, rolled 11 Success: Apply was never open to it.
+    act(PLAYER, 'seats.setResolving', {
+      pilotId: 'p1',
+      resolving: {
+        ref: 'k',
+        name: 'Improvised Melee Weapon',
+        activated: true,
+        roll: { roll: 11, band: 'success' },
+        applied: false,
+      },
+    })
+    const ended = act(PLAYER, 'scenes.endTurn', undefined as never, AT + 2)
+    expect(ended.map((e) => e.text)).toEqual([expect.stringContaining('ended their turn')])
     expect(room.play.seat('p1')?.resolving).toBeNull()
   })
 

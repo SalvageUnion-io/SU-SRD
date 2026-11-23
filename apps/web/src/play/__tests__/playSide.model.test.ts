@@ -299,6 +299,44 @@ describe('the Feed (play.md §8)', () => {
     ])
   })
 
+  test('my own lines all read You, acts as well as rolls, and my use still heads its roll (r7 A5)', () => {
+    const ev = (id: string, ts: number, kind: TableEvent['kind'], text: string): TableEvent => ({
+      _id: id,
+      ts,
+      kind,
+      text,
+      actorId: 'me',
+    })
+    const own = (e: TableEvent) => tableLine(e, 'me')
+    expect(own(ev('t', 1, 'turn', 'Pickle ended their turn'))).toBe('You ended your turn')
+    expect(own(ev('b', 1, 'board', 'Pickle boards Spectrum'))).toBe('You board Spectrum')
+    expect(own(ev('s', 1, 'action', 'Pickle switches Hull Magnetiser on'))).toBe(
+      'You switch Hull Magnetiser on'
+    )
+    expect(own(ev('n', 1, 'action', 'Pickle · Red Laser: not applied'))).toBe(
+      'You · Red Laser: not applied'
+    )
+    // Someone else's reads as the room words it.
+    expect(
+      tableLine({ ...ev('o', 1, 'turn', 'Pickle ended their turn'), actorId: 'p2' }, 'me')
+    ).toBe('Pickle ended their turn')
+    const entries = playFeedEntries({
+      rolls: null,
+      alerts: [],
+      events: [
+        ev('r', 1300, 'roll', 'Pickle · FM-3 Flamethrower · 16 · Success'),
+        ev('u', 1000, 'action', 'Pickle uses FM-3 Flamethrower'),
+      ],
+      proposals: [],
+      mine: [],
+      rollerName: 'Pickle',
+      viewerId: 'me',
+    })
+    expect(entries.map((e) => [e.text, e.lead])).toEqual([
+      ['You · FM-3 Flamethrower · 16 · Success', 'You use FM-3 Flamethrower'],
+    ])
+  })
+
   test('proposals awaiting an answer first, then everything newest first', () => {
     const entries = playFeedEntries({
       rolls: [crewRoll('r2', 300, 'Mags · Core Mechanic · 20'), crewRoll('r1', 200, 'Rook · 9')],

@@ -13,6 +13,16 @@ import type { PlayStore } from './play.model'
 import type { Situation } from './situation.model'
 import type { SalvageAreaView } from './useSalvageArea'
 
+/**
+ * The deck's dice for a table roll, by name. `label` and `outcome` say what
+ * the roll's Feed line reads, where it is not the action's roll: a Push's
+ * Heat Check (r7 A5).
+ */
+export type DeckRoll = (
+  tableName: string,
+  options?: { plainD20s?: number; label?: string; outcome?: () => string | undefined }
+) => ReturnType<typeof rollForTable>
+
 export type ResolveModel =
   | { kind: 'idle' }
   | {
@@ -138,7 +148,7 @@ export type ActionsDeckProps = {
   /** Injectable store (defaults to the live entity store). */
   store?: PlayStore
   /** The dice for a table roll, by name; injectable for tests (default `rollForTable`). */
-  rollFor?: typeof rollForTable
+  rollFor?: DeckRoll
   /** The Scene's Heat multiplier (`sceneHeatScale`: 2 Radiation Storm, ½ Freezing), Hot and Push; 1 by default. */
   heatScale?: number
   /** The area an Area Salvage spends Supply from; absent where no area is read. */

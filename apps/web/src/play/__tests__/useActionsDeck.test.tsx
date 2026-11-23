@@ -676,6 +676,35 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     expect(resolve().pushLog).toBeNull()
   })
 
+  test("a Push's Heat Check is its own Feed line: labelled, and what it came to (r7 A5)", async () => {
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'leviathan',
+      systems: [costedSystemId],
+      currentHeat: 16,
+    })
+    const { store } = stubStore(mech)
+    const asked: { table: string; label?: string; outcome?: () => string | undefined }[] = []
+    const spy: NonNullable<ActionsDeckProps['rollFor']> = async (table, options) => {
+      asked.push({ table, ...options })
+      return () => 14
+    }
+    const seen: { view: ResolveModel | null } = { view: null }
+    render(<Harness mech={mech} store={store} seen={seen} rollFor={spy} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Resolve' }))
+    await act(async () => {
+      if (seen.view?.kind === 'resolve') seen.view.controls.onRoll()
+    })
+    await act(async () => {
+      if (seen.view?.kind === 'resolve') seen.view.controls.push?.onPush()
+    })
+    const check = asked.find((each) => each.label === 'Heat Check')
+    expect(check?.table).toBe('Reactor Overload')
+    // 14 against Heat 18 overloads: it says so, and which row it was.
+    expect(check?.outcome?.()).toStartWith('Failed · Reactor Overload 14: ')
+  })
+
   test('at Heat 16/18 Push is offered, and lands the Heat on the cap', async () => {
     const { resolve, calls } = await rolledAt(16)
     const push = resolve().controls.push

@@ -21,6 +21,8 @@
  * twice: the table's line for the same change is left out.
  */
 
+import type { HeatCheckEffect, OverloadTable } from 'salvageunion-reference/rules'
+import { describeOverloadOutcome } from 'salvageunion-reference/rules'
 import { playCopy } from '../messages/play'
 import type { TableEvent } from '../rooms/game/events'
 import type { PlayRoll } from './playRolls.model'
@@ -151,6 +153,29 @@ function asMine(text: string): string {
 }
 
 /**
+ * A seat's act the room words "<unit> <does>" (`rooms/game/events.ts`), as
+ * its player reads it (r7 A5): "You use Red Laser", as their rolls say "You".
+ */
+const SEAT_ACTS: readonly [RegExp, string][] = [
+  [/^.+? boards (.+)$/, 'You board $1'],
+  [/^.+? climbs out, on foot$/, 'You climb out, on foot'],
+  [/^.+? ejects$/, 'You eject'],
+  [/^.+? uses (.+)$/, 'You use $1'],
+  [/^.+? switches (.+)$/, 'You switch $1'],
+  [/^.+? ended their turn$/, 'You ended your turn'],
+  [/^.+? moved their Scrap$/, 'You moved your Scrap'],
+  [/^.+? · (.+: not applied)$/, 'You · $1'],
+]
+
+/** The seat acts a player's own line is reworded in. */
+const SEAT_KINDS: ReadonlySet<TableEvent['kind']> = new Set(['board', 'action', 'turn', 'downtime'])
+
+function asMyAct(text: string): string {
+  for (const [said, mine] of SEAT_ACTS) if (said.test(text)) return text.replace(said, mine)
+  return text
+}
+
+/**
  * One of the table's events as `viewerId` reads its line, wherever it is
  * listed (the Feed, "Last session"): their own act says "You", and the hand
  * over that names them says "You now mediate this Game".
@@ -165,7 +190,9 @@ export function tableLine(e: TableEvent, viewerId: string | null): string {
       ? `${playCopy('feedYou')} · ${e.text.slice(signed.length)}`
       : e.text
   }
-  return e.actorId === viewerId && OWN.has(e.kind) ? asMine(e.text) : e.text
+  if (e.actorId !== viewerId) return e.text
+  if (OWN.has(e.kind)) return asMine(e.text)
+  return SEAT_KINDS.has(e.kind) ? asMyAct(e.text) : e.text
 }
 
 /**
@@ -198,6 +225,17 @@ export function mineText(roll: PlayRoll, hidden = roll.private === true): string
   ].join(' · ')
 }
 
+/**
+ * What a Push's Heat Check came to, as its own Feed line says it (r7 A5):
+ * "Passed", or "Failed" with the Reactor Overload row and what it did
+ * (Core Book p.234), never a second roll of the weapon.
+ */
+export function heatCheckSays(effect: HeatCheckEffect, table: OverloadTable): string {
+  if (!effect.result.overloaded) return playCopy('heatCheckPassed')
+  const outcome = describeOverloadOutcome(effect.result, table).replace(/^Overload\. /, '')
+  return `${playCopy('heatCheckFailed')} · ${outcome}`
+}
+
 /** How long after an action's use its cost and roll still group with it. */
 const ACTION_SPAN_MS = 5 * 60_000
 
@@ -222,7 +260,8 @@ function groupActions(
   // Oldest first, so a use claims what came after it.
   for (const use of [...entries].reverse()) {
     const from = sources.get(use.key)
-    const name = from?.kind === 'action' ? / uses (.+)$/.exec(use.text)?.[1] : undefined
+    // "Razor uses Red Laser", or the player's own "You use Red Laser" (r7 A5).
+    const name = from?.kind === 'action' ? / uses? (.+)$/.exec(use.text)?.[1] : undefined
     if (from === undefined || name === undefined || folded.has(use.key)) continue
     const mine = (e: FeedEntry) => e.key !== use.key && sources.get(e.key)?.actor === from.actor
     // The span ends at the same actor's next use.

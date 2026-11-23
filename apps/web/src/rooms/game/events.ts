@@ -96,10 +96,10 @@ export class GameEvents {
     const say = (kind: TableEventKind, text: string, key = text) => [
       this.note(actor, at, { kind, text, key }),
     ]
-    // What the act closed unapplied, a line each (r5 A7).
+    // What the act closed unapplied, a line each (r5 A7), when it had something to apply (r7 A5).
     const closed = () =>
       (before.unapplied ?? [])
-        .filter((u) => unappliedOf(this.store, [u.pilotId]).length === 0)
+        .filter((u) => u.owes && unappliedOf(this.store, [u.pilotId]).length === 0)
         .map((u) =>
           this.note(actor, at, {
             kind: 'action',

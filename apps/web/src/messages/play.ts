@@ -475,6 +475,8 @@ export const playCopy = messages({
   yourPilotLeads: 'Your Pilot',
   theMech: 'the Mech',
   heatCheck: 'Heat Check',
+  heatCheckPassed: 'Passed',
+  heatCheckFailed: 'Failed',
   heatCheckDue: 'Heat {heat}/{cap}: make a Heat Check',
   makeTheHeatCheck: 'Roll the Heat Check',
   pushStamp: 'Push:',
