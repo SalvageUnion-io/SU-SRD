@@ -9,7 +9,7 @@
  */
 
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { PublicSheet } from '../PublicSheet'
@@ -39,7 +39,9 @@ describe('a public sheet’s assignments', () => {
       />
     )
 
-    expect(screen.getAllByText('Not shared')).toHaveLength(2)
+    // Each says what it is (r7 G9).
+    expect(screen.getByText('Mech · not shared')).toBeTruthy()
+    expect(screen.getByText('Crawler · not shared')).toBeTruthy()
     // Nothing to open: neither has a page a reader may see.
     expect(screen.queryByRole('link', { name: /^View / })).toBeNull()
     // And never reported as missing: the pilot HAS a mech and a crawler.
@@ -70,7 +72,7 @@ describe('a public sheet’s assignments', () => {
       '/p/crawler/c1'
     )
     // The private mech beside it is still only a filled slot.
-    expect(screen.getAllByText('Not shared')).toHaveLength(1)
+    expect(screen.getAllByText('Mech · not shared')).toHaveLength(1)
   })
 
   test('a published body that does not parse is named, not rendered', () => {
@@ -110,6 +112,13 @@ describe('a public sheet’s assignments', () => {
     // On a desktop the band runs up behind the area rail: a banner above it was covered.
     expect(title.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(note.closest('main')).not.toBeNull()
+  })
+
+  test('a shared pilot, read signed out, ends with the next steps (r7 G9)', async () => {
+    render(<PublicSheet appId="p1" answer={answer()} />)
+    const steps = await screen.findByRole('navigation', { name: 'Your next step' })
+    expect(within(steps).getByRole('link', { name: 'Build your own pilot' })).toBeTruthy()
+    expect(within(steps).getByRole('link', { name: 'Try a round in Play' })).toBeTruthy()
   })
 
   test('is read-only', () => {
