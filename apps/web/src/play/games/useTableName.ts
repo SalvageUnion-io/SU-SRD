@@ -32,7 +32,7 @@ export type TableName = {
 }
 
 /** The account's name for a blank field: its own or Discord's, else its email's first part. */
-export function accountName(
+function accountName(
   me: { displayName: string | null; email?: string | null } | null | undefined
 ): string {
   const own = me?.displayName?.trim() ?? ''
