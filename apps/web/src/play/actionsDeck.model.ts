@@ -116,6 +116,8 @@ export type ResolveModel =
       closesItself: string | null
       /** Something was done with it (activated, rolled): its close reads Done, never Cancel. */
       progressed: boolean
+      /** A step of it is held on this device, not sent yet (r6 A14). */
+      held: boolean
     }
 
 export type ActionsDeckProps = {
@@ -131,6 +133,8 @@ export type ActionsDeckProps = {
   resolving: SeatResolving | null
   /** Record the resolve on the seat; null when it is over. */
   onResolving: (resolving: SeatResolving | null) => void
+  /** A step of the resolve is held offline, not sent yet (`useSeatAt`, r6 A14). */
+  held?: boolean
   /** Injectable store (defaults to the live entity store). */
   store?: PlayStore
   /** The dice for a table roll, by name; injectable for tests (default `rollForTable`). */

@@ -169,6 +169,8 @@ export const playCopy = messages({
   rollWaitsOffline:
     'Offline: this waits for the connection. A table under Rolls still rolls, sent on reconnect.',
   sendHeld: 'Try again: send {label} to the table',
+  heldStepRefused: 'Not sent: {name}. {reason}.',
+  heldStepRefusedReason: 'The table moved on while this was offline',
   toDiscord: '{label} {label2} to Discord',
   signInToPlay: 'Sign in to play',
   artScout: 'A Scout Pilot',

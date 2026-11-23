@@ -191,6 +191,7 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     resolving,
     onResolving: (next) =>
       next === null ? play.seat.clearResolving() : play.seat.setResolving(next),
+    held: play.seat.seat.held === true,
     store,
     rollFor: deckRoll,
     heatScale,

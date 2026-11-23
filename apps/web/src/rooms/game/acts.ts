@@ -114,10 +114,10 @@ const GAME_ACTS = {
     c.room.play.setRange(c.actor, a.pilotId, a.range, c.at),
   'seats.toggleEffect': (c: ActContext, a: SeatArgs & { ref: string }) =>
     c.room.play.toggleEffect(c.actor, a.pilotId, a.ref, c.at),
-  'seats.setResolving': (c: ActContext, a: SeatArgs & { resolving: unknown }) =>
-    c.room.play.setResolving(c.actor, a.pilotId, a.resolving, c.at),
-  'seats.clearResolving': (c: ActContext, a: SeatArgs) =>
-    c.room.play.clearResolving(c.actor, a.pilotId, c.at),
+  'seats.setResolving': (c: ActContext, a: SeatArgs & { resolving: unknown; follows?: unknown }) =>
+    c.room.play.setResolving(c.actor, a.pilotId, a.resolving, c.at, a.follows),
+  'seats.clearResolving': (c: ActContext, a: SeatArgs & { follows?: unknown }) =>
+    c.room.play.clearResolving(c.actor, a.pilotId, c.at, a.follows),
 
   'downtime.state': (c: ActContext) => c.room.play.downtime(c.actor),
   'downtime.begin': (c: ActContext) => {

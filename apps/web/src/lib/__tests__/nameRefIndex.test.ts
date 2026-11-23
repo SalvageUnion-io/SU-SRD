@@ -52,7 +52,7 @@ describe('nameRefIndex', () => {
     ).toEqual([
       ['traits', 'Dependable'],
       ['roll-tables', 'Critical Damage'],
-      ['keywords', 'Heat check'],
+      ['keywords', 'Heat Check'],
     ])
   })
 

@@ -23,6 +23,10 @@
  * or titled head of their own.
  * A note (the Cascade Failure hand-off) is an unlabelled Callout.
  *
+ * Offline the resolve goes on (r6 A14): the die rolls on the device and its
+ * steps are held, "Not sent yet", until the connection returns (`useSeatAt`).
+ * A Push and an Area Salvage, which write the table, wait for it.
+ *
  * An Area Salvage reads its own table (Core Book p.248): the area it spends
  * Supply from is a line above the roll, the roll is refused while there is
  * none or it is picked clean, and once applied a line says what was carried.
@@ -99,6 +103,10 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
           : undefined
   const salvageOpen = salvageShut === undefined
   const offline = useSync().status === 'offline'
+  // Offline the steps are held (r6 A14); a Push and an Area Salvage wait.
+  const holds = offline && salvage === undefined
+  const writes = canWrite || holds
+  const waits = offline && (!holds || push !== null)
   return (
     <div ref={hostRef} className="su-play-resolve">
       {/* Mounted before the first roll, so the d20, its band and Apply are
@@ -140,7 +148,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
             size="compact"
             style={GROW}
             onClick={controls.onActivate}
-            disabled={!canWrite || controls.activateDisabled}
+            disabled={!writes || controls.activateDisabled}
             title={controls.activateTitle}
           >
             {controls.activated ? playCopy('activated') : playCopy('activate')}
@@ -182,13 +190,14 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         stamp={push ? 'Push:' : undefined}
         pressAs={push ? 'push' : 'roll'}
         onRoll={
-          canWrite && salvageOpen && !controls.rollLockedReason
+          writes && !waits && salvageOpen && !controls.rollLockedReason
             ? rolls(push ? push.onPush : controls.onRoll)
             : undefined
         }
-        // Offline the resolve waits (its steps are the seat's), and says where a die still rolls (r6 A14).
-        off={salvageShut ?? (offline ? playCopy('rollWaitsOffline') : undefined)}
+        // What waits for the connection says where a die still rolls (r6 A14).
+        off={salvageShut ?? (waits ? playCopy('rollWaitsOffline') : undefined)}
       />
+      {view.held && <p style={NOTE}>{playCopy('notSentYet')}</p>}
       {controls.push?.lockedReason && <p style={NOTE}>{controls.push.lockedReason}</p>}
 
       {/* The ways forward stay on screen under the table, however long it is (r2 I3). */}
@@ -201,7 +210,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
             size="compact"
             style={GROW}
             onClick={controls.onApply}
-            disabled={!canWrite || controls.applyDisabled}
+            disabled={!writes || controls.applyDisabled}
             title={playCopy('commitThisResult')}
           >
             {controls.applyLabel}
@@ -214,7 +223,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
             rolling.current = false
             controls.onClear()
           }}
-          disabled={!canWrite}
+          disabled={!writes}
         >
           {playCopy('startOver')}
         </Button>

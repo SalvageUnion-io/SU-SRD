@@ -106,14 +106,30 @@ export abstract class SeatTable {
     }))
   }
 
-  /** The deck action being resolved, and how far it has got; each step replaces the last. */
-  setResolving(actor: string, pilotId: string, resolving: unknown, at: number): void {
+  /**
+   * The deck action being resolved, and how far it has got; each step replaces the last.
+   * A step held offline names the step it `follows`, and is refused when the
+   * seat moved on meanwhile (a turn ended, Downtime began): never applied over it.
+   */
+  setResolving(
+    actor: string,
+    pilotId: string,
+    resolving: unknown,
+    at: number,
+    follows?: unknown
+  ): void {
     const parsed = SeatResolvingSchema.parse(resolving)
-    this.write(actor, pilotId, at, () => ({ resolving: parsed }))
+    this.write(actor, pilotId, at, (seat) => {
+      followsSeat(seat, follows)
+      return { resolving: parsed }
+    })
   }
 
-  clearResolving(actor: string, pilotId: string, at: number): void {
-    this.write(actor, pilotId, at, () => ({ resolving: null }))
+  clearResolving(actor: string, pilotId: string, at: number, follows?: unknown): void {
+    this.write(actor, pilotId, at, (seat) => {
+      followsSeat(seat, follows)
+      return { resolving: null }
+    })
   }
 
   /**
@@ -159,6 +175,14 @@ export abstract class SeatTable {
       seat.updatedAt
     )
   }
+}
+
+/** Refuse a held step whose seat no longer holds the step it follows; one not held (undefined) goes. */
+function followsSeat(seat: SeatRead, follows: unknown): void {
+  if (follows === undefined) return
+  const was = follows === null ? null : SeatResolvingSchema.parse(follows)
+  if (JSON.stringify(seat.resolving) !== JSON.stringify(was))
+    throw new RoomRefusal('The table moved on while this was offline')
 }
 
 /** Move to `mount`, dropping the resolve in progress when the mount changed. */

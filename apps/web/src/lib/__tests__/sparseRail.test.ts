@@ -71,7 +71,7 @@ describe('tableRailFor: a roll table links back to what uses it (r3 C4)', () => 
 
   test('a rules table lists the keyword and the guide whose words send a reader to it', () => {
     const rail = tableRailFor(table('Reactor Overload'))
-    expect(rail.usedBy.map((row) => row.name)).toContain('Heat check')
+    expect(rail.usedBy.map((row) => row.name)).toContain('Heat Check')
     expect(rail.rules.length).toBeGreaterThan(0)
     // A table is never its own user, and no record is listed twice.
     const ids = rail.usedBy.map((row) => row.ref.id)
