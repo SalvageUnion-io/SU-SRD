@@ -96,11 +96,13 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     }
     await clickNext()
 
-    // --- Step 3: Who They Are (only the Name is required, r6 F5) ---
+    // --- Step 3: Who They Are (only the Callsign is required, r7 F7) ---
     expect(getNextButton().disabled).toBe(true)
     await fillCallsign('Mira Voss', '')
-    expect(getNextButton().disabled).toBe(false) // a blank Callsign is the Name
-    expect(screen.getByPlaceholderText('Mira Voss')).toBeTruthy()
+    expect(getNextButton().disabled).toBe(true) // the Name alone is not enough
+    await fillCallsign('', 'Sparks')
+    expect(getNextButton().disabled).toBe(false) // a blank Name is the Callsign
+    expect(screen.getByPlaceholderText('Sparks')).toBeTruthy()
     await fillCallsign('Mira Voss', 'Sparks')
     await clickNext()
 
