@@ -270,6 +270,32 @@ describe('the sections under the roster', () => {
     expect(navigations).toEqual([{ to: '/games' }])
   })
 
+  // r7 C2 (LG7-02, LG7-20): Members name a Pilot as Crew does, and Remove names both.
+  test('Members name a Pilot by callsign, and Remove names the person and their Pilot', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true },
+      'games.members': [
+        { userId: 'u1', displayName: 'Ash', mediator: false, organizer: true, joinedAt: 1 },
+        { userId: 'u2', displayName: 'Sam', mediator: false, organizer: false, joinedAt: 2 },
+      ],
+      'games.listing': {
+        pilots: [
+          { _id: 'p3', appId: 'p3', ownerId: 'u2', body: { callsign: 'Pumpkin', name: 'Ana Vex' } },
+        ],
+        mechs: [],
+        crawlers: [],
+        softLinks: [],
+      },
+    })
+    const members = screen.getByRole('list', { name: 'Members' })
+    expect(members.textContent).toContain('Pumpkin')
+    expect(members.textContent).not.toContain('Ana Vex')
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Sam from this Game' }))
+    const dialog = within(screen.getByRole('alertdialog'))
+    expect(dialog.getByRole('heading', { name: 'Remove Sam (Pumpkin)?' })).toBeTruthy()
+    expect(dialog.getByRole('button', { name: 'Remove Sam (Pumpkin)' })).toBeTruthy()
+  })
+
   test('the Organiser removes a member, and renames and describes the Game (MD-11, MD-12)', async () => {
     await renderHub({
       'games.get': { ...GAME, organizer: true },
@@ -283,7 +309,7 @@ describe('the sections under the roster', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove Beefcake from this Game' }))
     await act(async () => {
       fireEvent.click(
-        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' })
+        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove Beefcake' })
       )
     })
     // LG4-04: the link is the whole table's, and stays unless the Organiser ticks the box.
@@ -301,7 +327,7 @@ describe('the sections under the roster', () => {
     fireEvent.click(removing.getByText('Reset the invite link too'))
     expect((tick as HTMLInputElement).checked).toBe(true)
     await act(async () => {
-      fireEvent.click(removing.getByRole('button', { name: 'Remove' }))
+      fireEvent.click(removing.getByRole('button', { name: 'Remove Beefcake' }))
     })
     expect(mutations).toEqual([
       { name: 'games.removeMember', args: { gameId: 'g1', userId: 'u2' } },
@@ -313,7 +339,7 @@ describe('the sections under the roster', () => {
     // It arrives unticked again.
     await act(async () => {
       fireEvent.click(
-        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' })
+        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove Beefcake' })
       )
     })
     expect(mutations).toEqual([

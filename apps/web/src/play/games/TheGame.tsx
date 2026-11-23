@@ -21,6 +21,7 @@
  */
 
 import { mayBindChannel } from 'game-domain/games/discord'
+import { pilotCallsign, pilotLabelOf } from 'game-domain/pilotLabel'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { ConfirmDialog } from '../../components/app'
@@ -104,9 +105,9 @@ export function TheGame({
   const listing = useGameListing(gameId)
   const pilotsOf = (userId: string) =>
     (listing?.pilots ?? [])
-      .filter((p) => p.ownerId === userId)
-      .map((p) => ({ id: p._id, name: String((p.body as { name?: unknown }).name ?? '') }))
-      .filter((p) => p.name !== '')
+      .filter((p) => p.ownerId === userId && pilotLabelOf(p.body) !== null)
+      // By callsign, as Crew names them (r7 C2, LG7-02).
+      .map((p) => ({ id: p._id, name: pilotCallsign(p.body) }))
   const setMediator = useGamesCall('games.setMediator')
   const { canWrite } = useSync()
   const [handing, setHanding] = useState(false)
@@ -122,6 +123,13 @@ export function TheGame({
       : m.unnamed
         ? playGamesCopy('you')
         : playGamesCopy('nameYou', { name: m.displayName })
+  /** "Sam (Pumpkin)": a member and the Pilots they play. */
+  const whoWithPilots = (m: { userId: string; displayName: string }) => {
+    const pilots = pilotsOf(m.userId).map((pilot) => pilot.name)
+    return pilots.length === 0
+      ? m.displayName
+      : playGamesCopy('nameAndPilots', { name: m.displayName, pilots: pilots.join(', ') })
+  }
   const mediators = members?.filter((m) => m.mediator) ?? []
   const candidates = members?.filter((m) => !m.mediator) ?? []
   const appointing = mediators.length === 0
@@ -250,7 +258,8 @@ export function TheGame({
                   size="mini"
                   disabled={!canWrite}
                   aria-label={playGamesCopy('removeMember', { name: m.displayName })}
-                  onClick={() => setGoing({ userId: m.userId, name: m.displayName })}
+                  // The person and their Pilot, so the right friend goes (r7 C2, LG7-20).
+                  onClick={() => setGoing({ userId: m.userId, name: whoWithPilots(m) })}
                 >
                   {playGamesCopy('remove')}
                 </Button>

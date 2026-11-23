@@ -158,7 +158,9 @@ export function LeaveGameDialog({
           </>
         )
       }
-      confirmLabel={self ? playGamesCopy('leave') : playGamesCopy('remove')}
+      confirmLabel={
+        self ? playGamesCopy('leave') : playGamesCopy('removeWho', { name: member?.name ?? '' })
+      }
       describeError={(err) => failureMessage(err, playGamesCopy('couldNotLeave'))}
       onConfirm={async () => {
         if (member === null) return

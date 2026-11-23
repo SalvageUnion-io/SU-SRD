@@ -173,6 +173,8 @@ export const playGamesCopy = messages({
   leave: 'Leave',
   removeMember: 'Remove {name} from this Game',
   removeNamed: 'Remove {name}?',
+  removeWho: 'Remove {name}',
+  nameAndPilots: '{name} ({pilots})',
   removeBody:
     'The Pilots and Mechs they brought go back to their Training Bay, and any this Game came with stay here, unassigned; nothing is deleted. They are told, and can join again with an invite. The link they already have still works unless you reset it.',
   resetInviteLinkToo: 'Reset the invite link too',
