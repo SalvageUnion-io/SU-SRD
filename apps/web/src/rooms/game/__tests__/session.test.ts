@@ -64,7 +64,7 @@ describe('the group session', () => {
     expect(line).toMatchObject({ kind: 'session', session: 'end', ts: AT + 1000 + idle })
     expect(line?.text).toContain('twelve hours')
     expect(room.session.session(PLAYER).live).toBe(false)
-    expect(room.events.list(PLAYER).map((e) => e.text)).toContain(line?.text)
+    expect(room.events.list(PLAYER).map((e) => e.text)).toContain(line?.text ?? '')
     // Ended once: the next touch finds nothing to end.
     expect(room.endIdleSession(AT + 3 * idle)).toEqual([])
   })

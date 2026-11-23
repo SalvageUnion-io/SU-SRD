@@ -458,8 +458,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
       ),
     rename: (npc, name) => updateNpc({ npcId: npcId(npc), patch: { name } }),
     field: async (lines) => {
-      // One at a time, each name counted against the ones before it, so four
-      // Contour Hussars come out numbered.
+      // One at a time, each named apart from those before: four Contour Hussars come out numbered.
       const out = (tray ?? []).map(({ id, name }) => ({ id, name }))
       let added = 0
       for (const line of lines) {

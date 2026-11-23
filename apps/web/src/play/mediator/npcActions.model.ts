@@ -91,7 +91,8 @@ const COUNT_WORDS: Record<string, number> = { one: 1, two: 2, three: 3, four: 4,
  * (r8 B3).
  */
 export function titanicOf(action: RefMetaAction): number | null {
-  if (!action.name.startsWith('Titanic Actions')) return null
+  // The data's own name, matched, never said.
+  if (!/^Titanic Actions/.test(action.name)) return null
   const content = (action as { content?: { value?: unknown }[] }).content ?? []
   for (const block of content) {
     if (typeof block.value !== 'string') continue

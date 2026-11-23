@@ -78,7 +78,6 @@ export const buildPrepCopy = messages({
   deleteNamed: 'Delete {name}',
   threatRead: 'Threat read',
   // The same NPC again asks for a count (r7 C13).
-  addCount: 'Add {count}',
   crew: 'Crew',
   crewSize: 'crew size',
   crewTech: 'Crew Tech',

@@ -121,7 +121,7 @@ type PlayNpcActionsProps = {
 }
 
 /** Where a unit's counts are written (r8 B3), and the round its Titanic Actions are spent in. */
-export type NpcCounts = {
+type NpcCounts = {
   round: number
   onUses: (key: string, spent: number) => void
   onTitanic: (spent: number) => void
