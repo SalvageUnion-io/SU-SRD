@@ -7,8 +7,10 @@ import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
  *  - **In a Game** the step is the Game's: the Mediator advances it
  *    ("Mediator advances · 2 of 4 done"), a player is done once they take the
  *    step (applied, skipped or marked done) and has no Next step.
- *  - **Solo** the player runs it ("You run it"): Apply & mark done, then Next
- *    step (the last step ends Downtime).
+ *  - **Solo** the player runs it ("You run it"): the way on reads "Apply and
+ *    go on" where the step proposes numbers, and applies them (with Undo)
+ *    before it moves on; "Skip this step" is the small link beside it (r7 D1,
+ *    `DOWNTIME_FORWARD`). The last step ends Downtime.
  *
  * Either way the step is one batch with stable ids (`markStepDone`, ADR-063
  * §6) carrying what it applies to the pilot and the mech's share, so the
@@ -53,10 +55,15 @@ import {
   SELECT_DIM,
   Stat,
   TitledBox,
+  toast,
 } from '../components/index'
 import { rollD20 } from '../lib/dice'
+import { runWrite } from '../lib/runWrite'
+import { componentsCopy } from '../messages/components'
 import { playCopy } from '../messages/play'
+import { PLAY_UNDO } from '../replica/provenance'
 import { DowntimeStepNav } from './DowntimeStepNav'
+import { DOWNTIME_FORWARD } from './downtimeRulings.model'
 import type { PlanLine } from './playDowntime.model'
 import {
   carriedScrap,
@@ -79,6 +86,12 @@ import type { PlayActions } from './usePlayActions'
 
 /** A line's title is a caps label; its weight is the `strong`'s. */
 const LINE_LABEL = cn('su-play-dt-line__label', capsLabel({ weight: 'inherit' }))
+
+/** Each field a patch writes, as the unit held it before: what its Undo writes back. */
+function priorOf(unit: object, patch: object): Record<string, unknown> {
+  const was = unit as Record<string, unknown>
+  return Object.fromEntries(Object.keys(patch).map((field) => [field, was[field]]))
+}
 
 /** The caption over the step's quoted text where the step's own line says otherwise (r6 D7). */
 const GENERAL_RULE = capsLabel()
@@ -149,6 +162,14 @@ export function PlayDowntimeStep({
       ]
     : plan
   const off = !play.canWrite
+  // Solo, the way on applies what the step proposes; skipping is the small link (r7 D1).
+  const pending = !inGame && !claimed && applicable.length > 0 && !canMove
+  const forwardApplies = pending && DOWNTIME_FORWARD === 'apply'
+  const forward = !pending
+    ? undefined
+    : forwardApplies
+      ? playCopy('applyAndGoOn')
+      : playCopy('skipStepN', { n: stepIndex + 1 })
   // End Downtime with steps walked past unapplied asks first (r4 A6), as
   // leaving mid-way does (`useSituationMoves`).
   const [ending, setEnding] = useState<readonly number[] | null>(null)
@@ -230,7 +251,7 @@ export function PlayDowntimeStep({
     return payDowntimeUpkeep({ crawler, store, claim: downtime.claim })
   }
 
-  async function apply() {
+  async function apply(): Promise<boolean> {
     const steps = stepsFor(plan, unticked)
     const applied: string[] = []
     const freshPilot = pilot ? (store.get('pilot', pilot.id) ?? pilot) : null
@@ -251,7 +272,12 @@ export function PlayDowntimeStep({
       freshMech && Object.keys(mechPatch).length > 0
         ? { id: freshMech.id, patch: mechPatch }
         : undefined
-    if (!(await take(pilotPatch, mechShare))) return
+    if (!(await take(pilotPatch, mechShare))) return false
+    // What it changed says itself with Undo, as every change of a live number does (r7 D1).
+    offerUndo(
+      freshPilot && { id: freshPilot.id, prior: priorOf(freshPilot, pilotPatch) },
+      freshMech && mechShare ? { id: freshMech.id, prior: priorOf(freshMech, mechPatch) } : null
+    )
     setApplied(plan.filter((l) => l.steps.length > 0 && l.skippable && !unticked.has(l.key)))
     if (freshMech && mechShare) applied.push(freshMech.name)
     if (freshPilot && Object.keys(pilotPatch).length > 0) applied.push(freshPilot.name)
@@ -278,6 +304,38 @@ export function PlayDowntimeStep({
         .filter(Boolean)
         .join(' ') || playCopy('nothingToApply')
     )
+    return true
+  }
+
+  /** The step's Undo: each field it wrote on the pilot and the mech, back as it was. */
+  function offerUndo(
+    onPilot: { id: string; prior: Record<string, unknown> } | null,
+    onMech: { id: string; prior: Record<string, unknown> } | null
+  ) {
+    const pilotBack = onPilot && Object.keys(onPilot.prior).length > 0 ? onPilot : null
+    if (pilotBack === null && onMech === null) return
+    toast(playCopy('stepApplied', { step: step.name }), {
+      id: `downtime-step:${stepIndex}`,
+      action: {
+        label: componentsCopy('undo'),
+        onClick: () => {
+          if (pilotBack)
+            runWrite(() => store.update('pilot', pilotBack.id, pilotBack.prior, PLAY_UNDO))
+          if (onMech) runWrite(() => store.update('mech', onMech.id, onMech.prior, PLAY_UNDO))
+          recordPlayChange(playCopy('stepUndone', { step: step.name }))
+        },
+      },
+    })
+  }
+
+  /** Solo forward (r7 D1): apply the step, then on to the next. */
+  async function applyAndGoOn() {
+    if (await apply()) downtime.advance()
+  }
+
+  /** Solo "Skip this step": taken with nothing applied, then on to the next. */
+  async function skipAndGoOn() {
+    if (await take({})) downtime.advance()
   }
 
   const chip = inGame ? (
@@ -369,6 +427,10 @@ export function PlayDowntimeStep({
               </Button>
             )}
           </>
+        ) : forwardApplies ? (
+          <Button size="compact" variant="ghost" onClick={() => void skipAndGoOn()} disabled={off}>
+            {playCopy('skipThisStep')}
+          </Button>
         ) : applicable.length > 0 ? (
           <>
             <Button size="compact" onClick={() => void skip()} disabled={off}>
@@ -391,7 +453,8 @@ export function PlayDowntimeStep({
             count={stepCount}
             off={off}
             onEnd={end}
-            onAdvance={downtime.advance}
+            onAdvance={forwardApplies ? () => void applyAndGoOn() : downtime.advance}
+            {...(forward === undefined ? {} : { forward })}
           />
         )}
       </div>

@@ -22,6 +22,24 @@ describe('DowntimeStepNav', () => {
     expect(onAdvance).toHaveBeenCalledTimes(1)
   })
 
+  // r7 D1: solo, a step with something to apply goes on by applying it.
+  test('a way on that does more says so in place of Next', () => {
+    const onAdvance = mock(() => {})
+    render(
+      <DowntimeStepNav
+        step={2}
+        count={10}
+        off={false}
+        onEnd={() => {}}
+        onAdvance={onAdvance}
+        forward="Apply and go on"
+      />
+    )
+    expect(names()).toEqual(['Apply and go on'])
+    fireEvent.click(screen.getByRole('button', { name: 'Apply and go on' }))
+    expect(onAdvance).toHaveBeenCalledTimes(1)
+  })
+
   test("the player's last step: End Downtime in Next's place", () => {
     const onEnd = mock(() => {})
     render(<DowntimeStepNav step={9} count={10} off={false} onEnd={onEnd} onAdvance={() => {}} />)
