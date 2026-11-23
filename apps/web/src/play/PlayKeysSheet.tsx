@@ -14,6 +14,7 @@ export function PlayKeysSheet({ onClose }: { onClose: () => void }) {
   // Each key and what it presses, a Stat (ruleset §3.7).
   const keys = [
     ['/', playCopy('keyFind')],
+    [playCopy('keyRulesCap'), playCopy('keyRules')],
     ['R', playCopy('keyRoll')],
     ['A', playCopy('keyApply')],
     ['E', playCopy('keyEndTurn')],

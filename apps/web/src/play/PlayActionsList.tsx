@@ -27,6 +27,7 @@ import {
 } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayActionEntry } from './PlayActionEntry'
+import { PlayEndTurnStop } from './PlayEndTurnStop'
 import type { ActionTypeKey, ListEntry } from './playActions.model'
 import { ACTION_TYPE_ORDER, TYPE_FILTERS } from './playActions.model'
 import type { Play } from './situation.model'
@@ -137,9 +138,13 @@ export function PlayActionsTools({ actions, find }: { actions: PlayActions; find
   // "/" jumps to Find, where there is one (r3 J4).
   const tools = useRef<HTMLDivElement>(null)
   // "?" lists the keys (r6 A13): the sheet loads when first asked for.
-  const { keysOpen, closeKeys } = useFindKey(tools)
+  const { keysOpen, closeKeys, said } = useFindKey(tools)
   return (
     <div className="su-play-act-tools" ref={tools}>
+      {/* Why a key did nothing, said rather than left silent (r8 A7). */}
+      <span role="status" className="su-sr-only">
+        {said}
+      </span>
       {keysOpen && (
         <Suspense fallback={null}>
           <PlayKeysSheet onClose={closeKeys} />
@@ -246,6 +251,10 @@ export function PlayActionsList({
             </SlabSection>
           ))}
         </div>
+      )}
+      {/* While it is my turn, End my turn is the next stop after the list (r8 A7). */}
+      {play.target.gameId !== null && (
+        <PlayEndTurnStop gameId={play.target.gameId} pilotId={play.target.pilotId} />
       )}
       <PlayAwayGroup
         title={playCopy('notOnHand')}

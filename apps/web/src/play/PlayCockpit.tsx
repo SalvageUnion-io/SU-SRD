@@ -80,6 +80,7 @@ import { StopSignButton } from './StopSign'
 import { tableUnits } from './tableMode.model'
 import { tableTurnLine } from './tableNotices.model'
 import { useFeedMark } from './useFeedMark'
+import { PLAY_RULES_ASKED, RULES_SEARCH } from './useFindKey'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
 import { ShowSheetContext } from './useOpenSheet'
@@ -249,6 +250,24 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
     onScreen.close()
     setTab(next)
   }
+  // Ctrl+K opens the Rules and their search, as search opens elsewhere (r8 A7).
+  const [toRules, setToRules] = useState(0)
+  useEffect(() => {
+    const asked = () => {
+      closeSheet()
+      if (!wide) setTab('rules')
+      setToRules((n) => n + 1)
+    }
+    window.addEventListener(PLAY_RULES_ASKED, asked)
+    return () => window.removeEventListener(PLAY_RULES_ASKED, asked)
+  }, [closeSheet, wide])
+  useEffect(() => {
+    if (toRules === 0) return
+    const field = [...document.querySelectorAll<HTMLInputElement>(RULES_SEARCH)].find(
+      (input) => input.closest('[hidden]') === null
+    )
+    field?.focus()
+  }, [toRules])
   const nodes: Record<PlayerPane, ReactNode> = {
     act: (
       <PlayActionsColumn target={target} play={play} onShow={() => openTab('act')} {...actions} />

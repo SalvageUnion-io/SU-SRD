@@ -5,13 +5,22 @@
  * action, A applies it (or, with nothing to apply, finishes it), E ends the
  * player's turn, N jumps to the top notice's first answer (r7 A7), and "?"
  * opens the sheet that lists them (`PlayKeysSheet`). A turn is a handful of
- * keys.
+ * keys. Ctrl+K (⌘K) opens the Rules' search, as it opens search elsewhere,
+ * and a letter that has nothing to press says why (`said`), never silent
+ * (r8 A7).
  */
 
 import type { RefObject } from 'react'
 import { useEffect, useState } from 'react'
 import { isTyping } from '../lib/searchShortcut'
+import { playCopy } from '../messages/play'
 import { focusTopNotice, noteActionFocus } from './tableNoticesDom.model'
+
+/** Ctrl+K in Play (r8 A7): the screen opens its Rules and puts the caret in their search. */
+export const PLAY_RULES_ASKED = 'su-play-rules-asked'
+
+/** The Rules' search field (`SrdExplorer`). */
+export const RULES_SEARCH = 'input[name="srd-explorer-search"]'
 
 /** The first of `selector` that is on screen and can be pressed. */
 function pressable(selector: string): HTMLElement | null {
@@ -28,9 +37,10 @@ export const ROLL_BUTTON = '[data-play-roll="roll"] button.su-roll__roll'
 /** What each letter presses: the open action's roll, its Apply (else its Done), End my turn. */
 const PRESSES: Readonly<Record<string, readonly string[]>> = {
   r: [`.su-play-act[data-open] ${ROLL_BUTTON}`],
+  // Done only once something was done: an untouched action is never finished empty (r8 A7).
   a: [
     '.su-play-act[data-open] [data-play-key="apply"]',
-    '.su-play-act[data-open] .su-play-act__use',
+    '.su-play-act[data-open] .su-play-act__use[data-progressed]',
   ],
   e: ['[data-end-turn]'],
 }
@@ -43,10 +53,19 @@ const PRESSES: Readonly<Record<string, readonly string[]>> = {
 export function useFindKey(within: RefObject<HTMLElement | null>): {
   keysOpen: boolean
   closeKeys: () => void
+  /** Why the last key pressed nothing, for a live region; empty otherwise. */
+  said: string
 } {
   const [keysOpen, setKeysOpen] = useState(false)
+  const [said, setSaid] = useState('')
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'k') {
+        if (event.defaultPrevented) return
+        event.preventDefault()
+        window.dispatchEvent(new Event(PLAY_RULES_ASKED))
+        return
+      }
       if (event.altKey || event.ctrlKey || event.metaKey) return
       if (event.defaultPrevented || isTyping(event.target)) return
       if (event.key === '?') {
@@ -61,7 +80,11 @@ export function useFindKey(within: RefObject<HTMLElement | null>): {
       const presses = PRESSES[event.key.toLowerCase()]
       if (presses !== undefined && !event.shiftKey) {
         const target = presses.map(pressable).find((el) => el !== null)
-        if (target == null) return
+        if (target == null) {
+          setSaid(whyNot(event.key.toLowerCase()))
+          return
+        }
+        setSaid('')
         event.preventDefault()
         target.click()
         return
@@ -83,5 +106,12 @@ export function useFindKey(within: RefObject<HTMLElement | null>): {
       document.removeEventListener('focusin', onFocus)
     }
   }, [within])
-  return { keysOpen, closeKeys: () => setKeysOpen(false) }
+  return { keysOpen, closeKeys: () => setKeysOpen(false), said }
+}
+
+/** Why R, A or E pressed nothing (r8 A7). */
+function whyNot(key: string): string {
+  if (key === 'e') return playCopy('keyNotYourTurn')
+  if (document.querySelector('.su-play-act[data-open]') === null) return playCopy('keyNoActionOpen')
+  return key === 'r' ? playCopy('keyNothingToRoll') : playCopy('keyNothingToApply')
 }
