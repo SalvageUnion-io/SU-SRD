@@ -17,7 +17,10 @@
  * the step it lands on for the Mediator's Next.
  *
  * Moving on is said to the table (the room's Feed line, r5 A3); a jump past
- * more than one step asks first, and what the table passed over this visit
+ * more than one step asks first, and so does moving past a step a seat is
+ * still working in, once for that step (r8 B9). A step pressed on the track is
+ * the step opened: it waits for Next. Ending after the table has reached the
+ * last step is not early, and does not ask; and what the table passed over this visit
  * (a step jumped over, one left with a seat still working) is listed under
  * the step (`passed`).
  *
@@ -77,6 +80,11 @@ export function PlayMediatorDowntime({
   const [confirmEnd, setConfirmEnd] = useState(false)
   // A jump past more than one step, waiting on its confirm; and what moving on passed over.
   const [jumpTo, setJumpTo] = useState<number | null>(null)
+  // Next past a step with work left, waiting on its one confirm (r8 B9).
+  const [leaving, setLeaving] = useState<(() => void) | null>(null)
+  const [confirmed, setConfirmed] = useState<ReadonlySet<number>>(new Set())
+  // The furthest step the table has reached: ending after it is not early (r8 B9, LG8-10).
+  const furthest = useRef(0)
   const [passed, setPassed] = useState<readonly string[]>([])
   const [upkeepNote, setUpkeepNote] = useState<string | null>(null)
   const [naniteNote, setNaniteNote] = useState<string | null>(null)
@@ -124,6 +132,8 @@ export function PlayMediatorDowntime({
       nanitesWaiting: nanites.operational && nanites.inert > 0,
     })
   const advance = downtime.advance
+  furthest.current = Math.max(furthest.current, idx)
+  const seenAll = last || furthest.current >= count - 1
   const stepLabel = step === undefined ? '' : `${idx + 1} ${step.name}`
   useEffect(() => {
     if (!passes || off || passedFrom.current === idx) return
@@ -171,13 +181,24 @@ export function PlayMediatorDowntime({
     move()
   }
 
-  /** The track's press: one step either way at once, a jump past more after its confirm. */
+  /**
+   * The track's press: one step either way at once, a jump past more after its
+   * confirm. The step pressed is the one opened (r8 B9): it waits for Next,
+   * never passing on by itself.
+   */
   function onStep(to: number) {
     const setStep = downtime.setStep
     if (setStep === null) return
-    if (to < idx) holdAt(to)
+    holdAt(to)
     if (to - idx > 1) setJumpTo(to)
+    else if (to === idx + 1) next(() => moveTo(to, () => setStep(to)))
     else moveTo(to, () => setStep(to))
+  }
+
+  /** Moving on past a step with a seat still working asks once for that step (r8 B9). */
+  function next(move: () => void) {
+    if (working.length === 0 || confirmed.has(idx)) return move()
+    setLeaving(() => move)
   }
 
   /**
@@ -304,11 +325,13 @@ export function PlayMediatorDowntime({
                       downtime.setStep?.(idx - 1)
                     }
               }
-              onEnd={last ? downtime.end : () => setConfirmEnd(true)}
-              onAdvance={() => {
-                sweepScrap()
-                moveTo(idx + 1, downtime.advance)
-              }}
+              onEnd={seenAll ? downtime.end : () => setConfirmEnd(true)}
+              onAdvance={() =>
+                next(() => {
+                  sweepScrap()
+                  moveTo(idx + 1, downtime.advance)
+                })
+              }
               endEarly
             />
           </div>
@@ -436,6 +459,21 @@ export function PlayMediatorDowntime({
         onConfirm={() => {
           const to = jumpTo
           if (to !== null && downtime.setStep !== null) moveTo(to, () => downtime.setStep?.(to))
+        }}
+      />
+      <ConfirmDialog
+        open={leaving !== null}
+        onOpenChange={(open) => {
+          if (!open) setLeaving(null)
+        }}
+        title={mediatorCopy('moveOnWithWorkLeft', { step: stepLabel })}
+        body={mediatorCopy('stillWorking', { who: working.join(', ') })}
+        confirmLabel={mediatorCopy('moveOn')}
+        onConfirm={() => {
+          const move = leaving
+          setConfirmed((was) => new Set([...was, idx]))
+          setLeaving(null)
+          move?.()
         }}
       />
       <ConfirmDialog

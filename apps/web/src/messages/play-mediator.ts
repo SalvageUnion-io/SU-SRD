@@ -79,6 +79,9 @@ export const mediatorCopy = messages({
   scrapCarried: 'Carries Scrap',
   scrapTotals: 'Scrap: {pool} in the crawler’s pool, {carried} still carried.',
   notFinished: 'Not finished: {who}. Next moves the table on all the same.',
+  moveOnWithWorkLeft: 'Move on from {step}?',
+  stillWorking: 'Still working: {who}. What they have not applied is skipped.',
+  moveOn: 'Move on',
   jumpToStepAsk: 'Jump to step {step}?',
   jumpToStepBody:
     'Steps {from}–{to} are passed over for everyone: nothing in them is applied, and each player is told.',

@@ -1217,10 +1217,26 @@ describe('Downtime', () => {
     await renderCockpit(downtimeAt(2))
     await click(named('Back to Step 2'))
     await click(named('Next: Step 4'))
+    // Two seats are still working: moving on asks, once for the step (r8 B9).
+    const ask = within(screen.getByRole('alertdialog', { name: /^Move on from 3 / }))
+    expect(ask.getByText(/^Still working: /)).toBeTruthy()
+    await click(ask.getByRole('button', { name: 'Move on' }))
     expect(sent()).toEqual([
       { name: 'downtime.setStep', args: { stepIndex: 1 } },
       { name: 'downtime.advance', args: {} },
     ])
+    acts.length = 0
+    await click(named('Next: Step 4'))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(names()).toEqual(['downtime.advance'])
+  })
+
+  // MD8-15: pressing Step 2 landed on 3, the step passing by itself.
+  test('a step pressed on the track is the step opened: it waits for Next (r8 B9)', async () => {
+    await renderCockpit(downtimeAt(0))
+    await click(named(/^Step 2: /))
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Move on' }))
+    expect(sent()).toEqual([{ name: 'downtime.setStep', args: { stepIndex: 1 } }])
   })
 
   // r7 D3 (LG7-23): a step every seat had finished still waited for the Mediator's Next.
@@ -1248,6 +1264,20 @@ describe('Downtime', () => {
       'downtime.state': { running: true, stepIndex: 9, completedBy: everyone, upkeepSpent: true },
     })
     expect(names()).toEqual([])
+  })
+
+  // LG8-10: back on step 3 after seeing all ten, End still said "early".
+  test('End Downtime after the table reached the last step does not ask (r8 B9)', async () => {
+    await renderCockpit(downtimeAt(9))
+    // Back on step 3, as the room answers a Back.
+    await act(async () => {
+      serveReads(GAME, answers(downtimeAt(2)))
+    })
+    await waitFor(() => expect(named('Back to Step 2')).toBeTruthy())
+    acts.length = 0
+    await click(named('End Downtime'))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(names()).toEqual(['downtime.end'])
   })
 
   test('End Downtime before the last step asks first', async () => {
