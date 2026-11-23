@@ -303,14 +303,7 @@ function WizRail({
   reached,
   onStepClick,
   unfilled = [],
-}: {
-  steps: readonly string[]
-  active: number
-  reached: number
-  /** With it, a step already passed is a way back to it. */
-  onStepClick: ((index: number) => void) | undefined
-  unfilled?: readonly number[]
-}) {
+}: Pick<WizShellProps, 'steps' | 'active' | 'onStepClick' | 'unfilled'> & { reached: number }) {
   return (
     <aside className="su-wiz-rail" data-print="hide">
       {/* A phone's rail is one line and a track of notches; the h1 reads
@@ -524,7 +517,7 @@ export function WizShell({
           active={active}
           reached={reached}
           onStepClick={onStepClick && !busy ? onStepClick : undefined}
-          {...(unfilled && { unfilled })}
+          unfilled={unfilled}
         />
 
         {/* (b) flex-1 main pane — always owns the step heading. A plain
