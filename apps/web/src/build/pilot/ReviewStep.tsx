@@ -4,6 +4,7 @@ import { FieldError } from '../../components/app'
 import { Box, ReferenceEntityCard } from '../../components/index'
 import { pilotInventoryUsed } from '../../lib/rules/pilotInventory'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
+import { storedPilotNames } from '../../lib/wizard/pilotFormState'
 import { pilotCopy } from '../../messages/build-pilot'
 import { abilityColumns, equipmentColumns } from '../wizard/pickColumns'
 import { ReviewLedger } from '../wizard/ReviewLedger'
@@ -38,6 +39,7 @@ const ABILITY_COLUMNS = abilityColumns<RefAbility>()
  */
 export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
   const choices = form.equipmentChoices
+  const stored = storedPilotNames(form)
   const surClasses = _sur?.Classes ?? SalvageUnionReference.Classes
   const surAbilities = _sur?.Abilities ?? SalvageUnionReference.Abilities
   const surEquipment = _sur?.Equipment ?? SalvageUnionReference.Equipment
@@ -56,8 +58,9 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
       <div className="su-wiz-compare-main">
         <Box bodyClassName="su-wiz-review-panel">
           <Recap>
-            <RecapStat label={pilotCopy('name')} value={form.name.trim()} required />
-            <RecapStat label={pilotCopy('callsign')} value={form.callsign.trim()} required />
+            {/* As stored: the optional name, left blank, is the required one (r7 F7). */}
+            <RecapStat label={pilotCopy('callsign')} value={stored.callsign} required />
+            <RecapStat label={pilotCopy('name')} value={stored.name} required />
             <RecapEntity label={pilotCopy('class')} entity={selectedClass} required />
             <RecapStat label={pilotCopy('motto')} value={form.motto} />
             <RecapStat label={pilotCopy('keepsake')} value={form.keepsake} />

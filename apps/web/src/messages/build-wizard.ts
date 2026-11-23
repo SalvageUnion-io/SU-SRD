@@ -116,6 +116,8 @@ export const buildWizardCopy = messages({
   noEquipment: 'No Equipment',
   noTechLevel1Equipment: 'No Tech Level 1 equipment found.',
   roll: 'Roll {lowerCase}',
+  rollTheRest: 'Roll the rest',
+  rollTheRestHint: 'Fills every empty field that has a table.',
   signInToSave: 'Sign in to save',
   signedInPressSave: 'Signed in. Press {label} to save it.',
   yourBuildIsKeptAsADraft:

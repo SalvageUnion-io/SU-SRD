@@ -67,19 +67,41 @@ type PilotWizardPatch = Pick<
 /**
  * The Callsign a new pilot is stored with: left blank, it is the Name (r6 F5),
  * which the rules allow. A stored value, not a display fallback: the pilot is
- * still named through `pilotLabel`.
+ * still named through `pilotLabel`. The blank create's rule.
  */
 export function storedCallsign(callsign: string, name: string): string {
   const typed = callsign.trim()
   return typed === '' ? name.trim() : typed
 }
 
+/** One of a pilot's two names. */
+export type PilotNameField = 'name' | 'callsign'
+
+/**
+ * Owner ruling (Jrvs, 2026-11-23, r7 F7): which name the Pilot wizard needs
+ * before Review. The Callsign, the name the game uses; the Name is optional,
+ * and left blank it is stored as the Callsign (a pilot's record keeps both).
+ * `'name'` puts back r6 F5's rule (Name required, a blank Callsign is the Name).
+ */
+export const REQUIRED_PILOT_NAME: PilotNameField = 'callsign'
+
+/** A new pilot's two names as stored: the optional one, left blank, is the required one. */
+export function storedPilotNames(
+  form: Pick<PilotWizardFormState, PilotNameField>,
+  required: PilotNameField = REQUIRED_PILOT_NAME
+): Record<PilotNameField, string> {
+  const name = form.name.trim()
+  const callsign = form.callsign.trim()
+  return required === 'callsign'
+    ? { callsign, name: name || callsign }
+    : { name, callsign: callsign || name }
+}
+
 export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardPatch {
   // A dropped item's choices go with it: only what is carried keeps its own.
   const equipmentChoices = madeChoices(form.equipmentChoices, form.equipment)
   return {
-    name: form.name.trim(),
-    callsign: storedCallsign(form.callsign, form.name),
+    ...storedPilotNames(form),
     classRef: form.classId,
     abilities: form.abilities,
     equipment: form.equipment,
