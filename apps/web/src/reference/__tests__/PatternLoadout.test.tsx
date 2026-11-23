@@ -34,4 +34,13 @@ describe('PatternLoadout', () => {
     expect(foot).not.toMatch(/>T\d /)
     expect(foot).toContain('Scrap by Tech Level')
   })
+
+  test('says what each weapon reaches and deals, in columns and under its name (r7 E6)', () => {
+    const html = loadout('Mule', 'Hauler')
+    const head = html.slice(html.indexOf('<thead'), html.indexOf('</thead>'))
+    expect(head).toContain('RNG')
+    expect(head).toContain('DMG')
+    expect(html).toContain('su-loadout-reach')
+    expect(html).toMatch(/Close|Medium|Long|Far/)
+  })
 })
