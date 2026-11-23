@@ -1,7 +1,7 @@
 // A host's patterns on its Page as one Ledger (ledger.md L1): a line a
 // pattern, its name the link to its Page, Starting its only stamp, what it
 // changes said whole (a mech's loadout, each drone by the name the pattern
-// gives it, then its slots and Scrap in columns; the actions a Bio-Titan's pattern adds: rules text is never cut,
+// gives it, then its slots in columns; the actions a Bio-Titan's pattern adds: rules text is never cut,
 // only a name may end in "…"), each part a Mention of its entry (L4), whose
 // Page lists the pattern back (EDL E26). It draws no foot (L6): each pattern's Page
 // cites it. Its title tab names the section and carries the count, so no Slab
@@ -17,9 +17,7 @@ import {
   toEntityModel,
 } from 'salvageunion-reference'
 import { computeMechCapacity } from 'salvageunion-reference/rules'
-import { mechScrap, scrapParts } from '../../../lib/rules/mechScrap'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
-import { ScrapSplit } from '../../atoms/ScrapSplit'
 import { Stat } from '../../atoms/Stat'
 import { paintFor } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
@@ -31,9 +29,9 @@ import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN_NOTE } from './legalSt
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
- * A mech pattern's line: its loadout, then what it uses and costs (slots
- * filled of the chassis's, Scrap), so a chassis's patterns compare without
- * opening each. A phone keeps the three figures, and each row opens in place
+ * A mech pattern's line: its loadout, then the slots it fills of the
+ * chassis's, so a chassis's patterns compare without opening each. A phone
+ * keeps the two figures, and each row opens in place
  * to its loadout (`LoadoutFold`, r6 E5): comparing needs no page loads.
  */
 const LOADOUT: readonly LedgerColumn[] = [
@@ -49,13 +47,6 @@ const LOADOUT: readonly LedgerColumn[] = [
     key: 'mod',
     label: referenceEntityCopy('mod'),
     title: referenceEntityCopy('moduleSlots'),
-    kind: 'figure',
-    phone: true,
-  },
-  {
-    key: 'scrap',
-    label: referenceEntityCopy('scrap'),
-    title: referenceEntityCopy('scrapChassisAndLoadout'),
     kind: 'figure',
     phone: true,
   },
@@ -125,22 +116,20 @@ function printedOver(chassisName: string, pattern: RefObjectAnyPattern): boolean
   return loaded && capacityOf(buildOf(chassisName, pattern)).asPrinted !== undefined
 }
 
-/** A mech pattern's figures: slots filled of the chassis's, and the build's Scrap. */
+/** A mech pattern's figures: slots filled of the chassis's. */
 function figuresOf(chassisName: string, pattern: RefObjectAnyPattern): ReactNode[] {
   if (isBioTitanPattern(pattern)) return []
   // Without the parts' data there is nothing to count: the columns give way (L5).
   const loaded = (['chassis', 'systems', 'modules'] as const).every((schema) =>
     SalvageUnionReference.isLoaded(schema)
   )
-  if (!loaded) return ['', '', '']
+  if (!loaded) return ['', '']
   const build = buildOf(chassisName, pattern)
   const capacity = capacityOf(build)
-  if (capacity.violations.some((v) => v.kind === 'chassis-not-found')) return ['', '', '']
+  if (capacity.violations.some((v) => v.kind === 'chassis-not-found')) return ['', '']
   return [
     `${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`,
     `${capacity.moduleSlotsUsed}/${capacity.moduleSlotsMax}`,
-    // By Tech Level, never summed across them (r6 E4, Core Book p.223).
-    <ScrapSplit key="scrap" parts={scrapParts(mechScrap(build))} />,
   ]
 }
 

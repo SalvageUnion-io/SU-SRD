@@ -24,8 +24,6 @@ export const referenceEntityCopy = messages({
   systemSlots: 'System Slots',
   mod: 'Mod',
   moduleSlots: 'Module Slots',
-  scrap: 'Scrap',
-  scrapChassisAndLoadout: 'Scrap: chassis and loadout',
   patternsOf: '{name} patterns',
   drones: 'Drones',
   dronesInstalled: '{value}Drones installed',
