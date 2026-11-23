@@ -79,6 +79,13 @@ describe('Last time at the table', () => {
     expect(screen.queryByText(/still running/)).toBeNull()
   })
 
+  test('a roll line reads its trait by its word, never as markup (r8 B2)', () => {
+    renderWith([event(1, 'Scylla gains the [[Vulnerable]] Trait', { kind: 'roll' })])
+    openFullLog()
+    expect(screen.queryByText(/\[\[/)).toBeNull()
+    expect(screen.getByText('Vulnerable')).toBeTruthy()
+  })
+
   test('an encounter running before anything is played is said on its own', () => {
     serve('g1', { events: [] as never, mediator: { running: { name: 'Toll Gate' } } })
     render(<Both />)

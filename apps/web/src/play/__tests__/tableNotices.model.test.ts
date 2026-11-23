@@ -381,6 +381,15 @@ describe('a unit Down is the table’s news (r6 A3)', () => {
     expect(stripLine(accepted, down)).toBe('Thresher is Down')
     expect(downOf(scratch)).toBeNull()
   })
+
+  test('a roll line reads its trait by its word, never as markup (r8 B2)', () => {
+    const roll = event({
+      _id: 'r1',
+      kind: 'roll',
+      text: 'Reactor Overheat: gains the [[Vulnerable]] Trait',
+    })
+    expect(stripLine(roll, (unit) => unit)).toBe('Reactor Overheat: gains the Vulnerable Trait')
+  })
 })
 
 describe('the Mediator’s role taken back (r3 A4)', () => {
