@@ -654,6 +654,11 @@ html[data-srd-signed-in] .su-mediator-acts {
   .su-rail:has(> .su-rail__filters):not([data-open]) > .su-rail__search {
     display: none;
   }
+
+  /* Filters leads, so the name filter opening under it moves nothing above (K17). */
+  .su-rail > .su-rail__filters {
+    order: -1;
+  }
 }
 
 /* On a listing's band (its `controls`): the rail and its facets draw no box,
