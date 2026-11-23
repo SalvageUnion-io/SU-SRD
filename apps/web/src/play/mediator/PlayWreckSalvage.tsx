@@ -8,7 +8,8 @@
  * Feed line. The band says what may be taken, and the Mediator picks it, part
  * by part (ADR-007: never picked for them), Damaged, or on a 2–5 half the
  * Chassis's Salvage Value in Scrap. A Vehicle is scrapped for its Salvage
- * Value in Scrap of its Tech Level.
+ * Value in Scrap of its Tech Level; a Bio-Titan for Bio-Salvage equal to its
+ * SP, into the crawler's pool (Core Book p.275, r8 B7).
  *
  * The haul goes where the Mediator says (r5 B2): the crawler's hold and pool,
  * or a crew Mech's hold, as a proposal its player accepts. Under the crew's
@@ -41,6 +42,7 @@ import {
   wreckScrapLot,
   wreckScrapOutcome,
 } from '../../lib/rules/downtimeEconomy'
+import { addToExotic } from '../../lib/rules/exoticSalvage'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollInstrument } from '../PlayRollInstrument'
 import { recordPlayRoll, reportingRoll } from '../playRolls.model'
@@ -172,6 +174,28 @@ export function PlayWreckSalvage({
       {mediatorCopy(mechs.length === 0 ? 'wreckNoCrawler' : 'wreckNoCrawlerMechs')}
     </Text>
   )
+
+  // A Bio-Titan's Bio-Salvage (Core Book p.275, r8 B7) is the crawler's pool's own bucket: no Mech hold takes it here.
+  if (wreck.kind === 'bio') {
+    const count = wreck.bioSalvage
+    return hasCrawler ? (
+      <Button
+        size="mini"
+        disabled={!live}
+        onClick={() => {
+          settle(
+            (crawler) => ({ scrapPool: addToExotic(crawler.scrapPool ?? {}, 'bio', count) }),
+            () => ({ lots: [] }),
+            [mediatorCopy('wreckBioTaken', { count })]
+          )
+        }}
+      >
+        {mediatorCopy('wreckBio', { count })}
+      </Button>
+    ) : (
+      <Text variant="note">{mediatorCopy('wreckBioNoCrawler', { count })}</Text>
+    )
+  }
 
   if (wreck.kind === 'scrap') {
     const scrap = { count: wreck.salvageValue, tl: wreck.techLevel, to: where }

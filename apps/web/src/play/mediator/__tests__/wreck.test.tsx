@@ -209,3 +209,41 @@ describe('the Salvage control', () => {
     expect(screen.getByText('Salvaged: nothing is left to take.')).toBeTruthy()
   })
 })
+
+describe('a downed Bio-Titan (r8 B7)', () => {
+  function downedScylla() {
+    const titan = SalvageUnionReference.BioTitans.getByName('Scylla')
+    if (titan === undefined) throw new Error('no Scylla')
+    return readTrayNpc({
+      _id: 's1',
+      body: { ...newTrayNpc('bio-titans', titan, [], NOW), currentHp: 0 },
+    })
+  }
+
+  test('leaves Bio-Salvage equal to its SP, into the crawler’s pool (Core Book p.275)', async () => {
+    const npc = downedScylla()
+    const wreck = wreckOf(npc)
+    expect(wreck).toEqual({ kind: 'bio', bioSalvage: 39 })
+    const settled: unknown[] = []
+    render(
+      <PlayWreckSalvage
+        npc={npc}
+        wreck={wreck as Wreck}
+        canWrite
+        hasCrawler
+        onRoll={async () => undefined}
+        onSettle={async (_npc, haul) => {
+          settled.push(haul)
+        }}
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Take 39 Bio-Salvage to the crawler' }))
+    })
+    const haul = settled[0]
+    if (typeof haul !== 'function') throw new Error('expected a crawler haul')
+    expect(haul({ scrapPool: { bio: 2 }, cargoLots: [] } as unknown as Crawler)).toEqual({
+      scrapPool: { bio: 41 },
+    })
+  })
+})
