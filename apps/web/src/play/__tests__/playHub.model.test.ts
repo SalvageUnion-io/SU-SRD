@@ -208,6 +208,30 @@ describe('its crew', () => {
     expect(crew.slice(1).some((u) => u.relations?.some((r) => r.key === 'yours'))).toBe(false)
   })
 
+  // r8 C5 (LG8-09): a pregen's spare, taken and boarded by another player, shows once, under them.
+  test('a Mech taken from a pregen is listed under its new Pilot only', () => {
+    const crew = pairedCrew({
+      pilots: [
+        pilot({ _id: 'hotdog', linkId: 'a-hotdog', ownerId: null, name: 'Hotdog', mechId: 'a-m1' }),
+        pilot({
+          _id: 'p2',
+          linkId: 'a-p2',
+          ownerId: 'u2',
+          name: 'Magpie',
+          boarded: true,
+          mechId: 'a-m1',
+        }),
+      ],
+      mechs: [mech({ ownerId: 'u2', name: 'Mazona' })],
+    })
+    expect(crew.map((c) => [c.unit.kind, c.unit.name])).toEqual([
+      ['pilot', 'Hotdog'],
+      ['mech', 'Magpie'],
+    ])
+    // Hotdog is on foot with no Mech: Mazona is Magpie's alone.
+    expect(crew[0]?.unit.relations ?? []).toEqual([])
+  })
+
   test('a member’s own: each unit carries whose it is', () => {
     const crew = pairedCrew({
       pilots: [pilot({ mechId: 'a-m1' })],

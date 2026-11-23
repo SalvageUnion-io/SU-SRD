@@ -750,10 +750,13 @@ describe('a free pair, as a template’s arrive', () => {
     expect(drawnText(screen.getByRole('table', { name: 'Crew' }))).toContain('aboard Mule')
   })
 
-  test('held apart from its pilot, the mech keeps a line of its own', async () => {
+  // r8 C5 (LG8-09): taken by another player, it leaves its old Pilot's line.
+  test('held apart from its pilot, the mech keeps a line of its own, and only that', async () => {
     await renderHub({ 'games.listing': pair('u2') })
     const crew = screen.getByRole('table', { name: 'Crew' })
-    expect(drawnText(crew).split('Mule').length).toBeGreaterThan(2)
+    expect(drawnText(crew).split('Mule')).toHaveLength(2)
+    const hotdog = within(crew).getByText('Hotdog').closest('tr')
+    expect(hotdog === null ? '' : drawnText(hotdog as HTMLElement)).not.toContain('Mule')
   })
 })
 
