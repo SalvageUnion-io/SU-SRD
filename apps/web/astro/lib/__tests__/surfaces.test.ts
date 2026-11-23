@@ -344,6 +344,22 @@ describe('a sparse Page fills its side track (EDL form 5)', () => {
   it('a Page with art and actions has no sparse rail', () => {
     expect(page('/bio-titans/typhon')).not.toContain('su-sparse-rail')
   })
+
+  it('a sparse Page’s Rolled on is its rail’s last piece, never a full-width list', () => {
+    const html = page('/factions/wagon-wasters')
+    const rail = html.slice(html.indexOf('su-sparse-rail'), html.indexOf('<footer'))
+    expect(rail).toMatch(/>Rolled on<[\s\S]*href="\/roll-tables\/faction-encounter-table\/"/)
+    expect(html).not.toContain('aria-label="Rolled on"')
+  })
+})
+
+describe('Rolled on stands in the side column, a compact box (r7 review)', () => {
+  it('a chassis’s, under its art: no full-width Ledger', () => {
+    const html = page('/chassis/mule')
+    const side = html.slice(html.indexOf('su-manual__side--after'), html.indexOf('<footer'))
+    expect(side).toMatch(/>Rolled on<[\s\S]*Mech Pattern Names/)
+    expect(html).not.toContain('aria-label="Rolled on"')
+  })
 })
 
 describe('an entity page', () => {

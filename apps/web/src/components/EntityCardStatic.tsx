@@ -3,6 +3,8 @@ import { ClassAbilityTree, ClassAdvancement, ClassContents } from './ClassAbilit
 import type { NameRefIndex, PageRefIndex } from './index'
 import { ReferenceEntityCard } from './index'
 import { ReferenceSurface } from './ReferenceSurface'
+import type { SideLinkList } from './SideLinks'
+import { SideLinks } from './SideLinks'
 
 type EntityCardStaticProps = {
   item: RefEntity
@@ -11,6 +13,8 @@ type EntityCardStaticProps = {
   pageRefs?: PageRefIndex
   /** The names its prose uses (`lib/nameRefIndex.ts`), to link them. */
   nameRefs?: NameRefIndex
+  /** A short list of links back the page hands it (the tables it is rolled on), under the art. */
+  sideLinks?: SideLinkList
 }
 
 /** The class (core trees) or advanced class (hybrid) whose ability tree the card carries. */
@@ -42,8 +46,21 @@ function classOf(item: RefEntity): RefClass | undefined {
  * before rendering this, so the ORM lookups the card makes for
  * nested entities resolve synchronously during the build.
  */
-export function EntityCardStatic({ item, pattern, pageRefs, nameRefs }: EntityCardStaticProps) {
+export function EntityCardStatic({
+  item,
+  pattern,
+  pageRefs,
+  nameRefs,
+  sideLinks,
+}: EntityCardStaticProps) {
   const classEntity = classOf(item)
+  const aside =
+    classEntity || sideLinks ? (
+      <>
+        {classEntity && <ClassAdvancement classEntity={classEntity} />}
+        {sideLinks && <SideLinks list={sideLinks} />}
+      </>
+    ) : undefined
 
   return (
     <ReferenceSurface pageRefs={pageRefs} nameRefs={nameRefs}>
@@ -56,8 +73,9 @@ export function EntityCardStatic({ item, pattern, pageRefs, nameRefs }: EntityCa
         leadExtraContent={classEntity ? <ClassContents classEntity={classEntity} /> : undefined}
         afterExtraContent={classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined}
         // A class's Advancement stands under its art, in the room a tall
-        // painting leaves beside the Core trees.
-        asideExtraContent={classEntity ? <ClassAdvancement classEntity={classEntity} /> : undefined}
+        // painting leaves beside the Core trees; so do the tables an entry
+        // is rolled on, a compact box in the side column.
+        asideExtraContent={aside}
         asideLead={!!classEntity}
       />
     </ReferenceSurface>
