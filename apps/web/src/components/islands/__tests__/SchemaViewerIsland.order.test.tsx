@@ -331,6 +331,37 @@ describe("the List's columns", () => {
     expect(new URLSearchParams(window.location.search).get('cols')).toBe('action,damage')
   })
 
+  it(
+    'Systems opens a phone on Range and Damage, as Equipment does (r7 E5)',
+    () => {
+      window.localStorage.clear()
+      const { container } = listing('systems')
+      expect(phoneHeads(container)).toEqual(['RNG', 'DMG'])
+      // Nothing chosen: the address stays clean.
+      expect(new URLSearchParams(window.location.search).get('cols')).toBeNull()
+    },
+    HEAVY
+  )
+
+  it(
+    'a listing remembers the columns last chosen on it, in this browser (r7 E5)',
+    () => {
+      window.localStorage.clear()
+      listing('chassis')
+      const slots = within(screen.getByRole('group', { name: 'Columns' })).getAllByRole('combobox')
+      const options = Array.from(slots[0]?.querySelectorAll('option') ?? []).map((o) => o.value)
+      const later = options[options.length - 1] as string
+      fireEvent.change(slots[0] as HTMLElement, { target: { value: later } })
+      const chosen = slotValues()
+      cleanup()
+      window.location.href = 'http://localhost/chassis/'
+      listing('chassis')
+      expect(slotValues()).toEqual(chosen)
+      window.localStorage.clear()
+    },
+    HEAVY
+  )
+
   const phoneHeads = (container: HTMLElement) =>
     Array.from(container.querySelectorAll('thead th[data-phone]'))
       .map((th) => (th.textContent ?? '').trim())
