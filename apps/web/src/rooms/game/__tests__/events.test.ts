@@ -263,7 +263,8 @@ describe('the table’s events', () => {
     ])
   })
 
-  test('a pilot paired with a mech flies it: the Feed keeps "assigned to" for a person (r5 B14)', () => {
+  // r7 C9 (MD7-07): "flies" read as aboard; a Mech paired is parked until its pilot boards.
+  test('a pilot paired with a mech: their Mech, parked; "assigned to" stays a person’s (r5 B14)', () => {
     const { act, texts } = seated()
     const link = {
       type: 'mech-to-pilot',
@@ -273,8 +274,8 @@ describe('the table’s events', () => {
     act(PLAYER, 'drawLink', { link }, AT + 1)
     act(PLAYER, 'removeLink', { link }, AT + MERGE_MS + 2)
     expect(texts().slice(0, 2)).toEqual([
-      'p1 · Pilot p1 no longer flies Mech m1',
-      'p1 · Pilot p1 flies Mech m1',
+      'Mech m1 is no longer p1 · Pilot p1’s Mech',
+      'Mech m1 is p1 · Pilot p1’s Mech, parked',
     ])
   })
 

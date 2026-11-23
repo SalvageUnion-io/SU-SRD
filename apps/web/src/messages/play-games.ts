@@ -283,6 +283,8 @@ export const playGamesCopy = messages({
     'The Mediator runs the table: the opposition, Downtime, the crawler, and proposals to the crew.',
   tableHandOverFailed: 'The table could not be handed over. Try again.',
   onFootUnit: 'on foot',
+  aboardMech: 'aboard {mech}',
+  mechParked: 'on foot · {mech} parked',
   runsTheTable: 'Runs the table',
   noPilotYet: 'No Pilot yet',
   waitingForAPlayer: 'Waiting for a player',

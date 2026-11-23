@@ -685,6 +685,7 @@ describe('the seats, on the Pilots rows', () => {
           { type: 'mech-to-pilot', from: { id: 'a-m1' }, to: { id: 'a-p1' }, gameId: 'g1' },
         ],
       },
+      'seats.forGame': [{ pilotId: 'p1', mount: { kind: 'foot' } }],
       // The server's derived maxima; an absent current HP is full.
       'crew.vitals': {
         viewerId: 'u1',
@@ -703,7 +704,8 @@ describe('the seats, on the Pilots rows', () => {
     // A pilot's line: the mech they are in beside their name, its Tech Level
     // in the TL column, their HP in the HP column.
     const pickle = line('Pickle')
-    expect(pickle.querySelector('th')?.textContent).toContain('in Spectrum')
+    // r7 C9 (MD7-07): where the Pilot is, as Mediate reads the seat: not boarded, on foot.
+    expect(pickle.querySelector('th')?.textContent).toContain('on foot · Spectrum parked')
     expect(cells(pickle).slice(1, 3)).toEqual(['2', '4/10'])
     // A piloted mech rides its pilot's line only, never a line of its own.
     expect(drawnText(crew).split('Spectrum')).toHaveLength(2)
@@ -731,9 +733,17 @@ describe('a free pair, as a template’s arrive', () => {
   test('the mech is listed on its pilot’s line only, not under Mechs with no Pilot', async () => {
     await renderHub({ 'games.listing': pair(null) })
     const crew = screen.getByRole('table', { name: 'Crew' })
-    expect(drawnText(crew)).toContain('in Mule')
+    expect(drawnText(crew)).toContain('Mule')
     expect(drawnText(crew).split('Mule')).toHaveLength(2)
     expect(within(crew).queryByText('Mechs with no Pilot')).toBeNull()
+  })
+
+  test('boarded, the Pilot reads aboard their Mech (r7 C9)', async () => {
+    await renderHub({
+      'games.listing': pair(null),
+      'seats.forGame': [{ pilotId: 'p2', mount: { kind: 'boarded', mechId: 'a-m2' } }],
+    })
+    expect(drawnText(screen.getByRole('table', { name: 'Crew' }))).toContain('aboard Mule')
   })
 
   test('held apart from its pilot, the mech keeps a line of its own', async () => {

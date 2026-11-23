@@ -107,6 +107,8 @@ export function GameRoster({ gameId, gameName, pregens }: GameRosterProps) {
   const listing = useGameListing(gameId)
   // The pilots' HP: the server derives every crewmate's max (ADR-038 §4).
   const vitals = useTableRead('crew.vitals', { gameId })
+  // Where each Pilot is, as Mediate reads it: aboard their Mech, or on foot (r7 C9).
+  const seated = useTableRead('seats.forGame', { gameId })
 
   const makePrimary = useServerAction(useGamesCall('games.setPrimaryCrawler'), {
     failure: playGamesCopy('primaryCrawlerFailed'),
@@ -365,9 +367,17 @@ export function GameRoster({ gameId, gameName, pregens }: GameRosterProps) {
     const mech = linked?.readings ?? []
     const mechOf = (label: string) => mech.find((reading) => reading.label === label)?.value ?? ''
     const tl = readingOf(chips, 'TL') || mechOf('TL')
-    const wears = [classNameOf(row), linked?.name ? `in ${linked.name}` : '']
-      .filter(Boolean)
-      .join(' · ')
+    const ids = [row.serverId, row.appId, row.localId]
+    const at = seated?.find((one) => ids.includes(one.pilotId))
+    const where =
+      linked?.name === undefined
+        ? ''
+        : seated === undefined
+          ? linked.name
+          : at?.mount.kind === 'boarded'
+            ? playGamesCopy('aboardMech', { mech: linked.name })
+            : playGamesCopy('mechParked', { mech: linked.name })
+    const wears = [classNameOf(row), where].filter(Boolean).join(' · ')
     // Who holds it, kept beside the name where a phone drops the Member column (r4 B8).
     const holder =
       row.kind !== 'crawler' && row.owner != null && !row.owner.unassigned ? row.owner.label : null
@@ -376,7 +386,7 @@ export function GameRoster({ gameId, gameName, pregens }: GameRosterProps) {
       // A pilot's callsign, then their name (`pilotLabel`, in `ownableRows`).
       name: row.name,
       href: rosterSheetHref(row),
-      // A pilot's line wears their Class, then the mech they are in.
+      // A pilot's line wears their Class, then where they are: aboard, or on foot, the Mech parked.
       meta:
         wears === '' && holder === null ? undefined : (
           <>
