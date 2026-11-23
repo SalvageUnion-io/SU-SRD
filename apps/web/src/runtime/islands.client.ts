@@ -14,6 +14,7 @@ import { readAccountHint, readLastGame } from '../lib/accountHint'
 import { browserStorage, markLastGame, markSignedIn } from '../lib/accountState'
 import { appPath } from '../lib/appBase'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
+import { focusMarkedContent } from '../lib/searchHref'
 import { correctShortcutHints, isSearchShortcut } from '../lib/searchShortcut'
 import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
@@ -24,6 +25,8 @@ import { shrinkWrap } from './shrinkWrap'
 import { watchSlideshow } from './slideshow'
 import { whenShown } from './whenShown'
 
+// A page opened from search: the next Tab starts in its content, the page at its top (r8 G3).
+focusMarkedContent()
 // Browser error reporting to the Worker (production builds), from the single client entry.
 trackScrollbarWidth()
 initBrowserObservability()

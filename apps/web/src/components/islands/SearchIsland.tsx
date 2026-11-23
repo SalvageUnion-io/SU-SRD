@@ -21,7 +21,7 @@ import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { aboveFloor, searchCompactIndex } from '../../lib/searchCompactIndex'
 import {
-  atContent,
+  markAtContent,
   RESULTS_PAGE,
   resultsHref,
   SEARCH_PAGE,
@@ -95,8 +95,16 @@ function resultUrl(result: SearchComboboxResult): string {
   if (result.kind === 'schema') return schemaHref(result.schemaId)
   // "See all N results": the page of every result (r8 G2).
   if (result.kind === 'more') return resultsHref(result.query)
-  // Opened at its content: the next Tab is the page's own (RR7-09).
-  return atContent(result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity)))
+  return result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity))
+}
+
+/**
+ * A result followed from the list: its page opens at its top, the next Tab
+ * in its content (`markAtContent`, r8 G3). The page of every result is not one.
+ */
+function markFollowed(event: React.MouseEvent): void {
+  const href = (event.target as Element).closest?.('a[href]')?.getAttribute('href')
+  if (href && !href.startsWith(RESULTS_PAGE)) markAtContent(href)
 }
 
 export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = {}) {
@@ -155,7 +163,10 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   } = useSearchCombobox({
     ready,
     countAll,
-    onSubmit: (result) => doNavigate(resultUrl(result)),
+    onSubmit: (result) => {
+      markAtContent(resultUrl(result))
+      doNavigate(resultUrl(result))
+    },
     // Enter with no row highlighted, or "See all": the page of every result.
     onSubmitQuery: (term) => doNavigate(resultsHref(term)),
     searchFn,
@@ -339,7 +350,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     return (
       <IslandErrorBoundary>
         <HeroSearchForm onSubmit={onSubmit}>
-          <div className="su-hero-search__box" ref={containerRef}>
+          <div className="su-hero-search__box" ref={containerRef} onClickCapture={markFollowed}>
             {live}
             {field}
             {listbox}
@@ -351,7 +362,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   return (
     <IslandErrorBoundary>
-      <div style={RELATIVE} ref={containerRef}>
+      <div style={RELATIVE} ref={containerRef} onClickCapture={markFollowed}>
         {live}
         {field}
         {listbox}
