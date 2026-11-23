@@ -22,15 +22,22 @@
  * marker only: nothing is enforced), and that player is told wherever they
  * are (`TableNotices`), where they end it themselves.
  *
+ * The Pilot's HP and the Mech's SP are buttons (r8 B1), as an Opposition
+ * vital's number is: pressed, the amount form opens, and Enter proposes what
+ * the hit leaves, which the player accepts (surfaces.md: never applied for
+ * them). Propose a change stays for anything else.
+ *
  * While Downtime runs nobody is Boarded (r2 E2): a seat aboard reads "In the
  * Mech Bay".
  */
 
 import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import { Button, Entity, Stat, Toggle, tokens } from '../../components/index'
 import { crewPair } from '../../lib/units/crewPair'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { mediatorCopy } from '../../messages/play-mediator'
+import { PlayVitalAmount } from '../PlayVitalAmount'
 import { ActedMark } from './MediatorInitiative'
 import { NOTE, NOTE_MUTED } from './mediatorStyles.model'
 import type { MediatorSeat } from './mediatorTable.model'
@@ -61,6 +68,21 @@ type PlayMediatorSeatProps = {
   onUpNow?: () => void
   /** While Group Initiative is kept (r6 B4): whether they acted this round, and the toggle. */
   acted?: { acted: boolean; onToggle?: (() => void) | undefined } | undefined
+  /** The Pilot's HP and the Mech's SP, each one press from a hit (r8 B1); absent, they read. */
+  hits?: readonly SeatHit[] | undefined
+}
+
+/**
+ * A vital a hit can be proposed to from the seat (r8 B1): its stamp, what it
+ * holds, and the proposal of what the hit leaves, which its player accepts.
+ */
+export type SeatHit = {
+  label: 'HP' | 'SP'
+  /** Whose it is, as the proposal names it: "Bonesaw", "Bonesaw's Scrapper". */
+  target: string
+  value: number
+  max: number
+  onPropose: (after: number) => void
 }
 
 export function PlayMediatorSeat({
@@ -72,7 +94,12 @@ export function PlayMediatorSeat({
   upNow,
   onUpNow,
   acted,
+  hits = [],
 }: PlayMediatorSeatProps) {
+  // The vital whose amount is being typed: one at a time.
+  const [hitting, setHitting] = useState<SeatHit['label'] | null>(null)
+  const open = hits.find((h) => h.label === hitting)
+  const pressable = new Set(hits.map((h) => h.label))
   const away = !seat.present
   // A step line is Downtime's: there the mechs are in the Mech Bay, nobody Boarded.
   const mount =
@@ -154,16 +181,47 @@ export function PlayMediatorSeat({
                 {/* A word (Down) is the head's chip alone: said once (r6 A4). */}
                 {seat.vitals
                   .filter((v) => v.value !== null)
-                  .map((v) => (
-                    <Stat
-                      key={v.label}
-                      size="mini"
-                      label={v.attention ? `▲ ${v.label}` : v.label}
-                      value={v.value ?? undefined}
-                      state={v.attention ? 'critical' : undefined}
-                    />
-                  ))}
+                  .map((v) =>
+                    // HP and SP are one press from a hit (r8 B1): press, type, Enter.
+                    pressable.has(v.label as SeatHit['label']) ? (
+                      <Button
+                        key={v.label}
+                        size="mini"
+                        variant="pencil"
+                        aria-expanded={hitting === v.label}
+                        aria-label={mediatorCopy('hitSeatFor', {
+                          label: v.label,
+                          value: v.value ?? '',
+                          name: hits.find((h) => h.label === v.label)?.target ?? seat.name,
+                        })}
+                        onClick={() =>
+                          setHitting((now) =>
+                            now === v.label ? null : (v.label as SeatHit['label'])
+                          )
+                        }
+                      >
+                        <span>{v.attention ? `▲ ${v.label}` : v.label}</span> <span>{v.value}</span>
+                      </Button>
+                    ) : (
+                      <Stat
+                        key={v.label}
+                        size="mini"
+                        label={v.attention ? `▲ ${v.label}` : v.label}
+                        value={v.value ?? undefined}
+                        state={v.attention ? 'critical' : undefined}
+                      />
+                    )
+                  )}
               </div>
+              {open ? (
+                <PlayVitalAmount
+                  label={open.label}
+                  value={open.value}
+                  max={open.max}
+                  onChange={(next) => open.onPropose(next)}
+                  onClose={() => setHitting(null)}
+                />
+              ) : null}
               <SeatLine seat={seat} mount={mount} stepLine={stepLine} />
               {onUpNow || acted ? (
                 <div style={CHIPS}>

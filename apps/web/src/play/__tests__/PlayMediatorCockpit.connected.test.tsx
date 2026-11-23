@@ -503,6 +503,28 @@ describe('the table', () => {
     expect(within(wren).getByText('Last seen Boarded · Mule')).toBeTruthy()
   })
 
+  // LG8-02: every hit on a player was the five-field Propose form.
+  test('a seat’s HP is one press from a hit: press, type, Enter proposes it (r8 B1)', async () => {
+    await renderCockpit()
+    acts.length = 0
+    await click(screen.getByRole('button', { name: /^Propose a hit to Rook: HP / }))
+    const amount = screen.getByLabelText('HP amount')
+    await act(async () => {
+      fireEvent.change(amount, { target: { value: '3' } })
+    })
+    await act(async () => {
+      fireEvent.submit(amount.closest('form') as HTMLFormElement)
+    })
+    // A proposal the player accepts, never applied for them: Rook at 4 HP is left 1.
+    expect(sent()).toEqual([
+      {
+        name: 'ops.propose',
+        args: { entityId: 'row-rook', entityType: 'pilot', field: 'currentHP', after: 1 },
+      },
+    ])
+    expect(screen.queryByLabelText('HP amount')).toBeNull()
+  })
+
   test('tapping a seat aims Propose at that pilot and focuses its number; Change opens on Take, so a typed 3 is 3 damage (r4 D2)', async () => {
     await renderCockpit()
     await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))

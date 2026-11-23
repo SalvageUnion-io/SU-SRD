@@ -11,9 +11,11 @@
  */
 
 import { gamePath } from 'game-domain/entityKinds'
+import type { ProposalTarget } from 'game-domain/games/proposals'
+import { proposalTargets } from 'game-domain/games/proposals'
 import { currentDowntimeStep } from 'game-domain/rules/downtime'
 import { useState } from 'react'
-import { Button, EmptyState, Slab } from '../../components/index'
+import { Button, EmptyState, Slab, toast } from '../../components/index'
 import { ADD_CREW_ANCHOR } from '../../lib/games/gameRoster'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayCrewSheet } from '../PlayCrewSheet'
@@ -22,7 +24,9 @@ import { useOpenSheet } from '../useOpenSheet'
 import { MediatorInitiative } from './MediatorInitiative'
 import type { MediatorSeat } from './mediatorTable.model'
 import { seatDone, seatStepLine } from './mediatorTable.model'
+import type { SeatHit } from './PlayMediatorSeat'
 import { PlayMediatorSeat } from './PlayMediatorSeat'
+import type { ProposeArgs } from './ProposeDock'
 import { useInitiative } from './useInitiative'
 import type { PlayMediator } from './usePlayMediator'
 
@@ -42,6 +46,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
   // Group Initiative (r6 B4): an action scene's, so not while Downtime runs.
   const tracker = useInitiative(mediator.gameId, mediator.onFailure, mediator)
   const kept = running ? null : tracker.initiative
+  const targets = proposalTargets(mediator.crew)
 
   return (
     <>
@@ -65,6 +70,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
               onPick={() => onPick(seat)}
               onOpenSheet={() => setCrewSheet(seat)}
               upNow={mediator.scene.upNow === seat.pilotId}
+              hits={canWrite ? seatHits(seat, targets, mediator.propose) : undefined}
               acted={
                 kept === null
                   ? undefined
@@ -121,4 +127,44 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
       />
     </>
   )
+}
+
+/**
+ * A seat's Pilot HP and Mech SP, each one press from a hit (r8 B1): what the
+ * hit leaves goes to the player as a proposal they accept, the one Propose
+ * sends and the Game's page lists.
+ */
+function seatHits(
+  seat: MediatorSeat,
+  targets: readonly ProposalTarget[],
+  propose: (args: ProposeArgs) => Promise<void>
+): SeatHit[] {
+  const pilot = targets.find((t) => t.kind === 'pilot' && t.id === seat.rowId)
+  const mech = targets.find((t) => t.kind === 'mech' && t.pilotLinkId === seat.pilotId)
+  const hits: SeatHit[] = []
+  for (const [target, field, label] of [
+    [pilot, 'currentHP', 'HP'],
+    [mech, 'currentSP', 'SP'],
+  ] as const) {
+    const reading = target?.readings[field]
+    const max = reading?.max ?? null
+    if (target === undefined || max === null) continue
+    const value = reading?.current ?? max
+    hits.push({
+      label,
+      target: target.label,
+      value,
+      max,
+      onPropose: (after) =>
+        void propose({ entityId: target.id, entityType: target.kind, field, after })
+          .then(() =>
+            toast.success(
+              mediatorCopy('hitProposed', { name: target.label, unit: label, before: value, after })
+            )
+          )
+          // The caller has already said why.
+          .catch(() => undefined),
+    })
+  }
+  return hits
 }
