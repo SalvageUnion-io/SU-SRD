@@ -76,4 +76,50 @@ describe('ToasterMount (chrome K5)', () => {
     })
     expect(list()?.getAttribute('data-x-position')).toBe('right')
   })
+
+  test('everywhere a newer toast replaces the older (r7 A4)', async () => {
+    render(<ToasterMount />)
+    await act(async () => {
+      toast('Removed Green Laser.', { action: { label: 'Undo', onClick: () => {} } })
+      toast('Removed Hydraulic Crusher.', { action: { label: 'Undo', onClick: () => {} } })
+    })
+    await screen.findByText('Removed Hydraulic Crusher.')
+    const open = toast.getToasts().filter((t) => !('dismiss' in t && t.dismiss))
+    expect(open.map((t) => (t as { title?: unknown }).title)).toEqual([
+      'Removed Hydraulic Crusher.',
+    ])
+  })
+
+  test('over a dialog on a phone, toasts held at the top stand at the foot (r7 A4)', async () => {
+    const realMatch = window.matchMedia
+    window.matchMedia = ((query: string) => ({
+      ...realMatch(query),
+      matches: query === '(width < 600px)',
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })) as typeof window.matchMedia
+    let release = () => {}
+    try {
+      render(<ToasterMount />)
+      await act(async () => {
+        release = holdToastsOnTop()
+        toast('Built Longhaul Tank from the pattern.')
+      })
+      await screen.findByText('Built Longhaul Tank from the pattern.')
+      const list = () => document.body.querySelector('[data-sonner-toaster]')
+      expect(list()?.getAttribute('data-y-position')).toBe('top')
+      const dialog = document.createElement('div')
+      dialog.setAttribute('role', 'dialog')
+      await act(async () => {
+        document.body.append(dialog)
+      })
+      expect(list()?.getAttribute('data-y-position')).toBe('bottom')
+      await act(async () => {
+        dialog.remove()
+        release()
+      })
+    } finally {
+      window.matchMedia = realMatch
+    }
+  })
 })

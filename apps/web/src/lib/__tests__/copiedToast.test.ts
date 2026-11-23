@@ -78,13 +78,9 @@ describe('madeToast (r5 C3)', () => {
     expect(title()).toBe('Saved Shovel.')
   })
 
-  test('at most three toasts with an action stand at once, the newest', () => {
+  test('one toast stands at a time: the newest replaces the older (r7 A4)', () => {
     for (const n of [1, 2, 3, 4, 5]) madeToast(`Made ${n}.`, 'Open', { href: '/x' }, () => {})
-    expect(open().map((t) => (t as { title?: unknown }).title)).toEqual([
-      'Made 3.',
-      'Made 4.',
-      'Made 5.',
-    ])
+    expect(open().map((t) => (t as { title?: unknown }).title)).toEqual(['Made 5.'])
     expect(open()).toHaveLength(MOST_ACTION_TOASTS)
   })
 })

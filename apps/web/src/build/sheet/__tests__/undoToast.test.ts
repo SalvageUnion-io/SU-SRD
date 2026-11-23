@@ -51,25 +51,42 @@ describe('undoToast', () => {
   })
 
   test("leaving a sheet takes its Undo, its number lines and its rule-break lines, and no other sheet's (r3 B3)", () => {
-    undoToast('Removed Cargo Pod', () => {}, 'm1')
-    undoToast('Removed Red Laser', () => {}, 'm2')
-    ruleBreakToast('m1', [{ stat: 'systemSlots', used: 13, max: 12 }])
-    ruleBreakToast('m2', [{ stat: 'systemSlots', used: 13, max: 12 }])
-    changeUndoToast({ id: 'mech:m1:currentEP', label: 'EP', from: 10, to: 8, undo: () => {} })
-    changeUndoToast({ id: 'mech:m2:currentEP', label: 'EP', from: 10, to: 8, undo: () => {} })
-
-    leaveSheet('m1')
-
-    const open = toast
-      .getToasts()
-      .filter((t) => !('dismiss' in t && t.dismiss))
-      .map((t) => t.id)
-    expect(open.sort()).toEqual(['mech:m2:currentEP', 'rule-break:m2:systemSlots', 'undo:m2'])
+    const open = () =>
+      toast
+        .getToasts()
+        .filter((t) => !('dismiss' in t && t.dismiss))
+        .map((t) => t.id)
+    const lines: [string, () => void][] = [
+      ['undo:m1', () => undoToast('Removed Cargo Pod', () => {}, 'm1')],
+      [
+        'rule-break:m1:systemSlots',
+        () => ruleBreakToast('m1', [{ stat: 'systemSlots', used: 13, max: 12 }]),
+      ],
+      [
+        'mech:m1:currentEP',
+        () =>
+          changeUndoToast({
+            id: 'mech:m1:currentEP',
+            label: 'EP',
+            from: 10,
+            to: 8,
+            undo: () => {},
+          }),
+      ],
+    ]
+    for (const [id, show] of lines) {
+      show()
+      // One stands at a time (r7 A4): another sheet's leaving leaves it.
+      leaveSheet('m2')
+      expect(open()).toEqual([id])
+      leaveSheet('m1')
+      expect(open()).toEqual([])
+    }
   })
 
-  test("each quick removal keeps its own Undo, through the sheet's later writes, the newest three (r4 E3, r5 C3)", async () => {
+  test("a quick removal's Undo runs through the sheet's later writes; a newer one replaces it (r4 E3, r7 A4)", async () => {
     const undone: string[] = []
-    for (const name of ['a', 'b', 'c']) {
+    for (const name of ['a', 'b']) {
       undoToast(`Removed ${name}`, () => undone.push(name), 'm1', { stack: true })
     }
     await units.update('mech', 'm1', {}, LIVE_SHEET_MANUAL).catch(() => {})
@@ -77,25 +94,12 @@ describe('undoToast', () => {
       toast
         .getToasts()
         .filter((t) => !('dismiss' in t && t.dismiss) && String(t.id).startsWith('undo:m1:'))
-    expect(lines()).toHaveLength(3)
-    // The FIRST removal's Undo is still there, and runs its own way back.
-    const first = lines().find(
-      (t) => (t as { title?: unknown }).title === 'Removed a'
-    ) as unknown as {
-      action: { onClick: (e: unknown) => void }
-    }
-    first.action.onClick({})
-    expect(undone).toEqual(['a'])
-    for (const name of ['d', 'e', 'f', 'g']) {
-      undoToast(`Removed ${name}`, () => {}, 'm1', { stack: true })
-    }
-    expect(lines()).toHaveLength(3)
-    // The newest stay; the oldest left.
-    expect(lines().map((t) => (t as { title?: unknown }).title)).toEqual([
-      'Removed e',
-      'Removed f',
-      'Removed g',
-    ])
+    // The newest stands alone; Ctrl+Z and the Change Log reach the older.
+    expect(lines().map((t) => (t as { title?: unknown }).title)).toEqual(['Removed b'])
+    const newest = lines()[0] as unknown as { action: { onClick: (e: unknown) => void } }
+    newest.action.onClick({})
+    expect(undone).toEqual(['b'])
+    undoToast('Removed c', () => {}, 'm1', { stack: true })
     leaveSheet('m1')
     expect(lines()).toHaveLength(0)
   })
