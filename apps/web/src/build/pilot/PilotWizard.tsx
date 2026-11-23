@@ -415,7 +415,6 @@ export function PilotWizard({
             selectedAbilities={form.abilities}
             onSelectClass={handleSelectClass}
             onSelectAbility={handleSelectAbility}
-            cite={ruleFor('classAbility').cite}
             _sur={_sur ? { Classes: sur.Classes, Abilities: sur.Abilities } : undefined}
           />
         </>

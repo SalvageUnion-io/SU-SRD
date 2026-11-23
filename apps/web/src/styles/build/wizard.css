@@ -260,6 +260,21 @@
   }
 }
 
+/* A picker row's phone-only line (`PickList`'s `phoneUnder`): what a column
+   the phone drops says, under the name, in body copy (r7 F6). */
+.su-wiz-phone-under {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.4;
+  white-space: normal;
+}
+
+@media (width >= 40rem) {
+  .su-wiz-phone-under {
+    display: none;
+  }
+}
+
 /* From sm a budget (`WizTracker`) stands as tall as the Full buttons beside it. */
 @media (width >= 40rem) {
   .su-wiz-pill-start .su-stat-cell {

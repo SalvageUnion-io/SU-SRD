@@ -3,7 +3,8 @@
  * it opens on that step with no chooser before it (r6 F2):
  *
  *  - the other ways to start, as links: "Start blank", and a mech's "From a
- *    pattern". Each saves at once, so signed out each says it needs a sign-in;
+ *    pattern", with the shell's own line after them on the same line (signed
+ *    out: "Saving needs a free sign-in.", said once, r7 F5);
  *  - a kept draft (r6 F6): "Continue your draft · Discard", on the step the
  *    wizard reopened on, until answered;
  *  - who the build is for (a mech built for a pilot), as the chooser said it.
@@ -35,7 +36,8 @@ const ACTS = {
 
 /**
  * Under the step's title: `active` is the step's index, `tryNote` the shell's
- * own line (signed out: saving needs a sign-in), said last. A redesign shows
+ * own line (signed out: saving needs a sign-in), said last: on the first step
+ * it ends the starts' line rather than standing as a second. A redesign shows
  * only that line.
  */
 export function WizStartLines({
@@ -56,8 +58,6 @@ export function WizStartLines({
   )
   const note = tryNote ? <p style={tryNoteStyle}>{tryNote}</p> : null
   if (starts === null || redesign) return note
-  const needs = (label: string) =>
-    starts.signedOut ? buildWizardCopy('startNeedsSignIn', { label }) : label
   return (
     <>
       {draft && active === openedOn && (
@@ -82,20 +82,20 @@ export function WizStartLines({
         <p style={LINE}>
           <span>{buildWizardCopy('orStart')}</span>
           <InlineRef onOpen={() => starts.onStart('blank')}>
-            {needs(buildWizardCopy('startBlank'))}
+            {buildWizardCopy('startBlank')}
           </InlineRef>
           {starts.kind === 'mech' && (
             <>
               <span aria-hidden="true">·</span>
               <InlineRef onOpen={() => starts.onStart('pattern')}>
-                {needs(buildWizardCopy('fromAPattern'))}
+                {buildWizardCopy('fromAPattern')}
               </InlineRef>
             </>
           )}
-          {starts.signedOut && <span>{buildWizardCopy('startsSaveAtOnce')}</span>}
+          {tryNote && <span>{tryNote}</span>}
         </p>
       )}
-      {note}
+      {active !== 0 && note}
     </>
   )
 }

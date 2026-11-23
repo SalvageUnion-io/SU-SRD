@@ -11,8 +11,6 @@ import { buildWizardCopy } from '../../messages/build-wizard'
 
 export type WizStarts = {
   kind: SheetKind
-  /** Signed out: each start says it needs a sign-in. */
-  signedOut: boolean
   /** Go to another way to start (`?mode=blank`, `?mode=pattern`). */
   onStart: (mode: CreateMode) => void
   /** Who the build is for ("For Nia Vale: the Mech is assigned to them…"), as the chooser said it. */
