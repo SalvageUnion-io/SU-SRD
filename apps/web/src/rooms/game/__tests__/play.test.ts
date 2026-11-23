@@ -52,6 +52,24 @@ describe('seats', () => {
     expect(() => room.play.board(PLAYER, 'p1', 'nope', AT)).toThrow('not in this Game')
   })
 
+  test('a step held offline lands only on the step it follows (r6 A14)', () => {
+    const { room } = seated()
+    const opened = { ref: 'x', name: 'X', activated: false, applied: false }
+    const rolled = { ...opened, activated: true, roll: { roll: 14, band: 'success' as const } }
+    room.play.setResolving(PLAYER, 'p1', opened, AT)
+    room.play.setResolving(PLAYER, 'p1', rolled, AT, opened)
+    room.play.clearResolving(PLAYER, 'p1', AT, rolled)
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+    // The turn moved on meanwhile: the room closed the resolve, so the held roll is refused.
+    room.play.setResolving(PLAYER, 'p1', opened, AT)
+    room.play.closeUnapplied(['p1'], AT)
+    expect(() => room.play.setResolving(PLAYER, 'p1', rolled, AT, opened)).toThrow(
+      'The table moved on while this was offline'
+    )
+    expect(() => room.play.clearResolving(PLAYER, 'p1', AT, rolled)).toThrow('moved on')
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+  })
+
   test('eject leaves the pilot on foot and marked, until they next board', () => {
     const { room } = seated()
     room.play.board(PLAYER, 'p1', 'm1', AT)

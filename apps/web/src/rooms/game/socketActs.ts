@@ -71,8 +71,9 @@ const SEAT_ACTS = {
   'seats.eject': SEAT,
   'seats.setRange': SEAT.extend({ range: z.string() }),
   'seats.toggleEffect': SEAT.extend({ ref: z.string() }),
-  'seats.setResolving': SEAT.extend({ resolving: z.unknown() }),
-  'seats.clearResolving': SEAT,
+  // `follows`: the step a held one was taken after (r6 A14), refused if the seat moved on.
+  'seats.setResolving': SEAT.extend({ resolving: z.unknown(), follows: z.unknown().optional() }),
+  'seats.clearResolving': SEAT.extend({ follows: z.unknown().optional() }),
 }
 
 /** A Downtime's moves; solo, `pilotId` names the pilot whose it is. */

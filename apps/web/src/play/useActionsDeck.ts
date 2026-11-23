@@ -99,6 +99,7 @@ export function useActionsDeck({
   situation,
   resolving,
   onResolving,
+  held = false,
   store,
   rollFor = rollForTable,
   heatScale = 1,
@@ -525,6 +526,7 @@ export function useActionsDeck({
       closesItself:
         nothingToApply && !pushOpen && !applyRouted && roll?.band === 'failure' ? rolledSays : null,
       progressed: activated || roll !== null || salvageRoll !== null || applied,
+      held,
     }
   })()
 

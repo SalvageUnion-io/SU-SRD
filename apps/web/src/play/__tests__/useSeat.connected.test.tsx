@@ -38,6 +38,7 @@ const { hydrateStores } = await import('../../components/__tests__/hydrateStores
 const { useUnits } = await import('../../replica/units')
 const { resetSync } = await import('../../replica/sync')
 const { ToasterMount } = await import('../../components/index')
+const { onPlayRoll } = await import('../playRolls.model')
 
 const GAME_ID = 'g-seat'
 const rook = pilotFixture({ id: 'seat-rook', name: 'Rook', gameId: GAME_ID })
@@ -190,6 +191,58 @@ describe('useSeat writes', () => {
       seat.board('seat-own')
     })
     expect(await screen.findByText('Another pilot is already aboard that mech')).toBeTruthy()
+  })
+})
+
+describe("offline, a resolve's steps are held (r6 A14)", () => {
+  const opened = { ref: 'k', name: 'Crush', activated: false, applied: false }
+  const rolled = { ...opened, activated: true, roll: { roll: 14, band: 'success' as const } }
+
+  /** Render offline, hold two steps, then come back online. */
+  async function holdThenReconnect() {
+    serve(GAME_ID, { seats: [seatRow('seat-rook', { resolving: opened })] })
+    const tree = (status: SyncStatus) => (
+      <SyncContext.Provider value={connection(status)}>
+        <Probe />
+      </SyncContext.Provider>
+    )
+    let view: ReturnType<typeof render> | null = null
+    await act(async () => {
+      view = render(tree('offline'))
+    })
+    await act(async () => {
+      handle?.setResolving(rolled)
+      handle?.clearResolving()
+    })
+    expect(sent).toEqual([])
+    const offline = handle?.seat
+    await act(async () => {
+      view?.rerender(tree('live'))
+    })
+    return offline
+  }
+
+  test('held on the device, then sent in order, each after the step it follows', async () => {
+    const offline = await holdThenReconnect()
+    expect(offline).toMatchObject({ resolving: null, held: true })
+    const who = { pilotId: 'seat-rook' }
+    expect(sent).toEqual([
+      { name: 'seats.setResolving', args: { ...who, resolving: rolled, follows: opened } },
+      { name: 'seats.clearResolving', args: { ...who, follows: rolled } },
+    ])
+    expect(handle?.seat.held).toBeUndefined()
+  })
+
+  test('one the room refuses is said on the Feed, and the rest are dropped', async () => {
+    refusedBy.set('seats.setResolving', 'The table moved on while this was offline')
+    const said: string[] = []
+    const stop = onPlayRoll((roll) => said.push(roll.label))
+    await holdThenReconnect()
+    stop()
+    expect(sent.map((s) => s.name)).toEqual(['seats.setResolving'])
+    expect(said).toEqual(['Not sent: Crush. The table moved on while this was offline.'])
+    expect(handle?.seat).toMatchObject({ resolving: opened })
+    expect(handle?.seat.held).toBeUndefined()
   })
 })
 
