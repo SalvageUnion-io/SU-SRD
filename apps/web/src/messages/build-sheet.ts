@@ -492,7 +492,7 @@ export const buildSheetCopy = messages({
   addAPilotToTheCrew: 'Add a Pilot to the crew',
   kindNotShared: '{kind} · not shared',
   yourNextStep: 'Your next step',
-  buildYourOwnPilot: 'Build your own pilot',
+  buildYourOwnPilot: 'Build your own Pilot',
   bayIsDamaged: '{bay} is Damaged.',
   spNow: 'SP now {sp}.',
   atZeroSpRollDamage: 'At 0 SP, roll the Crawler Damage Table.',

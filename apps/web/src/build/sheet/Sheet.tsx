@@ -58,7 +58,7 @@ import { SheetFallback } from './SheetFallback'
 import { SheetModeToggle } from './SheetModeToggle'
 import { sheetDeleteItem } from './sheetDelete.model'
 import { useSheetMode } from './sheetMode.model'
-import { useSheetUndo } from './sheetUndo.model'
+import { undoMenuItems, useSheetUndo } from './sheetUndo.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
 import { leaveSheet } from './undoToast.model'
 import type { OwnerOf } from './unitOwners.model'
@@ -341,27 +341,7 @@ export function Sheet({
         label: buildSheetCopy('changeLog'),
         onSelect: () => setChangeLogOpen(true),
       },
-      // One change back at a time, as Ctrl+Z does (r4 E3).
-      {
-        id: 'undo',
-        // It names what it takes back once the log has said (r6 E15).
-        label: undo.next
-          ? buildSheetCopy('undoNamed', { what: undo.next })
-          : buildSheetCopy('undoLastChange'),
-        onSelect: writesBlocked || status !== 'live' ? undefined : () => void undo.undoLast(),
-      },
-      // What was just undone stays in reach until the next change (r7 G8).
-      ...(undo.redoNext
-        ? [
-            {
-              id: 'redo',
-              label: undo.redoNext.what
-                ? buildSheetCopy('redoNamed', { what: undo.redoNext.what })
-                : buildSheetCopy('redoLastChange'),
-              onSelect: writesBlocked || status !== 'live' ? undefined : () => undo.redoLast(),
-            },
-          ]
-        : []),
+      ...undoMenuItems(undo, writesBlocked || status !== 'live'),
     ],
     [
       {
@@ -382,16 +362,10 @@ export function Sheet({
         // leads back (r7 G4).
         onSelect: writable(
           () =>
-            void copyAsking(
-              confirm,
-              kind,
-              entity.name,
-              entity,
-              go,
-              kind === 'mech'
-                ? { units: storeState, openCopy: true, landed: typeNameOnArrival }
-                : { units: storeState }
-            )
+            void copyAsking(confirm, kind, entity.name, entity, go, {
+              units: storeState,
+              ...(kind === 'mech' && { openCopy: true, landed: typeNameOnArrival }),
+            })
         ),
       },
       // A mech saves as a pattern in a dialog over its sheet.

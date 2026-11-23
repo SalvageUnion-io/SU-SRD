@@ -14,6 +14,7 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import { useEffect, useRef, useState } from 'react'
+import type { HeaderMenuItem } from '../../components/index'
 import { toast } from '../../components/index'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -186,4 +187,35 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
   }, [blocked])
 
   return { reverse, undoLast, redoLast, next, redoNext, look }
+}
+
+/**
+ * The More actions menu's Undo and Redo: one change back at a time, as Ctrl+Z
+ * does (r4 E3), naming what it takes back once the log has said (r6 E15);
+ * what was just undone stays in reach until the next change (r7 G8).
+ */
+export function undoMenuItems(
+  undo: Pick<ReturnType<typeof useSheetUndo>, 'next' | 'redoNext' | 'undoLast' | 'redoLast'>,
+  blocked: boolean
+): HeaderMenuItem[] {
+  return [
+    {
+      id: 'undo',
+      label: undo.next
+        ? buildSheetCopy('undoNamed', { what: undo.next })
+        : buildSheetCopy('undoLastChange'),
+      onSelect: blocked ? undefined : () => void undo.undoLast(),
+    },
+    ...(undo.redoNext
+      ? [
+          {
+            id: 'redo',
+            label: undo.redoNext.what
+              ? buildSheetCopy('redoNamed', { what: undo.redoNext.what })
+              : buildSheetCopy('redoLastChange'),
+            onSelect: blocked ? undefined : () => undo.redoLast(),
+          },
+        ]
+      : []),
+  ]
 }

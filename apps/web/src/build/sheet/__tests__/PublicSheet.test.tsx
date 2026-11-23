@@ -117,7 +117,7 @@ describe('a public sheet’s assignments', () => {
   test('a shared pilot, read signed out, ends with the next steps (r7 G9)', async () => {
     render(<PublicSheet appId="p1" answer={answer()} />)
     const steps = await screen.findByRole('navigation', { name: 'Your next step' })
-    expect(within(steps).getByRole('link', { name: 'Build your own pilot' })).toBeTruthy()
+    expect(within(steps).getByRole('link', { name: 'Build your own Pilot' })).toBeTruthy()
     expect(within(steps).getByRole('link', { name: 'Try a round in Play' })).toBeTruthy()
   })
 
