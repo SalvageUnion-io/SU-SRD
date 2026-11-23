@@ -6,13 +6,18 @@
  */
 
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
-import { nameToSlug } from 'salvageunion-reference'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySearcher } from '../../components/index'
 import { isPartnerEquipment } from '../../lib/rules/partnerGrants'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
-import { abilityRequirementsUnmet, abilityTrainingCost } from '../../lib/rules/training'
+import type { NotYet } from '../../lib/rules/training'
+import {
+  abilityNotYet,
+  abilityRequirementsUnmet,
+  abilityTrainingCost,
+} from '../../lib/rules/training'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsStore } from '../../replica/units'
 import type { PilotSheetModel } from './pilotSheet.model'
@@ -31,6 +36,16 @@ const BY_TREE = (a: { name: string }, b: { name: string }) =>
   ((a as RefAbility).tree ?? '').localeCompare((b as RefAbility).tree ?? '') ||
   levelOf(a) - levelOf(b) ||
   a.name.localeCompare(b.name)
+
+/** Why an ability waits under Not yet, said on its row beside its price (r7 D5). */
+const NOT_YET_LABEL = {
+  'tree-order': 'notYetTreeOrder',
+  advanced: 'notYetAdvanced',
+  legendary: 'notYetLegendary',
+  'one-legendary': 'notYetOneLegendary',
+  cap: 'notYetCap',
+  tp: 'notYetTp',
+} as const satisfies Record<NotYet['why'], string>
 
 export function PilotSheetPickers({
   picker,
@@ -60,6 +75,37 @@ export function PilotSheetPickers({
   useEffect(() => {
     if (picker === 'abilities') bought.current = new Map()
   }, [picker])
+  // What can be learned now comes first, by tier; the rest wait under Not
+  // yet with their reason, still addable for house rules (r7 D5, Core Book p.224).
+  const notYet = useMemo(() => {
+    if (picker !== 'abilities') return new Map<string, NotYet>()
+    const pilotNow = {
+      abilities: pilot.abilities,
+      classRef: pilot.classRef,
+      trainingPoints: pilot.trainingPoints ?? 0,
+    }
+    return new Map(
+      SalvageUnionReference.Abilities.all().flatMap((a) => {
+        const slug = nameToSlug(a.name)
+        const why = abilityNotYet(pilotNow, slug)
+        return why === null ? [] : [[slug, why] as const]
+      })
+    )
+  }, [picker, pilot.abilities, pilot.classRef, pilot.trainingPoints])
+  const isNotYet = useCallback(
+    (item: { name: string }) => notYet.has(nameToSlug(item.name)),
+    [notYet]
+  )
+  const byTierNow = useCallback(
+    (a: { name: string }, b: { name: string }) =>
+      Number(isNotYet(a)) - Number(isNotYet(b)) ||
+      (isNotYet(a)
+        ? 0
+        : (abilityTrainingCost(nameToSlug(a.name)) ?? 9) -
+          (abilityTrainingCost(nameToSlug(b.name)) ?? 9)) ||
+      BY_TREE(a, b),
+    [isNotYet]
+  )
   function toggleAbility(slug: string) {
     const price = bought.current.get(slug)
     if (price !== undefined && pilot.abilities.includes(slug)) {
@@ -93,6 +139,7 @@ export function PilotSheetPickers({
             if (price === null) return undefined
             const left = pilot.trainingPoints ?? 0
             const unmet = abilityRequirementsUnmet(pilot, slug)
+            const why = notYet.get(slug)
             return {
               label: buildSheetCopy('costsTp', { cost: price, left }),
               payLabel: buildSheetCopy('spendTpAndAdd', { cost: price }),
@@ -105,7 +152,7 @@ export function PilotSheetPickers({
               unmet,
               // Out of order or unaffordable: the plain add says so first (r4 E12).
               breaks: unmet.length > 0 || price > left,
-              row: { label: buildSheetCopy('tp'), value: price },
+              row: { label: buildSheetCopy(why ? NOT_YET_LABEL[why.why] : 'tp'), value: price },
             }
           }}
           filter={
@@ -115,7 +162,8 @@ export function PilotSheetPickers({
           }
           facets={{
             category: { label: buildSheetCopy('tree'), of: (item) => (item as RefAbility).tree },
-            order: BY_TREE,
+            order: byTierNow,
+            later: { label: buildSheetCopy('notYet'), of: isNotYet },
           }}
           railName={pilot.name}
           chosenLabel={buildSheetCopy('learned')}

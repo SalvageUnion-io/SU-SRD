@@ -200,6 +200,7 @@ export function useSearcherPool({
 
   const categoryOf = facets?.category?.of
 
+  const later = facets?.later?.of
   const { visible, outside } = useMemo(() => {
     let list = pool
     if (searchOrder) {
@@ -226,8 +227,10 @@ export function useSearcherPool({
       return true
     }
     const q = query.trim()
+    const shown = list.filter((item) => inTl(item) && passes(item))
+    // What the pick does not meet yet goes last, in its own order (r7 D5).
     return {
-      visible: list.filter((item) => inTl(item) && passes(item)),
+      visible: later ? [...shown.filter((i) => !later(i)), ...shown.filter(later)] : shown,
       outside: q ? list.filter((item) => !inTl(item) && passes(item) && namedBy(item, q)) : [],
     }
   }, [
@@ -245,6 +248,7 @@ export function useSearcherPool({
     status,
     selected,
     idOf,
+    later,
   ])
 
   const totalOnSheet = useMemo(

@@ -337,6 +337,13 @@ export const buildSheetCopy = messages({
   manageAbilities: 'Manage Abilities',
   costsTp: 'Costs {cost} TP · {left} left',
   spendTpAndAdd: 'Spend {cost} TP and add',
+  notYet: 'Not yet',
+  notYetTreeOrder: 'Earlier level first · TP',
+  notYetAdvanced: 'Needs 6 Core · TP',
+  notYetLegendary: 'Needs 6 Core, 3 Advanced · TP',
+  notYetOneLegendary: 'One Legendary only · TP',
+  notYetCap: 'At the ability cap · TP',
+  notYetTp: 'Short of TP · TP',
   costsTpPilotHas:
     '{name} costs {cost} TP to train and this Pilot has {left}. Adding it spends none.',
   noAbilitiesLearnedYet: 'No abilities learned yet.',
