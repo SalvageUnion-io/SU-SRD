@@ -38,14 +38,14 @@ const BY_TREE = (a: { name: string }, b: { name: string }) =>
   a.name.localeCompare(b.name)
 
 /** Why an ability waits under Not yet, said on its row beside its price (r7 D5). */
-const NOT_YET_LABEL = {
-  'tree-order': 'notYetTreeOrder',
-  advanced: 'notYetAdvanced',
-  legendary: 'notYetLegendary',
-  'one-legendary': 'notYetOneLegendary',
-  cap: 'notYetCap',
-  tp: 'notYetTp',
-} as const satisfies Record<NotYet['why'], string>
+const NOT_YET_LABEL: Record<NotYet['why'], () => string> = {
+  'tree-order': () => buildSheetCopy('notYetTreeOrder'),
+  advanced: () => buildSheetCopy('notYetAdvanced'),
+  legendary: () => buildSheetCopy('notYetLegendary'),
+  'one-legendary': () => buildSheetCopy('notYetOneLegendary'),
+  cap: () => buildSheetCopy('notYetCap'),
+  tp: () => buildSheetCopy('notYetTp'),
+}
 
 export function PilotSheetPickers({
   picker,
@@ -152,7 +152,7 @@ export function PilotSheetPickers({
               unmet,
               // Out of order or unaffordable: the plain add says so first (r4 E12).
               breaks: unmet.length > 0 || price > left,
-              row: { label: buildSheetCopy(why ? NOT_YET_LABEL[why.why] : 'tp'), value: price },
+              row: { label: why ? NOT_YET_LABEL[why.why]() : buildSheetCopy('tp'), value: price },
             }
           }}
           filter={

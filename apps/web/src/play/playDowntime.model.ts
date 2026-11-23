@@ -480,7 +480,7 @@ export function carriedScrap(
 }
 
 /** The Trade step's name in the Crawler Downtime guide (p.228). */
-export const TRADE_STEP_NAME = 'Trade'
+const TRADE_STEP_NAME = 'Trade'
 
 /**
  * Whether nobody at the table can act in a Game's step (r7 D3): Trade and
