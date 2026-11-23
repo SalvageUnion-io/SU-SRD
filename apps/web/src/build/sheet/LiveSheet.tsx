@@ -22,7 +22,7 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { StatMeanings } from '../../components/app'
 import type { EntitySurfaceValue } from '../../components/index'
 import {
@@ -51,6 +51,7 @@ import {
   STRIP_SHOWN,
 } from './liveSheetBarStyles.model'
 import { RailActs } from './RailActs'
+import { SheetBannerContext } from './readOnlyBanner.model'
 import { SheetBarStrip } from './SheetBarStrip'
 import { swapHere, useSheetEmbed } from './sheetEmbed.model'
 import type { SheetBand } from './sheetViewProps.model'
@@ -278,6 +279,7 @@ export function LiveSheet({
   // Inside another screen (Play's sheet pane): no `<main>`, and the phone switch swaps there.
   const embed = useSheetEmbed()
   const Root = embed ? 'div' : 'main'
+  const banner = useContext(SheetBannerContext)
 
   return (
     // The page's one `<main>` landmark, on every surface that draws a sheet
@@ -526,6 +528,9 @@ export function LiveSheet({
         {/* The kind is never stamped (EDL E9): the h1 says it to screen readers. */}
         <KindLabel kind={KIND_LABEL[variant]} />
       </ChapterBand>
+
+      {/* A public sheet's read-only banner, under the band at every width (r7 G1). */}
+      {banner}
 
       {/* Body slabs. The body owns the hero, so it takes the hero's top
           padding. */}

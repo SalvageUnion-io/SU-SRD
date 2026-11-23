@@ -30,7 +30,7 @@ import { tokens } from '../../components/index'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { PublicMechBuild } from './PublicMechBuild'
-import { READ_ONLY_BANNER } from './readOnlyBanner.model'
+import { READ_ONLY_BANNER, SheetBannerContext } from './readOnlyBanner.model'
 import type { PublicSheetAnswer } from './readOnlySheetStore.model'
 import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore.model'
 import { Sheet } from './Sheet'
@@ -93,21 +93,25 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
     )
   }
 
-  return (
-    <div>
-      <div
-        role="note"
-        aria-label={buildSheetCopy('readOnlySheet')}
-        className="su-sheet-public-banner"
-        // Its side padding widens at `sm` (`.su-sheet-public-banner`).
-        style={READ_ONLY_BANNER}
-      >
-        <div style={BANNER_LINE}>
-          <span>{buildSheetCopy('thisSheetIsSharedRead')}</span>
-          {mech && <PublicMechBuild mech={mech} />}
-        </div>
+  // Under the chapter band, in the page flow (r7 G1): above it, the desktop
+  // band, which runs up behind the area rail, covered it and took its clicks.
+  const banner = (
+    <div
+      role="note"
+      aria-label={buildSheetCopy('readOnlySheet')}
+      // The page's own gutter (`.su-sheet-public-banner`).
+      className="su-sheet-public-banner"
+      style={READ_ONLY_BANNER}
+    >
+      <div style={BANNER_LINE}>
+        <span>{buildSheetCopy('thisSheetIsSharedRead')}</span>
+        {mech && <PublicMechBuild mech={mech} />}
       </div>
+    </div>
+  )
 
+  return (
+    <SheetBannerContext.Provider value={banner}>
       <ShownSheetContext.Provider value>
         <Sheet
           kind={kind}
@@ -119,6 +123,6 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
           readOnly
         />
       </ShownSheetContext.Provider>
-    </div>
+    </SheetBannerContext.Provider>
   )
 }

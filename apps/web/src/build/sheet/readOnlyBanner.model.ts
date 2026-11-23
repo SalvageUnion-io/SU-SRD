@@ -1,4 +1,5 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { createContext } from 'react'
 import { tokens } from '../../components/index'
 
 /**
@@ -18,3 +19,10 @@ export const READ_ONLY_BANNER = {
   lineHeight: 'calc(1.25 / 0.875)',
   paddingBlock: tokens.space[8],
 } satisfies CSSProperties
+
+/**
+ * A public sheet's read-only banner (r7 G1), drawn by `LiveSheet` under its
+ * chapter band in the page flow at every width: above it, the desktop band,
+ * which runs up behind the area rail, covered the banner and took its clicks.
+ */
+export const SheetBannerContext = createContext<ReactNode>(null)

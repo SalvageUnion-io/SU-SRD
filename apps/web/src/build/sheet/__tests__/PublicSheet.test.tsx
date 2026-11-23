@@ -103,6 +103,15 @@ describe('a public sheet’s assignments', () => {
     expect(screen.queryByRole('button', { name: 'Sign in to build from this' })).toBeNull()
   })
 
+  test('its banner stands under the chapter band, in the page flow (r7 G1)', () => {
+    render(<PublicSheet appId="p1" answer={answer()} />)
+    const note = screen.getByRole('note', { name: 'Read-only sheet' })
+    const title = screen.getByRole('heading', { level: 1 })
+    // On a desktop the band runs up behind the area rail: a banner above it was covered.
+    expect(title.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(note.closest('main')).not.toBeNull()
+  })
+
   test('is read-only', () => {
     render(<PublicSheet appId="p1" answer={answer()} />)
     expect(screen.getByRole('note', { name: 'Read-only sheet' })).toBeTruthy()
