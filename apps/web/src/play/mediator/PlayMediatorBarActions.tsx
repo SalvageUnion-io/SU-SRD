@@ -9,7 +9,8 @@
  *    which lands on each of their Feeds, with the last five sent under it.
  *  - **Start / End group session** (`SessionControl`, play.md §10): a bar
  *    button from `lg`, the ⋯'s row on a phone; End asks first.
- *  - **⋯**: the
+ *  - **⋯**: Undo last change while an Opposition vital's change can be
+ *    undone (r8 B4), the
  *    Game's own page, the reference (the SRD Explorer, `SrdExplorer`) in
  *    an overlay over Play, and the Discord channel while none is bound.
  *
@@ -26,6 +27,7 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { SessionControl } from '../SessionControl'
 import { useEndSession } from '../useEndSession'
 import { useGameSession } from '../useGameSession'
+import { undoLastChange, useLastChange } from './oppositionUndo.model'
 import { SrdExplorer } from './SrdExplorer'
 import { TellTheTable } from './TellTheTable'
 import type { PlayMediator } from './usePlayMediator'
@@ -54,6 +56,8 @@ export function PlayMediatorBarActions({
   const session = useGameSession(mediator.gameId)
   const mayRun = session?.canWrite && !session.pending
   const end = useEndSession(session)
+  // The last Opposition vital changed, undoable after its toast has gone (r8 B4).
+  const lastChange = useLastChange(mediator.gameId)
 
   return (
     <>
@@ -101,6 +105,16 @@ export function PlayMediatorBarActions({
                     : {}),
                 },
               ],
+          lastChange
+            ? [
+                {
+                  id: 'undo',
+                  label: mediatorCopy('undoLastChange'),
+                  hint: lastChange.label,
+                  onSelect: () => void undoLastChange(mediator.gameId),
+                },
+              ]
+            : [],
           [
             {
               id: 'game',

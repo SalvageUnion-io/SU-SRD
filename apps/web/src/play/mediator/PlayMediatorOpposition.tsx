@@ -47,6 +47,7 @@ import { ClearFieldDialog, EndEncounterDialog } from './ClearFieldDialogs'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
 import { groupRoll, trayEntries } from './opposition.model'
+import { dropChange, keepChange } from './oppositionUndo.model'
 import { PlayMediatorScene } from './PlayMediatorScene'
 import type { NpcHit } from './PlayNpcActions'
 import { PlayNpcActions } from './PlayNpcActions'
@@ -124,6 +125,27 @@ export function PlayMediatorOpposition({
       },
     }
   }
+  // A vital's change is undoable (r8 B4): the sheet's Undo toast, and the ⋯'s Undo last change.
+  const changed = (
+    npc: TrayNpc,
+    label: string,
+    before: number,
+    after: number,
+    write: (value: number) => Promise<unknown>
+  ) => {
+    fail(write(after))
+    if (before === after) return
+    const change = { label: `${npc.name} · ${label}`, undo: () => fail(write(before)) }
+    keepChange(mediator.gameId, change)
+    undoToast(
+      mediatorCopy('vitalChanged', { name: npc.name, label, before, after }),
+      () => {
+        dropChange(mediator.gameId, change)
+        change.undo()
+      },
+      `opposition-${mediator.gameId}`
+    )
+  }
   // Each unit standing carries its Group Initiative mark while one is kept (r6 B4).
   const { initiative, setActed, markActed } = useInitiative(mediator.gameId, onFailure, mediator)
   // The Scene's conditions that are on: End asks whether to clear them (r4 A11).
@@ -192,7 +214,11 @@ export function PlayMediatorOpposition({
         ) : null
       }
       canWrite={canWrite}
-      onHp={(next) => fail(tray.setHp(npc, next))}
+      onHp={(next) =>
+        changed(npc, npc.statKind === 'sp' ? 'SP' : 'HP', npc.currentHp, next, (v) =>
+          tray.setHp(npc, v)
+        )
+      }
       onRename={() => setRenaming(npc)}
       onRemove={() => setRemoving(npc)}
       onSalvage={mediator.salvageWreck}
@@ -201,7 +227,19 @@ export function PlayMediatorOpposition({
       onSalvageRoll={tray.salvageRoll}
       rollFor={rollFor}
       onImportant={(important) => fail(tray.setImportant(npc, important))}
-      onReactor={(patch) => fail(tray.setReactor(npc, patch))}
+      onReactor={(patch) => {
+        const reactor = npc.reactor
+        if (reactor === null) return
+        if (patch.currentEp !== undefined) {
+          changed(npc, mediatorCopy('ep'), reactor.ep, patch.currentEp, (v) =>
+            tray.setReactor(npc, { currentEp: v })
+          )
+        } else if (patch.currentHeat !== undefined) {
+          changed(npc, mediatorCopy('heat'), reactor.heat, patch.currentHeat, (v) =>
+            tray.setReactor(npc, { currentHeat: v })
+          )
+        }
+      }}
       onCritical={() => fail(tray.critical(npc))}
       onHeatCheck={() => fail(tray.heatCheck(npc))}
       moraleDue={grouping && moraleDue(npc)}

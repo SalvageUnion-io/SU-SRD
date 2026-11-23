@@ -626,6 +626,30 @@ describe('the Opposition', () => {
     ])
   })
 
+  // MD8-04: a typo downed Scylla with no way back.
+  test('a vital’s change offers Undo, on its toast and in the ⋯ (r8 B4)', async () => {
+    await renderCockpit()
+    await act(async () => {
+      render(<ToasterMount />)
+    })
+    const scylla = within(screen.getByRole('region', { name: 'Bio-Titan: Scylla' }))
+    await click(scylla.getByRole('button', { name: 'Decrease SP' }))
+    expect(await screen.findByText('Scylla · SP 30 → 29')).toBeTruthy()
+    acts.length = 0
+    await click(screen.getByRole('button', { name: 'More' }))
+    await click(
+      within(screen.getByRole('menu')).getByRole('menuitem', { name: /^Undo last change/ })
+    )
+    expect(sent()).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-scylla', patch: { currentHp: 30 } } },
+    ])
+    // Spent: the ⋯ offers it no more.
+    await click(screen.getByRole('button', { name: 'More' }))
+    expect(
+      within(screen.getByRole('menu')).queryByRole('menuitem', { name: /^Undo last change/ })
+    ).toBeNull()
+  })
+
   // MD6-16: a downed mook kept its full card, a red Delete beside Actions.
   test('a downed NPC folds to one line below the living, never removed for you; Delete is in its ⋯ and asks first (r6 B8)', async () => {
     await renderCockpit()
