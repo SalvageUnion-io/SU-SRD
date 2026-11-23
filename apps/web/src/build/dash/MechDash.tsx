@@ -127,6 +127,7 @@ function mechVitalRows({
             from,
             to: next,
             undo: (value) => actions.patchMech({ [field]: value }),
+            sheet: { id: mech.id, field },
           })
         }
       : undefined
@@ -229,6 +230,7 @@ export function MechDash({
             from,
             to: from - ep,
             undo: (value) => actions.patchMech({ currentEP: value }),
+            sheet: { id: mech.id, field: 'currentEP' },
           })
         }
       : undefined

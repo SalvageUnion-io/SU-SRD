@@ -10,6 +10,10 @@
  * undo's own Redo) puts back, newest first, until the sheet's next change;
  * meanwhile the ⋯ menu offers it too, by name ("Redo: add Armour Plating",
  * r7 G8), so Redo never lives only in a toast that fades.
+ *
+ * A toast's Undo is a step of the same history (r8 E1, `lib/sheetHistory`):
+ * the open sheet takes back the change the toast reports (`changeForMarks`),
+ * so the menu's Undo goes on from there and its Redo puts the change back.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
@@ -17,14 +21,23 @@ import { useEffect, useRef, useState } from 'react'
 import type { HeaderMenuItem } from '../../components/index'
 import { toast } from '../../components/index'
 import { runWrite } from '../../lib/runWrite'
+import type { HistoryMark } from '../../lib/sheetHistory'
+import { holdHistory } from '../../lib/sheetHistory'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { sheetRedo, sheetUndo } from '../../replica/provenance'
-import { roomOf } from '../../replica/roomSocket'
+import { roomOrStandIn as roomOf } from '../../replica/roomSocket'
 import type { TransferPart, UnitsState } from '../../replica/units'
 import { madeInThisTab, onUnitWrite, transferPartsOf } from '../../replica/units'
 import type { EntityLogRow } from '../../rooms/ops'
 import type { LogChange, LogDefaults, Reversal } from './changeLog.model'
-import { changeWhat, lastUndoable, logChanges, reversal, reverseChange } from './changeLog.model'
+import {
+  changeWhat,
+  lastUndoable,
+  logChanges,
+  reversal,
+  reverseChange,
+  reversible,
+} from './changeLog.model'
 import { MERGED } from './changeStory.model'
 import { undoToast } from './undoToast.model'
 
@@ -70,6 +83,41 @@ export const lastUndoableHere = (
   taken: ReadonlySet<string> = new Set()
 ): LogChange | undefined =>
   lastUndoable(changes.filter((each) => !taken.has(each.id) && madeInThisTab(each.id)))
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+
+/**
+ * The change a toast reports (r8 E1): the newest this tab made that still
+ * stands and touched one of the toast's fields, when it left there what the
+ * toast says it did. Undefined when the newest such change is another (the
+ * log has not caught up, or the toast is older than it): the toast then
+ * writes its own value back.
+ */
+export function changeForMarks(
+  changes: readonly LogChange[],
+  marks: readonly HistoryMark[],
+  taken: ReadonlySet<string> = new Set(),
+  defaults: LogDefaults = {}
+): LogChange | undefined {
+  const fields = new Set(marks.map((mark) => mark.field))
+  const newest = changes.find(
+    (each) =>
+      !taken.has(each.id) &&
+      madeInThisTab(each.id) &&
+      reversible(each) &&
+      each.fields.some((one) => fields.has(one.field))
+  )
+  if (newest === undefined) return undefined
+  const matches = marks.every((mark) => {
+    const one = newest.fields.find((each) => each.field === mark.field)
+    if (one === undefined) return true
+    return (
+      same(one.after, mark.to) ||
+      ((one.after === undefined || one.after === null) && same(defaults[mark.field], mark.to))
+    )
+  })
+  return matches ? newest : undefined
+}
 
 /**
  * A change this tab undid: the change, its words, and the fields it put back,
@@ -201,6 +249,17 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     }
   }
 
+  // A toast's Undo on this sheet steps this history (r8 E1).
+  const stepBack = async (marks: readonly HistoryMark[]): Promise<boolean> => {
+    const room = blocked ? null : roomOf(gameId)
+    if (room === null) return false
+    const rows = (await room.act('changeLog.forEntity', { entityId: id })) as EntityLogRow[]
+    const change = changeForMarks(logChanges(rows, defaults), marks, taken.current, defaults)
+    if (!change) return false
+    await reverse(change, reversal(change, defaults))
+    return true
+  }
+
   const undoLast = async (): Promise<void> => {
     if (blocked || busy.current) return
     const room = roomOf(gameId)
@@ -223,8 +282,12 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
 
   // Ctrl+Z (Cmd+Z), Ctrl+Shift+Z and Ctrl+Y anywhere on the sheet but in a
   // text field, which keeps its own.
-  const latest = useRef({ undoLast, redoLast })
-  latest.current = { undoLast, redoLast }
+  const latest = useRef({ undoLast, redoLast, stepBack })
+  latest.current = { undoLast, redoLast, stepBack }
+  useEffect(() => {
+    if (blocked) return undefined
+    return holdHistory(id, (marks) => latest.current.stepBack(marks))
+  }, [blocked, id])
   useEffect(() => {
     if (blocked) return undefined
     const onKey = (event: KeyboardEvent) => {

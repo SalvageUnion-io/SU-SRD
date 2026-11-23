@@ -14,10 +14,15 @@
  * A quick removal is the exception (r4 E3): its Undo puts back only what it
  * took off, on the sheet as it is now (`takeBack`), so it is safe after later
  * edits and each removal keeps its own line (`stack`), the newest three (K5).
+ *
+ * Given what the edit wrote (`wrote`), Undo steps that change back through the
+ * open sheet's history (r8 E1, `lib/sheetHistory`), as the ⋯ menu's Undo does,
+ * and runs `undo` only where the history cannot place it.
  */
 
 import { MOST_ACTION_TOASTS, toast } from '../../components/index'
 import { dismissChangeUndo } from '../../lib/changeUndoToast'
+import { stepBackOr } from '../../lib/sheetHistory'
 import { componentsCopy } from '../../messages/components'
 import { onUnitWrite } from '../../replica/units'
 import { dismissRuleBreaks } from './ruleBreakToast.model'
@@ -58,8 +63,14 @@ export function undoToast(
   message: string,
   undo: () => void,
   sheetId: string,
-  { stack = false, label = componentsCopy('undo') }: { stack?: boolean; label?: string } = {}
+  {
+    stack = false,
+    label = componentsCopy('undo'),
+    wrote,
+  }: { stack?: boolean; label?: string; wrote?: Readonly<Record<string, unknown>> } = {}
 ) {
+  const marks = wrote ? Object.entries(wrote).map(([field, to]) => ({ field, to })) : []
+  const back = wrote ? () => stepBackOr(sheetId, marks, undo) : undo
   if (stack) {
     serial += 1
     const lineId = `${toastId(sheetId)}:${serial}`
@@ -73,7 +84,7 @@ export function undoToast(
         onClick: () => {
           unstack(sheetId, lineId)
           toast.dismiss(lineId)
-          undo()
+          back()
         },
       },
       onDismiss: () => unstack(sheetId, lineId),
@@ -91,7 +102,7 @@ export function undoToast(
       label,
       onClick: () => {
         standing.delete(sheetId)
-        undo()
+        back()
       },
     },
     onDismiss: () => standing.delete(sheetId),

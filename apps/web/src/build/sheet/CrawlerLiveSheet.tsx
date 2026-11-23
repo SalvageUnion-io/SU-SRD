@@ -119,6 +119,7 @@ export function CrawlerLiveSheet({
             from,
             to: next,
             undo: (value) => patch({ [field]: value }),
+            sheet: { id: crawler.id, field },
           })
         }
       : undefined

@@ -169,3 +169,138 @@ describe('Undo of a craft (r7 D6)', () => {
     expect(useUnits.getState().get('crawler', 'c-craft')?.scrapPool).toEqual({ tl1: 1 })
   })
 })
+
+describe("a toast's Undo is a step of the sheet's history (r8 E1)", () => {
+  test('the menu then offers Redo, and its Undo goes on to the change before', async () => {
+    const { act, renderHook } = await import('@testing-library/react')
+    const { toast } = await import('sonner')
+    const { useSheetUndo } = await import('../sheetUndo.model')
+    const { changeUndoToast } = await import('../../../lib/changeUndoToast')
+    const { acceptingRooms, roomAnswer, roomOps } = await import('../../../../test/roomsStub')
+    acceptingRooms()
+    // The room's log from the ops it took, newest first, one row a field.
+    roomAnswer.act = async (name, args) => {
+      if (name !== 'changeLog.forEntity') return undefined
+      const { entityId } = args as { entityId: string }
+      return roomOps
+        .flatMap(({ ops }) => ops)
+        .filter((op) => op.unitId === entityId)
+        .reverse()
+        .flatMap((op) =>
+          Object.entries(op.patch as Record<string, unknown>).map(([field, after]) => ({
+            _id: `${op.id}:${field}`,
+            ts: op.at,
+            kind: op.kind,
+            field,
+            before: null,
+            after,
+            source: op.source,
+            state: 'applied',
+          }))
+        )
+    }
+    try {
+      const units = useUnits.getState()
+      await units.adopt('mech', mechFixture({ id: 'm-toast', currentSP: 10, currentHeat: 0 }))
+      const { result, unmount } = renderHook(() =>
+        useSheetUndo({
+          kind: 'mech',
+          id: 'm-toast',
+          gameId: null,
+          storeState: useUnits.getState(),
+          defaults: { currentSP: 10, currentHeat: 0 },
+          blocked: false,
+        })
+      )
+      // SP −4, then Heat +2, each said in a toast as the sheet says it.
+      await act(async () => {
+        await units.update('mech', 'm-toast', { currentSP: 6 }, LIVE_SHEET_MANUAL)
+        await units.update('mech', 'm-toast', { currentHeat: 2 }, LIVE_SHEET_MANUAL)
+      })
+      const undone: number[] = []
+      changeUndoToast({
+        id: 'mech:m-toast:currentHeat',
+        label: 'Heat',
+        from: 0,
+        to: 2,
+        undo: (value) => undone.push(value),
+        sheet: { id: 'm-toast', field: 'currentHeat' },
+      })
+      const line = toast.getToasts().find((each) => each.id === 'mech:m-toast:currentHeat') as {
+        action?: { onClick: (e: never) => void }
+      }
+      await act(async () => {
+        line.action?.onClick(undefined as never)
+        await new Promise((settle) => setTimeout(settle, 0))
+      })
+      // The history took it back: no second write of its own, Heat at 0, Redo in reach.
+      expect(undone).toEqual([])
+      // (The stand-in log keeps no before: an absent Heat is 0, an absent SP full.)
+      expect(useUnits.getState().get('mech', 'm-toast')?.currentHeat ?? 0).toBe(0)
+      expect(result.current.redoNext).not.toBeNull()
+      // The menu's Undo goes on to SP, never back to the Heat.
+      await act(async () => {
+        await result.current.undoLast()
+      })
+      const mech = useUnits.getState().get('mech', 'm-toast')
+      expect(mech?.currentHeat ?? 0).toBe(0)
+      expect(mech?.currentSP ?? 10).toBe(10)
+      unmount()
+      toast.dismiss()
+    } finally {
+      acceptingRooms()
+    }
+  })
+
+  test('with no sheet holding the history, the toast writes its value back', async () => {
+    const { changeUndoToast } = await import('../../../lib/changeUndoToast')
+    const { toast } = await import('sonner')
+    const undone: number[] = []
+    changeUndoToast({
+      id: 'mech:nobody:currentHeat',
+      label: 'Heat',
+      from: 0,
+      to: 2,
+      undo: (value) => undone.push(value),
+      sheet: { id: 'nobody', field: 'currentHeat' },
+    })
+    const line = toast.getToasts().find((each) => each.id === 'mech:nobody:currentHeat') as {
+      action?: { onClick: (e: never) => void }
+    }
+    line.action?.onClick(undefined as never)
+    expect(undone).toEqual([0])
+    toast.dismiss()
+  })
+})
+
+describe('changeForMarks (r8 E1)', () => {
+  test("takes the toast's change only while it is the newest on that field", async () => {
+    const { changeForMarks } = await import('../sheetUndo.model')
+    const units = useUnits.getState()
+    await units.adopt('mech', mechFixture({ id: 'm-marks', currentHeat: 0 }))
+    const ids: string[] = []
+    const send = globalThis.crypto.randomUUID.bind(globalThis.crypto)
+    globalThis.crypto.randomUUID = (() => {
+      const made = send()
+      ids.push(made)
+      return made
+    }) as typeof globalThis.crypto.randomUUID
+    try {
+      await units.update('mech', 'm-marks', { currentHeat: 2 }, LIVE_SHEET_MANUAL)
+    } finally {
+      globalThis.crypto.randomUUID = send as typeof globalThis.crypto.randomUUID
+    }
+    const mine = ids.find((each) => lastUndoableHere([change(each)]) !== undefined) ?? ''
+    const heat: LogChange = {
+      ...change(mine),
+      fields: [{ field: 'currentHeat', before: 0, after: 2 }],
+    }
+    expect(changeForMarks([heat], [{ field: 'currentHeat', to: 2 }])?.id).toBe(mine)
+    // The log says another value: it has not caught up, so the toast writes its own.
+    expect(changeForMarks([heat], [{ field: 'currentHeat', to: 3 }])).toBeUndefined()
+    // Taken back already: nothing to step.
+    expect(
+      changeForMarks([heat], [{ field: 'currentHeat', to: 2 }], new Set([mine]))
+    ).toBeUndefined()
+  })
+})

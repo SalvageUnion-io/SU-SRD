@@ -59,11 +59,10 @@ export function ChangeChassis({ mech, patch }: { mech: Mech; patch: SheetPatch }
               const renamed = namedForChassis(mech) ? { name } : {}
               const swap = loadoutOnChassis(chassisRef, mech)
               // Keep everything: the loadout stays whole, over the slots (r5 C10).
-              patch(
-                keep
-                  ? { chassisRef, ...renamed }
-                  : { chassisRef, systems: swap.systems, modules: swap.modules, ...renamed }
-              )
+              const wrote = keep
+                ? { chassisRef, ...renamed }
+                : { chassisRef, systems: swap.systems, modules: swap.modules, ...renamed }
+              patch(wrote)
               const left = keep ? [] : droppedNames(swap.dropped)
               undoToast(
                 keep && swap.dropped.length > 0
@@ -72,7 +71,8 @@ export function ChangeChassis({ mech, patch }: { mech: Mech; patch: SheetPatch }
                     ? mechCopy('chassisChanged', { name })
                     : mechCopy('chassisChangedLeftOff', { name, names: left.join(', ') }),
                 () => patch(before),
-                mech.id
+                mech.id,
+                { wrote }
               )
             }}
           />
