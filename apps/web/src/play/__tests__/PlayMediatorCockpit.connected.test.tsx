@@ -351,6 +351,37 @@ describe('the bar', () => {
     ).toBeTruthy()
   })
 
+  // MD8-19: Tell the table was twenty Shift+Tabs away, and "?" showed nothing.
+  test('T opens Tell the table, N moves initiative on, "?" lists the keys (r8 B10)', async () => {
+    await renderCockpit({ 'mediator.initiative': { round: 2, side: 'pilots', acted: [] } })
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 't' })
+    })
+    frame.mockRestore()
+    expect(screen.getByRole('dialog', { name: 'Tell the table' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'Escape' })
+    })
+    acts.length = 0
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'n' })
+    })
+    expect(
+      sent()
+        .filter((s) => s.name === 'mediator.setInitiative')
+        .map((s) => s.args.initiative)
+    ).toEqual([{ round: 2, side: 'opposition', acted: [] }])
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: '?' })
+    })
+    const keys = await screen.findByRole('dialog', { name: 'Keys' })
+    expect(within(keys).getByText('Tell the table')).toBeTruthy()
+  })
+
   test('Tell the table sends one word to every player', async () => {
     await renderCockpit()
     // The dialog focuses on the next frame; the frame is run here, so the
@@ -503,6 +534,28 @@ describe('the table', () => {
     expect(within(wren).getByText('Last seen Boarded · Mule')).toBeTruthy()
   })
 
+  // LG8-02: every hit on a player was the five-field Propose form.
+  test('a seat’s HP is one press from a hit: press, type, Enter proposes it (r8 B1)', async () => {
+    await renderCockpit()
+    acts.length = 0
+    await click(screen.getByRole('button', { name: /^Propose a hit to Rook: HP / }))
+    const amount = screen.getByLabelText('HP amount')
+    await act(async () => {
+      fireEvent.change(amount, { target: { value: '3' } })
+    })
+    await act(async () => {
+      fireEvent.submit(amount.closest('form') as HTMLFormElement)
+    })
+    // A proposal the player accepts, never applied for them: Rook at 4 HP is left 1.
+    expect(sent()).toEqual([
+      {
+        name: 'ops.propose',
+        args: { entityId: 'row-rook', entityType: 'pilot', field: 'currentHP', after: 1 },
+      },
+    ])
+    expect(screen.queryByLabelText('HP amount')).toBeNull()
+  })
+
   test('tapping a seat aims Propose at that pilot and focuses its number; Change opens on Take, so a typed 3 is 3 damage (r4 D2)', async () => {
     await renderCockpit()
     await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
@@ -624,6 +677,30 @@ describe('the Opposition', () => {
     expect(sent()).toEqual([
       { name: 'mediator.updateNpc', args: { npcId: 'n-scylla', patch: { currentHp: 29 } } },
     ])
+  })
+
+  // MD8-04: a typo downed Scylla with no way back.
+  test('a vital’s change offers Undo, on its toast and in the ⋯ (r8 B4)', async () => {
+    await renderCockpit()
+    await act(async () => {
+      render(<ToasterMount />)
+    })
+    const scylla = within(screen.getByRole('region', { name: 'Bio-Titan: Scylla' }))
+    await click(scylla.getByRole('button', { name: 'Decrease SP' }))
+    expect(await screen.findByText('Scylla · SP 30 → 29')).toBeTruthy()
+    acts.length = 0
+    await click(screen.getByRole('button', { name: 'More' }))
+    await click(
+      within(screen.getByRole('menu')).getByRole('menuitem', { name: /^Undo last change/ })
+    )
+    expect(sent()).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-scylla', patch: { currentHp: 30 } } },
+    ])
+    // Spent: the ⋯ offers it no more.
+    await click(screen.getByRole('button', { name: 'More' }))
+    expect(
+      within(screen.getByRole('menu')).queryByRole('menuitem', { name: /^Undo last change/ })
+    ).toBeNull()
   })
 
   // MD6-16: a downed mook kept its full card, a red Delete beside Actions.
@@ -815,10 +892,13 @@ describe('the Opposition', () => {
     expect(offer.compareDocumentPosition(firstRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     acts.length = 0
     await click(offer)
-    // HP damage goes to Pilots, never to a Mech; each says what it is left with.
+    // HP damage goes to the Pilots first, then to the Mechs at half (r8 B6);
+    // each says what it is left with.
     const seats = screen.getAllByRole('menuitem').map((item) => item.textContent)
     expect(seats.some((s) => s?.startsWith('Rook') && s.includes('HP 4 → 1'))).toBe(true)
-    expect(seats.some((s) => s?.includes('Buzzard'))).toBe(false)
+    const mech = seats.findIndex((s) => s?.includes('Buzzard') === true)
+    expect(seats[mech]).toMatch(/SP (\d+) → /)
+    expect(mech).toBeGreaterThan(seats.findIndex((s) => s?.startsWith('Rook') === true))
     await click(screen.getByRole('menuitem', { name: /^Rook/ }))
     await waitFor(() =>
       expect(sent()).toEqual([
@@ -836,7 +916,7 @@ describe('the Opposition', () => {
     )
   })
 
-  test('a miss offers no hit: the table’s Failure rows propose nothing (r4 D2)', async () => {
+  test('a miss offers no hit and folds the action: the table’s Failure rows propose nothing (r4 D2, r8 B5)', async () => {
     await renderCockpit(
       {
         'mediator.npcs': [
@@ -853,7 +933,9 @@ describe('the Opposition', () => {
     const list = within(screen.getByRole('list', { name: 'Raider’s actions' }))
     await click(list.getByRole('button', { name: /^Use Improvised Firearm.* for Raider$/ }))
     await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
-    await waitFor(() => expect(list.getByText('3 · Failure')).toBeTruthy())
+    // Its line is on the Feed, and the panel is done with: one Roll the die is ever open.
+    await waitFor(() => expect(feedLines().some((l) => / · 3 · Failure/.test(l))).toBe(true))
+    expect(list.queryByRole('button', { name: 'Roll the die on NPC Action' })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Propose 3 HP/ })).toBeNull()
   })
 
@@ -1102,7 +1184,7 @@ describe('the Opposition', () => {
     })
     expect(screen.getByText('Behind the crusher.')).toBeTruthy()
     expect(screen.getByRole('list', { name: "This encounter's tables" })).toBeTruthy()
-    await click(named('End Ambush'))
+    await click(named('End encounter: Ambush'))
     // With opposition still out, End asks whether to clear it (ADR-007: never for you).
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'End' }))
     expect(sent()).toContainEqual({ name: 'mediator.endEncounter', args: {} })
@@ -1122,7 +1204,7 @@ describe('the Opposition', () => {
       },
     })
     expect(within(screen.getByRole('banner')).getByText('Scene · Radiation Storm')).toBeTruthy()
-    await click(named('End Ambush'))
+    await click(named('End encounter: Ambush'))
     const dialog = within(screen.getByRole('alertdialog'))
     expect(dialog.getByLabelText('Keep the Scene under Radiation Storm')).toBeTruthy()
     await click(dialog.getByLabelText('Clear Radiation Storm'))
@@ -1166,10 +1248,26 @@ describe('Downtime', () => {
     await renderCockpit(downtimeAt(2))
     await click(named('Back to Step 2'))
     await click(named('Next: Step 4'))
+    // Two seats are still working: moving on asks, once for the step (r8 B9).
+    const ask = within(screen.getByRole('alertdialog', { name: /^Move on from 3 / }))
+    expect(ask.getByText(/^Still working: /)).toBeTruthy()
+    await click(ask.getByRole('button', { name: 'Move on' }))
     expect(sent()).toEqual([
       { name: 'downtime.setStep', args: { stepIndex: 1 } },
       { name: 'downtime.advance', args: {} },
     ])
+    acts.length = 0
+    await click(named('Next: Step 4'))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(names()).toEqual(['downtime.advance'])
+  })
+
+  // MD8-15: pressing Step 2 landed on 3, the step passing by itself.
+  test('a step pressed on the track is the step opened: it waits for Next (r8 B9)', async () => {
+    await renderCockpit(downtimeAt(0))
+    await click(named(/^Step 2: /))
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Move on' }))
+    expect(sent()).toEqual([{ name: 'downtime.setStep', args: { stepIndex: 1 } }])
   })
 
   // r7 D3 (LG7-23): a step every seat had finished still waited for the Mediator's Next.
@@ -1197,6 +1295,20 @@ describe('Downtime', () => {
       'downtime.state': { running: true, stepIndex: 9, completedBy: everyone, upkeepSpent: true },
     })
     expect(names()).toEqual([])
+  })
+
+  // LG8-10: back on step 3 after seeing all ten, End still said "early".
+  test('End Downtime after the table reached the last step does not ask (r8 B9)', async () => {
+    await renderCockpit(downtimeAt(9))
+    // Back on step 3, as the room answers a Back.
+    await act(async () => {
+      serveReads(GAME, answers(downtimeAt(2)))
+    })
+    await waitFor(() => expect(named('Back to Step 2')).toBeTruthy())
+    acts.length = 0
+    await click(named('End Downtime'))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(names()).toEqual(['downtime.end'])
   })
 
   test('End Downtime before the last step asks first', async () => {
@@ -1645,9 +1757,10 @@ describe('Group Initiative on the table (r6 B4)', () => {
     })
     const tracker = region('Group Initiative')
     expect(tracker.getByText('Pilots to act')).toBeTruthy()
-    const marks = screen.getAllByRole('button', { name: /^Acted: / })
+    const marks = screen.getAllByRole('button', { name: /^(Acted|To act): / })
     expect(marks.map((m) => m.getAttribute('aria-pressed'))).toContain('true')
-    const strike = named('Acted: Strikebreaker')
+    // Its name says what it shows (r8 B5, MD8-26).
+    const strike = named('To act: Strikebreaker')
     expect(strike.getAttribute('aria-pressed')).toBe('false')
     await click(strike)
     expect(initiative()).toEqual([{ round: 2, side: 'pilots', acted: [seat, 'n-strike'] }])

@@ -25,4 +25,10 @@ describe('the plans a recap names', () => {
       last: expect.stringContaining('The Gulch'),
     })
   })
+
+  test('a plan the room marked played is the last one, even on its own day (r8 B8)', () => {
+    const plans = sessionPlans([{ ...GULCH, played: '2026-11-23' }, TOLL], [], '2026-11-23', null)
+    expect(plans.last).toContain('The Gulch')
+    expect(plans.next).toContain('Toll gate')
+  })
 })

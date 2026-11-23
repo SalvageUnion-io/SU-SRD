@@ -19,6 +19,7 @@ import { useState } from 'react'
 import { FeedLine, FeedList, FeedTime } from '../../components/app'
 import { UnitDown } from '../../components/entity/UnitDown'
 import { Button, SlabSection, Text } from '../../components/index'
+import { TraitProse } from '../../components/TraitProse'
 import { formatDateTime, todayDay } from '../../lib/formatDate'
 import { playGamesCopy } from '../../messages/play-games'
 import { useViewerId } from '../../replica/roomCalls'
@@ -175,7 +176,7 @@ export function LastSession({
         <FeedList label={playGamesCopy('lastSession')}>
           {lines.map((line) => (
             <FeedLine key={line._id} end={<FeedTime ts={line.ts} format="clock" />}>
-              {tableLine(line, viewerId)}
+              <TraitProse text={tableLine(line, viewerId)} />
             </FeedLine>
           ))}
         </FeedList>

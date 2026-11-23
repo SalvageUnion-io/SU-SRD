@@ -61,6 +61,15 @@ describe('the plan on Mediate', () => {
     expect(currentSession({ sessions: [] }, '2026-06-01')).toBeNull()
   })
 
+  test('once today’s plan is played, the one being played is the next (r8 B8)', () => {
+    const today = { id: 's-today', date: '2026-06-01', note: '', played: '2026-06-01' }
+    expect(currentSession({ sessions: [today, PLAN.sessions[1] as never] }, '2026-06-01')?.id).toBe(
+      's-next'
+    )
+    // With every plan played, it is the last one played.
+    expect(currentSession({ sessions: [today] }, '2026-06-01')?.id).toBe('s-today')
+  })
+
   test('it shows the next session’s plan and the Game notes, and saves them as typed', async () => {
     await renderPlan()
     const session = screen.getByLabelText(

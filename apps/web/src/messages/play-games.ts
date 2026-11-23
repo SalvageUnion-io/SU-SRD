@@ -299,4 +299,6 @@ export const playGamesCopy = messages({
     'What you brought to it is back in your Training Bay. A Pilot the Game came with stays with it, and is yours again if you rejoin while it is free.',
   kitIsTheMediators:
     'NPCs and encounters for a table you run. Start a Game as its Mediator and they are here.',
+  sessionEnded: 'The group session has ended.',
+  readTheRecap: 'Read the recap',
 })

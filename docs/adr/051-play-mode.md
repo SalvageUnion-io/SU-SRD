@@ -188,6 +188,18 @@ session ends or Downtime begins. Additive and optional: no table or column;
 a Game with no row has no tracker, and a row without `split` (r7 C4, the
 groups split off) has none split.
 
+### 9d. A forgotten group session ends itself (r8 B12)
+
+A session left running kept "Session live" on Home and the Game's page for
+weeks, and its log ran across both evenings. A group session with no play for
+twelve hours (`SESSION_ENDS_IDLE_MS`, the one place the ruling is kept; null
+turns it off) ends on the room's next touch, before any act or read: Home's
+`games.liveSessions` asks each room, so asking is enough. Play is the newest
+`change_log` row, or the start. It ends as End group session does (up now,
+the tracker and the unapplied close; the plan it played is marked), at the
+moment the twelve hours ran out, and the Feed says so in a line that names
+nobody. No key or table is added.
+
 ### 10. Phones get tabs, not a second layout
 
 Below `lg` the panes are four tabs at the foot (Act, Units, Tables, Crew; the

@@ -76,6 +76,8 @@ const TRAY_PATCH = z.object({
   currentEp: z.number().optional(),
   currentHeat: z.number().optional(),
   lastImportantRoll: z.unknown().optional(),
+  usesSpent: z.record(z.string(), z.number()).optional(),
+  titanicSpent: z.unknown().optional(),
 })
 
 const SEAT = z.object({ pilotId: z.string() })
@@ -139,7 +141,15 @@ export const GAME_SOCKET_ACTS = {
   'safety.showStop': NONE,
   'safety.liftStop': NONE,
   'session.start': NONE,
-  'session.end': NONE,
+  /** The day by the Mediator's clock, for the plan it marks played (r8 B8). */
+  'session.end': z
+    .object({
+      day: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
+    })
+    .optional(),
 
   ...SEAT_ACTS,
   ...DOWNTIME_ACTS,

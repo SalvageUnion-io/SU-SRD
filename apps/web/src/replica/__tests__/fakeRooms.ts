@@ -229,6 +229,7 @@ export function serveReads(
         id: 'mediator',
         running: answers['mediator.running'] ?? null,
         initiative: answers['mediator.initiative'] ?? null,
+        ran: answers['mediator.ran'] ?? [],
       },
     ]
   }

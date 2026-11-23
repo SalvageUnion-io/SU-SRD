@@ -29,6 +29,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Button, toast } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { useOwnUnits, usePilots } from '../lib/entities'
+import { proseWords } from '../lib/proseWords'
 import { playCopy } from '../messages/play'
 import { playDoorCopy } from '../messages/play-door'
 import { playSafetyCopy } from '../messages/play-safety'
@@ -154,7 +155,8 @@ export function GameNotices({
     if (events === undefined) return
     // Done to the viewer's own unit by someone else: theirs to see, as a toast (r6 A3).
     const toMine = doneToMine(events, heard.current, viewerId, ownIds)
-    if (toMine !== null) toast(toMine.text, { id: `table-mine-${gameId}`, description: gameName })
+    if (toMine !== null)
+      toast(proseWords(toMine.text), { id: `table-mine-${gameId}`, description: gameName })
     const next = eventsToTell(events, heard.current, viewerId, mediator)
     heard.current = next.heard
     // What the strip is already saying is not said twice (r3 H2).

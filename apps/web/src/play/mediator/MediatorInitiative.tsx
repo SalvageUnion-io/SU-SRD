@@ -202,6 +202,8 @@ export function MediatorInitiative({
           {rounds && !asking && !done && (
             <Button
               size="compact"
+              // N presses it (r8 B10, `useMediatorKeys`).
+              data-initiative-next=""
               onClick={() => set({ ...initiative, side: nextSide(sides, initiative.side) })}
             >
               {mediatorCopy('nextSide')}
@@ -214,12 +216,8 @@ export function MediatorInitiative({
           >
             {mediatorCopy('newRound')}
           </Button>
-          <Button
-            variant="ghost"
-            size="compact"
-            aria-label={mediatorCopy('endInitiativeLabel')}
-            onClick={() => set(null)}
-          >
+          {/* Says what it ends, as the encounter's and the session's do (r8 B10). */}
+          <Button variant="ghost" size="compact" onClick={() => set(null)}>
             {mediatorCopy('endInitiative')}
           </Button>
         </div>
@@ -231,7 +229,8 @@ export function MediatorInitiative({
 
 /**
  * A seat's or a unit's Acted mark while the tracker is kept: the Mediator's
- * to fill or clear; read-only, the word alone.
+ * to fill or clear; read-only, the word alone. Its name starts with the word
+ * it shows, To act or Acted (r8 B5, MD8-26).
  */
 export function ActedMark({
   name,
@@ -248,7 +247,7 @@ export function ActedMark({
       size="mini"
       pressed={acted}
       glyph={acted ? '✓' : undefined}
-      aria-label={mediatorCopy('actedFor', { name })}
+      aria-label={mediatorCopy(acted ? 'actedFor' : 'notActedFor', { name })}
       onClick={onToggle}
     >
       {acted ? mediatorCopy('acted') : mediatorCopy('notActed')}

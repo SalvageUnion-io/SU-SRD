@@ -78,6 +78,10 @@ export type TrayNpc = {
   builtFrom: string | null
   /** The kind of denizen that design was built from, where it was not a plain NPC. */
   builtKind: NpcTemplateKind | null
+  /** The Uses its limited actions have spent, by action id (r8 B3). */
+  usesSpent: Record<string, number>
+  /** The Titanic Actions it spent, and in which round (r8 B3); null before any. */
+  titanicSpent: { round: number; spent: number } | null
 }
 
 const isRefSchema = (value: unknown): value is EncounterRefSchema =>
@@ -156,7 +160,21 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     refSlug,
     builtFrom: built?.npcId ?? null,
     builtKind: built?.kind ?? null,
+    usesSpent: readCounts(body.usesSpent),
+    titanicSpent: readTitanic(body.titanicSpent),
   }
+}
+
+function readCounts(value: unknown): Record<string, number> {
+  if (typeof value !== 'object' || value === null) return {}
+  return Object.fromEntries(
+    Object.entries(value).filter((e): e is [string, number] => typeof e[1] === 'number')
+  )
+}
+
+function readTitanic(value: unknown): TrayNpc['titanicSpent'] {
+  const { round, spent } = (value ?? {}) as { round?: unknown; spent?: unknown }
+  return typeof round === 'number' && typeof spent === 'number' ? { round, spent } : null
 }
 
 function readBuilt(value: unknown): NonNullable<EncounterNpc['built']> | null {
@@ -229,20 +247,6 @@ export function trayEntries(npcs: readonly TrayNpc[]): TrayEntry[] {
     entries.push(entry)
   }
   return entries
-}
-
-/**
- * The list with the downed below the living (r6 B8): a downed unit alone goes
- * to the list's foot, and a group's downed members to the group's; the rest
- * keep their order.
- */
-export function sinkDowned(entries: readonly TrayEntry[]): TrayEntry[] {
-  const living = (e: TrayEntry) => e.kind === 'group' || !e.npc.down
-  const sunk = (e: TrayEntry): TrayEntry =>
-    e.kind === 'group'
-      ? { ...e, members: [...e.members.filter((m) => !m.down), ...e.members.filter((m) => m.down)] }
-      : e
-  return [...entries.filter(living), ...entries.filter((e) => !living(e))].map(sunk)
 }
 
 /** A group's last roll: the newest of its members', as a group roll writes each one's. */

@@ -7,6 +7,7 @@
  * so a toast and its Feed line are the same event.
  */
 
+import { proseWords } from '../lib/proseWords'
 import type { TableEvent } from '../rooms/game/events'
 import { STRIP_PINS } from './stripRuling.model'
 
@@ -79,11 +80,12 @@ export function downOf(event: TableEvent): string | null {
 
 /**
  * The strip's line for a table event (r6 A3): what happened, said once. A
- * unit going Down reads "Thresher (Razor) is Down", whatever wrote it.
+ * unit going Down reads "Thresher (Razor) is Down", whatever wrote it; a
+ * roll's `[[Trait]]` reads as its word (r8 B2).
  */
 export function stripLine(event: TableEvent, downWord: (unit: string) => string): string {
   const down = downOf(event)
-  return down === null ? event.text : downWord(down)
+  return down === null ? proseWords(event.text) : downWord(down)
 }
 
 /**

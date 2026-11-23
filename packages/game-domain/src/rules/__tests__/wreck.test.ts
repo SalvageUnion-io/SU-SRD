@@ -2,6 +2,14 @@ import { describe, expect, it } from 'bun:test'
 import { wreckOf } from '../wreck'
 
 describe('wreckOf (Core Book p.246)', () => {
+  it('a Bio-Titan leaves Bio-Salvage equal to its SP (Core Book p.275, r8 B7)', () => {
+    expect(wreckOf('bio-titans', { name: 'Scylla', structurePoints: 39 }, [])).toEqual({
+      kind: 'bio',
+      bioSalvage: 39,
+    })
+    expect(wreckOf('bio-titans', { name: 'Odd' }, [])).toBeNull()
+  })
+
   it('a Vehicle or a Drone scraps for its Salvage Value in Scrap of its Tech Level', () => {
     const unit = { name: 'Box', techLevel: 2, salvageValue: 3 }
     expect(wreckOf('vehicles', unit, [])).toEqual({ kind: 'scrap', techLevel: 2, salvageValue: 3 })

@@ -72,23 +72,40 @@ export function hitDamageOf(action: {
 export type HitTarget = {
   target: ProposalTarget
   field: ProposalField
+  /** The vital the hit lands in, as the sheet labels it: HP on a Pilot, SP on a Mech. */
+  unit: 'HP' | 'SP'
   before: number
   after: number
 }
 
 /**
- * Who a hit can be proposed to (r4 D2): HP damage to the Pilots, SP damage to
- * the Mechs, each with what the hit leaves it ("take 3"). A target whose
- * vital is unknown is left out: Propose a change still reaches it.
+ * The damage a hit does at a target's scale (r8 B6): a Mech takes half an HP
+ * weapon's damage, rounded down (Core Book p.240); a Pilot twice an SP
+ * weapon's (Core Book p.241).
+ */
+function scaled(damage: HitDamage, unit: 'HP' | 'SP'): number {
+  if (damage.damageType === unit) return damage.amount
+  return unit === 'SP' ? Math.floor(damage.amount / 2) : damage.amount * 2
+}
+
+/**
+ * Who a hit can be proposed to (r4 D2, r8 B6): every Pilot, mounted or not,
+ * and every Mech, each at its own scale, the damage's own first, each with
+ * what the hit leaves it ("take 3"). A target whose vital is unknown is left
+ * out, as is a Mech an HP hit is too small to scratch: Propose a change still
+ * reaches it.
  */
 export function hitTargets(damage: HitDamage, targets: readonly ProposalTarget[]): HitTarget[] {
-  const kind = damage.damageType === 'HP' ? 'pilot' : 'mech'
-  const field: ProposalField = damage.damageType === 'HP' ? 'currentHP' : 'currentSP'
-  return targets.flatMap((target) => {
-    if (target.kind !== kind) return []
+  const own = damage.damageType === 'HP' ? 'pilot' : 'mech'
+  const order = [...targets].sort((a, b) => Number(b.kind === own) - Number(a.kind === own))
+  return order.flatMap((target) => {
+    const unit = target.kind === 'pilot' ? 'HP' : 'SP'
+    const field: ProposalField = unit === 'HP' ? 'currentHP' : 'currentSP'
+    const amount = scaled(damage, unit)
+    if (amount <= 0) return []
     const reading = target.readings[field]
     const before = reading?.current ?? reading?.max ?? null
-    const after = proposalAfter('take', String(damage.amount), before, reading?.max ?? null)
-    return before === null || after === null ? [] : [{ target, field, before, after }]
+    const after = proposalAfter('take', String(amount), before, reading?.max ?? null)
+    return before === null || after === null ? [] : [{ target, field, unit, before, after }]
   })
 }

@@ -23,7 +23,6 @@ import {
   newTrayNpc,
   readSavedPattern,
   readTrayNpc,
-  sinkDowned,
   trayEntries,
 } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
@@ -131,21 +130,42 @@ describe('proposal targets and values', () => {
     expect(hitDamageOf({})).toBeNull()
   })
 
-  test('HP damage is offered to the Pilots, SP damage to the Mechs, each with what it leaves', () => {
+  test('a hit reaches every Pilot and every Mech, each at its own scale (r8 B6)', () => {
     const hp = hitTargets({ damageType: 'HP', amount: 3 }, targets)
-    expect(hp.every((h) => h.target.kind === 'pilot' && h.field === 'currentHP')).toBe(true)
-    expect(hp.every((h) => h.after === Math.max(0, h.before - 3))).toBe(true)
+    // Its own scale first: every Pilot, mounted or not, takes the 3 HP.
+    const pilots = hp.filter((h) => h.target.kind === 'pilot')
+    expect(pilots.length).toBe(targets.filter((t) => t.kind === 'pilot').length)
+    expect(
+      pilots.every((h) => h.field === 'currentHP' && h.after === Math.max(0, h.before - 3))
+    ).toBe(true)
+    expect(hp.findIndex((h) => h.target.kind === 'mech')).toBeGreaterThan(pilots.length - 1)
+    // A Mech takes half an HP weapon's damage (Core Book p.240).
+    expect(hp.find((h) => h.target.label === "Pickle's Spectrum")).toMatchObject({
+      field: 'currentSP',
+      unit: 'SP',
+      before: 6,
+      after: 5,
+    })
     const sp = hitTargets({ damageType: 'SP', amount: 4 }, targets)
-    expect(sp.map((h) => h.target.kind)).toEqual(sp.map(() => 'mech'))
+    expect(sp[0]?.target.kind).toBe('mech')
     expect(sp.find((h) => h.target.label === "Pickle's Spectrum")).toMatchObject({
       field: 'currentSP',
       before: 6,
       after: 2,
     })
+    // A Pilot takes twice an SP weapon's damage (Core Book p.241).
+    expect(sp.find((h) => h.target.kind === 'pilot')).toMatchObject({ unit: 'HP' })
+    const pickle = sp.find((h) => h.target.label === 'Pickle')
+    expect(pickle?.after).toBe(Math.max(0, (pickle?.before ?? 0) - 8))
     // A hit never takes a vital below 0.
     expect(hitTargets({ damageType: 'SP', amount: 99 }, targets).every((h) => h.after === 0)).toBe(
       true
     )
+  })
+
+  test('a hit too small to scale reaches no Mech', () => {
+    const hp = hitTargets({ damageType: 'HP', amount: 1 }, targets)
+    expect(hp.some((h) => h.target.kind === 'mech')).toBe(false)
   })
 })
 
@@ -402,26 +422,24 @@ describe('groups on the tray (ADR-059 §5)', () => {
     ).toEqual(['a', ['b', 'd'], 'c'])
   })
 
-  // MD6-16: downed mooks kept full cards among the living.
-  test('the downed sink below the living, alone and inside a group (r6 B8)', () => {
+  // MD8-06: cards that moved as units went down were aimed at and missed.
+  test('the downed keep their place, alone and inside a group (r8 B5)', () => {
     const down = (id: string, group?: { id: string; name: string }) =>
       readTrayNpc({
         _id: id,
         body: { name: id, refSchema: 'npcs', refSlug: 'raider', currentHp: 0, maxHp: 3, group },
       })
-    const entries = sinkDowned(
-      trayEntries([
-        down('a'),
-        row('b', band),
-        down('c', band),
-        row('d'),
-        down('e', band),
-        row('f', band),
-      ])
-    )
+    const entries = trayEntries([
+      down('a'),
+      row('b', band),
+      down('c', band),
+      row('d'),
+      down('e', band),
+      row('f', band),
+    ])
     expect(
       entries.map((e) => (e.kind === 'alone' ? e.npc.id : e.members.map((m) => m.id)))
-    ).toEqual([['b', 'f', 'c', 'e'], 'd', 'a'])
+    ).toEqual(['a', ['b', 'c', 'e', 'f'], 'd'])
   })
 
   test('a malformed group reads as none', () => {

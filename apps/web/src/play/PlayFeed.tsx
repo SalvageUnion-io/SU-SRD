@@ -25,6 +25,8 @@
  * Solo, the last visit's lines follow this one's under "Last time", read from
  * the units' Change Logs (r7 A8).
  *
+ * A roll's `[[Trait]]` reads as the trait's word, a Mention with its Peek (r8 B2).
+ *
  * Feed lines are level 1 (play.md §12): plain text and buttons inside, no
  * frame inside a frame.
  */
@@ -32,6 +34,7 @@
 import type { CSSProperties } from 'react'
 import { FeedLine, FeedList, FeedTime, FieldError } from '../components/app'
 import { Button, tokens } from '../components/index'
+import { TraitProse } from '../components/TraitProse'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
 import { useTableAct } from '../replica/useTable'
@@ -189,7 +192,9 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
                   </span>
                 }
               >
-                <Grouped entry={entry}>{entry.text}</Grouped>
+                <Grouped entry={entry}>
+                  <TraitProse text={entry.text} />
+                </Grouped>
                 {veil(entry.reveal, entry.text, entry.kept)}
                 {post?.kind === 'failed' && (
                   <FieldError>
@@ -210,7 +215,9 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
                   <FeedTime ts={entry.ts} format={entry.kind === 'last' ? 'datetime' : 'clock'} />
                 }
               >
-                <Grouped entry={entry}>{entry.text}</Grouped>
+                <Grouped entry={entry}>
+                  <TraitProse text={entry.text} />
+                </Grouped>
                 {entry.kind === 'roll' && veil(entry.reveal, entry.text, entry.kept)}
               </FeedLine>
             )

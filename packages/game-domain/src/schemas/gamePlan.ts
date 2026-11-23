@@ -48,6 +48,11 @@ const PlanSessionSchema = z
     /** The Mediator's private note for the session. */
     note: z.string().max(GAME_PLAN_MAX_SESSION_NOTE),
     scenes: z.array(PlanSceneSchema).max(GAME_PLAN_MAX_SCENES).optional(),
+    /**
+     * The day the table played it (r8 B8): the room marks it when the group
+     * session ends (`markPlayed`), and a played plan is never the next one.
+     */
+    played: DaySchema.optional(),
   })
   .strict()
 
@@ -139,10 +144,15 @@ export function planWith(stored: StoredGamePlan, author: string, plan: GamePlan)
       sessions: Object.fromEntries(Object.entries(notes.sessions).filter(([s]) => kept.has(s))),
     }
   }
+  // The room marks a plan played (`markPlayed`): a save from a screen read before it keeps the mark.
+  const played = new Map(stored.sessions.map((session) => [session.id, session.played]))
   return {
     schemaVersion: 1,
     notes: '',
-    sessions: plan.sessions.map((session) => ({ ...session, note: '' })),
+    sessions: plan.sessions.map((session) => {
+      const day = session.played ?? played.get(session.id)
+      return { ...session, note: '', ...(day === undefined ? {} : { played: day }) }
+    }),
     author: owner,
     byAuthor,
   }
@@ -164,8 +174,30 @@ function notesOf(plan: GamePlan): z.infer<typeof AuthorNotesSchema> {
 export function sessionDaysFrom(plan: GamePlan, from: string, most = 5): string[] {
   return plan.sessions
     .flatMap((session) =>
-      session.date !== undefined && session.date >= from ? [session.date] : []
+      session.date !== undefined && session.date >= from && session.played === undefined
+        ? [session.date]
+        : []
     )
     .sort()
     .slice(0, most)
+}
+
+/**
+ * The plan once the table has played on `day` (r8 B8, MD8-23): the plan it
+ * played is marked, the latest not yet played whose day has come, else the
+ * first not played with no day. A plan dated after `day` is never guessed at.
+ * Null when there is none to mark.
+ */
+export function markPlayed<P extends GamePlan>(plan: P, day: string): P | null {
+  const open = plan.sessions.filter((session) => session.played === undefined)
+  const due = open
+    .filter((session) => session.date !== undefined && session.date <= day)
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+    .at(-1)
+  const played = due ?? open.find((session) => session.date === undefined)
+  if (played === undefined) return null
+  return {
+    ...plan,
+    sessions: plan.sessions.map((s) => (s.id === played.id ? { ...s, played: day } : s)),
+  }
 }

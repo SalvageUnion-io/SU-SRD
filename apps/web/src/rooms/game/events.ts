@@ -318,6 +318,27 @@ export class GameEvents {
         const text = `${now.name} · HP ${from}→ ${now.hp}`
         return [this.note(actor, at, { kind: 'vitals', text, private: true })]
       }
+      // The fight's end is the table's to read (r8 B10); the encounter stays unnamed.
+      case 'mediator.setInitiative':
+        return a.initiative === null && before.fight === true
+          ? [
+              ...started(),
+              this.note(actor, at, {
+                kind: 'action',
+                text: `${this.runnerName(actor)} ended Group Initiative`,
+              }),
+            ]
+          : started()
+      case 'mediator.endEncounter':
+        return before.fight === true
+          ? [
+              ...started(),
+              this.note(actor, at, {
+                kind: 'action',
+                text: `${this.runnerName(actor)} ended the encounter`,
+              }),
+            ]
+          : started()
       case 'safety.showStop':
         // Nobody is named: who showed it stays in the room.
         return before.stop === true
@@ -349,6 +370,15 @@ export class GameEvents {
       kind: 'leave',
       text: `${this.memberName(userId)} was removed from the Game`,
       about: userId,
+    })
+  }
+
+  /** The room ended a forgotten group session (r8 B12): nobody did, so nobody is named. */
+  endedIdle(at: number): TableEvent {
+    return this.note(null, at, {
+      kind: 'session',
+      text: 'The group session ended after twelve hours with no play',
+      session: 'end',
     })
   }
 

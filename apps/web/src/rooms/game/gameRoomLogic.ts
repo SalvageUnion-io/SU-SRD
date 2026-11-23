@@ -1,5 +1,6 @@
 import type { ApplyOp } from '../ops'
 import type { RoomSql } from '../sql'
+import type { TableEvent } from './events'
 import { GameEvents } from './events'
 import { GameLog } from './log'
 import { GameOpposition } from './opposition'
@@ -9,7 +10,7 @@ import { GameProposals } from './proposals'
 import { GameRoster, randomInviteCode } from './roster'
 import { GameSafety } from './safety'
 import { GameScene } from './scene'
-import { GameSession } from './session'
+import { GameSession, SESSION_ENDS_IDLE_MS } from './session'
 import { GameStore } from './store'
 import { GameTransit } from './transit'
 import { GameUnits } from './units'
@@ -57,5 +58,26 @@ export class GameRoomLogic {
     this.session = new GameSession(store)
     this.log = new GameLog(store, newId)
     this.events = new GameEvents(store, newId)
+  }
+
+  /**
+   * A group session nobody played in for `SESSION_ENDS_IDLE_MS` ends, as
+   * End group session ends one (r8 B12): at the moment it ran out, with the
+   * plan it played marked, and a line for the table, which this answers.
+   * The room calls it before each act, so Home stops saying Session live.
+   */
+  endIdleSession(at: number): TableEvent[] {
+    const last = this.session.lastPlayed()
+    if (SESSION_ENDS_IDLE_MS === null || last === null || at - last < SESSION_ENDS_IDLE_MS)
+      return []
+    const ended = last + SESSION_ENDS_IDLE_MS
+    this.store.sql.transaction(() => {
+      this.session.endIdle()
+      this.scene.clearUpNow(ended)
+      this.opposition.endInitiative(ended)
+      this.play.closeUnapplied(null, ended)
+      this.plan.markPlayed(new Date(last).toISOString().slice(0, 10), ended)
+    })
+    return [this.events.endedIdle(ended)]
   }
 }

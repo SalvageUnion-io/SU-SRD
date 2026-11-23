@@ -15,6 +15,7 @@ import type { GamePlan, OwnPlanNotes, StoredGamePlan } from 'game-domain/schemas
 import {
   EMPTY_GAME_PLAN,
   GamePlanSchema,
+  markPlayed,
   ownNotesFor,
   planFor,
   planWith,
@@ -64,6 +65,15 @@ export class GamePlanStore {
     const members = this.store.members()
     const runner = members.find((member) => runsTable(member, hasMediator(members)))
     if (runner !== undefined) this.keep({ ...stored, author: runner.userId }, at)
+  }
+
+  /**
+   * The group session ended on `day` (r8 B8): the plan the table played is
+   * marked played (`markPlayed`), so the next plan is the next session.
+   */
+  markPlayed(day: string, at: number): void {
+    const marked = markPlayed(this.stored(), day)
+    if (marked !== null) this.keep(marked, at)
   }
 
   /** The session days from `from` on, for any member: the days and nothing else. */

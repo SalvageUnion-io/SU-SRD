@@ -486,9 +486,9 @@ describe('a solo Downtime, end to end', () => {
     expect(
       track.getByRole('button', { name: `Step ${train + 1}: ${STEPS[train]}, skipped` })
     ).toBeTruthy()
-    // A step that previews nothing is done, as before.
+    // A step jumped over, though it previews nothing, is skipped, never done (r8 B9, SB8-16).
     expect(
-      track.getByRole('button', { name: `Step ${train}: ${STEPS[train - 1]}, done` })
+      track.getByRole('button', { name: `Step ${train}: ${STEPS[train - 1]}, skipped` })
     ).toBeTruthy()
     expect(screen.getByText(/^Skipped, nothing applied: /).textContent).toContain(
       `${train + 1} ${STEPS[train]}`

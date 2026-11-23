@@ -3,6 +3,9 @@
 import { messages } from './define'
 
 export const playKeysCopy = messages({
+  keyTell: 'Tell the table',
+  keyRollNpc: 'Roll the open NPC action’s die',
+  keyNextSide: 'Move initiative on to the next side',
   keyRules: 'Search the Rules',
   keyRulesCap: 'Ctrl K · ⌘K',
   keyNotYourTurn: 'It is not your turn: there is no turn to end.',

@@ -34,12 +34,15 @@ const START_HINT = {
 export function SessionControl({
   session,
   inBar = false,
+  stay = false,
 }: {
   session: GameSession | null
   /** On the Play bar's line: the hint drops under Start, over the page, on hover or focus. */
   inBar?: boolean
+  /** Ended, the one who ended it stays on this screen (Mediate, r8 B8). */
+  stay?: boolean
 }) {
-  const end = useEndSession(session)
+  const end = useEndSession(session, { stay })
   const hintId = useId()
   if (session === null) return null
   const blocked = !session.canWrite || session.pending

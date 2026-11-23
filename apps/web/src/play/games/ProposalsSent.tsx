@@ -19,12 +19,19 @@ import { useTableRead } from '../../replica/useTable'
 import { ProposalsList } from '../mediator/ProposalsList'
 import { useWithdrawProposal } from '../mediator/useWithdrawProposal'
 import { HUB_BODY } from './hubStyles.model'
+import { lastSession } from './lastSession.model'
+import { currentProposals } from './proposalsSent.model'
 
 export function ProposalsSent({ gameId }: { gameId: string }) {
   const [limit, setLimit] = useState(PROPOSALS_PAGE)
-  const sent = useTableRead('ops.sent', { gameId, limit })
+  const all = useTableRead('ops.sent', { gameId, limit })
+  const events = useTableRead('changeLog.events', { gameId })
   const withdraw = useWithdrawProposal(gameId)
   const { canWrite } = useSync()
+  const sent =
+    all === undefined || events === undefined
+      ? undefined
+      : currentProposals(all, lastSession(events))
   if (sent !== undefined && sent.length === 0) return null
   return (
     <SlabSection

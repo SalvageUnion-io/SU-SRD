@@ -17,10 +17,19 @@
  * roll, the NPC's last roll its marked row, kept on the NPC and in its box.
  *
  * A weapon's roll offers its hit (r4 D2), beside the result at the top of the
- * resolve, above the table (r5 B6): "Propose 3 HP to…" lists the seats
- * that take that damage (`hitTargets`), and pressing one sends the proposal,
+ * resolve, above the table (r5 B6): "Propose 3 HP to…" lists every Pilot
+ * and Mech, each at its own scale (`hitTargets`, r8 B6), and pressing one sends the proposal,
  * the table its reason, never the NPC (r7 C7). Nothing is offered on the table's Failure rows, a
  * miss; the player still decides whether a proposal applies.
+ *
+ * Rolled, an action is done with (r8 B5): its line is on the Feed and its panel
+ * folds, so only one Roll the die is ever open; a hit to offer keeps the
+ * result, its roll read-only, until it is proposed or cancelled.
+ *
+ * The book's bookkeeping is counted (r8 B3): a limited action shows its Uses
+ * left and spends one when rolled; a Passive reads as text with no Use; a
+ * Bio-Titan's Titanic Actions show what is left this round, a later round
+ * having them all back. − / + on either corrects it.
  */
 
 import type { ProposalTarget } from 'game-domain/games/proposals'
@@ -42,11 +51,20 @@ import {
 import { actionEffect } from '../../lib/rules/actionEffect'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollInstrument } from '../PlayRollInstrument'
+import { PlayVital } from '../PlayVital'
 import { playLineModel } from '../playLine.model'
 import { reportingRoll } from '../playRolls.model'
 import { usePlayWide } from '../usePlayWide'
 import type { NpcAction } from './npcActions.model'
-import { npcActions } from './npcActions.model'
+import {
+  npcActions,
+  titanicLeft,
+  titanicOf,
+  usable,
+  usesKey,
+  usesLeft,
+  usesOf,
+} from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
 import type { ProposeArgs } from './ProposeDock'
 import type { HitDamage } from './proposalLine.model'
@@ -98,6 +116,15 @@ type PlayNpcActionsProps = {
   rollFor?: typeof rollForTable | undefined
   /** An action was rolled: the unit has taken its turn (r7 C3). */
   onActed?: (() => void) | undefined
+  /** The unit's counted Uses and Titanic Actions (r8 B3); absent, they only read. */
+  counts?: NpcCounts | undefined
+}
+
+/** Where a unit's counts are written (r8 B3), and the round its Titanic Actions are spent in. */
+type NpcCounts = {
+  round: number
+  onUses: (key: string, spent: number) => void
+  onTitanic: (spent: number) => void
 }
 
 export function PlayNpcActions({
@@ -107,6 +134,7 @@ export function PlayNpcActions({
   hit,
   rollFor = rollForTable,
   onActed,
+  counts,
 }: PlayNpcActionsProps) {
   const actions = useMemo(() => npcActions(npc), [npc])
   // The action resolving in its Mini: one at a time, as a player's.
@@ -134,6 +162,7 @@ export function PlayNpcActions({
             hit={live ? hit : undefined}
             rollFor={rollFor}
             onActed={onActed}
+            counts={live ? counts : undefined}
           />
         ))}
         <li className="su-play-act" data-action-key="morale">
@@ -167,6 +196,7 @@ function NpcActionRow({
   hit,
   rollFor,
   onActed,
+  counts,
 }: {
   npc: TrayNpc
   entry: NpcAction
@@ -176,6 +206,7 @@ function NpcActionRow({
   hit: NpcHit | undefined
   rollFor: typeof rollForTable
   onActed: (() => void) | undefined
+  counts: NpcCounts | undefined
 }) {
   // The same row text as the player's board: the effect alone.
   // A chassis ability names its chassis by a token: the row reads the name (r5 B9).
@@ -196,6 +227,33 @@ function NpcActionRow({
   const wide = usePlayWide()
   const [rolled, setRolled] = useState<{ die: number; band: string } | null>(null)
   const damage = useMemo(() => hitDamageOf(entry.action), [entry.action])
+  // Its book bookkeeping (r8 B3): a limited action's Uses, a Bio-Titan's Titanic Actions this round.
+  const key = usesKey(entry.action)
+  const uses = usesOf(entry.action)
+  const titanic = titanicOf(entry.action)
+  const usesNow = uses === null ? null : usesLeft(uses, npc.usesSpent[key])
+  const titanicNow =
+    titanic === null ? null : titanicLeft(titanic, npc.titanicSpent, counts?.round ?? 0)
+  const counter =
+    uses !== null && usesNow !== null ? (
+      <PlayVital
+        label={mediatorCopy('usesLabel')}
+        value={usesNow}
+        max={uses}
+        tone="adversary"
+        onChange={counts ? (next) => counts.onUses(key, uses - next) : undefined}
+      />
+    ) : titanic !== null && titanicNow !== null ? (
+      <PlayVital
+        label={mediatorCopy('titanicLabel')}
+        value={titanicNow}
+        max={titanic}
+        tone="adversary"
+        onChange={counts ? (next) => counts.onTitanic(titanic - next) : undefined}
+      />
+    ) : null
+  // A Passive, and the Titanic count, are read, never rolled (r8 B3).
+  const canUse = usable(entry)
 
   async function roll() {
     let said: string | undefined
@@ -205,8 +263,19 @@ function NpcActionRow({
       ...(said ? { outcome: said } : {}),
     }))(20)
     said = npcActionOutcome(die) || undefined
-    setRolled({ die, band: said ?? '' })
     onActed?.()
+    // A limited action spends one of its Uses (r8 B3).
+    if (uses !== null && usesNow !== null) counts?.onUses(key, uses - usesNow + 1)
+    // Rolled, the action is done with (r8 B5): its line is on the Feed, and
+    // the panel folds, so only one Roll the die is ever open. A hit to offer
+    // keeps it, without the roll, until it is proposed.
+    if (missed(said ?? '') || damage === null || hit === undefined) return fold()
+    setRolled({ die, band: said ?? '' })
+  }
+
+  function fold() {
+    setRolled(null)
+    onOpen(false)
   }
 
   return (
@@ -220,19 +289,17 @@ function NpcActionRow({
             <Button
               size="mini"
               aria-label={mediatorCopy('cancelFor', { name: entry.name, name2: npc.name })}
-              onClick={() => {
-                setRolled(null)
-                onOpen(false)
-              }}
+              onClick={fold}
             >
               {mediatorCopy('cancel')}
             </Button>
-          ) : (
+          ) : !canUse ? undefined : (
             <Button
               // Every Use is rust; a phone's is a 44px target.
               size={wide ? 'mini' : 'full'}
               variant="primary"
-              disabled={!live}
+              // A limited action with no Uses left is spent (r8 B3).
+              disabled={!live || usesNow === 0}
               aria-label={mediatorCopy('useFor', { name: entry.name, name2: npc.name })}
               onClick={() => onOpen(true)}
             >
@@ -245,21 +312,24 @@ function NpcActionRow({
               body: {
                 children: (
                   <div className="su-play-resolve">
+                    {counter}
                     {/* The result and its hit sit at the top, above the table (r5 B6). */}
                     {rolled ? (
                       <div style={RESULT}>
                         <p className="su-play-resolve__note" aria-live="polite">
                           {rolled.die} · {rolled.band}
                         </p>
-                        {!missed(rolled.band) && damage && hit ? (
-                          <HitOffer npc={npc} damage={damage} hit={hit} />
+                        {damage && hit ? (
+                          <HitOffer npc={npc} damage={damage} hit={hit} onProposed={fold} />
                         ) : null}
                       </div>
                     ) : null}
                     <PlayRollInstrument
                       table={NPC_ACTION}
+                      // R presses it (r8 B10, `useMediatorKeys`).
+                      pressAs="roll"
                       roll={rolled?.die ?? null}
-                      onRoll={live ? () => void roll() : undefined}
+                      onRoll={live && rolled === null ? () => void roll() : undefined}
                     />
                   </div>
                 ),
@@ -270,10 +340,14 @@ function NpcActionRow({
               // range, damage and traits before Use (r5 B8).
               body: {
                 text: false,
-                children:
-                  typeof first === 'string' ? (
-                    <TraitProse as="p" className="su-play-act__effect" text={first} />
-                  ) : null,
+                children: (
+                  <>
+                    {counter}
+                    {typeof first === 'string' ? (
+                      <TraitProse as="p" className="su-play-act__effect" text={first} />
+                    ) : null}
+                  </>
+                ),
               },
             })}
       />
@@ -286,7 +360,18 @@ function NpcActionRow({
  * names the damage, its menu the seats that take it and what each is left
  * with; a seat pressed is proposed it at once.
  */
-function HitOffer({ npc, damage, hit }: { npc: TrayNpc; damage: HitDamage; hit: NpcHit }) {
+function HitOffer({
+  npc,
+  damage,
+  hit,
+  onProposed,
+}: {
+  npc: TrayNpc
+  damage: HitDamage
+  hit: NpcHit
+  /** The hit is proposed: the action is done with (r8 B5). */
+  onProposed: () => void
+}) {
   const unit = damage.damageType
   const seats = hitTargets(damage, hit.targets)
   if (seats.length === 0) {
@@ -299,10 +384,10 @@ function HitOffer({ npc, damage, hit }: { npc: TrayNpc; damage: HitDamage; hit: 
       trigger={mediatorCopy('proposeHitTo', { amount: damage.amount, unit })}
       label={mediatorCopy('proposeHitFor', { amount: damage.amount, unit, name: npc.name })}
       sections={[
-        seats.map(({ target, field, before, after }) => ({
+        seats.map(({ target, field, unit: lands, before, after }) => ({
           id: target.id,
           label: target.label,
-          hint: mediatorCopy('hitLeaves', { unit, before, after }),
+          hint: mediatorCopy('hitLeaves', { unit: lands, before, after }),
           onSelect: () =>
             void hit
               .onPropose({
@@ -313,11 +398,12 @@ function HitOffer({ npc, damage, hit }: { npc: TrayNpc; damage: HitDamage; hit: 
                 // The roll was veiled: the reason names the table, never the NPC (r7 C7).
                 reason: veiledReason(NPC_ACTION).slice(0, PROPOSAL_REASON_MAX),
               })
-              .then(() =>
+              .then(() => {
                 toast.success(
-                  mediatorCopy('hitProposed', { name: target.label, unit, before, after })
+                  mediatorCopy('hitProposed', { name: target.label, unit: lands, before, after })
                 )
-              )
+                onProposed()
+              })
               // The caller has already said why.
               .catch(() => undefined),
         })),

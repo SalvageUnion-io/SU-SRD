@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeEach, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { ToasterMount } from '../../components/index'
 import { acts, closeRooms, openRooms, serve } from '../../replica/__tests__/fakeRooms'
 import { SessionControl } from '../SessionControl'
 import type { GameSession } from '../useGameSession'
@@ -57,6 +58,29 @@ test('End group session asks first, and ends only on the confirm', async () => {
   })
   expect(calls).toEqual(['end'])
   // Ended, whoever ended it lands on the Game's page and its recap (r6 C1).
+  expect(assigned).toEqual(['/games/g1'])
+})
+
+test('Ended from Mediate, the Mediator stays there, and a toast opens the recap (r8 B8)', async () => {
+  const calls: string[] = []
+  render(<ToasterMount />)
+  render(<SessionControl session={session(true, calls)} inBar stay />)
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'End group session' }))
+  })
+  const dialog = screen.getByRole('alertdialog', { name: 'End the group session?' })
+  const confirm = [...dialog.querySelectorAll('button')].find(
+    (b) => b.textContent === 'End group session'
+  )
+  await act(async () => {
+    fireEvent.click(confirm as HTMLButtonElement)
+  })
+  expect(calls).toEqual(['end'])
+  expect(assigned).toEqual([])
+  const recap = await screen.findByRole('button', { name: 'Read the recap' })
+  await act(async () => {
+    fireEvent.click(recap)
+  })
   expect(assigned).toEqual(['/games/g1'])
 })
 

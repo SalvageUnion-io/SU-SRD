@@ -35,6 +35,8 @@ export type EventsBefore = {
   npc?: { name: string; hp: number | null } | null
   /** The resolves nobody applied that the act may close (r5 A7). */
   unapplied?: { pilotId: string; name: string; owes: boolean }[]
+  /** Whether an encounter, or Group Initiative, was running: ending none says nothing (r8 B10). */
+  fight?: boolean
 }
 
 /** What of a seat's resolve says how far it got. */
@@ -114,6 +116,12 @@ function beforeAct(store: GameStore, name: GameActName, args: unknown): EventsBe
     case 'downtime.advance':
     case 'downtime.setStep':
       return { downtimeStep: downtimeStepNow(store) }
+    case 'mediator.endEncounter':
+      return { fight: store.rows('select 1 from running_encounter').length > 0 }
+    case 'mediator.setInitiative': {
+      const row = store.rows("select after from change_log where field = 'initiative'")[0]
+      return { fight: typeof row?.after === 'string' && JSON.parse(row.after) !== null }
+    }
     case 'salvageAreas.set':
       return { area: store.rows('select 1 from salvage_area where supply > 0').length > 0 }
     case 'downtime.begin':
