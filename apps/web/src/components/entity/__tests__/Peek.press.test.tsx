@@ -158,3 +158,40 @@ describe('a press on a reference term', () => {
     expect(press(link)).toBe(true)
   })
 })
+
+describe("a list's row name on a phone (r8 G4)", () => {
+  test('focus with no hover to read by opens no Peek: the tap opens the page', async () => {
+    const real = window.matchMedia
+    window.matchMedia = ((query: string) => ({
+      matches: query.includes('hover: none'),
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })) as unknown as typeof window.matchMedia
+    try {
+      render(
+        <EntitySurfaceProvider value={{ hrefFor }}>
+          <table className="su-ledger__table">
+            <tbody>
+              <tr>
+                <th>
+                  <Mention entityRef={burn()} goes>
+                    Burn
+                  </Mention>
+                </th>
+              </tr>
+            </tbody>
+          </table>
+          <PeekHost />
+        </EntitySurfaceProvider>
+      )
+      const link = screen.getByRole('link', { name: 'Burn' })
+      // A tap whose press the Peek never saw (its host mounting under the finger).
+      act(() => link.focus())
+      await act(async () => {})
+      expect(screen.queryByRole('tooltip')).toBeNull()
+    } finally {
+      window.matchMedia = real
+    }
+  })
+})

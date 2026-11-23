@@ -201,7 +201,9 @@ export function ListingRail({
   if (part === 'view' && !showView) return null
   if (part === 'filters' && !hasNameFilter && !hasFacets && !status) return null
   const hasStatus = showFilters && (hasToolbar || Boolean(status))
+  // The name filter folds behind Filters on a phone (r8 G4): it counts there too.
   const activeFacets =
+    (filters.name ? 1 : 0) +
     filters.techLevels.size +
     (filters.source ? 1 : 0) +
     (filters.tree ? 1 : 0) +
