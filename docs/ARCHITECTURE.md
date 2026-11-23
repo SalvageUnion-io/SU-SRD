@@ -66,7 +66,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     A unit's history is its applied ops (`transaction` / `override` / `manual`, ADR-063); `changeLog` keeps Game rows and moves.
     Read in `ChangeLogDrawer`; destruction waits for the player (ADR-007).
 21. **Combat loop** <a id="combat"></a>
-    A shared living sheet: no combat RPCs, undo or turn system (Initiative: a tracker the Mediator moves); math: the reference's `lib/rules/`, patches the app's.
+    A shared living sheet: no combat RPCs, undo or turn system (Initiative: a tracker that passes a side all acted, with Undo); math: the reference's `lib/rules/`, patches the app's.
     Activation is sequential (ADR-008); only players change item conditions (ADR-009).
 22. **Display system** · ADR-010, ADR-026, ADR-028, ADR-053 · [spec](architecture/entity-card.md) <a id="display"></a>
     Entity forms (Mention, Mini, Compact, index Compact, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; contentful forms and Page are `ReferenceEntityCard`, the only one, app UI layered on. `Box` is every other frame, never merged with it.

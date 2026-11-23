@@ -96,6 +96,8 @@ type PlayNpcActionsProps = {
   hit?: NpcHit | undefined
   /** The dice (a test injects its own). */
   rollFor?: typeof rollForTable | undefined
+  /** An action was rolled: the unit has taken its turn (r7 C3). */
+  onActed?: (() => void) | undefined
 }
 
 export function PlayNpcActions({
@@ -104,6 +106,7 @@ export function PlayNpcActions({
   onMorale,
   hit,
   rollFor = rollForTable,
+  onActed,
 }: PlayNpcActionsProps) {
   const actions = useMemo(() => npcActions(npc), [npc])
   // The action resolving in its Mini: one at a time, as a player's.
@@ -130,6 +133,7 @@ export function PlayNpcActions({
             onOpen={(on) => setOpen(on ? entry.key : null)}
             hit={live ? hit : undefined}
             rollFor={rollFor}
+            onActed={onActed}
           />
         ))}
         <li className="su-play-act" data-action-key="morale">
@@ -162,6 +166,7 @@ function NpcActionRow({
   onOpen,
   hit,
   rollFor,
+  onActed,
 }: {
   npc: TrayNpc
   entry: NpcAction
@@ -170,6 +175,7 @@ function NpcActionRow({
   onOpen: (open: boolean) => void
   hit: NpcHit | undefined
   rollFor: typeof rollForTable
+  onActed: (() => void) | undefined
 }) {
   // The same row text as the player's board: the effect alone.
   // A chassis ability names its chassis by a token: the row reads the name (r5 B9).
@@ -200,6 +206,7 @@ function NpcActionRow({
     }))(20)
     said = npcActionOutcome(die) || undefined
     setRolled({ die, band: said ?? '' })
+    onActed?.()
   }
 
   return (

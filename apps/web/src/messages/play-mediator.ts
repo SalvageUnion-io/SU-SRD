@@ -319,5 +319,10 @@ export const mediatorCopy = messages({
   acted: 'Acted',
   notActed: 'To act',
   actedFor: 'Acted: {name}',
-  initiativeNote: 'A tracker you move: it enforces nothing.',
+  initiativeNote:
+    'Using an action marks it Acted, and a side all acted passes play on. It enforces nothing.',
+  autoActed: '{name} acted.',
+  autoPassed: '{side} to act.',
+  undoStep: 'Undo',
+  undoStepLabel: 'Undo: {what}',
 })

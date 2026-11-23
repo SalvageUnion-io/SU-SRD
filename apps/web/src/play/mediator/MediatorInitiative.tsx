@@ -6,9 +6,10 @@
  * roll answers it. Each seat and unit carries its Acted mark
  * (`PlayMediatorSeat`, `PlayNpcBox`); a pilot's fills when their turn ends.
  *
- * A tracker the Mediator moves (`lib/rules/initiative.ts`): nothing is
- * refused, no round ends and no side moves on its own. Give the turn still
- * works within a side.
+ * A tracker (`lib/rules/initiative.ts`): nothing is refused and no round
+ * ends on its own, but a side all acted passes play on (r7 C3), said on the
+ * tracker with its Undo; once everyone has acted, New round is the one
+ * button. Give the turn still works within a side.
  */
 
 import type { CSSProperties } from 'react'
@@ -37,6 +38,7 @@ import { INITIATIVE_TABLE } from '../tables.model'
 import { mediatorSides } from './initiative.model'
 import { NOTE, NOTE_MUTED } from './mediatorStyles.model'
 import type { InitiativeTracker } from './useInitiative'
+import { usePassingSides } from './useInitiative'
 import type { PlayMediator } from './usePlayMediator'
 
 const STACK = {
@@ -59,8 +61,11 @@ export function MediatorInitiative({
   mediator: PlayMediator
   tracker: InitiativeTracker
 }) {
-  const { initiative, set } = tracker
+  const { initiative, set, lastStep } = tracker
   const live = mediator.canWrite
+  const sides = mediatorSides(mediator)
+  // A pilot's End my turn marks them Acted in the room; the side passes here (r7 C3).
+  usePassingSides(mediator.gameId, tracker, sides, live)
   if (initiative === null) {
     return live ? (
       <div style={ROW}>
@@ -71,8 +76,26 @@ export function MediatorInitiative({
     ) : null
   }
 
-  const sides = mediatorSides(mediator)
   const rounds = INITIATIVE_MODE === 'rounds'
+  const done = roundDone(initiative, sides)
+  // What the app just did by itself, said once, with its Undo (r7 C3).
+  const nameOf = (id: string) =>
+    sides.flatMap((side) => side.members).find((member) => member.id === id)?.name ?? ''
+  const stepWords =
+    lastStep === null
+      ? ''
+      : [
+          lastStep.acted === undefined
+            ? ''
+            : mediatorCopy('autoActed', { name: nameOf(lastStep.acted) }),
+          lastStep.passedTo === undefined
+            ? ''
+            : mediatorCopy('autoPassed', {
+                side: sides.find((side) => side.id === lastStep.passedTo)?.name ?? '',
+              }),
+        ]
+          .filter((words) => words !== '')
+          .join(' ')
   const current = sides.find((side) => side.id === initiative.side)
   const asking = rounds && initiative.side === undefined
   const table = asking ? SalvageUnionReference.RollTables.getByName(INITIATIVE_TABLE) : undefined
@@ -130,10 +153,26 @@ export function MediatorInitiative({
           )}
         </>
       )}
-      {roundDone(initiative, sides) && <p style={NOTE}>{mediatorCopy('everyoneHasActed')}</p>}
+      {done && <p style={NOTE}>{mediatorCopy('everyoneHasActed')}</p>}
+      {stepWords !== '' && (
+        <div style={ROW} role="status">
+          <span style={NOTE_MUTED}>{stepWords}</span>
+          {live && (
+            <Button
+              variant="ghost"
+              size="mini"
+              aria-label={mediatorCopy('undoStepLabel', { what: stepWords })}
+              onClick={tracker.undoStep}
+            >
+              {mediatorCopy('undoStep')}
+            </Button>
+          )}
+        </div>
+      )}
       {live && (
         <div style={ROW}>
-          {rounds && !asking && (
+          {/* Everyone has acted: New round is the one way on (r7 C3). */}
+          {rounds && !asking && !done && (
             <Button
               size="compact"
               onClick={() => set({ ...initiative, side: nextSide(sides, initiative.side) })}
@@ -141,7 +180,11 @@ export function MediatorInitiative({
               {mediatorCopy('nextSide')}
             </Button>
           )}
-          <Button size="compact" onClick={() => set(newRound(initiative))}>
+          <Button
+            size="compact"
+            variant={done ? 'primary' : 'default'}
+            onClick={() => set(newRound(initiative))}
+          >
             {mediatorCopy('newRound')}
           </Button>
           <Button

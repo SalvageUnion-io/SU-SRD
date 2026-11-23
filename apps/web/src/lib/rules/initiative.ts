@@ -4,10 +4,12 @@
  * at a time; someone who has acted waits for the next round; when everyone
  * has, a new round starts and the Group Initiative Table says who acts first.
  *
- * A tracker the Mediator moves, never a turn system (ARCHITECTURE.md#combat):
- * nothing here refuses a turn, ends a round or moves a side on its own. The
- * Mediator presses Next side and New round; a pilot's mark fills when their
- * turn ends (`scenes.endTurn`) or the turn is given to someone else.
+ * A tracker, never a turn system (ARCHITECTURE.md#combat): nothing here
+ * refuses a turn or ends a round. A pilot's mark fills when their turn ends
+ * (`scenes.endTurn`) or the turn is given to someone else; Mediate marks an
+ * NPC whose action is rolled and passes a side all acted (r7 C3,
+ * `play/mediator/initiative.model.ts`), each with Undo. New round is the
+ * Mediator's.
  *
  * `INITIATIVE_MODE` is the one switch: `rounds` (the sides, the round and who
  * goes first) or `acted` (only who has acted, cleared by New round).

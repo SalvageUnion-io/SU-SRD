@@ -19,6 +19,7 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayCrewSheet } from '../PlayCrewSheet'
 import { PlayCrawlerUnit } from '../PlayUnits'
 import { useOpenSheet } from '../useOpenSheet'
+import { mediatorSides } from './initiative.model'
 import { MediatorInitiative } from './MediatorInitiative'
 import type { MediatorSeat } from './mediatorTable.model'
 import { seatDone, seatStepLine } from './mediatorTable.model'
@@ -40,7 +41,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
   const running = downtime.downtime.running
   const stepIndex = currentDowntimeStep(downtime.downtime.stepIndex).index
   // Group Initiative (r6 B4): an action scene's, so not while Downtime runs.
-  const tracker = useInitiative(mediator.gameId, mediator.onFailure)
+  const tracker = useInitiative(mediator.gameId, mediator.onFailure, mediatorSides(mediator))
   const kept = running ? null : tracker.initiative
 
   return (

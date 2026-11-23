@@ -1579,4 +1579,21 @@ describe('Group Initiative on the table (r6 B4)', () => {
     // Give the turn still works within a side.
     expect(screen.getAllByRole('button', { name: /^Give the turn: / }).length).toBeGreaterThan(0)
   })
+
+  // r7 C3 (MD7-04): turns run themselves, each step with Undo on the tracker.
+  test('a side all acted passes play on by itself, and Undo puts it back', async () => {
+    // Every Pilot has ended their turn: the room marked each one.
+    const acted = ['bonesaw', 'mags', 'rook', 'wren']
+    await renderCockpit({ 'mediator.initiative': { round: 2, side: 'pilots', acted } })
+    await waitFor(() => expect(initiative()).toEqual([{ round: 2, side: 'opposition', acted }]))
+  })
+
+  test('with every side done, New round is the one way on', async () => {
+    const acted = ['bonesaw', 'mags', 'rook', 'wren', 'n-strike', 'n-scylla']
+    await renderCockpit({ 'mediator.initiative': { round: 2, side: 'opposition', acted } })
+    const tracker = region('Group Initiative')
+    expect(tracker.queryByRole('button', { name: 'Next side' })).toBeNull()
+    expect(tracker.getByRole('button', { name: 'New round' })).toBeTruthy()
+    expect(initiative()).toEqual([])
+  })
 })
