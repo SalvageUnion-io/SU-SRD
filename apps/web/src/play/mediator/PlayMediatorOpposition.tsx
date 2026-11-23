@@ -49,6 +49,7 @@ import type { NpcHit } from './PlayNpcActions'
 import { PlayNpcActions } from './PlayNpcActions'
 import { PlayNpcBox } from './PlayNpcBox'
 import { PlayNpcGroup } from './PlayNpcGroup'
+import { hitLandsOn, newestHit } from './pilotHit.model'
 import { RunEncounterDialog } from './RunEncounterDialog'
 import { useInitiative } from './useInitiative'
 import type { PlayMediator } from './usePlayMediator'
@@ -88,6 +89,37 @@ export function PlayMediatorOpposition({
   const [clearing, setClearing] = useState(false)
   const [ending, setEnding] = useState(false)
   const { area } = mediator
+  // A Pilot's hit, offered on each unit it can land on until applied (r7 C5).
+  const [spent, setSpent] = useState<ReadonlySet<string>>(() => new Set())
+  const pilotHit = canWrite ? newestHit(mediator.rolls, spent) : null
+  const hitOn = (npc: TrayNpc) => {
+    if (pilotHit === null || !hitLandsOn(pilotHit, npc)) return undefined
+    const words = {
+      who: pilotHit.who,
+      amount: pilotHit.damage.amount,
+      unit: pilotHit.damage.damageType,
+      name: npc.name,
+    }
+    return {
+      label: mediatorCopy('pilotHit', words),
+      name: mediatorCopy('pilotHitFor', words),
+      onApply: () => {
+        const before = npc.currentHp
+        const after = Math.max(0, before - pilotHit.damage.amount)
+        const { rollId } = pilotHit
+        setSpent((ids) => new Set([...ids, rollId]))
+        fail(tray.setHp(npc, after))
+        undoToast(
+          mediatorCopy('pilotHitApplied', { ...words, before, after }),
+          () => {
+            setSpent((ids) => new Set([...ids].filter((id) => id !== rollId)))
+            fail(tray.setHp(npc, before))
+          },
+          `opposition-${mediator.gameId}`
+        )
+      },
+    }
+  }
   // Each unit standing carries its Group Initiative mark while one is kept (r6 B4).
   const { initiative, setActed, markActed } = useInitiative(mediator.gameId, onFailure, mediator)
   // The Scene's conditions that are on: End asks whether to clear them (r4 A11).
@@ -156,6 +188,7 @@ export function PlayMediatorOpposition({
       onHeatCheck={() => fail(tray.heatCheck(npc))}
       moraleDue={grouping && moraleDue(npc)}
       onMorale={() => fail(tray.morale(npc))}
+      hit={hitOn(npc)}
       acted={
         initiative === null || npc.down
           ? undefined

@@ -1527,6 +1527,41 @@ describe('from `lg`: the Mediator’s jumps and notes', () => {
   })
 })
 
+// r7 C5 (LG7-09): a Pilot's hit carries its damage to the Mediator's cards.
+describe('a Pilot’s hit on the Opposition (r7 C5)', () => {
+  const HIT = {
+    _id: 'r-hit',
+    ts: NOW - 1_000,
+    description: 'Hotdog · Improvised Melee Weapon · 11 · Success',
+    actorName: 'Sam',
+    source: 'play',
+  }
+
+  test('a landed hit is one press on each unit it can land on, and applies its damage', async () => {
+    await renderCockpit({ 'changeLog.rolls': [HIT] })
+    // HP damage: Strikebreaker (HP) takes it; Scylla (SP) and the downed Raider do not.
+    const apply = named('Apply Hotdog’s hit, 2 HP, to Strikebreaker')
+    expect(apply.textContent).toBe('Hotdog’s hit: 2 HP')
+    expect(screen.queryByRole('button', { name: /hit, 2 HP, to Scylla/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /hit, 2 HP, to Raider/ })).toBeNull()
+    await click(apply)
+    expect(sent().filter((s) => s.name === 'mediator.updateNpc')).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-strike', patch: { currentHp: 8 } } },
+    ])
+    // Applied once: the offer goes.
+    expect(screen.queryByRole('button', { name: /^Apply Hotdog’s hit/ })).toBeNull()
+  })
+
+  test('a miss offers nothing', async () => {
+    await renderCockpit({
+      'changeLog.rolls': [
+        { ...HIT, description: 'Hotdog · Improvised Melee Weapon · 3 · Failure' },
+      ],
+    })
+    expect(screen.queryByRole('button', { name: /^Apply Hotdog’s hit/ })).toBeNull()
+  })
+})
+
 // MD6-04: Group Initiative (Core Book p.235–236) had no place on Mediate.
 describe('Group Initiative on the table (r6 B4)', () => {
   const initiative = () =>
