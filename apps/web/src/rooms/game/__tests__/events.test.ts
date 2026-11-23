@@ -711,7 +711,7 @@ describe('the table’s events', () => {
     )
     const [start] = act(MEDIATOR, 'session.start', undefined as never, AT + MERGE_MS + 2)
     expect(start?.text).toBe(
-      'Mediator started the group session · Still open: p1 · Pilot p1 is Down; the salvage area Mutant Nest is open'
+      'Med started the group session · Still open: p1 · Pilot p1 is Down; the salvage area Mutant Nest is open'
     )
     expect(start?.session).toBe('start')
   })
@@ -719,7 +719,7 @@ describe('the table’s events', () => {
   test('with nothing left open, the line is the start alone', () => {
     const { act } = seated()
     const [start] = act(MEDIATOR, 'session.start', undefined as never, AT)
-    expect(start?.text).toBe('Mediator started the group session')
+    expect(start?.text).toBe('Med started the group session')
   })
 
   test('taking the turn back, or a player’s own act, starts no session', () => {
