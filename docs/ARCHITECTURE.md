@@ -60,8 +60,8 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Enforcement follows the surface's mode: Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play and Adjudicate (Play), Frozen (`/p/`). Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
     The app automates bookkeeping (Heat, EP / AP, uses, SP damage) but never changes a condition or destroys without the player; conditions cycle intact → damaged → destroyed by `StatusBadge`.
 19. **Live-Sheet transactions** <a id="live-sheet"></a>
-    A closed list: crawler Upkeep / Upgrade / Trade, bay Repair, item repair and uses; advisory, never blocking.
-    Any new transaction goes in Play.
+    A closed list: crawler Upkeep / Upgrade / Trade / Craft, bay Repair, item repair and uses; advisory, never blocking.
+    New ones go in Play.
 20. **Change Log** <a id="change-log"></a>
     A unit's history is its applied ops (`transaction` / `override` / `manual`, ADR-063); `changeLog` keeps Game rows and moves.
     Read in `ChangeLogDrawer`; destruction waits for the player (ADR-007).

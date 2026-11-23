@@ -32,6 +32,8 @@ export type FacetConfig = {
   category?: { label: string; of: (item: EntityLike) => string | undefined }
   /** The list's order where TL then name is not the book's (abilities by tree, r5 C1). */
   order?: (a: EntityLike, b: EntityLike) => number
+  /** Rows the pick does not meet yet: listed last, under `label` ("Not yet", r7 D5). */
+  later?: { label: string; of: (item: EntityLike) => boolean }
 }
 
 export type BudgetConfig = {

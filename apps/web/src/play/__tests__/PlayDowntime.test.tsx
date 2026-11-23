@@ -133,6 +133,25 @@ describe('Tally Salvage moves the Scrap', () => {
   })
 })
 
+// r7 D3 (LG7-22): a seat with no Scrap read four paragraphs about a paper Crawler Sheet.
+test('in a Game, a seat carrying no Scrap reads one line in Tally Salvage, and nothing to press', () => {
+  const { pilot, mech, crawler } = units()
+  render(
+    <Harness
+      pilot={pilot}
+      mech={mech}
+      situation="downtime"
+      store={stubStore(pilot, mech, crawler).store}
+      writes={[]}
+      gameId="g1"
+      downtime={{ stepIndex: 0, members: [{ userId: 'u-me', displayName: 'Me' }] }}
+    />
+  )
+  expect(within(stepBox()).getByText('You carry no Scrap home: nothing to tally.')).toBeTruthy()
+  expect(within(stepBox()).queryByText(/Crawler Sheet/i)).toBeNull()
+  expect(within(stepBox()).queryByRole('button')).toBeNull()
+})
+
 describe('a solo Downtime, end to end', () => {
   test('every step in turn: Upkeep paid once, Restore and Train applied, then End', async () => {
     const { pilot, mech, crawler } = units()
@@ -177,14 +196,14 @@ describe('a solo Downtime, end to end', () => {
         'Applies, each line can be unticked if your table rules it differently.'
       )
     ).toBeTruthy()
-    // Skip, Apply & mark done and Next step.
+    // r7 D1 (SB7-10): the way on applies the step; skipping is the small link.
     expect(
       within(stepBox())
         .getAllByRole('button')
         .map((b) => b.textContent)
-    ).toEqual(['Skip', 'Apply & mark done', 'Next: Step 3'])
+    ).toEqual(['Skip this step', 'Apply and go on'])
     expect(within(stepBox()).getByText('5 Scrap · T2')).toBeTruthy()
-    await click(button('Apply & mark done'))
+    await click(button('Apply and go on'))
     expect(upkeepClaims).toBe(1)
     // The Scrap rides on the Upkeep op, not a store write.
     expect(calls.filter((c) => c.type === 'crawler')).toEqual([])
@@ -196,8 +215,6 @@ describe('a solo Downtime, end to end', () => {
         patch: { scrapPool: { tl2: 2 }, upgradePool: 5 },
       },
     })
-    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
-    await click(button(/^Next: Step \d+$/))
 
     // Restore: the mech's and the pilot's lines; untick the pilot's.
     expect(STEPS[currentStep()]).toBe('Restore your Mech & Pilot')
@@ -206,24 +223,24 @@ describe('a solo Downtime, end to end', () => {
     expect(lines.getByText('Bonesaw')).toBeTruthy()
     await click(lines.getByRole('checkbox', { name: 'Bonesaw' }))
     calls.length = 0
-    await click(button('Apply & mark done'))
+    await click(button('Apply and go on'))
     // The mech's share rides in the step's batch, beside the pilot's op.
     expect(calls).toEqual([])
     expect(writes.filter((w) => w.name === 'downtime.markStepDone').at(-1)).toMatchObject({
       args: { patch: {}, mech: { id: mech.id, patch: { currentHeat: 0 } } },
     })
-    await click(button(/^Next: Step \d+$/))
+    expect(STEPS[currentStep()]).toBe('Trade')
 
     // On to Train your Pilot.
     while (STEPS[currentStep()] !== 'Train your Pilot') await click(button(/^Next: Step \d+$/))
     expect(within(stepBox()).getByText('2→3')).toBeTruthy()
     calls.length = 0
-    await click(button('Apply & mark done'))
+    await click(button('Apply and go on'))
     // The pilot's share rides on the step's op, not a store write.
     expect(calls).toEqual([])
     expect(writes).toContainEqual({
       name: 'downtime.markStepDone',
-      args: { stepIndex: currentStep(), patch: { trainingPoints: 3 } },
+      args: { stepIndex: STEPS.indexOf('Train your Pilot'), patch: { trainingPoints: 3 } },
     })
 
     // The last step ends Downtime.
@@ -231,6 +248,46 @@ describe('a solo Downtime, end to end', () => {
     await click(button('End Downtime'))
     expect(writes).toContainEqual({ name: 'endDowntime' })
     expect(writes.filter((w) => w.name === 'downtime.advance')).toHaveLength(STEPS.length - 1)
+  })
+
+  // r7 D1 (SB7-10): the way on applies, and what it applied says itself with Undo.
+  test('Apply and go on applies the step and moves on; its Undo writes the numbers back', async () => {
+    const { ToasterMount, toast } = await import('../../components/index')
+    toast.dismiss()
+    const { pilot, mech, crawler } = units()
+    const train = STEPS.indexOf('Train your Pilot')
+    const { store, calls, metas } = stubStore(pilot, mech, crawler)
+    const writes: Write[] = []
+    try {
+      await act(async () => {
+        render(
+          <>
+            <ToasterMount />
+            <Harness
+              pilot={pilot}
+              mech={mech}
+              situation="downtime"
+              store={store}
+              writes={writes}
+              downtime={{ stepIndex: train }}
+            />
+          </>
+        )
+      })
+      await click(button('Apply and go on'))
+      expect(writes).toContainEqual({
+        name: 'downtime.markStepDone',
+        args: { stepIndex: train, patch: { trainingPoints: 3 } },
+      })
+      expect(writes.filter((w) => w.name === 'downtime.advance')).toHaveLength(1)
+      expect(currentStep()).toBe(train + 1)
+      expect(await screen.findByText('Applied: Train your Pilot')).toBeTruthy()
+      await click(screen.getByRole('button', { name: 'Undo' }))
+      expect(calls).toContainEqual({ type: 'pilot', id: pilot.id, patch: { trainingPoints: 2 } })
+      expect(metas.at(-1)?.source).toBe('play-undo')
+    } finally {
+      toast.dismiss()
+    }
   })
 
   test('Upkeep is paid once: an Upkeep op already landed says so', async () => {
@@ -247,9 +304,9 @@ describe('a solo Downtime, end to end', () => {
         payUpkeep={async () => false}
       />
     )
-    await click(button('Apply & mark done'))
+    await click(button('Apply and go on'))
     expect(calls.filter((c) => c.type === 'crawler')).toHaveLength(0)
-    expect(within(stepBox()).getByText('Upkeep is already paid this Downtime.')).toBeTruthy()
+    expect(STEPS[currentStep()]).toBe('Restore your Mech & Pilot')
   })
 
   test('the Craft step processes Nanites: every Inert pile spent, a 20 an Active one', async () => {
@@ -272,7 +329,7 @@ describe('a solo Downtime, end to end', () => {
       />
     )
     expect(within(stepBox()).getByText('Process Nanites')).toBeTruthy()
-    await click(button('Apply & mark done'))
+    await click(button('Apply and go on'))
     const write = writes.find((w) => w.name === 'downtime.claim')?.args as
       | { claim: string; patch: Partial<Crawler> }
       | undefined
@@ -281,7 +338,6 @@ describe('a solo Downtime, end to end', () => {
     expect(pool?.inertNanites).toBe(0)
     expect(pool?.activeNanites).toBeGreaterThanOrEqual(0)
     expect(pool?.activeNanites).toBeLessThanOrEqual(3)
-    expect(within(stepBox()).getByText(/Processed 3 Inert Meld Nanite piles/)).toBeTruthy()
   })
 
   test('a step done before a reload is not applied again: Train’s +1 TP lands once', async () => {
@@ -299,7 +355,7 @@ describe('a solo Downtime, end to end', () => {
         downtime={{ stepIndex: train }}
       />
     )
-    await click(button('Apply & mark done'))
+    await click(button('Apply and go on'))
     expect(writes).toContainEqual({
       name: 'downtime.markStepDone',
       args: { stepIndex: train, patch: { trainingPoints: 3 } },
@@ -320,11 +376,11 @@ describe('a solo Downtime, end to end', () => {
       />
     )
     expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
-    expect(within(stepBox()).queryByRole('button', { name: 'Apply & mark done' })).toBeNull()
+    expect(within(stepBox()).queryByRole('button', { name: 'Apply and go on' })).toBeNull()
     expect(calls).toHaveLength(0)
   })
 
-  test('a taken step shows the change that was made, never the next one', async () => {
+  test('a taken step shows the change that was made, never the next one (in a Game, where it stays)', async () => {
     const { pilot, mech, crawler } = units()
     const train = STEPS.indexOf('Train your Pilot')
     const { store } = stubStore(pilot, mech, crawler)
@@ -335,7 +391,8 @@ describe('a solo Downtime, end to end', () => {
         situation="downtime"
         store={store}
         writes={[]}
-        downtime={{ stepIndex: train }}
+        gameId="g1"
+        downtime={{ stepIndex: train, members: [{ userId: 'u-me', displayName: 'Me' }] }}
       />
     )
     expect(within(stepBox()).getByText('2→3')).toBeTruthy()
@@ -349,7 +406,8 @@ describe('a solo Downtime, end to end', () => {
         situation="downtime"
         store={stubStore(trained, mech, crawler).store}
         writes={[]}
-        downtime={{ stepIndex: train }}
+        gameId="g1"
+        downtime={{ stepIndex: train, members: [{ userId: 'u-me', displayName: 'Me' }] }}
       />
     )
     const applied = within(within(stepBox()).getByRole('list', { name: 'Applied' }))
@@ -366,7 +424,12 @@ describe('a solo Downtime, end to end', () => {
         situation="downtime"
         store={stubStore(trained, mech, crawler).store}
         writes={[]}
-        downtime={{ stepIndex: train, doneSteps: [train] }}
+        gameId="g1"
+        downtime={{
+          stepIndex: train,
+          doneSteps: [train],
+          members: [{ userId: 'u-me', displayName: 'Me' }],
+        }}
       />
     )
     expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
@@ -390,8 +453,11 @@ describe('a solo Downtime, end to end', () => {
     )
     const restore = STEPS.indexOf('Restore your Mech & Pilot')
     const train = STEPS.indexOf('Train your Pilot')
-    while (currentStep() < STEPS.length - 1) await click(button(/^Next: Step \d+$/))
+    // The way on applies now (r7 D1): a jump by the track is what walks past.
     const track = within(screen.getByRole('list', { name: 'Downtime steps' }))
+    await click(
+      track.getByRole('button', { name: `Step ${STEPS.length}: ${STEPS[STEPS.length - 1]}` })
+    )
     expect(
       track.getByRole('button', { name: `Step ${restore + 1}: ${STEPS[restore]}, skipped` })
     ).toBeTruthy()
@@ -419,7 +485,7 @@ describe('a solo Downtime, end to end', () => {
     expect(writes).toContainEqual({ name: 'endDowntime' })
   })
 
-  test('Skip marks the step done and writes nothing; the track moves to any step', async () => {
+  test('Skip this step takes it, writes nothing, and goes on; the track moves to any step', async () => {
     const { pilot, mech, crawler } = units()
     const { store, calls } = stubStore(pilot, mech, crawler)
     const writes: Write[] = []
@@ -433,9 +499,13 @@ describe('a solo Downtime, end to end', () => {
         downtime={{ stepIndex: STEPS.indexOf('Restore your Mech & Pilot') }}
       />
     )
-    await click(button('Skip'))
+    await click(button('Skip this step'))
     expect(calls).toHaveLength(0)
-    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
+    expect(writes).toContainEqual({
+      name: 'downtime.markStepDone',
+      args: { stepIndex: STEPS.indexOf('Restore your Mech & Pilot'), patch: {} },
+    })
+    expect(STEPS[currentStep()]).toBe('Trade')
     const track = within(screen.getByRole('list', { name: 'Downtime steps' }))
     await click(track.getByRole('button', { name: `Step 5: ${STEPS[4]}` }))
     expect(writes).toContainEqual({ name: 'downtime.setStep', args: 4 })
@@ -501,7 +571,7 @@ test('solo, Craft · Trade opens its bays inside Downtime, and crafting spends S
     assigned.push(String(to))
   })
   try {
-    const { store, calls } = stubStore(pilot, mech, crawler)
+    const { store, calls, metas } = stubStore(pilot, mech, crawler)
     render(
       <Harness
         pilot={pilot}
@@ -529,6 +599,8 @@ test('solo, Craft · Trade opens its bays inside Downtime, and crafting spends S
     expect(spent?.patch.scrapPool).toMatchObject({ tl2: 6 })
     const mounted = calls.find((c) => c.type === 'mech' && 'systems' in c.patch)
     expect(mounted?.patch.systems).toContain('armour-plating')
+    // One change, the Scrap and the item together (r7 D6).
+    expect(metas).toHaveLength(1)
     expect(
       onHand.getByText(/Crafted Armour Plating for 1 Tech 1\+ Scrap, into Buzzard\./)
     ).toBeTruthy()

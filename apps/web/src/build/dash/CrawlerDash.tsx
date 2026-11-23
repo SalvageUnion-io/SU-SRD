@@ -59,6 +59,7 @@ import type { CrawlerBayEntry } from '../sheet/CrawlerSheetItems'
 import { SheetRemoveButton } from '../sheet/rowControls'
 import type { SheetPatch } from '../sheet/sheetViewProps.model'
 import { TypeCrewLead } from '../sheet/TypeCrewLead'
+import { BayCraft } from './BayCraft'
 import { BayControls, BayDetail } from './BayRow'
 import { LeadCell } from './bayLead'
 import { leadOf } from './bayLead.model'
@@ -241,6 +242,12 @@ export function CrawlerDash({
                   entry.bayRef === 'mech-bay' && mech
                     ? { name: mech.name, href: mechHref }
                     : undefined
+                }
+                // The Crafting Bay crafts here too, with Play's panel (r7 D7).
+                contents={
+                  entry.bayRef === 'crafting-bay' && !damaged && (liveCondition || editing) ? (
+                    <BayCraft crawler={crawler} mech={mech} store={store} />
+                  ) : undefined
                 }
               />
             ),

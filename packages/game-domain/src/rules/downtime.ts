@@ -1,4 +1,5 @@
 import { crawlerTechLevelOf } from '../crawlerLevel'
+import { withCondition } from '../mechConditions'
 /**
  * Union Crawler Downtime Procedure.
  *
@@ -341,6 +342,14 @@ export function downtimeMechPatch(
     if (mech.currentSP !== undefined && mech.currentSP !== maxSP) patch.currentSP = maxSP
     if (mech.currentEP !== undefined && mech.currentEP !== maxEP) patch.currentEP = maxEP
     if (resolveGauge(mech.currentHeat) !== 0) patch.currentHeat = 0
+    // The Reactor's Shutdown and Vulnerable are a fight's, never next week's
+    // (Core Book p.202, r7 D2): rest clears them as it cools the Heat.
+    const rested = withCondition(
+      withCondition(mech.conditions, 'Shutdown', false),
+      'Vulnerable',
+      false
+    )
+    if (rested.length !== mech.conditions.length) patch.conditions = rested
   }
 
   if (steps.repairItems && bayOperational) {
@@ -351,7 +360,7 @@ export function downtimeMechPatch(
     const nextModules = repairConditionMap(mech.moduleConditions, repairSet)
     if (nextModules) patch.moduleConditions = nextModules
     if (chassisRepairable) {
-      patch.conditions = mech.conditions.filter(
+      patch.conditions = (patch.conditions ?? mech.conditions).filter(
         (c) => c.trim().toLowerCase() !== CHASSIS_DAMAGED_CONDITION.toLowerCase()
       )
     }
