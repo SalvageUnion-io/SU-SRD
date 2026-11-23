@@ -1,6 +1,6 @@
 import type { Mock } from 'bun:test'
 import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
-import { act, cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { searchCompactIndex } from '../../../lib/searchCompactIndex'
 import { buildSearchIndexEntries } from '../../../lib/searchIndexBuild'
 import { resetSearchIndexForTests } from '../../../lib/useSearchIndex'
@@ -58,6 +58,15 @@ describe('SearchResultsIsland (r5 E3)', () => {
     expect(
       screen.getAllByRole('link', { name: /^Long$/ })[0]?.closest('tr')?.textContent
     ).toContain('outline')
+  })
+
+  test('a result followed marks its page to open at its content (r8 G3)', async () => {
+    await renderOn('?q=hot')
+    const hot = screen.getAllByRole('link', { name: /^Hot$/ })[0] as HTMLAnchorElement
+    hot.addEventListener('click', (event) => event.preventDefault())
+    fireEvent.click(hot)
+    expect(sessionStorage.getItem('su-at-content')).toBe(hot.getAttribute('href'))
+    sessionStorage.clear()
   })
 
   test('keeps the query in a field on the page, to refine it (RR6-02)', async () => {
