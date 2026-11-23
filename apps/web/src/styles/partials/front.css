@@ -120,20 +120,26 @@ body:has(.su-front--show) main {
   }
 }
 
+/* The slides clip their own art as it turns, never the show: the laptop's
+   search (`.su-front__show-search`) hangs its results past the show's foot
+   on a short laptop screen (E8), over the footer, so the show stacks above
+   what follows it (the search band under `lg`, later and at 1 too, still
+   stacks above the show). */
 .su-front__show {
   --su-show-step: 7s;
   background-color: var(--color-ink);
   flex: 1 1 auto;
   isolation: isolate;
   min-height: 28rem;
-  overflow: hidden;
   position: relative;
+  z-index: 1;
 }
 
 .su-front__show-slides {
   inset: 0;
   list-style: none;
   margin: 0;
+  overflow: hidden;
   padding: 0;
   position: absolute;
 }

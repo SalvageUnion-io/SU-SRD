@@ -141,6 +141,44 @@ describe('the pinned notices', () => {
     ])
   })
 
+  test('a wreck’s salvage offered to the crew can be taken with another pick (r7 D8)', async () => {
+    const offered = {
+      _id: 's-1',
+      entityId: 'tenacity',
+      entityType: 'crawler',
+      targetName: 'Tenacity',
+      field: 'cargoLots',
+      after: [{ name: 'Mining Rig (Damaged)' }],
+      reason: 'Mech Salvage',
+      ts: 5,
+      offer: {
+        band: 'bits',
+        parts: [
+          { key: 'system:0', kind: 'system', name: 'Mining Rig', techLevel: 1, salvageValue: 1 },
+          { key: 'module:0', kind: 'module', name: 'Ammo Feed', techLevel: 2, salvageValue: 2 },
+        ],
+        picked: ['system:0'],
+      },
+    }
+    await renderNotices({ 'ops.pending': [offered] })
+    const what = 'Tenacity Cargo → + Mining Rig (Damaged)'
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: `Change the pick: ${what}` }))
+    })
+    const dialog = await screen.findByRole('alertdialog')
+    // Bits and Pieces takes one part: the Mediator's pick goes out, the crewmate's in.
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Mining Rig · T1 · 1 Slot' }))
+    })
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Ammo Feed · T2 · 2 Slots' }))
+    })
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Take these' }))
+    })
+    expect(mutations).toEqual([{ name: 'ops.accept', args: { opId: 's-1', picked: ['module:0'] } }])
+  })
+
   test('the Mediator’s alert pins until dismissed', async () => {
     const alert = {
       _id: 'a-1',

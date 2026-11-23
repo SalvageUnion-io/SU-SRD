@@ -686,7 +686,7 @@ describe('the Opposition', () => {
     await restoreCrawler()
   })
 
-  test('a downed Mech rolls Mech Salvage; what the band allows goes to the crawler’s hold', async () => {
+  test('a downed Mech rolls Mech Salvage; the pick goes to the crew as an offer on the crawler (r7 D8)', async () => {
     const mule = {
       _id: 'n-mule',
       body: {
@@ -702,20 +702,28 @@ describe('the Opposition', () => {
     const box = within(screen.getByRole('region', { name: /^Mech: Mule, down/ }))
     await click(box.getByRole('button', { name: /Roll/ }))
     await click(box.getByRole('button', { name: 'Mule · T1 · 7 Slots' }))
-    await click(box.getByRole('button', { name: 'Take to the crawler' }))
+    await click(box.getByRole('button', { name: 'Offer to the crew' }))
+    // The roll is kept with the wreck first (r5 B1), the wreck is claimed, then offered.
     await waitFor(() =>
-      expect(
-        useUnits
-          .getState()
-          .get('crawler', tenacity.id)
-          ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
-      ).toBe(true)
+      expect(names()).toEqual(['mediator.updateNpc', 'mediator.updateNpc', 'ops.propose'])
     )
-    // The roll is kept with the wreck first (r5 B1), then the wreck is claimed.
-    expect(sent().map((a) => Object.keys((a.args as { patch: object }).patch))).toEqual([
-      ['salvageRoll'],
-      ['salvaged'],
-    ])
+    const offer = sent()[2]?.args as {
+      entityId: string
+      field: string
+      after: { name: string }[]
+      offer: { picked: string[] }
+    }
+    expect(offer.entityId).toBe(tenacity.id)
+    expect(offer.field).toBe('cargoLots')
+    expect(offer.after.map((l) => l.name)).toEqual(['Mule (Damaged)'])
+    expect(offer.offer.picked).toHaveLength(1)
+    // Nothing is written to the crawler until the crew answers.
+    expect(
+      useUnits
+        .getState()
+        .get('crawler', tenacity.id)
+        ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
+    ).not.toBe(true)
     await restoreCrawler()
   })
 

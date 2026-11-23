@@ -25,17 +25,19 @@
 
 import { cockpitPath, gamePath, mediatePath, sheetPath } from 'game-domain/entityKinds'
 import { pilotLabel } from 'game-domain/pilotLabel'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Button, toast } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { useOwnUnits, usePilots } from '../lib/entities'
 import { playCopy } from '../messages/play'
 import { playDoorCopy } from '../messages/play-door'
 import { playSafetyCopy } from '../messages/play-safety'
+import { playSalvageCopy } from '../messages/play-salvage'
 import { holderOf } from '../replica/replica'
 import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
 import type { TableEvent } from '../rooms/game/events'
+import type { ProposalRead } from '../rooms/game/proposals'
 import { gamePilots } from './play.model'
 import { acceptedUndo, proposalChange } from './proposalAnswer.model'
 import { downtimeWaits, firstSight, onHub } from './sessionNotices.model'
@@ -64,6 +66,11 @@ import { useStopSign } from './useStopSign'
 
 /** The Mediator's screen, whose Propose dock says every answer (r5 B7). */
 const MEDIATE_PATH = /\/mediate\/?$/
+
+// A crewmate's own pick of a wreck's salvage (r7 D8): fetched on Change's press.
+const SalvagePickDialog = lazy(() =>
+  import('./SalvagePickDialog').then((m) => ({ default: m.SalvagePickDialog }))
+)
 
 /** What this tab dismissed: alerts by id, a session's bar by when it started. */
 const dismissed = new Set<string>()
@@ -106,6 +113,8 @@ export function GameNotices({
     failure: playCopy('answerDidNotLand'),
     toastId: 'table-proposal-answer',
   })
+  // The salvage offer whose pick the viewer is changing (r7 D8), while its dialog is open.
+  const [changing, setChanging] = useState<ProposalRead | null>(null)
   // The player who is up says they are done (r4 B1): the marker clears for the table.
   const endTurn = useServerAction(useTableAct('scenes.endTurn', gameId), {
     failure: playCopy('turnDidNotEnd'),
@@ -408,6 +417,16 @@ export function GameNotices({
           >
             {playCopy('accept')}
           </Button>
+          {p.offer !== undefined && (
+            <Button
+              size="compact"
+              disabled={!canWrite}
+              aria-label={playSalvageCopy('change2', { text: what })}
+              onClick={() => setChanging(p)}
+            >
+              {playSalvageCopy('change')}
+            </Button>
+          )}
           <Button
             size="compact"
             disabled={!canWrite}
@@ -531,5 +550,22 @@ export function GameNotices({
   })
   useEffect(() => () => report(gameId, []), [gameId, report])
 
-  return null
+  const offer = changing?.offer
+  if (changing === null || offer === undefined) return null
+  return (
+    <Suspense fallback={null}>
+      <SalvagePickDialog
+        offer={offer}
+        open
+        onOpenChange={(open) => {
+          if (!open) setChanging(null)
+        }}
+        onTake={async (picked) => {
+          const result = await reply.run(() => apply({ opId: changing._id, picked }))
+          if (!result.ok) throw new Error(playCopy('answerDidNotLand'))
+          focusTheActions()
+        }}
+      />
+    </Suspense>
+  )
 }

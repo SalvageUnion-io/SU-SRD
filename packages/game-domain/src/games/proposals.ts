@@ -8,6 +8,9 @@
  * are one list. Pure: no React, no rooms.
  */
 
+import type { MechSalvageBand } from 'salvageunion-reference/rules'
+import type { WreckPart } from '../rules/wreck'
+
 /** How many proposals one page of a sent list adds. */
 export const PROPOSALS_PAGE = 20
 
@@ -42,6 +45,18 @@ export type ProposalField = (typeof PROPOSAL_FIELDS)[ProposalTargetKind][number]
  * lots it adds, and accepting adds them to the hold as it is then.
  */
 export const CARGO_PROPOSAL_FIELD = 'cargoLots'
+
+/**
+ * What a wreck's salvage proposal offers the crew (r7 D8, ADR-030 §4 as
+ * amended): the Mech Salvage band rolled, the wreck's parts, and the ones the
+ * Mediator picked. Offered to the crawler, any member of the crew may accept
+ * the pick, change it to another the band allows, or decline it.
+ */
+export type SalvageOffer = {
+  band: MechSalvageBand
+  parts: WreckPart[]
+  picked: string[]
+}
 
 const FIELD_LABEL: Record<string, string> = Object.fromEntries([
   ...[...PROPOSAL_FIELDS.pilot, ...PROPOSAL_FIELDS.mech].map((f) => [f.field, f.label]),
