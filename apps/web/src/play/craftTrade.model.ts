@@ -209,7 +209,12 @@ export function craftUpdates(
   return {
     ok: true,
     updates: [{ type: 'crawler', id: crawler.id, patch: stored }],
-    crafted: { ware, draws: spent.draws, mechId: null, lotId: stored.cargoLots.at(-1)?.id ?? null },
+    crafted: {
+      ware,
+      draws: spent.draws,
+      mechId: null,
+      lotId: stored.cargoLots?.at(-1)?.id ?? null,
+    },
   }
 }
 

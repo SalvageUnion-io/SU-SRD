@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import { crawlerFixture, mechFixture } from '../../components/__tests__/fixtures'
 import {
   craftables,
@@ -69,7 +70,7 @@ describe('a craft is one change', () => {
     const done = craftUpdates(crawler, null, ware, false)
     if (!done.ok) throw new Error('short')
     expect(done.updates).toHaveLength(1)
-    const stored = done.updates[0]?.patch as { cargoLots: { id: string }[]; scrapPool: object }
+    const stored = done.updates[0]?.patch as Pick<Crawler, 'cargoLots' | 'scrapPool'>
     const back = uncraftUpdates({ ...crawler, ...stored }, null, done.crafted)
     expect(back).toEqual([
       { type: 'crawler', id: 'c', patch: { scrapPool: { tl1: 8 }, cargoLots: [] } },
