@@ -213,7 +213,7 @@ export function PlayActionsList({
     if (!listed || list === null) return
     let stop: (() => void) | null = null
     let gone = false
-    void import('./actionsRove').then(({ roveList }) => {
+    void import('./actionsRoveDom.model').then(({ roveList }) => {
       if (!gone) stop = roveList(list)
     })
     return () => {

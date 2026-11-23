@@ -7,7 +7,7 @@
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useEffect, useRef } from 'react'
-import { roveList } from '../actionsRove'
+import { roveList } from '../actionsRoveDom.model'
 
 function Row({
   name,
