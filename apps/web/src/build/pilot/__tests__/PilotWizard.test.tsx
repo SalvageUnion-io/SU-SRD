@@ -98,6 +98,8 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
 
     // --- Step 3: Who They Are (only the Callsign is required, r7 F7) ---
     expect(getNextButton().disabled).toBe(true)
+    // Skip to Next past its fields, as steps 1 and 2 have (r8 F4).
+    expect(screen.getByRole('link', { name: 'Skip to Next' })).toBeTruthy()
     await fillCallsign('Mira Voss', '')
     expect(getNextButton().disabled).toBe(true) // the Name alone is not enough
     await fillCallsign('', 'Sparks')
