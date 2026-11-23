@@ -1,7 +1,7 @@
 // A host's patterns on its Page as one Ledger (ledger.md L1): a line a
 // pattern, its name the link to its Page, Starting its only stamp, what it
 // changes said whole (a mech's loadout, each drone by the name the pattern
-// gives it, then its slots in columns; the actions a Bio-Titan's pattern adds: rules text is never cut,
+// gives it; the actions a Bio-Titan's pattern adds: rules text is never cut,
 // only a name may end in "…"), each part a Mention of its entry (L4), whose
 // Page lists the pattern back (EDL E26). It draws no foot (L6): each pattern's Page
 // cites it. Its title tab names the section and carries the count, so no Slab
@@ -29,27 +29,13 @@ import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN_NOTE } from './legalSt
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
- * A mech pattern's line: its loadout, then the slots it fills of the
- * chassis's, so a chassis's patterns compare without opening each. A phone
- * keeps the two figures, and each row opens in place
- * to its loadout (`LoadoutFold`, r6 E5): comparing needs no page loads.
+ * A mech pattern's line: its loadout, which is what tells a chassis's
+ * patterns apart; the slot counts, the same for every book pattern of a
+ * chassis, are not drawn (r8 E11). On a phone each row opens in place to its
+ * loadout (`LoadoutFold`, r6 E5): comparing needs no page loads.
  */
 const LOADOUT: readonly LedgerColumn[] = [
   { key: 'loadout', label: referenceEntityCopy('loadout'), kind: 'line' },
-  {
-    key: 'sys',
-    label: referenceEntityCopy('sys'),
-    title: referenceEntityCopy('systemSlots'),
-    kind: 'figure',
-    phone: true,
-  },
-  {
-    key: 'mod',
-    label: referenceEntityCopy('mod'),
-    title: referenceEntityCopy('moduleSlots'),
-    kind: 'figure',
-    phone: true,
-  },
 ]
 const ACTIONS: readonly LedgerColumn[] = [
   { key: 'actions', label: referenceEntityCopy('actions'), kind: 'line' },
@@ -116,23 +102,6 @@ function printedOver(chassisName: string, pattern: RefObjectAnyPattern): boolean
   return loaded && capacityOf(buildOf(chassisName, pattern)).asPrinted !== undefined
 }
 
-/** A mech pattern's figures: slots filled of the chassis's. */
-function figuresOf(chassisName: string, pattern: RefObjectAnyPattern): ReactNode[] {
-  if (isBioTitanPattern(pattern)) return []
-  // Without the parts' data there is nothing to count: the columns give way (L5).
-  const loaded = (['chassis', 'systems', 'modules'] as const).every((schema) =>
-    SalvageUnionReference.isLoaded(schema)
-  )
-  if (!loaded) return ['', '']
-  const build = buildOf(chassisName, pattern)
-  const capacity = capacityOf(build)
-  if (capacity.violations.some((v) => v.kind === 'chassis-not-found')) return ['', '']
-  return [
-    `${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`,
-    `${capacity.moduleSlotsUsed}/${capacity.moduleSlotsMax}`,
-  ]
-}
-
 /**
  * On a phone, where the Loadout column gives way, a row's loadout opens in
  * place under its name (r6 E5): a native disclosure, no script on the page.
@@ -181,7 +150,7 @@ export function PatternLedger({
             size="mini"
           />
         ) : undefined,
-        cells: [changesOf(pattern), ...(titans ? [] : figuresOf(model.title, pattern))],
+        cells: [changesOf(pattern)],
         // A total the book prints over its limit is the book's own: the note
         // sits on the row it describes (r4 E16), since the figure wears no
         // mark (R71) and a note at the list's foot belonged to no row. A

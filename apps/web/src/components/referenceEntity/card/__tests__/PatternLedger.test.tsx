@@ -30,7 +30,7 @@ describe('PatternLedger', () => {
     expect(container.querySelector('[data-foot-band]')).toBeNull()
   })
 
-  test('a mech pattern says what it uses: slots of the chassis’s, and no Scrap column', () => {
+  test('a mech pattern says what differs, its loadout: no slot or Scrap column (r8 E11)', () => {
     const mule = SalvageUnionReference.Chassis.getByName('Mule')
     if (!mule || !('patterns' in mule)) throw new Error('mule fixture missing')
     const { container } = render(
@@ -39,20 +39,10 @@ describe('PatternLedger', () => {
       </EntitySurfaceProvider>
     )
     const heads = [...container.querySelectorAll('thead th')].map((th) => th.textContent)
-    expect(heads.join(' ')).toMatch(/Sys.*Mod/)
-    expect(heads.join(' ')).not.toContain('Scrap')
-    const cells = [...(container.querySelector('tbody tr')?.querySelectorAll('td') ?? [])].map(
-      (td) => td.textContent ?? ''
-    )
-    // The loadout line, then System Slots and Module Slots of the Mule's.
-    expect(cells[1]).toMatch(/^\d+\/\d+$/)
-    expect(cells[2]).toMatch(/^\d+\/\d+$/)
-    expect(cells).toHaveLength(3)
-    // A phone keeps the figures; the packed loadout line gives way to the name.
-    const phone = [...container.querySelectorAll('thead th[data-phone]')].map(
-      (th) => th.textContent
-    )
-    expect(phone.join(' ')).toMatch(/Sys.*Mod/)
+    expect(heads.join(' ')).not.toMatch(/Sys|Mod|Scrap/)
+    const cells = [...(container.querySelector('tbody tr')?.querySelectorAll('td') ?? [])]
+    // The loadout alone, beside the name.
+    expect(cells).toHaveLength(1)
   })
 
   test('a book pattern over its chassis’s slots says it is as printed (r3 C5)', () => {
@@ -69,13 +59,7 @@ describe('PatternLedger', () => {
       row.textContent?.includes('Over its limit as printed in the book')
     )
     expect(noted.length).toBeGreaterThan(0)
-    for (const row of noted) {
-      const over = [...row.querySelectorAll('td')].some((cell) => {
-        const [used, max] = (cell.textContent?.match(/^(\d+)\/(\d+)$/) ?? []).slice(1).map(Number)
-        return used !== undefined && max !== undefined && used > max
-      })
-      expect(over).toBe(true)
-    }
+    expect(noted.length).toBeLessThan(container.querySelectorAll('tbody tr').length)
     expect(container.querySelector('tfoot')?.textContent ?? '').not.toContain('as printed')
   })
 })
