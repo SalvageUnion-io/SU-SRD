@@ -5,6 +5,7 @@ import { nameToSlug, toEntityModel } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { schemaHref } from '../../../lib/entityHref'
 import { schemaPluralLabel } from '../../../lib/schemaLabels'
+import { compositionsCopy } from '../../../messages/components-compositions'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Badge } from '../../atoms/Badge'
 import { capsLabel } from '../../atoms/capsLabel'
@@ -42,10 +43,16 @@ const LINK = { kind: 'link' } as const
  * page (r8 G7). The Ledger, the list a reader compares (L1).
  */
 const CRAFT_COLUMNS: readonly LedgerColumn[] = [
-  { key: 'sv', label: 'SV', title: 'Salvage Value', statKey: 'salvageValue', phone: true },
-  { key: 'slots', label: 'Slots', statKey: 'slotsRequired', phone: true },
-  { key: 'rng', label: 'RNG', title: 'Range', kind: 'text' },
-  { key: 'dmg', label: 'DMG', title: 'Damage', kind: 'text' },
+  {
+    key: 'sv',
+    label: compositionsCopy('sv'),
+    title: compositionsCopy('salvageValue'),
+    statKey: 'salvageValue',
+    phone: true,
+  },
+  { key: 'slots', label: compositionsCopy('slots'), statKey: 'slotsRequired', phone: true },
+  { key: 'rng', label: compositionsCopy('rng'), title: compositionsCopy('range'), kind: 'text' },
+  { key: 'dmg', label: compositionsCopy('dmg'), title: compositionsCopy('damage'), kind: 'text' },
 ]
 
 /** An option as a crafting step's Ledger line: its SV, Slots, range and damage. */

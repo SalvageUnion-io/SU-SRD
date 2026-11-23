@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
+import { searchKindQuery } from '../searchKinds'
 import {
   matchSearchTokens,
   scoreSearchMatch,
-  searchKindQuery,
   searchNameWords,
   searchOneSlipAway,
   searchSquashedName,

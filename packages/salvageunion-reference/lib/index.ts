@@ -141,6 +141,7 @@ export {
   search,
   searchIn,
 } from './search'
+export { searchKindQuery } from './searchKinds'
 // The pure matching + ranking rules both matchers share: the ORM `search()`
 // above and the reference site's compact client index. No ORM import, so a
 // browser bundle pays only for these functions.
@@ -148,7 +149,6 @@ export {
   matchSearchTokens,
   scoreSearchMatch,
   searchAliases,
-  searchKindQuery,
   searchNameWords,
   searchOneSlipAway,
   searchSquashedName,

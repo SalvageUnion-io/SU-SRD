@@ -6,11 +6,11 @@ import { extractActions, extractPatternActions } from './actionResolution'
 import { getDataMaps, getSchemaCatalog } from './ModelFactory'
 import { getPatterns } from './patterns'
 import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from './schemas/index'
+import { searchKindQuery } from './searchKinds'
 import {
   matchSearchTokens,
   scoreSearchMatch,
   searchAliases,
-  searchKindQuery,
   searchNameWords,
   searchSquashedName,
   searchWordStem,
