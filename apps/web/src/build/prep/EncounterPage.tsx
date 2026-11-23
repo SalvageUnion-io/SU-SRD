@@ -33,7 +33,7 @@ import {
   ENCOUNTER_MAX_OPPOSITION,
 } from 'game-domain/schemas/encounter'
 import type { CSSProperties, ReactNode } from 'react'
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Grid } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import {
@@ -69,6 +69,7 @@ import { useEncounters, usePatterns } from '../../replica/collections'
 import { useGameListing } from '../../replica/gameListing'
 import { useSync } from '../../replica/syncContext'
 import { LiveSheet } from '../sheet/LiveSheet'
+import { nameAwaitsTyping, nameTyped } from '../sheet/nameOnArrival.model'
 import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
 import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
@@ -186,6 +187,11 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   const mode = useSheetModeStore()
   const canWrite = connected && mode.editing
   const go = useGo()
+  // Just made: its name opens selected, so typing replaces "New encounter" (r8 C2, MD8-10).
+  const [typeName] = useState(() => canWrite && nameAwaitsTyping(encounter.id))
+  useEffect(() => {
+    if (typeName) nameTyped(encounter.id)
+  }, [typeName, encounter.id])
   const { confirm, dialog } = useConfirm()
   const patterns = usePatterns((s) => s.mechPatterns)
   const ownNpcs = useOwnUnits('npc')
@@ -372,6 +378,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                   }
                   fire(() => ({ name }))
                 }}
+                startEditing={typeName}
               />
             )}
             {canWrite && (

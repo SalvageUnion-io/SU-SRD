@@ -24,7 +24,7 @@ import { buildPrepCopy } from '../../messages/build-prep'
 import { useEncounters } from '../../replica/collections'
 import { useSync } from '../../replica/syncContext'
 import { blankEncounter, encounterCopy, encounterHref } from '../prep/encounter.model'
-import { useSheetModeStore } from '../sheet/sheetMode.model'
+import { typeNameOnArrival } from '../sheet/nameOnArrival.model'
 import { ShelfLedger } from './ShelfLedger'
 
 export function EncounterShelf({
@@ -89,8 +89,8 @@ export function EncounterShelf({
 
   async function newEncounter() {
     const created = await useEncounters.getState().create(blankEncounter())
-    // A blank encounter has nothing to read: it opens in Edit.
-    useSheetModeStore.getState().setEditing(true)
+    // A blank encounter has nothing to read: it opens in Edit, its name selected (r8 C2).
+    typeNameOnArrival(created.id)
     go(encounterHref(created.id))
   }
 

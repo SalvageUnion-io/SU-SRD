@@ -419,6 +419,23 @@ describe('the Encounters shelf', () => {
     expect(useSheetModeStore.getState().editing).toBe(true)
   })
 
+  // r8 C2 (MD8-10): typing replaces "New encounter", never appends to it.
+  test('a new encounter opens with its name selected for typing', async () => {
+    await renderShelf()
+    await click(screen.getByRole('button', { name: '+ New encounter' }))
+    await settle(() => assigned.length > 0)
+    const made = useEncounters.getState().encounters.find((e) => e.id !== 'enc-1')
+    cleanup()
+    await renderPage(made?.id)
+    const field = screen.getByLabelText(/name/i, { selector: 'input' }) as HTMLInputElement
+    expect(document.activeElement).toBe(field)
+    expect([field.selectionStart, field.selectionEnd]).toEqual([0, 'New encounter'.length])
+    // Once: the next visit opens as usual.
+    cleanup()
+    await renderPage(made?.id)
+    expect(screen.queryByLabelText(/name/i, { selector: 'input' })).toBeNull()
+  })
+
   test('Make a copy runs at once, and its toast opens the copy (SB-25)', async () => {
     await renderShelf()
     await click(screen.getByRole('button', { name: 'More for Ambush' }))
