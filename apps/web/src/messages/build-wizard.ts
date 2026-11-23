@@ -156,6 +156,8 @@ export const buildWizardCopy = messages({
   abilityPointsToUse: 'Ability Points to use',
   coreTrees: 'Core Trees',
   anyCoreTree: 'Any Core Tree',
+  firstAbilities: 'First Abilities',
+  level1OfAnyCoreTree: 'Level 1 of any Core Tree',
   choose1: 'Choose 1',
   level1OfItsCore: 'Level 1 of its Core Trees',
   toChoose: '{count} to choose',
