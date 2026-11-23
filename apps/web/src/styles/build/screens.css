@@ -190,22 +190,25 @@ html[data-signed-out-view]:not([data-signed-out-fonts]) .su-signed-out-static {
   position: relative;
 }
 
-/* The words, a press that opens them whole: drawn as the text they are. */
-button.su-table-notice__text {
-  background: none;
-  border: 0;
-  color: inherit;
+/* The words, a disclosure that opens them whole: drawn as the text they are. */
+.su-table-notice__words {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+summary.su-table-notice__text {
   cursor: pointer;
-  font: inherit;
-  padding: 0;
-  text-align: start;
+  list-style: none;
+}
+
+summary.su-table-notice__text::-webkit-details-marker {
+  display: none;
 }
 
 .su-table-notices[data-in-play] [data-line] .su-table-notice__text {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   display: -webkit-box;
-  flex: 1 1 100%;
   line-clamp: 2;
   overflow: hidden;
 }
@@ -273,9 +276,12 @@ button.su-table-notice__text {
     flex-wrap: nowrap;
   }
 
+  .su-table-notices[data-in-play] [data-line] .su-table-notice__words {
+    flex: 1 1 0;
+  }
+
   .su-table-notices[data-in-play] [data-line]:not([data-whole]) .su-table-notice__text {
     display: block;
-    flex: 1 1 0;
     text-overflow: ellipsis;
     white-space: nowrap;
   }

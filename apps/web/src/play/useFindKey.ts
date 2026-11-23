@@ -13,11 +13,11 @@
 import type { RefObject } from 'react'
 import { useEffect, useState } from 'react'
 import { isTyping } from '../lib/searchShortcut'
-import { playCopy } from '../messages/play'
+import { playKeysCopy } from '../messages/play-keys'
 import { focusTopNotice, noteActionFocus } from './tableNoticesDom.model'
 
 /** Ctrl+K in Play (r8 A7): the screen opens its Rules and puts the caret in their search. */
-export const PLAY_RULES_ASKED = 'su-play-rules-asked'
+export const PLAY_RULES_ASKED = 'play:rules-asked'
 
 /** The Rules' search field (`SrdExplorer`). */
 export const RULES_SEARCH = 'input[name="srd-explorer-search"]'
@@ -111,7 +111,8 @@ export function useFindKey(within: RefObject<HTMLElement | null>): {
 
 /** Why R, A or E pressed nothing (r8 A7). */
 function whyNot(key: string): string {
-  if (key === 'e') return playCopy('keyNotYourTurn')
-  if (document.querySelector('.su-play-act[data-open]') === null) return playCopy('keyNoActionOpen')
-  return key === 'r' ? playCopy('keyNothingToRoll') : playCopy('keyNothingToApply')
+  if (key === 'e') return playKeysCopy('keyNotYourTurn')
+  if (document.querySelector('.su-play-act[data-open]') === null)
+    return playKeysCopy('keyNoActionOpen')
+  return key === 'r' ? playKeysCopy('keyNothingToRoll') : playKeysCopy('keyNothingToApply')
 }

@@ -815,11 +815,13 @@ describe('a notice on a Play screen (r8 A1)', () => {
       sig: 'x',
     }
     render(<NoticeStack notices={[offer]} fixed />)
-    const words = screen.getByRole('button', { name: /^Proposal · Tenacity/ })
-    expect(words.getAttribute('aria-expanded')).toBe('false')
+    const whole = notice('proposal')?.querySelector('details')
+    expect(whole?.querySelector('summary')?.textContent).toContain('Proposal · Tenacity')
     expect(notice('proposal')?.hasAttribute('data-whole')).toBe(false)
-    fireEvent.click(words)
-    expect(words.getAttribute('aria-expanded')).toBe('true')
+    act(() => {
+      if (whole) whole.open = true
+      whole?.dispatchEvent(new Event('toggle'))
+    })
     expect(notice('proposal')?.hasAttribute('data-whole')).toBe(true)
   })
 })

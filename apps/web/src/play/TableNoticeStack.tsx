@@ -173,14 +173,14 @@ function NoticeStrip({
       <Callout tone={notice.tone}>
         <div className="su-table-notice">
           {line ? (
-            <button
-              type="button"
-              className="su-table-notice__text"
-              aria-expanded={whole}
-              onClick={() => setWhole(!whole)}
+            // A native disclosure: its words are its summary, open it reads whole.
+            <details
+              className="su-table-notice__words"
+              open={whole}
+              onToggle={(event) => setWhole(event.currentTarget.open)}
             >
-              {words}
-            </button>
+              <summary className="su-table-notice__text">{words}</summary>
+            </details>
           ) : (
             <div className="su-table-notice__text">{words}</div>
           )}
