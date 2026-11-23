@@ -149,7 +149,7 @@ export const playGamesCopy = messages({
   gameSettings: 'Game settings',
   gameName: 'Name',
   // Under the band's Mediate (r6 C3).
-  sessionStartsWithPlay: 'The session starts when you play',
+  sessionStartsWithPlay: 'Running an encounter or telling the table starts the session',
   noSessionYet: 'No session yet',
   // The band's title, renamed in place (r6 C9).
   rename: 'Rename',

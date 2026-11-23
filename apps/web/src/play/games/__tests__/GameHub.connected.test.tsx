@@ -411,8 +411,10 @@ describe('the sections under the roster', () => {
     })
     const mediate = screen.getByRole('link', { name: 'Mediate' })
     expect(mediate.getAttribute('href')).toBe('/games/g1/mediate')
-    expect(screen.getByText('The session starts when you play')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Start group session' })).toBeNull()
+    expect(
+      screen.getByText('Running an encounter or telling the table starts the session')
+    ).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Start session' })).toBeNull()
   })
 
   test('the Organiser renames the Game in place, on its band (r6 C9)', async () => {

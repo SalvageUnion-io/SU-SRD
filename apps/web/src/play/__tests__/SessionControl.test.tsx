@@ -36,7 +36,7 @@ test('Start group session is one press on the board', async () => {
   const calls: string[] = []
   render(<SessionControl session={session(false, calls)} />)
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Start group session' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Start session' }))
   })
   expect(calls).toEqual(['start'])
 })
@@ -62,7 +62,7 @@ test('End group session asks first, and ends only on the confirm', async () => {
 
 test('On the bar, Start keeps its hint as its description, under it (r5 B13)', () => {
   render(<SessionControl session={session(false, [])} inBar />)
-  const start = screen.getByRole('button', { name: 'Start group session' })
+  const start = screen.getByRole('button', { name: 'Start session' })
   expect(start.closest('.su-play-session')).not.toBeNull()
   expect(start.getAttribute('aria-describedby')).toBe(
     document.querySelector('.su-play-session__hint')?.id ?? null

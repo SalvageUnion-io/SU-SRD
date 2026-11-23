@@ -17,7 +17,7 @@ import { expect, test } from './fixtures'
  *
  * The Organizer makes a Game and appoints themselves Mediator; a player joins
  * by a link and builds a pilot in it. Each opens Play from the Play landing:
- * the Mediator's "Start a group session of <Game>", the player's "Open table as Sparks in <Game>", the door naming its pilot by callsign.
+ * the Mediator's "Start session of <Game>", the player's "Open table as Sparks in <Game>", the door naming its pilot by callsign.
  *
  *  1. **Propose → accept.** The Mediator taps the player's seat, which aims
  *     Propose, and proposes HP → 4; the proposal reads Pending. The player
@@ -80,7 +80,7 @@ test(
 
       // The Mediator starts the group session from the hub, which opens their screen.
       await openApp(page, '/games/')
-      await page.getByRole('button', { name: `Start a group session of ${GAME}` }).click()
+      await page.getByRole('button', { name: `Start session of ${GAME}` }).click()
       await page.waitForURL(/\/mediate$/, { timeout: 30_000 })
       await openPlay(page, new URL(page.url()).pathname)
       const bar = page.locator('.su-play-root header')

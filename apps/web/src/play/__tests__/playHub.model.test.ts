@@ -60,7 +60,7 @@ describe('its doors', () => {
   const START = {
     label: 'Start session',
     href: '/games/g1/mediate',
-    ariaLabel: 'Start a group session of The Rust Belt Run',
+    ariaLabel: 'Start session of The Rust Belt Run',
     start: true,
   }
 

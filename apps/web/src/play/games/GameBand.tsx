@@ -12,8 +12,9 @@
  * (`LaunchPlay`), beside Mediate when the Mediator plays one too.
  *
  * The group session (`useGameSession`, play.md §10): Mediate is the Mediator's
- * one door whether or not one is live (ruleset §3.13), the session's state
- * under it; the session starts with the table's first act on Mediate (r6 C3).
+ * one door whether or not one is live (ruleset §3.13), Prep beside it and the
+ * session's state under the pair, saying what starts one: running an
+ * encounter, giving the turn or telling the table on Mediate (r6 C3, r7 C12).
  * While it is live the band also holds **End group session**, and everyone
  * else reads a **SESSION LIVE** stamp before Play.
  * While the table plays under a Scene condition the band names it (**SCENE · RADIATION
@@ -45,7 +46,7 @@ const STAMP_AT_COMPACT = {
   height: 'var(--size-compact)',
 } satisfies CSSProperties
 
-/** Mediate over the session's state (r6 C3). */
+/** Mediate and Prep in one row, the session's state under it (r6 C3, r7 C12). */
 const DOOR = {
   alignItems: 'flex-start',
   display: 'inline-flex',
@@ -95,13 +96,13 @@ export function GameBand({
           // One cluster, so a phone's strip under the band keeps the doors on a line.
           <Cluster gap={12}>
             {mediates && (
-              // The Mediator's door says who mediates: no stamp beside it.
-              <Cluster gap={8}>
-                {/* One main door, the session's state under it (r6 C3): the
-                    table's first act on Mediate starts the session, so the band
-                    holds no Start of its own beside it. The band's one rust
-                    button (ruleset §3.13). */}
-                <span style={DOOR}>
+              // The Mediator's door says who mediates: no stamp beside it. Its
+              // doors are one row, the session's state under the row (r7 C12).
+              <span style={DOOR}>
+                <Cluster gap={8}>
+                  {/* The table's first act on Mediate starts the session (r6
+                      C3), so the band holds no Start of its own. The band's one
+                      rust button (ruleset §3.13). */}
                   <Button
                     href={mediatePath(gameId)}
                     variant="primary"
@@ -110,21 +111,21 @@ export function GameBand({
                   >
                     {playGamesCopy('mediate')}
                   </Button>
-                  <span id={`${gameId}-session-state`} style={DOOR_STATE}>
-                    {live
-                      ? playCopy('sessionLive')
-                      : PLAY_STARTS_SESSION === 'auto'
-                        ? playGamesCopy('sessionStartsWithPlay')
-                        : playGamesCopy('noSessionYet')}
-                  </span>
+                  {/* The Game's Prep (ADR-067 §3): any other control on a pink band is ink (R44). */}
+                  <Button href={gamePrepPath(gameId)} variant="ink" size="compact">
+                    {playGamesCopy('prep')}
+                  </Button>
+                  {/* Ending tells the whole table, so it asks first (`SessionControl`). */}
+                  {live && <SessionControl session={session ?? null} />}
+                </Cluster>
+                <span id={`${gameId}-session-state`} style={DOOR_STATE}>
+                  {live
+                    ? playCopy('sessionLive')
+                    : PLAY_STARTS_SESSION === 'auto'
+                      ? playGamesCopy('sessionStartsWithPlay')
+                      : playGamesCopy('noSessionYet')}
                 </span>
-                {/* The Game's Prep (ADR-067 §3): any other control on a pink band is ink (R44). */}
-                <Button href={gamePrepPath(gameId)} variant="ink" size="compact">
-                  {playGamesCopy('prep')}
-                </Button>
-                {/* Ending tells the whole table, so it asks first (`SessionControl`). */}
-                {live && <SessionControl session={session ?? null} />}
-              </Cluster>
+              </span>
             )}
             {/* A condition left on says so outside Play too (r4 A11). */}
             {/* Only while the table plays: left on after it, it is stale (r6 C2). */}
