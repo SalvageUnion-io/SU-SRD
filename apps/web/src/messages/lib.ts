@@ -8,6 +8,7 @@ export const libCopy = messages({
   mechWorkshop: 'Mech Workshop',
   unionCrawler: 'Union Crawler',
   denizensOfTheWasteland: 'Denizens of the Wasteland',
+  previewTitle: '{name} · Salvage Union {kind}',
   defaultDescription:
     'The rules reference and character manager for the Salvage Union TTRPG: every chassis, System, Module and ability, and the app to run Pilots, Mechs and Crawlers.',
   leylinePress: 'Leyline Press',
