@@ -25,7 +25,7 @@ function event(minute: number, text: string, more: Partial<TableEvent> = {}): Ta
 function Both({ next }: { next?: string | null }) {
   return (
     <>
-      <LastSession gameId="g1" place="lead" next={next ?? null} />
+      <LastSession gameId="g1" place="lead" plans={() => ({ next: next ?? null, last: null })} />
       <LastSession gameId="g1" place="after" />
     </>
   )
@@ -150,7 +150,8 @@ describe('Last time at the table', () => {
   })
 
   // r6 C1 (LG6-16, MD6-09): ending the session writes what it came to.
-  test('an ended session leads with its recap: who is Down, what changed hands, what is next', () => {
+  // r7 C10 (LG7-21): accepted damage is "Damage taken", parts "Salvage and Scrap".
+  test('an ended session leads with its recap: who is Down, what was salvaged, what is next', () => {
     const vital = (who: string, label: string, from: number | null, to: number) => ({
       kind: 'vitals' as const,
       vital: { who, label, from, to },
@@ -162,6 +163,8 @@ describe('Last time at the table', () => {
         event(2, 'GHOST · HP 10 → 8', vital('GHOST', 'HP', 10, 8)),
         event(3, 'Thresher · SP 9 → 0', vital('Thresher (RAZOR)', 'SP', 9, 0)),
         event(4, 'Ash accepted: Rigging Arm to Spectrum', { kind: 'proposal', answer: 'accepted' }),
+        event(5, 'Ana accepted: Pumpkin · HP → 6', { kind: 'proposal', answer: 'accepted' }),
+        event(6, 'Pickle moved their Scrap', { kind: 'downtime' }),
         event(5, 'Mediator began Downtime', { kind: 'downtime' }),
         event(9, 'Session ended', { kind: 'session', session: 'end' }),
       ],
@@ -172,8 +175,32 @@ describe('Last time at the table', () => {
       .map((li) => li.textContent)
     expect(hurt[0]).toBe('Thresher (RAZOR) · SP 15 → 0Downneeds repair')
     expect(hurt[1]).toBe('GHOST · HP 10 → 8')
-    expect(screen.getByText('Rigging Arm to Spectrum')).toBeTruthy()
+    const moved = within(screen.getByRole('list', { name: 'Salvage and Scrap' }))
+    expect(moved.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      'Salvage and ScrapRigging Arm to Spectrum',
+      'Salvage and ScrapPickle moved their Scrap',
+    ])
+    const damage = within(screen.getByRole('list', { name: 'Damage taken' }))
+    expect(damage.getByText('Pumpkin · HP → 6')).toBeTruthy()
+    expect(screen.queryByText('Changed hands')).toBeNull()
     expect(screen.getByText('A Downtime was held.')).toBeTruthy()
     expect(screen.getByText('Next session: The Pylon and after')).toBeTruthy()
+  })
+
+  // r7 C10 (MD7-09): a pending proposal sat further down; it leads the recap now.
+  test('what is still open leads the recap', () => {
+    serve('g1', {
+      events: [
+        event(0, 'Session began', { kind: 'session', session: 'start' }),
+        event(1, 'Roach rolled 14', { kind: 'roll' }),
+        event(9, 'Session ended', { kind: 'session', session: 'end' }),
+      ] as never,
+      proposals: [
+        { _id: 'op-1', targetName: 'Pickle', field: 'currentHP', after: 7, entityId: 'p1' },
+      ] as never,
+    })
+    render(<Both />)
+    const open = within(screen.getByRole('list', { name: 'Still open' }))
+    expect(open.getByText('Pickle · HP → 7')).toBeTruthy()
   })
 })

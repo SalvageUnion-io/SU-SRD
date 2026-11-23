@@ -6,17 +6,20 @@
  * also told when an encounter is still running (MD4-04). Nothing until the
  * Game has been played.
  *
- * Once it has ended it is the session's recap (r6 C1, `sessionRecap.model.ts`):
- * who was hurt and who is Down, what changed hands, and the next session, the
- * page's first section for everyone until the next one starts; the raw lines
- * wait under **Full log**.
+ * Once it has ended it is the session's recap (r6 C1, `sessionRecap.model.ts`),
+ * the page's first section for everyone until the next one starts: what is
+ * Still open (the proposals awaiting an answer) first, then the night (who
+ * was hurt and who is Down, what was salvaged and where Scrap went, the
+ * damage taken), then the last and next plans (r7 C10). The raw lines wait
+ * under **Full log**.
  */
 
+import { fieldLabel, proposalValueText } from 'game-domain/games/proposals'
 import { useState } from 'react'
 import { FeedLine, FeedList, FeedTime } from '../../components/app'
 import { UnitDown } from '../../components/entity/UnitDown'
 import { Button, SlabSection, Text } from '../../components/index'
-import { formatDateTime } from '../../lib/formatDate'
+import { formatDateTime, todayDay } from '../../lib/formatDate'
 import { playGamesCopy } from '../../messages/play-games'
 import { useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
@@ -24,13 +27,18 @@ import { tableLine } from '../feed.model'
 import { HUB_BODY } from './hubStyles.model'
 import { lastSession } from './lastSession.model'
 import { sessionRecap } from './sessionRecap.model'
+import type { PlansFor } from './useNextSession'
+
+/** A proposal as the recap's Still open lists it: "Pickle · HP → 7". */
+const openLine = (p: { targetName: string | null; field: string; after: unknown }) =>
+  `${p.targetName ?? playGamesCopy('aSheet')} · ${fieldLabel(p.field)} → ${proposalValueText(p.after)}`
 
 /** How many lines show before "Show all". */
 const SHOWN = 12
 
 export function LastSession({
   gameId,
-  next = null,
+  plans,
   place,
 }: {
   gameId: string
@@ -40,10 +48,13 @@ export function LastSession({
    * Each draws nothing when the other is the one to show.
    */
   place: 'lead' | 'after'
-  /** The next session as the viewer may read it (its plan's title, else its day); null with none. */
-  next?: string | null
+  /** The last and next plans as the viewer may read them, given the day the table last played. */
+  plans?: PlansFor
 }) {
   const events = useTableRead('changeLog.events', { gameId })
+  // What is still open: proposals awaiting an answer, the viewer's and the ones they sent.
+  const waiting = useTableRead('ops.pending', place === 'lead' ? { gameId } : 'skip')
+  const sent = useTableRead('ops.sent', place === 'lead' ? { gameId } : 'skip')
   const [log, setLog] = useState(false)
   // The Mediator's alone: nobody else is served it, so nobody else is told.
   const running = useTableRead('mediator.running', { gameId }) ?? null
@@ -71,6 +82,17 @@ export function LastSession({
   const lines = all ? record.lines : record.lines.slice(0, SHOWN)
   const ended = record.endedAt !== null
   const recap = ended ? sessionRecap(record.lines) : null
+  // Still open leads the recap (r7 C10, MD7-09): every proposal not yet answered.
+  const stillOpen = ended
+    ? [
+        ...(waiting ?? []).map(openLine),
+        ...(sent ?? []).filter((p) => p.state === 'proposed').map(openLine),
+      ].filter((line, i, all) => all.indexOf(line) === i)
+    : []
+  const planned =
+    ended && plans !== undefined && record.endedAt !== null
+      ? plans(todayDay(new Date(record.endedAt)))
+      : { next: null, last: null }
   // Ended, the lines are the recap's Full log; while it runs, they are the session.
   const showLines = !ended || log
   return (
@@ -92,6 +114,15 @@ export function LastSession({
         {record.privateRolls > 0 &&
           playGamesCopy('sessionPrivateRolls', { count: record.privateRolls })}
       </Text>
+      {ended && stillOpen.length > 0 && (
+        <FeedList label={playGamesCopy('recapStillOpen')}>
+          {stillOpen.map((line) => (
+            <FeedLine key={line} head={playGamesCopy('recapStillOpen')}>
+              {line}
+            </FeedLine>
+          ))}
+        </FeedList>
+      )}
       {recap !== null && recap.hurt.length > 0 && (
         <FeedList label={playGamesCopy('recapHurt')}>
           {recap.hurt.map((v) => (
@@ -108,17 +139,31 @@ export function LastSession({
           ))}
         </FeedList>
       )}
-      {recap !== null && recap.changedHands.length > 0 && (
-        <FeedList label={playGamesCopy('recapChangedHands')}>
-          {recap.changedHands.map((line) => (
-            <FeedLine key={line} head={playGamesCopy('recapChangedHands')}>
+      {recap !== null && recap.moved.length > 0 && (
+        <FeedList label={playGamesCopy('recapMoved')}>
+          {recap.moved.map((line) => (
+            <FeedLine key={line} head={playGamesCopy('recapMoved')}>
+              {line}
+            </FeedLine>
+          ))}
+        </FeedList>
+      )}
+      {recap !== null && recap.damageTaken.length > 0 && (
+        <FeedList label={playGamesCopy('recapDamageTaken')}>
+          {recap.damageTaken.map((line) => (
+            <FeedLine key={line} head={playGamesCopy('recapDamageTaken')}>
               {line}
             </FeedLine>
           ))}
         </FeedList>
       )}
       {recap?.downtime && <Text variant="note">{playGamesCopy('recapDowntime')}</Text>}
-      {ended && next !== null && <Text variant="note">{playGamesCopy('recapNext', { next })}</Text>}
+      {ended && planned.last !== null && (
+        <Text variant="note">{playGamesCopy('recapLast', { last: planned.last })}</Text>
+      )}
+      {ended && planned.next !== null && (
+        <Text variant="note">{playGamesCopy('recapNext', { next: planned.next })}</Text>
+      )}
       {ended && record.lines.length > 0 && (
         <div>
           <Button size="compact" aria-expanded={log} onClick={() => setLog((open) => !open)}>

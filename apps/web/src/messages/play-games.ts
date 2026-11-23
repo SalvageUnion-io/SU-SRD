@@ -123,7 +123,11 @@ export const playGamesCopy = messages({
   // An ended session's recap (r6 C1).
   recapHurt: 'Hurt and Down',
   recapVital: '{who} · {label} {from} → {to}',
-  recapChangedHands: 'Changed hands',
+  recapStillOpen: 'Still open',
+  recapMoved: 'Salvage and Scrap',
+  recapDamageTaken: 'Damage taken',
+  recapLast: 'Last session: {last}',
+  aSheet: 'A sheet',
   recapDowntime: 'A Downtime was held.',
   recapNext: 'Next session: {next}',
   fullLog: 'Full log',

@@ -105,7 +105,7 @@ function GameSections({ game }: { game: Game }) {
   const router = useRouter({ warn: false })
   const viewerId = useViewerId()
   const sign = useStopSign(gameId)
-  const next = useNextSession(game)
+  const plans = useNextSession(game)
 
   return (
     // Its crew is one manifest (`GameRoster`).
@@ -117,7 +117,7 @@ function GameSections({ game }: { game: Game }) {
               table (its people, the prep, the invite, safety) is the column
               beside it. */}
           {/* An ended session's recap leads the page until the next one starts (r6 C1). */}
-          <LastSession gameId={gameId} place="lead" next={next} />
+          <LastSession gameId={gameId} place="lead" plans={plans} />
           <GameRoster
             gameId={gameId}
             gameName={game.name}

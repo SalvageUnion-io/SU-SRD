@@ -663,6 +663,29 @@ describe('the table’s events', () => {
     expect(texts(PLAYER).filter((t) => t.includes('started the group session'))).toHaveLength(1)
   })
 
+  // r7 C10 (LG7-25): a Pilot left Down and an open area carried into next week unsaid.
+  test('a new session’s first line names a Pilot still Down and an open salvage area', () => {
+    const { act } = seated()
+    act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 0 })] }, AT)
+    act(
+      MEDIATOR,
+      'salvageAreas.set',
+      { area: { name: 'Mutant Nest', techLevel: 1, supply: 4 } },
+      AT + 1
+    )
+    const [start] = act(MEDIATOR, 'session.start', undefined as never, AT + MERGE_MS + 2)
+    expect(start?.text).toBe(
+      'Mediator started the group session · Still open: p1 · Pilot p1 is Down; the salvage area Mutant Nest is open'
+    )
+    expect(start?.session).toBe('start')
+  })
+
+  test('with nothing left open, the line is the start alone', () => {
+    const { act } = seated()
+    const [start] = act(MEDIATOR, 'session.start', undefined as never, AT)
+    expect(start?.text).toBe('Mediator started the group session')
+  })
+
   test('taking the turn back, or a player’s own act, starts no session', () => {
     const { act, room } = seated()
     act(MEDIATOR, 'scenes.setUpNow', { pilotId: null }, AT + 1)
