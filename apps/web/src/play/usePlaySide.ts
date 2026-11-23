@@ -15,6 +15,7 @@
 import { mayBindChannel } from 'game-domain/games/discord'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { useState } from 'react'
+import { logDefaults } from '../build/sheet/changeLog.model'
 import { useViewerId } from '../replica/roomCalls'
 import { useUnits } from '../replica/units'
 import type { ChannelOwner, PlayBinding } from './channels.model'
@@ -28,7 +29,8 @@ import type { GameFeed } from './useGameFeed'
 import { useGameFeed } from './useGameFeed'
 import type { PlayRollDispatch } from './usePlayChannel'
 import { usePlayChannelBinding, usePlayRollDispatch } from './usePlayChannel'
-import { mechNumbers, pilotNumbers, useSoloVitalsFeed } from './useSoloVitalsFeed'
+import type { LoggedUnit } from './useSoloVitalsFeed'
+import { mechNumbers, pilotNumbers, useSoloLastTime, useSoloVitalsFeed } from './useSoloVitalsFeed'
 
 /** What a screen's Tables and Feed share, the player's or the Mediator's. */
 export type SideFeed = {
@@ -55,12 +57,15 @@ export function useSideFeed({
   alerts,
   events,
   proposals,
+  logged,
 }: Pick<FeedSources, 'rolls' | 'alerts' | 'events' | 'proposals'> & {
   target: PlayScreen
   /** Who the Feed and the Game's log say rolled from this screen. */
   rollerName: string
   binding: PlayBinding | null | undefined
   channel: SideFeed['channel']
+  /** Solo, the units whose Change Logs say what happened last time (r7 A8). */
+  logged?: { pilot: LoggedUnit | null; mech: LoggedUnit | null }
 }): SideFeed {
   const dispatch = usePlayRollDispatch({ target, rollerName, binding })
   const [openedAt] = useState(() => Date.now())
@@ -74,7 +79,24 @@ export function useSideFeed({
     target.gameId === null ? roll.screen === screen : roll.at >= openedAt
   )
   const viewerId = useViewerId()
-  const entries = playFeedEntries({ rolls, alerts, events, proposals, mine, rollerName, viewerId })
+  // Solo, the Feed opens with the last visit, under "Last time" (r7 A8).
+  const before = Math.min(openedAt, ...mine.map((roll) => roll.at))
+  const last = useSoloLastTime(
+    logged?.pilot ?? null,
+    logged?.mech ?? null,
+    before,
+    target.gameId === null && logged !== undefined
+  )
+  const entries = playFeedEntries({
+    rolls,
+    alerts,
+    events,
+    proposals,
+    mine,
+    rollerName,
+    viewerId,
+    last,
+  })
   return { gameId: target.gameId, binding, channel, dispatch, entries }
 }
 
@@ -124,6 +146,32 @@ export function usePlaySide({ target, play }: PlayColumnProps): PlaySide {
           }),
         }
       : { owner: { kind: 'solo' }, mayBind: true },
+    logged: inGame
+      ? undefined
+      : {
+          pilot:
+            play.pilot === null
+              ? null
+              : {
+                  kind: 'pilot',
+                  id: play.pilot.id,
+                  name: pilotLabel(play.pilot),
+                  defaults: logDefaults({ kind: 'pilot', entity: play.pilot, crawler: null }),
+                },
+          mech:
+            mech === null
+              ? null
+              : {
+                  kind: 'mech',
+                  id: mech.id,
+                  name: mech.name,
+                  defaults: logDefaults({
+                    kind: 'mech',
+                    entity: mech,
+                    pilotAbilities: play.pilot?.abilities,
+                  }),
+                },
+        },
     rolls: inGame ? feed.rolls : null,
     alerts: inGame ? feed.alerts : [],
     events: inGame ? feed.events : null,

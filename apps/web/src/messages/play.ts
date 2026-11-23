@@ -407,6 +407,7 @@ export const playCopy = messages({
   mediatorProposes: 'Mediator proposes {what}',
   youPropose: 'You propose {what}',
   feedYou: 'You',
+  lastTime: 'Last time',
   feedMediator: 'Mediator',
   changeByAmount: 'Change {label} by an amount',
   amountOf: '{label} amount',
