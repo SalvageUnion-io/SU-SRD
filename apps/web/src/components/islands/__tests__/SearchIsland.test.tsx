@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, jest, mock, spyOn, test } from
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import { buildSearchIndexEntries } from '../../../lib/searchIndexBuild'
+import { searchNames } from '../../../lib/searchNames'
 import { resetSearchIndexForTests } from '../../../lib/useSearchIndex'
 import type { EntitySurfaceValue } from '../../index'
 import { EntitySurfaceProvider } from '../../index'
@@ -43,10 +44,11 @@ describe('SearchIsland', () => {
     // `Object.assign` carries the real `fetch.preconnect` so the mock satisfies
     // Bun's `typeof fetch` structurally — no forced cast.
     const mockFetch: typeof fetch = Object.assign(
-      async () =>
-        new Response(JSON.stringify(index), {
-          headers: { 'Content-Type': 'application/json' },
-        }),
+      async (url: string | URL | Request) =>
+        new Response(
+          JSON.stringify(String(url).endsWith('/search-names.json') ? searchNames(index) : index),
+          { headers: { 'Content-Type': 'application/json' } }
+        ),
       { preconnect: fetch.preconnect }
     )
     fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(mockFetch)
@@ -57,6 +59,41 @@ describe('SearchIsland', () => {
     fetchSpy?.mockRestore()
     resetSearchIndexForTests()
     jest.useRealTimers()
+  })
+
+  test('on a slow line the names answer at once, the whole index after (r8 G1)', async () => {
+    let resolveIndex!: (res: Response) => void
+    fetchSpy?.mockRestore()
+    const slow: typeof fetch = Object.assign(
+      (url: string | URL | Request) =>
+        String(url).endsWith('/search-names.json')
+          ? Promise.resolve(new Response(JSON.stringify(searchNames(index))))
+          : new Promise<Response>((res) => (resolveIndex = res)),
+      { preconnect: fetch.preconnect }
+    )
+    fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(slow)
+    render(<SearchIsland />)
+    const input = screen.getByRole('combobox')
+    await act(async () => {
+      fireEvent.focus(input)
+    })
+    await typeAndSettle(input, 'mule')
+    // The name, before the index: a plain line to its page.
+    const early = screen.getAllByRole('option')
+    expect(early[0]?.textContent).toContain('Mule')
+    expect(early[0]?.getAttribute('href')).toBe('/chassis/mule/')
+    // A query no name holds waits on the index, never "No results".
+    await typeAndSettle(input, 'zzqxjv')
+    expect(screen.getByRole('listbox').textContent).toContain('Searching…')
+
+    await act(async () => {
+      resolveIndex(new Response(JSON.stringify(index)))
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_MS)
+    })
+    // The whole index has answered: now it says what it found.
+    expect(screen.getByRole('listbox').textContent).not.toContain('Searching…')
   })
 
   test('renders an sr-only aria-live region', () => {

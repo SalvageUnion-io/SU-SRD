@@ -34,6 +34,7 @@ import { clientSwap } from '../../runtime/clientSwap'
 import { InlineRef } from '../atoms/InlineRef'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
 import { SearchListbox } from '../compositions/SearchListbox'
+import { SEARCHING } from '../containers/loadingCopy'
 import { HeroSearchForm } from '../HeroSearch'
 import type { SearchComboboxResult } from '../index'
 import { SearchField, useModKeyHint, useSearchCombobox } from '../index'
@@ -113,19 +114,24 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   // intent (focusing the input or typing) — keeps it off every page's
   // critical path. Unlike the reference-entity islands, search never
   // preloads the ORM at all — it matches against a small build-time index.
-  const { ready, index, load } = useSearchIndex({ defer: true })
+  const { ready, index, names: nameRows, load } = useSearchIndex({ defer: true, names: true })
+  // On a slow line the names land first: they answer, by name alone, until
+  // the whole index does (r8 G1). Their results are plain lines, no model.
+  const early = !ready && nameRows.length > 0
+  const matched = ready ? index : nameRows
   // Each entity result is drawn from the index's slim model (no corpus).
   const models = useMemo(() => new Map(index.map((entry) => [entry.id, entry.model])), [index])
   // The dropdown answers: what only mentions the query is left out once a result names it.
   const searchFn = useMemo(
     () => (options: Parameters<typeof searchCompactIndex>[1]) =>
-      aboveFloor(searchCompactIndex(index, options)),
-    [index]
+      aboveFloor(searchCompactIndex(matched, options)),
+    [matched]
   )
-  // The page of every result lists every match: "See all" says how many it holds.
+  // The page of every result lists every match: "See all" says how many it
+  // holds, once the whole index can count them.
   const countAll = useCallback(
-    (query: string) => searchCompactIndex(index, { query }).length,
-    [index]
+    (query: string) => (ready ? searchCompactIndex(index, { query }).length : 0),
+    [ready, index]
   )
   // Dropdown-open is DERIVED: open while a search has run, unless the user
   // dismissed THIS results set (Escape/outside click). A new search run
@@ -161,7 +167,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     announcement,
     clear,
   } = useSearchCombobox({
-    ready,
+    ready: ready || early,
     countAll,
     onSubmit: (result) => {
       markAtContent(resultUrl(result))
@@ -181,6 +187,20 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   )
 
   const isOpen = hasSearched && !quiet && dismissedResults !== results
+
+  // The whole index landed after the names answered: the query runs again on it.
+  const asked = useRef(query)
+  asked.current = query
+  const wasEarly = useRef(false)
+  useEffect(() => {
+    if (early) wasEarly.current = true
+    else if (ready && wasEarly.current) {
+      wasEarly.current = false
+      if (asked.current.trim()) handleInput(asked.current)
+    }
+  }, [early, ready, handleInput])
+  // Nothing by name yet: the whole index may still find it in the words.
+  const pending = early && results.length === 0
 
   // An empty result's next step: the query with its slipped words put right,
   // where that finds something ("Did you mean").
@@ -256,7 +276,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const live = (
     <div className="su-sr-only" aria-live="polite">
       {/* The results page's held query says nothing: that page says its own count (RR8-15). */}
-      {quiet ? null : announcement}
+      {quiet ? null : pending ? SEARCHING : announcement}
     </div>
   )
 
@@ -304,7 +324,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       <SearchListbox
         id={listboxId}
         size="mini"
-        ready={ready}
+        ready={ready || (early && !pending)}
         results={results}
         selectedIndex={selectedIndex}
         optionId={optionId}
