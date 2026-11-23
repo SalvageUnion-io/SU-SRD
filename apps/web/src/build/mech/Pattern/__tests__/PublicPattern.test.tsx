@@ -134,7 +134,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     serverMocks.signIns.length = 0
     try {
       renderAs(SIGNED_OUT)
-      fireEvent.click(screen.getByRole('button', { name: 'Sign in to build from this' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Sign in to build with this' }))
       expect(serverMocks.signIns).toEqual([['/p/pattern/tow-rig-pat']])
     } finally {
       window.location.href = before
@@ -160,19 +160,18 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     expect(hrefs.filter((href) => href?.startsWith('/chassis/'))).toEqual([])
   })
 
-  test('its band keeps the Reference trail, the way back to its chassis page (r5 E11)', () => {
+  test('its trail matches the top nav: Training Bay // Patterns, for a reader too (r7 G7)', () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     const { container } = renderAs(SIGNED_OUT)
 
     const trail = container.querySelector('.su-crumbs--band')
     const links = [...(trail?.querySelectorAll('a[href]') ?? [])].map((a) => [
       a.textContent,
-      new URL(a.getAttribute('href') ?? '').pathname,
+      a.getAttribute('href'),
     ])
     expect(links).toEqual([
-      ['Reference', '/reference/'],
-      ['Chassis', '/chassis/'],
-      ['Scrapper', '/chassis/scrapper/'],
+      ['Training Bay', '/'],
+      ['Patterns', '/patterns'],
     ])
   })
 

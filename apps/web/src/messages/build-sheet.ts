@@ -231,7 +231,7 @@ export const buildSheetCopy = messages({
   driftLabel: 'How {name} differs from its pattern',
   broughtUpToDate: '{name} now matches {pattern}.',
   aSavedPattern: 'A saved pattern',
-  patternDeleted: 'Deleted',
+  patternDeleted: 'Deleted pattern',
   madeBy: 'Made by',
   assignedSheets: 'Assigned sheets',
   chassis: 'Chassis',

@@ -24,7 +24,6 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
-import { mechScrap, scrapSplit } from '../../lib/rules/mechScrap'
 import { usePatternElsewhere, usePatternGone } from '../../lib/sharing/reads'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
@@ -37,6 +36,7 @@ import { MechSheet } from './MechSheet'
 import { mechBarStrip } from './mechBarStrip.model'
 import { PatternCatchUp } from './PatternCatchUp'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
+import { useShownSheet } from './useShownSheet'
 
 type MechLiveSheetProps = SheetViewCommonProps & {
   mech: Mech
@@ -96,15 +96,22 @@ export function MechLiveSheet({
   const savedPatterns = usePatterns((s) => s.mechPatterns)
   // A pattern this account does not hold may be a crewmate's, or one since
   // deleted: asked only once the account's own patterns are in, on a sheet
-  // its viewer writes (a public sheet's reader asks nothing).
+  // its viewer writes (a public sheet's reader asks only its link).
   const patternsIn = usePatterns((s) => s.hydrated)
   const notHeld =
     mech.sourcePattern !== undefined && !savedPatterns.some((p) => p.id === mech.sourcePattern)
   const { status } = useSync()
   const askElsewhere = liveInRead && patternsIn && notHeld && status === 'live'
   const patternGone = usePatternGone(mech.sourcePattern, askElsewhere)
+  // A shared page's reader asks its link alone: a pattern shared by link is
+  // named there too (r7 G7).
+  const shown = useShownSheet()
   // Someone else's pattern, by its link or a crew's: named, not "A saved pattern" (r5 D3).
-  const elsewhere = usePatternElsewhere(mech.sourcePattern, askElsewhere)
+  const elsewhere = usePatternElsewhere(
+    mech.sourcePattern,
+    askElsewhere || (shown && notHeld),
+    askElsewhere
+  )
   const stamped = mechPatternStamp(
     mech,
     (id) =>
@@ -173,20 +180,12 @@ export function MechLiveSheet({
 }
 
 /**
- * The chassis's Tech Level and the build's Scrap on the band (C2's rank), as
- * a crawler's TL rides its band. The Scrap is the whole mech's, chassis and
- * loadout, by Tech Level (`TL1 18 · TL2 5`, r6 E4): a variant is compared on
- * what it costs, and Scrap of two levels is never one number.
+ * The chassis's Tech Level on the band (C2's rank), as a crawler's TL rides
+ * its band. The build's Scrap is said once, by Tech Level, in the masthead's
+ * Cost tiles (r7 G7, over r6 E4's band chip, which said it a second time).
  */
 function MechBandRank({ mech }: { mech: Mech }) {
   const chassis = resolveChassisRef(mech.chassisRef)
-  if (!chassis) return null
-  return (
-    <>
-      {typeof chassis.techLevel === 'number' && (
-        <Stat label={buildSheetCopy('tl')} value={chassis.techLevel} />
-      )}
-      <Stat label={buildSheetCopy('scrap')} value={scrapSplit(mechScrap(mech))} />
-    </>
-  )
+  if (!chassis || typeof chassis.techLevel !== 'number') return null
+  return <Stat label={buildSheetCopy('tl')} value={chassis.techLevel} />
 }

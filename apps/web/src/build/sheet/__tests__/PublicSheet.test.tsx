@@ -99,10 +99,10 @@ describe('a public sheet’s assignments', () => {
     const mech = mechFixture({ id: 'm1', name: 'Iron Mongrel' })
     const shown = render(<PublicSheet appId="m1" answer={answer({ kind: 'mech', body: mech })} />)
     // No provider is the signed-out visitor: signing in is how you build from it.
-    expect(screen.getByRole('button', { name: 'Sign in to build from this' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Sign in to build with this' })).toBeTruthy()
     shown.unmount()
     render(<PublicSheet appId="p1" answer={answer()} />)
-    expect(screen.queryByRole('button', { name: 'Sign in to build from this' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Sign in to build with this' })).toBeNull()
   })
 
   test('its banner stands under the chapter band, in the page flow (r7 G1)', () => {

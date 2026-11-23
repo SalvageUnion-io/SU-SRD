@@ -1,7 +1,8 @@
 /**
  * PublicMechBuild — a shared mech's way to a build of your own (r4 E18), as a
- * shared pattern's page has: signed out, "Sign in to build from this", coming
- * back to this page; signed in, "Build from this" makes a fresh mech on the
+ * shared pattern's page has, under its one name (r7 G7): signed out, "Sign in
+ * to build with this", coming back to this page; signed in, "Build With This"
+ * makes a fresh mech on the
  * same chassis and loadout in your Training Bay and opens it. Damage, Heat and
  * cargo stay on the mech it was read from.
  */
@@ -36,7 +37,7 @@ export function PublicMechBuild({ mech }: { mech: Build }) {
   )
 
   if (status === 'signedOut') {
-    return <SignInControl label={mechCopy('signInToBuildFromThis')} returnHere />
+    return <SignInControl label={mechCopy('signInToBuildWithThis')} returnHere />
   }
   if (status !== 'live' || !canWrite) return null
   return (
@@ -53,7 +54,7 @@ export function PublicMechBuild({ mech }: { mech: Build }) {
         go(`/mechs/${result.value.id}`)
       }}
     >
-      {build.pending ? mechCopy('building') : mechCopy('buildFromThis')}
+      {build.pending ? mechCopy('building') : mechCopy('buildWithThis')}
     </Button>
   )
 }

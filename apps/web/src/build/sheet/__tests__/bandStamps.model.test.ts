@@ -22,7 +22,7 @@ describe('mechPatternStamp', () => {
 
   test('a saved pattern that is gone says so, and is not a link (r3 G3)', () => {
     expect(mechPatternStamp({ chassisRef: 'mule', sourcePattern: 'p1' }, none, true)).toEqual({
-      name: 'Deleted',
+      name: 'Deleted pattern',
     })
     // One this browser holds is never gone, whatever was asked.
     expect(

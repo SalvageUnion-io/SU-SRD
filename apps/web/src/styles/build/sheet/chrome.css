@@ -158,9 +158,10 @@
    a plate with no height of its own, stands as tall as the Compact chips
    beside it, its word on their centre line, on the band's foot with them
    (`chapter-band-controls.css`). On a phone the chips draw at its own
-   height already. */
+   height already. Not once it left the band for the page's first row
+   (`data-fill-out`): drawn in both, it read HOMEBREW twice (r7 G7). */
 @media (width >= 40rem) {
-  .su-sheet-band-stamps > .su-chip-lane > .su-badge-stamp {
+  .su-sheet-band-stamps > .su-chip-lane > .su-badge-stamp:not([data-fill-out]) {
     align-items: center;
     display: inline-flex;
     height: var(--size-compact);
