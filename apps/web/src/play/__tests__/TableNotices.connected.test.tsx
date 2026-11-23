@@ -635,3 +635,118 @@ describe('the table’s news (r6 A3)', () => {
     }
   })
 })
+
+describe('the strip holds what still matters (r7 A1–A3)', () => {
+  const ago = (ms: number) => Date.now() - ms
+  const endedTurn = {
+    _id: 'e-ended',
+    ts: ago(4000),
+    kind: 'turn',
+    text: 'Pickle ended their turn',
+    actorId: 'u2',
+  }
+
+  test('"ended their turn" leaves when the next turn starts, and never follows the Mediator onto the Game page', async () => {
+    const gm = { 'games.listMine': [{ ...GAME, mediator: true, tableRunner: true }] }
+    await renderNotices({ ...gm, 'changeLog.events': [] }, '/games/g1/mediate')
+    await act(async () => {
+      serveAll(answers({ ...gm, 'changeLog.events': [endedTurn] }))
+    })
+    expect(notice('event')?.textContent).toContain('Pickle ended their turn')
+    const given = {
+      _id: 'e-given',
+      ts: ago(1000),
+      kind: 'turn',
+      text: 'The Mediator gave Hotdog the turn',
+      actorId: 'u1',
+    }
+    await act(async () => {
+      serveAll(answers({ ...gm, 'changeLog.events': [given, endedTurn] }))
+    })
+    expect(notice('event')).toBeNull()
+    cleanup()
+    await renderNotices({ ...gm, 'changeLog.events': [] }, '/games/g1')
+    await act(async () => {
+      serveAll(answers({ ...gm, 'changeLog.events': [endedTurn] }))
+    })
+    expect(notice('event')).toBeNull()
+  })
+
+  test('a live session with nobody up says nothing: the strip takes no room (r7 A2)', async () => {
+    await renderNotices({ 'session.state': { live: true, startedAt: 7 } }, '/games/g1/mediate')
+    expect(document.querySelector('[data-table-notice]')).toBeNull()
+    expect(screen.queryByText(/nobody is up/)).toBeNull()
+  })
+
+  test('"You now mediate" leads every notice but the Stop Sign (r7 A1)', async () => {
+    const proposal = {
+      _id: 'p-r7',
+      entityId: 'bonesaw',
+      entityType: 'pilot',
+      targetName: 'Pickle',
+      field: 'currentHP',
+      after: 7,
+      reason: null,
+      ts: ago(500),
+    }
+    const made = {
+      _id: 'r-r7',
+      ts: ago(2000),
+      kind: 'role',
+      text: 'Ash now mediates this Game',
+      actorId: 'org',
+      about: 'u1',
+    }
+    await renderNotices({
+      'games.listMine': [{ ...GAME, mediator: true, tableRunner: true }],
+      'ops.pending': [proposal],
+      'changeLog.events': [made],
+    })
+    const strips = [...document.querySelectorAll('[data-table-notice]')]
+    expect(strips.map((el) => el.getAttribute('data-table-notice'))).toEqual(['role'])
+  })
+
+  test('the Mediator hears the player who is up go Away, and passes the turn on (r7 A3)', async () => {
+    const { serve, gameScope, drop } = await import('../../replica/replica')
+    const { holdPresence } = await import('../../replica/presence')
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const seat = (id: string, callsign: string, owner: string) => ({
+      table: 'pilot' as const,
+      row: pilotFixture({ id, gameId: 'g1', callsign, name: callsign }),
+      version: 1,
+      owner,
+    })
+    act(() => {
+      serve(
+        gameScope('g1'),
+        [],
+        [seat('tn-hotdog', 'Hotdog', 'u-p2'), seat('tn-pickle', 'Pickle', 'u-p3')]
+      )
+      holdPresence(gameScope('g1'), ['u1', 'u-p2', 'u-p3'])
+    })
+    const up = { 'scenes.current': { conditions: [], hours: 0, upNow: 'tn-hotdog' } }
+    await renderNotices(
+      { 'games.listMine': [{ ...GAME, mediator: true, tableRunner: true }], ...up },
+      '/games/g1/mediate'
+    )
+    expect(notice('turn')?.textContent).toContain('Hotdog is up')
+    await act(async () => {
+      holdPresence(gameScope('g1'), ['u1', 'u-p3'])
+    })
+    expect(notice('turn')?.textContent).toContain('Hotdog is away')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Pass the turn on' }))
+    })
+    expect(mutations).toContainEqual({ name: 'scenes.setUpNow', args: { pilotId: 'tn-pickle' } })
+    // Back again, it clears itself.
+    await act(async () => {
+      holdPresence(gameScope('g1'), ['u1', 'u-p2', 'u-p3'])
+    })
+    expect(notice('turn')?.textContent).toContain('Hotdog is up')
+    act(() => {
+      holdPresence(gameScope('g1'), null)
+      drop('pilot', 'tn-hotdog')
+      drop('pilot', 'tn-pickle')
+    })
+  })
+})

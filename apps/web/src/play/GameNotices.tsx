@@ -32,8 +32,10 @@ import { useOwnUnits, usePilots } from '../lib/entities'
 import { playCopy } from '../messages/play'
 import { playDoorCopy } from '../messages/play-door'
 import { playSafetyCopy } from '../messages/play-safety'
+import { holderOf } from '../replica/replica'
 import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
+import type { TableEvent } from '../rooms/game/events'
 import { gamePilots } from './play.model'
 import { acceptedUndo, proposalChange } from './proposalAnswer.model'
 import { downtimeWaits, firstSight, onHub } from './sessionNotices.model'
@@ -45,7 +47,9 @@ import {
   eventsToTell,
   lostRole,
   myTurn,
+  newsOver,
   onGamePages,
+  passTurnTo,
   pausedTitle,
   pinnedAlert,
   pinnedRole,
@@ -54,6 +58,7 @@ import {
   stripLine,
 } from './tableNotices.model'
 import { focusTheActions, rememberRole, seenRoles } from './tableNoticesDom.model'
+import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
 import { useStopSign } from './useStopSign'
 
@@ -106,6 +111,12 @@ export function GameNotices({
     failure: playCopy('turnDidNotEnd'),
     toastId: 'table-end-turn',
   })
+  // Who is at the table, for the Mediator: the player who is up going Away (r7 A3).
+  const present = useGamePresence(mediator ? gameId : null, 'watch')
+  const passTurn = useServerAction(useTableAct('scenes.setUpNow', gameId), {
+    failure: playCopy('turnDidNotPass'),
+    toastId: 'table-pass-turn',
+  })
   // The viewer's own: the replica holds every crewmate's pilot too (LG-02).
   const pilots = gamePilots(useOwnUnits('pilot'), gameId)
   // The viewer's own units, as one value: a change another made to one toasts (r6 A3).
@@ -127,7 +138,7 @@ export function GameNotices({
   // Every other member's act that matters to the whole table, as the strip's
   // one news line, the newest replacing the last (r6 A3); never a toast.
   const heard = useRef<Heard | null>(null)
-  const [news, setNews] = useState<{ id: string; text: string; ts: number } | null>(null)
+  const [news, setNews] = useState<{ event: TableEvent; text: string } | null>(null)
   useEffect(() => {
     if (events === undefined) return
     // Done to the viewer's own unit by someone else: theirs to see, as a toast (r6 A3).
@@ -159,7 +170,7 @@ export function GameNotices({
     const text = mine
       ? playCopy('youNowMediate')
       : stripLine(newest, (unit) => playCopy('unitIsDown', { unit }))
-    setNews({ id: newest._id, text, ts: newest.ts })
+    setNews({ event: newest, text })
   }, [events, viewerId, mediator, inPlay, ownPage, pathname, gameId, gameName, pilotRoots, ownIds])
 
   // The role taken from the viewer, by the Organiser (r3 A4): said once, as it happens.
@@ -177,7 +188,8 @@ export function GameNotices({
   const scene = useTableRead('scenes.current', { gameId })
   const turn = myTurn(scene?.upNow, pilots)
   // Every other seat of the Game reads who is up, on its pages (r6 A2).
-  const upNow = myTurn(scene?.upNow, usePilots())
+  const everyPilot = usePilots()
+  const upNow = myTurn(scene?.upNow, everyPilot)
   const turnName = upNow === null ? null : pilotLabel(upNow)
   // When this screen saw the turn move: the strip shows the newest first.
   const turnSeen = useRef<{ id: string | null; at: number }>({ id: null, at: 0 })
@@ -253,7 +265,39 @@ export function GameNotices({
       sig: `stop:${gameId}:${sign.mine}:${sign.mayLift}:${sign.canWrite}:${sign.pending}`,
     })
   }
-  if (turn === null && upNow !== null && here) {
+  // The player who is up has gone Away: the Mediator is told, and passes the turn on (r7 A3).
+  const upHolder = upNow === null ? null : holderOf('pilot', upNow.id)
+  const away = mediator && present !== null && upHolder != null && !present.has(upHolder)
+  if (turn === null && upNow !== null && here && away) {
+    const title = playCopy('nameIsAway', { name: turnName ?? '' })
+    const next = passTurnTo(
+      gamePilots(everyPilot, gameId).map((pilot) => ({
+        id: pilot.id,
+        holder: holderOf('pilot', pilot.id),
+      })),
+      upNow.id,
+      present
+    )
+    notices.push({
+      key: `turn:${gameId}`,
+      kind: 'turn',
+      rank: 'answer',
+      ts: turnSeen.current.at,
+      dismissible: false,
+      tone: 'ink',
+      title,
+      actions: (
+        <Button
+          size="compact"
+          disabled={!canWrite || passTurn.pending}
+          onClick={() => void passTurn.run({ pilotId: next })}
+        >
+          {playCopy('passTheTurn')}
+        </Button>
+      ),
+      sig: `away:${gameId}:${title}:${next}:${canWrite}:${passTurn.pending}`,
+    })
+  } else if (turn === null && upNow !== null && here) {
     const title = playCopy('nameIsUp', { name: turnName ?? '' })
     notices.push({
       key: `turn:${gameId}`,
@@ -266,17 +310,26 @@ export function GameNotices({
       sig: `turn:${gameId}:${title}:${turnSeen.current.at}`,
     })
   }
-  if (news !== null && here && !dismissed.has(news.id)) {
+  // News leaves once what it reports is over, and never follows the Mediator
+  // onto the Game's page (r7 A1).
+  const newsId = news?.event._id ?? ''
+  if (
+    news !== null &&
+    here &&
+    !(mediator && ownPage) &&
+    !dismissed.has(newsId) &&
+    !newsOver(news.event, events ?? [])
+  ) {
     notices.push({
-      key: `event:${news.id}`,
+      key: `event:${newsId}`,
       kind: 'event',
       rank: 'news',
-      ts: news.ts,
+      ts: news.event.ts,
       dismissible: true,
       tone: 'ink',
       title: news.text,
-      dismiss: () => dismiss(news.id),
-      sig: `event:${news.id}:${news.text}`,
+      dismiss: () => dismiss(newsId),
+      sig: `event:${newsId}:${news.text}`,
     })
   }
   if (turn !== null) {
@@ -395,7 +448,8 @@ export function GameNotices({
     notices.push({
       key: `role:${role._id}`,
       kind: 'role',
-      rank: 'news',
+      // Who runs the table leads the strip, behind the Stop Sign alone (r7 A1).
+      rank: 'role',
       ts: role.ts,
       dismissible: true,
       tone: 'ink',
@@ -452,7 +506,13 @@ export function GameNotices({
   }
   // Said once (r6 C1): the Game's page leads with the recap, so the strip never pins it for days.
   const endedKey = `${sessionKey}:ended:${endedAt}`
-  if (!live && endedAt !== null && !dismissed.has(endedKey) && firstSight(endedKey)) {
+  if (
+    !live &&
+    endedAt !== null &&
+    !(mediator && ownPage) &&
+    !dismissed.has(endedKey) &&
+    firstSight(endedKey)
+  ) {
     notices.push({
       key: `${sessionKey}:ended:${endedAt}`,
       kind: 'session-ended',
@@ -463,19 +523,6 @@ export function GameNotices({
       title: playCopy('sessionEndedIn', { game: gameName }),
       dismiss: () => dismiss(endedKey),
       sig: `${sessionKey}:ended:${endedAt}:${gameName}`,
-    })
-  }
-  // While the session is live on its Play screen the strip keeps its place (r6 A1).
-  if (live && inPlay && here) {
-    notices.push({
-      key: `quiet:${gameId}`,
-      kind: 'quiet',
-      rank: 'quiet',
-      ts: 0,
-      dismissible: false,
-      tone: 'ink',
-      title: playCopy('stripQuiet'),
-      sig: `quiet:${gameId}`,
     })
   }
   // After every render: the strip redraws only when a notice's `sig` changed.

@@ -49,6 +49,9 @@ export function setScreenNotices(source: string, next: readonly Notice[]): void 
 }
 
 const currentNotices = () => screenNotices
+
+/** What the open Play screen has on the strip now, outside React. */
+export const screenNoticesNow = currentNotices
 const EMPTY: readonly Notice[] = []
 const noNotices = () => EMPTY
 

@@ -68,6 +68,6 @@ What frames the content (ruleset §4; R16).
 - **K12 Link previews** — an entity with art: its art; else a 1200 × 630 card, its Page in small: band, name, chips, cite, path at the foot; canon solid, homebrew dashed; no type under 34px; theme-color the band.
 - **K13 Chrome matches** — header and footer: `--color-paper` on `--color-ink-deep`; the rail: its band, words `--su-on-kind`.
 - **K14 Every control in reach** — every control sits in its frame at every width; nothing invisible takes its press.
-- **K15 Table notices pin as one** (K5) — untoasted: one strip (Stop Sign, answer, newest; count, Dismiss all, End my turn kept), one height under Play's bar.
+- **K15 Table notices pin as one** (K5) — one strip: Stop Sign, You now mediate, your Down, answers, the newest, each gone with its news; one height under Play's bar, opening down.
 - **K16 Rules beside the board** — from `lg` Play's Rules are a pane, never a dialog.
 - **R52 One muted note** — a lede, hint or note is `Text variant="note"`; no style object pairs a muted ink with a font size.

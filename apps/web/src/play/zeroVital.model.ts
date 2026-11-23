@@ -2,26 +2,29 @@
  * A vital that reaches 0 says what happens next (r4 A5): a Mech at 0 SP rolls
  * on Critical Damage (a Bio-Chassis on its own Damage table), a Pilot at 0 HP
  * on Critical Injury. The change is written to the Feed (`recordPlayChange`),
- * and a toast carries a "Roll Critical Damage" button that rolls the table in
- * the Tables section in one press (r5 A1; `askPlayTable`, which `PlayTables`
- * and the Cockpit hear). The roll lands on the Feed, its row marked in the
+ * and the table's strip leads with it, a "Roll Critical Injury" button that
+ * rolls the table in the Tables section in one press (r5 A1, r7 A1;
+ * `askPlayTable`, which `PlayTables` and the Cockpit hear), until that roll
+ * lands or the unit rises. The roll lands on the Feed, its row marked in the
  * table; the unit's card names it, a press away from that row (`downResult`,
  * r6 A4), until its SP or HP rises.
  *
  * A unit at 0 is Down (`isDown`): every screen at the table marks it. Nothing
  * in the result is applied for the player (ADR-007): the press is theirs, and
  * what the result does is the table's to play. Outside Play, where no Tables
- * section is listening, the toast says what is due without the button.
+ * section is listening, a toast says what is due without the button.
  */
 
 import { pilotCallsign } from 'game-domain/pilotLabel'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useSyncExternalStore } from 'react'
+import { createElement, useSyncExternalStore } from 'react'
 import { damageTableName, overloadTableOf, resolveChassisRef } from 'salvageunion-reference/rules'
-import { toast } from '../components/index'
+import { Button, toast } from '../components/index'
 import { playCopy } from '../messages/play'
 import { onPlayRoll, recordPlayChange } from './playRolls.model'
+import type { Notice } from './TableNoticeStack'
+import { setScreenNotices } from './tableStripSlot.model'
 import { CRITICAL_INJURY_TABLE } from './tables.model'
 
 type TableListener = (name: string, ask: { roll: boolean }) => void
@@ -49,8 +52,22 @@ export function isDown(current: number | null | undefined): boolean {
 /** What each Down unit's Critical roll came to, by unit id, until it rises (r5 A1). */
 const results = new Map<string, DownResult>()
 const resultWatchers = new Set<() => void>()
-/** The unit whose Critical table the toast's press rolled, while its roll is awaited. */
+/** The unit whose Critical table the strip's press rolled, while its roll is awaited. */
 let awaited: { unitId: string; table: string; toastId: string } | null = null
+
+/** The viewer's own Down units on the strip, each until its Critical roll lands (r7 A1). */
+const downs = new Map<string, Notice & { table: string }>()
+
+function showDue(): void {
+  setScreenNotices(
+    'down',
+    [...downs.values()].map(({ table: _, ...notice }) => notice)
+  )
+}
+
+function clearDue(unitId: string): void {
+  if (downs.delete(unitId)) showDue()
+}
 
 /** A kept Critical result: what the unit's card names, its table to open. */
 export type DownResult = { table: string; text: string }
@@ -70,7 +87,10 @@ function rowName(outcome: string | undefined): string | null {
 }
 
 onPlayRoll((roll) => {
-  if (awaited === null || roll.tableName !== awaited.table || roll.rolls.length === 0) return
+  if (roll.rolls.length === 0) return
+  // Its roll made, from the strip or the Tables section: the strip has said its piece (r7 A1).
+  for (const [unitId, notice] of downs) if (notice.table === roll.tableName) clearDue(unitId)
+  if (awaited === null || roll.tableName !== awaited.table) return
   const name = rowName(roll.outcome)
   const text = [roll.tableName, roll.rolls.join(', '), ...(name === null ? [] : [name])]
   keepResult(awaited.unitId, { table: awaited.table, text: text.join(' · ') })
@@ -103,6 +123,8 @@ export function useDownResult(unitId: string | null): DownResult | null {
 export function clearDownResults(): void {
   results.clear()
   awaited = null
+  downs.clear()
+  showDue()
   for (const watch of resultWatchers) watch()
 }
 
@@ -157,26 +179,50 @@ export function zeroVitalNotice(
     // Undone, or healed: the notice has nothing left to say, nor the result kept.
     if (to > 0) {
       toast.dismiss(id)
+      clearDue(at.unit.id)
       keepResult(at.unit.id, null)
     }
     return
   }
   const name = at.kind === 'pilot' ? pilotCallsign(at.unit) : at.unit.name
   recordPlayChange(playCopy('reachedZeroFeed', { name, label: due.label, from, table: due.table }))
-  toast(playCopy('reachedZero', { name, label: due.label, table: due.table }), {
-    id,
-    duration: 20000,
-    ...(listeners.size > 0
-      ? {
-          action: {
-            label: playCopy('rollTable', { table: due.table }),
-            // One press rolls it (r5 A1): the press is the player's own.
-            onClick: () => {
-              awaited = { unitId: at.unit.id, table: due.table, toastId: id }
-              askPlayTable(due.table, true)
-            },
-          },
-        }
-      : {}),
+  const title = playCopy('reachedZero', { name, label: due.label, table: due.table })
+  if (listeners.size === 0) {
+    toast(title, { id, duration: 20000 })
+    return
+  }
+  // On Play it leads the strip, never a toast that leaves on its own (r7 A1).
+  const roll = () => {
+    awaited = { unitId: at.unit.id, table: due.table, toastId: id }
+    // One press rolls it (r5 A1): the press is the player's own.
+    askPlayTable(due.table, true)
+  }
+  dueNotice(at.unit.id, id, title, due.table, roll)
+}
+
+/** The viewer's unit Down, on the strip until its roll lands (r7 A1). */
+function dueNotice(
+  unitId: string,
+  key: string,
+  title: string,
+  table: string,
+  roll: () => void
+): void {
+  downs.set(unitId, {
+    key,
+    kind: 'down',
+    rank: 'down',
+    ts: Date.now(),
+    dismissible: false,
+    tone: 'bad',
+    title,
+    actions: createElement(
+      Button,
+      { variant: 'primary', size: 'compact', onClick: roll },
+      playCopy('rollTable', { table })
+    ),
+    sig: `down:${key}:${title}`,
+    table,
   })
+  showDue()
 }

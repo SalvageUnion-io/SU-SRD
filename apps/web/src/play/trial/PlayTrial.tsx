@@ -79,8 +79,8 @@ function KeepThisLine({ pilotId }: { pilotId: string }) {
     setScreenNotices('trial', [
       {
         key: 'trial',
-        kind: 'quiet',
-        rank: 'quiet',
+        kind: 'event',
+        rank: 'news',
         ts: 0,
         dismissible: true,
         tone: 'pilot',

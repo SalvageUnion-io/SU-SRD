@@ -10,6 +10,7 @@ import {
   leavingOnPurpose,
   lostRole,
   myTurn,
+  newsOver,
   onGamePages,
   pausedTitle,
   pinnedAlert,
@@ -272,8 +273,8 @@ describe('pinnedAlert clears itself (r3 H1)', () => {
   })
 })
 
-describe('the one strip (r6 A1)', () => {
-  type Rank = 'stop' | 'alert' | 'answer' | 'turn' | 'news' | 'quiet'
+describe('the one strip (r6 A1, r7 A1)', () => {
+  type Rank = 'stop' | 'role' | 'down' | 'alert' | 'answer' | 'turn' | 'news'
   const n = (key: string, rank: Rank, ts: number) => ({
     key,
     rank,
@@ -281,17 +282,20 @@ describe('the one strip (r6 A1)', () => {
     dismissible: rank === 'news' || rank === 'alert',
   })
 
-  test('the Stop Sign leads, then what waits on an answer, then the rest newest first', () => {
+  test('the Stop Sign leads, then You now mediate, my Down, an answer, then the rest newest first', () => {
     const stacked = stackNotices([
       n('alert', 'alert', 300),
       n('turn', 'turn', 50),
       n('ended', 'news', 900),
       n('proposal', 'answer', 100),
+      n('down', 'down', 20),
+      n('role', 'role', 10),
       n('stop', 'stop', 1),
-      n('quiet', 'quiet', 0),
     ])
     expect(stacked.map((notice) => notice.key)).toEqual([
       'stop',
+      'role',
+      'down',
       'proposal',
       'ended',
       'alert',
@@ -299,12 +303,45 @@ describe('the one strip (r6 A1)', () => {
     ])
   })
 
-  test('one notice shows; the rest wait behind the count, and the quiet line only when alone', () => {
-    const shown = shownNotices([n('turn', 'turn', 0), n('ended', 'news', 900), n('q', 'quiet', 0)])
+  test('one notice shows; the rest wait behind the count; with none the strip says nothing (r7 A2)', () => {
+    const shown = shownNotices([n('turn', 'turn', 0), n('ended', 'news', 900)])
     expect(shown.top?.key).toBe('ended')
     expect(shown.rest.map((notice) => notice.key)).toEqual(['turn'])
-    expect(shownNotices([n('q', 'quiet', 0)])).toEqual({ top: n('q', 'quiet', 0), rest: [] })
     expect(shownNotices([])).toEqual({ top: null, rest: [] })
+  })
+})
+
+describe('newsOver (r7 A1): a notice ends when what it reports is over', () => {
+  const ended = event({ _id: 't1', kind: 'turn', text: 'Pickle ended their turn', ts: 10 })
+  const given = event({
+    _id: 't2',
+    kind: 'turn',
+    text: 'The Mediator gave Hotdog the turn',
+    ts: 20,
+  })
+  const roll = event({ _id: 'r', kind: 'roll', text: 'Mediator · Group Initiative · 15', ts: 5 })
+  const down = event({ _id: 'd', text: 'Pumpkin · HP 3 → 0', ts: 12 })
+
+  test('"ended their turn" and an initiative roll end when the next turn starts', () => {
+    expect(newsOver(ended, [ended])).toBe(false)
+    expect(newsOver(ended, [ended, given])).toBe(true)
+    expect(newsOver(roll, [roll, ended])).toBe(true)
+    // A unit Down is not over because a turn moved.
+    expect(newsOver(down, [down, given])).toBe(false)
+  })
+
+  test('any news ends when the session ends or Downtime moves', () => {
+    const end = event({
+      _id: 'e',
+      kind: 'session',
+      session: 'end',
+      text: 'Sam ended the group session',
+      ts: 30,
+    })
+    const downtime = event({ _id: 'dt', kind: 'downtime', text: 'Sam began Downtime', ts: 40 })
+    expect(newsOver(down, [down, end])).toBe(true)
+    expect(newsOver(end, [end, downtime])).toBe(true)
+    expect(newsOver(down, [down])).toBe(false)
   })
 })
 
@@ -389,6 +426,11 @@ describe('the session’s end (r2 C5)', () => {
     expect(endedSession([end], 2000, 'me')).toBe(1000)
     expect(endedSession([end], 2000, 'gm')).toBeNull()
     expect(endedSession([end], 1000 + 10 * 60_000, 'me')).toBeNull()
+  })
+
+  test('over once Downtime begins (r7 A1)', () => {
+    const downtime = event({ _id: 'dt', kind: 'downtime', text: 'Sam began Downtime', ts: 1500 })
+    expect(endedSession([end, downtime], 2000, 'me')).toBeNull()
   })
 
   test('never to someone who joined after it ended, nor on a later day (r4 B5)', () => {

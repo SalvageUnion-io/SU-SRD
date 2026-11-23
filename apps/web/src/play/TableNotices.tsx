@@ -13,8 +13,8 @@
  * over with its door, "Session live" with its door, then "Session ended"; and
  * a Game the viewer was removed from, which would otherwise just vanish. It
  * shows one and counts the rest. On a Play screen it stands under the bar
- * (`tableStripSlot.model.ts`) at one height while the session is live, so nothing
- * under it moves. Offline it keeps what it last showed, marked Offline (r6
+ * (`tableStripSlot.model.ts`) at one height, so nothing under it moves while it
+ * speaks; with nothing to say it takes no room (r7 A2). Offline it keeps what it last showed, marked Offline (r6
  * A14).
  *
  * Nothing here is a toast but the viewer losing the Mediator's role (r3 A4):
