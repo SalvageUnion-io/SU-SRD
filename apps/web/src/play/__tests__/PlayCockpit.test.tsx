@@ -49,6 +49,8 @@ const { useUnits } = await import('../../replica/units')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { SyncContext } = await import('../../replica/syncContext')
 const { PlayCockpit } = await import('../PlayCockpit')
+const { PLAY_RULES_ASKED } = await import('../useFindKey')
+const { askPlayTable } = await import('../zeroVital.model')
 
 beforeAll(async () => {
   await hydrateStores()
@@ -265,6 +267,30 @@ describe('below `lg`: the same panes as tabs (play.md §11)', () => {
       expect(await screen.findByRole('menuitem', { name: /On foot/ })).toBeTruthy()
       expect(screen.getByRole('menuitem', { name: /Downtime/ })).toBeTruthy()
       expect(screen.getByRole('menuitem', { name: /Table mode/ })).toBeTruthy()
+    } finally {
+      restore()
+    }
+  })
+})
+
+describe('Ctrl+K on Play (r8 A7)', () => {
+  test('on a phone it opens the Rules tab, where the search is', async () => {
+    const restore = narrowViewport()
+    try {
+      await renderCockpit({ gameId: null, gameName: null })
+      await act(async () => {
+        window.dispatchEvent(new Event(PLAY_RULES_ASKED))
+      })
+      const rules = screen.getByRole('tab', { name: 'Rules' })
+      expect(rules.getAttribute('aria-selected')).toBe('true')
+      await act(async () => {
+        fireEvent.click(screen.getByRole('tab', { name: 'Act' }))
+      })
+      // A zero-vital notice asks for its roll table: below `lg` the tables head the Rules tab.
+      await act(async () => {
+        askPlayTable('Critical Injury')
+      })
+      expect(screen.getByRole('tab', { name: 'Rules' }).getAttribute('aria-selected')).toBe('true')
     } finally {
       restore()
     }
