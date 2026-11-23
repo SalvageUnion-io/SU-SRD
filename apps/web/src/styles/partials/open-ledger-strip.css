@@ -376,18 +376,13 @@
   white-space: normal;
 }
 
-/* On a phone the Starter crew's head keeps one line:
-   the title is not allowed to wrap, and the pilots' tally (the rows say it)
-   goes. */
+/* On a phone the Starter crew's head keeps one line: the title is not
+   allowed to wrap. */
 @media not (width >= 40rem) {
   /* biome-ignore lint/style/noDescendingSpecificity: the strip's rule above keeps what both set; this is the pairs list's phone size */
   .su-open--pairs .su-open__title > .su-rule-head__label {
     font-size: var(--text-lede);
     white-space: nowrap;
-  }
-
-  .su-open--pairs thead .su-rule-head__tally {
-    display: none;
   }
 }
 
