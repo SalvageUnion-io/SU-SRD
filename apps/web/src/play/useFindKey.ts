@@ -3,13 +3,15 @@
  * typed in, "/" puts the caret in Find, its text selected, so a keyboard
  * player reaches an action without tabbing past every vital; R rolls the open
  * action, A applies it (or, with nothing to apply, finishes it), E ends the
- * player's turn, and "?" opens the sheet that lists them (`PlayKeysSheet`).
- * A turn is a handful of keys.
+ * player's turn, N jumps to the top notice's first answer (r7 A7), and "?"
+ * opens the sheet that lists them (`PlayKeysSheet`). A turn is a handful of
+ * keys.
  */
 
 import type { RefObject } from 'react'
 import { useEffect, useState } from 'react'
 import { isTyping } from '../lib/searchShortcut'
+import { focusTopNotice, noteActionFocus } from './tableNoticesDom.model'
 
 /** The first of `selector` that is on screen and can be pressed. */
 function pressable(selector: string): HTMLElement | null {
@@ -34,8 +36,8 @@ const PRESSES: Readonly<Record<string, readonly string[]>> = {
 }
 
 /**
- * While mounted, "/" focuses the search field inside `within`, and R, A, E
- * and "?" are Play's (r6 A13). Answers whether the keys sheet is open, and
+ * While mounted, "/" focuses the search field inside `within`, and R, A, E,
+ * N and "?" are Play's (r6 A13, r7 A7). Answers whether the keys sheet is open, and
  * how to close it.
  */
 export function useFindKey(within: RefObject<HTMLElement | null>): {
@@ -50,6 +52,10 @@ export function useFindKey(within: RefObject<HTMLElement | null>): {
       if (event.key === '?') {
         event.preventDefault()
         setKeysOpen(true)
+        return
+      }
+      if (event.key.toLowerCase() === 'n' && !event.shiftKey) {
+        if (focusTopNotice()) event.preventDefault()
         return
       }
       const presses = PRESSES[event.key.toLowerCase()]
@@ -68,8 +74,14 @@ export function useFindKey(within: RefObject<HTMLElement | null>): {
       field.focus()
       field.select()
     }
+    // Where the focus stood in the actions: an answer to a notice sends it back (r7 A7).
+    const onFocus = (event: FocusEvent) => noteActionFocus(event.target)
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    document.addEventListener('focusin', onFocus)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('focusin', onFocus)
+    }
   }, [within])
   return { keysOpen, closeKeys: () => setKeysOpen(false) }
 }

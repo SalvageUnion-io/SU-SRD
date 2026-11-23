@@ -84,7 +84,7 @@ const notice = (kind: string) => document.querySelector(`[data-table-notice="${k
 describe('the pinned notices', () => {
   test('with nothing to say, it takes no room', async () => {
     await renderNotices()
-    expect(screen.getByRole('region', { name: 'Your Games' }).childElementCount).toBe(0)
+    expect(screen.getByRole('region', { name: 'Table notices' }).childElementCount).toBe(0)
   })
 
   test('the Stop Sign pins on a sheet too, names the tab, and whoever may lift it resumes', async () => {
@@ -402,7 +402,7 @@ describe('the pinned notices', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Dismiss all' }))
     })
     expect(strips()).toEqual([])
-    expect(screen.getByRole('region', { name: 'Your Games' }).childElementCount).toBe(0)
+    expect(screen.getByRole('region', { name: 'Table notices' }).childElementCount).toBe(0)
   })
 
   test('a proposal leads the strip, and dismissing the rest leaves it waiting (r6 A1)', async () => {
@@ -513,7 +513,7 @@ describe('the pinned notices', () => {
     )
     const door = screen.getByRole('link', { name: 'Open table' })
     expect(door.getAttribute('href')).toContain('tn-door')
-    const region = screen.getByRole('region', { name: 'Your Games' })
+    const region = screen.getByRole('region', { name: 'Table notices' })
     const skip = region.querySelector('a')
     expect(skip?.textContent).toBe('Skip to your turn')
     await act(async () => {

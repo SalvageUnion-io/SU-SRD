@@ -1,7 +1,7 @@
 /**
  * The table's notices' ties to the page (`TableNotices`): the hand overs this
  * browser dismissed, the strip's measured height and where the focus goes
- * after the turn or an answer.
+ * after the turn or an answer, and N's jump to the top notice.
  */
 
 import { useCallback, useRef } from 'react'
@@ -56,14 +56,41 @@ export function useNoticesHeight() {
   }, [])
 }
 
+/** Where the focus last stood in the action list (r7 A7): where an answer sends it back. */
+let lastInActions: HTMLElement | null = null
+
+/** Note the focus standing in the action list (`useFindKey`). */
+export function noteActionFocus(target: EventTarget | null): void {
+  if (target instanceof HTMLElement && target.closest('[data-action-key]') !== null) {
+    lastInActions = target
+  }
+}
+
+const usable = (el: HTMLElement | null): el is HTMLElement =>
+  el?.isConnected === true && el.closest('[hidden]') === null && !(el as HTMLButtonElement).disabled
+
 /**
- * After End my turn, Accept or Decline (r5 A17): focus goes to the first
- * action's Use on a Play screen, else to the page's content, never the body.
+ * After End my turn, Accept or Decline (r5 A17, r7 A7): focus goes back to
+ * where it stood in the action list, else to the first action's Use on a
+ * Play screen, else to the page's content, never the body.
  */
 export function focusTheActions(): void {
+  if (usable(lastInActions)) {
+    lastInActions.focus()
+    return
+  }
   const uses = document.querySelectorAll<HTMLElement>('[data-action-key] button:not([disabled])')
   const use = [...uses].find((button) => button.closest('[hidden]') === null)
   ;(use ?? document.getElementById('main-content'))?.focus()
+}
+
+/** N on a Play screen (r7 A7): onto the top notice's first answer; false when it has none. */
+export function focusTopNotice(): boolean {
+  const first = [
+    ...document.querySelectorAll<HTMLElement>('[data-table-notice] button:not([disabled])'),
+  ].find((button) => button.closest('[hidden]') === null)
+  first?.focus()
+  return first !== undefined
 }
 
 /** "Skip to your turn" (r5 A17): onto the turn's End my turn. */
