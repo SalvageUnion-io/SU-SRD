@@ -244,6 +244,8 @@ export function PlayActionRow({
       data-locked={(!away && locked !== null) || undefined}
       data-action-key={entry.key}
       data-done={done || undefined}
+      // A Passive never opens: the list's keyboard stops at its name (r7 B8).
+      data-passive={entry.type === 'Passive' || undefined}
     >
       {/* Mounted with the row, so the finish is spoken as the resolve closes. */}
       <span className="su-sr-only" role="status">

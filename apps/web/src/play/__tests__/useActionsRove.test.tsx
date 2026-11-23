@@ -9,12 +9,22 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useRef } from 'react'
 import { useActionsRove } from '../useActionsRove'
 
-function Row({ name, open = false, use = true }: { name: string; open?: boolean; use?: boolean }) {
+function Row({
+  name,
+  open = false,
+  use = true,
+  passive = false,
+}: {
+  name: string
+  open?: boolean
+  use?: boolean
+  passive?: boolean
+}) {
   return (
-    <li className="su-play-act" data-open={open || undefined}>
+    <li className="su-play-act" data-open={open || undefined} data-passive={passive || undefined}>
       <a href={`/${name}`}>{name}</a>
       <a href={`/${name}/keyword`}>{`${name} keyword`}</a>
-      {use ? (
+      {passive ? null : use ? (
         <button type="button" className="su-play-act__use">{`Use ${name}`}</button>
       ) : (
         <button type="button">{`Vent ${name}`}</button>
@@ -32,6 +42,7 @@ function List({ open = false }: { open?: boolean }) {
         <Row name="cannon" />
         <Row name="kit" open={open} />
         <Row name="reactor" use={false} />
+        <Row name="locomotion" passive />
       </ul>
     </div>
   )
@@ -54,6 +65,9 @@ describe('the Actions list, one Tab stop (r7 B8)', () => {
     // No Use to press: its own order.
     expect(tab('Vent reactor')).toBe(0)
     expect(tab('reactor keyword')).toBe(0)
+    // A Passive is a stop by its name; its keywords wait.
+    expect(tab('locomotion')).toBe(-1)
+    expect(tab('locomotion keyword')).toBe(-1)
   })
 
   test('the arrows move between the Uses, and the stop follows the focus', () => {
@@ -65,7 +79,9 @@ describe('the Actions list, one Tab stop (r7 B8)', () => {
     expect(document.activeElement).toBe(kit)
     expect(kit.tabIndex).toBe(0)
     expect(cannon.tabIndex).toBe(-1)
-    fireEvent.keyDown(kit, { key: 'Home' })
+    fireEvent.keyDown(kit, { key: 'End' })
+    expect(document.activeElement).toBe(screen.getByRole('link', { name: 'locomotion' }))
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Home' })
     expect(document.activeElement).toBe(cannon)
   })
 

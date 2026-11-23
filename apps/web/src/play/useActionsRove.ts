@@ -2,10 +2,11 @@
  * The Actions list as one Tab stop (r7 B8), as a Ledger's sort labels are
  * (`useSortRove`): the closed rows' Use buttons are one stop, the arrows,
  * Home and End move between them, and the stop is the Use last focused, else
- * the first. What else a closed row holds (its name's Peek, a keyword's link,
- * its More) is reached once the row is open, so an action is one Tab, not
- * five. An open row, and a row with no Use to press (the Reactor, Mount, a
- * Passive, a row offline), keeps its own Tab order.
+ * the first; a Passive, which never opens, is a stop by its name. What else
+ * a closed row holds (its name's Peek, a keyword's link, its More) is reached
+ * once the row is open, so an action is one Tab, not five. An open row, and
+ * a row with other controls and no Use to press (the Reactor, Mount, a row
+ * offline), keeps its own Tab order.
  *
  * DOM-only: the rows re-render on their own, so the stops are set again on
  * every change under the list (`MutationObserver`).
@@ -14,39 +15,54 @@
 import type { RefObject } from 'react'
 import { useEffect } from 'react'
 
-/** A closed row's Use: one of the list's stops. */
-const USE = '.su-play-act:not([data-open]) .su-play-act__use'
-
 /** What a keyboard reaches. */
 const FOCUSABLE = ['a[href]', 'button', 'input', 'select', 'textarea', '[tabindex]'].join()
 
-/** The closed rows' Use buttons, in the list's order. */
+/**
+ * A closed row's stop: its Use, while it can be pressed; a Passive, which
+ * has no control at all, its name. A row with other controls and no Use to
+ * press (the Reactor, Mount, an action offline) has none.
+ */
+function rowStop(row: HTMLElement): HTMLElement | null {
+  if (row.hasAttribute('data-open') || row.closest('[hidden]') !== null) return null
+  const use = row.querySelector<HTMLButtonElement>('.su-play-act__use')
+  if (use !== null) return use.disabled ? null : use
+  return row.hasAttribute('data-passive') ? row.querySelector<HTMLElement>(FOCUSABLE) : null
+}
+
+/** The rows and their stops, in the list's order. */
+function roveRows(list: HTMLElement): { row: HTMLElement; stop: HTMLElement | null }[] {
+  return [...list.querySelectorAll<HTMLElement>('.su-play-act')].map((row) => ({
+    row,
+    stop: rowStop(row),
+  }))
+}
+
+/** The list's stops, in its order. */
 function roveStops(list: HTMLElement): HTMLElement[] {
-  return [...list.querySelectorAll<HTMLElement>(USE)].filter(
-    (el) => !(el as HTMLButtonElement).disabled && el.closest('[hidden]') === null
-  )
+  return roveRows(list).flatMap(({ stop }) => (stop === null ? [] : [stop]))
 }
 
 /**
- * Make `list` one stop: the remembered Use (or the first) takes Tab, every
- * other Use and the rest of a closed row's controls leave the Tab order.
+ * Make `list` one stop: the remembered stop (or the first) takes Tab, every
+ * other stop and the rest of a closed row's controls leave the Tab order.
  */
 function setRoveStops(list: HTMLElement, last: HTMLElement | null): void {
-  const stops = roveStops(list)
+  const rows = roveRows(list)
+  const stops = rows.flatMap(({ stop }) => (stop === null ? [] : [stop]))
   const stop = last !== null && stops.includes(last) ? last : (stops[0] ?? null)
-  for (const row of list.querySelectorAll<HTMLElement>('.su-play-act')) {
-    // Only a row whose Use can be pressed roves: one that cannot keeps its own order.
-    const use = row.querySelector<HTMLElement>(USE)
-    const roves = use !== null && stops.includes(use)
+  for (const { row, stop: own } of rows) {
+    // Only a row with a stop roves: one without keeps its own order.
+    const roves = own !== null
     for (const el of row.querySelectorAll<HTMLElement>(FOCUSABLE)) {
       const wanted = roves ? (el === stop ? '0' : '-1') : null
       if (wanted === null) {
-        // Back to its own order once the row opens, or has no Use.
-        // Its own tabindex, if it had one, comes back with it.
-        const own = el.dataset.roved
-        if (own !== undefined) {
-          if (own === '') el.removeAttribute('tabindex')
-          else el.setAttribute('tabindex', own)
+        // Back to its own order once the row opens, or has no stop; its own
+        // tabindex, if it had one, comes back with it.
+        const was = el.dataset.roved
+        if (was !== undefined) {
+          if (was === '') el.removeAttribute('tabindex')
+          else el.setAttribute('tabindex', was)
           delete el.dataset.roved
         }
       } else if (el.getAttribute('tabindex') !== wanted) {
