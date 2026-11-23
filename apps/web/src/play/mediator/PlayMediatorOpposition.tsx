@@ -46,7 +46,7 @@ import { useSessionLive } from '../useSessionLive'
 import { ClearFieldDialog, EndEncounterDialog } from './ClearFieldDialogs'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
-import { groupRoll, sinkDowned, trayEntries } from './opposition.model'
+import { groupRoll, trayEntries } from './opposition.model'
 import { PlayMediatorScene } from './PlayMediatorScene'
 import type { NpcHit } from './PlayNpcActions'
 import { PlayNpcActions } from './PlayNpcActions'
@@ -142,12 +142,13 @@ export function PlayMediatorOpposition({
         )
     )
   const grouping = flagOn('encounterSheet')
+  // A downed unit keeps its place, folded and marked Down (r8 B5): the field never reorders under the pointer.
   const entries: TrayEntry[] =
     npcs === null
       ? []
-      : sinkDowned(
-          grouping ? trayEntries(npcs) : npcs.map((npc) => ({ kind: 'alone' as const, npc }))
-        )
+      : grouping
+        ? trayEntries(npcs)
+        : npcs.map((npc) => ({ kind: 'alone' as const, npc }))
   const held = grouping && prep.running !== null ? heldWaves(prep.running) : []
   // The crew's Mechs, whose holds a wreck's haul can be proposed to (r5 B2).
   const wreckMechs = proposalTargets(mediator.crew)

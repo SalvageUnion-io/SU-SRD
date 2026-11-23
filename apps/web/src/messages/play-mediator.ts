@@ -323,6 +323,7 @@ export const mediatorCopy = messages({
   acted: 'Acted',
   notActed: 'To act',
   actedFor: 'Acted: {name}',
+  notActedFor: 'To act: {name}',
   initiativeNote:
     'Using an action marks it Acted, and a side all acted passes play on. It enforces nothing.',
   autoActed: '{name} acted.',

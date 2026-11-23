@@ -231,7 +231,8 @@ export function MediatorInitiative({
 
 /**
  * A seat's or a unit's Acted mark while the tracker is kept: the Mediator's
- * to fill or clear; read-only, the word alone.
+ * to fill or clear; read-only, the word alone. Its name starts with the word
+ * it shows, To act or Acted (r8 B5, MD8-26).
  */
 export function ActedMark({
   name,
@@ -248,7 +249,7 @@ export function ActedMark({
       size="mini"
       pressed={acted}
       glyph={acted ? '✓' : undefined}
-      aria-label={mediatorCopy('actedFor', { name })}
+      aria-label={mediatorCopy(acted ? 'actedFor' : 'notActedFor', { name })}
       onClick={onToggle}
     >
       {acted ? mediatorCopy('acted') : mediatorCopy('notActed')}

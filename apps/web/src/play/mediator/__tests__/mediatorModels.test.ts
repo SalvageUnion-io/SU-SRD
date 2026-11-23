@@ -23,7 +23,6 @@ import {
   newTrayNpc,
   readSavedPattern,
   readTrayNpc,
-  sinkDowned,
   trayEntries,
 } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
@@ -423,26 +422,24 @@ describe('groups on the tray (ADR-059 §5)', () => {
     ).toEqual(['a', ['b', 'd'], 'c'])
   })
 
-  // MD6-16: downed mooks kept full cards among the living.
-  test('the downed sink below the living, alone and inside a group (r6 B8)', () => {
+  // MD8-06: cards that moved as units went down were aimed at and missed.
+  test('the downed keep their place, alone and inside a group (r8 B5)', () => {
     const down = (id: string, group?: { id: string; name: string }) =>
       readTrayNpc({
         _id: id,
         body: { name: id, refSchema: 'npcs', refSlug: 'raider', currentHp: 0, maxHp: 3, group },
       })
-    const entries = sinkDowned(
-      trayEntries([
-        down('a'),
-        row('b', band),
-        down('c', band),
-        row('d'),
-        down('e', band),
-        row('f', band),
-      ])
-    )
+    const entries = trayEntries([
+      down('a'),
+      row('b', band),
+      down('c', band),
+      row('d'),
+      down('e', band),
+      row('f', band),
+    ])
     expect(
       entries.map((e) => (e.kind === 'alone' ? e.npc.id : e.members.map((m) => m.id)))
-    ).toEqual([['b', 'f', 'c', 'e'], 'd', 'a'])
+    ).toEqual(['a', ['b', 'c', 'e', 'f'], 'd'])
   })
 
   test('a malformed group reads as none', () => {

@@ -815,10 +815,13 @@ describe('the Opposition', () => {
     expect(offer.compareDocumentPosition(firstRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     acts.length = 0
     await click(offer)
-    // HP damage goes to Pilots, never to a Mech; each says what it is left with.
+    // HP damage goes to the Pilots first, then to the Mechs at half (r8 B6);
+    // each says what it is left with.
     const seats = screen.getAllByRole('menuitem').map((item) => item.textContent)
     expect(seats.some((s) => s?.startsWith('Rook') && s.includes('HP 4 → 1'))).toBe(true)
-    expect(seats.some((s) => s?.includes('Buzzard'))).toBe(false)
+    const mech = seats.findIndex((s) => s?.includes('Buzzard') === true)
+    expect(seats[mech]).toMatch(/SP (\d+) → /)
+    expect(mech).toBeGreaterThan(seats.findIndex((s) => s?.startsWith('Rook') === true))
     await click(screen.getByRole('menuitem', { name: /^Rook/ }))
     await waitFor(() =>
       expect(sent()).toEqual([
@@ -836,7 +839,7 @@ describe('the Opposition', () => {
     )
   })
 
-  test('a miss offers no hit: the table’s Failure rows propose nothing (r4 D2)', async () => {
+  test('a miss offers no hit and folds the action: the table’s Failure rows propose nothing (r4 D2, r8 B5)', async () => {
     await renderCockpit(
       {
         'mediator.npcs': [
@@ -853,7 +856,9 @@ describe('the Opposition', () => {
     const list = within(screen.getByRole('list', { name: 'Raider’s actions' }))
     await click(list.getByRole('button', { name: /^Use Improvised Firearm.* for Raider$/ }))
     await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
-    await waitFor(() => expect(list.getByText('3 · Failure')).toBeTruthy())
+    // Its line is on the Feed, and the panel is done with: one Roll the die is ever open.
+    await waitFor(() => expect(feedLines().some((l) => / · 3 · Failure/.test(l))).toBe(true))
+    expect(list.queryByRole('button', { name: 'Roll the die on NPC Action' })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Propose 3 HP/ })).toBeNull()
   })
 
@@ -1645,9 +1650,10 @@ describe('Group Initiative on the table (r6 B4)', () => {
     })
     const tracker = region('Group Initiative')
     expect(tracker.getByText('Pilots to act')).toBeTruthy()
-    const marks = screen.getAllByRole('button', { name: /^Acted: / })
+    const marks = screen.getAllByRole('button', { name: /^(Acted|To act): / })
     expect(marks.map((m) => m.getAttribute('aria-pressed'))).toContain('true')
-    const strike = named('Acted: Strikebreaker')
+    // Its name says what it shows (r8 B5, MD8-26).
+    const strike = named('To act: Strikebreaker')
     expect(strike.getAttribute('aria-pressed')).toBe('false')
     await click(strike)
     expect(initiative()).toEqual([{ round: 2, side: 'pilots', acted: [seat, 'n-strike'] }])

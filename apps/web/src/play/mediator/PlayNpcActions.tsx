@@ -21,6 +21,10 @@
  * and Mech, each at its own scale (`hitTargets`, r8 B6), and pressing one sends the proposal,
  * the table its reason, never the NPC (r7 C7). Nothing is offered on the table's Failure rows, a
  * miss; the player still decides whether a proposal applies.
+ *
+ * Rolled, an action is done with (r8 B5): its line is on the Feed and its panel
+ * folds, so only one Roll the die is ever open; a hit to offer keeps the
+ * result, its roll read-only, until it is proposed or cancelled.
  */
 
 import type { ProposalTarget } from 'game-domain/games/proposals'
@@ -205,8 +209,17 @@ function NpcActionRow({
       ...(said ? { outcome: said } : {}),
     }))(20)
     said = npcActionOutcome(die) || undefined
-    setRolled({ die, band: said ?? '' })
     onActed?.()
+    // Rolled, the action is done with (r8 B5): its line is on the Feed, and
+    // the panel folds, so only one Roll the die is ever open. A hit to offer
+    // keeps it, without the roll, until it is proposed.
+    if (missed(said ?? '') || damage === null || hit === undefined) return fold()
+    setRolled({ die, band: said ?? '' })
+  }
+
+  function fold() {
+    setRolled(null)
+    onOpen(false)
   }
 
   return (
@@ -220,10 +233,7 @@ function NpcActionRow({
             <Button
               size="mini"
               aria-label={mediatorCopy('cancelFor', { name: entry.name, name2: npc.name })}
-              onClick={() => {
-                setRolled(null)
-                onOpen(false)
-              }}
+              onClick={fold}
             >
               {mediatorCopy('cancel')}
             </Button>
@@ -251,15 +261,15 @@ function NpcActionRow({
                         <p className="su-play-resolve__note" aria-live="polite">
                           {rolled.die} · {rolled.band}
                         </p>
-                        {!missed(rolled.band) && damage && hit ? (
-                          <HitOffer npc={npc} damage={damage} hit={hit} />
+                        {damage && hit ? (
+                          <HitOffer npc={npc} damage={damage} hit={hit} onProposed={fold} />
                         ) : null}
                       </div>
                     ) : null}
                     <PlayRollInstrument
                       table={NPC_ACTION}
                       roll={rolled?.die ?? null}
-                      onRoll={live ? () => void roll() : undefined}
+                      onRoll={live && rolled === null ? () => void roll() : undefined}
                     />
                   </div>
                 ),
@@ -286,7 +296,18 @@ function NpcActionRow({
  * names the damage, its menu the seats that take it and what each is left
  * with; a seat pressed is proposed it at once.
  */
-function HitOffer({ npc, damage, hit }: { npc: TrayNpc; damage: HitDamage; hit: NpcHit }) {
+function HitOffer({
+  npc,
+  damage,
+  hit,
+  onProposed,
+}: {
+  npc: TrayNpc
+  damage: HitDamage
+  hit: NpcHit
+  /** The hit is proposed: the action is done with (r8 B5). */
+  onProposed: () => void
+}) {
   const unit = damage.damageType
   const seats = hitTargets(damage, hit.targets)
   if (seats.length === 0) {
@@ -313,11 +334,12 @@ function HitOffer({ npc, damage, hit }: { npc: TrayNpc; damage: HitDamage; hit: 
                 // The roll was veiled: the reason names the table, never the NPC (r7 C7).
                 reason: veiledReason(NPC_ACTION).slice(0, PROPOSAL_REASON_MAX),
               })
-              .then(() =>
+              .then(() => {
                 toast.success(
                   mediatorCopy('hitProposed', { name: target.label, unit: lands, before, after })
                 )
-              )
+                onProposed()
+              })
               // The caller has already said why.
               .catch(() => undefined),
         })),
