@@ -123,7 +123,8 @@ export function PlayMediatorDowntime({
       upkeepUnpaid: unit !== null && !upkeepSpent,
       nanitesWaiting: nanites.operational && nanites.inert > 0,
     })
-  const advance = downtime.advance
+  // Said on the Feed as passed automatically, crediting nobody (r8 A4).
+  const advance = downtime.pass ?? downtime.advance
   const stepLabel = step === undefined ? '' : `${idx + 1} ${step.name}`
   useEffect(() => {
     if (!passes || off || passedFrom.current === idx) return

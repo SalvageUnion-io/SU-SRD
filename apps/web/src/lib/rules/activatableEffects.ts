@@ -130,3 +130,21 @@ export function activatableEffects(
 
   return [...out.values()].sort((a, b) => a.name.localeCompare(b.name))
 }
+
+/**
+ * The effect a Pilot ability's action switches on as it is used (r8 A8):
+ * the ability's ref, when this step activated it, it declares an activated
+ * effect and the effect is not on yet; else null. An unused ability's effect
+ * is not in force, so the Mech's Effects list it only once used.
+ */
+export function effectUsed(
+  was: { activated: boolean } | null,
+  next: { activated: boolean },
+  action: { kind: string; slug: string } | undefined,
+  effects: readonly Pick<ActivatableEffect, 'ref' | 'source'>[],
+  active: readonly string[]
+): string | null {
+  if (action?.kind !== 'ability' || !next.activated || was?.activated === true) return null
+  const effect = effects.find((e) => e.ref === action.slug && e.source === 'ability')
+  return effect === undefined || active.includes(effect.ref) ? null : effect.ref
+}

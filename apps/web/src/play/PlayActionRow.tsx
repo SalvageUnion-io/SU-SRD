@@ -26,7 +26,8 @@
  * companion's rows wear its own Mini's tone, as the Units column draws it,
  * and name it as a relation chip (C11).
  *
- * When its resolve closes (Apply, Done), the keyboard is back on its Use.
+ * When its resolve closes (Apply, Done), the keyboard is back on its Use,
+ * and End my turn is the next stop after the list (r8 A7).
  *
  * A Mini nests nothing (E6): the resolve inside it, its roll instrument (R8)
  * and its steps, is plain content, never an entity of its own (play.md §12).
@@ -169,9 +170,8 @@ export function PlayActionRow({
       return
     }
     if (closed && (active === null || active === document.body || !active.isConnected)) {
-      // The player who is up goes on to End my turn, one Tab from the strip (r6 A13).
-      const end = document.querySelector<HTMLButtonElement>('[data-end-turn]:not([disabled])')
-      ;(end ?? row?.querySelector<HTMLElement>('.su-play-act__use'))?.focus()
+      // Back on the row; End my turn is the next stop after the list (r8 A7).
+      row?.querySelector<HTMLElement>('.su-play-act__use')?.focus()
     }
   }, [open])
   const away = entry.need !== null
@@ -181,6 +181,8 @@ export function PlayActionRow({
       <Button
         size={size}
         className="su-play-act__use"
+        // A, the keyboard's finish, presses it only once something was done (r8 A7).
+        data-progressed={resolve.progressed ? '' : undefined}
         onClick={resolve.onBack}
         // Closing never undoes a spend, so once anything was done it reads Done.
         aria-label={

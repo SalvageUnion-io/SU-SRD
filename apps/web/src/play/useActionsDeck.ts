@@ -60,6 +60,7 @@ import {
 import { rollForTable, toast } from '../components/index'
 import type { PlayAction, PlayActionCurrency } from '../lib/rules/actionList'
 import {
+  actionRolls,
   buildCompanionActions,
   buildMechActions,
   buildPilotActions,
@@ -420,8 +421,13 @@ export function useActionsDeck({
     // so the row's own Done finishes it, and a Failure with no Push open to it
     // closes itself once the roll is logged.
     // Unpaid, it still waits on Apply, which stands off until it is (r4 A1).
+    // An action that rolls leads with its roll; an item that rolls nothing
+    // (a First Aid Kit) is Use alone, no table (r8 A6).
+    const rolls = actionRolls(selected.action)
+    const noRoll = !rolls && selected.kind === 'equipment'
     const nothingToApply =
-      !salvaging && activated && roll !== null && !isDestructiveOutcome(roll.band) && !applied
+      noRoll ||
+      (!salvaging && activated && roll !== null && !isDestructiveOutcome(roll.band) && !applied)
     const pushOpen = !(isPilotAction || salvaging || selected.companion) && !pushed && !pushLocked
 
     const rolledSays =
@@ -441,7 +447,8 @@ export function useActionsDeck({
           : close,
       cost,
       free: cost.amount <= 0 && cost.heat <= 0 && cost.uses <= 0,
-      rollLeads: !salvaging && selected.action.damage !== undefined,
+      rollLeads: rolls,
+      noRoll,
       rollSpends:
         activated || spends.length === 0
           ? null
@@ -532,8 +539,14 @@ export function useActionsDeck({
       nothingToApply,
       // A Failure has nothing to apply and nothing to read on: with no Push
       // open it closes itself; any other result stays to be read, closed by Done.
-      closesItself:
-        nothingToApply && !pushOpen && !applyRouted && roll?.band === 'failure' ? rolledSays : null,
+      // Used, an action that rolls nothing is done: the row says so (r8 A6).
+      closesItself: noRoll
+        ? activated
+          ? playCopy('usedIt')
+          : null
+        : nothingToApply && !pushOpen && !applyRouted && roll?.band === 'failure'
+          ? rolledSays
+          : null,
       progressed: activated || roll !== null || salvageRoll !== null || applied,
       held,
     }

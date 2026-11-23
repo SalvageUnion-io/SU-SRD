@@ -294,4 +294,9 @@ export const playGamesCopy = messages({
   runsTheTable: 'Runs the table',
   noPilotYet: 'No Pilot yet',
   waitingForAPlayer: 'Waiting for a player',
+  removedFromGame: 'You were removed from {game}',
+  removedFromGameBody:
+    'What you brought to it is back in your Training Bay. A Pilot the Game came with stays with it, and is yours again if you rejoin while it is free.',
+  kitIsTheMediators:
+    'NPCs and encounters for a table you run. Start a Game as its Mediator and they are here.',
 })

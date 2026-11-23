@@ -3,7 +3,7 @@
  * 390px phone over a stand-in `Play` (`useHarnessPlay`, in place of
  * `usePlaySituation`).
  *
- *  - The tabs: Act, Crew, Rolls, Rules, in that order (Crew a Game's only);
+ *  - The tabs: Act, Crew, Feed, Rules, in that order (Crew a Game's only, r8 A5);
  *    a switch opens one pane and keeps the others mounted, hidden. Units has
  *    no tab: the bar's ⋯ opens its pane.
  *  - Pinned above every tab, per Situation: on foot the pilot's HP and AP,
@@ -187,24 +187,24 @@ describe('the model', () => {
       ['Crew', 'end'],
       ['Rolls', 'end'],
     ])
-    expect(PLAYER_TABS).toEqual(['act', 'crew', 'tables', 'rules'])
+    expect(PLAYER_TABS).toEqual(['act', 'crew', 'feed', 'rules'])
     expect(playerPanes(true).map((p) => p.label)).toEqual(['Units', 'Act', 'Rolls'])
-    // Below `lg` Tables reads Rolls, and the Reference is a pane of its own.
+    // Below `lg` the Feed is a tab of its own, the roll tables under Rules (r8 A5).
     expect(playerPhonePanes(false, null).map((p) => p.label)).toEqual([
       'Units',
       'Act',
       'Crew',
-      'Rolls',
+      'Feed',
       'Rules',
     ])
   })
 
   test('the pane with a proposal waiting wears the dot', () => {
-    const dotted = (waiting: 'tables' | null) =>
+    const dotted = (waiting: 'feed' | null) =>
       playerPhonePanes(false, waiting)
         .filter((p) => p.dot)
         .map((p) => p.value)
-    expect(dotted('tables')).toEqual(['tables'])
+    expect(dotted('feed')).toEqual(['feed'])
     expect(dotted(null)).toEqual([])
   })
 
@@ -272,23 +272,23 @@ describe('the model', () => {
 })
 
 describe('the tabs', () => {
-  test('Act, Crew, Rolls, Rules along the foot; Act opens first', async () => {
+  test('Act, Crew, Feed, Rules along the foot; Act opens first (r8 A5)', async () => {
     await renderPhone({ situation: 'boarded' })
     const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
-    expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Crew', 'Rolls', 'Rules'])
+    expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Crew', 'Feed', 'Rules'])
     expect(tab('Act').getAttribute('aria-selected')).toBe('true')
     expect(within(openPanel()).getByRole('group', { name: 'Filter actions by type' })).toBeTruthy()
   })
 
   test('a tab opens its pane; the others stay mounted, hidden', async () => {
     await renderPhone({ situation: 'boarded' })
-    await click(tab('Rolls'))
-    expect(tab('Rolls').getAttribute('aria-selected')).toBe('true')
+    await click(tab('Feed'))
+    expect(tab('Feed').getAttribute('aria-selected')).toBe('true')
     expect(
       within(openPanel())
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent)
-    ).toEqual(['Rolls', 'Feed'])
+    ).toEqual(['Feed'])
     // The Act panel is still there, hidden: its filters survive.
     expect(screen.getAllByRole('tabpanel', { hidden: true })).toHaveLength(5)
 
@@ -298,6 +298,8 @@ describe('the tabs', () => {
     await click(tab('Rules'))
     expect(tab('Rules').getAttribute('aria-selected')).toBe('true')
     expect(openPanel().id).toMatch(/-pane-rules$/)
+    // The roll tables head the Rules (r8 A5).
+    expect(within(openPanel()).getAllByRole('heading', { level: 2 })[0]?.textContent).toBe('Rolls')
 
     await click(tab('Act'))
     expect(within(openPanel()).getByRole('group', { name: 'Filter actions by type' })).toBeTruthy()
@@ -321,7 +323,7 @@ describe('the tabs', () => {
   test('solo: no Crew tab', async () => {
     await renderPhone({ situation: 'onFoot', solo: true })
     const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
-    expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Rolls', 'Rules'])
+    expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Feed', 'Rules'])
   })
 })
 
@@ -359,7 +361,7 @@ describe('pinned above every pane', () => {
     await renderPhone({ situation: 'boarded' })
     const section = screen.getByRole('region', { name: 'Pinned vitals' })
     expect(section.closest('[role="tabpanel"]')).toBeNull()
-    await click(tab('Rolls'))
+    await click(tab('Feed'))
     expect(screen.getByRole('region', { name: 'Pinned vitals' })).toBe(section)
   })
 })

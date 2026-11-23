@@ -21,6 +21,7 @@ import {
   stackNotices,
   standingDownOnPurpose,
   stripLine,
+  tableTurnLine,
 } from '../tableNotices.model'
 
 const event = (over: Partial<TableEvent> & { _id: string }): TableEvent => ({
@@ -48,10 +49,10 @@ describe('eventsToTell', () => {
     expect(eventsToTell([alert({ _id: 'a' })], one.heard, 'me').tell).toEqual([])
     // A veiled roll revealed: its line changed, so its toast updates in place.
     const veiled = event({ _id: 'r', kind: 'roll', text: 'Mediator rolled · 9', mediator: true })
-    const rolled = eventsToTell([veiled], one.heard, 'me')
+    const rolled = eventsToTell([veiled], one.heard, 'me', false, 'news')
     expect(rolled.tell).toEqual([veiled])
     const shown = { ...veiled, text: 'Mediator · Veteran · Rifle · 9' }
-    expect(eventsToTell([shown], rolled.heard, 'me').tell).toEqual([shown])
+    expect(eventsToTell([shown], rolled.heard, 'me', false, 'news').tell).toEqual([shown])
   })
 
   test('crew toasts are quiet (r2 C4): a crewmate’s vitals, actions, boarding and rolls go to the Feed alone', () => {
@@ -72,13 +73,49 @@ describe('eventsToTell', () => {
       event({ _id: 'd', kind: 'downtime', text: 'Med began Downtime', ts: 4 }),
       event({ _id: 'mr', kind: 'roll', text: 'Mediator rolled · 9', mediator: true, ts: 5 }),
     ]
-    expect(eventsToTell([...quiet, ...loud], heard, 'me').tell.map((e) => e._id)).toEqual([
-      'p',
-      'al',
-      's',
-      'd',
-      'mr',
-    ])
+    expect(
+      eventsToTell([...quiet, ...loud], heard, 'me', false, 'news').tell.map((e) => e._id)
+    ).toEqual(['p', 'al', 's', 'd', 'mr'])
+  })
+
+  test('the strip pins only what the seat acts on (r8 A2): routine events are the Feed’s', () => {
+    const { heard } = eventsToTell([], null, 'me')
+    const routine = [
+      event({ _id: 's', kind: 'session', text: 'Med started the group session', ts: 1 }),
+      event({
+        _id: 'mr',
+        kind: 'roll',
+        text: 'Med · Group Initiative · 14',
+        mediator: true,
+        ts: 2,
+      }),
+      event({ _id: 't', kind: 'turn', text: 'Razor ended their turn', actorId: 'ada', ts: 3 }),
+      event({ _id: 'd', kind: 'downtime', text: 'Med moved Downtime to 3 Repair', ts: 4 }),
+      event({ _id: 'ro', kind: 'role', text: 'Med now mediates this Game', about: 'gm', ts: 5 }),
+    ]
+    expect(eventsToTell(routine, heard, 'me', true, 'act').tell).toEqual([])
+    const acts = [
+      alert({ _id: 'al', ts: 6 }),
+      event({ _id: 'dn', text: 'Scrapper · SP 4 → 0', ts: 7 }),
+      event({ _id: 'ac', kind: 'proposal', text: 'Sam accepted: Scrapper SP → 0', ts: 8 }),
+    ]
+    expect(
+      eventsToTell([...routine, ...acts], heard, 'me', true, 'act').tell.map((e) => e._id)
+    ).toEqual(['al', 'dn', 'ac'])
+  })
+
+  test('nothing from before the viewer joined is news to them (r8 A4)', () => {
+    const { heard } = eventsToTell([], null, 'me')
+    const old = alert({ _id: 'old', ts: 1 })
+    const joined = event({
+      _id: 'j',
+      kind: 'join',
+      text: 'Me joined the Game',
+      actorId: 'me',
+      ts: 5,
+    })
+    const fresh = alert({ _id: 'new', ts: 9 })
+    expect(eventsToTell([old, joined, fresh], heard, 'me').tell.map((e) => e._id)).toEqual(['new'])
   })
 
   test('a hand over replays nothing: a Mediator’s own copy of a private or veiled roll never toasts (r3 A2)', () => {
@@ -130,7 +167,7 @@ describe('eventsToTell', () => {
       revealed: true,
       mediator: true,
     })
-    expect(eventsToTell([shown], heard, 'me').tell).toEqual([shown])
+    expect(eventsToTell([shown], heard, 'me', false, 'news').tell).toEqual([shown])
   })
 
   test('never my own act, and never the Stop Sign, which the banner says', () => {
@@ -188,7 +225,7 @@ describe('pinnedRole (r2 B3)', () => {
 
   test('whoever was handed the table is told, by toast and by a pin, until they dismiss it', () => {
     const { heard } = eventsToTell([], null, 'nell')
-    expect(eventsToTell([made], heard, 'nell').tell).toEqual([made])
+    expect(eventsToTell([made], heard, 'nell', false, 'news').tell).toEqual([made])
     expect(pinnedRole([made], new Set(), 'nell', 2000)).toBe(made)
     expect(pinnedRole([made], new Set(['r1']), 'nell', 2000)).toBeNull()
     expect(pinnedRole([made], new Set(), 'ash', 2000)).toBeNull()
@@ -399,9 +436,9 @@ describe('the Mediator’s role taken back (r3 A4)', () => {
   test('a player ending their turn is told to the Mediator alone (r4 B1)', () => {
     const { heard } = eventsToTell([], null, 'me')
     const turn = event({ _id: 't', kind: 'turn', text: 'Pickle ended their turn', actorId: 'ada' })
-    expect(eventsToTell([turn], heard, 'gm', true).tell).toEqual([turn])
-    expect(eventsToTell([turn], heard, 'ben', false).tell).toEqual([])
-    expect(eventsToTell([turn], heard, 'ada', true).tell).toEqual([])
+    expect(eventsToTell([turn], heard, 'gm', true, 'news').tell).toEqual([turn])
+    expect(eventsToTell([turn], heard, 'ben', false, 'news').tell).toEqual([])
+    expect(eventsToTell([turn], heard, 'ada', true, 'news').tell).toEqual([])
   })
 
   test('the role moving is told to the whole table, never to whoever moved it', () => {
@@ -413,9 +450,9 @@ describe('the Mediator’s role taken back (r3 A4)', () => {
       actorId: 'org',
       about: 'ash',
     })
-    expect(eventsToTell([role], heard, 'me').tell).toEqual([role])
-    expect(eventsToTell([role], heard, 'ash').tell).toEqual([role])
-    expect(eventsToTell([role], heard, 'org').tell).toEqual([])
+    expect(eventsToTell([role], heard, 'me', false, 'news').tell).toEqual([role])
+    expect(eventsToTell([role], heard, 'ash', false, 'news').tell).toEqual([role])
+    expect(eventsToTell([role], heard, 'org', false, 'news').tell).toEqual([])
   })
 })
 
@@ -487,5 +524,21 @@ describe('gamesGone (r2 B4)', () => {
     expect(gamesGone([rust], [])).toEqual([])
     leavingOnPurpose('g1')()
     expect(gamesGone([rust], [])).toEqual([rust])
+  })
+})
+
+describe('tableTurnLine (r8 A3)', () => {
+  const words = {
+    round: (n: number) => `Round ${n}`,
+    pilots: 'Pilots to act',
+    opposition: 'Opposition to act',
+    up: (name: string) => `${name} is up`,
+  }
+  test('the round, the side acting and who else is up, as the bar says them', () => {
+    expect(tableTurnLine({ n: 2, acting: 'pilots' }, 'Razor', words)).toBe(
+      'Round 2 · Pilots to act · Razor is up'
+    )
+    expect(tableTurnLine({ n: 1, acting: null }, null, words)).toBe('Round 1')
+    expect(tableTurnLine(undefined, null, words)).toBeNull()
   })
 })

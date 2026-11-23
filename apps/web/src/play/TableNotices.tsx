@@ -15,7 +15,7 @@
  * shows one and counts the rest. On a Play screen it stands under the bar
  * (`tableStripSlot.model.ts`) at one height, so nothing under it moves while it
  * speaks; with nothing to say it takes no room (r7 A2). Offline it keeps what it last showed, marked Offline (r6
- * A14).
+ * A14), under a row of its own that says to say it aloud (r8 A1).
  *
  * Nothing here is a toast but the viewer losing the Mediator's role (r3 A4):
  * a toast is for the viewer's own act (r6 A3). Someone else's act is the
@@ -29,6 +29,7 @@ import { createPortal } from 'react-dom'
 import { SkipLink } from '../components/app'
 import { useOwnUnits } from '../lib/entities'
 import { playCopy } from '../messages/play'
+import { playSafetyCopy } from '../messages/play-safety'
 import { useGamesQuery, useViewerId } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
 import { hidesUnionBar } from '../shell/unionSlots'
@@ -170,6 +171,13 @@ export function TableNotices({ pathname }: { pathname: string }) {
               data-in-play=""
               aria-label={playCopy('tableNotices')}
             >
+              {/* Offline, its own row above the strip, never under it (r8 A1); the
+                  Stop Sign's button says it to a screen reader (`StopSign`). */}
+              {offline && games.length > 0 && (
+                <p className="su-table-notices__offline" aria-hidden="true">
+                  {playSafetyCopy('offlineSayAloud')}
+                </p>
+              )}
               {strip}
             </section>,
             slot

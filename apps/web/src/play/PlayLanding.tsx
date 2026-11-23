@@ -76,6 +76,7 @@ import { MEDIATORS_KIT_ANCHOR } from '../lib/games/gameRoster'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { playCopy } from '../messages/play'
+import { playGamesCopy } from '../messages/play-games'
 import { useEncounters } from '../replica/collections'
 import { useGameListing } from '../replica/gameListing'
 import type { GameCallResult } from '../replica/roomCalls'
@@ -328,7 +329,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
         {/* A plain player's Kit is its one line, the sub-nav's target (r8 C8). */}
         {connected && !showsKit && (
           <SlabSection id={MEDIATORS_KIT_ANCHOR} as="h2" title={playCopy('mediatorsKit')}>
-            <Text variant="hint">{playCopy('kitIsTheMediators')}</Text>
+            <Text variant="hint">{playGamesCopy('kitIsTheMediators')}</Text>
           </SlabSection>
         )}
         {showsKit && (

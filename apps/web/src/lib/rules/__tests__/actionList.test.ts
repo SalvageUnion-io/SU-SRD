@@ -8,8 +8,9 @@ import { describe, expect, test } from 'bun:test'
 import type { PartnerInstance } from 'game-domain/schemas/partner'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { mechFixture } from '../../../components/__tests__/fixtures'
-import { buildCompanionActions, buildMechActions } from '../actionList'
+import { actionRolls, buildCompanionActions, buildMechActions } from '../actionList'
 import { actionRow } from '../actionRow'
+import { effectUsed } from '../activatableEffects'
 import { resolveSystem } from '../mechItems'
 
 const TURRET = 'automated-weapon-turret'
@@ -148,5 +149,37 @@ describe("a row's Uses chip reads what is left", () => {
     const max = row.economy.maxUses
     expect(uses(actionRow(row))).toBe(String(max))
     expect(uses(actionRow(row, { uses: { left: max - 1, max } }))).toBe(`${max - 1}/${max}`)
+  })
+})
+
+describe('actionRolls (r8 A6)', () => {
+  const named = (name: string) => {
+    const found = SalvageUnionReference.Actions.getByName(name)
+    if (found == null) throw new Error(`no action ${name}`)
+    return found
+  }
+  test('an attack and Area Salvage roll; a First Aid Kit’s heal does not', () => {
+    expect(actionRolls(named('Area Salvage'))).toBe(true)
+    expect(actionRolls(named('First Aid Kit'))).toBe(false)
+    expect(
+      actionRolls({ ...named('First Aid Kit'), damage: { amount: 2, type: 'HP' } } as never)
+    ).toBe(true)
+  })
+})
+
+describe('effectUsed (r8 A8)', () => {
+  const effects = [{ ref: 'squeeze-it-in', source: 'ability' as const }]
+  const ability = { kind: 'ability', slug: 'squeeze-it-in' }
+  test('a Pilot ability activated switches its effect on, once', () => {
+    expect(effectUsed({ activated: false }, { activated: true }, ability, effects, [])).toBe(
+      'squeeze-it-in'
+    )
+    expect(effectUsed({ activated: true }, { activated: true }, ability, effects, [])).toBeNull()
+    expect(
+      effectUsed({ activated: false }, { activated: true }, ability, effects, ['squeeze-it-in'])
+    ).toBeNull()
+    expect(
+      effectUsed(null, { activated: true }, { kind: 'system', slug: 'x' }, effects, [])
+    ).toBeNull()
   })
 })

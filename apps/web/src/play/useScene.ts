@@ -18,6 +18,8 @@ export type SceneState = {
   hours: number
   /** The pilot the Mediator marked as up now; absent with none. */
   upNow?: string
+  /** The Group Initiative round and the side acting (r8 A3); absent with none kept. */
+  round?: { n: number; acting: 'pilots' | 'opposition' | null }
 }
 
 export const CLEAR_SCENE: SceneState = { conditions: [], hours: 0 }

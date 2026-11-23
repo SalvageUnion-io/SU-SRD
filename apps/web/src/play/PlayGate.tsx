@@ -38,6 +38,7 @@ import { PRODUCT } from 'game-domain/product'
 import { lazy, Suspense, useEffect, useRef } from 'react'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
+import { playGamesCopy } from '../messages/play-games'
 import { useGamesQuery } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
@@ -117,8 +118,8 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
     return (
       <PlayRefusal
         area="play"
-        title={playCopy('removedFromGame', { game: removedFrom })}
-        body={playCopy('removedFromGameBody')}
+        title={playGamesCopy('removedFromGame', { game: removedFrom })}
+        body={playGamesCopy('removedFromGameBody')}
         link={TO_GAMES}
       />
     )

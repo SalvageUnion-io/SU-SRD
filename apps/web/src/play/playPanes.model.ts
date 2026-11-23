@@ -4,8 +4,9 @@
  * is pinned above them below `lg`.
  *
  *  - The player's (`playerPanes`): from `lg` Units | Act | Crew, then Tables,
- *    in the end column; below it the tabs Act, Crew, Rolls, Rules
- *    (`PLAYER_TABS`), the Units pane opened from ⋯. Crew is a Game's, so a
+ *    in the end column; below it the tabs Act, Crew, Feed, Rules
+ *    (`PLAYER_TABS`, r8 A5), the roll tables under the Rules, the Units pane
+ *    opened from ⋯. Crew is a Game's, so a
  *    solo screen has three.
  *  - The Mediator's: Table, Opposition, Tables, Propose (`mediatorPanes`; the
  *    second reads Downtime while it runs). From `lg`: Table | Opposition |
@@ -47,8 +48,12 @@ export type PaneSpec<Value extends string> = {
   dot?: boolean
 }
 
-/** `rules` is the Reference inside Play: a tab below `lg`, under the Tables from it. */
-export type PlayerPane = 'act' | 'units' | 'tables' | 'crew' | 'rules'
+/**
+ * `rules` is the Reference inside Play: a tab below `lg`, the roll tables at
+ * its head (r8 A5), under the Tables from it. `feed` is the Feed's own tab
+ * below `lg`; from it the Feed runs under the Units.
+ */
+export type PlayerPane = 'act' | 'units' | 'tables' | 'crew' | 'feed' | 'rules'
 
 /** `rules` is the Reference beside the board from `lg`; below it, the Mediator's ⋯ opens it. */
 export type MediatorPane = 'table' | 'opposition' | 'tables' | 'plan' | 'rules' | 'propose'
@@ -67,16 +72,17 @@ export function playerPanes(solo: boolean): readonly PaneSpec<PlayerPane>[] {
 }
 
 /**
- * The panes below `lg`: the roll tables are Rolls at every width (one
- * meaning for "Table"), and Rules is the Reference. `waiting` is the pane with something waiting (a
- * proposal to answer, in the Feed), whose tab wears the dot.
+ * The panes below `lg` (r8 A5): the Feed is a tab of its own, and Rules is
+ * the Reference with the roll tables at its head. `waiting` is the pane with
+ * something waiting (a proposal to answer, in the Feed), whose tab wears the dot.
  */
 export function playerPhonePanes(
   solo: boolean,
   waiting: PlayerPane | null
 ): readonly PaneSpec<PlayerPane>[] {
   const panes: readonly PaneSpec<PlayerPane>[] = [
-    ...playerPanes(solo),
+    ...playerPanes(solo).filter((p) => p.value !== 'tables'),
+    { value: 'feed', label: playCopy('feed'), column: 'end' },
     { value: 'rules', label: playCopy('rules'), column: 'end' },
   ]
   return panes.map((p) => (p.value === waiting ? { ...p, dot: true } : p))
@@ -84,10 +90,10 @@ export function playerPhonePanes(
 
 /**
  * The player's tabs below `lg`, in a fixed order a thumb learns: Act · Crew ·
- * Rolls · Rules. Units has no tab: its vitals are pinned above every pane,
+ * Feed · Rules (r8 A5). Units has no tab: its vitals are pinned above every pane,
  * and the bar's ⋯ opens the pane for the rest (range, effects, the hangar).
  */
-export const PLAYER_TABS: readonly PlayerPane[] = ['act', 'crew', 'tables', 'rules']
+export const PLAYER_TABS: readonly PlayerPane[] = ['act', 'crew', 'feed', 'rules']
 
 const MEDIATOR_PANES: readonly PaneSpec<MediatorPane>[] = [
   { value: 'table', label: 'Table', column: 'start' },

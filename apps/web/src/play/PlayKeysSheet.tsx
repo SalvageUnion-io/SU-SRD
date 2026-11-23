@@ -7,6 +7,7 @@
 import type { CSSProperties } from 'react'
 import { ModalShell, Stat, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
+import { playKeysCopy } from '../messages/play-keys'
 
 const LIST = { display: 'grid', gap: tokens.space[6] } satisfies CSSProperties
 
@@ -14,6 +15,7 @@ export function PlayKeysSheet({ onClose }: { onClose: () => void }) {
   // Each key and what it presses, a Stat (ruleset §3.7).
   const keys = [
     ['/', playCopy('keyFind')],
+    [playKeysCopy('keyRulesCap'), playKeysCopy('keyRules')],
     ['R', playCopy('keyRoll')],
     ['A', playCopy('keyApply')],
     ['E', playCopy('keyEndTurn')],

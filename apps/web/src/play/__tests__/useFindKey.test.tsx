@@ -1,82 +1,72 @@
-/** "/" jumps to Play's action search, from anywhere but a field being typed in (r3 J4). */
+import { describe, expect, test } from 'bun:test'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 
-import { expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+/**
+ * Play's keys (r8 A7): Ctrl+K asks for the Rules' search, a letter with
+ * nothing to press says why, and A never finishes an action nothing was done with.
+ */
+
 import { useRef } from 'react'
-import { useFindKey } from '../useFindKey'
+import { PLAY_RULES_ASKED, useFindKey } from '../useFindKey'
 
-function Screen({ hidden = false }: { hidden?: boolean }) {
-  const tools = useRef<HTMLDivElement>(null)
-  useFindKey(tools)
+function Keys({ open = false, progressed = false }: { open?: boolean; progressed?: boolean }) {
+  const within = useRef<HTMLDivElement>(null)
+  const { said } = useFindKey(within)
   return (
-    <>
-      <button type="button">Decrease HP</button>
-      <input aria-label="HP amount" />
-      <section hidden={hidden}>
-        <div ref={tools}>
-          <input aria-label="Find an action" defaultValue="hov" />
-        </div>
-      </section>
-    </>
+    <div ref={within}>
+      <span role="status">{said}</span>
+      {open && (
+        <ul>
+          <li className="su-play-act" data-open="">
+            <button
+              type="button"
+              className="su-play-act__use"
+              data-progressed={progressed ? '' : undefined}
+              onClick={() => document.body.setAttribute('data-finished', '')}
+            >
+              Cancel
+            </button>
+          </li>
+        </ul>
+      )}
+    </div>
   )
 }
 
-test('the slash key focuses Find and selects what is there', () => {
-  render(<Screen />)
-  const minus = screen.getByRole('button', { name: 'Decrease HP' })
-  minus.focus()
-  const pressed = fireEvent.keyDown(minus, { key: '/' })
-  const find = screen.getByRole('textbox', { name: 'Find an action' }) as HTMLInputElement
-  expect(document.activeElement).toBe(find)
-  // The key is the shortcut's: no "/" is typed into the field it lands in.
-  expect(pressed).toBe(false)
-  expect([find.selectionStart, find.selectionEnd]).toEqual([0, 3])
-})
+describe('Play’s keys (r8 A7)', () => {
+  test('Ctrl+K asks the screen for its Rules’ search', () => {
+    render(<Keys />)
+    let asked = 0
+    const count = () => {
+      asked += 1
+    }
+    window.addEventListener(PLAY_RULES_ASKED, count)
+    fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true })
+    window.removeEventListener(PLAY_RULES_ASKED, count)
+    expect(asked).toBe(1)
+  })
 
-test('a slash typed into a field stays a slash, and a chord is not the shortcut', () => {
-  render(<Screen />)
-  const amount = screen.getByRole('textbox', { name: 'HP amount' })
-  amount.focus()
-  expect(fireEvent.keyDown(amount, { key: '/' })).toBe(true)
-  expect(document.activeElement).toBe(amount)
-  const minus = screen.getByRole('button', { name: 'Decrease HP' })
-  minus.focus()
-  expect(fireEvent.keyDown(minus, { key: '/', ctrlKey: true })).toBe(true)
-  expect(document.activeElement).toBe(minus)
-})
+  test('R with no action open says why, instead of nothing', () => {
+    render(<Keys />)
+    act(() => {
+      fireEvent.keyDown(document.body, { key: 'r' })
+    })
+    expect(screen.getByRole('status').textContent).toBe(
+      'No action is open: press / to find one, then Use.'
+    )
+  })
 
-test('a Find in a hidden pane takes no focus', () => {
-  render(<Screen hidden />)
-  const minus = screen.getByRole('button', { name: 'Decrease HP' })
-  minus.focus()
-  expect(fireEvent.keyDown(minus, { key: '/' })).toBe(true)
-  expect(document.activeElement).toBe(minus)
-})
-
-test('N jumps to the top notice’s first answer; answered, focus goes back to the action (r7 A7)', async () => {
-  const { focusTheActions } = await import('../tableNoticesDom.model')
-  render(
-    <>
-      <Screen />
-      <div data-table-notice="proposal">
-        <button type="button">Accept</button>
-        <button type="button">Decline</button>
-      </div>
-      <ul>
-        <li data-action-key="a1">
-          <button type="button">Use Red Laser</button>
-        </li>
-        <li data-action-key="a2">
-          <button type="button">Use Flamer</button>
-        </li>
-      </ul>
-    </>
-  )
-  const flamer = screen.getByRole('button', { name: 'Use Flamer' })
-  flamer.focus()
-  expect(fireEvent.keyDown(flamer, { key: 'n' })).toBe(false)
-  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Accept' }))
-  // Accept answered it: the focus is back where it was in the action list, not the first Use.
-  focusTheActions()
-  expect(document.activeElement).toBe(flamer)
+  test('A never finishes an action nothing was done with; it says so', () => {
+    document.body.removeAttribute('data-finished')
+    render(<Keys open />)
+    act(() => {
+      fireEvent.keyDown(document.body, { key: 'a' })
+    })
+    expect(document.body.hasAttribute('data-finished')).toBe(false)
+    expect(screen.getByRole('status').textContent).toContain('Nothing to apply yet')
+    cleanup()
+    render(<Keys open progressed />)
+    fireEvent.keyDown(document.body, { key: 'a' })
+    expect(document.body.hasAttribute('data-finished')).toBe(true)
+  })
 })

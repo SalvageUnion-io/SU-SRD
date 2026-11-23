@@ -162,10 +162,10 @@ export function lastVisitLines(
 }
 
 /**
- * A line about the reader's own act (MD2-12, r3 A6): the table says
- * "Mediator" for an alert, a proposal, the session and Downtime, and a name
- * for whoever answered a proposal or joined; the one who did it reads "You",
- * as their rolls do.
+ * A line about the reader's own act (MD2-12, r3 A6, r8 A4): the table names
+ * whoever sent an alert or a proposal, ran the session or Downtime, answered
+ * a proposal or joined; the one who did it reads "You", as their rolls do,
+ * in every such line of their Feed.
  */
 const OWN: ReadonlySet<TableEvent['kind']> = new Set([
   'alert',
@@ -186,6 +186,7 @@ const DID = [
   ` ${playCopy('saidEndedSession')}`,
   ` ${playCopy('saidBeganDowntime')}`,
   ` ${playCopy('saidEndedDowntime')}`,
+  ` ${playCopy('saidMovedDowntime')}`,
   ' accepted: ',
   ' declined: ',
   ' undid: ',
@@ -193,10 +194,16 @@ const DID = [
   ` ${playCopy('saidLiftedStop')}`,
 ] as const
 
-function asMine(text: string): string {
-  const proposes = playCopy('mediatorProposes', { what: '' })
-  if (text.startsWith(proposes))
-    return playCopy('youPropose', { what: text.slice(proposes.length) })
+/** "Mara proposes Bonesaw HP → 5", or a line from before names were said, "Mediator proposes …". */
+const PROPOSES = / proposes (.+)$/
+
+function asMine(e: TableEvent): string {
+  const { text } = e
+  const proposed = e.kind === 'proposal' ? PROPOSES.exec(text) : null
+  if (proposed !== null) return playCopy('youPropose', { what: proposed[1] ?? '' })
+  // "Mara · Rad storm rolls in": the sender's own reads "You · …".
+  const at = text.indexOf(' · ')
+  if (e.kind === 'alert' && at > 0) return `${playCopy('feedYou')}${text.slice(at)}`
   for (const did of DID) {
     const at = text.indexOf(did)
     if (at > 0) return `${playCopy('feedYou')}${text.slice(at)}`
@@ -216,6 +223,8 @@ const SEAT_ACTS: readonly [RegExp, (what: string) => string][] = [
   [/^.+? uses (.+)$/, (what) => playCopy('youUse', { what })],
   [/^.+? switches (.+)$/, (what) => playCopy('youSwitch', { what })],
   [/^.+? ended their turn$/, () => playCopy('youEndedTurn')],
+  // The Mediator's own "Mara gave Razor the turn" (r8 A4).
+  [/^.+? gave (.+) the turn$/, (who) => playCopy('youGaveTurn', { who })],
   [/^.+? moved their Scrap$/, () => playCopy('youMovedScrap')],
   [/^.+? · (.+: not applied)$/, (what) => `${playCopy('feedYou')} · ${what}`],
 ]
@@ -247,7 +256,7 @@ export function tableLine(e: TableEvent, viewerId: string | null): string {
       : e.text
   }
   if (e.actorId !== viewerId) return e.text
-  if (OWN.has(e.kind)) return asMine(e.text)
+  if (OWN.has(e.kind)) return asMine(e)
   return SEAT_KINDS.has(e.kind) ? asMyAct(e.text) : e.text
 }
 
@@ -295,6 +304,12 @@ export function heatCheckSays(effect: HeatCheckEffect, table: OverloadTable): st
 /** How long after an action's use its cost and roll still group with it. */
 const ACTION_SPAN_MS = 5 * 60_000
 
+/**
+ * How long before its use line an action's cost may land: the room says the
+ * use once it is paid (r8 A7), so the spend comes just before it.
+ */
+const COST_LEAD_MS = 3000
+
 /** A vital an action's cost moves, as the table's line names it. */
 const COST_LINE = / · (Heat|EP|AP|Uses) /
 
@@ -325,7 +340,21 @@ function groupActions(
       .reverse()
       .find((e) => mine(e) && e.ts >= use.ts && sources.get(e.key)?.kind === 'action')
     const end = Math.min(use.ts + ACTION_SPAN_MS, next?.ts ?? Number.POSITIVE_INFINITY)
-    const after = (e: FeedEntry) => !folded.has(e.key) && mine(e) && e.ts >= use.ts && e.ts <= end
+    // A spend just before a use is that use's (r8 A7): the nearest use after it claims it.
+    const usesAfter = (e: FeedEntry) =>
+      entries.filter(
+        (u) =>
+          sources.get(u.key)?.kind === 'action' &&
+          sources.get(u.key)?.actor === from.actor &&
+          u.ts >= e.ts &&
+          u.ts - e.ts <= COST_LEAD_MS
+      )
+    const claims = (e: FeedEntry) => {
+      if (e.ts < use.ts)
+        return e.ts >= use.ts - COST_LEAD_MS && usesAfter(e).every((u) => u.ts >= use.ts)
+      return e.ts <= end && usesAfter(e).every((u) => u.key === use.key)
+    }
+    const after = (e: FeedEntry) => !folded.has(e.key) && mine(e) && claims(e)
     const rolled = [...entries]
       .reverse()
       .find(
@@ -382,7 +411,10 @@ export function playFeedEntries({
       ts: p.ts,
       proposalId: p._id,
       change: proposalWhat(p),
-      text: playCopy('mediatorProposes', { what: proposalWhat(p) }),
+      text: playCopy('mediatorProposes', {
+        name: p.byName ?? playCopy('feedMediator'),
+        what: proposalWhat(p),
+      }),
       proposal: p,
       reason: p.reason,
     }))
@@ -406,9 +438,8 @@ export function playFeedEntries({
   // The table's line for a proposal still awaiting my answer: the entry with
   // Accept and Decline says it (r4 B5). The room stamps both with one time.
   const awaiting = new Set(proposals.map((p) => p.ts))
-  const proposes = playCopy('mediatorProposes', { what: '' })
   const asked = (e: TableEvent) =>
-    e.kind === 'proposal' && awaiting.has(e.ts) && e.text.startsWith(proposes)
+    e.kind === 'proposal' && awaiting.has(e.ts) && PROPOSES.test(e.text)
   // My own change this screen wrote says itself: the table's line for it is not said twice (r5 A9).
   const changes = mine.filter((r) => !isDiceRoll(r))
   const saidHere = (e: TableEvent) =>

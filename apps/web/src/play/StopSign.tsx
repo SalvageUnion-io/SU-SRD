@@ -49,10 +49,13 @@ const LABELLED = {
 export function StopSignButton({
   sign,
   compact = false,
+  inPlay = false,
   timer = WINDOW_TIMER,
 }: {
   sign: StopSign | null
   compact?: boolean
+  /** On a Play screen, whose strip shows the offline line as a row of its own (r8 A1). */
+  inPlay?: boolean
   /** The hold's clock (a test's own). */
   timer?: HoldTimer
 }) {
@@ -69,7 +72,7 @@ export function StopSignButton({
     [timer]
   )
   if (sign === null) return null
-  if (sign.offline) return <OfflineStop compact={compact} />
+  if (sign.offline) return <OfflineStop compact={compact} inStrip={inPlay} />
   const disabled = !sign.canWrite || sign.shown || sign.pending
   if (!compact) {
     return (
@@ -143,7 +146,7 @@ export function StopSignButton({
  * Offline the sign cannot reach the table (r7 B4): the button is greyed, and
  * carries one line at it, as the hold's hint does: say it aloud.
  */
-function OfflineStop({ compact }: { compact: boolean }) {
+function OfflineStop({ compact, inStrip }: { compact: boolean; inStrip: boolean }) {
   const why = useId()
   return (
     <span className="su-play-stop">
@@ -163,7 +166,8 @@ function OfflineStop({ compact }: { compact: boolean }) {
           playSafetyCopy('stopSign')
         )}
       </Button>
-      <span id={why} className="su-play-stop__hint">
+      {/* On a Play screen the strip shows it, a row of its own above the notices (r8 A1). */}
+      <span id={why} className={inStrip ? 'su-sr-only' : 'su-play-stop__hint'}>
         {playSafetyCopy('offlineSayAloud')}
       </span>
     </span>

@@ -43,10 +43,16 @@ export type ResolveModel =
       /** It costs nothing: there is no Activate step, Roll alone (r4 A2). */
       free: boolean
       /**
-       * An attack, which always rolls (it deals damage): Roll the die pays its
-       * cost, so it is the one main button and there is no Activate (r5 A16).
+       * An action that rolls (`actionRolls`: an attack, Area Salvage, one its
+       * text rolls): Roll the die pays its cost, so it is the one main button
+       * and there is no Activate (r5 A16, r8 A6).
        */
       rollLeads: boolean
+      /**
+       * An item that rolls nothing (r8 A6): Use is its one button, no table is
+       * drawn, and using it finishes it.
+       */
+      noRoll: boolean
       /** What pressing Roll will spend, while the cost is unpaid; null when nothing. */
       rollSpends: string | null
       /** What this activation spends: the mech's EP or the pilot's AP. */
