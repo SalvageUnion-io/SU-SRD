@@ -34,32 +34,14 @@ export function resultsHref(query: string): string {
   return `${RESULTS_PAGE}?${new URLSearchParams({ [SEARCH_PARAM]: query })}`
 }
 
-/** The session's mark that the next page was opened from search. */
-const LANDING_KEY = 'su:from-search'
-
-/** Mark the page about to open as opened from search (RR7-09). Storage may throw. */
-export function markSearchLanding(): void {
-  try {
-    sessionStorage.setItem(LANDING_KEY, '1')
-  } catch {
-    // Not marked: the page opens as any other does.
-  }
-}
+/** The page content's anchor: the skip link's target, every reference page's `main`. */
+const CONTENT_ANCHOR = '#main-content'
 
 /**
- * On a page opened from search, its heading takes the focus (RR7-09): the
- * next Tab is in the page's own content, not its bar. A page opened on an
- * anchor keeps the anchor's place. Run once, by the page script.
+ * A result's page, opened at its content (RR7-09): the browser starts the
+ * next Tab inside the page, past its bar, navs and crumbs, with no script on
+ * the page. A page already opened on an anchor keeps it.
  */
-export function focusSearchLanding(doc: Document): void {
-  try {
-    if (!sessionStorage.getItem(LANDING_KEY)) return
-    sessionStorage.removeItem(LANDING_KEY)
-  } catch {
-    return
-  }
-  const heading = doc.querySelector('main')?.querySelector('h1')
-  if (!heading || doc.location.hash) return
-  heading.tabIndex = -1
-  heading.focus({ preventScroll: true })
+export function atContent(href: string): string {
+  return href.includes('#') ? href : `${href}${CONTENT_ANCHOR}`
 }

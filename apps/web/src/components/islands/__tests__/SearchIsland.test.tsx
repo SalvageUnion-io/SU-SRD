@@ -147,7 +147,7 @@ describe('SearchIsland', () => {
     await typeAndSettle(input, 'ironmonger')
 
     const first = screen.getAllByRole('option')[0]
-    expect(first?.getAttribute('href')).toBe('/chassis/magpie/pattern/ironmonger/')
+    expect(first?.getAttribute('href')).toBe('/chassis/magpie/pattern/ironmonger/#main-content')
     expect(screen.getByRole('listbox').textContent).toContain('Pattern · Magpie')
     // The option is named with its kind, as the row reads (r2 G7).
     expect(first?.getAttribute('aria-label')).toMatch(/^Ironmonger, Pattern · Magpie$/i)
@@ -158,13 +158,15 @@ describe('SearchIsland', () => {
     await act(async () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
-    expect(navigate).toHaveBeenCalledWith('/chassis/magpie/pattern/ironmonger/')
+    expect(navigate).toHaveBeenCalledWith('/chassis/magpie/pattern/ironmonger/#main-content')
   })
 
   test('a question, a word form and a stat abbreviation find their rule (RR-04)', async () => {
     render(<SearchIsland />)
     const input = screen.getByRole('combobox')
-    const firstHref = () => screen.getAllByRole('option')[0]?.getAttribute('href')
+    // A result opens at its content (RR7-09): the page is what is compared.
+    const firstHref = () =>
+      screen.getAllByRole('option')[0]?.getAttribute('href')?.replace('#main-content', '')
 
     await typeAndSettle(input, 'how does salvaging work')
     expect(firstHref()).toBe('/guides/salvaging/')
@@ -465,7 +467,7 @@ describe('SearchIsland', () => {
       expect(option.tagName).toBe('A')
       expect(option.hasAttribute('data-router')).toBe(false)
       expect(option.hasAttribute('target')).toBe(false)
-      expect(option.getAttribute('href')).toMatch(/^\/[a-z-]+\/([a-z0-9-]+\/)?$/)
+      expect(option.getAttribute('href')).toMatch(/^\/[a-z-]+\/([a-z0-9-]+\/)?(#main-content)?$/)
     }
   })
 

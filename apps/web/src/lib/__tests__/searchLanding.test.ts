@@ -1,27 +1,16 @@
-import { afterEach, describe, expect, test } from 'bun:test'
-import { focusSearchLanding, markSearchLanding } from '../searchHref'
+import { describe, expect, test } from 'bun:test'
+import { atContent } from '../searchHref'
 
-afterEach(() => {
-  sessionStorage.clear()
-  document.body.innerHTML = ''
-})
-
-describe('a page opened from search (RR7-09)', () => {
-  test('puts its heading in focus, once', () => {
-    document.body.innerHTML = '<a href="/">Home</a><main><h1>Reaction Roll</h1></main>'
-    markSearchLanding()
-    focusSearchLanding(document)
-    const heading = document.querySelector('h1')
-    expect(document.activeElement).toBe(heading)
-    expect(heading?.tabIndex).toBe(-1)
-    ;(document.activeElement as HTMLElement).blur()
-    focusSearchLanding(document)
-    expect(document.activeElement).not.toBe(heading)
+describe('a page opened from search, at its content (RR7-09)', () => {
+  test('opens at the skip link’s target, past the bar', () => {
+    expect(atContent('/roll-tables/reaction-roll/')).toBe(
+      '/roll-tables/reaction-roll/#main-content'
+    )
   })
 
-  test('a page not opened from search leaves the focus alone', () => {
-    document.body.innerHTML = '<main><h1>Hot</h1></main>'
-    focusSearchLanding(document)
-    expect(document.activeElement).not.toBe(document.querySelector('h1'))
+  test('a page opened on its own anchor keeps it', () => {
+    expect(atContent('/guides/crawler-downtime/#train-your-pilot')).toBe(
+      '/guides/crawler-downtime/#train-your-pilot'
+    )
   })
 })

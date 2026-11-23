@@ -7,7 +7,7 @@ import { itemHref } from '../../lib/entityHref'
 import { schemaPluralLabel } from '../../lib/schemaLabels'
 import type { CompactSearchResult } from '../../lib/searchCompactIndex'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
-import { markSearchLanding, searchQuery } from '../../lib/searchHref'
+import { atContent, searchQuery } from '../../lib/searchHref'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { compositionsCopy } from '../../messages/components-compositions'
@@ -52,7 +52,10 @@ export function groupResults(
 
 /** A result's page: a pattern's or rule's own, else its schema's item page. */
 function hrefOf(result: CompactSearchResult): string {
-  return result.pattern?.href ?? itemHref(result.schemaName, getEntitySlug(result.entity))
+  // Opened at its content: the next Tab is the page's own (RR7-09).
+  return atContent(
+    result.pattern?.href ?? itemHref(result.schemaName, getEntitySlug(result.entity))
+  )
 }
 
 /**
@@ -185,34 +188,26 @@ export function SearchResultsIsland({ search }: SearchResultsIslandProps = {}) {
             ? islandsCopy('oneResultFor', { query })
             : islandsCopy('resultsFor', { count, query })}
         </p>
-        {/* A row followed opens its page with the heading in focus (RR7-09). */}
-        <div
-          onClickCapture={(e) => {
-            if (e.target instanceof Element && e.target.closest('a[href]')) markSearchLanding()
-          }}
-          style={SECTIONS}
-        >
-          <DocumentLinks>
-            {groupResults(results).map((group, i) => {
-              const first = models.get(group.results[0]?.entityId ?? '')
-              return (
-                <section key={group.kind} aria-labelledby={`results-${i}`}>
-                  <h2 id={`results-${i}`} className={SR_ONLY}>
-                    {group.kind}
-                  </h2>
-                  <Ledger
-                    label={group.kind}
-                    nameLabel={group.kind}
-                    tone={first?.tone ?? 'ink'}
-                    count={group.results.length}
-                    columns={COLUMNS}
-                    rows={group.results.map((result) => rowOf(result, models.get(result.entityId)))}
-                  />
-                </section>
-              )
-            })}
-          </DocumentLinks>
-        </div>
+        <DocumentLinks>
+          {groupResults(results).map((group, i) => {
+            const first = models.get(group.results[0]?.entityId ?? '')
+            return (
+              <section key={group.kind} aria-labelledby={`results-${i}`}>
+                <h2 id={`results-${i}`} className={SR_ONLY}>
+                  {group.kind}
+                </h2>
+                <Ledger
+                  label={group.kind}
+                  nameLabel={group.kind}
+                  tone={first?.tone ?? 'ink'}
+                  count={group.results.length}
+                  columns={COLUMNS}
+                  rows={group.results.map((result) => rowOf(result, models.get(result.entityId)))}
+                />
+              </section>
+            )
+          })}
+        </DocumentLinks>
       </div>
     </IslandErrorBoundary>
   )

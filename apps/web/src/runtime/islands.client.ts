@@ -14,7 +14,6 @@ import { readAccountHint, readLastGame } from '../lib/accountHint'
 import { browserStorage, markLastGame, markSignedIn } from '../lib/accountState'
 import { appPath } from '../lib/appBase'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
-import { focusSearchLanding } from '../lib/searchHref'
 import { correctShortcutHints, isSearchShortcut } from '../lib/searchShortcut'
 import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
@@ -90,8 +89,6 @@ document.addEventListener('click', (event) => {
 })
 // The served key caps say "⌘K"; off a Mac they say "Ctrl K" from the start.
 correctShortcutHints(document, navigator.platform)
-// A page opened from search: its heading has the focus (RR7-09).
-focusSearchLanding(document)
 watchSharePage(document)
 // A long page's floating "On this page": search and its sections in reach, on
 // a phone. Its script loads only at a phone's width, where the button draws.

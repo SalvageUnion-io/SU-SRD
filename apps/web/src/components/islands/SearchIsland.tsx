@@ -20,7 +20,7 @@ import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { aboveFloor, searchCompactIndex } from '../../lib/searchCompactIndex'
 import {
-  markSearchLanding,
+  atContent,
   RESULTS_PAGE,
   resultsHref,
   SEARCH_PAGE,
@@ -109,7 +109,8 @@ function resultUrl(result: SearchComboboxResult): string {
   if (result.kind === 'schema') return schemaHref(result.schemaId)
   // "Show more" opens nothing: the combobox lengthens its list (`submit`).
   if (result.kind === 'more') return ''
-  return result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity))
+  // Opened at its content: the next Tab is the page's own (RR7-09).
+  return atContent(result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity)))
 }
 
 export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = {}) {
@@ -165,11 +166,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   } = useSearchCombobox({
     ready,
     moreRow: true,
-    onSubmit: (result) => {
-      // The page it opens puts its heading in focus (RR7-09).
-      markSearchLanding()
-      doNavigate(resultUrl(result))
-    },
+    onSubmit: (result) => doNavigate(resultUrl(result)),
     // Enter with no row highlighted: the page of every result.
     onSubmitQuery: (term) => doNavigate(resultsHref(term)),
     searchFn,
@@ -184,12 +181,6 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   )
 
   const isOpen = hasSearched && !quiet && dismissedResults !== results
-
-  // A result followed by a press opens its page with the heading in focus, as Enter does.
-  const onClickResult = useCallback((e: React.MouseEvent) => {
-    if (e.target instanceof Element && e.target.closest('[role="listbox"] a[href]'))
-      markSearchLanding()
-  }, [])
 
   // An empty result's next step: the query with its slipped words put right,
   // where that finds something ("Did you mean").
@@ -364,7 +355,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     return (
       <IslandErrorBoundary>
         <HeroSearchForm onSubmit={onSubmit}>
-          <div className="su-hero-search__box" ref={containerRef} onClickCapture={onClickResult}>
+          <div className="su-hero-search__box" ref={containerRef}>
             {live}
             {field}
             {listbox}
@@ -376,7 +367,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   return (
     <IslandErrorBoundary>
-      <div style={RELATIVE} ref={containerRef} onClickCapture={onClickResult}>
+      <div style={RELATIVE} ref={containerRef}>
         {live}
         {field}
         {listbox}
