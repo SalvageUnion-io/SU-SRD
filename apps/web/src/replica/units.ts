@@ -356,17 +356,49 @@ async function transferNow(ops: { updates?: TransferUpdate[] }, meta: ChangeMeta
   // Send the whole transfer as ONE batch, all or none in the room: a stow
   // that landed on the mech and was refused on the crawler would lose the
   // lot.
-  await sendTransfer(
-    prepared.map((pu) => ({
-      unit: pu.type,
-      gameId: (pu.record as ContainerFields).gameId ?? null,
-      ...opOf(pu.type, pu.id, pu.before as object, pu.record, pu.patch, meta),
-    }))
-  )
+  const sent = prepared.map((pu) => ({
+    unit: pu.type,
+    gameId: (pu.record as ContainerFields).gameId ?? null,
+    ...opOf(pu.type, pu.id, pu.before as object, pu.record, pu.patch, meta),
+  }))
+  await sendTransfer(sent)
 
-  // Hold it as one change.
+  // Hold it as one change, each half knowing the others (`transferPartsOf`).
   holdAll(prepared.map((pu) => ({ table: pu.type, row: pu.record })))
+  const parts: TransferPart[] = sent.map(({ unit, op }, at) => ({
+    type: unit,
+    id: op.unitId,
+    opId: op.id,
+    fields: [...Object.keys(op.patch), ...(op.unset ?? [])].map((field) => ({
+      field,
+      before: (prepared[at]?.before as Record<string, unknown> | null)?.[field],
+      after: (op.patch as Record<string, unknown>)[field],
+    })),
+  }))
+  for (const part of parts) {
+    madeTogether.set(
+      part.opId,
+      parts.filter((other) => other !== part && other.fields.length > 0)
+    )
+  }
 }
+
+/** One other unit's half of a transfer this tab made: what its Undo takes back too. */
+export type TransferPart = {
+  type: UnitType
+  id: string
+  opId: string
+  fields: { field: string; before: unknown; after: unknown }[]
+}
+
+const madeTogether = new Map<string, TransferPart[]>()
+
+/**
+ * The other halves of the transfer this tab made as op `opId` (r7 D6): a
+ * craft's Scrap with its item, so the sheet's Undo of one takes back both.
+ */
+export const transferPartsOf = (opId: string): readonly TransferPart[] =>
+  madeTogether.get(opId) ?? []
 
 /** Who hears each write to a unit as it starts: its id. */
 const writeWatchers = new Set<(id: string) => void>()
