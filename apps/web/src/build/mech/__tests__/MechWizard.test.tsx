@@ -11,7 +11,7 @@
  */
 
 import { describe, expect, it, mock } from 'bun:test'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { must } from '../../../components/__tests__/must'
@@ -272,6 +272,13 @@ describe('MechWizard — legalStarting pattern strip', () => {
     // A whole build: the pick opens Name & Review, the name prefilled (r7 F9).
     expect(await screen.findByRole('button', { name: /Create Mech/i })).toBeTruthy()
     expect(getCreateButton().disabled).toBe(false)
+    // Quirk & Look was skipped empty: open on the rail, never ticked (r8 E10).
+    const rail = screen.getByRole('navigation', { name: /steps/i })
+    const look = within(rail).getByRole('button', { name: /Quirk & Look/ })
+    expect(look.textContent).toContain('3')
+    expect(
+      within(rail).getByRole('button', { name: /Systems & Modules/ }).textContent
+    ).not.toContain('2')
     // Systems & Modules stays one press back on the rail, the copies in its steppers.
     await clickButton(/Systems & Modules/)
     for (const slug of new Set(expectedSystems)) {

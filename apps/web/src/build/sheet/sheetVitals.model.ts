@@ -20,6 +20,14 @@ export const SHEET_VITALS = {
 
 export type SheetVital = keyof typeof SHEET_VITALS
 
+/**
+ * What a vital's controls are named ("Increase Heat", r8 E10): its full words,
+ * but Heat's is Heat, for its − / + move the Heat and never the Capacity, the
+ * limit the gauge reads beside it.
+ */
+export const vitalName = (vital: SheetVital): string =>
+  vital === 'heat' ? SHEET_VITALS.heat.short : SHEET_VITALS[vital].label
+
 /** A vital's gauge words: the stamp (`SP`) and its caption (`Structure Points`). */
 export function vitalWords(vital: SheetVital): { label: string; subLabel: string } {
   const { label, short } = SHEET_VITALS[vital]

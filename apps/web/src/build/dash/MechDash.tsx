@@ -72,7 +72,7 @@ import { overSlots, slotCount } from '../sheet/mechSlots.model'
 import { usePrinting } from '../sheet/printing.model'
 import { FoldEmptyRelated } from '../sheet/relatedUnitsFold.model'
 import { cargoBreakToast } from '../sheet/ruleBreakToast.model'
-import { SHEET_VITALS } from '../sheet/sheetVitals.model'
+import { SHEET_VITALS, vitalName } from '../sheet/sheetVitals.model'
 import { useShownSheet } from '../sheet/useShownSheet'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
@@ -145,7 +145,7 @@ function mechVitalRows({
     return {
       key,
       label: SHEET_VITALS[key].short,
-      name: SHEET_VITALS[key].label,
+      name: vitalName(key),
       value,
       max,
       ...(key === 'heat' && max > 0 ? { danger: heatDangerFrom(max) } : {}),

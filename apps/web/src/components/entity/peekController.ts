@@ -17,7 +17,8 @@
  *   soon (E27): a reference term's Peek is hover's and focus's. Touch has no
  *   hover, so there a tap on a term (a link marked `data-peek-press`)
  *   explains it in place: its Peek opens, Open page on it (r5 E4).
- * - Escape closes it, and only it: the dialog or page under it stays.
+ * - Escape closes it, and only it: the dialog or page under it stays. Focus
+ *   an Escape hands back (a closing dialog's opener) opens nothing.
  *
  * A trigger inside the popup never peeks (E16: a Peek is terminal).
  */
@@ -172,7 +173,12 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   }
 
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== 'Escape' || !current) return
+    if (event.key !== 'Escape') return
+    // An Escape that closes a dialog hands focus back to its opener: a press, not a Tab (r8 E10).
+    if (!current) {
+      lastPress = performance.now()
+      return
+    }
     // The Peek is the topmost thing: Escape dismisses it and nothing beneath.
     event.stopPropagation()
     closeNow()
