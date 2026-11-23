@@ -4,7 +4,8 @@
  * does under its name, for a phone, where the column is dropped.
  */
 import { describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ClassAbilityStep } from '../ClassAbilityStep'
 
@@ -26,5 +27,64 @@ describe('ClassAbilityStep', () => {
     const row = screen.getByRole('radio', { name: /^Folk Song/ }).closest('tr') as HTMLElement
     const under = row.querySelector('th .su-wiz-phone-under')
     expect(under?.textContent).toMatch(/song/i)
+  })
+})
+
+/** r8 F3 (SB8-01, SB8-17): a class is chosen seeing its first abilities. */
+describe('ClassAbilityStep — the class list previews', () => {
+  test('each class row names its first abilities before it is picked', () => {
+    render(
+      <ClassAbilityStep
+        classId=""
+        selectedAbilities={[]}
+        onSelectClass={() => {}}
+        onSelectAbility={() => {}}
+      />
+    )
+    const row = screen.getByRole('radio', { name: /^Hauler/ }).closest('tr') as HTMLElement
+    expect(row.textContent).toContain('Folk Song')
+    const salvager = screen.getByRole('radio', { name: /^Salvager/ }).closest('tr') as HTMLElement
+    expect(salvager.textContent).toContain('Level 1 of any Core Tree')
+  })
+})
+
+describe('ClassAbilityStep — a pick on a phone', () => {
+  function Picking() {
+    const [classId, setClassId] = useState('')
+    return (
+      <ClassAbilityStep
+        classId={classId}
+        selectedAbilities={[]}
+        onSelectClass={setClassId}
+        onSelectAbility={() => {}}
+      />
+    )
+  }
+
+  test('picking a class brings its first abilities into view when they open below the fold', () => {
+    const proto = HTMLElement.prototype
+    const rect = proto.getBoundingClientRect
+    const scroll = proto.scrollIntoView
+    const media = window.matchMedia
+    const scrolled: string[] = []
+    // A phone: no lg.
+    window.matchMedia = ((query: string) => ({
+      ...media.call(window, query),
+      matches: false,
+    })) as typeof window.matchMedia
+    proto.getBoundingClientRect = () => ({ top: window.innerHeight + 200, height: 400 }) as DOMRect
+    proto.scrollIntoView = function (this: HTMLElement) {
+      scrolled.push(this.id)
+    }
+    try {
+      render(<Picking />)
+      expect(scrolled).toEqual([])
+      fireEvent.click(screen.getByRole('radio', { name: /^Hauler/ }))
+      expect(scrolled).toEqual(['wiz-first-ability'])
+    } finally {
+      proto.getBoundingClientRect = rect
+      proto.scrollIntoView = scroll
+      window.matchMedia = media
+    }
   })
 })

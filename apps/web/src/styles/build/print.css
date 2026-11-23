@@ -164,12 +164,15 @@
    * A chip that Peeks its entry (`.su-chip-link`, a button: `CLASS | Engineer`)
    * and a name that does (`.su-inline-ref`: a table's ability or equipment
    * name, a linked word in an entry's text) are read content, so each prints
-   * as its words.
+   * as its words; so is a number set by pressing it (`NumeralField`: the
+   * masthead's TP, r8 F2).
    * ------------------------------------------------------------------------- */
   header:not(#\#),
   [role='dialog']:not(#\#),
   [data-sonner-toaster]:not(#\#),
-  button:not([data-print='keep'], .su-chip-link, .su-inline-ref):not(#\#),
+  button:not([data-print='keep'], .su-chip-link, .su-inline-ref, .su-numeral-field__button):not(
+    #\#
+  ),
   a.su-btn:not([data-print='keep']):not(#\#) {
     display: none;
   }
@@ -260,6 +263,15 @@
 
   .su-dash__col:not(#\#) > * + * {
     margin-top: 12pt;
+  }
+
+  /* A column's section and an ability tree may run on to the next page,
+     an open ability's rules too: kept whole, the abilities left page one
+     half blank and the Pilot sheet took three pages (r8 F2). */
+  .su-dash__col:not(#\#) > .su-sheet-section,
+  .su-pilot-trees:not(#\#) .su-sheet-section,
+  .su-ability-track__tier:not(#\#) {
+    break-inside: auto;
   }
 
   .su-chapter-band:not(#\#) {

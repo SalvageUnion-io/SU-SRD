@@ -130,12 +130,12 @@ export function escapeRegExp(text: string): string {
 }
 
 /**
- * A unit's line by its name: a pilot reads `CALLSIGN · Name` wherever one is
- * listed (`pilotLabel`, glossary §14), any other unit its name alone. `lead`
+ * A unit's line by its name: a pilot reads its callsign wherever one is
+ * listed (`pilotLabel`, glossary §14, r8 F1), any other unit its name. `lead`
  * is what the accessible name says first ("More for ", "Play ").
  */
 export function unitNamed(name: string, lead = ''): RegExp {
-  return new RegExp(`^${escapeRegExp(lead)}(?:.+ · )?${escapeRegExp(name)}$`)
+  return new RegExp(`^${escapeRegExp(lead)}${escapeRegExp(name)}$`)
 }
 
 /** A `/new` wizard (`pilots`, `mechs`, `crawlers`). */

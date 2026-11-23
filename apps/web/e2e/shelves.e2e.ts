@@ -13,7 +13,7 @@ import { expect, test } from './fixtures'
  */
 
 test('move a unit into a Game and back: it never leaves the Training Bay', async ({ page }) => {
-  await buildPilot(page, 'Shelf Runner', 'Runner')
+  await buildPilot(page, 'Runner', 'Shelf Runner')
 
   // A Game to move it into, started on the Play hub.
   const gameId = await createGame(page, 'Dustbowl Run')
@@ -62,7 +62,7 @@ test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {
 })
 
 test('export the shelf, and import it back', async ({ page }) => {
-  await buildPilot(page, 'Backed Up', 'Bak')
+  await buildPilot(page, 'Bak', 'Backed Up')
   await openTrainingBay(page)
   const pilots = shelf(page)
   await expect(pilots.getByText('Backed Up')).toBeVisible({ timeout: 15_000 })
@@ -97,8 +97,8 @@ test('export the shelf, and import it back', async ({ page }) => {
  * asserted to contain it). Confirming removes the item; cancelling keeps it.
  */
 test('delete a pilot from the Training Bay, and cancel a delete', async ({ page }) => {
-  await buildPilot(page, 'Delete Me', 'TBD')
-  await buildPilot(page, 'Keep Me', 'OK')
+  await buildPilot(page, 'TBD', 'Delete Me')
+  await buildPilot(page, 'OK', 'Keep Me')
   await openTrainingBay(page)
   const pilots = shelf(page)
   // The account's rows arrive from the rooms after the game data is ready.
@@ -108,7 +108,7 @@ test('delete a pilot from the Training Bay, and cancel a delete', async ({ page 
 
   const confirm = page.getByRole('alertdialog')
   await fromShelfMenu(page, 'Delete Me', 'Delete…')
-  // The confirm names the pilot as its line does, `TBD · Delete Me`.
+  // The confirm names the pilot as its line does, by its callsign (r8 F1).
   await expect(confirm).toContainText('Delete Me?')
   await confirm.getByRole('button', { name: /^Delete$/ }).click()
   await expect(pilots.getByText('Delete Me')).toHaveCount(0, { timeout: 10_000 })

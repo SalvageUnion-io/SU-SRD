@@ -50,7 +50,7 @@ describe('RollTheRest', () => {
     ...over,
   })
 
-  test('fills every empty field and leaves what was typed', async () => {
+  test('fills every empty field but the optional Name, and leaves what was typed (r8 F1)', async () => {
     let rolled: Partial<Record<PilotIdentityField, string>> = {}
     render(
       <RollTheRest
@@ -66,7 +66,21 @@ describe('RollTheRest', () => {
     })
     expect(rolled.callsign).toBeUndefined()
     expect(Object.keys(rolled).sort()).toEqual(
-      ['appearance', 'background', 'keepsake', 'motto', 'name'].sort()
+      ['appearance', 'background', 'keepsake', 'motto'].sort()
+    )
+  })
+
+  test('off once every field it rolls holds something, the Name left blank', () => {
+    const full = values({
+      callsign: 'b',
+      motto: 'c',
+      keepsake: 'd',
+      background: 'e',
+      appearance: 'f',
+    })
+    render(<RollTheRest values={full} onRolled={() => {}} />)
+    expect(screen.getByRole('button', { name: /Roll the rest/ }).hasAttribute('disabled')).toBe(
+      true
     )
   })
 

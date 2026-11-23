@@ -187,7 +187,7 @@ describe('Sheet — crawler+pilots wired composition', () => {
         softLinkStore={makeSoftLinkStoreMock([pilot1ToCrawlerLink, pilot2ToCrawlerLink])}
       />
     )
-    expect(screen.getAllByText(/Desta Oryn/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Delta/).length).toBeGreaterThan(0)
   })
 
   test('EVERY wired pilot renders — a crawler is a home for a crew, not a lead', () => {
@@ -200,7 +200,7 @@ describe('Sheet — crawler+pilots wired composition', () => {
       />
     )
     // A crawler has no single "lead pilot": both wired pilots get a row.
-    expect(screen.getAllByText(/Hann Vex/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Echo/).length).toBeGreaterThan(0)
   })
 
   test('lead-pilot RailEmpty not rendered when pilots are wired', () => {

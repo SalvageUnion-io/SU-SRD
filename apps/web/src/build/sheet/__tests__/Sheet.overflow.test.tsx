@@ -80,9 +80,9 @@ describe('the sheet’s ⋯ writes', () => {
     render(<Sheet kind="pilot" id={pilot.id} />)
 
     await pick(/^Delete/)
-    expect(await screen.findByRole('alertdialog', { name: 'Delete Yara Voss?' })).toBeTruthy()
+    expect(await screen.findByRole('alertdialog', { name: 'Delete Ghost?' })).toBeTruthy()
     expect(useUnits.getState().pilots).toHaveLength(1)
-    await confirmWith('Delete Yara Voss?', 'Delete')
+    await confirmWith('Delete Ghost?', 'Delete')
 
     await waitFor(() => expect(useUnits.getState().pilots).toHaveLength(0))
   })

@@ -117,7 +117,7 @@ export const buildWizardCopy = messages({
   noTechLevel1Equipment: 'No Tech Level 1 equipment found.',
   roll: 'Roll {lowerCase}',
   rollTheRest: 'Roll the rest',
-  rollTheRestHint: 'Fills every empty field that has a table.',
+  rollTheRestHint: 'Fills every empty field that has a table but the optional Name.',
   signInToSave: 'Sign in to save',
   signedInPressSave: 'Signed in. Press {label} to save it.',
   yourBuildIsKeptAsADraft:
@@ -156,6 +156,8 @@ export const buildWizardCopy = messages({
   abilityPointsToUse: 'Ability Points to use',
   coreTrees: 'Core Trees',
   anyCoreTree: 'Any Core Tree',
+  firstAbilities: 'First Abilities',
+  level1OfAnyCoreTree: 'Level 1 of any Core Tree',
   choose1: 'Choose 1',
   level1OfItsCore: 'Level 1 of its Core Trees',
   toChoose: '{count} to choose',

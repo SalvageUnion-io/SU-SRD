@@ -201,7 +201,7 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
     page,
     context,
   }) => {
-    await buildPilot(page, 'Offline Keeper', 'Lantern')
+    await buildPilot(page, 'Lantern', 'Offline Keeper')
     await openSheetFor(page, 'Offline Keeper')
     await editSheet(page)
 
@@ -232,7 +232,7 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
       context,
     }) => {
       await buildMech(page, 'Outbox Mule')
-      await buildPilot(page, 'Kept On This Device', 'Ember')
+      await buildPilot(page, 'Ember', 'Kept On This Device')
       await openSheetFor(page, 'Kept On This Device')
       await requireServiceWorker(page)
       await expect(page.getByText('Kept On This Device').first()).toBeVisible()

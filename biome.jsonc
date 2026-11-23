@@ -90,8 +90,8 @@
       ]
     },
     {
-      // A pilot's one name, callsign first (glossary: Pilot names): the app,
-      // its rooms and the bot join the two fields only through `pilotLabel`.
+      // A pilot's one name, its callsign (glossary: Pilot names): the app, its
+      // rooms and the bot name a pilot only through `pilotLabel`.
       "path": "./packages/gates/biome/noInlinePilotName.grit",
       "includes": ["**/apps/*/src/**", "!**/*.test.ts", "!**/*.test.tsx", "!**/__tests__/**"]
     },

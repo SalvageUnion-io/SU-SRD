@@ -459,7 +459,7 @@ export function PilotDash({
   return (
     <>
       <Strip
-        label={buildSheetCopy('unitVitals', { name: pilot.name })}
+        label={buildSheetCopy('unitVitals', { name: pilotLabel(pilot) })}
         art={phone && !edit ? undefined : art}
         vitals={vitals}
         figures={figures}
@@ -516,7 +516,7 @@ export function PilotDash({
             </DashGroup>
           )}
         </DashColumn>
-        <DashColumn label={buildSheetCopy('whatCarries', { name: pilot.name })}>
+        <DashColumn label={buildSheetCopy('whatCarries', { name: pilotLabel(pilot) })}>
           {!phone && linkedUnits}
           {(!empty || edit) && (
             <div className="su-dash-group" data-sheet-carried="">

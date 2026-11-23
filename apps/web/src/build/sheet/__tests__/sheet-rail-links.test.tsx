@@ -204,12 +204,12 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
 
   test('every filled slot can be unassigned: crew, bay, a mech’s pilot and crawler', () => {
     renderOver('crawler', 'crawler-1', [pilotToCrawler, mechToCrawler])
-    expect(screen.getByRole('button', { name: /^Yara Voss actions$/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Ghost actions$/i })).toBeTruthy()
     expect(screen.getByRole('button', { name: /^Iron Fist actions$/i })).toBeTruthy()
     cleanup()
 
     renderOver('mech', 'mech-1', [mechToPilot, mechToCrawler])
-    expect(screen.getByRole('button', { name: /^Yara Voss actions$/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Ghost actions$/i })).toBeTruthy()
     expect(screen.getByRole('button', { name: /^Iron Tortoise actions$/i })).toBeTruthy()
   })
 
@@ -284,7 +284,7 @@ describe('Sheet — every slot can be assigned from its own sheet (ADR-037)', ()
       screen.queryAllByRole('link').some((a) => a.getAttribute('href') === '/crawlers/crawler-1')
     ).toBe(false)
     expect(button(/^Assign crawler to mech$/i)).toBeTruthy()
-    expect(button(/^Yara Voss actions$/i)).toBeTruthy()
+    expect(button(/^Ghost actions$/i)).toBeTruthy()
     cleanup()
 
     renderOver('mech', 'mech-1', [mechToCrawler])

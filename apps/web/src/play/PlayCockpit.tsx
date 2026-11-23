@@ -132,7 +132,7 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
   const { status } = useSync()
   const play = usePlaySituation(target)
   useBoardOnArrival(play)
-  // Callsign first, then the name, as everywhere a pilot is named.
+  // By callsign, as everywhere a pilot is named (r8 F1).
   const pilotName = play.pilot ? pilotLabel(play.pilot) : undefined
   // A pilot in a Game is that Game's: its tab says so (glossary §9); a solo
   // pilot plays from the Training Bay.

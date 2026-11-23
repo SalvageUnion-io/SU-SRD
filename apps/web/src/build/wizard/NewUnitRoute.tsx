@@ -157,7 +157,9 @@ export function NewUnitRoute({
             : { to: '/pilots/$id', params: { id: pilot.id } }
         ),
       (err: unknown) => {
-        toast.error(failureMessage(err, buildWizardCopy('mechNotGivenTo', { name: pilot.name })))
+        toast.error(
+          failureMessage(err, buildWizardCopy('mechNotGivenTo', { name: pilotLabel(pilot) }))
+        )
         void navigate({ to: '/mechs/$id', params: { id } })
       }
     )
@@ -169,7 +171,7 @@ export function NewUnitRoute({
       mode={mode}
       returnTo={returnTo}
       gameId={game}
-      forPilot={kind === 'crawler' ? undefined : pilot?.name}
+      forPilot={kind === 'crawler' || !pilot ? undefined : pilotLabel(pilot)}
       forMech={kind === 'crawler' ? undefined : mech?.name}
       forCrew={
         kind !== 'crawler'

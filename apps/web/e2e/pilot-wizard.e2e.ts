@@ -73,7 +73,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // After submission the new pilot's sheet opens.
   await page.waitForURL(/\/build\/pilots\/(?!new)/, { timeout: 15_000 })
   await waitForReady(page)
-  await expect(page.getByText('Mira Voss').first()).toBeVisible({
+  await expect(page.getByText('Sparks').first()).toBeVisible({
     timeout: 15_000,
   })
 
@@ -82,7 +82,8 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // The live sheet is the Free Edit surface (ADR-021): you edit in place
   // rather than replaying Guided Creation. What matters is that an ability
   // beyond the creation budget can be added, and that it persists.
-  await openSheetFor(page, 'Mira Voss')
+  // The Training Bay lists the pilot by its callsign (r8 F1).
+  await openSheetFor(page, 'Sparks')
 
   // The Abilities section's Manage Abilities opens the one shared picker.
   // 'Talk Shop' is Mechanical Knowledge level 2, so creation never offers it —

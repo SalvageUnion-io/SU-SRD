@@ -1,6 +1,6 @@
 /**
  * RollTheRest — the Pilot wizard's identity step in one press (r7 F7): every
- * field still empty is rolled on its table (`rollTheRest`), what is typed is
+ * field still empty but the optional Name (r8 F1) is rolled on its table (`rollTheRest`), what is typed is
  * left as typed. Off once every field holds something.
  */
 
@@ -8,7 +8,7 @@ import type { CSSProperties } from 'react'
 import { Button, tokens } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import type { PilotIdentityField, RollTableDeps } from './rollTableHelpers.model'
-import { PILOT_IDENTITY_ROLLS, rollTheRest } from './rollTableHelpers.model'
+import { ROLLED_BY_THE_REST, rollTheRest } from './rollTableHelpers.model'
 import { tryNoteStyle } from './wizShellStyles.model'
 
 const LINE = {
@@ -27,9 +27,7 @@ type RollTheRestProps = {
 }
 
 export function RollTheRest({ values, onRolled, _rollDeps }: RollTheRestProps) {
-  const anyEmpty = (Object.keys(PILOT_IDENTITY_ROLLS) as PilotIdentityField[]).some(
-    (field) => values[field].trim() === ''
-  )
+  const anyEmpty = ROLLED_BY_THE_REST.some((field) => values[field].trim() === '')
   return (
     <p style={LINE}>
       <Button

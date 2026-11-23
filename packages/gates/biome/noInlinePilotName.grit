@@ -1,5 +1,5 @@
 // A pilot is named in one place, `pilotLabel` (game-domain/pilotLabel;
-// glossary §14): the callsign first, then the name, `GHOST · Mara Voss`.
+// glossary §14): its callsign, `GHOST`, the name only when it has none.
 // Written out per site, `pilot.callsign || pilot.name` shows the callsign in
 // one list and the name in the next, and the same pilot goes by three names at
 // one table. This matches a callsign read with a fallback beside it; the
@@ -15,5 +15,5 @@ or {
     `$object.$field.trim()`
   },
   $field <: r"callsign",
-  register_diagnostic(span=$expr, message="Name a pilot through pilotLabel (callsign, then name) or pilotCallsign (the short form) from 'game-domain/pilotLabel', never a callsign-or-name fallback written here (glossary: Pilot names).", severity="error")
+  register_diagnostic(span=$expr, message="Name a pilot through pilotLabel (its callsign) or pilotCallsign from 'game-domain/pilotLabel', never a callsign-or-name fallback written here (glossary: Pilot names).", severity="error")
 }

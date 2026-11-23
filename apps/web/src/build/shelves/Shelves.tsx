@@ -453,7 +453,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 rows={pilots.map((p) => {
                   const r = pilotReadings.get(p.id)
                   const flies = crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames })
-                  // Callsign first, then the name, as everywhere a pilot is named.
+                  // By callsign, as everywhere a pilot is named (r8 F1).
                   const name = pilotLabel(p)
                   return {
                     id: p.id,

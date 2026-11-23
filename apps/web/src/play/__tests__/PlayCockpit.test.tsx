@@ -85,7 +85,7 @@ describe('the Cockpit frame', () => {
   test('a solo pilot: the bar reads <pilot> with a Solo chip, no LIVE stamp, the way back to its sheet', async () => {
     await renderCockpit({ gameId: null, gameName: null })
     const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture · Wren')
+    expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture')
     expect(bar.getByText('Solo')).toBeTruthy()
     // A solo screen shares nothing: no LIVE stamp.
     expect(bar.queryByText(/● Online/)).toBeNull()
@@ -253,7 +253,7 @@ describe('below `lg`: the same panes as tabs (play.md §11)', () => {
       // The band's crumb names the Game and the phase; the title says who is playing.
       expect(bar.getByText('Tenacity')).toBeTruthy()
       expect(bar.getByText(/On foot/)).toBeTruthy()
-      expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture · Wren')
+      expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture')
       expect(bar.getByRole('link', { name: 'Back to Sheet' }).textContent).toBe('Back to Sheet')
       // On a phone the Situation switch is pinned (r5 A15), and its moves are ⋯ rows too.
       expect(
