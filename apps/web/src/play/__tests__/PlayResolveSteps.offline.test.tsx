@@ -24,6 +24,7 @@ function view(over: Partial<Resolving> = {}, controls: Partial<Resolving['contro
     cost: { amount: 0, heat: 0, uses: 0 },
     free: true,
     rollLeads: false,
+    noRoll: false,
     rollSpends: null,
     currency: 'AP',
     controls: {

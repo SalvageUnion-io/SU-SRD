@@ -22,6 +22,7 @@ function view(over: Partial<Resolving> = {}, controls: Partial<Resolving['contro
     cost: { amount: 0, heat: 0, uses: 0 },
     free: true,
     rollLeads: false,
+    noRoll: false,
     rollSpends: null,
     currency: 'AP',
     controls: {
@@ -81,5 +82,36 @@ describe('Push after the roll (r7 B1)', () => {
     expect(screen.queryByRole('button', { name: 'Push · +2 Heat' })).toBeNull()
     const stamp = screen.getByRole('button', { name: 'Push · +2 heat on Core Mechanic' })
     expect(stamp.className).toContain('primary')
+  })
+})
+
+describe('one primary per action (r8 A6)', () => {
+  test('an item that rolls nothing offers Use alone: no Activate, no Core Mechanic table', () => {
+    const onActivate = mock(() => undefined)
+    render(
+      <PlayResolveSteps
+        view={view(
+          { noRoll: true, free: false, nothingToApply: true },
+          { activated: false, onActivate }
+        )}
+        canWrite
+      />
+    )
+    expect(screen.queryByRole('button', { name: /on Core Mechanic/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Activate' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Start over' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Use' }))
+    expect(onActivate).toHaveBeenCalledTimes(1)
+  })
+
+  test('an action that rolls has Roll the die as its one main button: no Activate', () => {
+    render(
+      <PlayResolveSteps
+        view={view({ rollLeads: true, free: false }, { activated: false })}
+        canWrite
+      />
+    )
+    expect(screen.queryByRole('button', { name: 'Activate' })).toBeNull()
+    expect(screen.getByRole('button', { name: /on Core Mechanic/ })).toBeTruthy()
   })
 })

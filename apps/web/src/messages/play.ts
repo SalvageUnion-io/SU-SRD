@@ -261,6 +261,7 @@ export const playCopy = messages({
   rolledSays: 'Rolled {roll} · {band}',
   activated: 'Activated ✓',
   activate: 'Activate',
+  usedIt: 'Used',
   commitThisResult: 'Commit this result',
   resultApplied2: 'Result applied ✓',
   salvageArea: '{name}Tech {tl} · Supply {supply}',
