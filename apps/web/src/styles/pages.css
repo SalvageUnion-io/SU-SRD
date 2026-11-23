@@ -692,6 +692,13 @@ html[data-srd-signed-in] .su-mediator-acts {
   .su-rail > :is(.su-rail__filters, .su-rail__tally) {
     order: -1;
   }
+
+  /* As wide as its widest count, so a filter changing it never narrows
+     Filters beside it (K17). */
+  .su-rail > .su-rail__tally {
+    min-inline-size: 10ch;
+    text-align: end;
+  }
 }
 
 /* On a listing's band (its `controls`): the rail and its facets draw no box,
