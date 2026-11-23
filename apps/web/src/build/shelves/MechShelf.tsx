@@ -12,11 +12,13 @@ import { useState } from 'react'
 import { RuleBreakMark } from '../../components/app'
 import { UnitDown } from '../../components/entity/UnitDown'
 import type { HeaderMenuItem, LedgerSort } from '../../components/index'
+import { usePatternElsewhere, usePatternGone } from '../../lib/sharing/reads'
 import { chassisFact } from '../../lib/shelves/shelfItems'
 import { isDown, VITAL } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { usePatterns } from '../../replica/collections'
+import { useSync } from '../../replica/syncContext'
 import { mechPatternStamp } from '../sheet/bandStamps.model'
 import {
   mechBuildFigures,
@@ -38,6 +40,20 @@ type MechLine = {
   menu: HeaderMenuItem[][]
   /** The row's Copy (r6 E9). */
   copy?: (() => void) | undefined
+}
+
+/**
+ * The Pattern cell of a Mech whose pattern this account does not hold: named
+ * as its link or a crew answers for it, or "Deleted pattern" once neither
+ * does, as its sheet says (r7 G7), never "A saved pattern" for one that is gone.
+ */
+function ElsewherePattern({ mech, fallback }: { mech: Mech; fallback: string }) {
+  const hydrated = usePatterns((s) => s.hydrated)
+  const { status } = useSync()
+  const ask = hydrated && status === 'live'
+  const gone = usePatternGone(mech.sourcePattern, ask)
+  const elsewhere = usePatternElsewhere(mech.sourcePattern, ask)
+  return <>{mechPatternStamp(mech, () => elsewhere, gone)?.name ?? fallback}</>
 }
 
 export function MechShelf({
@@ -138,11 +154,17 @@ export function MechShelf({
             own.under
           ),
         cells: MECH_COLUMNS.map((column) =>
-          column.key === 'game'
-            ? inGame(own.game)
-            : column.key === buildShelvesCopy('cost')
-              ? scrapCell(values[column.key])
-              : (values[column.key] ?? '')
+          column.key === 'game' ? (
+            inGame(own.game)
+          ) : column.key === buildShelvesCopy('cost') ? (
+            scrapCell(values[column.key])
+          ) : column.key === 'pattern' &&
+            mech.sourcePattern !== undefined &&
+            !patterns.some((p) => p.id === mech.sourcePattern) ? (
+            <ElsewherePattern key="pattern" mech={mech} fallback={String(values.pattern)} />
+          ) : (
+            (values[column.key] ?? '')
+          )
         ),
         menu: own.menu,
         copy: own.copy,

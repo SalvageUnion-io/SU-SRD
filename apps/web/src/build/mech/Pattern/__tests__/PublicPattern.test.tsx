@@ -6,7 +6,7 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { acceptingRooms, roomActs } from '../../../../../test/roomsStub'
-import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
+import { FIXTURE_NOW, mechFixture } from '../../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../../components/__tests__/serverMock'
 import { answerRoutes, withWorkerRoutes } from '../../../../lib/sharing/__tests__/workerRoutes'
 import { sharedPaths } from '../../../../lib/sharing/paths'
@@ -134,7 +134,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     serverMocks.signIns.length = 0
     try {
       renderAs(SIGNED_OUT)
-      fireEvent.click(screen.getByRole('button', { name: 'Sign in to build from this' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Sign in to build with this' }))
       expect(serverMocks.signIns).toEqual([['/p/pattern/tow-rig-pat']])
     } finally {
       window.location.href = before
@@ -160,19 +160,18 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     expect(hrefs.filter((href) => href?.startsWith('/chassis/'))).toEqual([])
   })
 
-  test('its band keeps the Reference trail, the way back to its chassis page (r5 E11)', () => {
+  test('its trail matches the top nav: Training Bay // Patterns, for a reader too (r7 G7)', () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     const { container } = renderAs(SIGNED_OUT)
 
     const trail = container.querySelector('.su-crumbs--band')
     const links = [...(trail?.querySelectorAll('a[href]') ?? [])].map((a) => [
       a.textContent,
-      new URL(a.getAttribute('href') ?? '').pathname,
+      a.getAttribute('href'),
     ])
     expect(links).toEqual([
-      ['Reference', '/reference/'],
-      ['Chassis', '/chassis/'],
-      ['Scrapper', '/chassis/scrapper/'],
+      ['Training Bay', '/'],
+      ['Patterns', '/patterns'],
     ])
   })
 
@@ -329,8 +328,70 @@ describe('signed in', () => {
     await settle(() => serverMocks.navigations.length > 0)
 
     const [mech] = useUnits.getState().mechs
-    expect(mech).toMatchObject({ name: 'Tow Rig', sourcePattern: 'pat-tow-rig', cargoLots: [] })
+    expect(mech).toMatchObject({ name: 'Tow Rig 1', sourcePattern: 'pat-tow-rig', cargoLots: [] })
     expect(serverMocks.navigations).toEqual([{ to: '/mechs/$id', params: { id: mech?.id } }])
+  })
+
+  test('it lists the Mechs built from it, Up to date or Behind, and brings all up to date with Undo (r7 G2)', async () => {
+    const built = { chassisRef: 'scrapper', sourcePattern: 'pat-tow-rig' }
+    useUnits.setState({
+      mechs: [
+        mechFixture({
+          id: 'm-same',
+          name: 'Tow Rig 1',
+          ...built,
+          systems: body.systems,
+          modules: body.modules,
+        }),
+        mechFixture({
+          id: 'm-behind',
+          name: 'Tow Rig 2',
+          ...built,
+          systems: ['rigging-arm'],
+          modules: ['comms-module'],
+        }),
+      ],
+    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    renderAs(CONNECTED)
+
+    const list = await screen.findByRole('table', { name: 'Your Mechs built from it' })
+    const same = within(list).getByRole('link', { name: 'Tow Rig 1' }).closest('tr')
+    const behind = within(list).getByRole('link', { name: 'Tow Rig 2' }).closest('tr')
+    expect(same?.textContent).toContain('Up to date')
+    expect(behind?.textContent).toContain('Behind')
+
+    // It shows what it will change before it writes.
+    fireEvent.click(screen.getByRole('button', { name: 'Bring all up to date' }))
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('Tow Rig 2: Tow Rig has 1 System this Mech lacks')
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Bring all up to date' }))
+    })
+    await settle(
+      () => useUnits.getState().mechs.find((m) => m.id === 'm-behind')?.systems.length === 2
+    )
+    expect(useUnits.getState().mechs.find((m) => m.id === 'm-behind')?.systems).toEqual(
+      body.systems
+    )
+    // Its notice says what it did, and its Undo puts the old loadout back.
+    const { toast } = await import('../../../../components/index')
+    const line = toast
+      .getToasts()
+      .find((t) => 'title' in t && t.title === 'Tow Rig 2 now matches Tow Rig.') as
+      | { action?: { onClick: (event: never) => void } }
+      | undefined
+    expect(line?.action).toBeDefined()
+    await act(async () => {
+      line?.action?.onClick(undefined as never)
+    })
+    await settle(
+      () => useUnits.getState().mechs.find((m) => m.id === 'm-behind')?.systems.length === 1
+    )
+    expect(useUnits.getState().mechs.find((m) => m.id === 'm-behind')?.systems).toEqual([
+      'rigging-arm',
+    ])
+    toast.dismiss()
   })
 
   test('Copy to my shelf saves it under a new id', async () => {

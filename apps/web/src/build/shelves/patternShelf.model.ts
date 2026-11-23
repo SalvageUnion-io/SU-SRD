@@ -10,7 +10,9 @@ import { mechBuildFigures } from './mechShelf.model'
 export function patternLine(
   pattern: MechPattern,
   sharing: readonly PatternSharing[] | undefined,
-  games: readonly ShelfGame[] | undefined
+  games: readonly ShelfGame[] | undefined,
+  /** The account's Mechs: those built from it are its Used by (r7 G2). */
+  mechs: readonly { sourcePattern?: string | undefined }[] = []
 ): {
   values: Record<string, string | number>
   saved: string
@@ -33,6 +35,8 @@ export function patternLine(
       [buildShelvesCopy('sys')]: figures.systems,
       [buildShelvesCopy('mod')]: figures.modules,
       [buildShelvesCopy('cost')]: figures.scrap,
+      [buildShelvesCopy('usedBy')]: mechs.filter((mech) => mech.sourcePattern === pattern.id)
+        .length,
       // What the Scrap column sorts by, never shown (r6 E4).
       scrapSort: figures.scrapSort,
       // Sorted by the moment, read as the day.

@@ -84,15 +84,15 @@
   }
 }
 
-/* PublicSheet's read-only banner: the sheet's side gutter from `sm`. */
+/* PublicSheet's read-only banner, under the band (r7 G1): the page's own
+   gutter, so its line starts at the band's cut-out. */
 .su-sheet-public-banner {
-  padding-inline: var(--space-16);
+  padding-inline: var(--su-page-gutter-inline);
 }
 
-@media (width >= 40rem) {
-  .su-sheet-public-banner {
-    padding-inline: var(--space-32);
-  }
+/* PublicNextSteps: where a shared pilot's page ends, signed out (r7 G9). */
+.su-sheet-public-next {
+  padding: var(--space-24) var(--su-page-gutter-inline) var(--space-48);
 }
 
 /* SheetSkeleton: the live sheet's gutters, the slab rhythm and the slab grid. */
@@ -158,9 +158,10 @@
    a plate with no height of its own, stands as tall as the Compact chips
    beside it, its word on their centre line, on the band's foot with them
    (`chapter-band-controls.css`). On a phone the chips draw at its own
-   height already. */
+   height already. Not once it left the band for the page's first row
+   (`data-fill-out`): drawn in both, it read HOMEBREW twice (r7 G7). */
 @media (width >= 40rem) {
-  .su-sheet-band-stamps > .su-chip-lane > .su-badge-stamp {
+  .su-sheet-band-stamps > .su-chip-lane > .su-badge-stamp:not([data-fill-out]) {
     align-items: center;
     display: inline-flex;
     height: var(--size-compact);
@@ -232,9 +233,10 @@
 
 /* …and the sheet's first block gap under them (a phone's pinned vitals sit
    a section gap below) is the masthead's paper too: plate, chips and masthead
-   read as one surface, no seam of page ground between. */
+   read as one surface, no seam of page ground between. A public sheet's
+   banner under them keeps its own ground (r7 G1). */
 @media not (width >= 40rem) {
-  .su-page-gutters:has(.su-mast) > .su-chapter-band__overflow + * {
+  .su-page-gutters:has(.su-mast) > .su-chapter-band__overflow + :not(.su-sheet-public-banner) {
     box-shadow: inset 0 var(--space-24) 0 0 var(--color-paper);
   }
 }

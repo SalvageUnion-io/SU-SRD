@@ -8,6 +8,7 @@ export const componentsCopy = messages({
   madeCopy: 'Copied {name}.',
   madeCopyWithMech: 'Copied {name}, with {mech}.',
   openTheCopy: 'Open the copy',
+  backToTheOriginal: 'Back to the original',
   copyTheMechToo: 'Copy the Mech too?',
   pilotFliesMech: '{name} flies {mech}. A copy of the Pilot alone has no Mech.',
   copyBoth: 'Copy both',

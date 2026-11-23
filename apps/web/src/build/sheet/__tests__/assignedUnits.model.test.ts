@@ -165,7 +165,7 @@ describe('assignedUnitsFor', () => {
       {},
       { withheld: [{ key: 'w', kind: 'pilot' }] }
     )
-    expect(withheld.units).toEqual([{ key: 'pilot', kind: 'pilot', name: 'Not shared' }])
+    expect(withheld.units).toEqual([{ key: 'pilot', kind: 'pilot', name: 'Pilot · not shared' }])
     expect(withheld.slots.map((s) => s.kind)).toEqual(['crawler'])
   })
 
@@ -177,7 +177,7 @@ describe('assignedUnitsFor', () => {
     )
     expect(units.map((u) => [u.kind, u.name])).toEqual([
       ['mech', 'Scrapper'],
-      ['mech', 'Not shared'],
+      ['mech', 'Mech · not shared'],
       ['pilot', 'Bonesaw'],
     ])
     expect(units[0]?.change).toBeUndefined()

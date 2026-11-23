@@ -27,7 +27,7 @@ describe('pastStartingRules', () => {
 })
 
 describe('mechFromPattern', () => {
-  test('numbers a name already in the bay', () => {
+  test('names the Mech for its pattern, numbered from 1 (r7 G5)', () => {
     const pattern = {
       id: 'p1',
       schemaVersion: 1 as const,
@@ -37,16 +37,20 @@ describe('mechFromPattern', () => {
       modules: [],
       createdAt: '2026-01-01T00:00:00.000Z',
     }
-    expect(mechFromPattern(pattern).name).toBe('Leaky Hauler')
-    expect(mechFromPattern(pattern, ['Leaky Hauler', 'Leaky Hauler 2']).name).toBe('Leaky Hauler 3')
+    expect(mechFromPattern(pattern).name).toBe('Leaky Hauler 1')
+    expect(mechFromPattern(pattern, ['Leaky Hauler 1', 'Leaky Hauler 2']).name).toBe(
+      'Leaky Hauler 3'
+    )
+    // A gap is filled; the bare pattern name in the bay is never taken.
+    expect(mechFromPattern(pattern, ['Leaky Hauler', 'Leaky Hauler 2']).name).toBe('Leaky Hauler 1')
   })
 })
 
 describe('mechFromBookPattern', () => {
-  test('numbers a name already in the bay', () => {
+  test('names the Mech for its pattern, numbered from 1 (r7 G5)', () => {
     const book = bookPattern('magpie', 'stefanus')
     if (!book) throw new Error('the book prints Stefanus')
-    expect(mechFromBookPattern(book.chassis, book.pattern).name).toBe('Stefanus')
-    expect(mechFromBookPattern(book.chassis, book.pattern, ['Stefanus']).name).toBe('Stefanus 2')
+    expect(mechFromBookPattern(book.chassis, book.pattern).name).toBe('Stefanus 1')
+    expect(mechFromBookPattern(book.chassis, book.pattern, ['Stefanus 1']).name).toBe('Stefanus 2')
   })
 })

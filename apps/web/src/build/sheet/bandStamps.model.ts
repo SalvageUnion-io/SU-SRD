@@ -91,8 +91,14 @@ export type PatternStamp = {
   changed?: true
   /** Once `changed`: the pattern's loadout, what Bring up to date writes (r5 D2). */
   loadout?: Loadout
-  /** Once `changed`: what differs, from the mech's side (`Removed Chainsaw Arm`, r6 E2). */
+  /**
+   * Once `changed`: what differs, as the line says it: what the pattern has
+   * that the Mech lacks from the pattern's side (`Longhaul has 3 Systems this
+   * Mech lacks: …`, r7 G3), what the Mech added from its own (r6 E2).
+   */
   differs?: string
+  /** Once `changed`: the Mech only lacks what the pattern has, so it brings them in (r7 G3). */
+  lacksOnly?: true
   /** The saved pattern is this account's own: the mech may write its build over it (r6 E2). */
   own?: true
 }
@@ -110,24 +116,58 @@ function more(want: readonly string[], have: readonly string[]): string[] {
   })
 }
 
+/** "3 Systems and 1 Module": how many of each the Mech lacks. */
+function partCount(systems: number, modules: number): string {
+  const parts = [
+    ...(systems === 0
+      ? []
+      : [
+          systems === 1
+            ? buildSheetCopy('driftOneSystem')
+            : buildSheetCopy('driftSystems', { count: systems }),
+        ]),
+    ...(modules === 0
+      ? []
+      : [
+          modules === 1
+            ? buildSheetCopy('driftOneModule')
+            : buildSheetCopy('driftModules', { count: modules }),
+        ]),
+  ]
+  return parts.join(buildSheetCopy('driftAnd'))
+}
+
 /**
- * How the mech differs from its pattern, from the mech's side (r6 E2), by
- * name: `Removed Hydraulic Crusher · added Red Laser, Blue Mining Laser`.
+ * How the mech differs from its pattern, by name, each side from the side
+ * that has more (r7 G3): what the pattern has that the Mech lacks reads
+ * "Longhaul has 2 Systems this Mech lacks: Red Laser, Green Laser", since the
+ * pattern may have gained them; what the Mech added reads "added Red Laser"
+ * (r6 E2).
  */
-function loadoutDiffers(mech: Loadout, pattern: Loadout): string {
-  const removed = droppedNames([
-    ...more(pattern.systems, mech.systems),
-    ...more(pattern.modules, mech.modules),
-  ])
+function loadoutDiffers(
+  mech: Loadout,
+  pattern: Loadout,
+  patternName: string
+): { differs: string; lacksOnly?: true } {
+  const lackedSystems = more(pattern.systems, mech.systems)
+  const lackedModules = more(pattern.modules, mech.modules)
+  const lacked = droppedNames([...lackedSystems, ...lackedModules])
   const added = droppedNames([
     ...more(mech.systems, pattern.systems),
     ...more(mech.modules, pattern.modules),
   ])
-  const said = [
-    ...(removed.length ? [buildSheetCopy('driftRemoved', { names: removed.join(', ') })] : []),
-    ...(added.length ? [buildSheetCopy('driftAdded', { names: added.join(', ') })] : []),
-  ].join(' · ')
-  return said.charAt(0).toUpperCase() + said.slice(1)
+  const addedLine = buildSheetCopy('driftAdded', { names: added.join(', ') })
+  if (lacked.length === 0) {
+    const said = buildSheetCopy('driftVs', { differs: addedLine, pattern: patternName })
+    return { differs: said.charAt(0).toUpperCase() + said.slice(1) }
+  }
+  const lacks = buildSheetCopy('driftLacks', {
+    pattern: patternName,
+    what: partCount(lackedSystems.length, lackedModules.length),
+    names: lacked.join(', '),
+  })
+  if (added.length === 0) return { differs: lacks, lacksOnly: true }
+  return { differs: `${lacks} · ${addedLine}` }
 }
 
 /** A saved pattern as this browser holds it: its name, or with its build to compare the mech against. */
@@ -171,16 +211,17 @@ export function mechPatternStamp(
   gone = false
 ): PatternStamp | undefined {
   // Changed: what differs, and the pattern's loadout to bring it up to date to (r5 D2).
-  const differs = (systems: string[], modules: string[]) =>
+  const differs = (name: string, systems: string[], modules: string[]) =>
     mech.systems !== undefined &&
     mech.modules !== undefined &&
     !(sameLoadout(mech.systems, systems) && sameLoadout(mech.modules, modules))
       ? {
           changed: true as const,
           loadout: { systems, modules },
-          differs: loadoutDiffers(
+          ...loadoutDiffers(
             { systems: [...mech.systems], modules: [...mech.modules] },
-            { systems, modules }
+            { systems, modules },
+            name
           ),
         }
       : {}
@@ -194,7 +235,7 @@ export function mechPatternStamp(
     }
     if (typeof held === 'string') return { name: held, href }
     if (held.chassisRef !== mech.chassisRef) return undefined
-    return { name: held.name, href, ...differs(held.systems, held.modules) }
+    return { name: held.name, href, ...differs(held.name, held.systems, held.modules) }
   }
   const ref = mech.startingPatternRef
   if (!ref) return undefined
@@ -209,6 +250,6 @@ export function mechPatternStamp(
   return {
     name: pattern.name,
     page: srdPatternHref(chassis, pattern),
-    ...differs(slugs(pattern.systems), slugs(pattern.modules)),
+    ...differs(pattern.name, slugs(pattern.systems), slugs(pattern.modules)),
   }
 }

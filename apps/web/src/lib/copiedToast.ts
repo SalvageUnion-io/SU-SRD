@@ -58,12 +58,21 @@ export function madeToast(
   })
 }
 
-/** Says what was copied, by the original's name (`of`), with the way to the copy. */
-function copiedToast(of: string, made: Made, go: (href: string) => void): void {
+/**
+ * Says what was copied, by the original's name (`of`), with the way to the
+ * copy; or, where the copy has opened already (`back`, r7 G4), the way back
+ * to the original.
+ */
+function copiedToast(of: string, made: Made, go: (href: string) => void, back?: string): void {
   const said = made.mech
     ? componentsCopy('madeCopyWithMech', { name: of, mech: made.mech })
     : componentsCopy('madeCopy', { name: of })
-  madeToast(said, componentsCopy('openTheCopy'), made, go)
+  if (back === undefined) {
+    madeToast(said, componentsCopy('openTheCopy'), made, go)
+    return
+  }
+  go(made.href)
+  madeToast(said, componentsCopy('backToTheOriginal'), { href: back }, go)
 }
 
 /**
@@ -76,9 +85,11 @@ export async function makeACopy(args: {
   name: string
   make: () => Promise<Made>
   go: (href: string) => void
+  /** The original's address: the copy opens at once and its notice leads back here (r7 G4). */
+  back?: string | undefined
 }): Promise<void> {
   try {
-    copiedToast(args.name, await args.make(), args.go)
+    copiedToast(args.name, await args.make(), args.go, args.back)
   } catch (err) {
     toast.error(failureMessage(err, componentsCopy('couldNotBeCopied', { name: args.name })))
   }
@@ -99,6 +110,8 @@ type CopyOptions = {
   /** Told the copy's id once it is made, so its row can be brought into view. */
   landed?: (id: string) => void
   units?: Units
+  /** Open the copy as it is made, its notice leading back to the original (r7 G4). */
+  openCopy?: boolean
 }
 
 /** The mech a pilot flies, where these units hold it; else null. */
@@ -127,11 +140,13 @@ function copyUnit(
   name: string,
   body: Parameters<typeof copyForShelf>[0],
   go: Go,
-  { mech, landed, units: given }: CopyOptions = {}
+  { mech, landed, units: given, openCopy }: CopyOptions = {}
 ): Promise<void> {
   const units = given ?? useUnits.getState()
+  const original = typeof body.id === 'string' ? body.id : undefined
   return makeACopy({
     name,
+    back: openCopy && original ? `/${type}s/${original}` : undefined,
     make: async () => {
       // An NPC's copy stays in the Game its original is in (MD3-12).
       const taken = namesOn(units.list(type))

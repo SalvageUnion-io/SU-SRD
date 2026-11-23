@@ -9,6 +9,7 @@ import { toast } from '../../../../components/index'
 import { resetStores } from '../../../../replica/__tests__/resetStores'
 import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
 import { useUnits } from '../../../../replica/units'
+import { nameAwaitsTyping, nameTyped } from '../../../sheet/nameOnArrival.model'
 import { builtToast, undoBuild } from '../buildConfirm.model'
 
 withSignedInBackend()
@@ -41,6 +42,12 @@ describe('builtToast', () => {
     await undoBuild({ id: 'built-1', name: 'Brawler' })
     expect(useUnits.getState().get('mech', 'built-1')).toBeNull()
     expect(open().some((t) => t.title === 'Removed Brawler.')).toBe(true)
+  })
+
+  test('the sheet it opens has the new name selected for typing (r7 G5)', () => {
+    builtToast({ id: 'built-3', name: 'Longhaul 1' })
+    expect(nameAwaitsTyping('built-3')).toBe(true)
+    nameTyped('built-3')
   })
 
   test('a build past the starting rules says so in the notice', () => {

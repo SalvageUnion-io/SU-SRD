@@ -7,6 +7,7 @@
 import { messages } from './define'
 
 export const buildDashCopy = messages({
+  stacked: '{name} ×{count}',
   tl: 'TL',
   techLevel: 'Tech Level',
   uses: 'Uses',

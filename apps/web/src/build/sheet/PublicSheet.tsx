@@ -19,22 +19,30 @@
  * republishes, your crewmate's.
  *
  * A shared mech's banner ends with the way to a build of your own
- * (`PublicMechBuild`, r4 E18), as a shared pattern's page has.
+ * (`PublicMechBuild`, r4 E18), as a shared pattern's page has; a shared
+ * pilot's page, read signed out, ends with the next steps
+ * (`PublicNextSteps`, r7 G9).
  */
 
 import { publicPath } from 'game-domain/entityKinds'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { CSSProperties } from 'react'
-import { useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { tokens } from '../../components/index'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { useSync } from '../../replica/syncContext'
 import { PublicMechBuild } from './PublicMechBuild'
-import { READ_ONLY_BANNER } from './readOnlyBanner.model'
+import { READ_ONLY_BANNER, SheetBannerContext } from './readOnlyBanner.model'
 import type { PublicSheetAnswer } from './readOnlySheetStore.model'
 import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore.model'
 import { Sheet } from './Sheet'
 import { ShownSheetContext } from './useShownSheet'
+
+// Only a signed-out reader of a pilot meets it: loaded then (r7 G9).
+const PublicNextSteps = lazy(() =>
+  import('./PublicNextSteps').then((m) => ({ default: m.PublicNextSteps }))
+)
 
 type PublicSheetProps = {
   /** The app id the page is addressed by — the published entity's own id. */
@@ -75,6 +83,7 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
     [published]
   )
   const kind = answer.kind
+  const { status } = useSync()
   const mech = kind === 'mech' ? store.getState().get('mech', appId) : null
 
   if (
@@ -93,21 +102,25 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
     )
   }
 
-  return (
-    <div>
-      <div
-        role="note"
-        aria-label={buildSheetCopy('readOnlySheet')}
-        className="su-sheet-public-banner"
-        // Its side padding widens at `sm` (`.su-sheet-public-banner`).
-        style={READ_ONLY_BANNER}
-      >
-        <div style={BANNER_LINE}>
-          <span>{buildSheetCopy('thisSheetIsSharedRead')}</span>
-          {mech && <PublicMechBuild mech={mech} />}
-        </div>
+  // Under the chapter band, in the page flow (r7 G1): above it, the desktop
+  // band, which runs up behind the area rail, covered it and took its clicks.
+  const banner = (
+    <div
+      role="note"
+      aria-label={buildSheetCopy('readOnlySheet')}
+      // The page's own gutter (`.su-sheet-public-banner`).
+      className="su-sheet-public-banner"
+      style={READ_ONLY_BANNER}
+    >
+      <div style={BANNER_LINE}>
+        <span>{buildSheetCopy('thisSheetIsSharedRead')}</span>
+        {mech && <PublicMechBuild mech={mech} />}
       </div>
+    </div>
+  )
 
+  return (
+    <SheetBannerContext.Provider value={banner}>
       <ShownSheetContext.Provider value>
         <Sheet
           kind={kind}
@@ -119,6 +132,12 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
           readOnly
         />
       </ShownSheetContext.Provider>
-    </div>
+      {/* A friend with no account is shown where to go next (r7 G9). */}
+      {kind === 'pilot' && status === 'signedOut' && (
+        <Suspense fallback={null}>
+          <PublicNextSteps />
+        </Suspense>
+      )}
+    </SheetBannerContext.Provider>
   )
 }

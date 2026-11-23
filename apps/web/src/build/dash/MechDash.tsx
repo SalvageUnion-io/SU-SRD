@@ -76,7 +76,7 @@ import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { useShownSheet } from '../sheet/useShownSheet'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
-import { ITEM_COLUMNS, itemRows } from './itemRows'
+import { ITEM_COLUMNS, itemRows, stackedRows } from './itemRows'
 import { RowRules } from './RowRules'
 import { unloadLot } from './unloadLot.model'
 
@@ -337,8 +337,9 @@ export function MechDash({
   /** A collection's rows; in Edit each item's controls close its line. */
   const loadoutRows = (kind: ItemKind): LedgerRow[] => {
     const rows = itemRows(mech, kind, true, spendEP)
-    if (!edit) return rows
     const slugs = kind === 'system' ? mech.systems : mech.modules
+    // Read stacks copies as the pattern's page does, "Armour Plating ×2" (r7 G7).
+    if (!edit) return stackedRows(rows, slugs)
     const held = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
     return rows.map((row, index) => {
       const slug = slugs[index] ?? ''

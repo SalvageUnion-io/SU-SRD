@@ -25,9 +25,9 @@ import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Photo } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
-import type { RefChassis, RefObjectPattern } from 'salvageunion-reference'
-import { getAssetUrl, getEntitySlug, toEntityModel } from 'salvageunion-reference'
+import { lazy, Suspense, useState } from 'react'
+import type { RefObjectPattern } from 'salvageunion-reference'
+import { getAssetUrl, toEntityModel } from 'salvageunion-reference'
 import {
   BreadcrumbTrail,
   Button,
@@ -46,7 +46,6 @@ import { AppLink } from '../../../components/shared/AppLink'
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { chapterForSchema } from '../../../lib/chapters'
 import { playerMessage } from '../../../lib/connection/useServerAction'
-import { SITE_URL, SRD_CRUMB } from '../../../lib/constants'
 import { madeToast } from '../../../lib/copiedToast'
 import { hereInApp } from '../../../lib/hereInApp'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
@@ -78,6 +77,9 @@ import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
 import { RailActs } from '../../sheet/RailActs'
 import { builtToast, mechNamesTaken } from './buildConfirm.model'
 import { PatternEditControls } from './PatternEditControls'
+
+/** The viewer's Mechs built from it, and Bring all up to date (r7 G2): loaded where there are any. */
+const PatternMechs = lazy(() => import('./PatternMechs').then((m) => ({ default: m.PatternMechs })))
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
 export type PublicPatternAnswer = {
@@ -131,20 +133,11 @@ function pagePattern(pattern: MechPattern): RefObjectPattern {
 }
 
 /**
- * The way back to the Reference (r5 E11): the trail its chassis's own page
- * keeps, Reference // Chassis // the chassis. Absolute, as the page head's
- * trail is: an SRD path inside the app would land under its base.
+ * The way back (r6 E11): Training Bay // Patterns // the pattern, for every
+ * reader, as the top nav marks the page Training Bay's (r7 G7, over r5 E11's
+ * Reference trail for a reader not its maker). Its PATTERN OF chip still
+ * opens its chassis's page.
  */
-function referenceTrail(chassis: RefChassis, pattern: string) {
-  return [
-    SRD_CRUMB,
-    { name: mechCopy('chassis'), url: `${SITE_URL}/chassis/` },
-    { name: chassis.name, url: `${SITE_URL}/chassis/${getEntitySlug(chassis)}/` },
-    { name: pattern, url: '' },
-  ]
-}
-
-/** Your own pattern's way back (r6 E11): Training Bay // Patterns // the pattern. */
 function patternsTrail(pattern: string) {
   return [
     { name: PRODUCT.build, url: '/' },
@@ -188,6 +181,8 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const writable = canWrite && status === 'live'
   // Neither connected nor reconnecting: the page offers Sign in instead.
   const signedOut = !writable && status !== 'live' && status !== 'offline'
+  // The viewer's own Mechs built from it: the page lists them (r7 G2).
+  const fromIt = useUnits((s) => s.mechs.some((mech) => mech.sourcePattern === pattern.id))
 
   async function build() {
     setBusy('build')
@@ -234,19 +229,12 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
         <ChapterBandTrail.Provider
           value={
             chassis ? (
-              mine ? (
-                // Your own pattern leads back to your Patterns (r6 E11).
-                <BreadcrumbTrail
-                  breadcrumbs={patternsTrail(pattern.name)}
-                  placement="band"
-                  link={AppLink}
-                />
-              ) : (
-                <BreadcrumbTrail
-                  breadcrumbs={referenceTrail(chassis, pattern.name)}
-                  placement="band"
-                />
-              )
+              // The trail matches the top nav: Training Bay // Patterns (r7 G7).
+              <BreadcrumbTrail
+                breadcrumbs={patternsTrail(pattern.name)}
+                placement="band"
+                link={AppLink}
+              />
             ) : null
           }
         >
@@ -287,7 +275,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               ) : signedOut ? (
                 <SignInControl
                   className="su-page-action"
-                  label={mechCopy('signInToBuildFromThis')}
+                  label={mechCopy('signInToBuildWithThis')}
                   redirectTo={hereInApp()}
                 />
               ) : undefined
@@ -362,6 +350,11 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             <Text variant="hint">{builtLine}</Text>
             {mine && visibility && <Text variant="hint">{VISIBILITY_COPY[visibility]}</Text>}
           </section>
+          {writable && fromIt && (
+            <Suspense fallback={null}>
+              <PatternMechs pattern={pattern} />
+            </Suspense>
+          )}
         </div>
       </article>
       {mine && (

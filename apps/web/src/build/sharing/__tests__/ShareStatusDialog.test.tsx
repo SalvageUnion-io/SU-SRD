@@ -83,7 +83,7 @@ describe('ShareStatusDialog — signed in but not connected', () => {
 })
 
 describe('ShareStatusDialog — a pilot’s share is the pilot’s alone (r4 E18)', () => {
-  test('says its mech and crawler are shared separately, and links each', async () => {
+  test('one way to share the crew: no paragraph, no links (r7 G9)', async () => {
     const { crawlerFixture, mechFixture, softLinkFixture } = await import(
       '../../../components/__tests__/fixtures'
     )
@@ -100,14 +100,9 @@ describe('ShareStatusDialog — a pilot’s share is the pilot’s alone (r4 E18
     await act(async () => {
       renderDialog()
     })
-    const note = screen.getByRole('region', { name: 'Shared separately' })
-    expect(note.textContent).toContain('Their Mech and their crawler are shared separately')
-    expect(
-      screen.getByRole('link', { name: 'Open Iron Mongrel to share it' }).getAttribute('href')
-    ).toBe('/mechs/m1')
-    expect(
-      screen.getByRole('link', { name: 'Open Tenacity to share it' }).getAttribute('href')
-    ).toBe('/crawlers/c1')
+    expect(screen.queryByText(/shared separately/)).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Open Iron Mongrel to share it' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Open Tenacity to share it' })).toBeNull()
   })
 
   test('a pilot with neither says nothing of it', async () => {
