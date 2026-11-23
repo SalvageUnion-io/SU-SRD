@@ -25,14 +25,24 @@ export function RowFacts({ entity, wide }: { entity: PoolEntity; wide: boolean }
 }
 
 /** The row's +: adds it now, paying its cost where it can, as Enter does (r6 E8). */
-export function RowAdd({ name, onAdd }: { name: string; onAdd: () => void }) {
+export function RowAdd({
+  name,
+  onAdd,
+  refused,
+}: {
+  name: string
+  onAdd: () => void
+  /** Too little to pay it (r8 D4): off, and titled with why. */
+  refused?: string | undefined
+}) {
   return (
     <Button
       variant="ghost"
       size="iconOnly"
       className="su-searcher__add"
       aria-label={compositionsCopy('addName', { name })}
-      title={compositionsCopy('addName', { name })}
+      title={refused ?? compositionsCopy('addName', { name })}
+      disabled={refused !== undefined}
       onClick={onAdd}
     >
       <Plus aria-hidden="true" size={iconSize.compact} />

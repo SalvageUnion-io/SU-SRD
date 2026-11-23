@@ -28,6 +28,7 @@ import { Button, Entity, Stat } from '../components/index'
 import { bayGate } from '../lib/rules/crawlerEconomy'
 import { playCopy } from '../messages/play'
 import { playDowntimeCopy } from '../messages/play-downtime'
+import { SPEND_TP_REFUSES_SHORT } from './downtimeRulings.model'
 import { NeedChip } from './PlayActionRow'
 import type { DowntimeActionId } from './playActions.model'
 import { playLineModel } from './playLine.model'
@@ -221,7 +222,11 @@ export function PlayDowntimeActionRow({
           : {})}
       />
       {training && pilot && (
-        <PilotAbilityTrainer pilot={pilot} onClose={() => setTraining(false)} />
+        <PilotAbilityTrainer
+          pilot={pilot}
+          onClose={() => setTraining(false)}
+          spendOnly={SPEND_TP_REFUSES_SHORT}
+        />
       )}
     </li>
   )
