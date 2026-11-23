@@ -209,22 +209,25 @@ function asMine(text: string): string {
  * A seat's act the room words "<unit> <does>" (`rooms/game/events.ts`), as
  * its player reads it (r7 A5): "You use Red Laser", as their rolls say "You".
  */
-const SEAT_ACTS: readonly [RegExp, string][] = [
-  [/^.+? boards (.+)$/, 'You board $1'],
-  [/^.+? climbs out, on foot$/, 'You climb out, on foot'],
-  [/^.+? ejects$/, 'You eject'],
-  [/^.+? uses (.+)$/, 'You use $1'],
-  [/^.+? switches (.+)$/, 'You switch $1'],
-  [/^.+? ended their turn$/, 'You ended your turn'],
-  [/^.+? moved their Scrap$/, 'You moved your Scrap'],
-  [/^.+? · (.+: not applied)$/, 'You · $1'],
+const SEAT_ACTS: readonly [RegExp, (what: string) => string][] = [
+  [/^.+? boards (.+)$/, (mech) => playCopy('youBoard', { mech })],
+  [/^.+? climbs out, on foot$/, () => playCopy('youClimbOut')],
+  [/^.+? ejects$/, () => playCopy('youEject')],
+  [/^.+? uses (.+)$/, (what) => playCopy('youUse', { what })],
+  [/^.+? switches (.+)$/, (what) => playCopy('youSwitch', { what })],
+  [/^.+? ended their turn$/, () => playCopy('youEndedTurn')],
+  [/^.+? moved their Scrap$/, () => playCopy('youMovedScrap')],
+  [/^.+? · (.+: not applied)$/, (what) => `${playCopy('feedYou')} · ${what}`],
 ]
 
 /** The seat acts a player's own line is reworded in. */
 const SEAT_KINDS: ReadonlySet<TableEvent['kind']> = new Set(['board', 'action', 'turn', 'downtime'])
 
 function asMyAct(text: string): string {
-  for (const [said, mine] of SEAT_ACTS) if (said.test(text)) return text.replace(said, mine)
+  for (const [said, mine] of SEAT_ACTS) {
+    const found = said.exec(text)
+    if (found !== null) return mine(found[1] ?? '')
+  }
   return text
 }
 

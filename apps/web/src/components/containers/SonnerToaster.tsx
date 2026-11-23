@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { Toaster as SonnerToaster } from 'sonner'
+import { widthAtLeast } from '../../design/breakpoint'
 import { borderWidth, color, font, fontSize, radius, shadow } from '../../design/tokens'
 import { holdToastsOnFocus } from './toastFocusHold'
 import { usePlayToasts, useToastsOnTop } from './toastPlacement'
@@ -33,8 +34,8 @@ const MOBILE_OFFSET = {
 /** A dialog that is open: its head (title, close) stands at the top. */
 const DIALOG = '[role="dialog"], [role="alertdialog"]'
 
-/** The narrowest width sonner still draws as a phone (its `mobileOffset`). */
-const PHONE = '(width < 600px)'
+/** A phone, below the ladder's first rung (chrome K2). */
+const PHONE = `not ${widthAtLeast('sm')}`
 
 /**
  * Whether a dialog is open on a phone (r7 A4): its toasts then stand at the

@@ -94,7 +94,7 @@ describe('ToasterMount (chrome K5)', () => {
     const realMatch = window.matchMedia
     window.matchMedia = ((query: string) => ({
       ...realMatch(query),
-      matches: query === '(width < 600px)',
+      matches: query === 'not (width >= 40rem)',
       addEventListener: () => {},
       removeEventListener: () => {},
     })) as typeof window.matchMedia
