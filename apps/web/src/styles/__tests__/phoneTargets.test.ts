@@ -72,3 +72,28 @@ describe('a list count’s steps on a phone', () => {
     expect(ledger).toContain('inset-block: min(0px, calc(50% - var(--size-full) / 2))')
   })
 })
+
+/** r8 C3 (MD8-11): a list row's ⋯ on a phone is 44px wide, its hit area the 44px row. */
+describe('a list row’s ⋯ on a phone', () => {
+  const ledger = readFileSync(join(import.meta.dir, '../partials/ledger.css'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    ''
+  )
+  const phone = ledger.slice(ledger.indexOf('@media not (width >= 40rem) {'))
+  const trigger =
+    '.su-ledger__table tbody .su-ledger__trailing-line > .su-header-menu-trigger--overflow'
+  const body = (selector: string) => phone.slice(phone.indexOf(`${selector} {`)).split('}')[0] ?? ''
+
+  test('draws 44px wide, and its row is 44px tall', () => {
+    expect(body(trigger)).toContain('min-inline-size: var(--size-full)')
+    expect(body('.su-ledger__table tbody tr:has(.su-header-menu-trigger--overflow) > *')).toContain(
+      'height: var(--size-full)'
+    )
+  })
+
+  test('and its hit area reaches the row’s 44px', () => {
+    expect(body(`${trigger}::after`)).toContain(
+      'inset-block: min(0px, calc(50% - var(--size-full) / 2))'
+    )
+  })
+})
