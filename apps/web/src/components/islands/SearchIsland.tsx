@@ -4,8 +4,9 @@
  * component in its bar. One engine, the build-time compact index
  * (`/search-index.json`, `searchCompactIndex`); one panel, hung under the
  * field; Cmd/Ctrl+K focuses it. Every result is a reference page, followed in
- * the same tab. Enter with no row highlighted, or the hero's Search, opens the
- * page of every result (`/search/?q=`, `SearchResultsIsland`, r5 E3).
+ * the same tab. Enter with no row highlighted, the list's "See all N results"
+ * or the hero's Search opens the page of every result (`/search/?q=`,
+ * `SearchResultsIsland`, r5 E3); a list of one result opens it (r8 G2).
  *
  * The hero, and the bar on the Reference page, open on the address's `?q=`: the
  * retired search page's address lands on the Reference page with it
@@ -20,7 +21,7 @@ import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { aboveFloor, searchCompactIndex } from '../../lib/searchCompactIndex'
 import {
-  atContent,
+  markAtContent,
   RESULTS_PAGE,
   resultsHref,
   SEARCH_PAGE,
@@ -33,6 +34,7 @@ import { clientSwap } from '../../runtime/clientSwap'
 import { InlineRef } from '../atoms/InlineRef'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
 import { SearchListbox } from '../compositions/SearchListbox'
+import { SEARCHING } from '../containers/loadingCopy'
 import { HeroSearchForm } from '../HeroSearch'
 import type { SearchComboboxResult } from '../index'
 import { SearchField, useModKeyHint, useSearchCombobox } from '../index'
@@ -92,10 +94,18 @@ const RULES_HREF = '/rules/'
 /** Site URL for a combobox result: category listing or entity item page. */
 function resultUrl(result: SearchComboboxResult): string {
   if (result.kind === 'schema') return schemaHref(result.schemaId)
-  // "Show more" opens nothing: the combobox lengthens its list (`submit`).
-  if (result.kind === 'more') return ''
-  // Opened at its content: the next Tab is the page's own (RR7-09).
-  return atContent(result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity)))
+  // "See all N results": the page of every result (r8 G2).
+  if (result.kind === 'more') return resultsHref(result.query)
+  return result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity))
+}
+
+/**
+ * A result followed from the list: its page opens at its top, the next Tab
+ * in its content (`markAtContent`, r8 G3). The page of every result is not one.
+ */
+function markFollowed(event: React.MouseEvent): void {
+  const href = (event.target as Element).closest?.('a[href]')?.getAttribute('href')
+  if (href && !href.startsWith(RESULTS_PAGE)) markAtContent(href)
 }
 
 export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = {}) {
@@ -104,14 +114,24 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   // intent (focusing the input or typing) — keeps it off every page's
   // critical path. Unlike the reference-entity islands, search never
   // preloads the ORM at all — it matches against a small build-time index.
-  const { ready, index, load } = useSearchIndex({ defer: true })
+  const { ready, index, names: nameRows, load } = useSearchIndex({ defer: true, names: true })
+  // On a slow line the names land first: they answer, by name alone, until
+  // the whole index does (r8 G1). Their results are plain lines, no model.
+  const early = !ready && nameRows.length > 0
+  const matched = ready ? index : nameRows
   // Each entity result is drawn from the index's slim model (no corpus).
   const models = useMemo(() => new Map(index.map((entry) => [entry.id, entry.model])), [index])
   // The dropdown answers: what only mentions the query is left out once a result names it.
   const searchFn = useMemo(
     () => (options: Parameters<typeof searchCompactIndex>[1]) =>
-      aboveFloor(searchCompactIndex(index, options)),
-    [index]
+      aboveFloor(searchCompactIndex(matched, options)),
+    [matched]
+  )
+  // The page of every result lists every match: "See all" says how many it
+  // holds, once the whole index can count them.
+  const countAll = useCallback(
+    (query: string) => (ready ? searchCompactIndex(index, { query }).length : 0),
+    [ready, index]
   )
   // Dropdown-open is DERIVED: open while a search has run, unless the user
   // dismissed THIS results set (Escape/outside click). A new search run
@@ -141,17 +161,19 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     selectedIndex,
     handleInput,
     handleKeyDown,
-    submit,
     listboxId,
     optionId,
     inputProps,
     announcement,
     clear,
   } = useSearchCombobox({
-    ready,
-    moreRow: true,
-    onSubmit: (result) => doNavigate(resultUrl(result)),
-    // Enter with no row highlighted: the page of every result.
+    ready: ready || early,
+    countAll,
+    onSubmit: (result) => {
+      markAtContent(resultUrl(result))
+      doNavigate(resultUrl(result))
+    },
+    // Enter with no row highlighted, or "See all": the page of every result.
     onSubmitQuery: (term) => doNavigate(resultsHref(term)),
     searchFn,
   })
@@ -165,6 +187,20 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   )
 
   const isOpen = hasSearched && !quiet && dismissedResults !== results
+
+  // The whole index landed after the names answered: the query runs again on it.
+  const asked = useRef(query)
+  asked.current = query
+  const wasEarly = useRef(false)
+  useEffect(() => {
+    if (early) wasEarly.current = true
+    else if (ready && wasEarly.current) {
+      wasEarly.current = false
+      if (asked.current.trim()) handleInput(asked.current)
+    }
+  }, [early, ready, handleInput])
+  // Nothing by name yet: the whole index may still find it in the words.
+  const pending = early && results.length === 0
 
   // An empty result's next step: the query with its slipped words put right,
   // where that finds something ("Did you mean").
@@ -239,7 +275,8 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   const live = (
     <div className="su-sr-only" aria-live="polite">
-      {announcement}
+      {/* The results page's held query says nothing: that page says its own count (RR8-15). */}
+      {quiet ? null : pending ? SEARCHING : announcement}
     </div>
   )
 
@@ -287,17 +324,12 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       <SearchListbox
         id={listboxId}
         size="mini"
-        ready={ready}
+        ready={ready || (early && !pending)}
         results={results}
         selectedIndex={selectedIndex}
         optionId={optionId}
         modelOf={(result) => models.get(result.id)}
         target={{ href: resultUrl }}
-        onMore={(result) => {
-          submit(result)
-          // The press took the focus off the field; typing and the arrows go on.
-          inputRef.current?.focus()
-        }}
         style={hero ? LISTBOX_HERO : LISTBOX_BAR}
         none={
           suggestion ? (
@@ -338,7 +370,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     return (
       <IslandErrorBoundary>
         <HeroSearchForm onSubmit={onSubmit}>
-          <div className="su-hero-search__box" ref={containerRef}>
+          <div className="su-hero-search__box" ref={containerRef} onClickCapture={markFollowed}>
             {live}
             {field}
             {listbox}
@@ -350,7 +382,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   return (
     <IslandErrorBoundary>
-      <div style={RELATIVE} ref={containerRef}>
+      <div style={RELATIVE} ref={containerRef} onClickCapture={markFollowed}>
         {live}
         {field}
         {listbox}

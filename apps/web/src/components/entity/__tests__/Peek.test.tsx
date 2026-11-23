@@ -94,8 +94,9 @@ describe('PeekHost', () => {
     const peek = await screen.findByRole('tooltip')
     await waitFor(() => expect(peek.textContent).toContain('Integrated Cargo Bay'))
     expect(peek.textContent).not.toContain('MODS')
-    // A row is no sentence: its Peek hangs under it, focus's too.
-    expect(peek.getAttribute('data-side')).toBe('bottom')
+    // A row is no sentence: its Peek stands beside the list where there is
+    // room (here, a box with no width), else under the row, focus's too (RR8-11).
+    expect(peek.getAttribute('data-side')).toBe('right')
   })
 
   test('focus a pointer press gave does not open it: the press is a click', async () => {

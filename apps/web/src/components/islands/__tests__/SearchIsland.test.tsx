@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, jest, mock, spyOn, test } from
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import { buildSearchIndexEntries } from '../../../lib/searchIndexBuild'
+import { searchNames } from '../../../lib/searchNames'
 import { resetSearchIndexForTests } from '../../../lib/useSearchIndex'
 import type { EntitySurfaceValue } from '../../index'
 import { EntitySurfaceProvider } from '../../index'
@@ -43,10 +44,11 @@ describe('SearchIsland', () => {
     // `Object.assign` carries the real `fetch.preconnect` so the mock satisfies
     // Bun's `typeof fetch` structurally — no forced cast.
     const mockFetch: typeof fetch = Object.assign(
-      async () =>
-        new Response(JSON.stringify(index), {
-          headers: { 'Content-Type': 'application/json' },
-        }),
+      async (url: string | URL | Request) =>
+        new Response(
+          JSON.stringify(String(url).endsWith('/search-names.json') ? searchNames(index) : index),
+          { headers: { 'Content-Type': 'application/json' } }
+        ),
       { preconnect: fetch.preconnect }
     )
     fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(mockFetch)
@@ -57,6 +59,41 @@ describe('SearchIsland', () => {
     fetchSpy?.mockRestore()
     resetSearchIndexForTests()
     jest.useRealTimers()
+  })
+
+  test('on a slow line the names answer at once, the whole index after (r8 G1)', async () => {
+    let resolveIndex!: (res: Response) => void
+    fetchSpy?.mockRestore()
+    const slow: typeof fetch = Object.assign(
+      (url: string | URL | Request) =>
+        String(url).endsWith('/search-names.json')
+          ? Promise.resolve(new Response(JSON.stringify(searchNames(index))))
+          : new Promise<Response>((res) => (resolveIndex = res)),
+      { preconnect: fetch.preconnect }
+    )
+    fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(slow)
+    render(<SearchIsland />)
+    const input = screen.getByRole('combobox')
+    await act(async () => {
+      fireEvent.focus(input)
+    })
+    await typeAndSettle(input, 'mule')
+    // The name, before the index: a plain line to its page.
+    const early = screen.getAllByRole('option')
+    expect(early[0]?.textContent).toContain('Mule')
+    expect(early[0]?.getAttribute('href')).toBe('/chassis/mule/')
+    // A query no name holds waits on the index, never "No results".
+    await typeAndSettle(input, 'zzqxjv')
+    expect(screen.getByRole('listbox').textContent).toContain('Searching…')
+
+    await act(async () => {
+      resolveIndex(new Response(JSON.stringify(index)))
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_MS)
+    })
+    // The whole index has answered: now it says what it found.
+    expect(screen.getByRole('listbox').textContent).not.toContain('Searching…')
   })
 
   test('renders an sr-only aria-live region', () => {
@@ -147,7 +184,8 @@ describe('SearchIsland', () => {
     await typeAndSettle(input, 'ironmonger')
 
     const first = screen.getAllByRole('option')[0]
-    expect(first?.getAttribute('href')).toBe('/chassis/magpie/pattern/ironmonger/#main-content')
+    // No anchor: the page opens at its top (r8 G3).
+    expect(first?.getAttribute('href')).toBe('/chassis/magpie/pattern/ironmonger/')
     expect(screen.getByRole('listbox').textContent).toContain('Pattern · Magpie')
     // The option is named with its kind, as the row reads (r2 G7).
     expect(first?.getAttribute('aria-label')).toMatch(/^Ironmonger, Pattern · Magpie$/i)
@@ -158,15 +196,16 @@ describe('SearchIsland', () => {
     await act(async () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
-    expect(navigate).toHaveBeenCalledWith('/chassis/magpie/pattern/ironmonger/#main-content')
+    expect(navigate).toHaveBeenCalledWith('/chassis/magpie/pattern/ironmonger/')
+    // Its content takes the focus there (`markAtContent`).
+    expect(sessionStorage.getItem('su-at-content')).toBe('/chassis/magpie/pattern/ironmonger/')
+    sessionStorage.clear()
   })
 
   test('a question, a word form and a stat abbreviation find their rule (RR-04)', async () => {
     render(<SearchIsland />)
     const input = screen.getByRole('combobox')
-    // A result opens at its content (RR7-09): the page is what is compared.
-    const firstHref = () =>
-      screen.getAllByRole('option')[0]?.getAttribute('href')?.replace('#main-content', '')
+    const firstHref = () => screen.getAllByRole('option')[0]?.getAttribute('href')
 
     await typeAndSettle(input, 'how does salvaging work')
     expect(firstHref()).toBe('/guides/salvaging/')
@@ -293,8 +332,10 @@ describe('SearchIsland', () => {
     // 'c' prefix-matches many category names
     await typeAndSettle(input, 'c')
 
-    // Ten rows, then "Show more" (r4 F1).
-    const options = screen.getAllByRole('option').filter((o) => o.tagName === 'A')
+    // Ten rows, then "See all N results" (r8 G2).
+    const options = screen
+      .getAllByRole('option')
+      .filter((o) => !o.textContent?.startsWith('See all'))
     expect(options.length).toBeLessThanOrEqual(10)
 
     // Count category rows (schema: 'Category')
@@ -428,14 +469,26 @@ describe('SearchIsland', () => {
     try {
       render(<SearchIsland />)
       const input = screen.getByRole('combobox')
-      await typeAndSettle(input, 'mule')
+      await typeAndSettle(input, 'laser')
       await act(async () => {
         fireEvent.keyDown(input, { key: 'Enter' })
       })
-      expect(assign).toHaveBeenCalledWith('/search/?q=mule')
+      expect(assign).toHaveBeenCalledWith('/search/?q=laser')
     } finally {
       assign.mockRestore()
     }
+  })
+
+  test('one result listed: Enter opens it, not the page of every result (r8 G2)', async () => {
+    const navigate = mock((_url: string) => {})
+    render(<SearchIsland navigate={navigate} />)
+    const input = screen.getByRole('combobox')
+    await typeAndSettle(input, 'mule')
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Enter' })
+    })
+    expect(navigate).toHaveBeenCalledTimes(1)
+    expect(navigate.mock.calls[0]?.[0]).toMatch(/^\/chassis\/mule\//)
   })
 
   test('inside a host that routes entity links, every result stays a same-tab page link', async () => {
@@ -458,16 +511,17 @@ describe('SearchIsland', () => {
     )
     await typeAndSettle(screen.getByRole('combobox'), 'mule')
 
-    // Every result; "Show more" is the list's own act, never a link (r4 F1).
-    const options = screen
-      .getAllByRole('option')
-      .filter((option) => !option.textContent?.startsWith('Show more'))
+    // Every result, and "See all", a same-tab link to the page of every result (r8 G2).
+    const options = screen.getAllByRole('option')
     expect(options.length).toBeGreaterThan(0)
-    for (const option of options) {
+    const all = options.find((option) => option.textContent?.startsWith('See all'))
+    expect(all?.getAttribute('href')).toBe('/search/?q=mule')
+    expect(all?.hasAttribute('data-router')).toBe(false)
+    for (const option of options.filter((o) => o !== all)) {
       expect(option.tagName).toBe('A')
       expect(option.hasAttribute('data-router')).toBe(false)
       expect(option.hasAttribute('target')).toBe(false)
-      expect(option.getAttribute('href')).toMatch(/^\/[a-z-]+\/([a-z0-9-]+\/)?(#main-content)?$/)
+      expect(option.getAttribute('href')).toMatch(/^\/[a-z-]+\/([a-z0-9-]+\/)?$/)
     }
   })
 
@@ -498,6 +552,8 @@ describe('SearchIsland', () => {
         expect((input as HTMLInputElement).value).toBe('railgun damage')
         expect(input.getAttribute('aria-expanded')).toBe('false')
         expect(document.activeElement).not.toBe(input)
+        // Its count is the page's to say, never a second one from the bar (RR8-15).
+        expect(document.querySelector('[aria-live]')?.textContent).toBe('')
         await act(async () => {
           input.focus()
         })

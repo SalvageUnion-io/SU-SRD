@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { rollTablePageData } from '../../../lib/rollTablePageData'
@@ -179,5 +179,25 @@ describe('RollTableIsland', () => {
     await screen.findByText('Core Mechanic: rolled 20 (20)')
     expect(screen.queryByText('Core Mechanic: rolled 7 (6–10)')).toBeNull()
     expect(screen.getByText('Rolled 20').closest('li')?.getAttribute('aria-current')).toBe('true')
+  })
+
+  test('a roll landing on screen takes down the last roll’s toast (RR8-05)', async () => {
+    spy = rowsOffScreen()
+    render(<RollTableIsland data={coreMechanic()} dieFor={dice(7, 1)} />)
+    await roll()
+    await screen.findByText('Core Mechanic: rolled 7 (6–10)')
+    spy.mockRestore()
+    spy = undefined
+    await roll()
+    expect(screen.getByText('Rolled 1').closest('li')?.getAttribute('aria-current')).toBe('true')
+    // Sonner marks a dismissed toast removed at once, then fades it out.
+    await waitFor(() =>
+      expect(
+        screen
+          .queryByText('Core Mechanic: rolled 7 (6–10)')
+          ?.closest('[data-sonner-toast]')
+          ?.getAttribute('data-removed') ?? 'true'
+      ).toBe('true')
+    )
   })
 })

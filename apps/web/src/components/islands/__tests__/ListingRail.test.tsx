@@ -31,6 +31,16 @@ describe('ListingRail toolbar', () => {
     expect(screen.getByRole('group', { name: 'Tech Level', hidden: true })).toBeTruthy()
   })
 
+  test('a name filtered counts on Filters, which the name filter folds behind on a phone (r8 G4)', () => {
+    render(
+      <ListingRail
+        facets={facets(TOOLBAR_MIN_ENTRIES + 1)}
+        filters={{ techLevels: new Set(), source: '', tree: '', name: 'laser' }}
+      />
+    )
+    expect(screen.getByRole('button', { name: /Filters/ }).textContent).toContain('1')
+  })
+
   test('the Tech Level strip wraps: a phone’s Filters panel is never wider than the page', () => {
     render(<ListingRail facets={facets(TOOLBAR_MIN_ENTRIES + 1)} />)
     const strip = screen.getByRole('group', { name: 'Tech Level', hidden: true })

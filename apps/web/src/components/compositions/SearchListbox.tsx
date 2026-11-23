@@ -38,8 +38,6 @@ type SearchListboxProps = {
   style?: CSSProperties
   /** Under the empty line, the host's next step: a "Did you mean", or the ways on. */
   none?: ReactNode
-  /** "Show more" (`kind: 'more'`) pressed: the combobox's `submit`. Always an act, never a link. */
-  onMore?: (result: SearchComboboxResult) => void
 } & (
   | {
       /** In a dropdown hung under a field (the Union bar's): the entity results are a Ledger, each a link. */
@@ -129,17 +127,12 @@ export function SearchListbox({
   modelOf,
   style,
   none,
-  onMore,
   ...form
 }: SearchListboxProps) {
   const { target } = form
-  /** What a line does: "Show more" lengthens the list; another follows `target`. */
+  /** What a line does: follows `target`, a link or an act. */
   const actOf = (result: SearchComboboxResult) =>
-    result.kind === 'more'
-      ? () => onMore?.(result)
-      : 'open' in target
-        ? () => target.open(result)
-        : undefined
+    'open' in target ? () => target.open(result) : undefined
   const option = (index: number) =>
     ({
       id: optionId(index),
@@ -152,7 +145,7 @@ export function SearchListbox({
     const body = (
       <>
         <div style={CATEGORY_TITLE}>{result.title}</div>
-        <div style={CATEGORY_GROUP}>{result.group}</div>
+        {result.group && <div style={CATEGORY_GROUP}>{result.group}</div>}
       </>
     )
     const act = actOf(result)

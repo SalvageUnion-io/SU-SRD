@@ -4,6 +4,7 @@ import { whollyVisible } from '../../lib/revealRolled'
 import type { RollTablePageData } from '../../lib/rollTablePage'
 import { rollAnnouncement } from '../../lib/rollTablePage'
 import { islandsCopy } from '../../messages/components-islands'
+import { dismissRoll } from '../containers/toastRoll'
 import type { TableDie } from '../index'
 import { dieForTable, ToasterMount, toastRoll } from '../index'
 import { RollTableView } from '../RollTableView'
@@ -47,12 +48,19 @@ export function RollTableIsland({ data, tone, dieFor = dieForTable }: RollTableI
 
   // Read before the table's own effect scrolls the row into view: a layout
   // effect here runs ahead of every passive one beneath it.
+  // A roll shown on its row takes down the last one's toast (RR8-05).
+  const toasted = useRef(false)
   useLayoutEffect(() => {
     if (!roll) return
     const row = root.current?.querySelector('[aria-current="true"]')
-    if (row && whollyVisible(row)) return
+    if (row && whollyVisible(row)) {
+      if (toasted.current) dismissRoll(data.name)
+      toasted.current = false
+      return
+    }
     const { table, roll: face, range } = rollAnnouncement(data, roll.face)
     toastRoll({ table, roll: face, ...(range ? { range } : {}), text: '' })
+    toasted.current = true
   }, [roll, data])
 
   // What a screen reader hears of the roll (RR7-05): the die and the row it lands on.

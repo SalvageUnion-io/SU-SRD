@@ -43,12 +43,12 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
 - **E11** A lead appears only on an SRD index, or as a Ledger's quiet line (L5).
 - **E12** Fill follows kind: "have" entities wear their tone, "do" entities the ink banner contentful or on a Page, and as a Compact but for an ability.
   An ability's Compact, track and band wear its tier: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.
-- **E13** Links, texture and user-made come from the surface and instance, once. **E16** A Peek is terminal (ruleset §1.6): no button, link, input, tab stop or Peek on its plate; its one link is its name, but Open page (**E27**: a link's press follows it; hover, focus and a touch tap Peek) and the app's View in the Reference, no tab stop.
+- **E13** Links, texture and user-made come from the surface and instance, once. **E16** A Peek is terminal (ruleset §1.6): no button, link, input, tab stop or Peek on its plate; its one link is its name, but Open page (**E27**: a press follows a link, on touch a row's; hover, focus, a term's tap Peek) and the app's View in the Reference, no tab stop.
 - **E23** A Peek is one form below its trigger's, to a Mini (an ability's: the Compact and its roll table); no native tooltip.
 - **E17** No "//" line: a head's chips are one group, as [chips-and-actions.md](chips-and-actions.md) lays it; on ink each chip has a paper rule.
 - **E19** A chassis ability shows only on its chassis and pattern pages, mech hero and Discord card; nested (wizard, Peek) a contentful Mini.
-- **E20** On a show page's plate: only the trail (app sheet: `corner`); stamps, chips, controls fill as E17 (`asideAt="notch"`), then Share (phone: glyph) and Build With This last (phone: chip-sized); a Page's stats lead its body as the stat column, all of them, four a row
-- **E22** A name and its cut-out start at their head's left; only the art or the tier stands before them.
+- **E20** On a show page's plate: only the trail (app sheet: `corner`); stamps, chips, controls fill as E17 (`asideAt="notch"`), then Share (phone: glyph) and Build With This last (phone: chip size); a Page's stats lead its body as the stat column, all, four a row
+- **E22** A name and its cut-out start at their head's left; only the art or tier stands before them.
 - **E24** A title's size is its form's: a Page band's the chapter rung (phone: hero), a Compact's, Full's, index's or Peek's the title, a Page's own block display, a Mini's name caption; a Slab's stamp body, a Mini Slab's chip.
 - **E25** Headings follow levels: h1 the band's title, h2 a level-0 section, h3 a level-1 title or sub-section, h4 level 2; none skipped, none at or above its section's.
 - **E26** A cross-reference goes both ways: a Page linking another (a part, level, book) is listed on it.

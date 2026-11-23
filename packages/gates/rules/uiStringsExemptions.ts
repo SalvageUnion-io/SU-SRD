@@ -13,6 +13,11 @@ export type StringExemption = { file: string; strings: readonly string[]; reason
 
 export const EXEMPTIONS: readonly StringExemption[] = [
   {
+    file: 'apps/web/src/components/entity/peekController.ts',
+    strings: ['.su-ledger__table tr', '(hover: none)'],
+    reason: 'A CSS selector given to `closest` and a CSS media query given to `matchMedia`.',
+  },
+  {
     file: 'apps/web/src/design/contrast.ts',
     strings: ['in srgb'],
     reason:

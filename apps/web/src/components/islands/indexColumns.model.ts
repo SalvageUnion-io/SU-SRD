@@ -408,7 +408,15 @@ export function compareCells(a: string, b: string, descending = false): number {
   const [x, y] = [trailing(a), trailing(b)]
   if (x !== y) return x - y
   if (x !== 0) return 0
-  return compareValues(a, b) * (descending ? -1 : 1)
+  // Damage in SP outweighs any in HP (a Mech takes half from HP): each unit sorts as its own group (RR8-10).
+  const unit = unitScale(a) - unitScale(b)
+  return (unit || compareValues(a, b)) * (descending ? -1 : 1)
+}
+
+/** A damage cell's scale: SP over HP; anything without a unit, neither. */
+function unitScale(cell: string): number {
+  const unit = /\b(SP|HP)$/i.exec(cell.trim())?.[1]?.toUpperCase()
+  return unit === 'SP' ? 2 : unit === 'HP' ? 1 : 0
 }
 
 type IndexModels = readonly { item: RefEntity; model: EntityModel }[]

@@ -358,9 +358,11 @@ export function matchSearchTokens(
   for (const [i, token] of tokens.entries()) {
     if (hasLiteral(token)) continue
     if (named >= 0 && i >= named && isNumber(token)) continue
-    // Another form of the word ("salvaging" for "salvage").
+    // Another form of the word ("salvaging" for "salvage", "grapple" for "grappling").
     const stem = searchWordStem(token)
     if (stem !== token && hasLiteral(stem)) continue
+    const bare = bareForm(token)
+    if (bare !== stem && hasLiteral(bare)) continue
     if (
       token.length >= TYPO_MIN_TOKEN_LENGTH &&
       nameWords.some((word) => searchOneSlipAway(token, word))
@@ -371,6 +373,16 @@ export function matchSearchTokens(
     return { matches: false, usedTypo: false }
   }
   return { matches: true, usedTypo }
+}
+
+/**
+ * A word without its ending or a final "e", when what is left is still a word
+ * ("grapple" as "grappl", found in "grappling"); a short word stays whole, so
+ * "move" is never the stub "mov" of "removal" (r8 G1).
+ */
+function bareForm(word: string): string {
+  const form = searchWordForm(word)
+  return form.length > STEM_MIN_LENGTH ? form : searchWordStem(word)
 }
 
 /** A token that is a number and nothing else. */
@@ -479,33 +491,57 @@ export function suggestSearchQuery(query: string, names: readonly string[]): str
   for (const name of names) {
     for (const word of searchNameWords(name.toLowerCase())) vocabulary.add(word)
   }
+  const known = (token: string) => vocabulary.has(token) || vocabulary.has(searchWordStem(token))
   let changed = false
-  const words = parsed.tokens.map((token) => {
-    if (token.length < TYPO_MIN_TOKEN_LENGTH) return token
-    if (vocabulary.has(token) || vocabulary.has(searchWordStem(token))) return token
-    const limit = token.length >= TWO_SLIPS_MIN_LENGTH ? 2 : 1
-    let best: string | undefined
-    let bestDistance = limit + 1
-    for (const word of vocabulary) {
-      if (word.length < TYPO_MIN_TOKEN_LENGTH) continue
-      const distance = slipDistance(token, word, limit)
-      // On a tie, the word that opens as the typed one does.
-      const closer =
-        distance < bestDistance ||
-        (distance === bestDistance &&
-          distance <= limit &&
-          word[0] === token[0] &&
-          best?.[0] !== token[0])
-      if (closer) {
-        best = word
-        bestDistance = distance
+  // A name split in two and slipped ("rail gunn" for Railgun): the pair is
+  // put right as one word, where one of the two is no name's (r8 G1).
+  const tokens: string[] = []
+  for (let i = 0; i < parsed.tokens.length; i++) {
+    const token = parsed.tokens[i] as string
+    const next = parsed.tokens[i + 1]
+    if (next !== undefined && !(known(token) && known(next))) {
+      const joined = closestWord(`${token}${next}`, vocabulary)
+      if (joined) {
+        tokens.push(joined)
+        changed = true
+        i++
+        continue
       }
     }
+    tokens.push(token)
+  }
+  const words = tokens.map((token) => {
+    if (token.length < TYPO_MIN_TOKEN_LENGTH) return token
+    if (known(token)) return token
+    const best = closestWord(token, vocabulary)
     if (best === undefined) return token
     changed = true
     return best
   })
   return changed ? words.join(' ') : null
+}
+
+/** The name word within a slip or two of `token` (`TWO_SLIPS_MIN_LENGTH`), the one opening as it does on a tie. */
+function closestWord(token: string, vocabulary: ReadonlySet<string>): string | undefined {
+  const limit = token.length >= TWO_SLIPS_MIN_LENGTH ? 2 : 1
+  let best: string | undefined
+  let bestDistance = limit + 1
+  for (const word of vocabulary) {
+    if (word.length < TYPO_MIN_TOKEN_LENGTH) continue
+    const distance = slipDistance(token, word, limit)
+    // On a tie, the word that opens as the typed one does.
+    const closer =
+      distance < bestDistance ||
+      (distance === bestDistance &&
+        distance <= limit &&
+        word[0] === token[0] &&
+        best?.[0] !== token[0])
+    if (closer) {
+      best = word
+      bestDistance = distance
+    }
+  }
+  return best
 }
 
 /**
@@ -540,7 +576,14 @@ export function scoreSearchMatch(facts: SearchMatchFacts): number {
   else if (sameWordForms(tokens, nameText)) score += WORD_FORM_NAME_SCORE
   else if (queries.some((q) => nameText.startsWith(q))) score += 50
   else if (queries.some((q) => nameText.includes(q))) score += 25
-  else if (tokens.every((t) => nameText.includes(t) || nameText.includes(searchWordStem(t))))
+  else if (
+    tokens.every(
+      (t) =>
+        nameText.includes(t) ||
+        nameText.includes(searchWordStem(t)) ||
+        nameText.includes(bareForm(t))
+    )
+  )
     score += 20
   else if (facts.usedTypo) score += typoNameScore(tokens, nameText)
 

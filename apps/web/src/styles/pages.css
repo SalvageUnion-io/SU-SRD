@@ -647,6 +647,18 @@ html[data-srd-signed-in] .su-mediator-acts {
     max-width: none;
     width: 100%;
   }
+
+  /* One line of controls: the name filter folds behind Filters with the
+     facets, so the list starts on the first screen and the Union bar's is
+     the one search in view (RR8-09, r8 G4). */
+  .su-rail:has(> .su-rail__filters):not([data-open]) > .su-rail__search {
+    display: none;
+  }
+
+  /* Filters leads, so the name filter opening under it moves nothing above (K17). */
+  .su-rail > .su-rail__filters {
+    order: -1;
+  }
 }
 
 /* On a listing's band (its `controls`): the rail and its facets draw no box,
