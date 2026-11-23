@@ -99,6 +99,8 @@ export const playGamesCopy = messages({
   youHaveBeenInvited: 'You have been invited',
   everyoneAtATableCan: 'Everyone at a table can read each other’s sheets.',
   joinThisGame: 'Join this Game',
+  displayName: 'Display name',
+  displayNameExample: 'How the table calls you',
   signInToJoinYour:
     'Sign in to join. Your Pilots, Mechs and Crawlers live on your account, and signing in is what seats you at the table.',
   signInToJoin: 'Sign in to join',

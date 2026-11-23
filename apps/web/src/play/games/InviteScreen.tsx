@@ -12,6 +12,8 @@ import { useInvitePreview } from '../../lib/sharing/reads'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
+import { TableNameField } from './TableNameField'
+import { useTableName } from './useTableName'
 
 /**
  * `/play/invite/$token` — a Game's invite URL, in Play (ADR-052 §4): Play's band
@@ -139,6 +141,8 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   const preview = useInvitePreview(token)
   const redeem = useGamesCall('invites.redeem')
   const navigate = useNavigate()
+  // How the table will call them, asked here once and filled in (r7 C1).
+  const name = useTableName()
 
   const join = useServerAction(() => redeem({ code: token }), {
     failure: playGamesCopy('inviteNotUsed'),
@@ -147,6 +151,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   const arrived = useRef(false)
 
   const accept = async () => {
+    await name.keep()
     const result = await join.run()
     if (!result.ok) return
     // Joined (or already in it): open the Game's own page, in Play.
@@ -155,12 +160,14 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
 
   const live = preview != null
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `accept` is rebuilt every render; the ref makes this a one-shot keyed on the preview landing
+  // Back from signing in, the press was the decision: join at once, under the
+  // account's name, unless it has none yet, when the field asks first.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `accept` is rebuilt every render; the ref makes this a one-shot keyed on the preview and the name landing
   useEffect(() => {
-    if (!joinOnArrival || !live || arrived.current) return
+    if (!joinOnArrival || !live || !name.loaded || arrived.current) return
     arrived.current = true
-    void accept()
-  }, [joinOnArrival, live])
+    if (name.known) void accept()
+  }, [joinOnArrival, live, name.loaded])
 
   if (preview === undefined) return <Text>{playGamesCopy('checkingThatInvite')}</Text>
 
@@ -172,6 +179,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
       <Text variant="hint" style={WORDS}>
         {playGamesCopy('everyoneAtATableCan')}
       </Text>
+      <TableNameField name={name} onEnter={() => void (join.pending || accept())} />
       <div style={ACTIONS}>
         <Button variant="primary" size="full" disabled={join.pending} onClick={() => void accept()}>
           {playGamesCopy('joinThisGame')}
