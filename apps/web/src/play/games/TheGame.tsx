@@ -51,6 +51,9 @@ import { GameSettingsDialog, LeaveGameDialog } from './GameSettings'
 import { HUB_BODY } from './hubStyles.model'
 import { heldByMember } from './leaving.model'
 
+/** A pilot's body as far as naming one goes. */
+type Named = { callsign?: unknown; name?: unknown }
+
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
@@ -105,9 +108,9 @@ export function TheGame({
   const listing = useGameListing(gameId)
   const pilotsOf = (userId: string) =>
     (listing?.pilots ?? [])
-      .filter((p) => p.ownerId === userId && pilotLabelOf(p.body) !== null)
+      .filter((p) => p.ownerId === userId && pilotLabelOf(p.body as Named) !== null)
       // By callsign, as Crew names them (r7 C2, LG7-02).
-      .map((p) => ({ id: p._id, name: pilotCallsign(p.body) }))
+      .map((p) => ({ id: p._id, name: pilotCallsign(p.body as Named) }))
   const setMediator = useGamesCall('games.setMediator')
   const { canWrite } = useSync()
   const [handing, setHanding] = useState(false)
