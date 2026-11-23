@@ -131,21 +131,42 @@ describe('proposal targets and values', () => {
     expect(hitDamageOf({})).toBeNull()
   })
 
-  test('HP damage is offered to the Pilots, SP damage to the Mechs, each with what it leaves', () => {
+  test('a hit reaches every Pilot and every Mech, each at its own scale (r8 B6)', () => {
     const hp = hitTargets({ damageType: 'HP', amount: 3 }, targets)
-    expect(hp.every((h) => h.target.kind === 'pilot' && h.field === 'currentHP')).toBe(true)
-    expect(hp.every((h) => h.after === Math.max(0, h.before - 3))).toBe(true)
+    // Its own scale first: every Pilot, mounted or not, takes the 3 HP.
+    const pilots = hp.filter((h) => h.target.kind === 'pilot')
+    expect(pilots.length).toBe(targets.filter((t) => t.kind === 'pilot').length)
+    expect(
+      pilots.every((h) => h.field === 'currentHP' && h.after === Math.max(0, h.before - 3))
+    ).toBe(true)
+    expect(hp.findIndex((h) => h.target.kind === 'mech')).toBeGreaterThan(pilots.length - 1)
+    // A Mech takes half an HP weapon's damage (Core Book p.240).
+    expect(hp.find((h) => h.target.label === "Pickle's Spectrum")).toMatchObject({
+      field: 'currentSP',
+      unit: 'SP',
+      before: 6,
+      after: 5,
+    })
     const sp = hitTargets({ damageType: 'SP', amount: 4 }, targets)
-    expect(sp.map((h) => h.target.kind)).toEqual(sp.map(() => 'mech'))
+    expect(sp[0]?.target.kind).toBe('mech')
     expect(sp.find((h) => h.target.label === "Pickle's Spectrum")).toMatchObject({
       field: 'currentSP',
       before: 6,
       after: 2,
     })
+    // A Pilot takes twice an SP weapon's damage (Core Book p.241).
+    expect(sp.find((h) => h.target.kind === 'pilot')).toMatchObject({ unit: 'HP' })
+    const pickle = sp.find((h) => h.target.label === 'Pickle')
+    expect(pickle?.after).toBe(Math.max(0, (pickle?.before ?? 0) - 8))
     // A hit never takes a vital below 0.
     expect(hitTargets({ damageType: 'SP', amount: 99 }, targets).every((h) => h.after === 0)).toBe(
       true
     )
+  })
+
+  test('a hit too small to scale reaches no Mech', () => {
+    const hp = hitTargets({ damageType: 'HP', amount: 1 }, targets)
+    expect(hp.some((h) => h.target.kind === 'mech')).toBe(false)
   })
 })
 

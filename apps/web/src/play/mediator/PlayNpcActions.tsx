@@ -17,8 +17,8 @@
  * roll, the NPC's last roll its marked row, kept on the NPC and in its box.
  *
  * A weapon's roll offers its hit (r4 D2), beside the result at the top of the
- * resolve, above the table (r5 B6): "Propose 3 HP to…" lists the seats
- * that take that damage (`hitTargets`), and pressing one sends the proposal,
+ * resolve, above the table (r5 B6): "Propose 3 HP to…" lists every Pilot
+ * and Mech, each at its own scale (`hitTargets`, r8 B6), and pressing one sends the proposal,
  * the table its reason, never the NPC (r7 C7). Nothing is offered on the table's Failure rows, a
  * miss; the player still decides whether a proposal applies.
  */
@@ -299,10 +299,10 @@ function HitOffer({ npc, damage, hit }: { npc: TrayNpc; damage: HitDamage; hit: 
       trigger={mediatorCopy('proposeHitTo', { amount: damage.amount, unit })}
       label={mediatorCopy('proposeHitFor', { amount: damage.amount, unit, name: npc.name })}
       sections={[
-        seats.map(({ target, field, before, after }) => ({
+        seats.map(({ target, field, unit: lands, before, after }) => ({
           id: target.id,
           label: target.label,
-          hint: mediatorCopy('hitLeaves', { unit, before, after }),
+          hint: mediatorCopy('hitLeaves', { unit: lands, before, after }),
           onSelect: () =>
             void hit
               .onPropose({
@@ -315,7 +315,7 @@ function HitOffer({ npc, damage, hit }: { npc: TrayNpc; damage: HitDamage; hit: 
               })
               .then(() =>
                 toast.success(
-                  mediatorCopy('hitProposed', { name: target.label, unit, before, after })
+                  mediatorCopy('hitProposed', { name: target.label, unit: lands, before, after })
                 )
               )
               // The caller has already said why.
