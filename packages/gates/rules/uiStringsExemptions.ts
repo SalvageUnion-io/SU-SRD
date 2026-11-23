@@ -409,8 +409,8 @@ export const EXEMPTIONS: readonly StringExemption[] = [
   },
   {
     file: 'apps/web/src/components/islands/SearchIsland.tsx',
-    strings: ['min(33rem, calc(100dvh - 7rem))', 'min(30rem, 60dvh)'],
-    reason: 'CSS `max-height` values in a style object.',
+    strings: ['min(33rem, calc(100dvh - 7rem))'],
+    reason: 'A CSS `max-height` value in a style object.',
   },
   {
     file: 'apps/web/src/lib/listingPending.ts',
