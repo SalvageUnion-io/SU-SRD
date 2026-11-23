@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
 import { useId, useMemo, useState } from 'react'
 import type { RefChassis } from 'salvageunion-reference'
 import {
@@ -165,8 +165,8 @@ export function MechChassisStep({
         {selectedChassis !== undefined && (
           <div id={PATTERN_STRIP_ID}>
             <PickList
-              title={mechCopy('orStartFromAPattern')}
-              note={mechCopy('optional')}
+              // "Optional" is the title's own note, never a column's head (r7 F11).
+              title={mechCopy('orStartFromAPatternOptional')}
               rows={patternRows}
               rowKey={(row) => row.key}
               rowName={(row) => row.name}
@@ -237,8 +237,10 @@ export function MechChassisStep({
  * The chassis pick as a gallery.
  * A chassis is chosen by its picture first (the owner: "huge draw"), so each
  * is a plate: its art, its name, its cost (Salvage Value), and the same six
- * figures the pick list printed, under their labels. One radio group; the
- * picked plate takes the ink frame. The step's rule is its cited brief.
+ * figures the pick list printed, under their labels. One radio group, one
+ * Tab stop (the picked plate, else the first), its arrows moving the pick, as
+ * the pattern list's radios do (r7 F11); the picked plate takes the ink
+ * frame. The step's rule is its cited brief.
  */
 function ChassisGallery({
   title,
@@ -255,6 +257,19 @@ function ChassisGallery({
 }) {
   const figures = CHASSIS_COLUMNS.filter((column) => column.key !== 'sv')
   const plateId = useId()
+  const slugs = pool.map((chassis) => nameToSlug(chassis.name))
+  const stop = selected !== undefined && slugs.includes(selected) ? selected : slugs[0]
+  // A radio group's arrows: the next or previous plate is picked and focused.
+  const onArrow = (event: KeyboardEvent<HTMLDivElement>) => {
+    const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[event.key]
+    if (step === undefined) return
+    event.preventDefault()
+    const at = slugs.indexOf(stop ?? '')
+    const next = slugs[(at + step + slugs.length) % slugs.length]
+    if (next === undefined) return
+    onSelect(next)
+    event.currentTarget.querySelector<HTMLElement>(`[data-slug="${next}"]`)?.focus()
+  }
   return (
     <section className="su-chassis-gallery">
       <header className="su-rule-head" data-slab="">
@@ -263,7 +278,12 @@ function ChassisGallery({
       </header>
       {/* What the cards' figures mean, each opening its glossary entry (r6 F3). */}
       <ChassisLegend />
-      <div className="su-grid su-chassis-gallery__grid" role="radiogroup" aria-label={title}>
+      <div
+        className="su-grid su-chassis-gallery__grid"
+        role="radiogroup"
+        aria-label={title}
+        onKeyDown={onArrow}
+      >
         {pool.map((chassis) => {
           const slug = nameToSlug(chassis.name)
           const art = getAssetUrl(chassis)
@@ -272,6 +292,8 @@ function ChassisGallery({
             <PictureRadio
               key={slug}
               checked={picked}
+              tabIndex={slug === stop ? 0 : -1}
+              data-slug={slug}
               className="su-chassis-plate"
               data-picked={picked || undefined}
               aria-labelledby={`${plateId}-${slug}`}

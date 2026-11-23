@@ -6,7 +6,8 @@
  * their own list, which do not repeat it.
  */
 import { describe, expect, it } from 'bun:test'
-import { fireEvent, render, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import { useState } from 'react'
 import { MechChassisStep } from '../MechChassisStep'
 
 /** How many times the Mule's chassis ability prints. */
@@ -28,14 +29,14 @@ describe('MechChassisStep', () => {
   it('with no chassis picked, the list stands alone', () => {
     const { container, queryByRole } = render(step(''))
     expect(cargoBays(container)).toBe(0)
-    expect(queryByRole('table', { name: 'Or start from a Pattern' })).toBeNull()
+    expect(queryByRole('table', { name: 'Or start from a Pattern (optional)' })).toBeNull()
   })
 
   it('the picked chassis shows its ability once, and its patterns do not repeat it', () => {
     // The Mule's card, then its one legal starting pattern (Hauler) as a row.
     const { container, getByRole } = render(step('mule'))
     expect(cargoBays(container)).toBe(1)
-    const patterns = getByRole('table', { name: 'Or start from a Pattern' })
+    const patterns = getByRole('table', { name: 'Or start from a Pattern (optional)' })
     expect(patterns.textContent).toContain('Hauler')
     expect(cargoBays(patterns)).toBe(0)
   })
@@ -60,7 +61,7 @@ describe('MechChassisStep', () => {
       '/mechs/new?mode=pattern'
     )
     expect(queryByRole('status')).toBeNull()
-    const patterns = getByRole('table', { name: 'Or start from a Pattern' })
+    const patterns = getByRole('table', { name: 'Or start from a Pattern (optional)' })
     fireEvent.click(within(patterns).getByRole('radio', { name: 'Crusher' }))
     const why = getByRole('status')
     expect(why.textContent).toContain('Crusher')
@@ -76,10 +77,46 @@ describe('MechChassisStep', () => {
     expect(getByRole('link', { name: 'New Mech, From a pattern' }).getAttribute('href')).toBe(
       '/mechs/new?game=game-1&mode=pattern'
     )
-    const patterns = getByRole('table', { name: 'Or start from a Pattern' })
+    const patterns = getByRole('table', { name: 'Or start from a Pattern (optional)' })
     fireEvent.click(within(patterns).getByRole('radio', { name: 'Crusher' }))
     expect(within(getByRole('status')).getByRole('link').getAttribute('href')).toBe(
       '/mechs/new?chassis=mule&pattern=crusher&game=game-1'
     )
+  })
+})
+
+/** The step with its chassis pick held, as the wizard holds it. */
+function Step({ start = '' }: { start?: string }) {
+  const [chassis, setChassis] = useState(start)
+  return (
+    <MechChassisStep
+      chassisName={chassis}
+      patternName=""
+      onSelectChassis={setChassis}
+      onSelectPattern={() => {}}
+      onSelectCustom={() => {}}
+    />
+  )
+}
+
+describe('MechChassisStep, one radio group (r7 F11)', () => {
+  it('the plates are one Tab stop, and the arrows move the pick', () => {
+    render(<Step />)
+    const group = screen.getByRole('radiogroup', { name: 'Tech 1 Chassis' })
+    const plates = [...group.querySelectorAll<HTMLElement>('[role="radio"]')]
+    expect(plates.filter((plate) => plate.tabIndex === 0)).toHaveLength(1)
+    expect(plates[0]?.tabIndex).toBe(0)
+    fireEvent.keyDown(plates[0] as HTMLElement, { key: 'ArrowRight' })
+    expect(plates[1]?.getAttribute('aria-checked')).toBe('true')
+    expect(plates[1]?.tabIndex).toBe(0)
+    expect(plates[0]?.tabIndex).toBe(-1)
+    fireEvent.keyDown(plates[1] as HTMLElement, { key: 'ArrowLeft' })
+    expect(plates[0]?.getAttribute('aria-checked')).toBe('true')
+  })
+
+  it('the pattern list says optional in its title, with no head of its own for it', () => {
+    render(<Step start="mule" />)
+    const list = screen.getByRole('table', { name: /Or start from a Pattern \(optional\)/ })
+    expect(list.querySelector('thead')?.textContent).not.toMatch(/^Optional$|Optional$/)
   })
 })
