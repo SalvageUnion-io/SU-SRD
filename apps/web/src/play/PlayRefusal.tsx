@@ -5,6 +5,9 @@
  * while the session or the Game has not answered yet, they wait on
  * `RoutePending`.
  *
+ * It draws the site's header, as a Play screen does not: a refused screen
+ * has no Play bar to leave by (r8 C6).
+ *
  * Signed out, the way on is Sign in (`signInTo`), whose round trip comes back
  * to the screen that refused, so a Play link tapped in Discord still opens
  * once you have signed in.
@@ -12,9 +15,11 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
+import { useEffect } from 'react'
 import { SignInControl } from '../build/account/SignInControl'
 import { PageShell } from '../components/app'
 import { Button, ChapterBand, Text, TitledBox, tokens } from '../components/index'
+import { pageShowsBar } from '../shell/unionSlots'
 
 /** The prompt's panel: the not-found panel's measure, on the page's gutters. */
 const PANEL = { maxWidth: '36rem', width: '100%' } satisfies CSSProperties
@@ -52,6 +57,8 @@ export function PlayRefusal({
   signInTo,
   children,
 }: PlayRefusalProps) {
+  // No Play bar here, so the site's header is the way out (r8 C6, LG8-12).
+  useEffect(() => pageShowsBar.hold(), [])
   return (
     <PageShell>
       <ChapterBand tone={area}>{PRODUCT[area]}</ChapterBand>

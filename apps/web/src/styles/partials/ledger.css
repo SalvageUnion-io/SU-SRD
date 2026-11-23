@@ -572,6 +572,25 @@
     height: var(--size-full);
   }
 
+  /* A row's ⋯ is a thumb's target on a phone (r8 C3, MD8-11): its row 44px
+     tall (R12), the chip 44px wide at a Mini's height beside its siblings
+     (§4.7), its hit area the row's full height. */
+  .su-ledger__table tbody tr:has(.su-header-menu-trigger--overflow) > * {
+    height: var(--size-full);
+  }
+
+  .su-ledger__table tbody .su-ledger__trailing-line > .su-header-menu-trigger--overflow {
+    min-inline-size: var(--size-full);
+    position: relative;
+  }
+
+  .su-ledger__table tbody .su-ledger__trailing-line > .su-header-menu-trigger--overflow::after {
+    content: '';
+    inset-block: min(0px, calc(50% - var(--size-full) / 2));
+    inset-inline: 0;
+    position: absolute;
+  }
+
   /* Touch takes a taller picker row (§4.6). */
   .su-ledger__table tbody tr:has(.su-ledger__pick) > * {
     height: var(--space-40);

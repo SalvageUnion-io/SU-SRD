@@ -38,6 +38,8 @@ type SignInControlProps = {
   size?: 'compact' | 'full'
   /** Placement classes from the caller, e.g. `su-page-action` on a sheet band. */
   className?: string
+  /** `default` where another act leads the page (a dead invite's Games, r8 C7). */
+  variant?: 'primary' | 'default'
 }
 
 /** Sign in / sign out with Discord. */
@@ -48,6 +50,7 @@ export function SignInControl({
   label = buildAccountCopy('signInWithDiscord'),
   size = 'compact',
   className,
+  variant = 'primary',
 }: SignInControlProps) {
   const signOut = useSignOut()
   const { status } = useSync()
@@ -71,7 +74,7 @@ export function SignInControl({
 
   return (
     <Button
-      variant={inBar ? 'ghost' : 'primary'}
+      variant={inBar ? 'ghost' : variant}
       size={size}
       className={cn(inBar && BAR_BUTTON, className)}
       onClick={() => signIn(redirectTo ?? (returnHere ? hereInApp() : undefined))}

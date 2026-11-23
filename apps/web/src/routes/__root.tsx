@@ -1,6 +1,6 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import { lazy, Suspense, useLayoutEffect } from 'react'
+import { lazy, Suspense, useLayoutEffect, useSyncExternalStore } from 'react'
 import { AccountHintSync } from '../build/account/AccountHintSync'
 import {
   HeaderActions,
@@ -25,7 +25,7 @@ import { preloadGameData } from '../lib/useGameData'
 import { ReplicaSync } from '../replica/ReplicaSync'
 import { useViewerId } from '../replica/roomCalls'
 import { SyncProvider } from '../replica/SyncProvider'
-import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
+import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar, pageShowsBar } from '../shell/unionSlots'
 import '../styles/app.css'
 
 // The root boundary is the last resort — every other route gets its own via
@@ -110,7 +110,9 @@ function RootComponent() {
   // A Play screen draws its own bar at every width, so it has no masthead
   // (ADR-051 §2): the Play bar, at every width. Nor
   // does a link preview's render surface. The shell's bar is hidden there.
-  const barHidden = hidesUnionBar(pathname)
+  // A refused Play screen has no Play bar: it shows the site's (r8 C6).
+  const refused = useSyncExternalStore(pageShowsBar.subscribe, pageShowsBar.get, pageShowsBar.get)
+  const barHidden = hidesUnionBar(pathname) && !refused
   useLayoutEffect(() => {
     document.documentElement.toggleAttribute(BAR_HIDDEN_ATTRIBUTE, barHidden)
   }, [barHidden])

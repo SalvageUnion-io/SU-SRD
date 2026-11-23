@@ -14,6 +14,7 @@ import type { PairSide } from '../lib/units/crewPair'
 import { crewPair, gauge, pool } from '../lib/units/crewPair'
 import { techLevelReading, VITAL } from '../lib/units/readings'
 import { playCopy } from '../messages/play'
+import { pilotMechs } from './games/crewMechs.model'
 import { gamePrepPath } from './games/prep/gamePrep.model'
 import { sessionDoor, sessionDoorAs } from './sessionDoor.model'
 import type { CrewVitals } from './useGameFeed'
@@ -197,9 +198,20 @@ export function pairedCrew(sources: Pick<CrewSources, 'pilots' | 'mechs'>): Crew
   })
   const out: CrewEntry[] = []
   const placed = new Set<string>()
+  // A Mech is listed once, under one Pilot (r8 C5, `pilotMechs`).
+  const listed = pilotMechs(
+    sources.pilots.map((p) => ({
+      id: p._id,
+      ownerId: p.ownerId,
+      boarded: p.boarded,
+      mechId: p.mechId,
+    })),
+    (id) => mechs.get(id)?.ownerId
+  )
   for (const p of sources.pilots) {
-    const mech = p.mechId === null ? undefined : mechs.get(p.mechId)
-    if (mech !== undefined && p.mechId !== null) placed.add(p.mechId)
+    const mechId = listed.get(p._id) ?? null
+    const mech = mechId === null ? undefined : mechs.get(mechId)
+    if (mech !== undefined && mechId !== null) placed.add(mechId)
     out.push({
       ownerId: p.ownerId,
       pilot: true,
@@ -235,13 +247,20 @@ export function pairedCrew(sources: Pick<CrewSources, 'pilots' | 'mechs'>): Crew
  * chips that opens its sheet in Build (Play lists the crew, Build keeps it):
  * the viewer's own pilots first, each marked Yours (r7 C11), then the crawler
  * (the primary first), then everyone else's pilots and mechs (`pairedCrew`).
+ * Spares nobody holds (a template's unassigned pregens) are the Mediator's to
+ * hand out, so a plain player's card leaves them out (r8 C8, LG8-19).
  */
-export function gameCrew(sources: CrewSources, viewerId: string | null = null): LinkedUnit[] {
+export function gameCrew(
+  sources: CrewSources,
+  viewerId: string | null = null,
+  /** The viewer runs this table: its unassigned spares are listed. */
+  runsTable = true
+): LinkedUnit[] {
   const crawlers = [...sources.crawlers].sort(
     (a, b) =>
       Number(b._id === sources.primaryCrawlerId) - Number(a._id === sources.primaryCrawlerId)
   )
-  const crew = pairedCrew(sources)
+  const crew = pairedCrew(sources).filter((p) => runsTable || p.ownerId !== null)
   const isMine = (p: CrewEntry) => viewerId !== null && p.pilot && p.ownerId === viewerId
   const mine = crew.filter(isMine).map(
     ({ unit }): LinkedUnit => ({

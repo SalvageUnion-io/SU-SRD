@@ -1,6 +1,6 @@
 /** The Display name a door that makes or joins a Game asks for (r7 C1, `useTableName`). */
 
-import { Field, Input } from '../../components/index'
+import { Field, Input, Text } from '../../components/index'
 import { playGamesCopy } from '../../messages/play-games'
 import type { TableName } from './useTableName'
 
@@ -17,7 +17,8 @@ export function TableNameField({
     <Field label={playGamesCopy('displayName')}>
       <Input
         aria-label={playGamesCopy('displayName')}
-        placeholder={playGamesCopy('displayNameExample')}
+        // Empty, the account's name is used (r8 C1): it shows here first.
+        placeholder={name.fallback === '' ? playGamesCopy('displayNameExample') : name.fallback}
         value={name.value}
         // The account's own cap on a name (`worker/accountRoutes.ts`).
         maxLength={200}
@@ -29,6 +30,7 @@ export function TableNameField({
           onEnter()
         }}
       />
+      <Text variant="hint">{playGamesCopy('displayNameHint')}</Text>
     </Field>
   )
 }
