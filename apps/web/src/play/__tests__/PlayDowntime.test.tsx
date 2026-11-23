@@ -660,7 +660,7 @@ describe('Downtime’s dead ends say why', () => {
     // The reason, with its page, comes first (r6 D7).
     expect(
       within(stepBox()).getByText(
-        'Healing in Downtime needs your crawler’s Med Bay (Core Book p.242).'
+        'Healing in Downtime needs your crawler’s Med Bay (Workshop Manual · p.242).'
       )
     ).toBeTruthy()
     expect(

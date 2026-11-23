@@ -1250,7 +1250,7 @@ describe('Downtime', () => {
       await renderCockpit(downtimeAt(UPKEEP_STEP))
       expect((named('Pay 5 Scrap') as HTMLButtonElement).disabled).toBe(true)
       expect(screen.getByText('Short by 5')).toBeTruthy()
-      expect(screen.getByText('Unpaid Upkeep: Core Book p.218.')).toBeTruthy()
+      expect(screen.getByText('Unpaid Upkeep: Workshop Manual · p.218.')).toBeTruthy()
       expect(screen.queryByText('Paid')).toBeNull()
       expect(names()).toEqual([])
     } finally {

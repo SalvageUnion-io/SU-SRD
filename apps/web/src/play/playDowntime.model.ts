@@ -390,7 +390,8 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
     const short = upkeep.spent ? 0 : upkeepShort(crawler)
     lines.push({
       key: 'upkeep',
-      title: 'Upkeep',
+      // The crawler it is paid from: its chip already says Upkeep (r8 D5).
+      title: crawler.name,
       chips: [
         {
           label: 'Upkeep',
