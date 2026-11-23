@@ -25,6 +25,8 @@ export type StopSign = {
   mayLift: boolean
   /** Writes reach the server. */
   canWrite: boolean
+  /** The connection is lost: the sign cannot reach the table, and its button says so (r7 B4). */
+  offline: boolean
   show: () => void
   lift: () => void
   pending: boolean
@@ -77,6 +79,7 @@ export function useStopSign(gameId: string | null): StopSign | null {
     mine: read.stop?.mine === true,
     mayLift: read.mayLift,
     canWrite,
+    offline: status === 'offline',
     show: () => void showStop.run({}),
     lift: () => {
       if (read.stop !== null) liftedHere.set(gameId, read.stop.shownAt)
