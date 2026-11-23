@@ -236,6 +236,11 @@ export type ReferenceEntityCardHideConfig = {
   axisMarkers?: boolean
   /** Suppress the nested groups (its drones, their Systems and Modules, a bay's When Damaged). */
   nested?: boolean
+  /**
+   * Suppress the head (its tier, name and chips): a card opened under the row
+   * that already heads it (a class page's ability rules, r8 G5).
+   */
+  head?: boolean
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

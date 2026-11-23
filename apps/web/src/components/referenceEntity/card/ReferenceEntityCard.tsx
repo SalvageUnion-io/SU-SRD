@@ -515,7 +515,7 @@ function ReferenceEntityCardInner({
       <CardOuter {...outer}>
         {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight, dash and band ours. */}
         <div className="su-ec-frame" style={frameStyle}>
-          {header(lone ? 'more' : 'body')}
+          {!hide?.head && header(lone ? 'more' : 'body')}
           {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
           {subtitleExtra && (
             <div style={{ padding: `${space[4]} ${compact ? space[12] : space[14]} 0` }}>
