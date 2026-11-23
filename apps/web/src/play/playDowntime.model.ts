@@ -483,6 +483,9 @@ export function carriedScrap(
 /** The Trade step's name in the Crawler Downtime guide (p.228). */
 const TRADE_STEP_NAME = 'Trade'
 
+/** Whether a step is Trade, whose roll the step itself offers (r8 D3). */
+export const isTradeStep = (stepName: string) => stepName === TRADE_STEP_NAME
+
 /**
  * Whether nobody at the table can act in a Game's step (r7 D3): Trade and
  * Craft with no Union Crawler, Tally Salvage with no Scrap carried. `carried`

@@ -122,8 +122,11 @@ export function PlayDowntimeActionRow({
       </>
     ) : id === 'craftTrade' ? (
       // No crawler is why there is nothing to open: said, never a greyed button (r3 L2).
+      // Solo, Make a Union Crawler says it, so the title keeps its room (r8 D3).
       crawler === null ? (
-        <NeedChip need={playCopy('needsAUnionCrawler')} />
+        solo ? undefined : (
+          <NeedChip need={playCopy('needsAUnionCrawler')} />
+        )
       ) : (
         damagedBay(crawler, 'trading-bay', playCopy('tradingBay'))
       )

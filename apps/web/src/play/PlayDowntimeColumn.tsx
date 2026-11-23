@@ -21,6 +21,7 @@ import { PlayDowntimeTrack } from './PlayDowntimeTrack'
 import { splitOnHand } from './playActions.model'
 import { leftOnMove, skippedSteps, stepNames } from './playDowntime.model'
 import type { Play } from './situation.model'
+import { clearTradeRolls } from './tradeRoll.model'
 import type { PlayActions } from './usePlayActions'
 
 export function PlayDowntimeColumn({ play, actions }: { play: Play; actions: PlayActions }) {
@@ -53,6 +54,9 @@ export function PlayDowntimeColumn({ play, actions }: { play: Play; actions: Pla
       id: `downtime-left-${idx}`,
     })
   }, [idx, moverIsMe, leftKey, steps])
+
+  // The Trading Bay's roll is this Downtime's: let go when it ends (r8 D3).
+  useEffect(() => clearTradeRolls, [])
 
   return (
     <>

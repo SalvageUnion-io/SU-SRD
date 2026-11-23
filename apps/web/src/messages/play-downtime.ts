@@ -16,4 +16,6 @@ export const playDowntimeCopy = messages({
   closeCraftTrade: 'Close',
   scrapMoved: 'Scrap moved',
   intoScrapPool: 'Into {crawler}’s Scrap Pool',
+  tradeNeedsACrawler:
+    'Trading is done at a Union Crawler’s Trading Bay: it rolls what is for sale each Downtime and trades your Scrap. You have no Crawler yet.',
 })

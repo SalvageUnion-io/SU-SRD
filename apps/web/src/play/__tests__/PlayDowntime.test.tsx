@@ -663,10 +663,53 @@ describe('Downtime’s dead ends say why', () => {
     )
     const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
     expect(onHand.queryByRole('button', { name: 'Open' })).toBeNull()
-    expect(onHand.getByText('Needs a Union Crawler')).toBeTruthy()
+    // The link says it: no second chip crowding the title (r8 D3, SB8-09).
+    expect(onHand.queryByText('Needs a Union Crawler')).toBeNull()
     expect(onHand.getByRole('link', { name: 'Make a Union Crawler' }).getAttribute('href')).toBe(
       '/crawlers/new?pilot=dt-p&back=play'
     )
+  })
+
+  // r8 D3 (SB8-09): the Trade step said Roll and offered none, and no crawler was a dead end.
+  test('solo with no crawler, the Trade step says what a Crawler adds and links to making one', () => {
+    const { pilot, mech } = units()
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(pilot, mech).store}
+        writes={[]}
+        downtime={{ stepIndex: STEPS.indexOf('Trade') }}
+      />
+    )
+    expect(within(stepBox()).getByText(/Trading Bay: it rolls what is for sale/)).toBeTruthy()
+    expect(
+      within(stepBox()).getByRole('link', { name: 'Make a Union Crawler' }).getAttribute('href')
+    ).toBe('/crawlers/new?pilot=dt-p&back=play')
+  })
+
+  test('solo with a crawler, the Trade step offers its roll, the one Craft · Trade shows', async () => {
+    const { pilot, mech, crawler } = units()
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(pilot, mech, crawler).store}
+        writes={[]}
+        downtime={{ stepIndex: STEPS.indexOf('Trade') }}
+      />
+    )
+    const roll = await within(stepBox()).findByRole('button', { name: 'Roll availability' })
+    expect(within(stepBox()).getByRole('list', { name: 'Scrap Pool' })).toBeTruthy()
+    await click(roll)
+    expect(within(stepBox()).queryByRole('button', { name: 'Roll availability' })).toBeNull()
+    // Craft · Trade shows the same roll: it is made once a Downtime (p.223).
+    const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
+    await click(onHand.getByRole('button', { name: 'Open' }))
+    await onHand.findByRole('searchbox', { name: 'Find a System or Module to craft' })
+    expect(onHand.queryByRole('button', { name: 'Roll availability' })).toBeNull()
   })
 
   // r5 A12 (SB5-02): Restore with no crawler left the pilot at 0 HP without a word.
