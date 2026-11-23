@@ -21,6 +21,16 @@ const sharing = (over: Record<string, unknown>) => [
 ]
 
 describe('a pattern’s line on its shelf (r4 E13)', () => {
+  test('says how many Mechs were built from it (r7 G2)', () => {
+    const mechs = [
+      { sourcePattern: 'pat-1' },
+      { sourcePattern: 'pat-2' },
+      { sourcePattern: 'pat-1' },
+      {},
+    ]
+    expect(patternLine(pattern({}), undefined, undefined, mechs).values['Used by']).toBe(2)
+  })
+
   test('every column has its value: chassis, who sees it, Tech Level, slots and the day saved', () => {
     const line = patternLine(pattern({ modules: ['comms-module'] }), sharing({}), [])
     for (const column of PATTERN_COLUMNS) expect(line.values[column.key]).not.toBeUndefined()
@@ -28,6 +38,8 @@ describe('a pattern’s line on its shelf (r4 E13)', () => {
     expect(String(line.values.Mod)).toMatch(/^1\/\d+$/)
     expect(String(line.values.Sys)).toMatch(/^0\/\d+$/)
     expect(line.values.who).toBe('Only me')
+    // How many Mechs were built from it (r7 G2): none counted, none.
+    expect(line.values['Used by']).toBe(0)
     expect(line.saved).toContain('2026')
   })
 

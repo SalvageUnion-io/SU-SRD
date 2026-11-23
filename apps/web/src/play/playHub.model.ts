@@ -41,8 +41,14 @@ export function gameChips(args: {
   downtime: { running: boolean; stepIndex: number | null } | undefined
   /** The bound channel as `#salvage-run`; null or absent with none. */
   channel?: string | null
+  /** Proposals still open: the viewer's to answer and the ones they sent (r7 C11). */
+  pending?: number
+  /** When the table last played, as it reads (`2 days ago`); null or absent when it never has. */
+  played?: string | null
+  /** The next plan (`sessionPlans`); null or absent with none. */
+  next?: string | null
 }): HubChip[] {
-  const { mediator, live = false, here, downtime, channel } = args
+  const { mediator, live = false, here, downtime, channel, pending = 0, played, next } = args
   return [
     { key: 'role', label: mediator ? 'Mediator' : 'Player' },
     ...(live ? [{ key: 'session', label: playCopy('sessionLive') }] : []),
@@ -56,6 +62,17 @@ export function gameChips(args: {
           },
         ]
       : []),
+    ...(pending > 0
+      ? [
+          {
+            key: 'pending',
+            label: playCopy('proposals'),
+            value: playCopy('nPending', { n: pending }),
+          },
+        ]
+      : []),
+    ...(played ? [{ key: 'played', label: playCopy('lastPlayed'), value: played }] : []),
+    ...(next ? [{ key: 'next', label: playCopy('nextPlan'), value: next }] : []),
     ...(channel ? [{ key: 'channel', label: channel }] : []),
   ]
 }
@@ -156,15 +173,16 @@ const bodyText = (body: unknown, key: string): string | null => {
   return typeof value === 'string' && value !== '' ? value : null
 }
 
+/** One line of a Game's crew: whose it is, and whether a pilot leads it (aboard or on foot). */
+export type CrewEntry = { ownerId: string | null; pilot: boolean; unit: LinkedUnit }
+
 /**
  * The pilots and mechs of a Game as linked Minis with their chips, each pilot
  * paired with its mech (`crewPair`: the mech while the pilot is aboard, else
  * the pilot), then the mechs no pilot is assigned; each with whose it is, so
  * a member's card can list its own.
  */
-export function pairedCrew(
-  sources: Pick<CrewSources, 'pilots' | 'mechs'>
-): { ownerId: string | null; unit: LinkedUnit }[] {
+export function pairedCrew(sources: Pick<CrewSources, 'pilots' | 'mechs'>): CrewEntry[] {
   const mechs = new Map(sources.mechs.map((m) => [m.linkId ?? m._id, m]))
   const mechSide = (m: CrewSources['mechs'][number]): PairSide => ({
     id: m._id,
@@ -177,13 +195,14 @@ export function pairedCrew(
       ...gauge(VITAL.heat, m.currentHeat, m.maxHeat),
     ],
   })
-  const out: { ownerId: string | null; unit: LinkedUnit }[] = []
+  const out: CrewEntry[] = []
   const placed = new Set<string>()
   for (const p of sources.pilots) {
     const mech = p.mechId === null ? undefined : mechs.get(p.mechId)
     if (mech !== undefined && p.mechId !== null) placed.add(p.mechId)
     out.push({
       ownerId: p.ownerId,
+      pilot: true,
       unit: crewPair({
         pilot: {
           id: p._id,
@@ -204,6 +223,7 @@ export function pairedCrew(
     const side = mechSide(m)
     out.push({
       ownerId: m.ownerId,
+      pilot: false,
       unit: { key: `mech:${m._id}`, kind: 'mech', ...side },
     })
   }
@@ -213,14 +233,24 @@ export function pairedCrew(
 /**
  * A Game's crew on its card, read-only, each a header-only Mini with its
  * chips that opens its sheet in Build (Play lists the crew, Build keeps it):
- * the crawler (the primary first), then the pilots and mechs (`pairedCrew`).
+ * the viewer's own pilots first, each marked Yours (r7 C11), then the crawler
+ * (the primary first), then everyone else's pilots and mechs (`pairedCrew`).
  */
-export function gameCrew(sources: CrewSources): LinkedUnit[] {
+export function gameCrew(sources: CrewSources, viewerId: string | null = null): LinkedUnit[] {
   const crawlers = [...sources.crawlers].sort(
     (a, b) =>
       Number(b._id === sources.primaryCrawlerId) - Number(a._id === sources.primaryCrawlerId)
   )
+  const crew = pairedCrew(sources)
+  const isMine = (p: CrewEntry) => viewerId !== null && p.pilot && p.ownerId === viewerId
+  const mine = crew.filter(isMine).map(
+    ({ unit }): LinkedUnit => ({
+      ...unit,
+      relations: [...(unit.relations ?? []), { key: 'yours', name: playCopy('yours') }],
+    })
+  )
   return [
+    ...mine,
     ...crawlers.map(
       (c): LinkedUnit => ({
         key: `crawler:${c._id}`,
@@ -232,6 +262,6 @@ export function gameCrew(sources: CrewSources): LinkedUnit[] {
         ),
       })
     ),
-    ...pairedCrew(sources).map((p) => p.unit),
+    ...crew.filter((p) => !isMine(p)).map((p) => p.unit),
   ]
 }

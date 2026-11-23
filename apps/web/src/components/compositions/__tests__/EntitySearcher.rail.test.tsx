@@ -280,15 +280,30 @@ describe('EntitySearcher — the rail on a wide screen', () => {
   )
 
   it(
-    'focuses the heading once the last entry is removed',
+    'after a Remove, typing goes to the search, never to the next Remove (r7 G6)',
     () => {
-      const eq = nth(allEquipment(), 0)
-      render(<ControlledEquipment initial={[eq.id]} />)
+      const [a, b] = threeEquipment()
+      render(<ControlledEquipment initial={[a.id, b.id]} />)
       const region = rail()
-      fireEvent.click(within(region).getByRole('button', { name: `Remove ${eq.name}` }))
-      expect(document.activeElement).toBe(
-        within(region).getByRole('heading', { name: /equipped/i })
-      )
+      fireEvent.click(within(region).getByRole('button', { name: `Remove ${a.name}` }))
+      expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Search' }))
+      // The last one too.
+      fireEvent.click(within(region).getByRole('button', { name: `Remove ${b.name}` }))
+      expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Search' }))
+    },
+    POOL_RENDER_MS
+  )
+
+  it(
+    'a row’s + shows what it added in the Page beside the list (r7 G6)',
+    () => {
+      const [a, b] = threeEquipment()
+      render(<ControlledEquipment initial={[]} />)
+      fireEvent.click(screen.getByRole('button', { name: `Add ${a.name}` }))
+      expect(screen.getByRole('group', { name: `${a.name} actions` })).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: `Add ${b.name}` }))
+      expect(screen.getByRole('group', { name: `${b.name} actions` })).toBeTruthy()
+      expect(screen.queryByRole('group', { name: `${a.name} actions` })).toBeNull()
     },
     POOL_RENDER_MS
   )

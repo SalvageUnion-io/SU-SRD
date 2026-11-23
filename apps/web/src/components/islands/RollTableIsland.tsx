@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { whollyVisible } from '../../lib/revealRolled'
 import type { RollTablePageData } from '../../lib/rollTablePage'
 import { rollAnnouncement } from '../../lib/rollTablePage'
+import { islandsCopy } from '../../messages/components-islands'
 import type { TableDie } from '../index'
 import { dieForTable, ToasterMount, toastRoll } from '../index'
 import { RollTableView } from '../RollTableView'
@@ -54,8 +55,21 @@ export function RollTableIsland({ data, tone, dieFor = dieForTable }: RollTableI
     toastRoll({ table, roll: face, ...(range ? { range } : {}), text: '' })
   }, [roll, data])
 
+  // What a screen reader hears of the roll (RR7-05): the die and the row it lands on.
+  const spoken = roll ? rollAnnouncement(data, roll.face) : null
+
   return (
     <IslandErrorBoundary>
+      <div className="su-sr-only" aria-live="polite">
+        {spoken && (
+          <span key={roll?.nth}>
+            {islandsCopy('rollSpoken', {
+              roll: spoken.roll,
+              result: [spoken.label, spoken.text].filter(Boolean).join('. '),
+            })}
+          </span>
+        )}
+      </div>
       <div ref={root} style={CONTENTS}>
         <RollTableView data={data} tone={tone} roll={roll?.face ?? null} onRoll={onRoll} />
       </div>

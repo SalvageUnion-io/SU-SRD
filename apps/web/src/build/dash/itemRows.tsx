@@ -146,3 +146,34 @@ export function itemRows(
     }
   })
 }
+
+/** Slots and SV, the cells a stacked line counts for each copy (`ITEM_COLUMNS`). */
+const COUNTED_CELLS = [1, 2]
+
+/**
+ * Read's lines, copies stacked as a pattern's page lists them (r7 G7): one
+ * line a part, "Armour Plating ×2", its Slots and SV for all of them. The
+ * copies share their state (Uses and condition are kept by part), so one line
+ * says it all; Edit keeps a line a copy, each with its own Remove.
+ */
+export function stackedRows(rows: readonly LedgerRow[], slugs: readonly string[]): LedgerRow[] {
+  const counts = new Map<string, number>()
+  for (const slug of slugs) counts.set(slug, (counts.get(slug) ?? 0) + 1)
+  const seen = new Set<string>()
+  return rows.flatMap((row, index) => {
+    const slug = slugs[index] ?? row.id
+    if (seen.has(slug)) return []
+    seen.add(slug)
+    const count = counts.get(slug) ?? 1
+    if (count === 1) return [row]
+    return [
+      {
+        ...row,
+        name: buildDashCopy('stacked', { name: String(row.name), count }),
+        cells: row.cells.map((cell, at) =>
+          COUNTED_CELLS.includes(at) && typeof cell === 'number' ? cell * count : cell
+        ),
+      },
+    ]
+  })
+}

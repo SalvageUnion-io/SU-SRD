@@ -253,17 +253,21 @@ describe('NewEntityScreen — mode routing', () => {
     expect(calls).toEqual(['blank', 'pattern'])
   })
 
-  test('signed out, each link says it needs a sign-in; a pilot has no pattern link', () => {
+  test('signed out, sign-in is said once, ending the starts’ line; a pilot has no pattern link (r7 F5)', () => {
     rtlRender(
       <NewEntityScreen
         kind="pilot"
         mode={undefined}
-        wizard={<WizStartLines active={0} redesign={false} />}
+        wizard={
+          <WizStartLines active={0} redesign={false} tryNote="Saving needs a free sign-in." />
+        }
         onModeChange={noop}
         onCreated={noop}
       />
     )
-    expect(screen.getByRole('button', { name: /^Start blank \(needs a sign-in\)$/ })).toBeTruthy()
+    const blank = screen.getByRole('button', { name: 'Start blank' })
+    expect(blank.closest('p')?.textContent).toContain('Saving needs a free sign-in.')
+    expect(screen.getAllByText(/sign-in/)).toHaveLength(1)
     expect(screen.queryByRole('button', { name: /From a pattern/ })).toBeNull()
   })
 })
@@ -549,7 +553,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
     const mech = useUnits.getState().get('mech', created[0] as string)
     expect(mech?.chassisRef).toBe('magpie')
-    expect(mech?.name).toBe('Stefanus')
+    expect(mech?.name).toBe('Stefanus 1')
     expect(mech?.systems.length).toBeGreaterThan(0)
   })
 

@@ -341,3 +341,12 @@ describe('the thing named, however it is typed (r4 F1)', () => {
     expect(found).toContain('roll-tables')
   })
 })
+
+describe('a question finds the rules term it holds, as the compact index does (r7 E1)', () => {
+  test('the term leads the phrase it is in, the rarer first', () => {
+    const names = search({ query: 'what happens when my mech overheats' }).map(
+      (r) => `${r.entityName} (${r.schemaName})`
+    )
+    expect(names.slice(0, 2)).toEqual(['Overheat (traits)', 'Mech (keywords)'])
+  })
+})

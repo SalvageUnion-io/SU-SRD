@@ -2,7 +2,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import { abilityRequirementsUnmet, abilityTrainingCost } from '../training'
+import { abilityNotYet, abilityRequirementsUnmet, abilityTrainingCost } from '../training'
 
 describe('abilityTrainingCost', () => {
   test('a Core ability costs 1', () => {
@@ -48,5 +48,38 @@ describe('abilityRequirementsUnmet (Core Book p.23)', () => {
     const legendary = SalvageUnionReference.Abilities.all().find((a) => a.level === 'L')
     const unmet = legendary ? abilityRequirementsUnmet(engineer, nameToSlug(legendary.name)) : []
     expect(unmet.join(' ')).toMatch(/6 Core and 3 Advanced/)
+  })
+})
+
+// r7 D5 (SB7-12): the trainer offered every ability, Advanced first, and warned only after.
+describe('abilityNotYet (Core Book p.224)', () => {
+  const engineer = { classRef: 'Engineer', abilities: [] as string[], trainingPoints: 1 }
+
+  test('the next Core ability the pilot can pay for is learnable now', () => {
+    expect(abilityNotYet(engineer, 'engineering-expertise')).toBeNull()
+  })
+
+  test('too few Training Points is why, with the price', () => {
+    expect(abilityNotYet({ ...engineer, trainingPoints: 0 }, 'engineering-expertise')).toEqual({
+      why: 'tp',
+      cost: 1,
+    })
+  })
+
+  test('out of its tree’s order, an Advanced or a Legendary one each say why', () => {
+    expect(abilityNotYet(engineer, 'mech-acquisition')?.why).toBe('tree-order')
+    const advanced = SalvageUnionReference.Abilities.all().find(
+      (a) => a.level === 1 && abilityTrainingCost(nameToSlug(a.name)) === 2
+    )
+    const legendary = SalvageUnionReference.Abilities.all().find((a) => a.level === 'L')
+    const rich = { ...engineer, trainingPoints: 9 }
+    expect(advanced && abilityNotYet(rich, nameToSlug(advanced.name))?.why).toBe('advanced')
+    expect(legendary && abilityNotYet(rich, nameToSlug(legendary.name))?.why).toBe('legendary')
+  })
+
+  test('one already learned, or a generic one with no price, is never “not yet”', () => {
+    const has = { ...engineer, trainingPoints: 0, abilities: ['engineering-expertise'] }
+    expect(abilityNotYet(has, 'engineering-expertise')).toBeNull()
+    expect(abilityNotYet(engineer, 'no-such-ability')).toBeNull()
   })
 })

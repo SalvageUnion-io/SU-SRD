@@ -9,7 +9,7 @@ import { renderHook } from '@testing-library/react'
 import type { TableEvent } from '../../rooms/game/events'
 import { channelButtonLabel, channelTag, postsToLabel } from '../channels.model'
 import { crewLineLabel, crewSeatLines, hereCount, pairedMech } from '../crew.model'
-import { mineText, playFeedEntries, tableLine } from '../feed.model'
+import { lastVisitLines, mineText, playFeedEntries, tableLine } from '../feed.model'
 import { liveLabel, playReadOnly } from '../play.model'
 import type { PlayRoll } from '../playRolls.model'
 import {
@@ -299,6 +299,44 @@ describe('the Feed (play.md §8)', () => {
     ])
   })
 
+  test('my own lines all read You, acts as well as rolls, and my use still heads its roll (r7 A5)', () => {
+    const ev = (id: string, ts: number, kind: TableEvent['kind'], text: string): TableEvent => ({
+      _id: id,
+      ts,
+      kind,
+      text,
+      actorId: 'me',
+    })
+    const own = (e: TableEvent) => tableLine(e, 'me')
+    expect(own(ev('t', 1, 'turn', 'Pickle ended their turn'))).toBe('You ended your turn')
+    expect(own(ev('b', 1, 'board', 'Pickle boards Spectrum'))).toBe('You board Spectrum')
+    expect(own(ev('s', 1, 'action', 'Pickle switches Hull Magnetiser on'))).toBe(
+      'You switch Hull Magnetiser on'
+    )
+    expect(own(ev('n', 1, 'action', 'Pickle · Red Laser: not applied'))).toBe(
+      'You · Red Laser: not applied'
+    )
+    // Someone else's reads as the room words it.
+    expect(
+      tableLine({ ...ev('o', 1, 'turn', 'Pickle ended their turn'), actorId: 'p2' }, 'me')
+    ).toBe('Pickle ended their turn')
+    const entries = playFeedEntries({
+      rolls: null,
+      alerts: [],
+      events: [
+        ev('r', 1300, 'roll', 'Pickle · FM-3 Flamethrower · 16 · Success'),
+        ev('u', 1000, 'action', 'Pickle uses FM-3 Flamethrower'),
+      ],
+      proposals: [],
+      mine: [],
+      rollerName: 'Pickle',
+      viewerId: 'me',
+    })
+    expect(entries.map((e) => [e.text, e.lead])).toEqual([
+      ['You · FM-3 Flamethrower · 16 · Success', 'You use FM-3 Flamethrower'],
+    ])
+  })
+
   test('proposals awaiting an answer first, then everything newest first', () => {
     const entries = playFeedEntries({
       rolls: [crewRoll('r2', 300, 'Mags · Core Mechanic · 20'), crewRoll('r1', 200, 'Rook · 9')],
@@ -508,6 +546,63 @@ describe('the Feed (play.md §8)', () => {
         1
       ).after
     ).toMatchObject({ veiled: 'Mediator rolled · 9 · Tough Choice' })
+  })
+
+  test('solo, the Feed opens with the last visit from the units’ Change Logs, under Last time (r7 A8)', () => {
+    const hour = 60 * 60_000
+    const change = (id: string, ts: number, label: string, before: string, after: string) => ({
+      id,
+      ts,
+      kind: 'transaction' as const,
+      state: 'applied' as const,
+      lines: [{ key: id, label, before, after }],
+      fields: [],
+      from: 'play' as const,
+    })
+    const visitStart = 100 * hour
+    const lines = lastVisitLines(
+      [
+        {
+          name: 'Reaver',
+          changes: [
+            // This visit's: not last time's.
+            change('now', visitStart + 5, 'Current SP', '10', '8'),
+            change('c2', visitStart - 2 * hour, 'Current Heat', '0', '2'),
+            change('c1', visitStart - 2 * hour - 60_000, 'Current SP', '12', '10'),
+            // A week before: another visit.
+            change('old', visitStart - 200 * hour, 'Current SP', '12', '6'),
+            // A sheet edit is no table play.
+            { ...change('edit', visitStart - 2 * hour + 10, 'Name', 'A', 'B'), from: undefined },
+          ],
+        },
+        {
+          name: 'Ash',
+          changes: [change('p1', visitStart - 2 * hour + 30_000, 'Current HP', '9', '7')],
+        },
+      ],
+      visitStart
+    )
+    expect(lines.map((l) => l.text)).toEqual([
+      'Ash · HP 9→7',
+      'Reaver · Heat 0→2',
+      'Reaver · SP 12→10',
+    ])
+    const entries = playFeedEntries({
+      rolls: null,
+      alerts: [],
+      proposals: [],
+      mine: [
+        { id: 'r1', at: visitStart + 10, tableName: 'Core Mechanic', label: 'Craft', rolls: [14] },
+      ],
+      rollerName: 'Ash',
+      last: lines,
+    })
+    expect(entries.map((e) => [e.kind, 'first' in e ? e.first : undefined])).toEqual([
+      ['mine', undefined],
+      ['last', true],
+      ['last', undefined],
+      ['last', undefined],
+    ])
   })
 
   test('solo: only my own', () => {

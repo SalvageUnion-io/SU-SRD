@@ -78,14 +78,40 @@ describe('madeToast (r5 C3)', () => {
     expect(title()).toBe('Saved Shovel.')
   })
 
-  test('at most three toasts with an action stand at once, the newest', () => {
+  test('one toast stands at a time: the newest replaces the older (r7 A4)', () => {
     for (const n of [1, 2, 3, 4, 5]) madeToast(`Made ${n}.`, 'Open', { href: '/x' }, () => {})
-    expect(open().map((t) => (t as { title?: unknown }).title)).toEqual([
-      'Made 3.',
-      'Made 4.',
-      'Made 5.',
-    ])
+    expect(open().map((t) => (t as { title?: unknown }).title)).toEqual(['Made 5.'])
     expect(open()).toHaveLength(MOST_ACTION_TOASTS)
+  })
+})
+
+describe('a Mech sheet’s Make a copy opens the copy (r7 G4)', () => {
+  test('it lands on the copy, and the notice leads back to the original', async () => {
+    const units = useUnits.getState()
+    const mech = await units.adopt('mech', mechFixture({ id: 'm-a', name: 'Mule Hauler A' }))
+    const went: string[] = []
+    const landed: string[] = []
+    await copyAsking(
+      () => {},
+      'mech',
+      mech.name,
+      mech,
+      (href) => went.push(href),
+      {
+        openCopy: true,
+        landed: (id) => landed.push(id),
+      }
+    )
+    const copy = useUnits.getState().mechs.find((m) => m.id !== 'm-a')
+    expect(copy?.name).toBe('Mule Hauler A 2')
+    expect(landed).toEqual([copy?.id ?? ''])
+    // No press on the notice to get there.
+    expect(went).toEqual([`/mechs/${copy?.id}`])
+    const [line] = open() as { title?: unknown; action?: { label: string; onClick: () => void } }[]
+    expect(line?.title).toBe('Copied Mule Hauler A.')
+    expect(line?.action?.label).toBe('Back to the original')
+    line?.action?.onClick()
+    expect(went.at(-1)).toBe('/mechs/m-a')
   })
 })
 

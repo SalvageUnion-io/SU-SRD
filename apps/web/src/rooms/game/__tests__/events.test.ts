@@ -43,6 +43,38 @@ describe('the table’s events', () => {
     expect(texts()).toContain('Player now mediates this Game')
   })
 
+  test('the Feed names people, never their role: a member with no name by their place (r7 A6)', () => {
+    const { act, texts, code, room } = seated()
+    act(STRANGER, 'redeem', { code, profile: { displayName: null, avatarUrl: null } }, AT + 1)
+    const place = room.store.members().findIndex((m) => m.userId === STRANGER) + 1
+    expect(texts()[0]).toBe(`Player ${place} joined the Game`)
+    act(MEDIATOR, 'downtime.begin', undefined as never, AT + 2)
+    expect(texts()[0]).toBe('Med began Downtime')
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 3)
+    // Where the role is the news, it is said.
+    act('d-org', 'setMediator', { userId: PLAYER, mediator: true }, AT + 4)
+    expect(texts()[0]).toBe('Player now mediates this Game')
+  })
+
+  test('a line written under a role reads under the name its person has now (r7 A6)', () => {
+    const { texts, room } = seated()
+    // As a line was stored before: its runner the role.
+    room.store.rows(
+      'insert into change_log (id, field, after, source, actor_id, ts) values (?, ?, ?, ?, ?, ?)',
+      'old-1',
+      'event',
+      JSON.stringify({
+        kind: 'downtime',
+        text: 'Mediator ended Downtime',
+        said: { by: ['Med', 'Mediator'] },
+      }),
+      'table',
+      MEDIATOR,
+      AT
+    )
+    expect(texts()[0]).toBe('Med ended Downtime')
+  })
+
   test('a vital’s change is one line naming the unit, from and to', () => {
     const { act, texts } = seated()
     const [event] = act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 6 })] })
@@ -226,12 +258,11 @@ describe('the table’s events', () => {
     act(STRANGER, 'redeem', { code, profile: { displayName: 'Nell', avatarUrl: null } }, AT + 8)
     expect(texts()).toEqual([
       'Nell joined the Game',
-      // Left resolving when the session ended (r5 A7).
-      'p1 · Pilot p1 · Patch: not applied',
-      'Mediator ended the group session',
+      // Left resolving when the session ended, with nothing to apply: no line (r7 A5).
+      'Med ended the group session',
       'Player accepted: p1 · Pilot p1 AP → 2',
       'Mediator proposes p1 · Pilot p1 AP → 2',
-      'Mediator started the group session',
+      'Med started the group session',
       'p1 · Pilot p1 uses Patch',
       'p1 · Pilot p1 boards Mech m1',
     ])
@@ -263,7 +294,8 @@ describe('the table’s events', () => {
     ])
   })
 
-  test('a pilot paired with a mech flies it: the Feed keeps "assigned to" for a person (r5 B14)', () => {
+  // r7 C9 (MD7-07): "flies" read as aboard; a Mech paired is parked until its pilot boards.
+  test('a pilot paired with a mech: their Mech, parked; "assigned to" stays a person’s (r5 B14)', () => {
     const { act, texts } = seated()
     const link = {
       type: 'mech-to-pilot',
@@ -273,8 +305,8 @@ describe('the table’s events', () => {
     act(PLAYER, 'drawLink', { link }, AT + 1)
     act(PLAYER, 'removeLink', { link }, AT + MERGE_MS + 2)
     expect(texts().slice(0, 2)).toEqual([
-      'p1 · Pilot p1 no longer flies Mech m1',
-      'p1 · Pilot p1 flies Mech m1',
+      'Mech m1 is no longer p1 · Pilot p1’s Mech',
+      'Mech m1 is p1 · Pilot p1’s Mech, parked',
     ])
   })
 
@@ -299,7 +331,7 @@ describe('the table’s events', () => {
     expect(act(MEDIATOR, 'safety.showStop', undefined as never, AT + 6)).toEqual([])
     expect(texts()).toEqual([
       'The Stop Sign is up. Play is paused.',
-      'Mediator started the group session',
+      'Med started the group session',
     ])
   })
 
@@ -360,7 +392,7 @@ describe('the table’s events', () => {
     room.log.append(MEDIATOR, [roll('Mediator · Mech Salvage · 6', AT + 1)])
     room.log.append(MEDIATOR, [roll('Mediator · Mech Salvage · 12', AT + 2)])
     room.log.append(MEDIATOR, [roll('Mediator · Morale · 3', AT + 3, 'wreck:n2')])
-    expect(texts(PLAYER)).toEqual(['Mediator · Morale · 3', 'Mediator · Mech Salvage · 12'])
+    expect(texts(PLAYER)).toEqual(['Med · Morale · 3', 'Med · Mech Salvage · 12'])
     room.log.append(PLAYER, [roll('p1 · Core Mechanic · 4', AT + 4, 'wreck:n2')])
     expect(texts(PLAYER)).toHaveLength(3)
   })
@@ -392,8 +424,10 @@ describe('the table’s events', () => {
       'Only the Mediator'
     )
     const told = act(MEDIATOR, 'changeLog.reveal', { rollId: String(own?._id) }, AT + 2)
-    expect(told).toMatchObject([{ _id: own?._id, kind: 'roll', text: full }])
-    expect(texts(PLAYER)).toEqual([full])
+    // The table reads it under its roller's name, never the role (r7 A6).
+    const named = full.replace('Mediator · ', 'Med · ')
+    expect(told).toMatchObject([{ _id: own?._id, kind: 'roll', text: named }])
+    expect(texts(PLAYER)).toEqual([named])
     expect(room.log.rolls(PLAYER).map((r) => r.description)).toEqual([full])
     expect(room.events.list(MEDIATOR)[0]).not.toHaveProperty('veiled')
   })
@@ -417,10 +451,13 @@ describe('the table’s events', () => {
     expect(own).toMatchObject({ text: full, private: true, veiled: true })
     const told = act(MEDIATOR, 'changeLog.reveal', { rollId: String(own?._id) }, AT + 2)
     // The room now serves it to everyone whole, no longer private or veiled.
-    expect(told).toMatchObject([{ _id: own?._id, kind: 'roll', text: full, revealed: true }])
+    const named = full.replace('Mediator · ', 'Med · ')
+    expect(told).toMatchObject([{ _id: own?._id, kind: 'roll', text: named, revealed: true }])
     expect(told[0]).not.toHaveProperty('private')
     expect(told.filter(isMirrored)).toHaveLength(1)
-    expect(room.events.list(PLAYER)).toMatchObject([{ text: full, revealed: true, mediator: true }])
+    expect(room.events.list(PLAYER)).toMatchObject([
+      { text: named, revealed: true, mediator: true },
+    ])
     expect(room.log.rolls(PLAYER).map((r) => r.description)).toEqual([full])
     const [after] = room.events.list(MEDIATOR)
     expect(after).not.toHaveProperty('private')
@@ -449,8 +486,8 @@ describe('the table’s events', () => {
     )
     act(MEDIATOR, 'changeLog.reveal', { rollId: String(hidden?._id) }, AT + 3)
     expect(texts(PLAYER)).toEqual([
-      'Mediator · Core Mechanic · 4 · Failure',
-      'Mediator · Core Mechanic · 13 · Success',
+      'Med · Core Mechanic · 4 · Failure',
+      'Med · Core Mechanic · 13 · Success',
     ])
   })
 
@@ -507,9 +544,9 @@ describe('the table’s events', () => {
     expect(act(MEDIATOR, 'downtime.setStep', { stepIndex: 2 }, AT + 5)).toEqual([])
     const names = downtimeStepNames()
     expect(texts(PLAYER).slice(0, 3)).toEqual([
-      `Mediator moved Downtime back to 3 ${names[2]}`,
-      `Mediator moved Downtime to 7 ${names[6]}, past 3–6`,
-      `Mediator moved Downtime to 2 ${names[1]}`,
+      `Med moved Downtime back to 3 ${names[2]}`,
+      `Med moved Downtime to 7 ${names[6]}, past 3–6`,
+      `Med moved Downtime to 2 ${names[1]}`,
     ])
   })
 
@@ -536,7 +573,7 @@ describe('the table’s events', () => {
     expect(ended?.kind).toBe('downtime')
     expect(act(MEDIATOR, 'downtime.end', undefined as never, AT + 4)).toEqual([])
     // By role, as the session's lines are: one screen never has two words for one person (r3 A6).
-    expect(texts(PLAYER)).toEqual(['Mediator ended Downtime', 'Mediator began Downtime'])
+    expect(texts(PLAYER)).toEqual(['Med ended Downtime', 'Med began Downtime'])
     expect(isMirrored(began as never)).toBe(true)
   })
 
@@ -650,7 +687,7 @@ describe('the table’s events', () => {
     const { act, room, texts } = seated()
     const told = act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
     expect(told.map((e) => e.text)).toEqual([
-      'Mediator started the group session',
+      'Med started the group session',
       expect.stringContaining(' the turn'),
     ])
     expect(told[0]).toMatchObject({ kind: 'session', session: 'start' })
@@ -660,6 +697,29 @@ describe('the table’s events', () => {
       expect.objectContaining({ kind: 'session' })
     )
     expect(texts(PLAYER).filter((t) => t.includes('started the group session'))).toHaveLength(1)
+  })
+
+  // r7 C10 (LG7-25): a Pilot left Down and an open area carried into next week unsaid.
+  test('a new session’s first line names a Pilot still Down and an open salvage area', () => {
+    const { act } = seated()
+    act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 0 })] }, AT)
+    act(
+      MEDIATOR,
+      'salvageAreas.set',
+      { area: { name: 'Mutant Nest', techLevel: 1, supply: 4 } },
+      AT + 1
+    )
+    const [start] = act(MEDIATOR, 'session.start', undefined as never, AT + MERGE_MS + 2)
+    expect(start?.text).toBe(
+      'Med started the group session · Still open: p1 · Pilot p1 is Down; the salvage area Mutant Nest is open'
+    )
+    expect(start?.session).toBe('start')
+  })
+
+  test('with nothing left open, the line is the start alone', () => {
+    const { act } = seated()
+    const [start] = act(MEDIATOR, 'session.start', undefined as never, AT)
+    expect(start?.text).toBe('Med started the group session')
   })
 
   test('taking the turn back, or a player’s own act, starts no session', () => {
@@ -674,7 +734,7 @@ describe('the table’s events', () => {
     act(MEDIATOR, 'session.start', undefined as never, AT)
     const [given] = act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
     expect(given).toMatchObject({ kind: 'turn', actorId: MEDIATOR })
-    expect(given?.text).toStartWith('The Mediator gave ')
+    expect(given?.text).toStartWith('Med gave ')
     expect(given?.text).toEndWith(' the turn')
     expect(isMirrored(given as never)).toBe(true)
     expect(texts(PLAYER)[0]).toBe(given?.text as string)
@@ -685,6 +745,7 @@ describe('the table’s events', () => {
 
   test('a resolve nobody applied is closed, not applied, when its turn or the session ends (r5 A7)', () => {
     const { act, room, texts } = seated()
+    // A Cascade Failure is the result the player takes on the gauge: something to apply.
     const open = (name: string) =>
       act(PLAYER, 'seats.setResolving', {
         pilotId: 'p1',
@@ -692,7 +753,7 @@ describe('the table’s events', () => {
           ref: 'k',
           name,
           activated: true,
-          roll: { roll: 12, band: 'success' },
+          roll: { roll: 1, band: 'cascade' },
           applied: false,
         },
       })
@@ -727,6 +788,26 @@ describe('the table’s events', () => {
     expect(room.play.seat('p1')?.resolving).toBeNull()
   })
 
+  test('an action with nothing to apply closes without a "not applied" line (r7 A5)', () => {
+    const { act, room } = seated()
+    act(MEDIATOR, 'session.start', undefined as never, AT)
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    // Improvised Melee Weapon, no cost, rolled 11 Success: Apply was never open to it.
+    act(PLAYER, 'seats.setResolving', {
+      pilotId: 'p1',
+      resolving: {
+        ref: 'k',
+        name: 'Improvised Melee Weapon',
+        activated: true,
+        roll: { roll: 11, band: 'success' },
+        applied: false,
+      },
+    })
+    const ended = act(PLAYER, 'scenes.endTurn', undefined as never, AT + 2)
+    expect(ended.map((e) => e.text)).toEqual([expect.stringContaining('ended their turn')])
+    expect(room.play.seat('p1')?.resolving).toBeNull()
+  })
+
   test('the player who is up ends their own turn: the marker clears and the table is told (r4 B1)', () => {
     const { act, room, texts } = seated()
     act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
@@ -754,7 +835,7 @@ describe('the table’s events', () => {
     expect(told).toMatchObject({ kind: 'withdrawn', text: 'Mediator withdrew an alert' })
     expect(room.log.alerts(PLAYER)).toEqual([])
     // The first alert started the session (r6 C3); its own line is withdrawn.
-    expect(texts()).toEqual(['Mediator withdrew an alert', 'Mediator started the group session'])
+    expect(texts()).toEqual(['Mediator withdrew an alert', 'Med started the group session'])
     expect(() => act(MEDIATOR, 'changeLog.withdrawAlert', { alertId }, AT + 3)).toThrow(
       'That alert is no longer there'
     )

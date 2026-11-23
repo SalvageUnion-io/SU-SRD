@@ -141,6 +141,7 @@ export function PlayMediatorBarActions({
       >
         <TellTheTable
           field={alertField}
+          gameId={mediator.gameId}
           alerts={mediator.alerts}
           now={mediator.now}
           canWrite={mediator.canWrite}

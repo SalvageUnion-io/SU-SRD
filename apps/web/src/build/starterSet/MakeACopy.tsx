@@ -15,7 +15,6 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { cockpitPath } from 'game-domain/entityKinds'
 import { Button } from '../../components/index'
-import { appPath } from '../../lib/appBase'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { playTrialCopy } from '../../messages/play-trial'
 import { useSync } from '../../replica/syncContext'
@@ -36,7 +35,7 @@ export function MakeACopy({ kind, templateId, name }: MakeACopyProps) {
       <>
         {/* A book pilot plays a round signed out, saved nowhere (r6 F1, `PlayTrial`). */}
         {kind === 'pilot' && (
-          <Button href={appPath(cockpitPath(templateId))} size="full" className="su-page-action">
+          <Button href={cockpitPath(templateId)} size="full" className="su-page-action">
             {playTrialCopy('tryARound')}
           </Button>
         )}

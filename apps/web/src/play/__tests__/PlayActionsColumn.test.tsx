@@ -823,14 +823,27 @@ describe('the Reactor and Mount rows', () => {
     expect(calls).toHaveLength(0)
   })
 
-  test('Shut down and Restart toggle the Shutdown condition', async () => {
+  test('Shut down and Power back on toggle the Shutdown condition', async () => {
     const { calls } = renderBoarded()
     await click(screen.getByRole('button', { name: 'Shut down' }))
     expect(calls.at(-1)?.patch).toEqual({ conditions: ['Shutdown'] })
     cleanup()
-    const down = renderBoarded({ mech: makeMech({ conditions: ['Prone', 'Shutdown'] }) })
-    await click(screen.getByRole('button', { name: 'Restart' }))
+    // Back on, the Vulnerable the shutdown brought goes with it (r7 B2).
+    const down = renderBoarded({
+      mech: makeMech({ conditions: ['Prone', 'Shutdown', 'Vulnerable'] }),
+    })
+    await click(screen.getByRole('button', { name: 'Power back on' }))
     expect(down.calls.at(-1)?.patch).toEqual({ conditions: ['Prone'] })
+  })
+
+  test("Shut down, the Mech's own actions say so on their Use (r7 B2)", () => {
+    renderBoarded({ mech: makeMech({ conditions: ['Shutdown'] }) })
+    const uses = screen.getAllByRole('button', { name: /^Use .*: Shut down$/ })
+    expect(uses.length).toBeGreaterThan(0)
+    for (const use of uses) {
+      expect((use as HTMLButtonElement).disabled).toBe(true)
+      expect(use.textContent).toBe('Shut down')
+    }
   })
 
   test('a Meltdown destroys the mech only on its own confirm (ADR-007)', async () => {

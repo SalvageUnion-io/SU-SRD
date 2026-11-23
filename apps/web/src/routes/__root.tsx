@@ -88,15 +88,16 @@ function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: bool
   )
 }
 
-/** The strip and its Games' reads, loaded only for a signed-in reader: a
- *  signed-out one has no Games, and the strip waits on their read anyway. */
+/** The strip and its Games' reads, loaded for a signed-in reader, and on a
+ *  Play screen signed out: a signed-out reader has no Games, but the trial's
+ *  own line ("nothing is kept", r7 F2) stands on its strip. */
 const TableNotices = lazy(() =>
   import('../play/TableNotices').then((m) => ({ default: m.TableNotices }))
 )
 
-function TableNoticesMount({ pathname }: { pathname: string }) {
+function TableNoticesMount({ pathname, inPlay }: { pathname: string; inPlay: boolean }) {
   const person = useViewerId()
-  if (person === null) return null
+  if (person === null && !inPlay) return null
   return (
     <Suspense fallback={null}>
       <TableNotices pathname={pathname} />
@@ -156,7 +157,7 @@ function RootComponent() {
                 next Tab lands in the content instead of back in the bar. */}
           {/* What the reader's Games tell them, pinned over every screen:
                 the Stop Sign, a proposal, the Mediator's alert, a live session. */}
-          <TableNoticesMount pathname={pathname} />
+          <TableNoticesMount pathname={pathname} inPlay={barHidden} />
           <div id="main-content" tabIndex={-1}>
             <GameDataReady schemas={routeSchemas(pathname)}>
               <Outlet />

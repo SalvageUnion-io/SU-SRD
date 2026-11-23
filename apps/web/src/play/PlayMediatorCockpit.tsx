@@ -6,7 +6,7 @@
  *
  *  - **Bar** — the MEDIATOR stamp, ONLINE "3 of 4 here" (the seats' presence,
  *    `useGamePresence`), the Scene / Downtime switch (`PlayGameStateSwitch`; below
- *    `lg` pinned under the bar), the
+ *    `lg` at the head of the Table pane, so the sticky head is the bar alone), the
  *    Stop (the Stop Sign, `StopSign.tsx`, its banner under the bar while
  *    it is up), the channel button (`channelBindings.current`), Tell the
  *    table and ⋯.
@@ -34,7 +34,7 @@ import { PRODUCT } from 'game-domain/product'
 import type { ReactNode } from 'react'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import type { rollForTable } from '../components/index'
-import { Stat, Toggle } from '../components/index'
+import { Toggle } from '../components/index'
 import { areaTitle } from '../lib/pageTitle'
 import { useTabTitle } from '../lib/useTabTitle'
 import { playCopy } from '../messages/play'
@@ -163,6 +163,16 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
         {/* From `lg` the seats scroll over the Feed, which keeps its head and
             scrolls its own lines (`frame.css`, r2 I2). */}
         <div className="su-play-split__main">
+          {/* A phone's sticky head is the game bar alone (r7 C8, MD7-16): the
+              Scene / Downtime switch heads the Table pane, where the Mediator lands. */}
+          {wide ? null : (
+            <PlayGameStateSwitch
+              downtime={mediator.downtime}
+              canWrite={mediator.canWrite}
+              gameId={mediator.gameId}
+              fill
+            />
+          )}
           <PlayMediatorTable
             mediator={mediator}
             picked={picked}
@@ -270,17 +280,6 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
                 }
               />
               {channel.dialog}
-            </>
-          }
-          pinned={
-            <>
-              <PlayGameStateSwitch
-                downtime={mediator.downtime}
-                canWrite={mediator.canWrite}
-                gameId={mediator.gameId}
-                fill
-              />
-              {sceneOn && <Stat size="mini" label={mediatorCopy('scene')} value={sceneNames} />}
             </>
           }
           panes={mediatorPanes(running, wide).map((p) => ({ ...p, node: nodes[p.value] }))}

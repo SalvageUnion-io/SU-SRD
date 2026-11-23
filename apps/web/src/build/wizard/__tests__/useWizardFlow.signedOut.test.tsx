@@ -61,7 +61,7 @@ describe('useWizardFlow — signed out', () => {
       { wrapper }
     )
     // Step 1 says up front that saving needs a sign-in (r2 D2).
-    expect(result.current.shell.tryNote).toBe('Try it now. Saving needs a free sign-in.')
+    expect(result.current.shell.tryNote).toBe('Saving needs a free sign-in.')
     // The submit step keeps the build as a file or on paper (r2 D3).
     expect(result.current.shell.keepAsFile).toBeDefined()
     expect(result.current.shell.signIn.open).toBe(false)

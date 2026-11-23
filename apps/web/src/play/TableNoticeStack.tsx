@@ -6,8 +6,8 @@
  * offers Dismiss all. Controls a notice carries for the whole strip (End my
  * turn) stay on it whichever notice leads, so the turn ends one Tab away
  * (r6 A13). On a Play screen it has one fixed height under the bar
- * (`fixed`): the list opens over the screen, never pushing it, and a notice
- * arriving or leaving moves nothing. The ruling's other choice
+ * (`fixed`), and a notice arriving or leaving moves nothing; "N more" opens
+ * the list below it, never over the step it is about (r7 A1). The ruling's other choice
  * (`stripRuling.model.ts`, `lines`) draws every notice as its own one-line banner.
  */
 
@@ -33,7 +33,8 @@ export type Notice = StackedNotice & {
     | 'session'
     | 'session-ended'
     | 'event'
-    | 'quiet'
+    // The viewer's own unit at 0, its Critical roll to make (r7 A1).
+    | 'down'
     // A Downtime step waiting on the viewer, off the Play screen (r6 C5).
     | 'downtime'
     // The boarded Mech at its Heat Capacity: the Heat Check is due (r6 A6).
@@ -57,7 +58,7 @@ export function NoticeStack({
   offline,
 }: {
   notices: readonly Notice[]
-  /** A Play screen's strip: one height, the list opened over the screen (r6 A1). */
+  /** A Play screen's strip: one height, the list opened below it (r6 A1, r7 A1). */
   fixed?: boolean
   /** Offline, the word the strip wears: it still shows, read-only (r6 A14). */
   offline?: string | undefined
@@ -122,7 +123,7 @@ export function NoticeStack({
         id={turnId}
       />
       {open && rest.length > 0 && (
-        <div className="su-table-notices__more" data-over={fixed ? '' : undefined}>
+        <div className="su-table-notices__more">
           {rest.map((notice) => (
             <NoticeStrip key={notice.key} notice={notice} />
           ))}

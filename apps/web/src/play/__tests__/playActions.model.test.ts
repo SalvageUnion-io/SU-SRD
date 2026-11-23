@@ -156,6 +156,29 @@ describe('on hand, by Situation', () => {
   })
 })
 
+describe('one name, two actions (r7 B5)', () => {
+  test('a Mech System and a Pilot ability that share a name each say whose', () => {
+    const shared = (key: string, currency: 'EP' | 'AP') => ({
+      ...action(key, 'Short', currency),
+      name: 'System Repair',
+    })
+    const entries = buildActionList({
+      situation: 'boarded',
+      pilotActions: [shared('p-repair', 'AP'), ...PILOT],
+      mechActions: [shared('m-repair', 'EP'), ...MECH],
+      hasMech: true,
+    })
+    const names = entries.flatMap((e) => (e.kind === 'action' ? [e.name] : []))
+    expect(names).toContain('System Repair · Mech')
+    expect(names).toContain('System Repair · Pilot')
+    expect(names).not.toContain('System Repair')
+    // Every other name stays bare.
+    expect(names).toContain('cannon')
+    // Find still finds both by the bare name.
+    expect(filterEntries(entries, 'All', 'system repair')).toHaveLength(2)
+  })
+})
+
 describe('the filter and Find', () => {
   test('a type keeps only that type’s actions, and every control row', () => {
     const turn = filterEntries(list('boarded'), 'Turn', '')

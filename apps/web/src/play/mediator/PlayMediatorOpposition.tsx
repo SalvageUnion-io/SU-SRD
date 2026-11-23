@@ -1,14 +1,15 @@
 /**
  * PlayMediatorOpposition — the Mediator's centre column in a Scene (play.md
- * §10): the Scene's conditions (`PlayMediatorScene`), then "Opposition", a Slab with Run an encounter and + Add, the encounter
+ * §10): "Opposition", a Slab with Run an encounter and + Add, the encounter
  * running (`RUNNING | its name`, End; ADR-059), the area the crew is
  * salvaging (`AREA | its name, Tech Level and Supply`, set through
  * `SalvageAreaDialog`, Core Book p.245), then each NPC,
  * mech, squad or Bio-Titan on the tray as a unit box (`PlayNpcBox`, level 1);
  * Actions on a box opens that unit's actions inside its own card
  * (`PlayNpcActions`, r4 D1), each unit's on its own, shut until asked for.
- * On a phone the running encounter's Briefing and Notes stand under its name
- * (`notes`, r4 D3).
+ * The units come first (r7 C8): on a phone the running encounter's Briefing
+ * and Notes (`notes`, r4 D3), then the Scene's conditions (`PlayMediatorScene`,
+ * one row), stand under them.
  *
  * Behind the `encounterSheet` flag (ADR-059 §5), an encounter's groups sit
  * together under their own Slab (`PlayNpcGroup`), with one Reaction and one
@@ -35,20 +36,23 @@ import { SkipLink } from '../../components/app'
 import type { rollForTable } from '../../components/index'
 import { Button, EmptyState, Slab, Stat, toast, tokens } from '../../components/index'
 import { flagOn } from '../../lib/flags'
+import type { MoraleRoll } from '../../lib/rules/opposition'
 import { moraleDue } from '../../lib/rules/opposition'
 import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { SalvageAreaDialog } from '../SalvageAreaDialog'
 import { sceneConditionNames } from '../useScene'
+import { useSessionLive } from '../useSessionLive'
 import { ClearFieldDialog, EndEncounterDialog } from './ClearFieldDialogs'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
-import { sinkDowned, trayEntries } from './opposition.model'
+import { groupRoll, sinkDowned, trayEntries } from './opposition.model'
 import { PlayMediatorScene } from './PlayMediatorScene'
 import type { NpcHit } from './PlayNpcActions'
 import { PlayNpcActions } from './PlayNpcActions'
 import { PlayNpcBox } from './PlayNpcBox'
 import { PlayNpcGroup } from './PlayNpcGroup'
+import { hitLandsOn, newestHit } from './pilotHit.model'
 import { RunEncounterDialog } from './RunEncounterDialog'
 import { useInitiative } from './useInitiative'
 import type { PlayMediator } from './usePlayMediator'
@@ -88,8 +92,40 @@ export function PlayMediatorOpposition({
   const [clearing, setClearing] = useState(false)
   const [ending, setEnding] = useState(false)
   const { area } = mediator
+  const sessionLive = useSessionLive(mediator.gameId)
+  // A Pilot's hit, offered on each unit it can land on until applied (r7 C5).
+  const [spent, setSpent] = useState<ReadonlySet<string>>(() => new Set())
+  const pilotHit = canWrite ? newestHit(mediator.rolls, spent) : null
+  const hitOn = (npc: TrayNpc) => {
+    if (pilotHit === null || !hitLandsOn(pilotHit, npc)) return undefined
+    const words = {
+      who: pilotHit.who,
+      amount: pilotHit.damage.amount,
+      unit: pilotHit.damage.damageType,
+      name: npc.name,
+    }
+    return {
+      label: mediatorCopy('pilotHit', words),
+      name: mediatorCopy('pilotHitFor', words),
+      onApply: () => {
+        const before = npc.currentHp
+        const after = Math.max(0, before - pilotHit.damage.amount)
+        const { rollId } = pilotHit
+        setSpent((ids) => new Set([...ids, rollId]))
+        fail(tray.setHp(npc, after))
+        undoToast(
+          mediatorCopy('pilotHitApplied', { ...words, before, after }),
+          () => {
+            setSpent((ids) => new Set([...ids].filter((id) => id !== rollId)))
+            fail(tray.setHp(npc, before))
+          },
+          `opposition-${mediator.gameId}`
+        )
+      },
+    }
+  }
   // Each unit standing carries its Group Initiative mark while one is kept (r6 B4).
-  const { initiative, setActed } = useInitiative(mediator.gameId, onFailure)
+  const { initiative, setActed, markActed } = useInitiative(mediator.gameId, onFailure, mediator)
   // The Scene's conditions that are on: End asks whether to clear them (r4 A11).
   const sceneOn = sceneConditionNames(mediator.scene.conditions)
   const fail = (write: Promise<unknown>) => void write.catch(onFailure)
@@ -118,7 +154,15 @@ export function PlayMediatorOpposition({
     .filter((t) => t.kind === 'mech')
     .map((t) => ({ id: t.id, label: t.label }))
 
-  const box = (npc: TrayNpc) => (
+  // A group's roll reads once, under its header (r7 C7, MD7-08): never again on its members.
+  const box = (unit: TrayNpc, groupLast: MoraleRoll | null = null) => {
+    const npc =
+      groupLast !== null && unit.lastRoll?.rolledAt === groupLast.rolledAt
+        ? { ...unit, lastRoll: null }
+        : unit
+    return boxOf(npc)
+  }
+  const boxOf = (npc: TrayNpc) => (
     <PlayNpcBox
       key={npc.id}
       npc={npc}
@@ -136,6 +180,8 @@ export function PlayMediatorOpposition({
             onMorale={() => fail(tray.morale(npc))}
             hit={hit}
             rollFor={rollFor}
+            // Rolling an action is its turn: it is marked Acted (r7 C3).
+            onActed={() => markActed(npc.id)}
           />
         ) : null
       }
@@ -154,6 +200,7 @@ export function PlayMediatorOpposition({
       onHeatCheck={() => fail(tray.heatCheck(npc))}
       moraleDue={grouping && moraleDue(npc)}
       onMorale={() => fail(tray.morale(npc))}
+      hit={hitOn(npc)}
       acted={
         initiative === null || npc.down
           ? undefined
@@ -169,7 +216,6 @@ export function PlayMediatorOpposition({
 
   return (
     <>
-      <PlayMediatorScene mediator={mediator} rollFor={rollFor} />
       <Slab
         as="h2"
         id="mediate-opposition"
@@ -225,7 +271,6 @@ export function PlayMediatorOpposition({
           </Button>
         </div>
       )}
-      {prep.running !== null ? notes : null}
       {prep.running !== null &&
         held.map((wave) => (
           <div key={wave} style={RUNNING} role="status">
@@ -287,7 +332,7 @@ export function PlayMediatorOpposition({
                 canWrite={canWrite}
                 onRoll={(table) => fail(tray.groupRoll(entry, table))}
               >
-                {entry.members.map(box)}
+                {entry.members.map((npc) => box(npc, groupRoll(entry.members)))}
               </PlayNpcGroup>
             )
           )}
@@ -311,6 +356,9 @@ export function PlayMediatorOpposition({
           </Button>
         </div>
       )}
+      {/* The units first (r7 C8, MD7-16): the briefing, then the Scene, under them. */}
+      {prep.running !== null ? notes : null}
+      <PlayMediatorScene mediator={mediator} rollFor={rollFor} />
       <SheetPickerModal
         open={picking}
         onClose={() => setPicking(false)}
@@ -331,9 +379,10 @@ export function PlayMediatorOpposition({
         encounters={prep.encounters}
         gameId={mediator.gameId}
         onTray={npcs?.length ?? 0}
-        onRun={async (encounterId, clear) => {
+        sessionLive={sessionLive}
+        onRun={async (encounterId, clear, startSession) => {
           try {
-            return await prep.run(encounterId, clear)
+            return await prep.run(encounterId, clear, startSession)
           } catch (err) {
             onFailure(err)
             throw err

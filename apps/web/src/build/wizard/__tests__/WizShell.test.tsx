@@ -154,7 +154,7 @@ describe('WizShell', () => {
         onCancel={() => {}}
         onNext={() => {}}
         submitLabel="Create Mech"
-        tryNote={signedOut && active === 0 ? 'Try it now. Saving needs a free sign-in.' : undefined}
+        tryNote={signedOut && active === 0 ? 'Saving needs a free sign-in.' : undefined}
         keepAsFile={
           signedOut && active === 1
             ? {
@@ -169,10 +169,10 @@ describe('WizShell', () => {
       </WizShell>
     )
     const view = render(shell(0, true))
-    expect(screen.getByText('Try it now. Saving needs a free sign-in.')).toBeTruthy()
+    expect(screen.getByText('Saving needs a free sign-in.')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Download' })).toBeNull()
     view.rerender(shell(1, true))
-    expect(screen.queryByText('Try it now. Saving needs a free sign-in.')).toBeNull()
+    expect(screen.queryByText('Saving needs a free sign-in.')).toBeNull()
     // Download says what it gives before it is pressed, and that it came (r3 E2).
     expect(screen.getByText(/salvageunion-mech-diva\.json: the build as a data file/)).toBeTruthy()
     expect(screen.getByText(/Backups in the Training Bay loads it/)).toBeTruthy()

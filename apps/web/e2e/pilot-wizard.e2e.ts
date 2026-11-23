@@ -54,7 +54,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   await expect(page.getByTestId('equipment-count')).toContainText('2/2')
   await clickNext(page)
 
-  // Step 3: identity — only the name is required; a blank callsign is the name (r6 F5).
+  // Step 3: identity — only the callsign is required; a blank name is the callsign (r7 F7).
   await page.getByLabel(/^Name/).fill('Mira Voss')
   await page.getByRole('textbox', { name: 'Callsign' }).fill('Sparks')
 

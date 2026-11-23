@@ -36,3 +36,39 @@ export function abilityRequirementsUnmet(
     .map((w) => w.message)
     .filter((message) => !already.has(message))
 }
+
+/**
+ * Why `slug` is not one to learn now (r7 D5, Core Book p.224): the book's first
+ * bar it has not met (its tree's order, the Advanced or Legendary bar, the one
+ * Legendary, the ability cap), else too few Training Points to pay. Null when
+ * it can be learned now, is already learned, or no tree prices it. A reason,
+ * never a gate: the trainer still adds it, for house rules.
+ */
+export type NotYet =
+  | { why: 'tree-order' | 'advanced' | 'legendary' | 'one-legendary' | 'cap' }
+  | { why: 'tp'; cost: number }
+
+const NOT_YET_BY_CODE: Record<string, Exclude<NotYet['why'], 'tp'>> = {
+  ABILITY_TREE_ORDER: 'tree-order',
+  ADVANCED_ABILITY_PREREQUISITE: 'advanced',
+  LEGENDARY_ABILITY_PREREQUISITE: 'legendary',
+  ONE_LEGENDARY_LIMIT: 'one-legendary',
+  PILOT_ABILITY_CAP_EXCEEDED: 'cap',
+}
+
+export function abilityNotYet(
+  pilot: { abilities: string[]; classRef?: string; trainingPoints?: number },
+  slug: string
+): NotYet | null {
+  const cost = abilityTrainingCost(slug)
+  if (cost === null || pilot.abilities.includes(slug)) return null
+  const before = enrichPilotSnapshot(pilot)
+  const after = enrichPilotSnapshot({ ...pilot, abilities: [...pilot.abilities, slug] })
+  const context = { entityType: 'pilot' as const }
+  const already = new Set(evaluateSoftWarnings(before, before, context).map((w) => w.code))
+  for (const warning of evaluateSoftWarnings(before, after, context)) {
+    const why = NOT_YET_BY_CODE[warning.code]
+    if (why && !already.has(warning.code)) return { why }
+  }
+  return (pilot.trainingPoints ?? 0) < cost ? { why: 'tp', cost } : null
+}

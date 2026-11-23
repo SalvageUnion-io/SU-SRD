@@ -6,7 +6,6 @@
  */
 
 import { toast } from '../../../components/index'
-import { focusHeadingOnArrival } from '../../../lib/arrivalFocus'
 import { failureMessage } from '../../../lib/connection/useServerAction'
 import { refreshWorkerReads } from '../../../lib/connection/workerRead'
 import { namesOn } from '../../../lib/copyEntity'
@@ -14,6 +13,7 @@ import { sharedPaths } from '../../../lib/sharing/paths'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
 import { useUnits } from '../../../replica/units'
+import { typeNameOnArrival } from '../../sheet/nameOnArrival.model'
 
 /** How long the notice and its Undo stay: the Undo line's time (`changeUndoToast`). */
 const UNDO_MS = 8000
@@ -49,8 +49,8 @@ export async function undoBuild(mech: { id: string; name: string }): Promise<voi
  * loadout exceeds the starting rules, which the notice says in a second line.
  */
 export function builtToast(mech: { id: string; name: string }, past = false): void {
-  // The page it lands on takes focus on its heading (r6 F7).
-  focusHeadingOnArrival()
+  // The sheet it lands on opens with the new name selected for typing (r7 G5).
+  typeNameOnArrival(mech.id)
   toast.success(mechCopy('builtFromThePattern', { name: mech.name }), {
     duration: UNDO_MS,
     ...(past ? { description: mechCopy('pastTheStartingRules') } : {}),

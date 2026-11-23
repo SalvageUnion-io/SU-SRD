@@ -311,9 +311,12 @@
   cursor: pointer;
 }
 
+/* The radio is visually hidden at its containing block's start: the pick's own
+   box, so a press on it lands in its row, never on the head strip (SB7-06). */
 .su-ledger__pick {
   cursor: pointer;
   display: inline-flex;
+  position: relative;
 }
 
 .su-ledger__table tbody tr[data-picked],
@@ -761,4 +764,18 @@
   margin-inline-end: var(--space-2);
   max-width: none;
   vertical-align: -0.125em;
+}
+
+/* A pattern loadout's reach under a weapon's name: a phone's, where its
+   RNG and DMG columns give way (RR7-11). */
+.su-loadout-reach {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+@media (width >= 40rem) {
+  .su-loadout-reach {
+    display: none;
+  }
 }

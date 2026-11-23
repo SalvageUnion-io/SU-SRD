@@ -17,6 +17,7 @@ export function PlayKeysSheet({ onClose }: { onClose: () => void }) {
     ['R', playCopy('keyRoll')],
     ['A', playCopy('keyApply')],
     ['E', playCopy('keyEndTurn')],
+    ['N', playCopy('keyNotice')],
     ['?', playCopy('keyThisSheet')],
   ] as const
   return (

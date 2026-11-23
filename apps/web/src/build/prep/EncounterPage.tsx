@@ -27,7 +27,11 @@
  */
 
 import type { Encounter, EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
-import { ENCOUNTER_MAX_BRIEFING, ENCOUNTER_MAX_NOTES } from 'game-domain/schemas/encounter'
+import {
+  ENCOUNTER_MAX_BRIEFING,
+  ENCOUNTER_MAX_NOTES,
+  ENCOUNTER_MAX_OPPOSITION,
+} from 'game-domain/schemas/encounter'
 import type { CSSProperties, ReactNode } from 'react'
 import { useId, useRef, useState } from 'react'
 import { Grid } from '../../components/app'
@@ -60,8 +64,9 @@ import { routesCopy } from '../../messages/routes'
 import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
 import { OppositionDialogs, OppositionPicker } from '../../play/mediator/OppositionPicker'
 import type { SavedPattern, TrayNpc } from '../../play/mediator/opposition.model'
-import { newBuiltTrayNpc, newTrayNpc } from '../../play/mediator/opposition.model'
+import { newBuiltTrayNpc, newTrayNpc, slugOf } from '../../play/mediator/opposition.model'
 import { useEncounters, usePatterns } from '../../replica/collections'
+import { useGameListing } from '../../replica/gameListing'
 import { useSync } from '../../replica/syncContext'
 import { LiveSheet } from '../sheet/LiveSheet'
 import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
@@ -69,6 +74,7 @@ import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
 import { useSheetModeStore } from '../sheet/sheetMode.model'
 import { undoToast } from '../sheet/undoToast.model'
+import { AddCountDialog } from './AddCountDialog'
 import { AutosavedText } from './AutosavedText'
 import { EncounterGameField } from './EncounterGame'
 import { GroupedOpposition, GroupNameDialog } from './EncounterGroups'
@@ -83,7 +89,6 @@ import {
   moveMenu,
   moveToGroup,
   opponentAsTray,
-  opponentFrom,
   opponentNote,
   oppositionBlocks,
   pinTable,
@@ -92,8 +97,9 @@ import {
   restoredOpponent,
   setGroupWave,
   unpinTable,
-  withAdded,
+  withCopies,
 } from './encounter.model'
+import { crawlerTech } from './threat.model'
 import { useEncounterGame, useRunGames } from './useEncounterGame'
 
 const LIST = {
@@ -185,12 +191,20 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   const ownNpcs = useOwnUnits('npc')
   const [picking, setPicking] = useState(false)
   const [renaming, setRenaming] = useState<TrayNpc | null>(null)
+  // One already in the encounter, added again: how many more (r7 C13).
+  const [counting, setCounting] = useState<{
+    name: string
+    add: (count: number) => Promise<void>
+  } | null>(null)
   // The group being named: `null` for a new one, absent when the dialog is shut.
   const [naming, setNaming] = useState<EncounterGroup | null | undefined>(undefined)
   const grouping = flagOn('encounterSheet')
   const groups = groupsOf(encounter)
   // The Game it is prepared for, where the viewer runs it: its Pilots are the crew a threat is read against.
   const gameCrew = useRunGames(connected).find((g) => g._id === encounter.gameId)?.pilotCount
+  // Its crew's Tech Level: the Game's primary crawler's (r7 C13), which bounds what they field.
+  const listing = useGameListing(gameCrew === undefined ? null : (encounter.gameId ?? null))
+  const gameTech = crawlerTech(listing)
   // Writes go one after another, each from the store's latest copy, so two
   // quick adds do not both start from the same opposition and drop one.
   const queue = useRef<Promise<unknown>>(Promise.resolve())
@@ -428,6 +442,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                           encounter={encounter}
                           editing={canWrite}
                           gameCrew={gameCrew}
+                          gameTech={gameTech}
                         />
                       )}
                     </Stack>
@@ -509,33 +524,32 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
           npcs={fielded}
           saved={saved}
           yours={ownNpcs}
-          onAddBuilt={(npc, name) =>
-            fire((current) => {
-              if (!hasRoomFor(current)) return {}
-              const body = newBuiltTrayNpc(
-                npc,
-                current.opposition.map((o) => o.name),
-                new Date().toISOString(),
-                name
-              )
-              const added = opponentFrom(body, crypto.randomUUID())
-              return { opposition: withAdded([...current.opposition, added], added) }
-            })
-          }
-          onAdd={(schema, entity, draw) =>
-            fire((current) => {
-              if (!hasRoomFor(current)) return {}
-              const body = newTrayNpc(
-                schema,
-                entity,
-                current.opposition.map((o) => o.name),
-                new Date().toISOString(),
-                draw
-              )
-              const added = opponentFrom(body, crypto.randomUUID())
-              return { opposition: withAdded([...current.opposition, added], added) }
-            })
-          }
+          onAddBuilt={(npc, name) => {
+            const add = (count: number) =>
+              write((current) => ({
+                opposition: withCopies(current.opposition, count, (names) =>
+                  newBuiltTrayNpc(npc, names, new Date().toISOString(), name)
+                ),
+              }))
+            // One already in it, added again: how many more (r7 C13).
+            if (encounter.opposition.some((o) => o.built?.npcId === npc.id)) {
+              setCounting({ name: npc.name, add })
+            } else add(1).catch(() => undefined)
+          }}
+          onAdd={(schema, entity, draw) => {
+            const add = (count: number) =>
+              write((current) => ({
+                opposition: withCopies(current.opposition, count, (names) =>
+                  newTrayNpc(schema, entity, names, new Date().toISOString(), draw)
+                ),
+              }))
+            const slug = slugOf(entity as { name: string })
+            const again = encounter.opposition.some(
+              (o) => o.built === undefined && o.refSchema === schema && o.refSlug === slug
+            )
+            if (again) setCounting({ name: entity.name, add })
+            else add(1).catch(() => undefined)
+          }}
         />
       </SheetPickerModal>
       <OppositionDialogs
@@ -549,6 +563,12 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
               opposition: current.opposition.map((o) => (o.id === npc.id ? { ...o, name } : o)),
             })),
         }}
+      />
+      <AddCountDialog
+        name={counting?.name ?? null}
+        room={ENCOUNTER_MAX_OPPOSITION - encounter.opposition.length}
+        onClose={() => setCounting(null)}
+        onAdd={(count) => counting?.add(count) ?? Promise.resolve()}
       />
       <GroupNameDialog
         key={naming === undefined ? 'shut' : (naming?.id ?? 'new')}

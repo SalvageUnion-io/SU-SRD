@@ -91,6 +91,18 @@ row), so their notice says from and to ("HP 7 → 0"). A player who accepts one
 may undo it: their own write to their own sheet, like any other. Additive and
 optional: no table or column is added.
 
+Amended (r7 D8). **A wreck's salvage is the crew's to pick.** After the
+Mediator rolls Mech Salvage, their pick is a proposal: to the Game's crawler,
+it is the one proposal a crawler takes, and **any member of the crew** but
+the Mediator who sent it may accept it, decline it, or change it to another
+pick the roll allows (`ops.accept`'s `picked`, written as its own op, the
+offer reading superseded). To a crew Mech it stays its holder's to answer.
+The accepted write lands on the crawler as its Mediator's (§5). What the
+answer may pick from (the band, the wreck's parts, the pick) is kept by the
+op's id in `salvage_offers`, a table only such a proposal has a row in.
+Additive and optional: no column is added, and every other proposal is as
+before. Switched by one constant (`WRECK_SALVAGE`).
+
 **Assign, never claim** (ADR-055). Inside a Game, `ownerId` names who a
 pilot or mech is **assigned** to, not who owns it: the assigned member edits
 it, the rest of the crew reads it (§5), and the table runner may assign it to

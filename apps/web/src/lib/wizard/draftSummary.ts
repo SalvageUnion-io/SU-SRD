@@ -1,6 +1,7 @@
 /**
- * What a kept wizard draft is, in words (`wizardDraft.ts` keeps it): the pick
- * it was built on ("Hacker"), said wherever the draft is offered back — the
+ * What a kept wizard draft is, in words (`wizardDraft.ts` keeps it): the name
+ * typed for it ("MARA · Mara Quill"), or before one the pick it was built on
+ * ("Hacker pilot", r7 F8), said wherever the draft is offered back — the
  * Training Bay's "Draft: Hacker pilot · Resume" line, the note on leaving a
  * wizard — and the question a "Build with this" link asks when it names a
  * different pick than the draft's (`draftConflict`): a link never reopens an
@@ -10,6 +11,7 @@
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { readReference } from '../readReference'
@@ -23,7 +25,7 @@ const DRAFT_KINDS = ['pilot', 'mech', 'crawler'] as const satisfies readonly She
 
 export type DraftSummary = {
   kind: SheetKind
-  /** The draft as a line names it: "Hacker pilot", "Mule mech", or the bare kind before a pick. */
+  /** The draft as a line names it: its typed name, else "Hacker pilot", "Mule mech", or the bare kind. */
   label: string
 }
 
@@ -80,10 +82,18 @@ function labelOf(kind: SheetKind, pick: string): string {
   return pick === '' ? noun : `${pick} ${noun}`
 }
 
-/** The kind's kept draft, or null when this tab keeps none. */
+/** The name typed in the kind's kept draft, or '' while none is. */
+function draftName(kind: SheetKind): string {
+  const draft = readWizardDraft<{ name?: unknown; callsign?: unknown }>(wizardDraftKey(kind))
+  if (draft === null) return ''
+  if (kind === 'pilot') return pilotLabelOf(draft) ?? ''
+  return typeof draft.name === 'string' ? draft.name.trim() : ''
+}
+
+/** The kind's kept draft, or null when this tab keeps none: by its typed name, else its pick (r7 F8). */
 export function wizardDraftSummary(kind: SheetKind): DraftSummary | null {
   const pick = draftPick(kind)
-  return pick === null ? null : { kind, label: labelOf(kind, pick) }
+  return pick === null ? null : { kind, label: draftName(kind) || labelOf(kind, pick) }
 }
 
 /** Every draft this tab keeps, pilots first. */

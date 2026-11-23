@@ -71,6 +71,9 @@ type IndexLedgerProps = {
   orderNote?: boolean
 }
 
+/** From this many rows a List says it can be sorted; a shorter one reads at a glance. */
+const SORT_HINT_ROWS = 10
+
 export function IndexLedger({
   schemaId,
   noun,
@@ -180,11 +183,17 @@ export function IndexLedger({
             sortedLine(sorted)
           ) : (
             <span>
-              {islandsCopy(byName ? 'azOrder' : 'bookOrder')}{' '}
-              {/* A phone's row with no column beside its name has none to press (RR2-17). */}
-              <span className={onPhone.length === 0 ? 'su-listing__sort-hint' : undefined}>
-                {islandsCopy('sortHint')}
-              </span>
+              {islandsCopy(byName ? 'azOrder' : 'bookOrder')}
+              {/* A short list reads at a glance: no prompt to sort it (RR7-13).
+                  A phone's row with no column beside its name has none to press (RR2-17). */}
+              {rows.length >= SORT_HINT_ROWS && (
+                <>
+                  {' '}
+                  <span className={onPhone.length === 0 ? 'su-listing__sort-hint' : undefined}>
+                    {islandsCopy('sortHint')}
+                  </span>
+                </>
+              )}
             </span>
           )}
           {sort && order && (

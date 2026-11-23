@@ -22,6 +22,9 @@
  * first, in bold, then the roll, then what it spent. My own lines carry
  * their time, as the table's do.
  *
+ * Solo, the last visit's lines follow this one's under "Last time", read from
+ * the units' Change Logs (r7 A8).
+ *
  * Feed lines are level 1 (play.md §12): plain text and buttons inside, no
  * frame inside a frame.
  */
@@ -197,9 +200,16 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
             )
           }
           default:
-            // The table's log reads with its times (a session's record).
+            // The table's log reads with its times (a session's record); solo,
+            // the last visit's lines follow under "Last time" (r7 A8).
             return (
-              <FeedLine key={entry.key} end={<FeedTime ts={entry.ts} format="clock" />}>
+              <FeedLine
+                key={entry.key}
+                head={entry.kind === 'last' && entry.first ? playCopy('lastTime') : undefined}
+                end={
+                  <FeedTime ts={entry.ts} format={entry.kind === 'last' ? 'datetime' : 'clock'} />
+                }
+              >
                 <Grouped entry={entry}>{entry.text}</Grouped>
                 {entry.kind === 'roll' && veil(entry.reveal, entry.text, entry.kept)}
               </FeedLine>

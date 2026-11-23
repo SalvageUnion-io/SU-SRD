@@ -14,8 +14,16 @@
 
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import type { LogDefaults } from '../build/sheet/changeLog.model'
+import { logChanges } from '../build/sheet/changeLog.model'
+import { logStory } from '../build/sheet/changeStory.model'
+import { row, subscribe } from '../replica/replica'
+import { roomOf } from '../replica/roomSocket'
 import { MERGE_MS } from '../rooms/game/tableEvent'
+import type { EntityLogRow } from '../rooms/ops'
+import type { LastLine } from './feed.model'
+import { lastVisitLines } from './feed.model'
 import type { PlayRoll } from './playRolls.model'
 import { dropPlayRollSlot, isDiceRoll, recordPlayRoll, usePlayRollLog } from './playRolls.model'
 import { mechStats, pilotVitals } from './unitStats.model'
@@ -130,4 +138,67 @@ export function useSoloVitalsFeed(units: readonly WatchedUnit[], on: boolean): v
       else recordPlayRoll({ tableName: '', rolls: [], label, slot: line.slot })
     }
   }, [key, on])
+}
+
+/**
+ * A unit's Change Log, asked once the replica holds it: what came before
+ * this visit does not change as Play writes (`useEntityLog` asks again at
+ * every write, for the sheet's drawer).
+ */
+function useLogOnce(table: 'pilot' | 'mech', id: string): readonly EntityLogRow[] {
+  const place = useSyncExternalStore(subscribe, () => {
+    const held = id === '' ? null : row(table, id)
+    return held === null ? null : ((held as { gameId?: string | null }).gameId ?? '')
+  })
+  const [rows, setRows] = useState<readonly EntityLogRow[]>([])
+  useEffect(() => {
+    setRows([])
+    if (place === null) return
+    const room = roomOf(place || null)
+    if (room === null) return
+    let current = true
+    room.act('changeLog.forEntity', { entityId: id }).then(
+      (answer) => current && setRows(answer as EntityLogRow[]),
+      () => undefined
+    )
+    return () => {
+      current = false
+    }
+  }, [place, id])
+  return rows
+}
+
+/** A unit as "Last time" reads its Change Log (r7 A8): its kind, id, name and what an absent number stands for. */
+export type LoggedUnit = { kind: 'pilot' | 'mech'; id: string; name: string; defaults: LogDefaults }
+
+const NO_UNIT: LoggedUnit = { kind: 'pilot', id: '', name: '', defaults: {} }
+
+/**
+ * Solo, the last visit's lines (r7 A8): read from the pilot's and the mech's
+ * Change Logs, which keep every write Play made, so the Feed opens with what
+ * happened last time. `before` is this visit's first line. Empty in a Game,
+ * whose own log holds what came before.
+ */
+export function useSoloLastTime(
+  pilot: LoggedUnit | null,
+  mech: LoggedUnit | null,
+  before: number,
+  on: boolean
+): LastLine[] {
+  const p = on && pilot !== null ? pilot : NO_UNIT
+  const m = on && mech !== null ? mech : NO_UNIT
+  const pilotLog = useLogOnce('pilot', p.id)
+  const mechLog = useLogOnce('mech', m.id)
+  const { name: pName, defaults: pDefaults } = p
+  const { name: mName, defaults: mDefaults } = m
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a unit's defaults follow its log and name.
+  return useMemo(() => {
+    if (!on) return []
+    const read = (name: string, rows: readonly EntityLogRow[], defaults: LogDefaults) =>
+      name === '' ? [] : [{ name, changes: logStory(logChanges(rows, defaults)) }]
+    return lastVisitLines(
+      [...read(pName, pilotLog, pDefaults), ...read(mName, mechLog, mDefaults)],
+      before
+    )
+  }, [on, pName, mName, pilotLog, mechLog, before])
 }

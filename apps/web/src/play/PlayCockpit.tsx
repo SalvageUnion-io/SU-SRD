@@ -44,7 +44,6 @@ import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { mayBindChannel } from 'game-domain/games/discord'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
-import { ScrollText } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import type { HeaderMenuItem } from '../components/index'
@@ -317,20 +316,15 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
               }
               channel={channel.button}
               mark={
-                feedMark.shown ? (
+                // A phone's is a row of ⋯, so the pilot's name shows in full (r7 B7).
+                feedMark.shown && wide ? (
                   <Button
                     surface="instrument"
                     size="compact"
                     aria-label={playCopy('newInTheFeed')}
                     onClick={jumpToFeed}
                   >
-                    {/* A phone's is its icon and dot: the pilot's name keeps its room (r6 A12). */}
-                    {wide ? (
-                      playCopy('newInTheFeed')
-                    ) : (
-                      <ScrollText size={tokens.iconSize.mini} aria-hidden="true" />
-                    )}
-                    {!wide && <span className="su-play-tab-dot" aria-hidden="true" />}
+                    {playCopy('newInTheFeed')}
                   </Button>
                 ) : undefined
               }
@@ -342,9 +336,12 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
                   channel={channel.row}
                   onScreen={onScreen}
                   // Below `lg`, On foot / Board / Table mode live here.
-                  situation={wide ? null : situationRows({ play, moves, tableOn, setTableOn })}
+                  situation={
+                    wide ? null : situationRows({ play, moves, tableOn, setTableOn, trial })
+                  }
                   // Units has no tab below `lg`: this row opens its pane.
                   onUnits={wide ? null : () => openTab('units')}
+                  onFeed={!wide && feedMark.shown ? jumpToFeed : null}
                 />
               }
             />
@@ -368,7 +365,8 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
         }
         panes={(wide
           ? [...playerPanes(solo), RULES_PANE]
-          : playerPhonePanes(solo, waiting ? 'tables' : null)
+          : // New in the Feed marks the Rolls tab too, its bar icon gone (r7 B7).
+            playerPhonePanes(solo, waiting || feedMark.shown ? 'tables' : null)
         ).map((p) => ({ ...p, node: nodes[p.value] }))}
         tabs={PLAYER_TABS}
         tab={tab}
@@ -420,6 +418,7 @@ function CockpitMenu({
   onScreen,
   situation,
   onUnits,
+  onFeed,
 }: {
   gameId: string | null
   gameName: string | null
@@ -429,6 +428,8 @@ function CockpitMenu({
   situation: HeaderMenuItem[] | null
   /** Opens the Units pane, where it has no tab. */
   onUnits: (() => void) | null
+  /** A phone's "New in the Feed" (r7 B7): a row here, not an icon on the bar. */
+  onFeed: (() => void) | null
 }) {
   const first = onScreen.sections[0]?.[0]
   const router = useRouter({ warn: false })
@@ -439,6 +440,7 @@ function CockpitMenu({
       label={playCopy('more')}
       trigger={null}
       sections={[
+        onFeed === null ? [] : [{ id: 'feed', label: playCopy('newInTheFeed'), onSelect: onFeed }],
         situation ?? [],
         onUnits === null ? [] : [{ id: 'units', label: playCopy('units'), onSelect: onUnits }],
         first === undefined

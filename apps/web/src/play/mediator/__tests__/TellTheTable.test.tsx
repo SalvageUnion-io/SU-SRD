@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { AlertLine } from '../../useGameFeed'
 import { TellTheTable } from '../TellTheTable'
 
@@ -36,7 +36,9 @@ async function renderTell({
   send = sender(),
   withdrawn = [],
   sent = [],
+  gameId,
 }: {
+  gameId?: string
   alerts?: AlertLine[]
   canWrite?: boolean
   send?: Sender
@@ -52,6 +54,7 @@ async function renderTell({
         onSend={send.onSend}
         onWithdraw={(id) => withdrawn.push(id)}
         onSent={() => sent.push(true)}
+        {...(gameId === undefined ? {} : { gameId })}
       />
     )
   })
@@ -183,5 +186,38 @@ describe('what was sent', () => {
     await renderTell({ alerts: [alert(1, 0)], canWrite: false })
     const button = screen.getByRole('button', { name: 'Withdraw: Alert 1' }) as HTMLButtonElement
     expect(button.disabled).toBe(true)
+  })
+})
+
+describe('an unsent draft (r7 C14)', () => {
+  test('survives a refresh in the tab, until it is sent', async () => {
+    sessionStorage.clear()
+    const first = await renderTell({ gameId: 'g-tell' })
+    await type(first.box, 'Hold the line')
+    cleanup()
+
+    // The screen again, as after a refresh: the draft is where it was left.
+    const again = await renderTell({ gameId: 'g-tell' })
+    expect(again.box.value).toBe('Hold the line')
+    await act(async () => {
+      fireEvent.click(again.button)
+    })
+    cleanup()
+
+    // Sent, nothing is kept.
+    const after = await renderTell({ gameId: 'g-tell' })
+    expect(after.box.value).toBe('')
+    cleanup()
+    // Another Game's box keeps its own.
+    const other = await renderTell({ gameId: 'g-other' })
+    expect(other.box.value).toBe('')
+  })
+
+  test('cleared by hand, nothing is kept either', async () => {
+    sessionStorage.clear()
+    const first = await renderTell({ gameId: 'g-tell' })
+    await type(first.box, 'Never mind')
+    await type(first.box, '')
+    expect(sessionStorage.getItem('su:tell-the-table:g-tell')).toBeNull()
   })
 })

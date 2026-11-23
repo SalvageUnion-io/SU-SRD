@@ -1,14 +1,18 @@
 /**
  * r4 A5 (SB4-09): at 0 SP nothing said a Critical Damage roll was due, and
  * the change was not on the Feed. A vital that reaches 0 writes a Feed line
- * and raises a toast whose button opens its table; any other change is quiet.
+ * and leads the table's strip with a button that rolls its table, until the
+ * roll lands (r7 A1, LG7-13: it was a toast that left on its own); off Play,
+ * a toast says it; any other change is quiet.
  */
 import { afterEach, describe, expect, test } from 'bun:test'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import type { ReactElement } from 'react'
 import { toast } from 'sonner'
 import type { PlayRoll } from '../playRolls.model'
 import { clearPlayRolls, onPlayRoll, recordPlayRoll } from '../playRolls.model'
+import { screenNoticesNow } from '../tableStripSlot.model'
 import {
   clearDownResults,
   downResult,
@@ -26,12 +30,12 @@ const pilot = {
 } as const
 
 const line = (id: string) => toast.getToasts().find((t) => t.id === id)
+/** The strip's notice for a Down unit, keyed as its toast was. */
+const onStrip = (id: string) => screenNoticesNow().find((n) => n.key === id)
 const press = (id: string) => {
-  const t = line(id)
-  const action = t && 'action' in t ? t.action : undefined
-  if (action && typeof action === 'object' && 'onClick' in action)
-    action.onClick({} as Parameters<typeof action.onClick>[0])
-  return action !== undefined
+  const button = onStrip(id)?.actions as ReactElement<{ onClick: () => void }> | undefined
+  button?.props.onClick()
+  return button !== undefined
 }
 
 describe('a vital at 0 says what happens next', () => {
@@ -48,7 +52,7 @@ describe('a vital at 0 says what happens next', () => {
     expect(zeroVitalTable(pilot, 'currentAP')).toBeNull()
   })
 
-  test('a Mech reaching 0 SP: a Feed line, and a toast whose button asks for Critical Damage', () => {
+  test('a Mech reaching 0 SP: a Feed line, and the strip leads with a button that asks for Critical Damage (r7 A1)', () => {
     const heard: PlayRoll[] = []
     const asked: string[] = []
     const stopRolls = onPlayRoll((roll) => heard.push(roll))
@@ -57,6 +61,9 @@ describe('a vital at 0 says what happens next', () => {
       zeroVitalNotice(mech, 'currentSP', 6, 0)
       expect(heard.map((r) => r.label)).toEqual(['Rig · SP 6→0 · roll on Critical Damage'])
       expect(heard[0]?.rolls).toEqual([])
+      // On the strip, never a toast that leaves on its own.
+      expect(line('zero:m-zero:currentSP')).toBeUndefined()
+      expect(onStrip('zero:m-zero:currentSP')).toMatchObject({ rank: 'down', dismissible: false })
       expect(press('zero:m-zero:currentSP')).toBe(true)
       expect(asked).toEqual(['Critical Damage'])
     } finally {
@@ -88,7 +95,7 @@ describe('a vital at 0 says what happens next', () => {
     }
   })
 
-  test('the result is shown once: the card names the row, and the toast goes (r6 A4)', () => {
+  test('the result is shown once: the card names the row, and the strip lets go (r6 A4, r7 A1)', () => {
     const stopAsked = onPlayTableAsked(() => undefined)
     try {
       zeroVitalNotice(mech, 'currentSP', 6, 0)
@@ -100,7 +107,7 @@ describe('a vital at 0 says what happens next', () => {
         outcome: 'Core Damage: the whole row’s text, which the table marks',
       })
       expect(downResult('m-zero')).toBe('Critical Damage · 19 · Core Damage')
-      expect(line('zero:m-zero:currentSP')).toBeUndefined()
+      expect(onStrip('zero:m-zero:currentSP')).toBeUndefined()
     } finally {
       stopAsked()
     }
@@ -124,10 +131,26 @@ describe('a vital at 0 says what happens next', () => {
     }
   })
 
-  test('with no Tables section listening the toast has no button', () => {
+  test('with no Tables section listening a toast says it, with no button', () => {
     zeroVitalNotice(mech, 'currentSP', 3, 0)
-    expect(line('zero:m-zero:currentSP')).toBeTruthy()
-    expect(press('zero:m-zero:currentSP')).toBe(false)
+    const said = line('zero:m-zero:currentSP')
+    expect(said).toBeTruthy()
+    expect(said && 'action' in said ? said.action : undefined).toBeUndefined()
+    expect(onStrip('zero:m-zero:currentSP')).toBeUndefined()
+  })
+
+  test('the strip lets go when the unit rises (r7 A1)', () => {
+    const stopAsked = onPlayTableAsked(() => undefined)
+    try {
+      zeroVitalNotice(pilot, 'currentHP', 2, 0)
+      expect(onStrip('zero:p-zero:currentHP')?.title).toBe(
+        'Hex is at 0 HP: roll on Critical Injury.'
+      )
+      zeroVitalNotice(pilot, 'currentHP', 0, 3)
+      expect(onStrip('zero:p-zero:currentHP')).toBeUndefined()
+    } finally {
+      stopAsked()
+    }
   })
 
   test('a change that does not end at 0, or began there, says nothing', () => {

@@ -1,9 +1,10 @@
 /**
- * The app's toast call: sonner's own, save that a toast with an action is held
- * to one rule (chrome K5; r5 C3). It stays `ACTION_TOAST_MS`, with a close of
- * its own, and at most `MOST_ACTION_TOASTS` stand at once: a newer one takes
- * the oldest down (Ctrl+Z and the Change Log still reach what its Undo did).
- * It holds while the pointer or the focus is on it (`SonnerToaster.tsx`).
+ * The app's toast call: sonner's own, held to one rule (chrome K5; r5 C3, r7
+ * A4). One toast stands at a time: a newer one replaces the older instead of
+ * stacking behind it (Ctrl+Z and the Change Log still reach what an older
+ * Undo did). One with an action stays `ACTION_TOAST_MS`, with a close of its
+ * own, and holds while the pointer or the focus is on it
+ * (`SonnerToaster.tsx`).
  *
  * The app imports it from the barrel; the reference islands never do
  * (`toastRoll` loads sonner when a roll lands), so sonner stays out of the
@@ -15,22 +16,18 @@ import { toast as sonner } from 'sonner'
 /** How long a toast with an action stays. */
 export const ACTION_TOAST_MS = 20_000
 
-/** How many toasts with an action stand at once. */
-export const MOST_ACTION_TOASTS = 3
+/** How many toasts stand at once (r7 A4): the newest. */
+export const MOST_ACTION_TOASTS = 1
 
 let serial = 0
 
-/** The options a toast is shown with: an action's are held to the rule. */
-function held(options: ExternalToast | undefined): ExternalToast | undefined {
-  if (!options?.action) return options
+/** The options a toast is shown with; every older toast leaves for it. */
+function held(options: ExternalToast | undefined): ExternalToast {
   serial += 1
-  const id = options.id ?? `act:${serial}`
-  // Sonner keeps them oldest first; one shown again under its id keeps its place.
-  const others = sonner
-    .getToasts()
-    .filter((each) => 'action' in each && each.action && each.id !== id)
-  for (const old of others.slice(0, Math.max(0, others.length - (MOST_ACTION_TOASTS - 1))))
-    sonner.dismiss(old.id)
+  const id = options?.id ?? `toast:${serial}`
+  // One shown again under its id keeps its place, and is replaced in place.
+  for (const old of sonner.getToasts()) if (old.id !== id) sonner.dismiss(old.id)
+  if (!options?.action) return { ...options, id }
   return { ...options, id, duration: ACTION_TOAST_MS, closeButton: true }
 }
 

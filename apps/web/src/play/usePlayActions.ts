@@ -31,7 +31,7 @@ import { useConfirm } from '../components/shared/useConfirm'
 import { buildCompanionActions, buildMechActions, buildPilotActions } from '../lib/rules/actionList'
 import { playCopy } from '../messages/play'
 import { useUnits } from '../replica/units'
-import type { ResolveModel } from './actionsDeck.model'
+import type { DeckRoll, ResolveModel } from './actionsDeck.model'
 import type { PlayStore } from './play.model'
 import type { ListEntry, TypeFilter } from './playActions.model'
 import { buildActionList, filterEntries, splitOnHand } from './playActions.model'
@@ -173,9 +173,15 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
   const resolving = play.seat.seat.resolving
   const resolvingName = useRef<string | null>(null)
   resolvingName.current = resolving?.name ?? null
-  const deckRoll: typeof rollForTable = async (tableName, options) =>
-    reportingRoll(await baseRoll(tableName, options), tableName, () =>
-      meta(resolvingName.current ?? tableName)
+  // A Push's Heat Check says itself (r7 A5): its own label and what it came to.
+  const deckRoll: DeckRoll = async (tableName, options) =>
+    reportingRoll(
+      await baseRoll(
+        tableName,
+        options?.plainD20s === undefined ? undefined : { plainD20s: options.plainD20s }
+      ),
+      tableName,
+      () => meta(options?.label ?? resolvingName.current ?? tableName, options?.outcome)
     )
 
   const heatScale = sceneHeatScale(play.scene.conditions)

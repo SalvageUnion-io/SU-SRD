@@ -7,8 +7,8 @@
  *  - **the area's name** on its chapter band in the area's tone, the legacy
  *    tagline quoted beside it (under it on a phone);
  *  - **the pitch** (`FrontPitch`): what the area is, the page's one rust
- *    action (sign in, back to this area) and one outline beside it, to the
- *    Starter crew;
+ *    action (sign in, back to this area) and outlines beside it: a round of
+ *    Play signed out on a Starter pilot, and on Build's door the Starter crew;
  *  - **the area's own steps** (`StartHere`, passed in): Build's onboarding
  *    path, Play's "At the table";
  *  - **the Starter Set** (`StarterSetCrew`): the pre-generated crew as one
@@ -44,7 +44,9 @@ const AREAS = {
     signInTo: '/',
     starterId: 'front-door-starter',
     starterNote: rosterCopy('starterNote'),
-    trial: null,
+    meetCrew: true,
+    // The trial is offered here too, beside the crew (r7 F4).
+    trial: STARTER_ROSTERS[0]?.pilots[0]?.id ?? null,
   },
   play: {
     name: PRODUCT.play,
@@ -56,6 +58,7 @@ const AREAS = {
     signInTo: '/games/',
     starterId: 'play-starter',
     starterNote: undefined,
+    meetCrew: false,
     // The outline is a round of Play signed out, on the first book pilot (r6 F1).
     trial: STARTER_ROSTERS[0]?.pilots[0]?.id ?? null,
   },
@@ -87,13 +90,14 @@ export function FrontDoor({ area, steps, lead }: FrontDoorProps) {
         actions={
           <>
             <SignInControl size="full" redirectTo={door.signInTo} />
-            {door.trial === null ? (
+            {door.trial !== null && (
+              <Button href={cockpitPath(door.trial)} variant="default" size="full">
+                {playTrialCopy('tryARound')}
+              </Button>
+            )}
+            {door.meetCrew && (
               <Button href={`#${door.starterId}`} variant="default" size="full">
                 {rosterCopy('meetTheStarterCrew')}
-              </Button>
-            ) : (
-              <Button href={appPath(cockpitPath(door.trial))} variant="default" size="full">
-                {playTrialCopy('tryARound')}
               </Button>
             )}
           </>

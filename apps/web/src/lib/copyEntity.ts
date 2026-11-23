@@ -73,7 +73,7 @@ export function copyName(name: string, taken: readonly string[] = []): string {
  * `name`, or numbered past the names `taken` ("Leaky Hauler 2"): a second
  * thing made under one name still reads apart from the first.
  */
-export function freeName(name: string, taken: readonly string[] = []): string {
+function freeName(name: string, taken: readonly string[] = []): string {
   if (!taken.includes(name)) return name
   let n = 2
   while (taken.includes(`${name} ${n}`)) n += 1

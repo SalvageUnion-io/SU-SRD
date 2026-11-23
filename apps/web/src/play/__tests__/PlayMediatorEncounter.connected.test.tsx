@@ -227,6 +227,23 @@ describe('groups on the tray', () => {
     expect(screen.getAllByText('Reaction 4 · Hostile').length).toBeGreaterThan(0)
   })
 
+  // r7 C7 (MD7-08): a group's roll reads once, under its header, never again on its members.
+  test('a group roll kept on every member reads once', async () => {
+    const rolled = {
+      table: 'morale',
+      roll: 14,
+      label: 'Keep Fighting',
+      value: 'The NPCs continue.',
+      rolledAt: STAMP,
+    }
+    await renderCockpit({
+      'mediator.npcs': TRAY.map((row) =>
+        'group' in row.body ? { ...row, body: { ...row.body, lastMediatorRoll: rolled } } : row
+      ),
+    })
+    expect(screen.getAllByText(/Keep Fighting/)).toHaveLength(1)
+  })
+
   test('a Mech at half its SP shows Morale due with Roll; Roll checks it', async () => {
     await renderCockpit()
     const mule = within(screen.getByRole('region', { name: 'Mech: Mule' }))
@@ -268,11 +285,25 @@ describe('waves', () => {
     await renderCockpit({ 'mediator.running': null })
     await click(named('Run an encounter'))
     const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
+    // r7 C6 (MD7-03): with no session live, running one says it starts it, ticked.
+    const tick = dialog.getByRole('checkbox', { name: 'Start the group session too' })
+    expect((tick as HTMLInputElement).checked).toBe(true)
     await click(dialog.getByRole('button', { name: 'Run Ambush' }))
-    expect(sent.find((s) => s.name === 'mediator.runEncounter')?.args).toMatchObject({
+    const args = sent.find((s) => s.name === 'mediator.runEncounter')?.args
+    expect(args).toMatchObject({
       encounter: { id: 'enc-1', name: 'Ambush' },
       clear: false,
       waves: true,
+    })
+    expect(args).not.toHaveProperty('startSession')
+    // A test run clears the tick and starts no session.
+    sent.length = 0
+    await click(named('Run an encounter'))
+    const again = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
+    await click(again.getByRole('checkbox', { name: 'Start the group session too' }))
+    await click(again.getByRole('button', { name: 'Run Ambush' }))
+    expect(sent.find((s) => s.name === 'mediator.runEncounter')?.args).toMatchObject({
+      startSession: false,
     })
     act(() => useEncounters.setState({ encounters: [] }))
   })

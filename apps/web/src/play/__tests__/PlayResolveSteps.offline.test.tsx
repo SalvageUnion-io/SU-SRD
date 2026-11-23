@@ -79,7 +79,7 @@ describe('offline, the resolve goes on (r6 A14)', () => {
       bandSummary: '',
       destructive: false,
     }
-    renderOffline(view({ roll }, { push: { disabled: false, pushed: false, onPush } }))
+    renderOffline(view({ roll }, { push: { disabled: false, pushed: false, heat: 2, onPush } }))
     expect(screen.queryByText(playCopy('notSentYet'))).toBeNull()
     const push = screen.getByTitle(playCopy('rollWaitsOffline')) as HTMLButtonElement
     expect(push.disabled).toBe(true)

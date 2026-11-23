@@ -33,3 +33,15 @@ export const RESULTS_PAGE = '/search/'
 export function resultsHref(query: string): string {
   return `${RESULTS_PAGE}?${new URLSearchParams({ [SEARCH_PARAM]: query })}`
 }
+
+/** The page content's anchor: the skip link's target, every reference page's `main`. */
+const CONTENT_ANCHOR = '#main-content'
+
+/**
+ * A result's page, opened at its content (RR7-09): the browser starts the
+ * next Tab inside the page, past its bar, navs and crumbs, with no script on
+ * the page. A page already opened on an anchor keeps it.
+ */
+export function atContent(href: string): string {
+  return href.includes('#') ? href : `${href}${CONTENT_ANCHOR}`
+}

@@ -11,13 +11,17 @@
  * Value in Scrap of its Tech Level.
  *
  * The haul goes where the Mediator says (r5 B2): the crawler's hold and pool,
- * or a crew Mech's hold, as a proposal its player accepts. With no crawler in
+ * or a crew Mech's hold, as a proposal its player accepts. Under the crew's
+ * ruling (`WRECK_SALVAGE`, r7 D8) a pick of parts is the Mediator's offer:
+ * to the crawler it is a proposal any member of the crew accepts, changes to
+ * another part the roll allows, or declines; to a Mech, its holder does. With no crawler in
  * the Game the card says so and still offers the Mechs. What was taken, and
  * where, is written on the wreck's Feed line. Taking anything, or settling a
  * wreck with nothing to take, claims it once (`salvaged`): what was left of
  * it is destroyed (`wreckOf`, `wreckSalvageOutcome`).
  */
 
+import type { SalvageOffer } from 'game-domain/games/proposals'
 import type { Wreck, WreckPart } from 'game-domain/rules/wreck'
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
@@ -41,6 +45,8 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollInstrument } from '../PlayRollInstrument'
 import { recordPlayRoll, reportingRoll } from '../playRolls.model'
 import type { TrayNpc } from './opposition.model'
+import { veiledReason } from './proposalLine.model'
+import { WRECK_SALVAGE } from './salvageRuling.model'
 import type { PlayMediator, WreckHaul } from './usePlayMediator'
 import { NOTHING } from './usePlayMediator'
 
@@ -97,15 +103,25 @@ export function PlayWreckSalvage({
   const mech = mechs.find((m) => m.id === to) ?? null
   const toCrawler = mech === null
   const where = mech?.label ?? mediatorCopy('wreckTheCrawler')
+  // The crew picks a wreck's part (r7 D8): the Mediator's pick is an offer.
+  const crewPicks = WRECK_SALVAGE === 'crew'
   const canHaul = toCrawler ? hasCrawler : true
   const live = canWrite && !busy
   const slot = `wreck:${npc.id}`
   const label = `${npc.name} · ${MECH_SALVAGE}`
 
   /** The wreck's Feed line, now saying what it yielded and where it went. */
-  const tell = (taken: readonly string[]) => {
+  const tell = (taken: readonly string[], offered = false) => {
     const said = taken.length === 0 ? mediatorCopy('wreckTookNothing') : taken.join(', ')
-    const took = taken.length === 0 ? said : mediatorCopy('wreckTook', { what: said, to: where })
+    const took =
+      taken.length === 0
+        ? said
+        : offered
+          ? mediatorCopy('wreckOffered', {
+              what: said,
+              to: toCrawler ? mediatorCopy('wreckTheCrew') : where,
+            })
+          : mediatorCopy('wreckTook', { what: said, to: where })
     recordPlayRoll({
       tableName: MECH_SALVAGE,
       rolls: die === null ? [] : [die],
@@ -119,15 +135,21 @@ export function PlayWreckSalvage({
   const settle = (
     crawlerHaul: Parameters<PlayMediator['salvageWreck']>[1],
     mechLots: () => { lots: CargoLot[] },
-    taken: readonly string[]
+    taken: readonly string[],
+    offer?: SalvageOffer
   ) => {
     let haul: WreckHaul = crawlerHaul
+    // Veiled, as its roll: the table, never the wreck (r7 C7).
+    const reason = veiledReason(MECH_SALVAGE)
+    const offered = crewPicks && offer !== undefined && crawlerHaul !== NOTHING
     if (!toCrawler && crawlerHaul !== NOTHING && mech !== null) {
-      haul = { mechId: mech.id, lots: mechLots().lots, reason: label }
+      haul = { mechId: mech.id, lots: mechLots().lots, reason, ...(offered ? { offer } : {}) }
+    } else if (offered) {
+      haul = { mechId: null, lots: mechLots().lots, reason, offer }
     }
     setBusy(true)
     void onSettle(npc, haul)
-      .then(() => tell(crawlerHaul === NOTHING ? [] : taken))
+      .then(() => tell(crawlerHaul === NOTHING ? [] : taken, offered))
       .catch(() => undefined)
       .finally(() => setBusy(false))
   }
@@ -296,11 +318,14 @@ export function PlayWreckSalvage({
                 settle(
                   (crawler) => wreckSalvageOutcome(crawler, parts, band, picked).patch,
                   () => wreckHaulLots(parts, band, picked),
-                  pickedNames
+                  pickedNames,
+                  { band, parts: parts.filter(takeable), picked: [...picked] }
                 )
               }
             >
-              {mediatorCopy('wreckTake', { to: where })}
+              {crewPicks && toCrawler
+                ? mediatorCopy('wreckOffer')
+                : mediatorCopy('wreckTake', { to: where })}
             </Button>
             <Button
               variant="ghost"

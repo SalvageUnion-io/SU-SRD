@@ -26,6 +26,21 @@ const SET_PUBLIC = z.object({
   isPublic: z.boolean(),
 })
 
+/** What a wreck's salvage proposal offers the crew (r7 D8): its band, parts and pick. */
+const SALVAGE_OFFER = z.object({
+  band: z.enum(['ashes', 'nuts', 'bits', 'meat', 'lions']),
+  parts: z.array(
+    z.object({
+      key: z.string(),
+      kind: z.enum(['chassis', 'system', 'module']),
+      name: z.string(),
+      techLevel: z.number().optional(),
+      salvageValue: z.number(),
+    })
+  ),
+  picked: z.array(z.string()),
+})
+
 /** A unit made, or deleted, in the room it lives in; its body is the kind's schema's to check. */
 const CREATE_UNIT = z.object({ id: z.string(), kind: z.enum(ENTITY_KINDS), body: z.unknown() })
 const REMOVE_UNIT = z.object({ unitId: z.string() })
@@ -107,6 +122,8 @@ export const GAME_SOCKET_ACTS = {
     encounter: z.unknown(),
     clear: z.boolean(),
     waves: z.boolean().optional(),
+    /** False: a test run, with no group session started for it (r7 C6). */
+    startSession: z.boolean().optional(),
   }),
   'mediator.bringInWave': z.object({ wave: z.number().int() }),
   'mediator.endEncounter': z.object({ clear: z.boolean().optional() }).optional(),
@@ -130,8 +147,9 @@ export const GAME_SOCKET_ACTS = {
     field: z.string(),
     after: z.unknown(),
     reason: z.string().optional(),
+    offer: SALVAGE_OFFER.optional(),
   }),
-  'ops.accept': z.object({ opId: z.string() }),
+  'ops.accept': z.object({ opId: z.string(), picked: z.array(z.string()).optional() }),
   'ops.decline': z.object({ opId: z.string() }),
   'ops.withdraw': z.object({ opId: z.string() }),
   'changeLog.appendChangeLog': z.object({

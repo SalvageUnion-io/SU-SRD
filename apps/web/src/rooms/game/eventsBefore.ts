@@ -32,7 +32,7 @@ export type EventsBefore = {
   /** Whether an area with Supply left stood to salvage: setting another says nothing new (r6 D3). */
   area?: boolean
   /** The resolves nobody applied that the act may close (r5 A7). */
-  unapplied?: { pilotId: string; name: string }[]
+  unapplied?: { pilotId: string; name: string; owes: boolean }[]
 }
 
 /** What `after` needs from before the act ran. */
@@ -128,21 +128,35 @@ function upNowOf(store: GameStore): string | null {
   return (JSON.parse(row.after) as { pilotId?: string | null }).pilotId ?? null
 }
 
-/** The resolves nobody applied on these pilots' seats, or every seat's with null (r5 A7). */
+/**
+ * The resolves nobody applied on these pilots' seats, or every seat's with
+ * null (r5 A7). `owes` is whether it had anything to apply (r7 A5): a Cascade
+ * Failure's roll, or an Area Salvage's find; any other roll writes nothing,
+ * and one never rolled has no result.
+ */
 export function unappliedOf(
   store: GameStore,
   pilotIds: readonly string[] | null
-): { pilotId: string; name: string }[] {
+): { pilotId: string; name: string; owes: boolean }[] {
   return store
     .rows('select pilot_id, resolving from seats where resolving is not null')
     .map((row) => ({
       pilotId: String(row.pilot_id),
-      resolving: JSON.parse(String(row.resolving)) as { name?: string; applied?: boolean },
+      resolving: JSON.parse(String(row.resolving)) as {
+        name?: string
+        applied?: boolean
+        roll?: { band?: string }
+        salvage?: unknown
+      },
     }))
     .filter(
       (s) => (pilotIds === null || pilotIds.includes(s.pilotId)) && s.resolving.applied !== true
     )
-    .map((s) => ({ pilotId: s.pilotId, name: s.resolving.name ?? '' }))
+    .map((s) => ({
+      pilotId: s.pilotId,
+      name: s.resolving.name ?? '',
+      owes: s.resolving.salvage != null || s.resolving.roll?.band === 'cascade',
+    }))
 }
 
 /** The step the Game's Downtime stands on, or null when none runs. */

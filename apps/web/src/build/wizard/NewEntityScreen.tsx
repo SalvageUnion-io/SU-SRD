@@ -99,7 +99,6 @@ export function NewEntityScreen({
       ? null
       : {
           kind,
-          signedOut: showsSignedOutView(connection.status),
           forLine: forLine({ forPilot, forMech, forCrew }),
           onStart: onModeChange,
           onDiscard: () => {

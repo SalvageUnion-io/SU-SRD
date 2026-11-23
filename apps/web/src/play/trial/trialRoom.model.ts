@@ -92,23 +92,7 @@ let seat: SoloSeatRead | null = null
  * leaving Play and coming back in this tab picks the round up again, as its
  * Feed does. A reload forgets it.
  */
-const left = new Map<string, { units: (Pilot | Mech)[]; seat: SoloSeatRead; changed: boolean }>()
-let changed = false
-const listeners = new Set<() => void>()
-
-/** Whether the trial has taken a change yet: "Sign in to keep this" waits for the first. */
-export const trialChanged = (): boolean => changed
-
-export function subscribeTrial(listener: () => void): () => void {
-  listeners.add(listener)
-  return () => listeners.delete(listener)
-}
-
-function noteChange(): void {
-  if (changed) return
-  changed = true
-  for (const listener of [...listeners]) listener()
-}
+const left = new Map<string, { units: (Pilot | Mech)[]; seat: SoloSeatRead }>()
 
 function act(name: string, args: unknown): Promise<unknown> {
   const change = SEAT_ACTS[name]
@@ -121,7 +105,6 @@ function act(name: string, args: unknown): Promise<unknown> {
     table: 'seats',
     record: { appId: seat.pilotId, body: { ...seat }, updatedAt: seat.updatedAt ?? 0 },
   })
-  noteChange()
   return Promise.resolve(undefined)
 }
 
@@ -130,14 +113,9 @@ export function openTrial(crew: TrialCrew): () => void {
   const kept = left.get(crew.pilot.id)
   const played = (unit: Pilot | Mech) => kept?.units.find((u) => u.id === unit.id) ?? unit
   seat = kept?.seat ?? seatOf(crew.pilot.id)
-  // A round reopened untouched (leaving and coming back, or React's dev double effect) is still untouched.
-  changed = kept?.changed ?? false
   setTrialWrites(true)
   holdTabRoom({
-    submit: (ops) => {
-      noteChange()
-      return Promise.resolve(ops.map((op) => op.id))
-    },
+    submit: (ops) => Promise.resolve(ops.map((op) => op.id)),
     act,
   })
   // Held beside whatever the account scope holds, never in its place: no
@@ -165,7 +143,7 @@ export function openTrial(crew: TrialCrew): () => void {
     const now = [...view.pilots, ...view.mechs].filter(
       (u) => u.id === crew.pilot.id || crew.mechs.some((m) => m.id === u.id)
     )
-    if (seat !== null) left.set(crew.pilot.id, { units: now, seat, changed })
+    if (seat !== null) left.set(crew.pilot.id, { units: now, seat })
     for (const l of crew.links) release('account', 'softLink', l.id)
     for (const m of crew.mechs) release('account', 'mech', m.id)
     release('account', 'pilot', crew.pilot.id)

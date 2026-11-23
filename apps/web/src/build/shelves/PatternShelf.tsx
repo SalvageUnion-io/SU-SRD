@@ -1,8 +1,8 @@
 /**
  * The Patterns shelf: the Training Bay's panel, and the Patterns page whole.
  * Each line says what tells two patterns of one name apart (its chassis, who
- * sees it, Tech Level, slots filled, Scrap, when it was saved, its description's
- * first line), and any column
+ * sees it, Tech Level, slots filled, Scrap, how many Mechs use it, when it
+ * was saved, its description's first line), and any column
  * sorts it (r4 E13). A narrow panel spares all but its chassis and Systems.
  */
 import type { MechPattern } from 'game-domain/schemas/pattern'
@@ -12,6 +12,7 @@ import type { HeaderMenuItem, LedgerSort } from '../../components/index'
 import { savedPatternHref } from '../../lib/patterns/patterns'
 import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import { buildShelvesCopy } from '../../messages/build-shelves'
+import { useUnits } from '../../replica/units'
 import { useHeldDeletes } from './heldDeletes.model'
 import { nextSort, sortShelfRows } from './mechShelf.model'
 import { patternLine } from './patternShelf.model'
@@ -52,8 +53,14 @@ export function PatternShelf({
   const held = useHeldDeletes((s) => s.held)
   const kept = patterns.filter((p) => !held.has(p.id))
   const find = useShelfFind(buildShelvesCopy('findAPattern'), kept.length)
+  // Its Used by: how many of the account's Mechs were built from it (r7 G2).
+  const mechs = useUnits((s) => s.mechs)
   const rows = kept
-    .map((pattern) => ({ pattern, name: pattern.name, ...patternLine(pattern, sharing, games) }))
+    .map((pattern) => ({
+      pattern,
+      name: pattern.name,
+      ...patternLine(pattern, sharing, games, mechs),
+    }))
     // Its find box keeps the lines whose name, chassis or description match (r5 D4).
     .filter((row) => findMatches(find.query, [row.name, row.values.chassis, row.pattern.notes]))
   const sorted = sortShelfRows(rows, sort, (row, key) =>

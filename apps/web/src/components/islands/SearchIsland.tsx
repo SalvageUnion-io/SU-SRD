@@ -19,7 +19,13 @@ import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { aboveFloor, searchCompactIndex } from '../../lib/searchCompactIndex'
-import { RESULTS_PAGE, resultsHref, SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
+import {
+  atContent,
+  RESULTS_PAGE,
+  resultsHref,
+  SEARCH_PAGE,
+  searchQuery,
+} from '../../lib/searchHref'
 import { isSearchShortcut } from '../../lib/searchShortcut'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
@@ -103,7 +109,8 @@ function resultUrl(result: SearchComboboxResult): string {
   if (result.kind === 'schema') return schemaHref(result.schemaId)
   // "Show more" opens nothing: the combobox lengthens its list (`submit`).
   if (result.kind === 'more') return ''
-  return result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity))
+  // Opened at its content: the next Tab is the page's own (RR7-09).
+  return atContent(result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity)))
 }
 
 export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = {}) {
@@ -131,9 +138,6 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const [quiet, setQuiet] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  // What had the focus before the field took it (the shortcut, a Tab): Escape
-  // gives it back, so a keyboard reader goes on from where they were.
-  const fromRef = useRef<HTMLElement | null>(null)
 
   const doNavigate = useCallback(
     (url: string) => {
@@ -191,13 +195,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       // Escape ends the lookup: the list closes and the field empties, so the
-      // next one starts clean.
+      // next one starts clean, and the focus stays in it to type it (RR7-08).
       if (e.key === 'Escape' && (isOpen || query)) {
         clear()
-        const from = fromRef.current
-        fromRef.current = null
-        if (from?.isConnected) from.focus()
-        else inputRef.current?.blur()
         return
       }
       if (!isOpen) return
@@ -246,9 +246,6 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (!isSearchShortcut(e)) return
       e.preventDefault()
-      const active = document.activeElement
-      if (active instanceof HTMLElement && active !== inputRef.current && active !== document.body)
-        fromRef.current = active
       inputRef.current?.focus()
       inputRef.current?.select()
     }
@@ -280,13 +277,10 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       value={query}
       onChange={(e) => onInput(e.target.value)}
       onKeyDown={onKeyDown}
-      onFocus={(e) => {
+      onFocus={() => {
         load()
         setDismissedResults(null)
         setQuiet(false)
-        const from = e.relatedTarget
-        if (from instanceof HTMLElement && !containerRef.current?.contains(from))
-          fromRef.current = from
       }}
       // The bar's width is the Union bar's (The app's trigger shares it), a class
       // so the mobile sheet can widen it.

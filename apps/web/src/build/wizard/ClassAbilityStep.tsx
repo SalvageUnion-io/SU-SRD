@@ -1,4 +1,4 @@
-import type { BookCite, RefAbility, RefClass } from 'salvageunion-reference'
+import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
 import { EmptyState, ReferenceEntityCard } from '../../components/index'
@@ -6,7 +6,7 @@ import { buildWizardCopy } from '../../messages/build-wizard'
 import type { SelectableBaseClass } from './classOptions.model'
 import { selectableClasses } from './classOptions.model'
 import { PickList } from './PickList'
-import { abilityColumns } from './pickColumns'
+import { abilityColumns, modelOf } from './pickColumns'
 import type { PickColumn } from './pickLedger.model'
 import { SkipToNext } from './SkipToNext'
 import { FIRST_ABILITY_ID } from './wizPrompt.model'
@@ -45,8 +45,6 @@ type ClassAbilityStepProps = {
   onSelectClass: (classId: string) => void
   /** Radio semantics — the pick REPLACES the current ability. Emits its slug. */
   onSelectAbility: (slug: string) => void
-  /** Where the book prints the step's rule, on the lists' feet. */
-  cite: BookCite | undefined
   /** Injectable SUR for testing. */
   _sur?: { Classes: SURClassesAccessor; Abilities: SURAbilitiesAccessor }
 }
@@ -61,14 +59,14 @@ type ClassAbilityStepProps = {
  * its line on a phone) as its own: its rules only, no lead and no flavour. An
  * option an ability asks (Bionic Senses' optics) is made on the pilot's
  * sheet: a pilot keeps no choice of an ability's yet, so the step asks none.
- * Only LEGAL abilities render (`legalCreationAbilities`).
+ * Only LEGAL abilities render (`legalCreationAbilities`). The book's page is
+ * printed once, in the step's rule box (r7 F5), never again on the lists.
  */
 export function ClassAbilityStep({
   classId,
   selectedAbilities,
   onSelectClass,
   onSelectAbility,
-  cite,
   _sur,
 }: ClassAbilityStepProps) {
   const surClasses: SURClassesAccessor = _sur?.Classes ?? SalvageUnionReference.Classes
@@ -111,7 +109,6 @@ export function ClassAbilityStep({
             columns={CLASS_COLUMNS}
             selected={classId || undefined}
             onSelect={onSelectClass}
-            {...(cite ? { foot: { cite } } : {})}
           />
         </div>
         {selectedClass !== undefined && (
@@ -123,20 +120,14 @@ export function ClassAbilityStep({
               rowKey={getEntitySlug}
               rowName={(a) => a.name}
               columns={ABILITY_COLUMNS}
+              // The phone drops "What it does": its words stand under the name (r7 F6).
+              phoneUnder={(a) => modelOf(a).lead}
               selected={pickedAbility ? getEntitySlug(pickedAbility) : undefined}
               onSelect={onSelectAbility}
               detail={abilityCard}
-              {...(cite
-                ? {
-                    foot: {
-                      cite: { source: cite.source, page: cite.page },
-                      meta: {
-                        label: selectedClass.name,
-                        value: buildWizardCopy('level1OfItsCore'),
-                      },
-                    },
-                  }
-                : {})}
+              foot={{
+                meta: { label: selectedClass.name, value: buildWizardCopy('level1OfItsCore') },
+              }}
             />
             {legalPool.length === 0 && (
               <EmptyState

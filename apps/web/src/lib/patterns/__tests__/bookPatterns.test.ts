@@ -30,7 +30,7 @@ describe('book patterns', () => {
   test('the mech is the pattern as printed: its name, chassis and every copy', () => {
     const { chassis, pattern } = must(bookPattern('mule', 'crusher'))
     const mech = mechFromBookPattern(chassis, pattern)
-    expect(mech.name).toBe('Crusher')
+    expect(mech.name).toBe('Crusher 1')
     expect(mech.chassisRef).toBe('mule')
     expect(mech.systems).toEqual(
       pattern.systems.flatMap((s) => new Array<string>(s.count ?? 1).fill(nameToSlug(s.name)))

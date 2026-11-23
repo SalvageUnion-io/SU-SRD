@@ -6,6 +6,7 @@
  * play.md §12).
  */
 
+import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import { mechMaxHeat, resolveChassisRef, resolveGauge } from 'salvageunion-reference/rules'
 import { playCopy } from '../messages/play'
 import { actionUsesLeft } from './deckActivation.model'
@@ -58,9 +59,15 @@ export function PlayActionEntry({
         entry.source === 'mech' &&
         mech !== null &&
         isDown((actions.store.get('mech', mech.id) ?? mech).currentSP)
+      // A Shut down Mech's own actions need the power it has not (r7 B2).
+      const mechShut =
+        entry.source === 'mech' &&
+        mech !== null &&
+        mechHasCondition(actions.store.get('mech', mech.id) ?? mech, 'Shutdown')
       return (
         <PlayActionRow
           entry={entry}
+          unpowered={mechShut ? playCopy('shutDown') : null}
           resolve={open && resolve.kind === 'resolve' ? resolve : null}
           done={actions.doneKey === entry.key}
           doneSays={actions.doneSays}

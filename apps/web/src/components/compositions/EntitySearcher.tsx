@@ -47,10 +47,9 @@
  */
 
 import { X } from 'lucide-react'
-import type { CSSProperties } from 'react'
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { iconSize, space } from '../../design/tokens'
+import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
@@ -74,6 +73,7 @@ import { SearcherToolbar } from './EntitySearcherFilters'
 import { FocusPane } from './EntitySearcherFocus'
 import { SelectionRail, SelectionStatus } from './EntitySearcherRail'
 import { RowAdd, RowFacts } from './EntitySearcherRow'
+import { EntitySearcherSection } from './EntitySearcherSection'
 import {
   BODY_STYLE,
   HOSTED_STYLE,
@@ -90,12 +90,6 @@ import type { EntityLike, EntitySearcherProps, PoolEntity } from './entitySearch
 import { NO_RESULTS } from './searchCopy'
 import { namedBy } from './searcherFacts'
 import { aboveTechLevel, TECH_LEVEL_ROW, useSearcherPool } from './useSearcherPool'
-
-/** The "In other Tech Levels" head: the summary line's caps, set off the list above. */
-const OUTSIDE_HEAD_STYLE = {
-  ...SUMMARY_STYLE,
-  margin: `${space[12]} 0 ${space[6]}`,
-} satisfies CSSProperties
 
 /** The default `idOf`: module-level, so it is one function across renders. */
 const nameOf = (item: EntityLike) => item.name
@@ -260,6 +254,8 @@ export function EntitySearcher({
     const price = cost?.(item)
     if (price?.canPay) price.onPay()
     else add(idOf(item))
+    // The Page beside the list shows what was just added (r7 G6).
+    if (wide && !browse) setFocusId(idOf(item))
   }
   function addFirstMatch() {
     // The highlighted row; else, typed, the first row the search NAMES (r4 E5:
@@ -372,7 +368,10 @@ export function EntitySearcher({
       </div>
     )
   }
-  const tokens = visible.map(tokenOf)
+  // What the pick does not meet yet comes last, under its own head (r7 D5).
+  const later = browse ? undefined : facets?.later
+  const split = later ? visible.findIndex(later.of) : -1
+  const tokens = (split === -1 ? visible : visible.slice(0, split)).map(tokenOf)
 
   const browser = (
     <div ref={listRef} className="su-searcher__browser" hidden={takeover}>
@@ -410,17 +409,15 @@ export function EntitySearcher({
         )}
         {/* What the search names in a Tech Level that is switched off (r4 E5):
             listed, tagged, and reachable by the arrow keys and Enter. */}
+        {later && split !== -1 && (
+          <EntitySearcherSection label={later.label}>
+            {visible.slice(split).map(tokenOf)}
+          </EntitySearcherSection>
+        )}
         {!browse && outside.length > 0 && (
-          <section aria-label={compositionsCopy('inOtherTechLevels')}>
-            <p className={SUMMARY_CAPS} style={OUTSIDE_HEAD_STYLE}>
-              {compositionsCopy('inOtherTechLevels')}
-            </p>
-            <InsidePeekContext.Provider value>
-              <PeekOffContext.Provider value>
-                <div className="su-searcher__list">{outside.map(tokenOf)}</div>
-              </PeekOffContext.Provider>
-            </InsidePeekContext.Provider>
-          </section>
+          <EntitySearcherSection label={compositionsCopy('inOtherTechLevels')}>
+            {outside.map(tokenOf)}
+          </EntitySearcherSection>
         )}
       </div>
     </div>
@@ -480,6 +477,8 @@ export function EntitySearcher({
         mode={focusMode}
         onToggle={onToggle}
         onRemove={onRemove}
+        // After a Remove, typing goes to the search again, never to the next ✕ (r7 G6).
+        refocus={wide ? () => searchRef.current : undefined}
         onFocus={open}
         actions={actions}
       />

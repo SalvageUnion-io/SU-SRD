@@ -82,6 +82,7 @@ import { useUnits } from '../replica/units'
 import type { ActionsDeck, ActionsDeckProps, ResolveModel } from './actionsDeck.model'
 import { areaSalvageRowText, haulFeedText, haulText, isExpertSalvager } from './areaSalvage.model'
 import { actionUsesLeft, companionNow, payActivation } from './deckActivation.model'
+import { heatCheckSays } from './feed.model'
 import type { PlayStore } from './play.model'
 import { recordPlayRoll } from './playRolls.model'
 import { confirmMeltdown, pushMech } from './reactorWrites.model'
@@ -224,13 +225,19 @@ export function useActionsDeck({
     if (!mech) return
     // The Heat Check's own d20 is plain; an overload rolls on Reactor Overload,
     // or a Bio-Chassis's own table (We Were Here First p.79).
-    const overloadTable = overloadTableName(overloadTableOf(resolveChassisRef(mech.chassisRef)))
-    const heatRoll = await rollFor(overloadTable, { plainD20s: 1 })
+    const table = overloadTableOf(resolveChassisRef(mech.chassisRef))
+    // Its own Feed line, passed or failed, never a second roll of the action (r7 A5).
+    let said: string | undefined
+    const heatRoll = await rollFor(overloadTableName(table), {
+      plainD20s: 1,
+      label: playCopy('heatCheck'),
+      outcome: () => said,
+    })
     const coreRoll = await rollFor(CORE_MECHANIC_TABLE)
     // Core Book p.234: no Push that would take Heat past the cap. The control
     // is disabled for it; this holds the line against a stale render too.
     // The readout, a Meltdown and the reroll follow only a Push that landed.
-    pushMech(
+    const pushed = pushMech(
       { store: s, mech, pilot: pilot ?? null, crawler: crawler ?? null, roll: heatRoll, heatScale },
       (pushed) => {
         setPushLog(pushed.text)
@@ -239,6 +246,7 @@ export function useActionsDeck({
         step(current, { roll: performCoreRoll(coreRoll), applied: false })
       }
     )
+    said = pushed === null ? undefined : heatCheckSays(pushed.effect, table)
   }
 
   /**
@@ -475,6 +483,7 @@ export function useActionsDeck({
             : {
                 disabled: roll === null || pushed || pushLocked,
                 pushed,
+                heat: pushHeat,
                 lockedReason: pushLocked
                   ? playCopy('noPushAtHeatWouldPass', {
                       heat: heatCtx.currentHeat,

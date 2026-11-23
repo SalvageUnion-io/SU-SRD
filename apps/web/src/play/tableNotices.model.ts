@@ -83,6 +83,20 @@ export function stripLine(event: TableEvent, downWord: (unit: string) => string)
 }
 
 /**
+ * Whether what `event` reports is over (r7 A1): the strip holds the newest
+ * thing that still matters. Any news ends when a group session starts or
+ * ends or Downtime moves after it; a turn's news and a Mediator's roll (an
+ * initiative roll) end when the turn moves on.
+ */
+export function newsOver(event: TableEvent, events: readonly TableEvent[]): boolean {
+  const ends = (later: TableEvent) =>
+    later.session !== undefined ||
+    later.kind === 'downtime' ||
+    (later.kind === 'turn' && (event.kind === 'turn' || event.kind === 'roll'))
+  return events.some((later) => later.ts > event.ts && later._id !== event._id && ends(later))
+}
+
+/**
  * The events the strip tells now (r6 A3), oldest first, and what has been
  * heard after them.
  *
@@ -230,8 +244,9 @@ export function pinnedRole(
  * newest session event is its end, and recent. Read off the events, so a
  * screen opened just after the end says so too. Never for whoever ended it
  * (r2 C5): it is about something they did. Never for someone who joined
- * after it ended, who was not there for it, and never on a later day than
- * it ended (r4 B5): it does not outstay the night.
+ * after it ended, who was not there for it, never on a later day than it
+ * ended (r4 B5): it does not outstay the night, and never once Downtime
+ * began (r7 A1).
  */
 export function endedSession(
   events: readonly TableEvent[],
@@ -241,6 +256,8 @@ export function endedSession(
   const last = events.filter((event) => event.session !== undefined).sort((a, b) => b.ts - a.ts)[0]
   if (last === undefined || last.session !== 'end') return null
   if (viewerId !== null && last.actorId === viewerId) return null
+  // Downtime began since: the end is over too (r7 A1).
+  if (events.some((event) => event.kind === 'downtime' && event.ts > last.ts)) return null
   if (joinedAt(events, viewerId) > last.ts || !sameDay(last.ts, now)) return null
   return now - last.ts < ALERT_PINNED_MS ? last.ts : null
 }
@@ -277,50 +294,53 @@ export function gameOfPage(
 }
 
 /**
- * One pinned notice as the strip stacks it (r3 H1, r6 A1). `stop` is the Stop
- * Sign, which leads everything; `answer` one waiting on the viewer (a
- * proposal), `turn` whose turn it is; neither can be dismissed. `alert` is the
- * Mediator's word to the table, `news` everything else, `quiet` the strip's
- * own line while a session is live and nothing else is said: never counted.
+ * One pinned notice as the strip stacks it (r3 H1, r6 A1, r7 A1). `stop` is
+ * the Stop Sign, which leads everything; `role` the viewer's new Mediator
+ * role, which leads the rest; `down` the viewer's own unit Down, its Critical
+ * roll to make; `answer` one waiting on the viewer (a proposal), `turn` whose
+ * turn it is. `alert` is the Mediator's word to the table, `news` everything
+ * else.
  */
 export type StackedNotice = {
   key: string
-  rank: 'stop' | 'answer' | 'alert' | 'turn' | 'news' | 'quiet'
+  rank: 'stop' | 'role' | 'down' | 'answer' | 'alert' | 'turn' | 'news'
   /** When it became news: the newest leads. */
   ts: number
   /** Whether Dismiss, and so Dismiss all, clears it. */
   dismissible: boolean
 }
 
-/** What leads whatever its time: the Stop Sign, then what waits on the viewer's answer. */
-const FIRST = { stop: 0, answer: 1 } as const
+/** What leads whatever its time (r7 A1): the Stop Sign, "You now mediate", my Down, then what waits on my answer. */
+const FIRST: Partial<Record<StackedNotice['rank'], number>> = {
+  stop: 0,
+  role: 1,
+  down: 2,
+  answer: 3,
+}
 
-const lead = (notice: StackedNotice): number =>
-  notice.rank === 'stop' || notice.rank === 'answer' ? FIRST[notice.rank] : 2
+const lead = (notice: StackedNotice): number => FIRST[notice.rank] ?? 4
 
 /**
- * The notices in the order the strip shows them (r6 A1): the Stop Sign, then
- * what waits on the viewer's answer, so Accept is never behind anything, then
- * the rest newest first, the Mediator's alert and the turn among them. The
- * quiet line is never one of them.
+ * The notices in the order the strip shows them (r6 A1, r7 A1): the Stop
+ * Sign, "You now mediate", the viewer's own unit Down, then what waits on
+ * their answer, so Accept is never behind anything, then the rest newest
+ * first, the Mediator's alert and the turn among them.
  */
 export function stackNotices<N extends StackedNotice>(notices: readonly N[]): N[] {
-  return notices
-    .filter((notice) => notice.rank !== 'quiet')
-    .sort((a, b) => lead(a) - lead(b) || b.ts - a.ts)
+  return [...notices].sort((a, b) => lead(a) - lead(b) || b.ts - a.ts)
 }
 
 /**
  * What the one strip shows (r6 A1): the first notice, and the rest behind its
- * "N more"; with none, the quiet line, when there is one. Under the strip's
- * ruling `lines` (`stripRuling.model.ts`) every notice is a line of its own instead,
- * and `rest` is empty.
+ * "N more"; with none, nothing, and the strip takes no room (r7 A2). Under the
+ * strip's ruling `lines` (`stripRuling.model.ts`) every notice is a line of
+ * its own instead, and `rest` is empty.
  */
 export function shownNotices<N extends StackedNotice>(
   notices: readonly N[]
 ): { top: N | null; rest: N[] } {
   const [top = null, ...rest] = stackNotices(notices)
-  return { top: top ?? notices.find((notice) => notice.rank === 'quiet') ?? null, rest }
+  return { top, rest }
 }
 
 /**
@@ -332,6 +352,21 @@ export function myTurn<P extends { id: string }>(
   pilots: readonly P[]
 ): P | null {
   return upNow === undefined ? null : (pilots.find((pilot) => pilot.id === upNow) ?? null)
+}
+
+/**
+ * Whom the turn passes to when the pilot who is up has gone Away (r7 A3):
+ * the next of the Game's pilots, in their order, whose player is here; null,
+ * nobody up, when none is. `pilots` are the Game's, each with its player.
+ */
+export function passTurnTo(
+  pilots: readonly { id: string; holder: string | null | undefined }[],
+  upNow: string,
+  here: ReadonlySet<string>
+): string | null {
+  const at = pilots.findIndex((pilot) => pilot.id === upNow)
+  const after = [...pilots.slice(at + 1), ...pilots.slice(0, Math.max(0, at))]
+  return after.find((pilot) => pilot.holder != null && here.has(pilot.holder))?.id ?? null
 }
 
 /** The tab's title while a Stop Sign is up. */

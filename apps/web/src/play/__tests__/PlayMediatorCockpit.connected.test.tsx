@@ -378,6 +378,9 @@ describe('the Scene', () => {
 
   test('every condition is a toggle; pressing one puts the Scene under it', async () => {
     await renderCockpit()
+    // One row until Change opens it in place (r7 C8, MD7-16).
+    expect(screen.queryByRole('list', { name: 'Scene conditions' })).toBeNull()
+    await click(named('Change the Scene conditions'))
     const storm = named('The Scene is under Radiation Storm')
     expect(storm.getAttribute('aria-pressed')).toBe('false')
     expect(named('An hour passes').hasAttribute('disabled')).toBe(true)
@@ -683,7 +686,7 @@ describe('the Opposition', () => {
     await restoreCrawler()
   })
 
-  test('a downed Mech rolls Mech Salvage; what the band allows goes to the crawler’s hold', async () => {
+  test('a downed Mech rolls Mech Salvage; the pick goes to the crew as an offer on the crawler (r7 D8)', async () => {
     const mule = {
       _id: 'n-mule',
       body: {
@@ -699,20 +702,28 @@ describe('the Opposition', () => {
     const box = within(screen.getByRole('region', { name: /^Mech: Mule, down/ }))
     await click(box.getByRole('button', { name: /Roll/ }))
     await click(box.getByRole('button', { name: 'Mule · T1 · 7 Slots' }))
-    await click(box.getByRole('button', { name: 'Take to the crawler' }))
+    await click(box.getByRole('button', { name: 'Offer to the crew' }))
+    // The roll is kept with the wreck first (r5 B1), the wreck is claimed, then offered.
     await waitFor(() =>
-      expect(
-        useUnits
-          .getState()
-          .get('crawler', tenacity.id)
-          ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
-      ).toBe(true)
+      expect(names()).toEqual(['mediator.updateNpc', 'mediator.updateNpc', 'ops.propose'])
     )
-    // The roll is kept with the wreck first (r5 B1), then the wreck is claimed.
-    expect(sent().map((a) => Object.keys((a.args as { patch: object }).patch))).toEqual([
-      ['salvageRoll'],
-      ['salvaged'],
-    ])
+    const offer = sent()[2]?.args as {
+      entityId: string
+      field: string
+      after: { name: string }[]
+      offer: { picked: string[] }
+    }
+    expect(offer.entityId).toBe(tenacity.id)
+    expect(offer.field).toBe('cargoLots')
+    expect(offer.after.map((l) => l.name)).toEqual(['Mule (Damaged)'])
+    expect(offer.offer.picked).toHaveLength(1)
+    // Nothing is written to the crawler until the crew answers.
+    expect(
+      useUnits
+        .getState()
+        .get('crawler', tenacity.id)
+        ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
+    ).not.toBe(true)
     await restoreCrawler()
   })
 
@@ -818,7 +829,7 @@ describe('the Opposition', () => {
             entityType: 'pilot',
             field: 'currentHP',
             after: 1,
-            reason: 'Raider · Improvised Firearm (Raider)',
+            reason: 'Mediator rolled · NPC Action',
           },
         },
       ])
@@ -1161,6 +1172,33 @@ describe('Downtime', () => {
     ])
   })
 
+  // r7 D3 (LG7-23): a step every seat had finished still waited for the Mediator's Next.
+  test('a step every seat has finished moves on by itself, once, and says so', async () => {
+    const everyone = ['u-bonesaw', 'u-mags', 'u-rook', 'u-wren'].map((userId) => ({
+      userId,
+      displayName: userId,
+    }))
+    await renderCockpit({
+      'downtime.state': { running: true, stepIndex: 5, completedBy: everyone, upkeepSpent: true },
+    })
+    expect(sent()).toEqual([{ name: 'downtime.advance', args: {} }])
+    expect(screen.getByText(/^Moved on by itself, nothing left to do: 6 /)).toBeTruthy()
+  })
+
+  test('the last step, and one a seat is still working in, wait for the Mediator', async () => {
+    await renderCockpit(downtimeAt(5))
+    expect(names()).toEqual([])
+    cleanup()
+    const everyone = ['u-bonesaw', 'u-mags', 'u-rook', 'u-wren'].map((userId) => ({
+      userId,
+      displayName: userId,
+    }))
+    await renderCockpit({
+      'downtime.state': { running: true, stepIndex: 9, completedBy: everyone, upkeepSpent: true },
+    })
+    expect(names()).toEqual([])
+  })
+
   test('End Downtime before the last step asks first', async () => {
     await renderCockpit(downtimeAt(2))
     await click(named('End Downtime'))
@@ -1397,18 +1435,23 @@ describe('below `lg`, on a phone (play.md §11)', () => {
     return within(open[0] as HTMLElement)
   }
 
-  test('Table, Opposition, Tables, Propose under the pinned Scene / Downtime switch', async () => {
+  // r7 C8 (MD7-16): the sticky head is the game bar alone; the switch heads the Table pane.
+  test('Table, Opposition, Tables, Propose, the Scene / Downtime switch heading the Table', async () => {
     await renderCockpit()
     expect(screen.queryByRole('region', { name: 'The table' })).toBeNull()
     const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
     expect(tabs.map((t) => t.textContent)).toEqual(['Table', 'Opposition', 'Rolls', 'Propose'])
-    const state = screen.getByRole('group', { name: 'Game state' })
-    expect(state.closest('[role="tabpanel"]')).toBeNull()
+    expect(document.querySelector('.su-play-frame__pinned')).toBeNull()
+    expect(openPanel().getByRole('group', { name: 'Game state' })).toBeTruthy()
     expect(openPanel().getByRole('heading', { name: 'The table' })).toBeTruthy()
     // The Feed, the table's log, runs under the Table.
     expect(openPanel().getByRole('heading', { name: 'Feed' })).toBeTruthy()
     await click(phoneTab('Opposition'))
     expect(openPanel().getAllByText('Strikebreaker').length).toBeGreaterThan(0)
+    // The units come before the Scene, in reading and Tab order (r7 C8, MD7-16, MD7-21).
+    const units = openPanel().getByRole('list', { name: 'Opposition' })
+    const scene = openPanel().getByRole('heading', { name: 'Scene' })
+    expect(units.compareDocumentPosition(scene) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     await click(phoneTab('Rolls'))
     expect(
       openPanel()
@@ -1458,6 +1501,9 @@ describe('below `lg`, on a phone (play.md §11)', () => {
       'Skip to Rolls',
       'Skip to Feed',
     ])
+    // Skip to Feed points at the Feed, never at the Table pane (r7 C8, MD7-21).
+    expect(jumps[3]?.getAttribute('href')).toBe('#mediate-feed')
+    expect(jumps[0]?.getAttribute('href')).not.toBe('#mediate-feed')
     // The Opposition jump lands on its heading, which leads into its own list of units.
     await click(jumps[1] as HTMLElement)
     expect(phoneTab('Opposition').getAttribute('aria-selected')).toBe('true')
@@ -1527,6 +1573,41 @@ describe('from `lg`: the Mediator’s jumps and notes', () => {
   })
 })
 
+// r7 C5 (LG7-09): a Pilot's hit carries its damage to the Mediator's cards.
+describe('a Pilot’s hit on the Opposition (r7 C5)', () => {
+  const HIT = {
+    _id: 'r-hit',
+    ts: NOW - 1_000,
+    description: 'Hotdog · Improvised Melee Weapon · 11 · Success',
+    actorName: 'Sam',
+    source: 'play',
+  }
+
+  test('a landed hit is one press on each unit it can land on, and applies its damage', async () => {
+    await renderCockpit({ 'changeLog.rolls': [HIT] })
+    // HP damage: Strikebreaker (HP) takes it; Scylla (SP) and the downed Raider do not.
+    const apply = named('Apply Hotdog’s hit, 2 HP, to Strikebreaker')
+    expect(apply.textContent).toBe('Hotdog’s hit: 2 HP')
+    expect(screen.queryByRole('button', { name: /hit, 2 HP, to Scylla/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /hit, 2 HP, to Raider/ })).toBeNull()
+    await click(apply)
+    expect(sent().filter((s) => s.name === 'mediator.updateNpc')).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-strike', patch: { currentHp: 8 } } },
+    ])
+    // Applied once: the offer goes.
+    expect(screen.queryByRole('button', { name: /^Apply Hotdog’s hit/ })).toBeNull()
+  })
+
+  test('a miss offers nothing', async () => {
+    await renderCockpit({
+      'changeLog.rolls': [
+        { ...HIT, description: 'Hotdog · Improvised Melee Weapon · 3 · Failure' },
+      ],
+    })
+    expect(screen.queryByRole('button', { name: /^Apply Hotdog’s hit/ })).toBeNull()
+  })
+})
+
 // MD6-04: Group Initiative (Core Book p.235–236) had no place on Mediate.
 describe('Group Initiative on the table (r6 B4)', () => {
   const initiative = () =>
@@ -1578,5 +1659,22 @@ describe('Group Initiative on the table (r6 B4)', () => {
     expect(initiative()).toEqual([{ round: 3, acted: [] }])
     // Give the turn still works within a side.
     expect(screen.getAllByRole('button', { name: /^Give the turn: / }).length).toBeGreaterThan(0)
+  })
+
+  // r7 C3 (MD7-04): turns run themselves, each step with Undo on the tracker.
+  test('a side all acted passes play on by itself, and Undo puts it back', async () => {
+    // Every Pilot has ended their turn: the room marked each one.
+    const acted = ['bonesaw', 'mags', 'rook', 'wren']
+    await renderCockpit({ 'mediator.initiative': { round: 2, side: 'pilots', acted } })
+    await waitFor(() => expect(initiative()).toEqual([{ round: 2, side: 'opposition', acted }]))
+  })
+
+  test('with every side done, New round is the one way on', async () => {
+    const acted = ['bonesaw', 'mags', 'rook', 'wren', 'n-strike', 'n-scylla']
+    await renderCockpit({ 'mediator.initiative': { round: 2, side: 'opposition', acted } })
+    const tracker = region('Group Initiative')
+    expect(tracker.queryByRole('button', { name: 'Next side' })).toBeNull()
+    expect(tracker.getByRole('button', { name: 'New round' })).toBeTruthy()
+    expect(initiative()).toEqual([])
   })
 })

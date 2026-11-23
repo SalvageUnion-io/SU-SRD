@@ -326,14 +326,26 @@ describe('the Game an encounter is prepared for', () => {
   ]
 
   test('Threat read opens at the crew of the Game it is prepared for, not a guess of 4 (r4 D5)', async () => {
-    setQueryAnswers({ 'games.listMine': [{ ...GAMES[0], pilotCount: 1 }] })
+    setQueryAnswers({
+      'games.listMine': [{ ...GAMES[0], pilotCount: 1 }],
+      // Its crawler is Tech 3: the crew's Tech Level, not one stepped to by hand (r7 C13).
+      'games.listing': {
+        pilots: [],
+        mechs: [],
+        npcs: [],
+        crawlers: [{ _id: 'c1', appId: 'c1', body: { name: 'Big Sal', techLevel: 3 } }],
+        softLinks: [],
+        primaryCrawlerId: 'c1',
+      },
+    })
     useEncounters.setState({ encounters: [{ ...AMBUSH, gameId: 'g1' }] } as never)
     await renderPage()
     const read = () => within(screen.getByRole('region', { name: 'Threat read' }))
     // One Pilot in the Game: the crew reads 1, and the next step up is 2.
     await click(read().getByRole('button', { name: 'Increase crew size' }))
-    expect(JSON.parse(localStorage.getItem('su.encounter.crew') ?? '{}')).toMatchObject({
+    expect(JSON.parse(localStorage.getItem('su.encounter.crew') ?? '{}')).toEqual({
       size: 2,
+      techLevel: 3,
     })
   })
 

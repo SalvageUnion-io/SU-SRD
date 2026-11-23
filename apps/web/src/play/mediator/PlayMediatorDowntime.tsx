@@ -11,6 +11,11 @@
  * Processing Bay, **Process Nanites** joins them, live in the Craft step
  * (`processDowntimeNanites`).
  *
+ * A step every seat has finished, or that nobody can act in (Trade and Craft
+ * with no crawler, Tally Salvage with nothing carried), moves on by itself
+ * (r7 D3, `passesByItself`), and the box lists the steps that did; Back holds
+ * the step it lands on for the Mediator's Next.
+ *
  * Moving on is said to the table (the room's Feed line, r5 A3); a jump past
  * more than one step asks first, and what the table passed over this visit
  * (a step jumped over, one left with a seat still working) is listed under
@@ -32,7 +37,7 @@ import {
   UPKEEP_STEP_NAME,
 } from 'game-domain/rules/downtime'
 import { scrapCount } from 'game-domain/rules/tallyScrap'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { crawlerUpkeepCost } from 'salvageunion-reference/rules'
 import { ConfirmDialog } from '../../components/app'
 import { Badge, Button, Entity, rollForTable, Slab, Stat, TitledBox } from '../../components/index'
@@ -42,9 +47,10 @@ import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { useUnits } from '../../replica/units'
 import { DowntimeStepNav } from '../DowntimeStepNav'
+import { DOWNTIME_AUTO_PASS } from '../downtimeRulings.model'
 import { PlayDowntimeActionRow } from '../PlayDowntimeActionRow'
 import { PlayDowntimeTrack } from '../PlayDowntimeTrack'
-import { carriedScrap } from '../playDowntime.model'
+import { carriedScrap, passesByItself } from '../playDowntime.model'
 import { playLineModel } from '../playLine.model'
 import { naniteStatus, processDowntimeNanites } from '../playNanites.model'
 import { reportingRoll } from '../playRolls.model'
@@ -97,6 +103,36 @@ export function PlayMediatorDowntime({
   const stillCarried = tally
     ? seats.reduce((sum, seat) => sum + carriedBy(seat.pilotId, seat.mech?.id ?? null), 0)
     : 0
+  // r7 D3: a step every seat has finished, or nobody can act in, moves on by
+  // itself; one the Mediator stepped back to waits for their Next.
+  const [held, setHeld] = useState<ReadonlySet<number>>(new Set())
+  const [byItself, setByItself] = useState<readonly string[]>([])
+  const passedFrom = useRef<number | null>(null)
+  const unitsRead = seats.every((seat) => store.get('pilot', seat.pilotId) !== null)
+  const passes =
+    DOWNTIME_AUTO_PASS &&
+    step !== undefined &&
+    passesByItself({
+      stepName: step.name,
+      last,
+      held: held.has(idx),
+      done,
+      of,
+      crawler: unit !== null,
+      carried: tally && unitsRead ? stillCarried : null,
+      upkeepUnpaid: unit !== null && !upkeepSpent,
+      nanitesWaiting: nanites.operational && nanites.inert > 0,
+    })
+  const advance = downtime.advance
+  const stepLabel = step === undefined ? '' : `${idx + 1} ${step.name}`
+  useEffect(() => {
+    if (!passes || off || passedFrom.current === idx) return
+    passedFrom.current = idx
+    setByItself((was) => [...was, stepLabel])
+    advance()
+  }, [passes, off, idx, stepLabel, advance])
+  /** Back, by its button or the track: the step it lands on waits for Next. */
+  const holdAt = (to: number) => setHeld((was) => new Set([...was, to]))
   const inPool = scrapCount({
     1: unit?.scrapPool?.tl1,
     2: unit?.scrapPool?.tl2,
@@ -139,6 +175,7 @@ export function PlayMediatorDowntime({
   function onStep(to: number) {
     const setStep = downtime.setStep
     if (setStep === null) return
+    if (to < idx) holdAt(to)
     if (to - idx > 1) setJumpTo(to)
     else moveTo(to, () => setStep(to))
   }
@@ -244,6 +281,11 @@ export function PlayMediatorDowntime({
               {mediatorCopy('notFinished', { who: working.join(', ') })}
             </p>
           )}
+          {byItself.length > 0 && (
+            <p className="su-play-resolve__note">
+              {mediatorCopy('movedOnByItself', { steps: byItself.join(', ') })}
+            </p>
+          )}
           {passed.length > 0 && (
             <p className="su-play-resolve__note">
               {mediatorCopy('passedOver', { steps: passed.join(', ') })}
@@ -254,7 +296,14 @@ export function PlayMediatorDowntime({
               step={idx}
               count={count}
               off={off}
-              onBack={downtime.setStep === null ? null : () => downtime.setStep?.(idx - 1)}
+              onBack={
+                downtime.setStep === null
+                  ? null
+                  : () => {
+                      holdAt(idx - 1)
+                      downtime.setStep?.(idx - 1)
+                    }
+              }
               onEnd={last ? downtime.end : () => setConfirmEnd(true)}
               onAdvance={() => {
                 sweepScrap()

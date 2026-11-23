@@ -12,8 +12,10 @@
 
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { Field, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { nameAwaitsTyping, nameTyped } from './nameOnArrival.model'
 import type { SheetPatch } from './sheetViewProps.model'
 
 const PANEL = { minWidth: 0 } satisfies CSSProperties
@@ -34,6 +36,11 @@ type MechIdentityPanelProps = {
 }
 
 export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps) {
+  // A Mech just built or copied opens with its name selected (r7 G4, G5).
+  const [typeName] = useState(() => patch !== undefined && nameAwaitsTyping(mech.id))
+  useEffect(() => {
+    if (typeName) nameTyped(mech.id)
+  }, [typeName, mech.id])
   /** Persist the mech's (and so its pattern's) name; never write empty. */
   function savePatternName(next: string) {
     const trimmed = next.trim()
@@ -50,6 +57,7 @@ export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps
             value={mech.name}
             onSave={savePatternName}
             prominent
+            startEditing={typeName}
           />
         )}
         {after}

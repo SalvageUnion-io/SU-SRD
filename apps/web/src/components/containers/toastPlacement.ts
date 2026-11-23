@@ -8,8 +8,10 @@
  * the pinned strip (`PlayFrame` says where, r3 H2), never over what is being
  * pressed.
  *
- * A Play screen holds them its own way (r6 A3): one at a time, a newer one
- * replacing the older, at the bottom left from `lg`, clear of the Propose dock
+ * Everywhere one stands at a time, a newer replacing the older (r7 A4); over
+ * a dialog on a phone they stand at the foot, clear of its head
+ * (`SonnerToaster`). A Play screen holds them its own way (r6 A3): at the
+ * bottom left from `lg`, clear of the Propose dock
  * and Mediate's right column, and above the tab row on a phone
  * (`holdPlayToasts`).
  *
@@ -52,7 +54,7 @@ function changePlay(by: number): void {
   for (const listener of listeners) listener()
 }
 
-/** Hold the toasts as Play does (one at a time, bottom left) while the caller is on screen. */
+/** Hold the toasts as Play does (bottom left) while the caller is on screen. */
 export function holdPlayToasts(): () => void {
   changePlay(1)
   let held = true
@@ -72,7 +74,7 @@ export function useToastsOnTop(): boolean {
   return useSyncExternalStore(subscribe, onTop, atFoot)
 }
 
-/** Whether a Play screen holds the toasts: one at a time, bottom left (r6 A3). */
+/** Whether a Play screen holds the toasts: bottom left (r6 A3). */
 export function usePlayToasts(): boolean {
   return useSyncExternalStore(subscribe, inPlay, atFoot)
 }

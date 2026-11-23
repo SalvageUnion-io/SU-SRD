@@ -4,9 +4,9 @@
  * hour passes, then every condition the books give a Scene as a toggle Mini
  * of its keyword (`SceneConditionMini`), pressed while the Scene is under it.
  * Every seat follows what is pressed: the Heat its Push and Hot actions make,
- * its range under Low Visibility. Once one is on, the chooser folds to the
- * conditions that are on, one row, with Change for the rest (r6 B6), so the
- * Opposition stays near the top all fight.
+ * its range under Low Visibility. The chooser is one row, the conditions that
+ * are on, and Change opens the rest in place (r6 B6, r7 C8); it stands under
+ * the Opposition, so a fight opens on the enemies.
  *
  * An hour passes asks first, listing each seat the hour asks something of
  * (`hourSteps`: aboard its Mech, on foot its Pilot), each ticked and
@@ -102,7 +102,8 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
   // Change opens the whole chooser over the conditions that are on (r6 B6).
   const [changing, setChanging] = useState(false)
   const on = new Set<SceneConditionId>(scene.conditions)
-  const folded = on.size > 0 && !changing
+  // One row until Change opens it in place, whatever is on (r7 C8, MD7-16).
+  const folded = !changing
   const shown = folded ? SCENE_CONDITION_IDS.filter((id) => on.has(id)) : SCENE_CONDITION_IDS
   const names = sceneConditionsOf(scene.conditions)
     .map((c) => c.name)
@@ -166,7 +167,7 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
         {...(scene.hours > 0 ? { count: { label: mediatorCopy('hour'), value: scene.hours } } : {})}
         actions={
           <>
-            {(on.size > 0 || changing) && (
+            {
               <Button
                 variant="default"
                 size="compact"
@@ -176,7 +177,7 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
               >
                 {changing ? mediatorCopy('done') : mediatorCopy('change')}
               </Button>
-            )}
+            }
             <Button
               variant="default"
               size="compact"
@@ -196,27 +197,29 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
           {on.size === 0 ? mediatorCopy('noSceneConditions') : mediatorCopy('nothingHourly')}
         </p>
       )}
-      <MiniGrid label={mediatorCopy('sceneConditions')} play>
-        {shown.map((id) => {
-          const condition = SCENE_CONDITIONS[id]
-          return (
-            <SceneConditionMini
-              key={id}
-              condition={condition}
-              mode={{
-                kind: 'select',
-                role: 'toggle',
-                selected: on.has(id),
-                onSelect: () => {
-                  if (canWrite) toggle(id)
-                },
-                seal: mediatorCopy('on'),
-                label: mediatorCopy('sceneUnder', { name: condition.name }),
-              }}
-            />
-          )
-        })}
-      </MiniGrid>
+      {shown.length === 0 ? null : (
+        <MiniGrid label={mediatorCopy('sceneConditions')} play>
+          {shown.map((id) => {
+            const condition = SCENE_CONDITIONS[id]
+            return (
+              <SceneConditionMini
+                key={id}
+                condition={condition}
+                mode={{
+                  kind: 'select',
+                  role: 'toggle',
+                  selected: on.has(id),
+                  onSelect: () => {
+                    if (canWrite) toggle(id)
+                  },
+                  seal: mediatorCopy('on'),
+                  label: mediatorCopy('sceneUnder', { name: condition.name }),
+                }}
+              />
+            )
+          })}
+        </MiniGrid>
+      )}
       <ConfirmDialog
         open={asking}
         onOpenChange={setAsking}

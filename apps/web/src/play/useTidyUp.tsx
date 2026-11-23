@@ -10,7 +10,7 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { Checkbox } from '../components/index'
-import { playCopy } from '../messages/play'
+import { playTidyCopy } from '../messages/play-tidy'
 import { useTableAct, useTableRead } from '../replica/useTable'
 import type { TidyKey } from './tidyUp.model'
 import { tidyPlan, trayRowDown } from './tidyUp.model'
@@ -31,10 +31,10 @@ export function useTidyUp(gameId: string | null) {
       conditions: sceneConditionNames(scene.conditions),
     },
     {
-      endEncounter: (name) => playCopy('tidyEndEncounter', { name }),
-      clearTheDowned: playCopy('tidyClearTheDowned'),
-      clearTheField: (standing) => playCopy('tidyClearTheField', { count: standing }),
-      endConditions: (names) => playCopy('tidyEndConditions', { names }),
+      endEncounter: (name) => playTidyCopy('endEncounter', { name }),
+      clearTheDowned: playTidyCopy('clearTheDowned'),
+      clearTheField: (standing) => playTidyCopy('clearTheField', { count: standing }),
+      endConditions: (names) => playTidyCopy('endConditions', { names }),
     }
   )
   const [ticked, setTicked] = useState<readonly TidyKey[]>([])

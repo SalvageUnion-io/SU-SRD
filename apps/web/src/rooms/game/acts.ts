@@ -1,4 +1,5 @@
 import type { EntityKind } from 'game-domain/entityKinds'
+import type { SalvageOffer } from 'game-domain/games/proposals'
 import type { LinkShape } from 'game-domain/links/linkRules'
 import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
@@ -25,7 +26,13 @@ function withPlay<T>(c: ActContext, value: T): T {
 type SeatArgs = { pilotId: string }
 
 /** What `ops.propose` takes. */
-type ProposeArgs = { entityId: string; field: string; after: unknown; reason?: string }
+type ProposeArgs = {
+  entityId: string
+  field: string
+  after: unknown
+  reason?: string
+  offer?: SalvageOffer
+}
 
 /** A unit as a reader outside the room sees it (the bot's sheets, ADR-064 §5). */
 export type UnitSheet = { id: string; kind: EntityKind; body: Record<string, unknown> }
@@ -90,15 +97,18 @@ const GAME_ACTS = {
       field: a.field,
       value: a.after,
       ...(a.reason === undefined ? {} : { reason: a.reason }),
+      ...(a.offer === undefined ? {} : { offer: a.offer }),
       at: c.at,
     })
     return id
   },
   'ops.pending': (c: ActContext) => c.room.proposals.pending(c.actor),
   'ops.sent': (c: ActContext) => c.room.proposals.sent(c.actor),
-  'ops.accept': (c: ActContext, a: { opId: string }) => {
-    const result = c.room.proposals.applyProposal(c.actor, a.opId, c.at)
+  // Answers the id of the op it wrote: another than `opId` for a changed salvage pick (r7 D8).
+  'ops.accept': (c: ActContext, a: { opId: string; picked?: string[] }) => {
+    const result = c.room.proposals.applyProposal(c.actor, a.opId, c.at, a.picked)
     if (!result.ok) throw new RoomRefusal('That changed since it was proposed; ask for it again')
+    return result.applied[0]?.id ?? a.opId
   },
   'ops.decline': (c: ActContext, a: { opId: string }) =>
     c.room.proposals.declineProposal(c.actor, a.opId),
@@ -168,8 +178,12 @@ const GAME_ACTS = {
   'mediator.running': (c: ActContext) => c.room.opposition.running(c.actor),
   'mediator.runEncounter': (
     c: ActContext,
-    a: { encounter: unknown; clear: boolean; waves?: boolean }
-  ) => withPlay(c, c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at)),
+    a: { encounter: unknown; clear: boolean; waves?: boolean; startSession?: boolean }
+  ) => {
+    const ran = c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at)
+    // The Run dialog says it starts the session, and a test run can say not to (r7 C6).
+    return a.startSession === false ? ran : withPlay(c, ran)
+  },
   'mediator.bringInWave': (c: ActContext, a: { wave: number }) =>
     c.room.opposition.bringInWave(c.actor, a.wave, c.at),
   'mediator.endEncounter': (c: ActContext, a?: { clear?: boolean }) =>

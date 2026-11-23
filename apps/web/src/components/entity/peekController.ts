@@ -5,7 +5,9 @@
  *
  * - Hover (a mouse or a pen): opens after a short rest, closes shortly after
  *   the pointer leaves both the trigger and the popup (so the pointer can
- *   cross into the popup and read it).
+ *   cross into the popup and read it). Only a pointer that moved onto the
+ *   trigger: content that scrolls or swaps in under a resting pointer opens
+ *   nothing until the pointer moves (RR7-06, LG7-12).
  * - Keyboard focus: opens at once; blur closes. Focus that a pointer press
  *   gave does not (the press is a click: it follows the link).
  * - Touch: a long press opens it and swallows the click and the callout the
@@ -69,6 +71,10 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   let lastPress = Number.NEGATIVE_INFINITY
   /** The last press was a finger's: a tap on a term explains it rather than leaving. */
   let touched = false
+  /** Where the pointer last moved to; unknown until it moves on this page. */
+  let pointer: { x: number; y: number } | undefined
+  /** A trigger that came under a resting pointer: it waits for the pointer to move. */
+  let resting: HTMLElement | null = null
 
   const clearOpen = () => {
     clearTimeout(openTimer)
@@ -105,8 +111,25 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     closeTimer = setTimeout(closeNow, PEEK_CLOSE_DELAY)
   }
 
+  /**
+   * Whether the pointer is somewhere it was not when it last moved: a
+   * boundary event at the same place came from the page moving under it. A
+   * pointer not yet seen to move on this page counts as moving.
+   */
+  const moved = (event: PointerEvent) =>
+    !pointer || pointer.x !== event.clientX || pointer.y !== event.clientY
+
+  const armHover = (trigger: HTMLElement) => {
+    resting = null
+    if (trigger === pending) return
+    clearOpen()
+    pending = trigger
+    openTimer = setTimeout(() => openNow(trigger, 'hover'), PEEK_OPEN_DELAY)
+  }
+
   const onPointerOver = (event: PointerEvent) => {
     if (event.pointerType === 'touch') return
+    const hasMoved = moved(event)
     if (insidePopup(event.target)) {
       clearClose()
       return
@@ -117,10 +140,12 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
       clearClose()
       return
     }
-    if (trigger === pending) return
-    clearOpen()
-    pending = trigger
-    openTimer = setTimeout(() => openNow(trigger, 'hover'), PEEK_OPEN_DELAY)
+    // Brought under a still pointer (a scroll, a new screen): wait for a move.
+    if (!hasMoved) {
+      resting = trigger
+      return
+    }
+    armHover(trigger)
   }
 
   const onPointerOut = (event: PointerEvent) => {
@@ -130,6 +155,7 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     // Still within the same trigger, or crossing into the popup.
     if (from && elementOf(to) && from.contains(elementOf(to))) return
     if (insidePopup(to)) return
+    if (from && from === resting) resting = null
     if (from && from === pending) clearOpen()
     if (from === current || insidePopup(event.target)) scheduleClose()
   }
@@ -169,6 +195,12 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   }
 
   const onPointerMove = (event: PointerEvent) => {
+    if (event.pointerType !== 'touch') {
+      pointer = { x: event.clientX, y: event.clientY }
+      // The pointer moved on a trigger that came under it at rest: now it hovers.
+      if (resting && triggerOf(event.target) === resting) armHover(resting)
+      else resting = null
+    }
     if (!pressAt) return
     if (Math.hypot(event.clientX - pressAt.x, event.clientY - pressAt.y) > PRESS_SLOP) clearPress()
   }

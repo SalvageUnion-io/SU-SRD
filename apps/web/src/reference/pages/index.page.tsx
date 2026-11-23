@@ -8,8 +8,8 @@
  * (Reference, Build, Play), the Contents (the book's chapters, each opened by
  * its band, then the rules a table reaches for under an ink band), Buy the
  * game, and the Discord bot. Search is the page's own: a field under the
- * slideshow, always in view on a phone and a desktop (r2 H6), in place of the
- * Union bar's. Server-rendered and static: every row is a plain link.
+ * slideshow, always in view on a phone and a tablet (r2 H6), in place of the
+ * Union bar's; on a laptop it stands in the hero beside the name (RR7-14). Server-rendered and static: every row is a plain link.
  */
 
 import { HeroSearchStatic } from '../../components/HeroSearch'
@@ -41,7 +41,13 @@ function page(): PageResult {
       // The home is its slideshow, between the header and the footer, over the
       // one thing a reader can always do there: look something up.
       <div className="su-front su-front--show">
-        <HomeHero />
+        <HomeHero
+          search={
+            <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'hero' }}>
+              <HeroSearchStatic />
+            </Island>
+          }
+        />
         <HomeSearchBand>
           <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'home' }}>
             <HeroSearchStatic shortcut="/" />

@@ -7,6 +7,9 @@
  * withdraw it and send again. Once sent, the dialog closes (`onSent`, r6 B9):
  * a mid-fight shout costs no Esc, and focus goes back where it was opened from.
  *
+ * An unsent draft is kept in the tab (`sessionStorage`, by Game) until
+ * it is sent or cleared, so a refresh never loses it (r7 C14, MD7-23).
+ *
  * Presentational: the Mediator's screen sends, and says why when the server
  * refuses.
  */
@@ -32,12 +35,44 @@ const SCROLL = {
 /** A sent alert's end: when, then Withdraw. */
 const END = { alignItems: 'center', display: 'inline-flex', gap: space[8] } satisfies CSSProperties
 
+/** The tab's draft store; null where there is none (a test, a private mode that refuses). */
+function tabStore(): Storage | null {
+  try {
+    return typeof sessionStorage === 'undefined' ? null : sessionStorage
+  } catch {
+    return null
+  }
+}
+
+function readDraft(key: string | undefined): string {
+  if (key === undefined) return ''
+  try {
+    return tabStore()?.getItem(key) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function keepDraft(key: string | undefined, text: string): void {
+  if (key === undefined) return
+  try {
+    if (text === '') tabStore()?.removeItem(key)
+    else tabStore()?.setItem(key, text)
+  } catch {
+    // A refused store keeps nothing: the draft lives only on screen.
+  }
+}
+
 const FORM = {
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) auto',
   gap: space[8],
   alignItems: 'end',
 } satisfies CSSProperties
+
+/** A Game's Tell the table draft, in this tab. */
+const draftKeyOf = (gameId: string | undefined) =>
+  gameId === undefined ? undefined : `su:tell-the-table:${gameId}`
 
 export function TellTheTable({
   alerts,
@@ -47,6 +82,7 @@ export function TellTheTable({
   onWithdraw,
   onSent,
   field,
+  gameId,
 }: {
   alerts: readonly AlertLine[]
   now: number
@@ -59,9 +95,16 @@ export function TellTheTable({
   onSent?: () => void
   /** The alert's field, for the dialog around it to open on (MD2-04). */
   field?: RefObject<HTMLInputElement | null>
+  /** The Game whose unsent draft this tab keeps; none keeps nothing. */
+  gameId?: string
 }) {
   const id = useId()
-  const [message, setMessage] = useState('')
+  const draftKey = draftKeyOf(gameId)
+  const [message, setMessageNow] = useState(() => readDraft(draftKey))
+  const setMessage = (text: string) => {
+    setMessageNow(text)
+    keepDraft(draftKey, text)
+  }
   const [sending, setSending] = useState(false)
   const send = () => {
     setSending(true)

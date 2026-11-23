@@ -24,7 +24,7 @@ export const accountFailures: Partial<
 export const accountReads = { me: 0 }
 
 /** Every write this test made, in order: the hook's name and its argument. */
-const accountWrites: { name: string; args: unknown }[] = []
+export const accountWrites: { name: string; args: unknown }[] = []
 
 function write(name: keyof typeof accountFailures) {
   return async (args?: unknown) => {

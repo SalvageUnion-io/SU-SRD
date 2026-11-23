@@ -1,34 +1,25 @@
 /**
- * SharedSeparately — a pilot's Share dialog says what the share leaves out (r4
- * E18): the mech they fly and the crawler they crew are sheets of their own,
- * each shared from its own page, and read "Not shared" on the pilot's public
- * page until they are. It names and links each, so the next dialog is a press
- * away. A pilot with neither says nothing.
+ * SharedSeparately — a pilot's share is the pilot's alone (r4 E18): the mech
+ * they fly and the crawler they crew are sheets of their own, and read
+ * "Mech · not shared" on the pilot's public page until they are.
  *
  * While the pilot is Public, one press shares the rest of the crew too (r5
  * C15): "Also share Old Dobbin and Tenacity" makes each one not yet shared
- * Public, as its own dialog would.
+ * Public, as its own dialog would. It is the one way the dialog offers (r7
+ * G9): the paragraph and the two links that said the same went. With nothing
+ * left to share, it says nothing.
  */
 
 import type { CSSProperties } from 'react'
 import { FieldError } from '../../components/app'
-import { Button, InlineRef, Text, tokens } from '../../components/index'
+import { Button, tokens } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useSharingAct, useSheetIsPublic } from '../../lib/sharing/reads'
 import { buildSharingCopy } from '../../messages/build-sharing'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 
-const LIST = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: `${tokens.space[4]} ${tokens.space[16]}`,
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
-/** The note, its links, then the one press that shares them all. */
+/** The one press that shares them all, and what it says if it fails. */
 const SECTION = {
   alignItems: 'flex-start',
   display: 'flex',
@@ -73,41 +64,17 @@ export function SharedSeparately({
     },
     { failure: buildSharingCopy('shareNotSaved') }
   )
-  if (!mech && !crawler) return null
   const [first, second] = rest
-  const said = mech
-    ? crawler
-      ? buildSharingCopy('mechAndCrawlerSeparate')
-      : buildSharingCopy('mechSeparate')
-    : buildSharingCopy('crawlerSeparate')
+  if (status !== 'live' || pilotPublic !== true || first === undefined) return null
   return (
     <section aria-label={buildSharingCopy('sharedSeparately')} style={SECTION}>
-      <Text variant="note">{said}</Text>
-      <ul style={LIST}>
-        {mech && (
-          <li>
-            <InlineRef href={`/mechs/${mech.id}`}>
-              {buildSharingCopy('shareThe', { name: mech.name })}
-            </InlineRef>
-          </li>
-        )}
-        {crawler && (
-          <li>
-            <InlineRef href={`/crawlers/${crawler.id}`}>
-              {buildSharingCopy('shareThe', { name: crawler.name })}
-            </InlineRef>
-          </li>
-        )}
-      </ul>
-      {status === 'live' && pilotPublic === true && first !== undefined && (
-        <Button size="compact" disabled={shareRest.pending} onClick={() => void shareRest.run()}>
-          {second === undefined
-            ? buildSharingCopy('alsoShare', { names: first.name })
-            : buildSharingCopy('alsoShare', {
-                names: buildSharingCopy('andName', { first: first.name, second: second.name }),
-              })}
-        </Button>
-      )}
+      <Button size="compact" disabled={shareRest.pending} onClick={() => void shareRest.run()}>
+        {second === undefined
+          ? buildSharingCopy('alsoShare', { names: first.name })
+          : buildSharingCopy('alsoShare', {
+              names: buildSharingCopy('andName', { first: first.name, second: second.name }),
+            })}
+      </Button>
       {shareRest.error !== null && <FieldError spaceAbove={8}>{shareRest.error}</FieldError>}
     </section>
   )

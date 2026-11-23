@@ -269,15 +269,18 @@ describe('MechWizard — legalStarting pattern strip', () => {
     const expectedModules = pattern.modules.flatMap((m) =>
       new Array<string>(m.count ?? 1).fill(nameToSlug(m.name))
     )
-    await clickNext() // → Systems & Modules
-    // The prefilled copies show in the rows' Qty steppers.
+    // A whole build: the pick opens Name & Review, the name prefilled (r7 F9).
+    expect(await screen.findByRole('button', { name: /Create Mech/i })).toBeTruthy()
+    expect(getCreateButton().disabled).toBe(false)
+    // Systems & Modules stays one press back on the rail, the copies in its steppers.
+    await clickButton(/Systems & Modules/)
     for (const slug of new Set(expectedSystems)) {
       const item = SalvageUnionReference.Systems.find((s) => nameToSlug(s.name) === slug)
       const count = expectedSystems.filter((x) => x === slug).length
       expect(qtyOf(must(item).name)).toBe(String(count))
     }
     await clickNext() // → Quirk & Look
-    await clickNext() // → Name & Review (the name prefilled from the pattern pick)
+    await clickNext() // → Name & Review
     expect(getCreateButton().disabled).toBe(false)
     await clickButton(/Create Mech/i)
 

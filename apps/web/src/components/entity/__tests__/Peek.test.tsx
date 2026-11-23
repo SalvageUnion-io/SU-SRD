@@ -118,6 +118,21 @@ describe('PeekHost', () => {
     expect(await screen.findByRole('tooltip')).toBeTruthy()
   })
 
+  test('content scrolled under a resting mouse opens nothing until it moves (RR7-06)', async () => {
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
+    const link = screen.getByRole('link', { name: 'Burn' })
+    act(() => {
+      // The mouse came to rest somewhere; the page then scrolled the link under it.
+      fireEvent.pointerMove(document.body, { pointerType: 'mouse', clientX: 40, clientY: 40 })
+      fireEvent.pointerOver(link, { pointerType: 'mouse', clientX: 40, clientY: 40 })
+    })
+    await expect(screen.findByRole('tooltip', {}, { timeout: 400 })).rejects.toThrow()
+    act(() => {
+      fireEvent.pointerMove(link, { pointerType: 'mouse', clientX: 41, clientY: 40 })
+    })
+    expect(await screen.findByRole('tooltip')).toBeTruthy()
+  })
+
   test('a long press opens it and swallows the click that ends it', async () => {
     render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
     const link = screen.getByRole('link', { name: 'Burn' })

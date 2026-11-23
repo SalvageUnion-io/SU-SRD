@@ -60,13 +60,13 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Enforcement follows the surface's mode: Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play and Adjudicate (Play), Frozen (`/p/`). Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
     The app automates bookkeeping (Heat, EP / AP, uses, SP damage) but never changes a condition or destroys without the player; conditions cycle intact → damaged → destroyed by `StatusBadge`.
 19. **Live-Sheet transactions** <a id="live-sheet"></a>
-    A closed list: crawler Upkeep / Upgrade / Trade, bay Repair, item repair and uses; advisory, never blocking.
-    Any new transaction goes in Play.
+    A closed list: crawler Upkeep / Upgrade / Trade / Craft, bay Repair, item repair and uses; advisory, never blocking.
+    New ones go in Play.
 20. **Change Log** <a id="change-log"></a>
     A unit's history is its applied ops (`transaction` / `override` / `manual`, ADR-063); `changeLog` keeps Game rows and moves.
     Read in `ChangeLogDrawer`; destruction waits for the player (ADR-007).
 21. **Combat loop** <a id="combat"></a>
-    A shared living sheet: no combat RPCs, undo or turn system (Initiative: a tracker the Mediator moves); math: the reference's `lib/rules/`, patches the app's.
+    A shared living sheet: no combat RPCs, undo or turn system (Initiative: a self-passing tracker); math: the reference's `lib/rules/`, patches the app's.
     Activation is sequential (ADR-008); only players change item conditions (ADR-009).
 22. **Display system** · ADR-010, ADR-026, ADR-028, ADR-053 · [spec](architecture/entity-card.md) <a id="display"></a>
     Entity forms (Mention, Mini, Compact, index Compact, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; contentful forms and Page are `ReferenceEntityCard`, the only one, app UI layered on. `Box` is every other frame, never merged with it.
@@ -131,13 +131,13 @@ ADRs are never renumbered: entry N is ADR-N. A new decision lands as an entry an
 Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-031, ADR-035, ADR-039, ADR-045, ADR-047.
 
 8. **ADR-008 Sequential client-side mutations**
-   No atomic transaction or rollback; affordability is checked before an action runs. Amended by ADR-063.
+   No atomic transaction or rollback; affordability is checked first. Amended by ADR-063.
 22. **ADR-022 Change Log and stat overrides**
     Every write appends to a per-entity log; a cap override is an absolute pin, a zero-delta pin none.
     Amended by ADR-030 and ADR-034: the log is account data on Convex; by ADR-063: the log is the op log.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 (§1, §4) and ADR-064.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 (§1, §4) and ADR-064; §4: crew-answered salvage.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
     Amends ADR-030's visibility rule; amended by ADR-036, ADR-061.

@@ -40,7 +40,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
   const running = downtime.downtime.running
   const stepIndex = currentDowntimeStep(downtime.downtime.stepIndex).index
   // Group Initiative (r6 B4): an action scene's, so not while Downtime runs.
-  const tracker = useInitiative(mediator.gameId, mediator.onFailure)
+  const tracker = useInitiative(mediator.gameId, mediator.onFailure, mediator)
   const kept = running ? null : tracker.initiative
 
   return (

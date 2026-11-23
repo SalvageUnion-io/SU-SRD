@@ -1,8 +1,9 @@
 /**
  * A pattern Page's loadout at a glance: one Ledger, a line the chassis and a
  * line each System and Module (copies counted), their slots and Scrap in
- * columns, and the sums on the last line: slots filled of the chassis's and
- * what the build costs. The parts in full follow it on the Page. A saved
+ * columns, what each weapon reaches and deals (RR7-11: in columns, on a phone
+ * under its name), and the sums on the last line: slots filled of the
+ * chassis's and what the build costs. The parts in full follow it on the Page. A saved
  * pattern's page shows the same Ledger (`PublicPattern`), where a count over
  * its chassis wears the rule-breaking mark.
  */
@@ -12,7 +13,7 @@ import { nameToSlug, SalvageUnionReference, toEntityModel } from 'salvageunion-r
 import { computeMechCapacity } from 'salvageunion-reference/rules'
 import { RuleBreakMark } from '../components/app'
 import type { LedgerColumn, LedgerRow } from '../components/index'
-import { Ledger } from '../components/index'
+import { Ledger, Stat } from '../components/index'
 import { mechScrap, scrapSplit } from '../lib/rules/mechScrap'
 import { pagesCopy } from '../messages/reference-pages'
 
@@ -24,6 +25,8 @@ type MechPatternLike = {
 }
 
 const COLUMNS: LedgerColumn[] = [
+  { key: 'rng', label: pagesCopy('rng'), title: pagesCopy('range'), kind: 'text' },
+  { key: 'dmg', label: pagesCopy('dmg'), title: pagesCopy('damage'), kind: 'text' },
   {
     key: 'sys',
     label: pagesCopy('sys'),
@@ -58,11 +61,26 @@ function partRow(
   const count = part.count ?? 1
   const slots = entity?.slotsRequired === undefined ? '' : entity.slotsRequired * count
   const scrap = entity?.salvageValue === undefined ? '' : entity.salvageValue * count
+  const model = entity ? toEntityModel(entity) : undefined
+  const fact = (key: string) => {
+    const found = model?.facts.find((entry) => entry.key === key)
+    return found ? String(found.shortValue ?? found.value) : ''
+  }
+  const range = fact('range')
+  const damage = fact('damage')
   return {
     id: `${column}-${part.name}`,
     name: count > 1 ? `${part.name} ×${count}` : part.name,
-    entityRef: entity ? toEntityModel(entity).ref : undefined,
-    cells: [column === 'sys' ? slots : '', column === 'mod' ? slots : '', scrap],
+    entityRef: model?.ref,
+    // On a phone, where the columns give way, the reach sits under the name.
+    under:
+      range || damage ? (
+        <span className="su-loadout-reach">
+          {range && <Stat label={pagesCopy('rng')} value={range} size="mini" />}
+          {damage && <Stat label={pagesCopy('dmg')} value={damage} size="mini" />}
+        </span>
+      ) : undefined,
+    cells: [range, damage, column === 'sys' ? slots : '', column === 'mod' ? slots : '', scrap],
   }
 }
 
@@ -98,7 +116,7 @@ export function PatternLoadout({
       id: 'chassis',
       name: chassis.name,
       entityRef: toEntityModel(chassis).ref,
-      cells: ['', '', chassis.salvageValue],
+      cells: ['', '', '', '', chassis.salvageValue],
     },
     ...pattern.systems.map((part) =>
       partRow(part, SalvageUnionReference.Systems.getByName(part.name), 'sys')
@@ -123,6 +141,8 @@ export function PatternLoadout({
             ? pagesCopy('totalAsPrinted')
             : pagesCopy('total'),
         cells: [
+          '',
+          '',
           slots(capacity.systemSlotsUsed, capacity.systemSlotsMax),
           slots(capacity.moduleSlotsUsed, capacity.moduleSlotsMax),
           // By Tech Level, as it is paid (r4 E11), and labelled so (r5 E13).

@@ -6,9 +6,19 @@
 
 import type { ProposalField, ProposalTarget } from 'game-domain/games/proposals'
 import { clampProposalValue, fieldLabel, proposalValueText } from 'game-domain/games/proposals'
+import { playCopy } from '../../messages/play'
 import type { SentProposal } from '../../rooms/game/proposals'
 
 export type { SentProposal }
+
+/**
+ * The reason a proposal from a veiled Opposition roll gives (r7 C7, MD7-02):
+ * the Feed's rule, the table rolled and never the NPC ("Mediator rolled ·
+ * Mech Salvage"), since the player reads it as the Feed's veiled line does.
+ */
+export function veiledReason(table: string): string {
+  return [playCopy('mediatorRolled'), table].join(' · ')
+}
 
 /** "Judge · HP → 4 · "Ejection burn"". */
 export function proposalLine(p: SentProposal): string {

@@ -145,6 +145,14 @@ describe('RollTableIsland', () => {
     expect(screen.getByText('Rolled 14').closest('li')?.getAttribute('aria-current')).toBe('true')
   })
 
+  test('a roll is spoken in the page’s polite live region (RR7-05)', async () => {
+    const { container } = render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
+    const live = container.querySelector('[aria-live="polite"]')
+    expect(live?.textContent).toBe('')
+    await roll()
+    expect(live?.textContent).toMatch(/^Rolled 14: Success/)
+  })
+
   test('rolls the die for this table, by its name', async () => {
     const asked: string[] = []
     const die = dice(14)

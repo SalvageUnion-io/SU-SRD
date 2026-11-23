@@ -44,6 +44,9 @@ function NpcsNewPage() {
   const { view, crawler, slot, from, game } = Route.useSearch()
   // Kept through the designer's own navigation, so the NPC still lands in its Game.
   const inGame = game ? { game } : {}
+  // Saved from a Game's Prep, it goes back there, where it is now listed (r7 C13).
+  const created = (id: string) =>
+    void navigate(game ? { to: gamePrepPath(game) } : { to: '/npcs/$id', params: { id } })
   const [fromSchema, fromSlug] = (from ?? '').split(':')
   const startFrom =
     fromSchema && fromSlug && isDenizenKind(fromSchema)
@@ -83,13 +86,13 @@ function NpcsNewPage() {
               replace: true,
             })
           }
-          onCreated={(id) => void navigate({ to: '/npcs/$id', params: { id } })}
+          onCreated={created}
           // From a Game's Prep, cancelling goes back there.
           onCancel={() => void navigate({ to: game ? gamePrepPath(game) : '/' })}
         />
       }
       onModeChange={() => undefined}
-      onCreated={(id) => void navigate({ to: '/npcs/$id', params: { id } })}
+      onCreated={created}
     />
   )
 }

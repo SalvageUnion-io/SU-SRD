@@ -77,6 +77,8 @@ export const PATTERN_COLUMNS = [
   spare(fig(buildShelvesCopy('mod'), buildShelvesCopy('moduleSlotsUsed'))),
   // Its Scrap and the moment it was saved tell two of one name apart (r5 D3).
   spare(fig(buildShelvesCopy('cost'), buildShelvesCopy('scrapChassisAndLoadout'))),
+  // How many of your Mechs were built from it (r7 G2).
+  spare(fig(buildShelvesCopy('usedBy'), buildShelvesCopy('mechsBuiltFromIt'))),
   spare(word('saved', buildShelvesCopy('saved'))),
 ]
 

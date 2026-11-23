@@ -94,7 +94,8 @@ test('publish the live public sheet and open it with no account', async ({ page,
   expect(link).toMatch(new RegExp(`^https?://[^/]+${BASE}/p/pilot/[^/]+$`))
 
   // --- Open it in a context with no account at all ---
-  const visitor = await browser.newContext()
+  // At a desktop's width, where the band runs up behind the area rail (r7 G1).
+  const visitor = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   try {
     const publicPage = await visitor.newPage()
     await publicPage.goto(link)
@@ -102,6 +103,18 @@ test('publish the live public sheet and open it with no account', async ({ page,
     await expect(publicPage.getByText('Mira Voss').first()).toBeVisible({ timeout: 15_000 })
     // Read-only: a visitor gets no Share control and no way to edit.
     await expect(publicPage.getByRole('button', { name: /share this pilot/i })).toHaveCount(0)
+    // The read-only banner is in sight, not under the chapter band: a press
+    // at its middle lands on it.
+    const banner = publicPage.getByRole('note', { name: 'Read-only sheet' })
+    await expect(banner).toBeVisible()
+    expect(
+      await banner.evaluate((note) => {
+        const box = note.getBoundingClientRect()
+        const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+        return hit !== null && note.contains(hit)
+      }),
+      'The chapter band covered the read-only banner.'
+    ).toBe(true)
   } finally {
     await visitor.close()
   }

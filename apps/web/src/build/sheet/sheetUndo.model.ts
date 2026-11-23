@@ -7,21 +7,25 @@
  * Ctrl+Z and "Undo last change" reach only the changes made in this tab
  * (`madeInThisTab`, r5 C2): another tab's change is that tab's to take back,
  * or the Change Log's. What this tab undid, Ctrl+Shift+Z or Ctrl+Y (and the
- * undo's own Redo) puts back, newest first, until the sheet's next change.
+ * undo's own Redo) puts back, newest first, until the sheet's next change;
+ * meanwhile the ⋯ menu offers it too, by name ("Redo: add Armour Plating",
+ * r7 G8), so Redo never lives only in a toast that fades.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import { useEffect, useRef, useState } from 'react'
+import type { HeaderMenuItem } from '../../components/index'
 import { toast } from '../../components/index'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { sheetRedo, sheetUndo } from '../../replica/provenance'
 import { roomOf } from '../../replica/roomSocket'
-import type { UnitsState } from '../../replica/units'
-import { madeInThisTab, onUnitWrite } from '../../replica/units'
+import type { TransferPart, UnitsState } from '../../replica/units'
+import { madeInThisTab, onUnitWrite, transferPartsOf } from '../../replica/units'
 import type { EntityLogRow } from '../../rooms/ops'
 import type { LogChange, LogDefaults, Reversal } from './changeLog.model'
 import { changeWhat, lastUndoable, logChanges, reversal, reverseChange } from './changeLog.model'
+import { MERGED } from './changeStory.model'
 import { undoToast } from './undoToast.model'
 
 type SheetUndoInput = {
@@ -67,8 +71,20 @@ export const lastUndoableHere = (
 ): LogChange | undefined =>
   lastUndoable(changes.filter((each) => !taken.has(each.id) && madeInThisTab(each.id)))
 
-/** A change this tab undid: the change, its words, and the fields it put back. */
-type Undone = { change: LogChange; did: Reversal; prior: Record<string, unknown> }
+/**
+ * A change this tab undid: the change, its words, and the fields it put back,
+ * with each other unit's half where the change was one transfer (`others`, r7 D6).
+ */
+type Undone = {
+  change: LogChange
+  did: Reversal
+  prior: Record<string, unknown>
+  others: { part: TransferPart; prior: Record<string, unknown> }[]
+}
+
+/** The fields of `now` a patch is about to move: what its Redo puts back. */
+const priorOf = (back: Record<string, unknown>, now: Record<string, unknown>) =>
+  Object.fromEntries(Object.keys(back).map((field) => [field, now[field]]))
 
 export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }: SheetUndoInput) {
   // Changes this sheet has taken back whose write the log may not show yet:
@@ -77,11 +93,20 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
   const busy = useRef(false)
   // What Redo puts back, newest last; the sheet's next change (not ours) clears it.
   const redos = useRef<Undone[]>([])
+  // What the next Redo puts back, in words where the log has them; null with
+  // nothing to redo. The ⋯ menu offers it by name (r7 G8).
+  const [redoNext, setRedoNext] = useState<{ what: string | undefined } | null>(null)
+  const setRedos = (list: Undone[]): void => {
+    redos.current = list
+    const top = list.at(-1)
+    setRedoNext(top ? { what: changeWhat(top.change) } : null)
+  }
   const ours = useRef(false)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `setRedos` writes a ref and a state setter
   useEffect(
     () =>
       onUnitWrite((written) => {
-        if (written === id && !ours.current) redos.current = []
+        if (written === id && !ours.current && redos.current.length > 0) setRedos([])
       }),
     [id]
   )
@@ -95,10 +120,31 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     }
   }
 
+  /**
+   * One write of this sheet's fields, or, where the change was a transfer
+   * (a craft's item and the Scrap it spent, r7 D6), one transfer of every
+   * half, its source naming each half's change so every log marks it.
+   */
+  const writeAll = (
+    patch: Record<string, unknown>,
+    halves: Undone['others'],
+    meta: (changeId: string) => Parameters<UnitsState['update']>[3],
+    changeId: string
+  ): Promise<unknown> => {
+    if (halves.length === 0) return write(patch, meta(changeId))
+    const ids = [changeId, ...halves.map(({ part }) => part.opId)].join(MERGED)
+    const updates = [
+      { type: kind, id, patch },
+      ...halves.map((half) => ({ type: half.part.type, id: half.part.id, patch: half.prior })),
+    ] as Parameters<UnitsState['transfer']>[0]['updates']
+    return storeState.transfer({ updates }, meta(ids))
+  }
+
   const redo = (undone: Undone): void => {
-    redos.current = redos.current.filter((each) => each !== undone)
+    setRedos(redos.current.filter((each) => each !== undone))
     taken.current.delete(undone.change.id)
-    runWrite(() => write(undone.prior, sheetRedo(undone.change.id)))
+    for (const { part } of undone.others) taken.current.delete(part.opId)
+    runWrite(() => writeAll(undone.prior, undone.others, sheetRedo, undone.change.id))
     undoToast(buildSheetCopy('changeRedone'), () => void reverse(undone.change, undone.did), id)
   }
 
@@ -106,12 +152,30 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     const now = storeState.get(kind, id) as Record<string, unknown> | null
     if (now === null) return Promise.resolve()
     const back = reverseChange(change, now)
-    const prior = Object.fromEntries(Object.keys(back).map((field) => [field, now[field]]))
+    const prior = priorOf(back, now)
+    // A transfer's other halves come back with it: a craft's Scrap (r7 D6).
+    const others = transferPartsOf(change.id).flatMap((part) => {
+      const theirs = storeState.get(part.type, part.id) as Record<string, unknown> | null
+      if (theirs === null) return []
+      const undo = reverseChange(part, theirs)
+      return [{ part, prior: priorOf(undo, theirs), undo }]
+    })
     taken.current.add(change.id)
-    const done = write(back, sheetUndo(change.id))
+    for (const { part } of others) taken.current.add(part.opId)
+    const done = writeAll(
+      back,
+      others.map(({ part, undo }) => ({ part, prior: undo })),
+      sheetUndo,
+      change.id
+    )
     runWrite(() => done)
-    const undone: Undone = { change, did, prior }
-    redos.current = [...redos.current, undone]
+    const undone: Undone = {
+      change,
+      did,
+      prior,
+      others: others.map(({ part, prior: was }) => ({ part, prior: was })),
+    }
+    setRedos([...redos.current, undone])
     undoToast(did.done, () => redo(undone), id, { label: buildSheetCopy('redo') })
     return done.catch(() => undefined)
   }
@@ -174,5 +238,36 @@ export function useSheetUndo({ kind, id, gameId, storeState, defaults, blocked }
     return () => document.removeEventListener('keydown', onKey)
   }, [blocked])
 
-  return { reverse, undoLast, redoLast, next, look }
+  return { reverse, undoLast, redoLast, next, redoNext, look }
+}
+
+/**
+ * The More actions menu's Undo and Redo: one change back at a time, as Ctrl+Z
+ * does (r4 E3), naming what it takes back once the log has said (r6 E15);
+ * what was just undone stays in reach until the next change (r7 G8).
+ */
+export function undoMenuItems(
+  undo: Pick<ReturnType<typeof useSheetUndo>, 'next' | 'redoNext' | 'undoLast' | 'redoLast'>,
+  blocked: boolean
+): HeaderMenuItem[] {
+  return [
+    {
+      id: 'undo',
+      label: undo.next
+        ? buildSheetCopy('undoNamed', { what: undo.next })
+        : buildSheetCopy('undoLastChange'),
+      onSelect: blocked ? undefined : () => void undo.undoLast(),
+    },
+    ...(undo.redoNext
+      ? [
+          {
+            id: 'redo',
+            label: undo.redoNext.what
+              ? buildSheetCopy('redoNamed', { what: undo.redoNext.what })
+              : buildSheetCopy('redoLastChange'),
+            onSelect: blocked ? undefined : () => undo.redoLast(),
+          },
+        ]
+      : []),
+  ]
 }

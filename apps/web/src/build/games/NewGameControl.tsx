@@ -36,6 +36,8 @@ import {
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildGamesCopy } from '../../messages/build-games'
+import { TableNameField } from '../../play/games/TableNameField'
+import { useTableName } from '../../play/games/useTableName'
 import type { GameCallArgs, GameCallResult } from '../../replica/roomCalls'
 import { useGamesCall, useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
@@ -131,15 +133,21 @@ function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDia
   const [mediates, setMediates] = useState(true)
   const go = useGo()
 
-  const [name, setName] = useState('')
+  // The suggested name is a real value, so Create works from the start (r7 C15, LG7-04).
+  const suggested = buildGamesCopy('unionCrawler430')
+  const [name, setName] = useState(suggested)
+  // How the table will call its maker, asked here once and filled in (r7 C1).
+  const you = useTableName()
   // Typing starts in the name, never on Close (MD2-04).
   const nameField = useRef<HTMLInputElement | null>(null)
   const start = useServerAction(
     // The creator is the Organiser, who appoints the Mediator: themselves, if they said so.
-    (from: { name: string } | { templateId: TemplateId; name: string }) =>
-      'templateId' in from
+    async (from: { name: string } | { templateId: TemplateId; name: string }) => {
+      await you.keep()
+      return 'templateId' in from
         ? createFromTemplate({ ...from, mediator: mediates })
-        : create({ ...from, mediator: mediates }),
+        : create({ ...from, mediator: mediates })
+    },
     { failure: buildGamesCopy('gameNotCreated') }
   )
   const { pending: busy, error } = start
@@ -153,7 +161,7 @@ function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDia
   /** Open the new Game's own page; the dialog has done its job. */
   function enter(gameId: string) {
     if (!stay) go(gamePath(gameId))
-    setName('')
+    setName(suggested)
     onOpenChange(false)
   }
 
@@ -170,6 +178,7 @@ function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDia
       initialFocus={nameField}
     >
       <div style={BODY}>
+        <TableNameField name={you} />
         <div style={STACK}>
           <div style={ROW}>
             <Text variant="body">{buildGamesCopy('willYouBeTheMediator')}</Text>
@@ -191,8 +200,9 @@ function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDia
                 <Input
                   ref={nameField}
                   aria-label={buildGamesCopy('newGameName')}
-                  placeholder={buildGamesCopy('unionCrawler430')}
                   value={name}
+                  // The suggestion goes as the first key is typed.
+                  onFocus={(e) => e.currentTarget.select()}
                   // The room's cap on a Game's name (`rooms/game/roster.ts`).
                   maxLength={80}
                   onChange={(e) => setName(e.target.value)}

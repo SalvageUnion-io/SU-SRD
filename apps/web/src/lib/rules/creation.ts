@@ -43,6 +43,7 @@ import { libRulesCopy } from '../../messages/lib-rules'
 import type { CrawlerWizardFormState } from '../wizard/crawlerFormState'
 import type { MechWizardFormState } from '../wizard/mechFormState'
 import type { PilotWizardFormState } from '../wizard/pilotFormState'
+import { callsignGate } from './pilotNameGate'
 import { isStartingEquipment } from './startingEquipment'
 
 /** Book-order pilot wizard step ids (Pilot Bay pp.18–19 + Review). */
@@ -171,13 +172,6 @@ function equipmentGate(form: PilotWizardFormState): StepGateResult {
   const remaining = pilotEquipmentPicksRemaining(count)
   const reason = libRulesCopy(remaining === 1 ? 'pickItemOne' : 'pickItemMany', { remaining })
   return { ok: false, reason }
-}
-
-function callsignGate(form: PilotWizardFormState): StepGateResult {
-  if (form.name.trim() === '') {
-    return { ok: false, reason: libRulesCopy('enterANameToContinue') }
-  }
-  return OK
 }
 
 /**

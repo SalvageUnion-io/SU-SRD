@@ -109,11 +109,13 @@ export function usePatternGone(appId: string | undefined, ask: boolean): boolean
  */
 export function usePatternElsewhere(
   appId: string | undefined,
-  ask: boolean
+  ask: boolean,
+  /** Ask the reader's crews too; false for a reader with no account (a public sheet's, r7 G7). */
+  crewsToo = true
 ): MechPattern | undefined {
   const asked = ask && appId !== undefined
   const byLink = usePatternByLink(asked ? appId : undefined)
-  const crew = useCrewPatterns(asked)
+  const crew = useCrewPatterns(asked && crewsToo)
   if (!asked) return undefined
   const body = byLink?.body ?? crew?.find((pattern) => pattern.appId === appId)?.body
   const parsed = body === undefined ? undefined : parseMechPattern(body)

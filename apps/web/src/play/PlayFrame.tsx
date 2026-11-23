@@ -254,7 +254,12 @@ export function PlayFrame<Value extends string>({
                     {jumps.map((j) => (
                       <SkipLink
                         key={j.label}
-                        to={paneId(j.pane)}
+                        // A jump with an id of its own points there (r7 C8: Feed is not the Table).
+                        to={
+                          /^#[\w-]+$/.test(j.first ?? '')
+                            ? (j.first ?? '').slice(1)
+                            : paneId(j.pane)
+                        }
                         onFollow={() => {
                           onTab(j.pane)
                           setJump({ pane: j.pane, first: j.first })

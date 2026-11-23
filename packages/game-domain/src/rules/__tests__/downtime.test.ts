@@ -291,6 +291,23 @@ describe('downtimeMechPatch', () => {
     expect(downtimeMechPatch(mech, undefined, 3, allDowntimeSteps())).toEqual({})
   })
 
+  // r7 D2 (SB7-14): a Heat Check's Shutdown and Vulnerable were carried into next week.
+  it('Restore clears the Reactor’s Shutdown and Vulnerable, keeping other conditions', () => {
+    const mech = makeMech({ conditions: ['Prone', 'Shutdown', 'vulnerable'] })
+    expect(downtimeMechPatch(mech, undefined, 3, allDowntimeSteps()).conditions).toEqual(['Prone'])
+    const blocked = downtimeMechPatch(mech, undefined, 3, allDowntimeSteps(), {
+      operational: false,
+    })
+    expect(blocked.conditions).toBeUndefined()
+    const both = downtimeMechPatch(
+      makeMech({ conditions: ['Shutdown', CHASSIS_DAMAGED_CONDITION] }),
+      undefined,
+      3,
+      allDowntimeSteps()
+    )
+    expect(both.conditions).toEqual([])
+  })
+
   it('produces an empty patch when everything is already at rest', () => {
     const mech = makeMech()
     expect(downtimeMechPatch(mech, undefined, 3, allDowntimeSteps())).toEqual({})

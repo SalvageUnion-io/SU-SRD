@@ -21,6 +21,9 @@
  * twice: the table's line for the same change is left out.
  */
 
+import type { HeatCheckEffect, OverloadTable } from 'salvageunion-reference/rules'
+import { describeOverloadOutcome } from 'salvageunion-reference/rules'
+import type { LogChange } from '../build/sheet/changeLog.model'
 import { playCopy } from '../messages/play'
 import type { TableEvent } from '../rooms/game/events'
 import type { PlayRoll } from './playRolls.model'
@@ -72,6 +75,11 @@ export type FeedEntry = (
       kept?: Kept
       own?: true
     }
+  /**
+   * Solo, a line of the last visit, from the units' Change Logs (r7 A8):
+   * "Thresher · Heat 0→2". `first` heads the run with "Last time".
+   */
+  | { kind: 'last'; key: string; ts: number; text: string; first?: true }
   /** A roll or a change made on this screen: "You · Core Mechanic · 14 · Success". */
   | {
       kind: 'mine'
@@ -104,6 +112,53 @@ export type FeedSources = {
   rollerName: string
   /** The reader: a line the table attributes to the Mediator reads "You" when it is theirs. */
   viewerId?: string | null
+  /** Solo, the last visit's lines (`lastVisitLines`), newest first: under this visit's (r7 A8). */
+  last?: readonly LastLine[]
+}
+
+/** A line of the last solo visit (r7 A8). */
+export type LastLine = { key: string; ts: number; text: string }
+
+/** A pause this long between two of Play's writes ends a visit (r7 A8). */
+const VISIT_GAP_MS = 3 * 60 * 60_000
+
+/** The most lines "Last time" lists. */
+const LAST_LINES = 30
+
+/**
+ * The last solo visit, as the units' Change Logs keep it (r7 A8): Play's
+ * changes before `before` (this visit's first line), back to a pause of
+ * `VISIT_GAP_MS`, newest first, a line each: "Thresher · Heat 0→2 · Push".
+ */
+export function lastVisitLines(
+  units: readonly { name: string; changes: readonly LogChange[] }[],
+  before: number
+): LastLine[] {
+  const all = units
+    .flatMap(({ name, changes }) =>
+      changes
+        .filter((change) => change.from === 'play' && change.ts < before)
+        .map((change) => ({ name, change }))
+    )
+    .sort((a, b) => b.change.ts - a.change.ts)
+  const visit: typeof all = []
+  for (const each of all) {
+    const last = visit.at(-1)
+    if (last !== undefined && last.change.ts - each.change.ts > VISIT_GAP_MS) break
+    visit.push(each)
+  }
+  return visit.slice(0, LAST_LINES).map(({ name, change }) => {
+    const said = change.lines.map((line) =>
+      'text' in line
+        ? line.text
+        : `${line.label.replace(/^Current /, '')} ${line.before}→${line.after}`
+    )
+    return {
+      key: `last:${change.id}`,
+      ts: change.ts,
+      text: [name, ...said, ...(change.did ? [change.did] : [])].join(' · '),
+    }
+  })
 }
 
 /**
@@ -151,6 +206,32 @@ function asMine(text: string): string {
 }
 
 /**
+ * A seat's act the room words "<unit> <does>" (`rooms/game/events.ts`), as
+ * its player reads it (r7 A5): "You use Red Laser", as their rolls say "You".
+ */
+const SEAT_ACTS: readonly [RegExp, (what: string) => string][] = [
+  [/^.+? boards (.+)$/, (mech) => playCopy('youBoard', { mech })],
+  [/^.+? climbs out, on foot$/, () => playCopy('youClimbOut')],
+  [/^.+? ejects$/, () => playCopy('youEject')],
+  [/^.+? uses (.+)$/, (what) => playCopy('youUse', { what })],
+  [/^.+? switches (.+)$/, (what) => playCopy('youSwitch', { what })],
+  [/^.+? ended their turn$/, () => playCopy('youEndedTurn')],
+  [/^.+? moved their Scrap$/, () => playCopy('youMovedScrap')],
+  [/^.+? · (.+: not applied)$/, (what) => `${playCopy('feedYou')} · ${what}`],
+]
+
+/** The seat acts a player's own line is reworded in. */
+const SEAT_KINDS: ReadonlySet<TableEvent['kind']> = new Set(['board', 'action', 'turn', 'downtime'])
+
+function asMyAct(text: string): string {
+  for (const [said, mine] of SEAT_ACTS) {
+    const found = said.exec(text)
+    if (found !== null) return mine(found[1] ?? '')
+  }
+  return text
+}
+
+/**
  * One of the table's events as `viewerId` reads its line, wherever it is
  * listed (the Feed, "Last session"): their own act says "You", and the hand
  * over that names them says "You now mediate this Game".
@@ -165,7 +246,9 @@ export function tableLine(e: TableEvent, viewerId: string | null): string {
       ? `${playCopy('feedYou')} · ${e.text.slice(signed.length)}`
       : e.text
   }
-  return e.actorId === viewerId && OWN.has(e.kind) ? asMine(e.text) : e.text
+  if (e.actorId !== viewerId) return e.text
+  if (OWN.has(e.kind)) return asMine(e.text)
+  return SEAT_KINDS.has(e.kind) ? asMyAct(e.text) : e.text
 }
 
 /**
@@ -198,6 +281,17 @@ export function mineText(roll: PlayRoll, hidden = roll.private === true): string
   ].join(' · ')
 }
 
+/**
+ * What a Push's Heat Check came to, as its own Feed line says it (r7 A5):
+ * "Passed", or "Failed" with the Reactor Overload row and what it did
+ * (Core Book p.234), never a second roll of the weapon.
+ */
+export function heatCheckSays(effect: HeatCheckEffect, table: OverloadTable): string {
+  if (!effect.result.overloaded) return playCopy('heatCheckPassed')
+  const outcome = describeOverloadOutcome(effect.result, table).replace(/^Overload\. /, '')
+  return `${playCopy('heatCheckFailed')} · ${outcome}`
+}
+
 /** How long after an action's use its cost and roll still group with it. */
 const ACTION_SPAN_MS = 5 * 60_000
 
@@ -222,7 +316,8 @@ function groupActions(
   // Oldest first, so a use claims what came after it.
   for (const use of [...entries].reverse()) {
     const from = sources.get(use.key)
-    const name = from?.kind === 'action' ? / uses (.+)$/.exec(use.text)?.[1] : undefined
+    // "Razor uses Red Laser", or the player's own "You use Red Laser" (r7 A5).
+    const name = from?.kind === 'action' ? / uses? (.+)$/.exec(use.text)?.[1] : undefined
     if (from === undefined || name === undefined || folded.has(use.key)) continue
     const mine = (e: FeedEntry) => e.key !== use.key && sources.get(e.key)?.actor === from.actor
     // The span ends at the same actor's next use.
@@ -268,6 +363,7 @@ export function playFeedEntries({
   mine,
   rollerName,
   viewerId = null,
+  last = [],
 }: FeedSources): FeedEntry[] {
   const said = (e: TableEvent) => tableLine(e, viewerId)
   const echoKey = (r: PlayRoll) => `${r.at}|${playRollDescription(rollerName, r)}`
@@ -373,5 +469,12 @@ export function playFeedEntries({
       }
     }),
   ].sort((a, b) => b.ts - a.ts)
-  return [...pending, ...(events === null ? rest : groupActions(rest, sources))]
+  const lastTime = last.map(
+    (line, i): FeedEntry => ({
+      kind: 'last',
+      ...line,
+      ...(i === 0 ? { first: true as const } : {}),
+    })
+  )
+  return [...pending, ...(events === null ? rest : groupActions(rest, sources)), ...lastTime]
 }

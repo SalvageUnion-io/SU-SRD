@@ -154,6 +154,7 @@ export {
   suggestSearchQuery,
   tokenizeSearchQuery,
 } from './searchRanking'
+export { SEARCH_NAMES_IT, searchNamesTerm, searchTermScore } from './searchTerms'
 export { findEntityBySlug, getEntitySlug } from './slug'
 export { topLevelRollTables } from './topLevelRollTables'
 export { parseTraitReferences, plainTraitText } from './traitText'

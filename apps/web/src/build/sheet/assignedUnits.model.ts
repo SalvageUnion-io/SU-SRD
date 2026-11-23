@@ -63,7 +63,7 @@ export type AssignedUnit = {
   note?: string | undefined
   /** Its status, its vitals as they stand (`SP | 9/13`): its Mini's body. */
   readings?: readonly UnitReading[]
-  /** Its name; a withheld unit on a public sheet says "Not shared". */
+  /** Its name; a withheld unit on a public sheet says what it is: "Mech · not shared". */
   name: string
   /** Its sheet; without one the chip opens nothing (a withheld unit). */
   href?: string | undefined
@@ -104,6 +104,13 @@ const NEW_PATH = {
   pilot: '/pilots/new',
   mech: '/mechs/new',
   crawler: '/crawlers/new',
+} as const satisfies Record<SheetKind, string>
+
+/** What a withheld unit is, said in its slot ("Mech · not shared", r7 G9). */
+const KIND_WORD = {
+  pilot: buildSheetCopy('pilot'),
+  mech: buildSheetCopy('mech'),
+  crawler: buildSheetCopy('crawler'),
 } as const satisfies Record<SheetKind, string>
 
 /**
@@ -352,7 +359,8 @@ export function assignedUnitsFor(args: {
       units.push({
         key: place.many ? unit.key : kind,
         kind,
-        name: unit.name ?? buildSheetCopy('notShared'),
+        // It says what it is (r7 G9): "Mech · not shared".
+        name: unit.name ?? buildSheetCopy('kindNotShared', { kind: KIND_WORD[kind] }),
       })
     }
     if (place.many) {

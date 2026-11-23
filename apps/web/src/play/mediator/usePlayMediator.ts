@@ -20,6 +20,7 @@
  * it to the bound Discord channel, unless Private rolls is on (ADR-051 §9a).
  */
 
+import type { SalvageOffer } from 'game-domain/games/proposals'
 import { CARGO_PROPOSAL_FIELD, PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -92,7 +93,14 @@ export const NOTHING = (): null => null
  */
 export type WreckHaul =
   | ((crawler: Crawler) => Partial<Crawler> | null)
-  | { mechId: string; lots: CargoLot[]; reason: string }
+  | {
+      /** The crew Mech whose hold it is proposed to, or null for the crawler's (r7 D8). */
+      mechId: string | null
+      lots: CargoLot[]
+      reason: string
+      /** What the answer may pick from instead (`WRECK_SALVAGE`, r7 D8). */
+      offer?: SalvageOffer
+    }
 
 /** How many alerts and rolls the Feed reads. */
 const FEED_ALERTS = 20
@@ -167,7 +175,8 @@ type MediatorPrep = {
   /** The one running; null when none is (or while it loads). */
   running: RunningEncounter | null
   /** Run one: its opposition joins the tray (`clear` empties the tray first). */
-  run: (encounterId: string, clear: boolean) => Promise<{ added: number }>
+  /** `startSession` false: a test run, no group session started for it (r7 C6). */
+  run: (encounterId: string, clear: boolean, startSession?: boolean) => Promise<{ added: number }>
   /** Stop running it: its notes and tables leave Play; the Opposition stays unless `clear`. */
   end: (clear?: boolean) => Promise<void>
   /** Bring a held-back wave onto the tray (ADR-059 §5). */
@@ -519,12 +528,16 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     tray: trayWrites,
     salvageWreck: said(async (npc: TrayNpc, haul: WreckHaul) => {
       if (typeof haul !== 'function') {
+        // Offered to the crew, it is proposed to the Game's crawler (r7 D8).
+        const entityId = haul.mechId ?? crawler?.crawler.id ?? null
+        if (entityId === null) throw new Error('There is no crawler to haul it to')
         await updateNpc({ npcId: npcId(npc), patch: { salvaged: true } })
         await proposeMutation({
-          entityId: haul.mechId,
+          entityId,
           field: CARGO_PROPOSAL_FIELD,
           after: haul.lots,
           reason: haul.reason,
+          ...(haul.offer === undefined ? {} : { offer: haul.offer }),
         })
         return
       }
@@ -547,12 +560,13 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         ...encounters.filter((e) => e.gameId !== gameId),
       ],
       running: running == null ? null : readRunning(running),
-      run: (encounterId, clear) =>
+      run: (encounterId, clear, startSession = true) =>
         runEncounter({
           // A Game room cannot read the Mediator's shelf: their own copy rides along.
           encounter: encounters.find((e) => e.id === encounterId),
           clear,
           ...(flagOn('encounterSheet') ? { waves: true } : {}),
+          ...(startSession ? {} : { startSession: false }),
         }),
       bringIn: (wave) => bringInWave({ wave }),
       end: async (clear = false) => {

@@ -111,11 +111,29 @@ export function duplicateOpponent(
 }
 
 /** The opposition once `added` has joined it: a second of a kind numbers the first ("Raider 1"). */
-export function withAdded(
+function withAdded(
   opposition: readonly EncounterOpponent[],
   added: Pick<EncounterOpponent, 'name'>
 ): EncounterOpponent[] {
   return [...numberFirst(opposition, added.name)]
+}
+
+/**
+ * The opposition with `count` more of one kind (r7 C13), each drawn by `draw`
+ * from the names already in it and numbered as every add is; it stops at the
+ * encounter's room.
+ */
+export function withCopies(
+  opposition: readonly EncounterOpponent[],
+  count: number,
+  draw: (names: string[]) => TrayNpcBody
+): EncounterOpponent[] {
+  let next = [...opposition]
+  for (let i = 0; i < count && hasRoomFor({ opposition: next }); i++) {
+    const added = opponentFrom(draw(next.map((o) => o.name)), crypto.randomUUID())
+    next = withAdded([...next, added], added)
+  }
+  return next
 }
 
 /**

@@ -15,7 +15,9 @@ import type { FeedEntry } from './feed.model'
 export function newestFromOthers(entries: readonly FeedEntry[]): string | null {
   let newest: FeedEntry | null = null
   for (const entry of entries) {
-    if (entry.kind === 'mine' || ('own' in entry && entry.own === true)) continue
+    // The last solo visit's lines (r7 A8) are history, never news.
+    if (entry.kind === 'mine' || entry.kind === 'last' || ('own' in entry && entry.own === true))
+      continue
     if (newest === null || entry.ts > newest.ts) newest = entry
   }
   return newest?.key ?? null

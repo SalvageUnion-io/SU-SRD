@@ -181,7 +181,7 @@ const QUESTION_WORDS = new Set([
 const SENTENCE_MARKS = '?!,;:'
 
 /** A word without the sentence marks it ends on. A loop, not a pattern: a pattern backtracks on a long run of marks. */
-function withoutSentenceMarks(word: string): string {
+export function withoutSentenceMarks(word: string): string {
   let end = word.length
   while (end > 0 && SENTENCE_MARKS.includes(word[end - 1] as string)) end--
   return word.slice(0, end)
@@ -235,6 +235,16 @@ export function searchWordStem(word: string): string {
   return word
 }
 
+/**
+ * A word as one form of it, for comparing two words: its stem without a
+ * final "e", so "salvage" and "salvaging" are one ("salvag"), as are "move"
+ * and "moves". Compared whole, never matched as a substring.
+ */
+export function searchWordForm(word: string): string {
+  const stem = searchWordStem(word)
+  return stem.length >= STEM_MIN_LENGTH && stem.endsWith('e') ? stem.slice(0, -1) : stem
+}
+
 /** A name with nothing but its letters and digits: "bio-titan" as "biotitan". */
 export function searchSquashedName(nameText: string): string {
   return nameText.replace(/[^a-z0-9]+/g, '')
@@ -258,8 +268,11 @@ const ALIASES_AS_PRINTED: Readonly<Record<string, readonly string[]>> = {
   'Group Initiative': ['initiative', 'turn order', 'who goes first'],
   'Hit Points': ['HP'],
   Long: ['long range', 'range bands'],
+  // How far a Mech goes on its turn, as the table asks it.
+  'Map Movement': ['how far'],
   'Mech Damage': ['my mech hits 0 SP'],
   Medium: ['medium range', 'range bands'],
+  Move: ['how far'],
   'Multi-attack': ['can I shoot twice'],
   Range: ['range bands'],
   'Salvage Value': ['SV'],
@@ -313,7 +326,7 @@ function saysAlias(nameText: string, queries: readonly string[]): boolean {
  * order", "combat") they come ahead of the hundreds of entities whose text
  * happens to hold the words. Smaller than every name tier.
  */
-const RULES_KIND_BOOST: Readonly<Record<string, number>> = {
+export const RULES_KIND_BOOST: Readonly<Record<string, number>> = {
   guides: 4,
   keywords: 3,
   traits: 3,
@@ -370,6 +383,25 @@ function isNumber(token: string): boolean {
  * looser hits. Under an exact name and its looser readings, over a prefix.
  */
 const NAME_THEN_WORDS_SCORE = 80
+
+/**
+ * The whole name in another form of its words ("salvage" for Salvaging,
+ * "overheats" for Overheat): the thing asked for, just said differently.
+ * Under the name with more words after it, over a prefix.
+ */
+const WORD_FORM_NAME_SCORE = 60
+
+/** The query is the name, word for word, each in some form of it. */
+function sameWordForms(tokens: readonly string[], nameText: string): boolean {
+  const words = searchNameWords(nameText)
+  return (
+    tokens.length === words.length &&
+    tokens.every(
+      (token, i) =>
+        searchWordForm(withoutSentenceMarks(token)) === searchWordForm(words[i] as string)
+    )
+  )
+}
 
 /** What a matcher knows about one hit. The optional facts are ORM-only. */
 export type SearchMatchFacts = SearchQuery & {
@@ -490,8 +522,9 @@ export function suggestSearchQuery(query: string, names: readonly string[]): str
  * The name tiers are tried on the query as typed and on it without a
  * question's filler. Under them, the looser readings of a name: the query is
  * one of the entity's aliases 90 ("sp" → Structure Points), the name without
- * its punctuation 85 ("biotitan" → Bio-Titan), another form of the name's
- * words 20 ("overheating" → Overheat). The rules' own kinds add a few points
+ * its punctuation 85 ("biotitan" → Bio-Titan), the whole name in another form
+ * 60 ("salvage" → Salvaging, "overheating" → Overheat), another form of some
+ * of the name's words 20. The rules' own kinds add a few points
  * (`RULES_KIND_BOOST`). The name with more words after it 80 ("mule sp"); a
  * roll table printed inside another entry, one under its owner.
  */
@@ -504,6 +537,7 @@ export function scoreSearchMatch(facts: SearchMatchFacts): number {
   else if (saysAlias(nameText, queries)) score += 90
   else if (searchSquashedName(nameText) === searchSquashedName(loweredQuery)) score += 85
   else if (queries.some((q) => q.startsWith(`${nameText} `))) score += NAME_THEN_WORDS_SCORE
+  else if (sameWordForms(tokens, nameText)) score += WORD_FORM_NAME_SCORE
   else if (queries.some((q) => nameText.startsWith(q))) score += 50
   else if (queries.some((q) => nameText.includes(q))) score += 25
   else if (tokens.every((t) => nameText.includes(t) || nameText.includes(searchWordStem(t))))
