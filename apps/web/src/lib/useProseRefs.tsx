@@ -90,9 +90,14 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
         return <span key={key} style={PARAGRAPH_BREAK} />
       }
       const ref = segment.kind === 'trait' ? mentionRef(segment.name) : segment.ref
-      // A book's page reference cites: it links every time.
+      // A book's page reference cites: it links every time, but after a link to
+      // the same page in its paragraph.
       if (segment.kind !== 'page' && again(ref)) return em(key, segment.start, segment.text)
       const term = ref ? `${ref.schemaName}:${ref.id}` : ''
+      // A page reference to what its paragraph just linked ("the Pilot Bay …
+      // on p. 223") is that link's citation: plain words, one link (RR7-16).
+      if (segment.kind === 'page' && term !== '' && stops.has(term))
+        return em(key, segment.start, segment.text)
       const repeat = term !== '' && stops.has(term)
       stops.add(term)
       return em(

@@ -36,6 +36,7 @@ import {
 // ORM-backed `search()` it mirrors.
 import { TRAINING_POINTS } from '../components/entity'
 import type { EntityFormModel } from '../components/index'
+import { buildChapters } from './chapters'
 import { itemHref, patternHref } from './entityHref'
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
 import { listingEntries } from './listingEntries'
@@ -116,6 +117,33 @@ function ruleEntries(): CompactSearchEntry[] {
           kind: `${RULE_KIND} · ${guide.name}`,
         },
         rule: true,
+      },
+    ]
+  })
+}
+
+/** A search result's kind for one of the Reference's chapters (its sections: Pilot Bay, Mech Workshop…). */
+const SECTION_KIND = 'Reference section'
+
+/**
+ * The Reference's chapters as rows of their own, each opening its page
+ * (`/pilots/`): "pilot bay" names both a Crawler Bay and the section that
+ * holds Classes, Abilities and Equipment (RR7-16), and both are offered.
+ */
+function sectionEntries(): CompactSearchEntry[] {
+  return buildChapters().flatMap((chapter) => {
+    const first = chapter.rows[0]?.schemaId
+    if (!first || !isSchemaName(first)) return []
+    const schema = getEntitySchemas().find((candidate) => candidate.id === first)
+    return [
+      {
+        id: `section:${chapter.id}`,
+        name: chapter.title,
+        slug: chapter.id,
+        schemaName: first,
+        schemaTitle: schema?.title ?? first,
+        text: [chapter.title, ...chapter.rows.map((row) => row.label)].join(' ').toLowerCase(),
+        pattern: { href: chapter.href, kind: SECTION_KIND },
       },
     ]
   })
@@ -218,5 +246,7 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
     }
   }
 
+  // After the entries: on equal terms a rule's own page leads its section.
+  entries.push(...sectionEntries())
   return entries
 }

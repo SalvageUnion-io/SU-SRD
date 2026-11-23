@@ -310,6 +310,19 @@ describe("the List's columns", () => {
     expect(row?.children[at]?.textContent).toBe('Forging, Electronics')
   })
 
+  it('a Hybrid Class advances into its Legendary class alone, and a short list asks no sort (RR7-13)', () => {
+    const hybrids = all('classes').filter((item) => !('coreTrees' in item))
+    const { container } = render(
+      <IndexLedger schemaId="classes" noun="Hybrid Classes" items={hybrids} orderNote />
+    )
+    const at = heads(container).indexOf('Advances into')
+    const row = Array.from(container.querySelectorAll('tbody tr')).find((tr) =>
+      tr.textContent?.startsWith('Fabricator')
+    )
+    expect(row?.children[at]?.textContent).toBe('Legendary Fabricator')
+    expect(container.textContent).not.toContain('to sort by it')
+  })
+
   it('a list of many columns is dense, a list of few is not (RR-24’s frame)', () => {
     const chassis = render(<IndexLedger schemaId="chassis" noun="Chassis" items={all('chassis')} />)
     expect(chassis.container.querySelector('table')?.hasAttribute('data-dense')).toBe(true)

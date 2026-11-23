@@ -126,3 +126,15 @@ describe('a question finds the rules term it holds (r7 E1)', () => {
     expect(names).toContain('Pushing a Mech')
   })
 })
+
+describe("'pilot bay' offers the Crawler Bay and the Reference's section (RR7-16)", () => {
+  test('both, the section opening its chapter page', () => {
+    const results = aboveFloor(
+      searchCompactIndex(buildSearchIndexEntries(), { query: 'pilot bay' })
+    )
+    expect(results.map((r) => r.pattern?.href ?? r.schemaName).slice(0, 2)).toEqual([
+      'crawler-bays',
+      '/pilots/',
+    ])
+  })
+})

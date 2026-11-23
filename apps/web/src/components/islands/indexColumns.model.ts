@@ -183,10 +183,11 @@ const WORDS: Readonly<Record<string, readonly IndexColumn[]>> = {
       key: 'kind',
       label: islandsCopy('advancesInto'),
       kind: 'text',
+      // A Hybrid Class's advanced tree is itself: it advances into its Legendary class alone (RR7-13).
       value: (item) =>
         ['advancedTree', 'legendaryTree']
           .map((field) => (item as unknown as Record<string, unknown>)[field])
-          .filter((tree) => typeof tree === 'string' && tree)
+          .filter((tree) => typeof tree === 'string' && tree && tree !== item.name)
           .join(' · '),
     },
   ],

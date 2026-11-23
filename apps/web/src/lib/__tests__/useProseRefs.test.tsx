@@ -53,6 +53,34 @@ describe('useParseTraitReferences', () => {
     expect(paragraphs()).toEqual([1, 0, 1])
   })
 
+  test("a page reference to what its paragraph just linked is that link's citation: one link (RR7-16)", () => {
+    const ref = {
+      schemaName: 'crawler-bays',
+      id: 'pilot-bay-id',
+      slug: 'pilot-bay',
+      name: 'Pilot Bay',
+    }
+    const { container } = render(
+      <EntitySurfaceProvider
+        value={{
+          hrefFor: srdHrefFor,
+          nameRefs: { 'pilot bay': [{ ref, noun: 'Bay' }] },
+          pageRefs: { 223: [{ ref, noun: 'crawler bay', guide: true }] },
+        }}
+      >
+        <Prose text="Full details on the Pilot Bay can be found on p. 223." />
+        <Prose text="See p. 223." />
+      </EntitySurfaceProvider>
+    )
+    const [first, second] = [...container.querySelectorAll('p')]
+    expect([...(first?.querySelectorAll('a') ?? [])].map((a) => a.textContent)).toEqual([
+      'Pilot Bay',
+    ])
+    expect(first?.textContent).toContain('on p. 223.')
+    // Alone, the citation links.
+    expect(second?.querySelector('a')?.textContent).toBe('p. 223')
+  })
+
   test('plain text passes through untouched', () => {
     render(<Prose text="No references here." />)
     expect(screen.getByText('No references here.')).toBeTruthy()

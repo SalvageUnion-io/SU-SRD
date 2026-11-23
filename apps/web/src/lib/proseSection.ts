@@ -3,7 +3,8 @@ import { createContext } from 'react'
 /**
  * A section of prose: within it a term links once, at its first mention, and
  * reads as plain words after (a guide's step linked "Mech" in every
- * paragraph, RR2-15). A book's page reference always links: it cites.
+ * paragraph, RR2-15). A book's page reference always links: it cites, but
+ * after a link to the same page in its paragraph (RR7-16).
  *
  * Each run of prose claims a term under its own id, so a claim holds across
  * re-renders: the run that linked a term first keeps the link. The scope is

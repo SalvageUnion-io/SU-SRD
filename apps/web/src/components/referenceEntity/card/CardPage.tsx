@@ -238,7 +238,8 @@ export function CardPage({
     const prose = (
       <div className="su-entity-page__prose">
         {subLine}
-        {body}
+        {/* A Page's words are a section, as a guide's step is: a term links at its first mention (RR7-12). */}
+        <ProseSection>{body}</ProseSection>
       </div>
     )
     const words =
