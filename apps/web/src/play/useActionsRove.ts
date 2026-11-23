@@ -18,10 +18,10 @@ import { useEffect } from 'react'
 const USE = '.su-play-act:not([data-open]) .su-play-act__use'
 
 /** What a keyboard reaches. */
-const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]'
+const FOCUSABLE = ['a[href]', 'button', 'input', 'select', 'textarea', '[tabindex]'].join()
 
 /** The closed rows' Use buttons, in the list's order. */
-export function roveStops(list: HTMLElement): HTMLElement[] {
+function roveStops(list: HTMLElement): HTMLElement[] {
   return [...list.querySelectorAll<HTMLElement>(USE)].filter(
     (el) => !(el as HTMLButtonElement).disabled && el.closest('[hidden]') === null
   )
@@ -31,7 +31,7 @@ export function roveStops(list: HTMLElement): HTMLElement[] {
  * Make `list` one stop: the remembered Use (or the first) takes Tab, every
  * other Use and the rest of a closed row's controls leave the Tab order.
  */
-export function setRoveStops(list: HTMLElement, last: HTMLElement | null): void {
+function setRoveStops(list: HTMLElement, last: HTMLElement | null): void {
   const stops = roveStops(list)
   const stop = last !== null && stops.includes(last) ? last : (stops[0] ?? null)
   for (const row of list.querySelectorAll<HTMLElement>('.su-play-act')) {

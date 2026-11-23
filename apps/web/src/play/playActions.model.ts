@@ -199,8 +199,11 @@ function sayWhose(entries: ListEntry[]): ListEntry[] {
     if (entry.kind !== 'action' || entry.source === 'companion') return entry
     const whose = sources.get(entry.name)
     if (!(whose?.has('mech') && whose.has('pilot'))) return entry
-    const key = entry.source === 'mech' ? 'actionOfMech' : 'actionOfPilot'
-    return { ...entry, name: playCopy(key, { name: entry.name }) }
+    const name =
+      entry.source === 'mech'
+        ? playCopy('actionOfMech', { name: entry.name })
+        : playCopy('actionOfPilot', { name: entry.name })
+    return { ...entry, name }
   })
 }
 
