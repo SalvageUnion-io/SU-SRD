@@ -23,14 +23,15 @@ import { SITE_URL } from '../../src/lib/constants'
 
 /**
  * The pages kept out of the sitemap: the 404, the og card's screenshot
- * surface, the search's results page (a query's, noindexed), and the app's shell, whose public pages have their own
- * (`build/sitemap.xml`). `passesSitemapFilter` is the net under this list.
+ * surface, the search's results page (a query's, noindexed), the app's shell, whose public pages have their own
+ * (`build/sitemap.xml`), and the Discord Activity, which only Discord opens. `passesSitemapFilter` is the net under this list.
  */
 export const NOT_IN_SITEMAP: ReadonlySet<string> = new Set([
   '/404',
   '/og-card',
   '/build',
   '/search',
+  '/activity',
 ])
 
 /**

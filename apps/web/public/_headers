@@ -56,6 +56,17 @@
   Content-Security-Policy-Report-Only: require-trusted-types-for 'script'
   Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://assets.salvageunion.io https://cdn.discordapp.com https://storage.ko-fi.com; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self';
 
+# The Discord Activity (`astro/pages/activity/`, src/activity/): the one page
+# another site may frame. Discord shows it in a frame on discord.com (the
+# desktop and web clients) from <client id>.discordsays.com, its proxy; the
+# portal's root URL Mapping points at this directory. `! X-Frame-Options`
+# takes back the DENY above for this path only, and this second policy adds
+# frame-ancestors, which the site's policy leaves unset. Two policies are
+# both enforced, so everything else the site's allows stays exactly as it is.
+/activity/*
+  ! X-Frame-Options
+  Content-Security-Policy: frame-ancestors https://discord.com https://*.discord.com https://*.discordsays.com
+
 # The production Worker's own workers.dev address serves the same pages as
 # salvageunion.io (it stays on for the smoke check). Its canonicals already name
 # salvageunion.io; noindex keeps the duplicate out of search outright. PR
