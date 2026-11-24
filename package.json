@@ -33,6 +33,9 @@
     "@cloudflare/vitest-plugin": {
       "zod": "4.6.6"
     },
+    "@discord/embedded-app-sdk": {
+      "zod": "4.6.6"
+    },
     "deepmerge": "file:./vendor/deepmerge",
     "filelist": {
       "minimatch": "11.0.2"
