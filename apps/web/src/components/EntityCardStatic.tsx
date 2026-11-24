@@ -1,5 +1,6 @@
-import type { RefClass, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { ClassAbilityTree, ClassAdvancement, ClassContents } from './ClassAbilityTree'
+import { classOf } from './classContents.model'
 import type { NameRefIndex, PageRefIndex } from './index'
 import { ReferenceEntityCard } from './index'
 import { ReferenceSurface } from './ReferenceSurface'
@@ -15,13 +16,6 @@ type EntityCardStaticProps = {
   nameRefs?: NameRefIndex
   /** A short list of links back the page hands it (the tables it is rolled on), under the art. */
   sideLinks?: SideLinkList
-}
-
-/** The class (core trees) or advanced class (hybrid) whose ability tree the card carries. */
-function classOf(item: RefEntity): RefClass | undefined {
-  if ('coreTrees' in item && Array.isArray(item.coreTrees)) return item
-  if ('hybrid' in item && item.hybrid === true) return item
-  return undefined
 }
 
 /**

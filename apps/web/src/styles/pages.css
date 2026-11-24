@@ -934,6 +934,21 @@ main [id] {
   .su-page-jump {
     display: none;
   }
+
+  /* A Page whose sections are the band's menu (`PageContentsMenu`) floats its
+     contents button on a desktop too, once the band has scrolled away: the
+     contents alone, since the bar's search is a scroll up. Its sheet is a card over the button, not a screen's foot. */
+  body:has(.su-page-contents-menu) .su-page-jump[data-sections]:not([hidden]) {
+    display: flex;
+  }
+
+  .su-page-jump .su-page-jump__glass {
+    display: none;
+  }
+
+  body:has(.su-page-contents-menu) .su-footer > .su-chapter-foot {
+    padding-block-end: calc(var(--size-full) + var(--space-32));
+  }
 }
 
 /* Below a desktop the page's foot leaves the floating buttons room: its last
@@ -1017,4 +1032,23 @@ main [id] {
   min-block-size: var(--size-full);
   padding: var(--space-8) 0;
   text-align: start;
+}
+
+/* On a desktop the sheet is a card over its button, the page left in view. */
+@media (width >= 64rem) {
+  .su-page-jump__sheet {
+    border: var(--bw-entity-compact) solid var(--color-ink);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-lift);
+    inline-size: 20rem;
+    inset: auto var(--space-16) calc(var(--size-full) + var(--space-24)) auto;
+  }
+
+  .su-page-jump__sheet::backdrop {
+    background: none;
+  }
+
+  .su-page-jump .su-page-jump__search {
+    display: none;
+  }
 }

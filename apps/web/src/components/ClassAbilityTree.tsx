@@ -10,6 +10,13 @@ import { resolveClassPlan } from '../lib/rules/classPaths'
 import { componentsCopy } from '../messages/components'
 import { capsLabel } from './atoms/capsLabel'
 import { FOCUS_RING } from './atoms/interaction'
+import {
+  ABILITIES_ID,
+  classContentsEntries,
+  pathAnchor,
+  REQUIRED_ID,
+  TRAINING_ID,
+} from './classContents.model'
 import { Box } from './containers/Box'
 import { TermChip, TRAINING_POINTS } from './entity'
 import { RowDress } from './entity/rowDress'
@@ -398,46 +405,16 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
   )
 }
 
-/** Where the contents land: the sections that are no tree (a tree's is `treeAnchor`). */
-const TRAINING_ID = 'training'
-const ABILITIES_ID = 'abilities'
-const REQUIRED_ID = 'required-trees'
-/** A Hybrid Class's path card on a Core class's page: `path-fabricator`. */
-const pathAnchor = (name: string) => `path-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
-
 /**
- * ON THIS PAGE: a class Page's sections as links, the Page's first block. A
- * class reads as one long column on a phone (the art, Training, its Core
- * trees, then every path it advances along), so the list stands over the art,
- * where that scroll starts; from `lg` it runs the page's measure over both
- * tracks (`pages-class.css`). Every entry lands on a heading the page has.
+ * ON THIS PAGE: a class Page's sections as their own line of links
+ * (`classContentsEntries`), the Page's first block. A class reads as one long
+ * column on a phone, so the line stands over the art, where that scroll
+ * starts. From `lg` the band's menu holds them instead (`PageContentsMenu`),
+ * with the floating button once the band is gone (`PageJump`).
  */
 export function ClassContents({ classEntity }: ClassAbilityTreeProps) {
-  const plan = useMemo(() => resolveClassPlan(classEntity), [classEntity])
-  if (plan.kind === 'none') return null
-  const entries: { href: string; label: string }[] = [
-    { href: TRAINING_ID, label: componentsCopy('training') },
-  ]
-  if (plan.kind === 'hybrid') {
-    entries.push({ href: ABILITIES_ID, label: componentsCopy('abilities') })
-    if (plan.branches.some((branch) => branch.group))
-      entries.push({ href: REQUIRED_ID, label: componentsCopy('requiredTrees') })
-  } else {
-    for (const group of plan.coreTrees)
-      entries.push({ href: treeAnchor(group.tree), label: group.tree })
-    const paths = [...plan.paths].sort(
-      (a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid))
-    )
-    for (const path of paths) {
-      if (path.hybrid) {
-        entries.push({ href: pathAnchor(path.hybrid.name), label: path.hybrid.name })
-        continue
-      }
-      entries.push({ href: treeAnchor(path.advanced.tree), label: path.advanced.tree })
-      if (path.legendary)
-        entries.push({ href: treeAnchor(path.legendary.tree), label: path.legendary.tree })
-    }
-  }
+  const entries = useMemo(() => classContentsEntries(classEntity), [classEntity])
+  if (entries.length === 0) return null
   return (
     <nav
       className="su-class-contents"

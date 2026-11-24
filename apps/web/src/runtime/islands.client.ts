@@ -21,6 +21,7 @@ import { installTrustedTypesPolicy } from '../lib/trustedTypes'
 import { focusMarkedContent } from './focusMarked'
 import { isInstalledApp } from './installedApp'
 import { ISLAND_COMMIT } from './islandCommit'
+import { PAGE_CONTENTS_MENU_ID } from './pageContentsMenuId'
 import { trackScrollbarWidth } from './scrollbarWidth'
 import { shrinkWrap } from './shrinkWrap'
 import { watchSlideshow } from './slideshow'
@@ -95,15 +96,24 @@ document.addEventListener('click', (event) => {
 correctShortcutHints(document, navigator.platform)
 watchSharePage(document)
 // A long page's floating "On this page": search and its sections in reach, on
-// a phone. Its script loads only at a phone's width, where the button draws.
+// a phone. Its script loads only at a phone's width, where the button draws,
+// or on a Page whose sections are the band's menu, which floats it on a
+// desktop too (`PageContentsMenu`).
 const phone = matchMedia(`not ${widthAtLeast('sm')}`)
+const contentsMenu = document.getElementById(PAGE_CONTENTS_MENU_ID)
 function startPageJump(): void {
-  if (!phone.matches) return
+  if (!phone.matches && !contentsMenu) return
   phone.removeEventListener('change', startPageJump)
   void import('./pageJump').then(({ watchPageJump }) => watchPageJump(document))
 }
 phone.addEventListener('change', startPageJump)
 startPageJump()
+// A section followed from the band's menu closes it.
+contentsMenu?.addEventListener('click', (event) => {
+  if (event.target instanceof Element && event.target.closest('a[href^="#"]')) {
+    contentsMenu.hidePopover?.()
+  }
+})
 // The home's slide captions: each cut-out as wide as its own words.
 shrinkWrap(document, '.su-front__show-body')
 // The home's slideshow: its Pause.

@@ -47,16 +47,14 @@ export function StarterSheetView({ kind, id }: { kind: string; id: string }) {
   }
 
   return (
-    <>
-      <Sheet
-        kind={kind}
-        id={id}
-        store={STARTER_STORE}
-        hrefFor={starterHref}
-        back={{ href: '/starter', label: buildStarterSetCopy('starterSet2') }}
-        readOnly
-        bandActions={<MakeACopy kind={kind} templateId={id} name={template.name} />}
-      />
-    </>
+    <Sheet
+      kind={kind}
+      id={id}
+      store={STARTER_STORE}
+      hrefFor={starterHref}
+      back={{ href: '/starter', label: buildStarterSetCopy('starterSet2') }}
+      readOnly
+      bandActions={<MakeACopy kind={kind} templateId={id} name={template.name} />}
+    />
   )
 }
