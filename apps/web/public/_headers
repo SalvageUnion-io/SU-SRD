@@ -59,11 +59,11 @@
 # The Discord Activity (`astro/pages/activity/`, src/activity/): the one page
 # another site may frame. Discord shows it in a frame on discord.com (the
 # desktop and web clients) from <client id>.discordsays.com, its proxy; the
-# portal's root URL Mapping points at this directory. `! X-Frame-Options`
+# portal's root URL Mapping points at `/activity` (`activity.html`, no slash). `! X-Frame-Options`
 # takes back the DENY above for this path only, and this second policy adds
 # frame-ancestors, which the site's policy leaves unset. Two policies are
 # both enforced, so everything else the site's allows stays exactly as it is.
-/activity/*
+/activity
   ! X-Frame-Options
   Content-Security-Policy: frame-ancestors https://discord.com https://*.discord.com https://*.discordsays.com
 
