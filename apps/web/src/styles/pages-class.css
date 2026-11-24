@@ -98,6 +98,91 @@
 }
 
 /*
+ * From `lg` the line gives way to the band's menu (`PageContentsMenu`), beside
+ * Share, so the sections never take a line of the Page (the lead is hidden,
+ * `manual-page.css`). Below `lg` the line stands and the button is not drawn.
+ */
+.su-page-contents-menu__open {
+  anchor-name: --su-page-contents;
+  display: none;
+}
+
+@media (width >= 64rem) {
+  .su-page-contents-menu__open {
+    display: inline-flex;
+  }
+}
+
+/* A card under its button: paper, an ink rule, the lift a menu floats on. */
+.su-page-contents-menu {
+  background: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lift);
+  color: var(--color-ink);
+  max-block-size: 70dvh;
+  min-inline-size: 16rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-12) var(--space-16);
+}
+
+.su-page-contents-menu:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* Where a browser anchors it, it hangs from the button's foot, its end edge
+   on the button's; elsewhere it opens mid-screen, the popover's own place. */
+@supports (position-area: block-end) {
+  .su-page-contents-menu {
+    inset: auto;
+    margin: var(--space-4) 0 0;
+    position-anchor: --su-page-contents;
+    position-area: block-end span-inline-start;
+    position-try-fallbacks: flip-block;
+  }
+}
+
+.su-page-contents-menu__title {
+  margin: 0;
+}
+
+.su-page-contents-menu__list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-page-contents-menu__link {
+  align-items: center;
+  border-block-end: var(--bw-hairline) solid var(--color-ink-20);
+  color: var(--color-ink);
+  display: flex;
+  font-size: var(--text-body);
+  min-block-size: var(--size-full);
+  text-decoration: none;
+}
+
+.su-page-contents-menu__list > li:last-child > .su-page-contents-menu__link {
+  border-block-end: 0;
+}
+
+.su-page-contents-menu__link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@media print {
+  .su-page-contents-menu__open {
+    display: none;
+  }
+}
+
+/*
  * The training brief (Workshop Manual p.23, "Gaining Abilities"): a dashed
  * slab with the ability limit at its end, then tier cards, each band in its
  * tier's book hue with the name on a cut-out tab and the TP cost in the

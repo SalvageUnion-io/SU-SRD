@@ -16,6 +16,7 @@ import type {
   RefMetaEntity,
 } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
+import { classContentsFor } from '../../../components/classContents.model'
 import {
   abilityTreeNeighbours,
   CHAPTER_BAND_COLOR,
@@ -185,6 +186,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         fill={fill}
         meta={pageMeta}
         build={buildLinkFor(schemaId, item)}
+        contents={classContentsFor(item)}
         buy={'purchaseLink' in item ? item.purchaseLink : undefined}
         exits={guideExitsFor(schemaId, item)}
         mediator={mediatorLinksFor(schemaId, item)}
