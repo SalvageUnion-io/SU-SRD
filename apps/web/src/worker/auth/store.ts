@@ -84,19 +84,25 @@ export async function accountIdOf(sql: AuthSql, signIn: SignIn): Promise<string 
   return row?.account_id ?? null
 }
 
-/** Saves the account under its id, its profile refreshed from the sign-in. */
+/**
+ * Saves the account under its id, its profile refreshed from the sign-in.
+ * `keepEmail`: the sign-in never asked for the email (the Discord Activity
+ * asks only `identify`), so a saved one stays rather than becoming null.
+ */
 export async function saveAccount(
   sql: AuthSql,
   account: Account & { secret?: string },
-  now: number
+  now: number,
+  keepEmail = false
 ): Promise<void> {
+  const email = keepEmail ? 'coalesce(excluded.email, accounts.email)' : 'excluded.email'
   await sql.run(
     `insert into accounts
        (account_id, discord_id, test_email, name, avatar_url, email, secret, created_at, updated_at)
      values (?, ?, ?, ?, ?, ?, ?, ?, ?)
      on conflict (account_id) do update set
        discord_id = excluded.discord_id, test_email = excluded.test_email,
-       name = excluded.name, avatar_url = excluded.avatar_url, email = excluded.email,
+       name = excluded.name, avatar_url = excluded.avatar_url, email = ${email},
        secret = coalesce(accounts.secret, excluded.secret), updated_at = excluded.updated_at`,
     account.accountId,
     account.discordId,
