@@ -99,8 +99,8 @@
 
 /*
  * From `lg` the line gives way to the band's menu (`PageContentsMenu`), beside
- * Share, so the sections never take a line of the Page. Below `lg` the line stands and the button is not drawn. The
- * line stays in the markup either way: the floating button reads its links.
+ * Share, so the sections never take a line of the Page (the lead is hidden,
+ * `manual-page.css`). Below `lg` the line stands and the button is not drawn.
  */
 .su-page-contents-menu__open {
   anchor-name: --su-page-contents;
@@ -108,10 +108,6 @@
 }
 
 @media (width >= 64rem) {
-  .su-class-contents {
-    display: none;
-  }
-
   .su-page-contents-menu__open {
     display: inline-flex;
   }
