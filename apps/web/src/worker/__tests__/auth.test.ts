@@ -395,6 +395,27 @@ describe('the Discord Activity', () => {
     expect(((await who.json()) as SessionAnswer).person).toBe('80351110224678912')
   })
 
+  it('keeps the email a site sign-in saved: the Activity never asks for it', async () => {
+    const d = deps()
+    discordUser = { ...discordUser, email: 'rae@example.com' }
+    const site = await answer(new Request(`${ORIGIN}${AUTH_PATHS.signIn}?to=/build/`), d)
+    const oauth = cookieOf(site)
+    const state = new URL(site.headers.get('location') ?? '').searchParams.get('state')
+    await answer(
+      new Request(`${ORIGIN}${AUTH_PATHS.callback}?code=c&state=${state}`, {
+        headers: { cookie: oauth },
+      }),
+      d
+    )
+    discordUser = { id: discordUser.id, username: 'rae', global_name: 'Rae Voss', avatar: null }
+    await answer(post(AUTH_PATHS.activity, { code: 'sdk-code' }, { origin: ACTIVITY }), d)
+    const row = await d.sql.first<{ email: string | null }>(
+      'select email from accounts where discord_id = ?',
+      discordUser.id as string
+    )
+    expect(row?.email).toBe('rae@example.com')
+  })
+
   it("refuses another app's frame or another site", async () => {
     for (const origin of ['https://other.discordsays.com', 'https://evil.example']) {
       const res = await answer(post(AUTH_PATHS.activity, { code: 'c' }, { origin }), deps())

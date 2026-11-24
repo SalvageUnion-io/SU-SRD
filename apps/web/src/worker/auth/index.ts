@@ -288,7 +288,7 @@ async function signInAs(
   const { sql } = deps
   const now = (deps.now ?? Date.now)()
   const accountId = (await accountIdOf(sql, signIn)) ?? crypto.randomUUID()
-  await saveAccount(sql, { ...signIn, accountId }, now)
+  await saveAccount(sql, { ...signIn, accountId }, now, inActivity)
   const token = await openSession(sql, accountId, now)
   return inActivity
     ? activityCookie(SESSION_COOKIE, token, SESSION_MS / 1000)
