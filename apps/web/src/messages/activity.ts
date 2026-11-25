@@ -11,6 +11,7 @@ export const activityCopy = messages({
   refused: 'Discord would not sign you in. Try again.',
   wentWrong: 'Something went wrong.',
   atTheTable: 'At the table',
+  toGames: 'Open your Games',
   layoutFocused: 'Full view',
   layoutPip: 'Picture-in-picture',
   layoutGrid: 'Grid tile',

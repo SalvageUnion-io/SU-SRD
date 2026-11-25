@@ -72,6 +72,8 @@ import { applyMeta, hideUnionBar, markUnionRoute } from './shellMeta'
  * script for every SRD page.
  */
 export const RUN_WORKER_FIRST = [
+  // The root, for the Discord Activity's launch there (`index.ts`).
+  '/',
   APP_BASE,
   `${APP_BASE}/*`,
   GAMES_ROOT,

@@ -26,9 +26,6 @@ export function launchOf(search: string): ActivityLaunch | null {
   return frameId && instanceId ? { frameId, instanceId } : null
 }
 
-/** The art host the frame reaches through the `/art` URL Mapping. */
-export const ART_MAPPING = { prefix: '/art', target: 'assets.salvageunion.io' } as const
-
 /** Someone in the Activity, as Discord names them. */
 export type ActivityPerson = { id: string; name: string; avatarUrl: string }
 

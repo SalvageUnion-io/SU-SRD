@@ -34,7 +34,11 @@ import {
 import { publicPage, publicPreview } from './shared/publicSheets'
 import { crossOrigin, decodeSegment, REFUSALS } from './shared/refusals'
 
-export type SharedRoutesEnv = { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string }
+export type SharedRoutesEnv = {
+  SHARED: SharedDb
+  ADMIN_DISCORD_IDS?: string
+  DISCORD_CLIENT_ID?: string
+}
 
 type Identify = (request: Request, env: SharedRoutesEnv) => Promise<Identity | null>
 
@@ -74,7 +78,7 @@ export async function serveShared(
   const get = request.method === 'GET'
   const post = request.method === 'POST'
   const db = env.SHARED
-  if (post && crossOrigin(request)) return refused(403, REFUSALS.crossOrigin)
+  if (post && crossOrigin(request, env.DISCORD_CLIENT_ID)) return refused(403, REFUSALS.crossOrigin)
   try {
     const [route, a, b] = parts
     if (get && (route === 'sheets' || route === 'previews') && parts.length === 3) {

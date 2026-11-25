@@ -32,7 +32,7 @@ export async function serveRoomsHealth(): Promise<Response> {
  */
 async function signedInMember(
   request: Request,
-  env: { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string },
+  env: { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string; DISCORD_CLIENT_ID?: string },
   gameId: string,
   identify: Identify
 ): Promise<string | null> {
@@ -50,11 +50,11 @@ type Identify = (request: Request, env: { SHARED: SharedDb }) => Promise<Identit
 export async function serveGameSocket(
   request: Request,
   gameId: string,
-  env: { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string },
+  env: { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string; DISCORD_CLIENT_ID?: string },
   identify: Identify = identityOf
 ): Promise<Response> {
   if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })
-  if (crossOrigin(request)) return new Response(null, { status: 403 })
+  if (crossOrigin(request, env.DISCORD_CLIENT_ID)) return new Response(null, { status: 403 })
   const member = await signedInMember(request, env, gameId, identify)
   if (member === null) return new Response(null, { status: 403 })
   return forwardTo(rooms().GameRoom.getByName(gameId), request, member)
@@ -63,11 +63,11 @@ export async function serveGameSocket(
 /** The signed-in player's socket to their own account room; signed out or another site's page, a 403. */
 export async function serveAccountSocket(
   request: Request,
-  env: { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string },
+  env: { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string; DISCORD_CLIENT_ID?: string },
   identify: Identify = identityOf
 ): Promise<Response> {
   if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })
-  if (crossOrigin(request)) return new Response(null, { status: 403 })
+  if (crossOrigin(request, env.DISCORD_CLIENT_ID)) return new Response(null, { status: 403 })
   const who = await identify(request, env)
   if (who === null) return new Response(null, { status: 403 })
   return forwardTo(rooms().AccountRoom.getByName(who.discordId), request, who.discordId)

@@ -15,12 +15,24 @@ export const REFUSALS = {
 } as const
 
 /**
+ * The Discord Activity's origin. Discord serves its frame from
+ * `<client id>.discordsays.com` and proxies it to this Worker (the portal's
+ * URL Mappings), so the frame's requests arrive with that origin.
+ */
+export function activityOrigin(clientId: string): string {
+  return `https://${clientId}.discordsays.com`
+}
+
+/**
  * Whether a cookie-signed write came from another site's page, which the
  * routes refuse, as the sign-in routes do: the cookie alone must not report,
- * hide or upload for anyone.
+ * hide or upload for anyone. This site's own pages are not another site, and
+ * neither is its Discord Activity, when `clientId` names it.
  */
-export function crossOrigin(request: Request): boolean {
-  return request.headers.get('origin') !== new URL(request.url).origin
+export function crossOrigin(request: Request, clientId?: string): boolean {
+  const origin = request.headers.get('origin')
+  if (origin === new URL(request.url).origin) return false
+  return clientId === undefined || clientId === '' || origin !== activityOrigin(clientId)
 }
 
 /**

@@ -395,6 +395,21 @@ describe('the Discord Activity', () => {
     expect(((await who.json()) as SessionAnswer).person).toBe('80351110224678912')
   })
 
+  it("renews and clears the frame's session as the frame's partitioned kind", async () => {
+    const d = deps()
+    const res = await answer(
+      post(AUTH_PATHS.activity, { code: 'sdk-code' }, { origin: ACTIVITY }),
+      d
+    )
+    const out = await answer(
+      post(AUTH_PATHS.signOut, {}, { origin: ACTIVITY, cookie: cookieOf(res) }),
+      d
+    )
+    expect(out.headers.get('set-cookie') ?? '').toContain('Partitioned')
+    const site = await answer(post(AUTH_PATHS.signOut, {}, { origin: ORIGIN }), d)
+    expect(site.headers.get('set-cookie') ?? '').toContain('SameSite=Lax')
+  })
+
   it('keeps the email a site sign-in saved: the Activity never asks for it', async () => {
     const d = deps()
     discordUser = { ...discordUser, email: 'rae@example.com' }

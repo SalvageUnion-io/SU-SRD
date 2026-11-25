@@ -36,7 +36,12 @@ export type PhotoBucket = {
   } | null>
 }
 
-export type PhotosEnv = { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string; PHOTOS?: PhotoBucket }
+export type PhotosEnv = {
+  SHARED: SharedDb
+  ADMIN_DISCORD_IDS?: string
+  DISCORD_CLIENT_ID?: string
+  PHOTOS?: PhotoBucket
+}
 
 /** The image types an upload may be, each with the extension its key takes. */
 const PHOTO_TYPES: Record<string, string> = {
@@ -79,7 +84,8 @@ export async function servePhotos(
   const url = new URL(request.url)
 
   if (request.method === 'POST' && url.pathname === PHOTOS_PATH) {
-    if (crossOrigin(request)) return json(403, { refusal: REFUSALS.crossOrigin })
+    if (crossOrigin(request, env.DISCORD_CLIENT_ID))
+      return json(403, { refusal: REFUSALS.crossOrigin })
     const who = await identify(request, env)
     if (who === null) return json(401, { refusal: REFUSALS.signIn })
     const type = (request.headers.get('content-type') ?? '').split(';')[0]?.trim() ?? ''

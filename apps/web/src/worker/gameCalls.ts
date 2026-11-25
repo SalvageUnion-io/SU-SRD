@@ -18,13 +18,13 @@ type AccountStub = ReturnType<CallDeps['account']>
 /** `POST /__rooms/call`: one call, as the session cookie's player. */
 export async function serveGameCall(
   request: Request,
-  env: { BOT?: BotRelay; SHARED: SharedDb; ADMIN_DISCORD_IDS?: string },
+  env: { BOT?: BotRelay; SHARED: SharedDb; ADMIN_DISCORD_IDS?: string; DISCORD_CLIENT_ID?: string },
   identify: (request: Request, env: { SHARED: SharedDb }) => Promise<Identity | null> = identityOf
 ): Promise<Response> {
   const headers = { 'content-type': 'application/json', 'cache-control': 'no-store' }
   if (request.method !== 'POST') return new Response(null, { status: 405 })
   // The cookie alone must not make a call for another site's page.
-  if (crossOrigin(request)) return new Response(null, { status: 403 })
+  if (crossOrigin(request, env.DISCORD_CLIENT_ID)) return new Response(null, { status: 403 })
   const said = (await request.json().catch(() => null)) as { name?: unknown; args?: unknown } | null
   if (typeof said?.name !== 'string') return new Response(null, { status: 400 })
   const who = await identify(request, env)

@@ -2,6 +2,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { StrictMode, startTransition } from 'react'
 import { createRoot } from 'react-dom/client'
+import { mapActivityUrls } from './activity/frame'
 import { firstPaintSchemas, SIGNED_OUT_VIEW_ATTRIBUTE } from './build/account/signedOutView.model'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
@@ -50,6 +51,10 @@ declare module '@tanstack/react-router' {
 // Browser error reporting to the Worker, production builds only.
 trackScrollbarWidth()
 initBrowserObservability()
+
+// In the Discord Activity's frame, the art host goes through its `/art`
+// URL Mapping, the only way Discord's proxy lets it in (`activity/frame.ts`).
+void mapActivityUrls(window.location.hostname)
 
 // Installed BEFORE render, because the failure it recovers from — a lazy chunk
 // whose build no longer exists on the server — can be thrown by the very first
