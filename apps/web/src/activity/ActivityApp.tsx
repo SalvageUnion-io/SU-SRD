@@ -1,8 +1,7 @@
 /**
  * The Discord Activity's first screen: who is signed in and who else is at
- * the table. One Moment's Main display (the cockpit chosen 2026-11-24) grows
- * on this frame in the steps after it; this one proves the frame, the sign-in
- * and the proxy.
+ * the table. From here a player opens the app itself in this frame (Games,
+ * their pilot's Play, the Mediator's screen): one surface, two entry points.
  *
  * Outside Discord (no `frame_id`), the page says where to open it. Discord
  * shows the frame focused, in picture-in-picture or in the grid, and the app
@@ -12,8 +11,10 @@
 import type { DiscordSDK } from '@discord/embedded-app-sdk'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
+import { Button } from '../components/atoms/Button'
 import { TitledBox } from '../components/containers/TitledBox'
 import { font, space } from '../design/tokens'
+import { GAMES_ROOT } from '../lib/appBase'
 import { activityCopy } from '../messages/activity'
 import type { ActivityLaunch, ActivityPerson, LayoutMode, SdkUser } from './activitySession'
 import { activityClientId, layoutModeOf, personOf, signInActivity } from './activitySession'
@@ -127,6 +128,13 @@ export function ActivityApp({ launch }: { launch: ActivityLaunch | null }) {
           <p style={NOTE}>
             {activityCopy('signedInAs', { name: phase.me.name })} {layoutWords(layout)}
           </p>
+        )}
+        {phase.kind === 'in' && (
+          // The app itself, in this frame: the same Games and Play as on the
+          // web, signed in by the frame's cookie.
+          <Button href={`${GAMES_ROOT}/`} size="full">
+            {activityCopy('toGames')}
+          </Button>
         )}
       </TitledBox>
       {phase.kind === 'in' && (

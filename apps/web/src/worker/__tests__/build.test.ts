@@ -93,11 +93,12 @@ describe('wrangler.jsonc agrees with the Worker', () => {
   it('sets one CSP for the whole app, connecting to its own origin', () => {
     const headers = readFileSync(join(import.meta.dir, '../../../public/_headers'), 'utf8')
     const all = headers.match(/^\s*Content-Security-Policy:\s*(.*)$/gm) ?? []
-    // The Discord Activity's second policy only adds frame-ancestors on its path.
+    // The Discord Activity's second policy only adds frame-ancestors, the same
+    // on each path Discord frames: its page, `/build` and `/games`.
     const framing = all.filter((p) =>
       /^\s*Content-Security-Policy:\s*frame-ancestors [^;]*$/.test(p)
     )
-    expect(framing).toHaveLength(1)
+    expect(new Set(framing).size).toBe(1)
     const csp = all.filter((p) => !framing.includes(p))
     expect(csp).toHaveLength(1)
     expect(csp[0]).toContain("connect-src 'self'")

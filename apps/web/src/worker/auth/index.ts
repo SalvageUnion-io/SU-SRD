@@ -28,6 +28,7 @@ import { APP_BASE } from 'game-domain/appAddress'
 import type { ActivityToken, SessionAnswer } from '../../lib/auth/paths'
 import { AUTH_PATHS } from '../../lib/auth/paths'
 import type { SharedDb } from '../shared/db'
+import { activityOrigin } from '../shared/refusals'
 import { base64urlJson, passwordHash, sha256Hex } from './crypto'
 import type { Account, AuthSql, SignIn } from './store'
 import {
@@ -83,11 +84,11 @@ export async function handleAuth(request: Request, deps: AuthDeps): Promise<Resp
       return get ? session(request, url, deps) : null
     case AUTH_PATHS.signOut:
       return request.method === 'POST'
-        ? guarded(request, url, () => signOut(request, url, deps))
+        ? guarded(request, url, deps, () => signOut(request, url, deps))
         : null
     case AUTH_PATHS.deleteAccount:
       return request.method === 'POST'
-        ? guarded(request, url, () => deleteAccount(request, url, deps))
+        ? guarded(request, url, deps, () => deleteAccount(request, url, deps))
         : null
     case AUTH_PATHS.activity:
       if (request.method === 'GET') return activityClient(deps)
@@ -97,16 +98,25 @@ export async function handleAuth(request: Request, deps: AuthDeps): Promise<Resp
         : new Response('Forbidden', { status: 403 })
     case AUTH_PATHS.testSignIn:
       if (!deps.testAuth || request.method !== 'POST') return null
-      return guarded(request, url, () => testSignIn(request, url, deps))
+      return guarded(request, url, deps, () => testSignIn(request, url, deps))
     default:
       return null
   }
 }
 
-/** A POST from another origin is refused: the cookie alone must not sign anyone out or in. */
-function guarded(request: Request, url: URL, run: () => Promise<Response>): Promise<Response> {
-  if (request.headers.get('origin') !== url.origin)
+/**
+ * A POST from another origin is refused: the cookie alone must not sign anyone
+ * out or in. This site's pages and its Discord Activity's frame are not another.
+ */
+function guarded(
+  request: Request,
+  url: URL,
+  deps: AuthDeps,
+  run: () => Promise<Response>
+): Promise<Response> {
+  if (!fromActivity(request, url, deps)) {
     return Promise.resolve(new Response('Forbidden', { status: 403 }))
+  }
   return run()
 }
 
@@ -137,12 +147,32 @@ function activityCookie(name: string, value: string, maxAgeS: number): string {
 }
 
 /**
- * The Activity's own origin. Discord serves the frame from
- * `<client id>.discordsays.com` and proxies it to this Worker (the portal's
- * URL Mappings), so its requests arrive here with that origin.
+ * Whether a request comes from the Activity's frame: its origin, or, for a
+ * same-origin GET that sends none, its referrer.
  */
-function activityOrigin(clientId: string): string {
-  return `https://${clientId}.discordsays.com`
+function inActivity(request: Request, deps: AuthDeps): boolean {
+  if (deps.discord === undefined) return false
+  const frame = activityOrigin(deps.discord.clientId)
+  const origin = request.headers.get('origin')
+  if (origin !== null) return origin === frame
+  return (request.headers.get('referer') ?? '').startsWith(`${frame}/`)
+}
+
+/**
+ * The session cookie for this request: the Activity's frame keeps only a
+ * partitioned one (`activityCookie`), so a renewal or a sign-out there writes
+ * that kind, which a site page's `SameSite=Lax` one would not replace.
+ */
+function sessionCookie(
+  request: Request,
+  url: URL,
+  deps: AuthDeps,
+  value: string,
+  maxAgeS: number
+): string {
+  return inActivity(request, deps)
+    ? activityCookie(SESSION_COOKIE, value, maxAgeS)
+    : cookie(url, SESSION_COOKIE, value, maxAgeS)
 }
 
 /** A POST from this site's own page, or from the Activity's frame. */
@@ -409,13 +439,16 @@ async function deleteAccount(request: Request, url: URL, deps: AuthDeps): Promis
   await forgetAccount(sql, session.account.accountId)
   return new Response(null, {
     status: 204,
-    headers: { 'set-cookie': cookie(url, SESSION_COOKIE, '', 0), 'cache-control': 'no-store' },
+    headers: {
+      'set-cookie': sessionCookie(request, url, deps, '', 0),
+      'cache-control': 'no-store',
+    },
   })
 }
 
 async function session(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
   const raw = readCookie(request, SESSION_COOKIE)
-  const signedOut = () => json(null, 401, raw ? [cookie(url, SESSION_COOKIE, '', 0)] : [])
+  const signedOut = () => json(null, 401, raw ? [sessionCookie(request, url, deps, '', 0)] : [])
   if (!raw) return signedOut()
   const { sql } = deps
   const session = await readSession(sql, raw, (deps.now ?? Date.now)())
@@ -427,7 +460,7 @@ async function session(request: Request, url: URL, deps: AuthDeps): Promise<Resp
   return json(
     answer,
     200,
-    session.renewed ? [cookie(url, SESSION_COOKIE, raw, SESSION_MS / 1000)] : []
+    session.renewed ? [sessionCookie(request, url, deps, raw, SESSION_MS / 1000)] : []
   )
 }
 
@@ -436,7 +469,10 @@ async function signOut(request: Request, url: URL, deps: AuthDeps): Promise<Resp
   if (raw) await closeSession(deps.sql, raw)
   return new Response(null, {
     status: 204,
-    headers: { 'set-cookie': cookie(url, SESSION_COOKIE, '', 0), 'cache-control': 'no-store' },
+    headers: {
+      'set-cookie': sessionCookie(request, url, deps, '', 0),
+      'cache-control': 'no-store',
+    },
   })
 }
 

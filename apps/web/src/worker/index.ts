@@ -11,6 +11,7 @@
 import { handle } from '@astrojs/cloudflare/handler'
 import type { ExecutionContext } from '@cloudflare/workers-types'
 import { APP_BASE } from '../lib/appBase'
+import { serveRoot } from './activityLaunch'
 import { runCron } from './crons'
 import type { Env } from './env'
 import { SERVE } from './routes'
@@ -30,6 +31,7 @@ export default {
     // Astro would hand it to the assets as it is; the app's route reads it.
     const { pathname } = new URL(request.url)
     if (pathname === APP_BASE || pathname === `${APP_BASE}/`) return SERVE.app(request, env)
+    if (pathname === '/') return serveRoot(request, env.ASSETS)
     return handle(request, env as never, ctx)
   },
 }

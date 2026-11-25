@@ -10,12 +10,13 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { initBrowserObservability } from '../lib/observability'
 import { ActivityApp } from './ActivityApp'
-import { ART_MAPPING, launchOf } from './activitySession'
+import { launchOf } from './activitySession'
+import { ART_MAPPING } from './frame'
 
 initBrowserObservability()
 
 const launch = launchOf(window.location.search)
-if (launch !== null) patchUrlMappings([ART_MAPPING])
+if (launch !== null) patchUrlMappings([ART_MAPPING], { patchSrcAttributes: true })
 
 const root = document.getElementById('activity')
 if (root !== null)

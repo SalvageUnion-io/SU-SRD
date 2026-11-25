@@ -9,6 +9,7 @@ import {
   personOf,
   signInActivity,
 } from '../activitySession'
+import { inActivityFrame } from '../frame'
 
 /**
  * The Activity's start (`../activitySession.ts`): the launch in the frame's
@@ -95,5 +96,12 @@ describe('people and layouts', () => {
     expect(layoutModeOf(1)).toBe('pip')
     expect(layoutModeOf(2)).toBe('grid')
     expect(layoutModeOf(-1)).toBe('focused')
+  })
+})
+
+describe('inActivityFrame', () => {
+  it("knows Discord's proxy host from this site's own", () => {
+    expect(inActivityFrame('1442878052823470172.discordsays.com')).toBe(true)
+    expect(inActivityFrame('salvageunion.io')).toBe(false)
   })
 })
