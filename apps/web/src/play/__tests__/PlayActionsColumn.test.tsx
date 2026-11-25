@@ -268,7 +268,12 @@ describe('the Heat Check the rules call for (r6 A6)', () => {
             situation="boarded"
             store={store}
             writes={[]}
-            initialResolving={{ ref: primaryKey(), name: primary().name, activated: false }}
+            initialResolving={{
+              ref: primaryKey(),
+              name: primary().name,
+              activated: false,
+              applied: false,
+            }}
           />
         </>
       )
