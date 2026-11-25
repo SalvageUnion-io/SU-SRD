@@ -213,7 +213,9 @@ const serverMocks = await installServerMocks({
       PlayFeedSection: () => null,
     }),
     // The side's reads are `PlaySide.connected.test.tsx`'s.
-    '../../play/usePlaySide': () => ({ usePlaySide: () => ({ entries: [] }) }),
+    '../../play/usePlaySide': () => ({
+      usePlaySide: () => ({ entries: [], seats: [], feed: { crew: null } }),
+    }),
   },
 })
 

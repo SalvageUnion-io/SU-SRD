@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { ResolveModel } from '../actionsDeck.model'
-import { beatTrack, momentOf } from '../moment.model'
+import { beatTrack, momentOf, tableBeat, tableTrack } from '../moment.model'
 
 /** The Main display's ladder and a beat's track (`../moment.model.ts`, ADR-068). */
 
@@ -84,6 +84,49 @@ describe('beatTrack', () => {
     expect(beatTrack(resolving({ noRoll: true, nothingToApply: true }))).toEqual([])
     expect(beatTrack(resolving({ free: true, nothingToApply: true }))).toEqual([
       { key: 'roll', state: 'on' },
+    ])
+  })
+})
+
+describe('the Table’s Moment (tableBeat, tableTrack)', () => {
+  const pilots = [
+    { linkId: 'me', name: 'Bonesaw', boarded: false },
+    { linkId: 'p2', name: 'Judge', boarded: true },
+  ]
+  const shared = {
+    ref: 'k',
+    name: 'Mini Mortar',
+    activated: true,
+    applied: false,
+  }
+
+  test('another seat’s beat from its Activate, never your own, never once applied', () => {
+    expect(tableBeat([{ pilotId: 'p2', resolving: shared }], pilots, 'me')).toEqual({
+      pilotId: 'p2',
+      pilot: 'Judge',
+      boarded: true,
+      resolving: shared,
+    })
+    expect(tableBeat([{ pilotId: 'me', resolving: shared }], pilots, 'me')).toBeNull()
+    const applied = { ...shared, applied: true }
+    expect(tableBeat([{ pilotId: 'p2', resolving: applied }], pilots, 'me')).toBeNull()
+    const opened = { ...shared, activated: false }
+    expect(tableBeat([{ pilotId: 'p2', resolving: opened }], pilots, 'me')).toBeNull()
+    const rolled = { ...opened, roll: { roll: 3, band: 'failure' as const } }
+    expect(tableBeat([{ pilotId: 'p2', resolving: rolled }], pilots, 'me')?.pilot).toBe('Judge')
+  })
+
+  test('a seat the crew read does not name yet waits for it', () => {
+    expect(tableBeat([{ pilotId: 'p9', resolving: shared }], pilots, 'me')).toBeNull()
+  })
+
+  test('its track: Activate, Roll, Apply, the first not done the current', () => {
+    const states = (r: Parameters<typeof tableTrack>[0]) => tableTrack(r).map((s) => s.state)
+    expect(states(shared)).toEqual(['done', 'on', 'todo'])
+    expect(states({ ...shared, roll: { roll: 14, band: 'success' } })).toEqual([
+      'done',
+      'done',
+      'on',
     ])
   })
 })

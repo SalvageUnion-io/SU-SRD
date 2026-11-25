@@ -274,7 +274,17 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
   }, [toRules])
   const nodes: Record<PlayerPane, ReactNode> = {
     act: (
-      <PlayActionsColumn target={target} play={play} onShow={() => openTab('act')} {...actions} />
+      <PlayActionsColumn
+        target={target}
+        play={play}
+        onShow={() => openTab('act')}
+        table={
+          target.gameId === null
+            ? undefined
+            : { seats: side.seats, pilots: side.feed.crew?.pilots ?? [] }
+        }
+        {...actions}
+      />
     ),
     // From `lg` the
     // Feed, the table's log, runs under the Units, and the Reference under the

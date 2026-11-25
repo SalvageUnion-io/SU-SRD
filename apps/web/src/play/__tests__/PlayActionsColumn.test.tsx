@@ -982,3 +982,92 @@ describe('the Reactor and Mount rows', () => {
     expect(use(primary().name)).toBeTruthy()
   })
 })
+
+/** ADR-068 §3: Again heads the list; with no beat of your own, the table's is the Moment. */
+describe('Again and the Table’s Moment (ADR-068)', () => {
+  const judge = { linkId: 'p2', name: 'Judge', boarded: true }
+  const mortar = (over: Partial<SeatResolving> = {}): SeatResolving => ({
+    ref: 'judge-mortar',
+    name: 'Mini Mortar',
+    activated: true,
+    roll: { roll: 14, band: 'success' },
+    applied: false,
+    ...over,
+  })
+
+  test('the action last finished heads the list as Again, lifted out of its type', async () => {
+    const mech = makeMech()
+    // A pilot of its own: Again outlives the column for the page's life.
+    const pilot = makePilot({ id: 'p-again' })
+    const { store } = stubStore(mech, pilot)
+    render(<Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />)
+    expect(screen.queryByRole('heading', { name: /^Again/ })).toBeNull()
+    await click(use(primary().name))
+    await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
+    await click(screen.getByRole('button', { name: `Done with ${primary().name}` }))
+    const first = onHand().querySelector('section')
+    expect(first?.querySelector('h2, h3')?.textContent).toMatch(/^Again/)
+    expect(
+      within(first as HTMLElement).getByRole('button', { name: `Use ${primary().name}` })
+    ).toBeTruthy()
+    // Once only: its type's group no longer lists it.
+    expect(screen.getAllByRole('button', { name: `Use ${primary().name}` })).toHaveLength(1)
+  })
+
+  test('a crewmate’s beat, from its Activate, is the Moment, read-only, until yours opens', async () => {
+    const mech = makeMech()
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        gameId="g1"
+        store={store}
+        writes={[]}
+        table={{ seats: [{ pilotId: 'p2', resolving: mortar() }], pilots: [judge] }}
+      />
+    )
+    const shared = document.querySelector<HTMLElement>('[data-table-moment]')
+    expect(shared?.textContent).toContain('Mini Mortar')
+    expect(shared?.textContent).toContain('Judge')
+    expect(shared?.textContent).toContain('14 · Success')
+    const steps = [...(shared?.querySelectorAll('.su-play-moment__track > li') ?? [])]
+    expect(steps.map((li) => [li.textContent, li.getAttribute('data-state')])).toEqual([
+      ['Activate', 'done'],
+      ['Roll', 'done'],
+      ['Apply', 'on'],
+    ])
+    // Nothing on it to press, and Play's keys never look in it.
+    expect(shared?.querySelector('button')).toBeNull()
+    expect(document.querySelector('[data-play-moment]')).toBeNull()
+    // Your own beat takes the Moment back.
+    await click(use(primary().name))
+    expect(document.querySelector('[data-table-moment]')).toBeNull()
+  })
+
+  test('a crewmate only opening an action, or done with it, shares nothing', () => {
+    const mech = makeMech()
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        gameId="g1"
+        store={store}
+        writes={[]}
+        table={{
+          seats: [
+            { pilotId: 'p2', resolving: mortar({ activated: false, roll: undefined }) },
+            { pilotId: 'p3', resolving: mortar({ applied: true }) },
+          ],
+          pilots: [judge, { linkId: 'p3', name: 'Pickle', boarded: false }],
+        }}
+      />
+    )
+    expect(document.querySelector('[data-table-moment]')).toBeNull()
+  })
+})

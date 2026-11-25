@@ -26,6 +26,7 @@ import {
   SlabSection,
 } from '../components/index'
 import { playCopy } from '../messages/play'
+import { momentCopy } from '../messages/play-moment'
 import { PlayActionEntry } from './PlayActionEntry'
 import { PlayEndTurnStop } from './PlayEndTurnStop'
 import type { ActionTypeKey, ListEntry } from './playActions.model'
@@ -176,19 +177,28 @@ export function PlayActionsTools({ actions, find }: { actions: PlayActions; find
 }
 
 /** A group of what is on hand: an action type's rows, or the controls that close the list. */
-type Group = { key: ActionTypeKey | 'controls'; label: string; entries: ListEntry[] }
+type Group = { key: ActionTypeKey | 'again' | 'controls'; label: string; entries: ListEntry[] }
 
 /**
  * What is on hand, grouped by when it can be used, in the list's own order
  * (`ACTION_TYPE_ORDER`); the Reactor and Mount, which are controls, close it.
- * Empty groups are left out.
+ * Empty groups are left out. The action last finished (`again`) heads it,
+ * lifted out of its type's group, while it is on hand.
  */
-function onHandGroups(onHand: readonly ListEntry[]): Group[] {
+function onHandGroups(onHand: readonly ListEntry[], again: string | null): Group[] {
+  const first = onHand.find((entry) => entry.kind === 'action' && entry.key === again)
   const groups: Group[] = [
+    {
+      key: 'again',
+      label: momentCopy('again'),
+      entries: first === undefined ? [] : [first],
+    },
     ...ACTION_TYPE_ORDER.map((type) => ({
       key: type,
       label: type,
-      entries: onHand.filter((entry) => entry.kind === 'action' && entry.type === type),
+      entries: onHand.filter(
+        (entry) => entry.kind === 'action' && entry.type === type && entry !== first
+      ),
     })),
     {
       key: 'controls',
@@ -204,6 +214,7 @@ export function PlayActionsList({
   actions,
   head,
   except = null,
+  again = null,
 }: {
   play: Play
   actions: PlayActions
@@ -211,8 +222,13 @@ export function PlayActionsList({
   head: 'h2' | 'h3'
   /** The line that is the Main display's beat (ADR-068), lifted out of the list. */
   except?: string | null
+  /** The action last finished here: Again, the list's first line (ADR-068). */
+  again?: string | null
 }) {
-  const groups = onHandGroups(actions.onHand.filter((entry) => entry.key !== except))
+  const groups = onHandGroups(
+    actions.onHand.filter((entry) => entry.key !== except),
+    again
+  )
   // The on-hand list is one Tab stop, the arrows between its actions (r7 B8).
   const listRef = useRef<HTMLDivElement>(null)
   const listed = groups.length > 0

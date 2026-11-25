@@ -11,4 +11,6 @@ export const momentCopy = messages({
   list: 'List',
   notNow: 'Not now',
   owedHeatCheck: 'Heat Check owed',
+  again: 'Again',
+  tableSays: '{pilot} is resolving this. Shared with the table since Activate.',
 })
