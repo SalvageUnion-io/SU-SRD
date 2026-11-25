@@ -13,14 +13,6 @@ export type StringExemption = { file: string; strings: readonly string[]; reason
 
 export const EXEMPTIONS: readonly StringExemption[] = [
   {
-    file: 'apps/web/src/activity/ActivityApp.tsx',
-    strings: [
-      'var(--discord-safe-area-inset-top, 0px)',
-      'var(--discord-safe-area-inset-bottom, 0px)',
-    ],
-    reason: "CSS values: Discord's mobile safe-area custom properties, read with a 0px fallback.",
-  },
-  {
     file: 'apps/web/src/components/entity/peekController.ts',
     strings: ['.su-ledger__table tr', '(hover: none)'],
     reason: 'A CSS selector given to `closest` and a CSS media query given to `matchMedia`.',
