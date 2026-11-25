@@ -8,6 +8,7 @@
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
+import type { ComponentProps } from 'react'
 import { useState } from 'react'
 import type { rollForTable } from '../../components/index'
 import type { BoardOption } from '../boardMenu.model'
@@ -47,6 +48,8 @@ type HarnessProps = {
   /** The Game's Scene conditions; clear by default. */
   scene?: SceneState
   writes: Write[]
+  /** What the table shares: the seats and the crew's names (the Table's Moment). */
+  table?: ComponentProps<typeof PlayActionsColumn>['table']
 }
 
 /** The viewer, as `account.me` answers in a Game. */
@@ -189,7 +192,15 @@ export function useHarnessPlay({
   return play
 }
 
-export function Harness({ store, rollFor = rollFourteen, ...props }: HarnessProps) {
+export function Harness({ store, rollFor = rollFourteen, table, ...props }: HarnessProps) {
   const play = useHarnessPlay(props)
-  return <PlayActionsColumn target={play.target} play={play} store={store} rollFor={rollFor} />
+  return (
+    <PlayActionsColumn
+      target={play.target}
+      play={play}
+      store={store}
+      rollFor={rollFor}
+      table={table}
+    />
+  )
 }

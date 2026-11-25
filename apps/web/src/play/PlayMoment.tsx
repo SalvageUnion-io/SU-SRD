@@ -5,7 +5,8 @@
  * (`.su-play-moment__dock`, under the card: a frame's clipped edge would
  * hold it), in the same place whatever the step. Its
  * root is `[data-play-moment]`, where Play's keys find the open action's
- * Roll and Apply (`useFindKey`).
+ * Roll and Apply (`useFindKey`); another seat's, the Table's Moment, is
+ * `[data-table-moment]` and holds no control.
  *
  * It holds exactly one beat (`moment.model.ts`): an action resolving, lifted
  * out of the Actions list, or what the rules say is owed. The list is a tap
@@ -53,6 +54,7 @@ export function PlayMoment({
   dock,
   onList,
   actionKey,
+  table = false,
   children,
 }: {
   /** The beat's name: the action, or what is owed. */
@@ -69,10 +71,15 @@ export function PlayMoment({
   onList?: (() => void) | undefined
   /** The Actions list's key for what is in the beat, so a control finds its roll here. */
   actionKey: string
+  /**
+   * Another seat's beat (the Table's Moment), read-only: its root is
+   * `[data-table-moment]`, so Play's keys never look in it for a roll.
+   */
+  table?: boolean
   children: ReactNode
 }) {
   return (
-    <div data-play-moment="">
+    <div {...(table ? { 'data-table-moment': '' } : { 'data-play-moment': '' })}>
       <TitledBox
         as="section"
         title={title}
@@ -83,7 +90,11 @@ export function PlayMoment({
         body="flush"
       >
         {track === undefined ? null : <BeatTrack steps={track} />}
-        <div className="su-play-moment__content" data-action-key={actionKey} data-open="">
+        <div
+          className="su-play-moment__content"
+          data-action-key={actionKey}
+          data-open={table ? undefined : ''}
+        >
           {children}
         </div>
       </TitledBox>

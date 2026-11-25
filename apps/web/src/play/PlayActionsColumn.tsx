@@ -31,12 +31,14 @@ import { resolveGauge } from 'salvageunion-reference/rules'
 import { Button, MiniGrid, Slab } from '../components/index'
 import { playCopy } from '../messages/play'
 import { momentCopy } from '../messages/play-moment'
-import { momentOf } from './moment.model'
+import type { TableBeat } from './moment.model'
+import { momentOf, tableBeat } from './moment.model'
 import { PlayActionEntry } from './PlayActionEntry'
 import { PlayActionsList, PlayActionsTools } from './PlayActionsList'
 import { PlayDowntimeColumn } from './PlayDowntimeColumn'
 import { PlayMoment } from './PlayMoment'
 import { PlayScene } from './PlayScene'
+import { PlayTableMoment } from './PlayTableMoment'
 import type { ListEntry } from './playActions.model'
 import type { Play, PlayColumnProps } from './situation.model'
 import { setScreenNotices } from './tableStripSlot.model'
@@ -48,16 +50,29 @@ import { usePlayWide } from './usePlayWide'
 /** The Reactor's Heat Check stamp, wherever its row is drawn. */
 const HEAT_ROLL = '[data-action-key="reactor"] [data-play-roll="heat"] button.su-roll__roll'
 
+/** What the table shares: every seat's beat, and the crew's names for them. */
+type PlayTable = {
+  seats: Parameters<typeof tableBeat>[0]
+  pilots: Parameters<typeof tableBeat>[1]
+}
+
 export function PlayActionsColumn({
   play,
   onShow,
+  table,
   ...deps
-}: PlayColumnProps & PlayActionsDeps & { onShow?: () => void }) {
+}: PlayColumnProps & PlayActionsDeps & { onShow?: () => void; table?: PlayTable | undefined }) {
   const actions = usePlayActions(play, deps)
   const wide = usePlayWide()
   const heat = useHeatCheckDue(actions, play.situation === 'boarded', onShow)
   const beat = usePlayBeat(actions, heat)
+  const again = useAgain(play.target.pilotId, actions.doneKey)
   if (play.situation === 'downtime') return <PlayDowntimeColumn play={play} actions={actions} />
+  // With no beat of your own, the one another seat has in play (ADR-068 §3).
+  const shared: TableBeat | null =
+    beat.entry === null && table !== undefined
+      ? tableBeat(table.seats, table.pilots, play.target.pilotId)
+      : null
   // Below `lg` the Moment stands in the list's place, the list a tap away
   // and kept mounted under it, so its lines keep their state and the finish
   // is spoken on the line the beat closes into; from `lg` the list runs
@@ -69,6 +84,7 @@ export function PlayActionsColumn({
       {beat.entry === null || (!wide && beat.listShown) ? null : (
         <PlayBeat beat={beat} play={play} actions={actions} wide={wide} />
       )}
+      {shared === null ? null : <PlayTableMoment beat={shared} />}
       <div className="su-play-act-list" hidden={!listed}>
         {!wide && beat.entry !== null && (
           <Button back variant="ghost" size="compact" onClick={() => beat.showList(false)}>
@@ -91,11 +107,25 @@ export function PlayActionsColumn({
           actions={actions}
           head={wide ? 'h3' : 'h2'}
           except={beat.entry?.key ?? null}
+          again={again}
         />
       </div>
       {actions.dialog}
     </>
   )
+}
+
+/** The last action each pilot finished on this screen, while it stays open: Again's. */
+const usedLast = new Map<string, string>()
+
+/**
+ * Again (ADR-068): the action this pilot last finished heads the Ready list,
+ * one tap, since in a fight most turns repeat. It outlives the column (a tab
+ * away and back), not the page.
+ */
+function useAgain(pilotId: string, doneKey: string | null): string | null {
+  if (doneKey !== null) usedLast.set(pilotId, doneKey)
+  return usedLast.get(pilotId) ?? null
 }
 
 /** The Main display's beat as the column holds it (`momentOf`). */

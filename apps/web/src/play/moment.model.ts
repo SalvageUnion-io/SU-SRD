@@ -8,8 +8,11 @@
  *    what is owed while you are in one waits on the Next strip.
  *  - **The track** (`beatTrack`): an action's steps as its resolve has them
  *    (Activate, Roll, Push, Apply), each done, current or to come.
+ *  - **The Table's Moment** (`tableBeat`, `tableTrack`): with no beat of your
+ *    own, another seat's, from its Activate to its Apply, read-only.
  */
 
+import type { SeatResolving } from 'game-domain/schemas/seat'
 import type { ResolveModel } from './actionsDeck.model'
 
 /** What can stand on the Main display, highest first. */
@@ -75,6 +78,57 @@ export function beatTrack(view: Resolving): TrackStep[] {
   ]
   // A Push is offered, never owed: once rolled, the next step is Apply's.
   const current = steps.find((step) => !step.done && !(step.key === 'push' && rolled))
+  return steps.map((step) => ({
+    key: step.key,
+    state: step.done ? 'done' : step === current ? 'on' : 'todo',
+  }))
+}
+
+/** Another seat's beat, as the table sees it (ADR-068 §3): whose it is, and how far it has got. */
+export type TableBeat = {
+  pilotId: string
+  /** The pilot's name, as the crew reads it. */
+  pilot: string
+  boarded: boolean
+  resolving: SeatResolving
+}
+
+/**
+ * The Table's Moment: the first other seat with a beat in play, from its
+ * Activate (or its roll) until its Apply, which is what the table may see of
+ * it; null when no other seat has one. A seat the crew read does not name
+ * yet waits for it.
+ */
+export function tableBeat(
+  seats: readonly { pilotId: string; resolving?: SeatResolving | null }[],
+  pilots: readonly { linkId: string | null; name: string; boarded: boolean }[],
+  selfPilotId: string | null
+): TableBeat | null {
+  for (const seat of seats) {
+    const resolving = seat.resolving ?? null
+    if (seat.pilotId === selfPilotId || resolving === null || resolving.applied) continue
+    if (!resolving.activated && resolving.roll === undefined && resolving.salvage === undefined)
+      continue
+    const pilot = pilots.find((p) => p.linkId === seat.pilotId)
+    if (pilot === undefined) continue
+    return { pilotId: seat.pilotId, pilot: pilot.name, boarded: pilot.boarded, resolving }
+  }
+  return null
+}
+
+/**
+ * Another seat's steps, from what its seat says: Activate, Roll, Apply. Its
+ * Push and whether it rolls at all stay on that screen, so the track holds
+ * what the table can know.
+ */
+export function tableTrack(resolving: SeatResolving): TrackStep[] {
+  const rolled = resolving.roll !== undefined || resolving.salvage !== undefined
+  const steps: { key: StepKey; done: boolean }[] = [
+    { key: 'activate', done: resolving.activated || rolled },
+    { key: 'roll', done: rolled },
+    { key: 'apply', done: resolving.applied },
+  ]
+  const current = steps.find((step) => !step.done)
   return steps.map((step) => ({
     key: step.key,
     state: step.done ? 'done' : step === current ? 'on' : 'todo',

@@ -339,6 +339,20 @@ button.su-play-dt-track__step:disabled {
   padding: var(--space-12);
 }
 
+/* The Table's Moment: another seat's beat, its words and its roll. */
+.su-play-moment__table {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.su-play-moment__table > p {
+  color: var(--color-ink-60);
+  font-size: var(--text-caption);
+  margin: 0;
+}
+
 /* The verb dock: the way back to the list, then the beat's verb, held at
    the pane's foot while the beat's table runs past it. */
 .su-play-moment__dock {

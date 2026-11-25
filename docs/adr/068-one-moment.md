@@ -28,8 +28,13 @@ behind it ("‹ List"), the beat keeping its step. From `lg` the list runs under
 it. An owed beat offers Not now, which parks it until it falls due again.
 Destructive results stay the player's act (ADR-007).
 
-### 3. Still to build
+### 3. The table's beats
 
-The Next strip of tickets (the table's notices, promoted), Again, the Table's
-Moment and the Mediator's Docket, Spotlight and Put on the table, filtered on
-the server, land on this frame.
+With no beat of your own, the Table's Moment heads the Ready list: another
+seat's beat from its Activate until its Apply, read-only, from what its seat
+shares (`tableBeat`). It never replaces the list. Again heads the list with
+the action you last finished, one tap, lifted out of its type's group.
+
+Still to build on this frame: the Next strip of tickets (the table's notices,
+promoted), and the Mediator's Docket, Spotlight and Put on the table, filtered
+on the server.
