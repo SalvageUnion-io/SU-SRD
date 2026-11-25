@@ -38,15 +38,13 @@ const PORT = Number(process.env.PORT ?? portFor())
 if (process.argv.includes('dev')) process.env.VITE_SITE_ORIGIN ||= `http://localhost:${PORT}`
 
 /**
- * The page script, the islands and the Discord Activity's entry, which Astro
- * loads: what `appGraph` keeps off the app's groups. The Activity is no app
- * route: a group it reached would load the app's own entry with it.
+ * The page script and the islands, which Astro loads: what `appGraph` keeps
+ * off the app's groups.
  */
 const ISLANDS = join(HERE, 'src/components/islands')
 const graph = appGraph({
   pageEntries: [
     join(HERE, 'src/runtime/islands.client.ts'),
-    join(HERE, 'src/activity/main.tsx'),
     ...readdirSync(ISLANDS)
       .filter((file) => file.endsWith('Island.tsx'))
       .map((file) => join(ISLANDS, file)),

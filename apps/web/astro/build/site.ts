@@ -7,7 +7,7 @@
  * needs the home page.
  */
 
-import { readFile, rename, rmdir, writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { AstroIntegration } from 'astro'
@@ -23,9 +23,6 @@ import { blockRenderOnEntry, entryImports, entryOf } from './renderBlockingEntry
 
 /** The app's generated route tree, which names every route its links may open. */
 const ROUTE_TREE = fileURLToPath(new URL('../../src/routeTree.gen.ts', import.meta.url))
-
-/** The Discord Activity's page directory, served as one file (`activity.html`). */
-const ACTIVITY_DIR = 'activity'
 
 /** Astro's island runtime and its directives, with room to spare. */
 const MAX_INLINE_SCRIPTS = 12
@@ -94,15 +91,6 @@ export function site({ pwa }: { pwa: () => VitePluginPWAAPI | undefined }): Astr
         await assertNoDeadAnchors(distDir)
 
         writePublicPages(distDir, process.env.VITE_SITE_ORIGIN)
-
-        // The Discord Activity at `/activity`, with no slash: Discord's root
-        // URL Mapping names that path, and the asset server's redirect to
-        // `/activity/` lands on the proxy's root again (`/activity/activity/`).
-        await rename(
-          join(distDir, ACTIVITY_DIR, 'index.html'),
-          join(distDir, `${ACTIVITY_DIR}.html`)
-        )
-        await rmdir(join(distDir, ACTIVITY_DIR))
 
         const api = pwa()
         if (!api) throw new Error('[build] the service worker plugin is missing')

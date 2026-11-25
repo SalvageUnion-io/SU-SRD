@@ -9,7 +9,8 @@ import {
   personOf,
   signInActivity,
 } from '../activitySession'
-import { inActivityFrame } from '../frame'
+import { activityStore } from '../activityStore'
+import { activityLinkTarget, inActivityFrame } from '../frame'
 
 /**
  * The Activity's start (`../activitySession.ts`): the launch in the frame's
@@ -103,5 +104,51 @@ describe('inActivityFrame', () => {
   it("knows Discord's proxy host from this site's own", () => {
     expect(inActivityFrame('1442878052823470172.discordsays.com')).toBe(true)
     expect(inActivityFrame('salvageunion.io')).toBe(false)
+  })
+})
+
+describe('activityLinkTarget', () => {
+  const FRAME = 'https://1442878052823470172.discordsays.com'
+  const SITE = 'https://salvageunion.io'
+
+  it("keeps the app's routes in the frame, on the router", () => {
+    expect(activityLinkTarget('/games/g1', FRAME, SITE)).toEqual({
+      kind: 'route',
+      path: '/games/g1',
+    })
+    expect(activityLinkTarget('/build/pilots/p1?x=1#a', FRAME, SITE)).toEqual({
+      kind: 'route',
+      path: '/build/pilots/p1?x=1#a',
+    })
+  })
+
+  it('opens a reference page on the site, outside Discord', () => {
+    expect(activityLinkTarget('/chassis/mule/', FRAME, SITE)).toEqual({
+      kind: 'outside',
+      url: 'https://salvageunion.io/chassis/mule/',
+    })
+  })
+
+  it('opens another site as it is, and leaves other schemes alone', () => {
+    expect(activityLinkTarget('https://ko-fi.com/x', FRAME, SITE)).toEqual({
+      kind: 'outside',
+      url: 'https://ko-fi.com/x',
+    })
+    expect(activityLinkTarget('mailto:a@b.c', FRAME, SITE)).toBeNull()
+  })
+})
+
+describe('activityStore', () => {
+  it('is the site until the Activity signs in, then follows its people and layout', () => {
+    expect(activityStore.get()).toBeNull()
+    activityStore.update({ layout: 'pip' })
+    expect(activityStore.get()).toBeNull()
+    const me = { id: '1', name: 'Rae', avatarUrl: 'a' }
+    activityStore.start({ me, people: [me], layout: 'focused', openOutside: () => {} })
+    activityStore.update({ layout: 'pip' })
+    expect(activityStore.get()?.layout).toBe('pip')
+    expect(activityStore.get()?.people).toEqual([me])
+    activityStore.stop()
+    expect(activityStore.get()).toBeNull()
   })
 })

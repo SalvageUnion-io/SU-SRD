@@ -1,6 +1,8 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
 import { lazy, Suspense, useLayoutEffect, useSyncExternalStore } from 'react'
+import type { ActivityState } from '../activity/activityStore'
+import { useActivity } from '../activity/activityStore'
 import { AccountHintSync } from '../build/account/AccountHintSync'
 import {
   HeaderActions,
@@ -105,17 +107,54 @@ function TableNoticesMount({ pathname, inPlay }: { pathname: string; inPlay: boo
   )
 }
 
+/** The Discord Activity's shell, loaded only in the Activity (`activity/`). */
+const ActivityShell = lazy(() =>
+  import('../activity/ActivityShell').then((m) => ({ default: m.ActivityShell }))
+)
+
+/**
+ * The app as the Discord Activity: the site's providers, under the Activity's
+ * own shell in place of the Union bar, the strip's mount and the foot. The
+ * table's notices (the Stop Sign above all) still pin over every screen.
+ */
+function ActivityRoot({ activity, pathname }: { activity: ActivityState; pathname: string }) {
+  return (
+    <SyncProvider>
+      <HeadContent />
+      <EntitySurfaceProvider value={ENTITY_SURFACE}>
+        <ReplicaSync />
+        <EntityPageHost>
+          <Suspense fallback={null}>
+            <ActivityShell activity={activity}>
+              <TableNoticesMount pathname={pathname} inPlay />
+              <GameDataReady schemas={routeSchemas(pathname)}>
+                <Outlet />
+              </GameDataReady>
+            </ActivityShell>
+          </Suspense>
+        </EntityPageHost>
+        <ToasterMount />
+      </EntitySurfaceProvider>
+    </SyncProvider>
+  )
+}
+
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const activity = useActivity()
   // A Play screen draws its own bar at every width, so it has no masthead
   // (ADR-051 §2): the Play bar, at every width. Nor
   // does a link preview's render surface. The shell's bar is hidden there.
   // A refused Play screen has no Play bar: it shows the site's (r8 C6).
   const refused = useSyncExternalStore(pageShowsBar.subscribe, pageShowsBar.get, pageShowsBar.get)
-  const barHidden = hidesUnionBar(pathname) && !refused
+  // The Activity draws no Union bar anywhere: its shell is its own.
+  const barHidden = activity !== null || (hidesUnionBar(pathname) && !refused)
   useLayoutEffect(() => {
     document.documentElement.toggleAttribute(BAR_HIDDEN_ATTRIBUTE, barHidden)
-  }, [barHidden])
+    document.body.classList.toggle('su-activity', activity !== null)
+  }, [barHidden, activity])
+
+  if (activity !== null) return <ActivityRoot activity={activity} pathname={pathname} />
 
   // A link preview's render surface (`/og/*`) is a picture, not a
   // page: the card alone, with the Worker and the reference data and none of the

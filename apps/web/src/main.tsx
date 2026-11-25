@@ -1,7 +1,10 @@
 import { registerSW } from 'virtual:pwa-register'
-import { createRouter, RouterProvider } from '@tanstack/react-router'
+import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
 import { StrictMode, startTransition } from 'react'
 import { createRoot } from 'react-dom/client'
+import { ActivityBoot } from './activity/ActivityBoot'
+import { launchOf } from './activity/activitySession'
+import { ACTIVITY_HOME } from './activity/activityStore'
 import { mapActivityUrls } from './activity/frame'
 import { firstPaintSchemas, SIGNED_OUT_VIEW_ATTRIBUTE } from './build/account/signedOutView.model'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
@@ -21,8 +24,16 @@ import { setSyncStatus } from './replica/sync'
 import { routeTree } from './routeTree.gen'
 import { trackScrollbarWidth } from './runtime/scrollbarWidth'
 
+// Discord's launch of the Activity (`worker/activityLaunch.ts`): the app runs
+// as the Activity (`activity/`), on a router that keeps its place in memory,
+// so the frame's address, and the SDK's connection on it, never change.
+const activityLaunch = launchOf(window.location.search)
+
 const router = createRouter({
   routeTree,
+  ...(activityLaunch === null
+    ? {}
+    : { history: createMemoryHistory({ initialEntries: [ACTIVITY_HOME] }) }),
   // The app at salvageunion.io/build, and Play at /play (ADR-048, ADR-062,
   // lib/appBase.ts). Routes and links stay root-relative; the rewrite puts each
   // on its path.
@@ -88,11 +99,10 @@ if (!rootEl) throw new Error('Root element not found')
 // out one long task (half a second on a throttled phone at /build/).
 const renderApp = (root: HTMLElement) => {
   const reactRoot = createRoot(root, reactRootErrorHandlers)
+  const app = <RouterProvider router={router} />
   startTransition(() => {
     reactRoot.render(
-      <StrictMode>
-        <RouterProvider router={router} />
-      </StrictMode>
+      <StrictMode>{activityLaunch === null ? app : <ActivityBoot app={app} />}</StrictMode>
     )
   })
 }
@@ -118,7 +128,7 @@ const stopWaiting = router.subscribe('onResolved', () => {
   void firstRender.then(() => whenIdle(() => void preloadGameData('all', 'full')))
 })
 
-if (document.documentElement.hasAttribute(SIGNED_OUT_VIEW_ATTRIBUTE)) {
+if (activityLaunch === null && document.documentElement.hasAttribute(SIGNED_OUT_VIEW_ATTRIBUTE)) {
   firstRender = Promise.allSettled([
     preloadGameData(firstPaintSchemas(window.location.pathname), 'full'),
     router.load(),
@@ -136,13 +146,15 @@ if (document.documentElement.hasAttribute(SIGNED_OUT_VIEW_ATTRIBUTE)) {
 // workbox-window hands register() a plain string: the default policy lets
 // `/sw.js` through (lib/trustedTypes.ts).
 installTrustedTypesPolicy()
-registerServiceWorker(registerSW, {
-  // This module IS the entry chunk, so its URL carries this build's content
-  // hash — which is what the server's current shell is compared against.
-  entryChunk: new URL(import.meta.url).pathname,
-  onNewBuild: newBuild.markLive,
-})
+// The Activity's frame may register no service worker (Discord's proxy refuses it).
+if (activityLaunch === null)
+  registerServiceWorker(registerSW, {
+    // This module IS the entry chunk, so its URL carries this build's content
+    // hash — which is what the server's current shell is compared against.
+    entryChunk: new URL(import.meta.url).pathname,
+    onNewBuild: newBuild.markLive,
+  })
 
 // A compatible new build is picked up at the next page change, as a full load
 // of that page (lib/sw/softUpdate.ts). Nothing reloads under the player.
-installSoftUpdate(router)
+if (activityLaunch === null) installSoftUpdate(router)

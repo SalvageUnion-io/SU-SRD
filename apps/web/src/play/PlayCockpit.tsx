@@ -31,7 +31,8 @@
  * stop colour and the pinned notice says the game is paused (`TableNotices`).
  * The channel button shows where rolls post (`usePlayChannelControls`; unbound, the ⋯'s row,
  * §9). In a Game, ⋯ opens the Game's page, and so does "‹ Game" (ADR-052
- * §5–§6); "‹ Sheet" goes back to the pilot's own page (ADR-066); solo there is no ⋯.
+ * §5–§6); "‹ Sheet" goes back to the pilot's own page (ADR-066), and in the
+ * Discord Activity "‹ Games" to the Activity's home; solo there is no ⋯.
  *
  * A sheet on the screen (`useSheetOnScreen`, play.md §18): any unit's Sheet,
  * a Crew line, or ⋯'s "Show a sheet" puts that sheet in the Actions column
@@ -46,6 +47,7 @@ import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
+import { ACTIVITY_HOME, useActivity } from '../activity/activityStore'
 import type { HeaderMenuItem } from '../components/index'
 import { Button, HeaderMenu, tokens } from '../components/index'
 import { changeUndoToast } from '../lib/changeUndoToast'
@@ -53,6 +55,7 @@ import { usePilots } from '../lib/entities'
 import { areaTitle } from '../lib/pageTitle'
 import { runWrite } from '../lib/runWrite'
 import { useTabTitle } from '../lib/useTabTitle'
+import { activityCopy } from '../messages/activity'
 import { playCopy } from '../messages/play'
 import { routesCopy } from '../messages/routes'
 import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
@@ -133,6 +136,7 @@ type PlayCockpitProps = {
 }
 
 export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps) {
+  const activity = useActivity()
   const { status } = useSync()
   const play = usePlaySituation(target)
   useBoardOnArrival(play)
@@ -344,11 +348,17 @@ export function PlayCockpit({ target, actions, trial = false }: PlayCockpitProps
               turn={turnLine}
               tone={PHASE_TONE[play.situation]}
               paused={sign?.shown === true}
-              // Back to the pilot's own page (ADR-066); its Game is in ⋯.
+              // Back to the pilot's own page (ADR-066); its Game is in ⋯. In
+              // the Discord Activity, back to the Activity's home: the sheet's
+              // page is the website's.
               backHref={
-                trial ? `/starter/pilot/${target.pilotId}` : sheetPath('pilot', target.pilotId)
+                activity !== null
+                  ? ACTIVITY_HOME
+                  : trial
+                    ? `/starter/pilot/${target.pilotId}`
+                    : sheetPath('pilot', target.pilotId)
               }
-              backLabel={playCopy('sheet')}
+              backLabel={activity !== null ? activityCopy('games') : playCopy('sheet')}
               live={status === 'live' && !solo}
               here={crew == null || here === null ? null : hereCount(crew.pilots, here)}
               // A phone's bar is one line: with no channel button on it, the
