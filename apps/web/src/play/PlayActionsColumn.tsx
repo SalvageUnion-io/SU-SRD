@@ -26,6 +26,7 @@
 
 import { mechMaxima } from 'game-domain/rules/crewStatus'
 import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { resolveGauge } from 'salvageunion-reference/rules'
 import { Button, MiniGrid, Slab } from '../components/index'
 import { playCopy } from '../messages/play'
@@ -136,6 +137,11 @@ function usePlayBeat(actions: PlayActions, heat: HeatCheckDue): PlayBeatState {
   const key = entry?.key ?? null
   const [listShown, setListShown] = useState(false)
   const [rolled, setRolled] = useState(false)
+  // The strip's Heat Check brings the owed beat back onto the Moment first.
+  heat.toMoment.current = () => {
+    setParkedAt(null)
+    setListShown(false)
+  }
   const [shownFor, setShownFor] = useState(key)
   if (shownFor !== key) {
     setShownFor(key)
@@ -225,13 +231,20 @@ function PlayBeat({
  * roll control, R8): the strip's button opens Act, presses it and brings its
  * result into view.
  */
-type HeatCheckDue = { due: boolean; heat: number; checked: () => void }
+type HeatCheckDue = {
+  due: boolean
+  heat: number
+  checked: () => void
+  /** Set by the beat: puts the owed Heat Check back on the Moment. */
+  toMoment: { current: (() => void) | null }
+}
 
 function useHeatCheckDue(
   actions: PlayActions,
   boarded: boolean,
   onShow?: () => void
 ): HeatCheckDue {
+  const toMoment = useRef<(() => void) | null>(null)
   const mech =
     actions.mech === null ? null : (actions.store.get('mech', actions.mech.id) ?? actions.mech)
   const cap = mech === null ? 0 : mechMaxima(mech, actions.pilot?.abilities, []).maxHeat
@@ -249,10 +262,13 @@ function useHeatCheckDue(
     }
     const title = playCopy('heatCheckDue', { heat, cap })
     const roll = () => {
-      setCheckedAt(heat)
       latest.current?.()
+      // Onto the Moment, drawn now, so its stamp is there to press (ADR-068).
+      flushSync(() => toMoment.current?.())
       const stamp = document.querySelector<HTMLButtonElement>(HEAT_ROLL)
       stamp?.click()
+      // On the Moment the beat stays until its Done; anywhere else the check is made.
+      if (stamp?.closest('[data-play-moment]') == null) setCheckedAt(heat)
       requestAnimationFrame(() => stamp?.closest('li')?.scrollIntoView?.({ block: 'nearest' }))
     }
     setScreenNotices('heat', [
@@ -274,5 +290,5 @@ function useHeatCheckDue(
     ])
   }, [due, heat, cap])
   useEffect(() => () => setScreenNotices('heat', []), [])
-  return { due, heat, checked: () => setCheckedAt(heat) }
+  return { due, heat, checked: () => setCheckedAt(heat), toMoment }
 }

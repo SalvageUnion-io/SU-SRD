@@ -27,6 +27,7 @@ import { ACTION_TYPE_ORDER } from '../playActions.model'
 import type { PlayRoll } from '../playRolls.model'
 import { NoticeStack } from '../TableNoticeStack'
 import { useScreenNotices } from '../tableStripSlot.model'
+import { narrowViewport } from './narrowViewport'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
@@ -240,6 +241,47 @@ describe('the Heat Check the rules call for (r6 A6)', () => {
     renderBoarded()
     expect(screen.queryByRole('button', { name: 'Roll the Heat Check' })).toBeNull()
   })
+
+  test('the Heat Check owed is the Moment; set aside behind the list, the strip’s Roll brings it back rolled', async () => {
+    const restore = narrowViewport()
+    try {
+      await owedHeatCheckOnAPhone()
+    } finally {
+      restore()
+    }
+  })
+
+  async function owedHeatCheckOnAPhone() {
+    const probe = makeMech({ chassisRef: 'leviathan' })
+    const cap = mechMaxHeat(probe, resolveChassisRef(probe.chassisRef))
+    const mech = makeMech({ chassisRef: 'leviathan', currentHeat: cap })
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <>
+        <Strip />
+        <Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />
+      </>
+    )
+    const moment = () => document.querySelector<HTMLElement>('[data-play-moment]')
+    // Owed, with nothing else in hand: the Reactor's row on the Moment, in heat red.
+    expect(moment()?.querySelector('[data-action-key="reactor"]')).toBeTruthy()
+    expect(within(moment() as HTMLElement).getByRole('button', { name: 'Not now' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(within(moment() as HTMLElement).getByRole('button', { name: 'Back to List' }))
+    })
+    expect(moment()).toBeNull()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Roll the Heat Check' }))
+    })
+    // Back on the Moment, rolled there: it stays until its Done.
+    const reactor = moment()?.querySelector('[data-action-key="reactor"]') as HTMLElement
+    expect(reactor.querySelector('[aria-live="polite"]')?.textContent).not.toBe('')
+    await act(async () => {
+      fireEvent.click(within(moment() as HTMLElement).getByRole('button', { name: 'Done' }))
+    })
+    expect(moment()).toBeNull()
+  }
 })
 
 describe('the list', () => {
