@@ -56,7 +56,7 @@ const NOTE = { margin: 0 } satisfies CSSProperties
  */
 const STAND_IN_PARAM = 'activity_stand_in'
 
-function standIn(): boolean {
+function standInAsked(): boolean {
   return testAuthBridgeEnabled && new URLSearchParams(window.location.search).has(STAND_IN_PARAM)
 }
 
@@ -70,12 +70,19 @@ const STAND_IN_PEOPLE = ['Tester', 'Mediator', 'Crew'].map((name, index) => ({
 /** Where the sign-in is: under way, or stopped with a reason. */
 type Phase = { kind: 'signing-in' } | { kind: 'stopped'; reason: string }
 
-export function ActivityBoot({ app }: { app: ReactNode }) {
+export function ActivityBoot({
+  app,
+  standIn = standInAsked(),
+}: {
+  app: ReactNode
+  /** Runs the test seam's stand-in in place of Discord's sign-in. */
+  standIn?: boolean
+}) {
   const activity = useActivity()
   const [phase, setPhase] = useState<Phase>({ kind: 'signing-in' })
 
   useEffect(() => {
-    if (standIn()) {
+    if (standIn) {
       const [me, ...rest] = STAND_IN_PEOPLE
       if (me !== undefined) {
         activityStore.start({
@@ -135,7 +142,7 @@ export function ActivityBoot({ app }: { app: ReactNode }) {
       void sdk?.unsubscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', onPeople)
       void sdk?.unsubscribe('ACTIVITY_LAYOUT_MODE_UPDATE', onLayout)
     }
-  }, [])
+  }, [standIn])
 
   if (activity !== null) return app
   return (

@@ -43,10 +43,17 @@ class FakeSdk {
 }
 
 const realSdk = { ...(await import('@discord/embedded-app-sdk')) }
-mock.module('@discord/embedded-app-sdk', () => ({ ...realSdk, DiscordSDK: FakeSdk }))
+mock.module('@discord/embedded-app-sdk', () => ({
+  ...realSdk,
+  DiscordSDK: FakeSdk,
+  patchUrlMappings: (mappings: { prefix: string; target: string }[]) => {
+    calls.push(`patch ${mappings.map((m) => `${m.prefix}=${m.target}`).join(',')}`)
+  },
+}))
 
 const { ActivityBoot } = await import('../ActivityBoot')
 const { activityStore } = await import('../activityStore')
+const { mapActivityUrls } = await import('../frame')
 
 afterEach(() => {
   cleanup()
@@ -135,5 +142,24 @@ describe('ActivityBoot', () => {
     })
     expect(listeners.size).toBe(0)
     fetchSpy.mockRestore()
+  })
+
+  test("the test seam's stand-in: the app at once, with no Discord, and links outside noted", async () => {
+    await act(async () => {
+      render(<ActivityBoot app={<p>The app</p>} standIn />)
+    })
+    await screen.findByText('The app')
+    expect(calls).toEqual([])
+    expect(activityStore.get()?.people.map((p) => p.name)).toEqual(['Tester', 'Mediator', 'Crew'])
+    activityStore.get()?.openOutside('https://salvageunion.io/')
+    expect(document.documentElement.dataset.activityOutside).toBe('https://salvageunion.io/')
+    delete document.documentElement.dataset.activityOutside
+  })
+
+  test("in Discord's frame the art host goes through the `/art` URL Mapping; on the site, nothing", async () => {
+    await mapActivityUrls('salvageunion.io')
+    expect(calls).toEqual([])
+    await mapActivityUrls('1442878052823470172.discordsays.com')
+    expect(calls).toEqual(['patch /art=assets.salvageunion.io'])
   })
 })

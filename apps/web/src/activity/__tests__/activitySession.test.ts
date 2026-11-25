@@ -135,6 +135,7 @@ describe('activityLinkTarget', () => {
       url: 'https://ko-fi.com/x',
     })
     expect(activityLinkTarget('mailto:a@b.c', FRAME, SITE)).toBeNull()
+    expect(activityLinkTarget('/x', 'not an origin', SITE)).toBeNull()
   })
 })
 
