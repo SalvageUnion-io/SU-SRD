@@ -251,6 +251,44 @@ describe('the Heat Check the rules call for (r6 A6)', () => {
     }
   })
 
+  test('with an action in hand on a phone, the strip’s Heat Check rolls on the list, shown, the action kept', async () => {
+    const restore = narrowViewport()
+    try {
+      const probe = makeMech({ chassisRef: 'leviathan' })
+      const cap = mechMaxHeat(probe, resolveChassisRef(probe.chassisRef))
+      const mech = makeMech({ chassisRef: 'leviathan', currentHeat: cap })
+      const pilot = makePilot()
+      const { store } = stubStore(mech, pilot)
+      render(
+        <>
+          <Strip />
+          <Harness
+            pilot={pilot}
+            mech={mech}
+            situation="boarded"
+            store={store}
+            writes={[]}
+            initialResolving={{ ref: primaryKey(), name: primary().name, activated: false }}
+          />
+        </>
+      )
+      // The action holds the Moment; the owed check waits.
+      expect(document.querySelector('[data-play-moment] [data-action-key="reactor"]')).toBeNull()
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Roll the Heat Check' }))
+      })
+      const reactor = document.querySelector<HTMLElement>(
+        '.su-play-act-list [data-action-key="reactor"]'
+      )
+      expect(reactor?.closest('[hidden]')).toBeNull()
+      expect(reactor?.querySelector('[aria-live="polite"]')?.textContent).not.toBe('')
+      // The action is kept, a tap away.
+      expect(screen.getByRole('button', { name: `Back to ${primary().name}` })).toBeTruthy()
+    } finally {
+      restore()
+    }
+  })
+
   async function owedHeatCheckOnAPhone() {
     const probe = makeMech({ chassisRef: 'leviathan' })
     const cap = mechMaxHeat(probe, resolveChassisRef(probe.chassisRef))

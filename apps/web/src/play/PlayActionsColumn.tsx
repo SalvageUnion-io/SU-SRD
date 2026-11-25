@@ -138,9 +138,11 @@ function usePlayBeat(actions: PlayActions, heat: HeatCheckDue): PlayBeatState {
   const [listShown, setListShown] = useState(false)
   const [rolled, setRolled] = useState(false)
   // The strip's Heat Check brings the owed beat back onto the Moment first.
+  // With an action in hand the owed check waits behind it, so its Reactor
+  // row is the list's: the list is shown, never hidden under the action.
   heat.toMoment.current = () => {
     setParkedAt(null)
-    setListShown(false)
+    setListShown(resolving !== null)
   }
   const [shownFor, setShownFor] = useState(key)
   if (shownFor !== key) {
@@ -263,7 +265,8 @@ function useHeatCheckDue(
     const title = playCopy('heatCheckDue', { heat, cap })
     const roll = () => {
       latest.current?.()
-      // Onto the Moment, drawn now, so its stamp is there to press (ADR-068).
+      // Onto the Moment, or the list while an action holds it, drawn now, so
+      // its stamp is there to press and on screen (ADR-068).
       flushSync(() => toMoment.current?.())
       const stamp = document.querySelector<HTMLButtonElement>(HEAT_ROLL)
       stamp?.click()
