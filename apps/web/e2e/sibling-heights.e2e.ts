@@ -181,7 +181,7 @@ test('Play: the bar, unit boxes and action rows share one height', { tag: '@pr' 
   await board(page, 'Scrapper')
   const use = actionsOnHand(page).getByRole('button', { name: /^Use / }).first()
   await use.click()
-  await expect(page.locator('li.su-play-act[data-open]')).toHaveCount(1)
+  await expect(page.locator('[data-play-moment]')).toHaveCount(1)
   failures.push(...(await playMismatches(page, 'Boarded, an action open')))
 
   expect(failures, 'Play controls on one line at different heights').toEqual([])

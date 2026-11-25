@@ -48,7 +48,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
 15. **Deployments** <a id="deployments"></a>
-    Production is the su-srd Worker with D1 `su-shared`; each Preview has its own rooms and the D1 `su-shared-preview`. Convex was retired and deleted (2026-10-27): its last export is in the private R2 bucket `su-archive`, and the `convex-last` tag holds its code.
+    Production is the su-srd Worker with D1 `su-shared`; each Preview has its own rooms and the D1 `su-shared-preview`. Retired Convex: its last export in private R2 `su-archive`, its code at tag `convex-last`.
     `bun run dev` runs the Worker beside the dev server with test auth; setup and rotations are the `site-ops` skill.
 16. **Worker environment** <a id="worker-env"></a>
     Sign-in is the site Worker's (`src/worker/auth/`, D1 `SHARED`): `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`; the bot is reached by service binding (`BOT`), with no shared secret.
@@ -163,8 +163,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
-    Built: one Cockpit layout, phone first: tabs below `lg`, Units | Actions | Crew, Tables, Feed; solo seats.
-    Supersedes ADR-038 §1, §9 and its layout, and ADR-045; amends ADR-030; amended by ADR-052, ADR-066. As built: [play.md](architecture/play.md).
+    Built: one Cockpit, phone first (tabs below `lg`); solo seats.
+    Supersedes ADR-038 §1, §9, its layout, ADR-045; amends ADR-030; amended by ADR-052, ADR-066, ADR-068. As built: [play.md](architecture/play.md).
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists only what you own, a Game a chip, never a filter.
     Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062, ADR-066.
@@ -195,3 +195,5 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Amends ADR-051 §1, ADR-052 §1, §4–§6, ADR-062 §1–§3.
 67. **ADR-067 Game Prep and plan** · [full text](adr/067-game-prep.md)
     Amends ADR-059.
+68. **ADR-068 One Moment** · [full text](adr/068-one-moment.md)
+    Amends ADR-051 §6.

@@ -28,12 +28,15 @@ export function PlayActionEntry({
   play,
   actions,
   grouped = false,
+  moment,
 }: {
   entry: ListEntry
   play: Play
   actions: PlayActions
   /** The list sits under an action type's heading: a unit's action leaves its type out (C10). */
   grouped?: boolean
+  /** It is the Main display's beat (ADR-068): an action draws as the Moment. */
+  moment?: { onList?: (() => void) | undefined } | undefined
 }) {
   const need = entry.need === null ? null : NEED_TEXT[entry.need]
   switch (entry.kind) {
@@ -92,6 +95,7 @@ export function PlayActionEntry({
                 : null
           }
           unavailable={mechDown}
+          moment={moment}
         />
       )
     }

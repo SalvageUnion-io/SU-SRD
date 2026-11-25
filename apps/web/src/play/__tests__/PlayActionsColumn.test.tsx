@@ -136,13 +136,16 @@ function onHand(): HTMLElement {
 }
 /** The rows on hand, across every group. */
 const onHandRows = () => [...onHand().querySelectorAll('li[data-action-key]')]
-/** The `<li>` of the action named `name`: the one whose Use, Cancel or Done names it. */
+/**
+ * The action named `name`: the `<li>` whose Use, Cancel or Done names it, or
+ * the Moment it is lifted into while it resolves (ADR-068).
+ */
 function rowFor(name: string): HTMLElement {
   const button =
     screen.queryByRole('button', { name: `Use ${name}` }) ??
     screen.queryByRole('button', { name: `Done with ${name}` }) ??
     screen.getByRole('button', { name: `Cancel ${name}` })
-  const li = button.closest('li')
+  const li = button.closest<HTMLElement>('li, [data-play-moment]')
   if (!li) throw new Error(`no row for ${name}`)
   return li
 }
@@ -455,7 +458,9 @@ describe('companions and picks on the board (R65, R60)', () => {
     const row = document.querySelector<HTMLElement>('li[data-action-key^="partner:pt-rex:"]')
     if (!row) throw new Error('no companion row')
     await click(within(row).getByRole('button', { name: `Use ${primary().name}` }))
-    await click(within(row).getByRole('button', { name: /^Activate/ }))
+    const moment = document.querySelector<HTMLElement>('[data-play-moment]')
+    if (!moment) throw new Error('no Moment')
+    await click(within(moment).getByRole('button', { name: /^Activate/ }))
     // The pilot's record, the companion's EP: never the mech's, never the pilot's AP.
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('pilot')
@@ -501,13 +506,14 @@ describe('Use: the resolve, in the Compact', () => {
     const { writes } = renderBoarded()
     await click(use(primary().name))
     const row = rowFor(primary().name)
-    expect(row.getAttribute('data-open')).toBe('true')
+    // Lifted out of the list onto the Moment (ADR-068).
+    expect(row.matches('[data-play-moment]')).toBe(true)
     expect(within(row).getByRole('button', { name: /^Activate/ })).toBeTruthy()
     expect(within(row).getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
     expect(writes.filter((w) => w.name === 'seat.setResolving')).toHaveLength(1)
     await click(within(row).getByRole('button', { name: `Cancel ${primary().name}` }))
     expect(writes.at(-1)).toEqual({ name: 'seat.clearResolving' })
-    expect(row.getAttribute('data-open')).toBeNull()
+    expect(document.querySelector('[data-play-moment]')).toBeNull()
   })
 
   test('a Down Mech’s actions are not offered: Down, and repair in Downtime the way back (r6 A7)', () => {
@@ -659,7 +665,7 @@ describe('Use: the resolve, in the Compact', () => {
       },
     })
     const row = rowFor(p.name)
-    expect(row.getAttribute('data-open')).toBe('true')
+    expect(row.matches('[data-play-moment]')).toBe(true)
     expect(row.querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     expect(within(row).getByRole('button', { name: 'Activated ✓' })).toBeTruthy()
   })

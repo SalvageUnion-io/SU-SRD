@@ -203,13 +203,16 @@ export function PlayActionsList({
   play,
   actions,
   head,
+  except = null,
 }: {
   play: Play
   actions: PlayActions
   /** A group's heading: under the column's "Actions" from `lg`, under the page's below it. */
   head: 'h2' | 'h3'
+  /** The line that is the Main display's beat (ADR-068), lifted out of the list. */
+  except?: string | null
 }) {
-  const groups = onHandGroups(actions.onHand)
+  const groups = onHandGroups(actions.onHand.filter((entry) => entry.key !== except))
   // The on-hand list is one Tab stop, the arrows between its actions (r7 B8).
   const listRef = useRef<HTMLDivElement>(null)
   const listed = groups.length > 0

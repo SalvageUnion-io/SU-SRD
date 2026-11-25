@@ -34,12 +34,18 @@ function pressable(selector: string): HTMLElement | null {
 /** An action's Roll the die, never its Push (`PlayRollInstrument`'s `pressAs`). */
 export const ROLL_BUTTON = '[data-play-roll="roll"] button.su-roll__roll'
 
-/** What each letter presses: the open action's roll, its Apply (else its Done), End my turn. */
+/**
+ * What each letter presses: the open action's roll, its Apply (else its
+ * Done), End my turn. The open action is the Moment's (ADR-068), or a line
+ * opened in place (the Mediator's NPC actions).
+ */
 const PRESSES: Readonly<Record<string, readonly string[]>> = {
-  r: [`.su-play-act[data-open] ${ROLL_BUTTON}`],
+  r: [`[data-play-moment] ${ROLL_BUTTON}`, `.su-play-act[data-open] ${ROLL_BUTTON}`],
   // Done only once something was done: an untouched action is never finished empty (r8 A7).
   a: [
+    '[data-play-moment] [data-play-key="apply"]',
     '.su-play-act[data-open] [data-play-key="apply"]',
+    '[data-play-moment] .su-play-act__use[data-progressed]',
     '.su-play-act[data-open] .su-play-act__use[data-progressed]',
   ],
   e: ['[data-end-turn]'],
@@ -112,7 +118,7 @@ export function useFindKey(within: RefObject<HTMLElement | null>): {
 /** Why R, A or E pressed nothing (r8 A7). */
 function whyNot(key: string): string {
   if (key === 'e') return playKeysCopy('keyNotYourTurn')
-  if (document.querySelector('.su-play-act[data-open]') === null)
+  if (document.querySelector('[data-play-moment], .su-play-act[data-open]') === null)
     return playKeysCopy('keyNoActionOpen')
   return key === 'r' ? playKeysCopy('keyNothingToRoll') : playKeysCopy('keyNothingToApply')
 }

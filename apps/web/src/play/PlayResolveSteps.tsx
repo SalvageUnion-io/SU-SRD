@@ -88,9 +88,12 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
   const hostRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!rolling.current || !canWrite) return
-    // Nothing to apply: the row's own Done finishes it (r6 A5).
+    // Nothing to apply: the row's own Done finishes it (r6 A5), on the Moment's dock.
+    const host = hostRef.current
     const done = view.nothingToApply
-      ? hostRef.current?.closest('.su-play-act')?.querySelector<HTMLElement>('.su-play-act__use')
+      ? (
+          host?.closest('[data-play-moment]') ?? host?.closest('.su-play-act')
+        )?.querySelector<HTMLElement>('.su-play-act__use')
       : null
     if (!view.nothingToApply && controls.applyDisabled) return
     rolling.current = false

@@ -393,24 +393,30 @@ describe('the Situation, in the bar’s ⋯', () => {
   })
 })
 
-describe('Act: resolve stays inline', () => {
-  test('Use opens the Compact in place, in the Act pane', async () => {
+describe('Act: the action resolves as the Moment, in the Act pane', () => {
+  test('Use lifts the action out of the list onto the Moment, the list a tap away', async () => {
     await renderPhone({ situation: 'boarded' })
     await click(screen.getByRole('button', { name: `Use ${actionName}` }))
     const panel = openPanel()
     const row = within(panel)
       .getByRole('button', { name: `Cancel ${actionName}` })
-      .closest('li') as HTMLElement
-    expect(row.getAttribute('data-open')).toBe('true')
+      .closest('[data-play-moment]') as HTMLElement
+    expect(row.querySelector('[data-open]')).toBeTruthy()
     expect(within(row).getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
     expect(tab('Act').getAttribute('aria-selected')).toBe('true')
+    // The list is behind it, a tap away; the beat waits, its step kept.
+    expect(within(panel).queryByRole('heading', { name: 'Turn' })).toBeNull()
+    await click(within(row).getByRole('button', { name: 'Back to List' }))
+    expect(panel.querySelector('[data-play-moment]')).toBeNull()
+    await click(within(panel).getByRole('button', { name: `Back to ${actionName}` }))
+    expect(within(panel).getByRole('button', { name: `Cancel ${actionName}` })).toBeTruthy()
   })
 
-  test('a full turn: Activate, Roll and Apply, all in the Compact, never leaving Act', async () => {
+  test('a full turn: Activate, Roll and Apply, all on the Moment, never leaving Act', async () => {
     await renderPhone({ situation: 'boarded' })
     await click(screen.getByRole('button', { name: `Use ${actionName}` }))
     const row = () =>
-      document.querySelector('li.su-play-act[data-open], li.su-play-act[data-done]') as HTMLElement
+      document.querySelector('[data-play-moment], li.su-play-act[data-done]') as HTMLElement
     // An action with a cost has Activate; a free one is Roll alone (r4 A2).
     const activate = within(row()).queryByRole('button', { name: /^Activate/ })
     if (activate) await click(activate)
@@ -420,8 +426,8 @@ describe('Act: resolve stays inline', () => {
     // A Success writes nothing to a unit: no Apply, Done finishes it (r6 A5).
     expect(within(row()).queryByRole('button', { name: /^Apply/ })).toBeNull()
     await click(within(row()).getByRole('button', { name: `Done with ${actionName}` }))
-    // The finished action closed itself and says what it came to.
-    expect(row().getAttribute('data-open')).toBeNull()
+    // The finished action closed itself back into the list and says what it came to.
+    expect(row().matches('li')).toBe(true)
     expect(within(row()).getByRole('status').textContent).toBe('Rolled 14 · Success')
     expect(within(row()).getByRole('button', { name: `Use ${actionName}` })).toBeTruthy()
     expect(tab('Act').getAttribute('aria-selected')).toBe('true')

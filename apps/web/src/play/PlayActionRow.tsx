@@ -35,11 +35,13 @@
 
 import type { ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Button, Entity, Stat, TraitProse } from '../components/index'
+import { Button, Content, Entity, Stat, TraitProse } from '../components/index'
 import { actionRow } from '../lib/rules/actionRow'
 import { atomsCopy } from '../messages/components-atoms'
 import { playCopy } from '../messages/play'
 import type { ResolveModel } from './actionsDeck.model'
+import { beatTrack } from './moment.model'
+import { PlayMoment } from './PlayMoment'
 import { PlayResolveSteps } from './PlayResolveSteps'
 import type { ListEntry } from './playActions.model'
 import { NEED_TEXT } from './playActions.model'
@@ -73,6 +75,11 @@ type PlayActionRowProps = {
   uses?: { left: number; max: number } | null
   /** It needs power its Mech has not (Shut down, r7 B2): its Use says so, off. */
   unpowered?: string | null
+  /**
+   * It is the Main display's beat (ADR-068): drawn as the Moment, lifted out
+   * of the list, with the way back to the list where the list is hidden.
+   */
+  moment?: { onList?: (() => void) | undefined } | undefined
 }
 
 /**
@@ -135,6 +142,7 @@ export function PlayActionRow({
   grouped = false,
   uses = null,
   unpowered = null,
+  moment,
 }: PlayActionRowProps) {
   const usesLeft = uses?.left
   const usesMax = uses?.max
@@ -237,6 +245,34 @@ export function PlayActionRow({
       </div>
     ) : null
   const steps = open ? <PlayResolveSteps view={resolve} canWrite={canWrite} /> : null
+  if (moment !== undefined && open) {
+    return (
+      <PlayMoment
+        title={entry.name}
+        tone={companion?.tone ?? entry.source}
+        chips={
+          <>
+            <Stat size="mini" label={entry.type} />
+            {usesLeft === undefined || usesMax === undefined ? null : (
+              <Stat size="mini" label={playCopy('uses')} value={`${usesLeft}/${usesMax}`} />
+            )}
+          </>
+        }
+        track={beatTrack(resolve)}
+        onList={moment.onList}
+        dock={control}
+        actionKey={entry.key}
+      >
+        {/* Mounted with the beat, so its finish is spoken as it closes. */}
+        <span className="su-sr-only" role="status">
+          {done ? doneSays : ''}
+        </span>
+        <Content body={model.prose ?? []} />
+        {chosen}
+        {steps}
+      </PlayMoment>
+    )
+  }
   return (
     <li
       ref={rowRef}
