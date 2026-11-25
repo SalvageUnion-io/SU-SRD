@@ -25,7 +25,8 @@ content, and its verbs docked at its foot in the same place at every step.
 
 Below `lg` the Moment stands in the list's place and the list is one tap
 behind it ("‹ List"), the beat keeping its step. From `lg` the list runs under
-it. An owed beat offers Not now, which parks it until it falls due again.
+it, and beside it where the Act pane has room for two phone-wide columns.
+An owed beat offers Not now, which parks it until it falls due again.
 Destructive results stay the player's act (ADR-007).
 
 ### 3. The table's beats

@@ -375,6 +375,40 @@ button.su-play-dt-track__step:disabled {
   }
 }
 
+/* The Moment and the list: one after the other, as the pane's own items… */
+.su-play-moment-stack,
+.su-play-moment-split {
+  display: contents;
+}
+
+/* …or, with a beat on the Moment and room for two phone-wide columns (the
+   Act pane at about 38rem, from a 80rem window), side by side. */
+@container play (width >= 80rem) {
+  .su-play-moment-split {
+    align-items: start;
+    display: grid;
+    gap: var(--space-12);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .su-play-moment-split > .su-play-act-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  /* Its column is a phone's width: the filter and Find each take a line. */
+  .su-play-moment-split .su-play-act-head > div:last-child,
+  .su-play-moment-split .su-play-act-tools {
+    width: 100%;
+  }
+
+  .su-play-moment-split .su-play-act-find {
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
+
 /* The Actions list under the Moment: no box of its own, and hidden, still
    mounted, while the Moment stands in its place below `lg`. */
 .su-play-act-list {

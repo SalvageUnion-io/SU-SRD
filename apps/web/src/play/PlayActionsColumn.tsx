@@ -78,37 +78,50 @@ export function PlayActionsColumn({
   // is spoken on the line the beat closes into; from `lg` the list runs
   // under it (ADR-068).
   const listed = wide || beat.entry === null || beat.listShown
+  // From `lg`, a beat on the Moment sits beside the list where the pane has room for two.
+  const split = wide && (beat.entry !== null || shared !== null)
+  const moment =
+    beat.entry === null || (!wide && beat.listShown) ? (
+      shared === null ? null : (
+        <PlayTableMoment beat={shared} />
+      )
+    ) : (
+      <PlayBeat beat={beat} play={play} actions={actions} wide={wide} />
+    )
+  const list = (
+    <div className="su-play-act-list" hidden={!listed}>
+      {!wide && beat.entry !== null && (
+        <Button back variant="ghost" size="compact" onClick={() => beat.showList(false)}>
+          {beat.title}
+        </Button>
+      )}
+      {wide ? (
+        <Slab
+          as="h2"
+          label={playCopy('actions')}
+          className="su-play-act-head"
+          flush
+          actions={<PlayActionsTools actions={actions} find />}
+        />
+      ) : (
+        <PlayActionsTools actions={actions} find={false} />
+      )}
+      <PlayActionsList
+        play={play}
+        actions={actions}
+        head={wide ? 'h3' : 'h2'}
+        except={beat.entry?.key ?? null}
+        again={again}
+      />
+    </div>
+  )
   return (
     <>
       <PlayScene scene={play.scene} />
-      {beat.entry === null || (!wide && beat.listShown) ? null : (
-        <PlayBeat beat={beat} play={play} actions={actions} wide={wide} />
-      )}
-      {shared === null ? null : <PlayTableMoment beat={shared} />}
-      <div className="su-play-act-list" hidden={!listed}>
-        {!wide && beat.entry !== null && (
-          <Button back variant="ghost" size="compact" onClick={() => beat.showList(false)}>
-            {beat.title}
-          </Button>
-        )}
-        {wide ? (
-          <Slab
-            as="h2"
-            label={playCopy('actions')}
-            className="su-play-act-head"
-            flush
-            actions={<PlayActionsTools actions={actions} find />}
-          />
-        ) : (
-          <PlayActionsTools actions={actions} find={false} />
-        )}
-        <PlayActionsList
-          play={play}
-          actions={actions}
-          head={wide ? 'h3' : 'h2'}
-          except={beat.entry?.key ?? null}
-          again={again}
-        />
+      {/* One wrapper either way, so the list never remounts as a beat opens. */}
+      <div className={split ? 'su-play-moment-split' : 'su-play-moment-stack'}>
+        {moment}
+        {list}
       </div>
       {actions.dialog}
     </>
