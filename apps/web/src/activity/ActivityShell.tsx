@@ -49,7 +49,7 @@ export function ActivityShell({
     const pressed = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0) return
       const link = event.target instanceof Element ? event.target.closest('a[href]') : null
-      if (!(link instanceof HTMLAnchorElement) || link.hasAttribute('download')) return
+      if (link === null || link.hasAttribute('download')) return
       const target = activityLinkTarget(
         link.getAttribute('href') ?? '',
         window.location.origin,
@@ -57,7 +57,8 @@ export function ActivityShell({
       )
       if (target === null) return
       event.preventDefault()
-      if (target.kind === 'route') void router.navigate({ href: target.path })
+      // The history holds the site's paths; the router's rewrite reads the route.
+      if (target.kind === 'route') router.history.push(target.path)
       else openOutside(target.url)
     }
     document.addEventListener('click', pressed)
@@ -79,7 +80,7 @@ export function ActivityShell({
               size="compact"
               onClick={() => {
                 if (router.history.canGoBack()) router.history.back()
-                else void router.navigate({ href: ACTIVITY_HOME })
+                else router.history.push(ACTIVITY_HOME)
               }}
             >
               {activityCopy('back')}
@@ -89,7 +90,7 @@ export function ActivityShell({
             surface="instrument"
             variant="ghost"
             size="compact"
-            onClick={() => void router.navigate({ href: ACTIVITY_HOME })}
+            onClick={() => router.history.push(ACTIVITY_HOME)}
           >
             {activityCopy('site')}
           </Button>
