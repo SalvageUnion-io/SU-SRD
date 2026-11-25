@@ -60,12 +60,14 @@ afterAll(() => {
 })
 
 /** The Worker's answers: its client id, then the trade for an access token. */
-function worker(clientId: string | null) {
+function worker(clientId: string | null, trades = true) {
   return spyOn(globalThis, 'fetch').mockImplementation((async (
     _url: unknown,
     init?: RequestInit
   ) => {
-    if (init?.method === 'POST') return Response.json({ accessToken: 'token' })
+    if (init?.method === 'POST') {
+      return trades ? Response.json({ accessToken: 'token' }) : new Response(null, { status: 403 })
+    }
     return clientId === null ? new Response(null, { status: 503 }) : Response.json({ clientId })
   }) as typeof fetch)
 }
@@ -98,6 +100,40 @@ describe('ActivityBoot', () => {
     })
     await screen.findByText('Sign-in is not set up on this site.')
     expect(screen.queryByText('The app')).toBeNull()
+    fetchSpy.mockRestore()
+  })
+
+  test("says why when Discord's sign-in is refused, and lets go of the SDK when it closes", async () => {
+    const fetchSpy = worker('client', false)
+    const consoleSpy = spyOn(console, 'error').mockImplementation(() => {})
+    let view: ReturnType<typeof render> | undefined
+    await act(async () => {
+      view = render(<ActivityBoot app={<p>The app</p>} />)
+    })
+    await screen.findByText('Discord would not sign you in. Try again.')
+    expect(activityStore.get()).toBeNull()
+    await act(async () => {
+      view?.unmount()
+    })
+    consoleSpy.mockRestore()
+    fetchSpy.mockRestore()
+  })
+
+  test('a signed-in Activity, closed, stops listening to Discord', async () => {
+    const fetchSpy = worker('client')
+    let view: ReturnType<typeof render> | undefined
+    await act(async () => {
+      view = render(<ActivityBoot app={<p>The app</p>} />)
+    })
+    await screen.findByText('The app')
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(listeners.size).toBe(2)
+    await act(async () => {
+      view?.unmount()
+    })
+    expect(listeners.size).toBe(0)
     fetchSpy.mockRestore()
   })
 })
