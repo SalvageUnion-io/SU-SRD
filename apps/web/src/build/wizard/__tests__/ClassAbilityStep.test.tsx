@@ -63,8 +63,12 @@ describe('ClassAbilityStep — a pick on a phone', () => {
 
   test('picking a class brings its first abilities into view when they open below the fold', () => {
     const proto = HTMLElement.prototype
-    const rect = proto.getBoundingClientRect
-    const scroll = proto.scrollIntoView
+    // Put back as found: an inherited method restored as an own one would
+    // shadow a later file's spy on `Element.prototype`.
+    const had = {
+      rect: Object.getOwnPropertyDescriptor(proto, 'getBoundingClientRect'),
+      scroll: Object.getOwnPropertyDescriptor(proto, 'scrollIntoView'),
+    }
     const media = window.matchMedia
     const scrolled: string[] = []
     // A phone: no lg.
@@ -82,8 +86,13 @@ describe('ClassAbilityStep — a pick on a phone', () => {
       fireEvent.click(screen.getByRole('radio', { name: /^Hauler/ }))
       expect(scrolled).toEqual(['wiz-first-ability'])
     } finally {
-      proto.getBoundingClientRect = rect
-      proto.scrollIntoView = scroll
+      for (const [key, found] of [
+        ['getBoundingClientRect', had.rect],
+        ['scrollIntoView', had.scroll],
+      ] as const) {
+        if (found) Object.defineProperty(proto, key, found)
+        else delete (proto as Partial<HTMLElement>)[key]
+      }
       window.matchMedia = media
     }
   })

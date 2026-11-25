@@ -27,6 +27,7 @@ import { ACTION_TYPE_ORDER } from '../playActions.model'
 import type { PlayRoll } from '../playRolls.model'
 import { NoticeStack } from '../TableNoticeStack'
 import { useScreenNotices } from '../tableStripSlot.model'
+import { narrowViewport } from './narrowViewport'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
@@ -136,13 +137,16 @@ function onHand(): HTMLElement {
 }
 /** The rows on hand, across every group. */
 const onHandRows = () => [...onHand().querySelectorAll('li[data-action-key]')]
-/** The `<li>` of the action named `name`: the one whose Use, Cancel or Done names it. */
+/**
+ * The action named `name`: the `<li>` whose Use, Cancel or Done names it, or
+ * the Moment it is lifted into while it resolves (ADR-068).
+ */
 function rowFor(name: string): HTMLElement {
   const button =
     screen.queryByRole('button', { name: `Use ${name}` }) ??
     screen.queryByRole('button', { name: `Done with ${name}` }) ??
     screen.getByRole('button', { name: `Cancel ${name}` })
-  const li = button.closest('li')
+  const li = button.closest<HTMLElement>('li, [data-play-moment]')
   if (!li) throw new Error(`no row for ${name}`)
   return li
 }
@@ -237,6 +241,90 @@ describe('the Heat Check the rules call for (r6 A6)', () => {
     renderBoarded()
     expect(screen.queryByRole('button', { name: 'Roll the Heat Check' })).toBeNull()
   })
+
+  test('the Heat Check owed is the Moment; set aside behind the list, the strip’s Roll brings it back rolled', async () => {
+    const restore = narrowViewport()
+    try {
+      await owedHeatCheckOnAPhone()
+    } finally {
+      restore()
+    }
+  })
+
+  test('with an action in hand on a phone, the strip’s Heat Check rolls on the list, shown, the action kept', async () => {
+    const restore = narrowViewport()
+    try {
+      const probe = makeMech({ chassisRef: 'leviathan' })
+      const cap = mechMaxHeat(probe, resolveChassisRef(probe.chassisRef))
+      const mech = makeMech({ chassisRef: 'leviathan', currentHeat: cap })
+      const pilot = makePilot()
+      const { store } = stubStore(mech, pilot)
+      render(
+        <>
+          <Strip />
+          <Harness
+            pilot={pilot}
+            mech={mech}
+            situation="boarded"
+            store={store}
+            writes={[]}
+            initialResolving={{
+              ref: primaryKey(),
+              name: primary().name,
+              activated: false,
+              applied: false,
+            }}
+          />
+        </>
+      )
+      // The action holds the Moment; the owed check waits.
+      expect(document.querySelector('[data-play-moment] [data-action-key="reactor"]')).toBeNull()
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Roll the Heat Check' }))
+      })
+      const reactor = document.querySelector<HTMLElement>(
+        '.su-play-act-list [data-action-key="reactor"]'
+      )
+      expect(reactor?.closest('[hidden]')).toBeNull()
+      expect(reactor?.querySelector('[aria-live="polite"]')?.textContent).not.toBe('')
+      // The action is kept, a tap away.
+      expect(screen.getByRole('button', { name: `Back to ${primary().name}` })).toBeTruthy()
+    } finally {
+      restore()
+    }
+  })
+
+  async function owedHeatCheckOnAPhone() {
+    const probe = makeMech({ chassisRef: 'leviathan' })
+    const cap = mechMaxHeat(probe, resolveChassisRef(probe.chassisRef))
+    const mech = makeMech({ chassisRef: 'leviathan', currentHeat: cap })
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <>
+        <Strip />
+        <Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />
+      </>
+    )
+    const moment = () => document.querySelector<HTMLElement>('[data-play-moment]')
+    // Owed, with nothing else in hand: the Reactor's row on the Moment, in heat red.
+    expect(moment()?.querySelector('[data-action-key="reactor"]')).toBeTruthy()
+    expect(within(moment() as HTMLElement).getByRole('button', { name: 'Not now' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(within(moment() as HTMLElement).getByRole('button', { name: 'Back to List' }))
+    })
+    expect(moment()).toBeNull()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Roll the Heat Check' }))
+    })
+    // Back on the Moment, rolled there: it stays until its Done.
+    const reactor = moment()?.querySelector('[data-action-key="reactor"]') as HTMLElement
+    expect(reactor.querySelector('[aria-live="polite"]')?.textContent).not.toBe('')
+    await act(async () => {
+      fireEvent.click(within(moment() as HTMLElement).getByRole('button', { name: 'Done' }))
+    })
+    expect(moment()).toBeNull()
+  }
 })
 
 describe('the list', () => {
@@ -455,7 +543,9 @@ describe('companions and picks on the board (R65, R60)', () => {
     const row = document.querySelector<HTMLElement>('li[data-action-key^="partner:pt-rex:"]')
     if (!row) throw new Error('no companion row')
     await click(within(row).getByRole('button', { name: `Use ${primary().name}` }))
-    await click(within(row).getByRole('button', { name: /^Activate/ }))
+    const moment = document.querySelector<HTMLElement>('[data-play-moment]')
+    if (!moment) throw new Error('no Moment')
+    await click(within(moment).getByRole('button', { name: /^Activate/ }))
     // The pilot's record, the companion's EP: never the mech's, never the pilot's AP.
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('pilot')
@@ -501,13 +591,14 @@ describe('Use: the resolve, in the Compact', () => {
     const { writes } = renderBoarded()
     await click(use(primary().name))
     const row = rowFor(primary().name)
-    expect(row.getAttribute('data-open')).toBe('true')
+    // Lifted out of the list onto the Moment (ADR-068).
+    expect(row.matches('[data-play-moment]')).toBe(true)
     expect(within(row).getByRole('button', { name: /^Activate/ })).toBeTruthy()
     expect(within(row).getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
     expect(writes.filter((w) => w.name === 'seat.setResolving')).toHaveLength(1)
     await click(within(row).getByRole('button', { name: `Cancel ${primary().name}` }))
     expect(writes.at(-1)).toEqual({ name: 'seat.clearResolving' })
-    expect(row.getAttribute('data-open')).toBeNull()
+    expect(document.querySelector('[data-play-moment]')).toBeNull()
   })
 
   test('a Down Mech’s actions are not offered: Down, and repair in Downtime the way back (r6 A7)', () => {
@@ -659,7 +750,7 @@ describe('Use: the resolve, in the Compact', () => {
       },
     })
     const row = rowFor(p.name)
-    expect(row.getAttribute('data-open')).toBe('true')
+    expect(row.matches('[data-play-moment]')).toBe(true)
     expect(row.querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     expect(within(row).getByRole('button', { name: 'Activated ✓' })).toBeTruthy()
   })

@@ -118,6 +118,8 @@ const BAR = '.su-play-root header'
 const UNITS = '.su-play-unit'
 const UNIT_HEADS = '.su-play-unit .su-entity-compact__head'
 const ACTIONS = 'li.su-play-act'
+/** The Moment's verb dock (ADR-068): below `lg` it stands in the list's place while a beat is open. */
+const DOCK = '[data-play-moment] .su-play-moment__dock'
 
 /** Which lines each view shows and scans: the columns all three, a phone's pane its own. */
 const EXPECTED: Record<string, readonly string[]> = {
@@ -126,7 +128,7 @@ const EXPECTED: Record<string, readonly string[]> = {
   Units: [BAR, UNIT_HEADS],
 }
 
-async function playMismatches(page: Page, state: string): Promise<string[]> {
+async function playMismatches(page: Page, state: string, beat = false): Promise<string[]> {
   const failures: string[] = []
   for (const viewport of [WIDE, PHONE]) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height })
@@ -137,7 +139,9 @@ async function playMismatches(page: Page, state: string): Promise<string[]> {
       else if (tab !== null) await page.getByRole('tab', { name: tab }).click()
       await page.evaluate(() => document.fonts.ready.then(() => undefined))
       const where = tab === null ? viewport.name : `${viewport.name}, ${tab}`
-      const lines = EXPECTED[tab ?? 'wide'] ?? []
+      const lines = (EXPECTED[tab ?? 'wide'] ?? []).map((line) =>
+        beat && tab === 'Act' && line === ACTIONS ? DOCK : line
+      )
       for (const selector of lines) {
         const seen = await page.locator(selector).filter({ visible: true }).count()
         expect(seen, `Play, ${state}, at ${where}: nothing matches ${selector}`).toBeGreaterThan(0)
@@ -157,7 +161,7 @@ async function playMismatches(page: Page, state: string): Promise<string[]> {
       // Each kind of line is scanned on its own: an action line is a Mini
       // (ruleset §1.3), itself a control, so the Actions column's Minis are
       // never one line with the Units column's steppers across the gutter.
-      const scanned = viewport === PHONE ? [BAR, UNIT_HEADS, ACTIONS] : lines
+      const scanned = viewport === PHONE ? [BAR, UNIT_HEADS, beat ? DOCK : ACTIONS] : lines
       for (const within of scanned) {
         for (const m of await findSiblingMismatches(page, within))
           failures.push(`Play, ${state}, at ${where}, ${describeMismatch(m)}`)
@@ -181,8 +185,8 @@ test('Play: the bar, unit boxes and action rows share one height', { tag: '@pr' 
   await board(page, 'Scrapper')
   const use = actionsOnHand(page).getByRole('button', { name: /^Use / }).first()
   await use.click()
-  await expect(page.locator('li.su-play-act[data-open]')).toHaveCount(1)
-  failures.push(...(await playMismatches(page, 'Boarded, an action open')))
+  await expect(page.locator('[data-play-moment]')).toHaveCount(1)
+  failures.push(...(await playMismatches(page, 'Boarded, an action open', true)))
 
   expect(failures, 'Play controls on one line at different heights').toEqual([])
 })

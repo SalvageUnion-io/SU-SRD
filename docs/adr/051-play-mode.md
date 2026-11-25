@@ -19,6 +19,8 @@ Built: the `dashboard-cockpit` milestone (tracker #1633); Play as built is
 - **Amends** [ADR-030](030-accounts-games-server-of-record.md) (§4, §7, §8 below).
 - **Amended by** [ADR-052](052-build-assets-play-games.md): the landing is the
   hub for Games (§1).
+- **Amended by** [ADR-068](068-one-moment.md): an action resolves on the
+  Moment, lifted out of the list (§6).
 
 ### 1. Play is a mode
 

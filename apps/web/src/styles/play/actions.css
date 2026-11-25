@@ -288,3 +288,85 @@ button.su-play-dt-track__step:disabled {
   inset: calc((var(--size-compact) - var(--size-full)) / 2);
   position: absolute;
 }
+
+/* The Moment (ADR-068): the Main display's one beat, a titled card in the
+   colour of who acts, its steps across the top and its verbs docked at the
+   foot, in the same place whatever the step. */
+.su-play-moment__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.su-play-moment__track {
+  border-bottom: var(--bw-hairline) solid var(--color-ink);
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-play-moment__track > li {
+  background-color: var(--color-paper);
+  border-right: var(--bw-hairline) solid var(--color-ink-40);
+  color: var(--color-ink-60);
+  flex: 1 1 0;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  padding-block: var(--space-6);
+  text-align: center;
+}
+
+.su-play-moment__track > li:last-child {
+  border-right: 0;
+}
+
+.su-play-moment__track > li[data-state='done'] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-play-moment__track > li[data-state='on'] {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 calc(-1 * var(--space-4)) 0 var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-play-moment__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-12);
+}
+
+/* The verb dock: the way back to the list, then the beat's verb, held at
+   the pane's foot while the beat's table runs past it. */
+.su-play-moment__dock {
+  align-items: center;
+  background-color: var(--color-paper);
+  border-top: var(--bw-hairline) solid var(--color-ink);
+  /* Into the pane's own padding, so nothing shows under it. */
+  bottom: calc(-1 * var(--space-8));
+  display: flex;
+  gap: var(--space-8);
+  justify-content: space-between;
+  padding: var(--space-8);
+  position: sticky;
+  z-index: 1;
+}
+
+@container play (width >= 64rem) {
+  .su-play-moment__dock {
+    bottom: calc(-1 * var(--space-12));
+  }
+}
+
+/* The Actions list under the Moment: no box of its own, and hidden, still
+   mounted, while the Moment stands in its place below `lg`. */
+.su-play-act-list {
+  display: contents;
+}
+
+.su-play-act-list[hidden] {
+  display: none;
+}

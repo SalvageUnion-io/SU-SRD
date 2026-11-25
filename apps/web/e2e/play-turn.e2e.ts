@@ -62,28 +62,30 @@ async function boardedTurn(page: Page): Promise<string> {
   const name = ((await use.getAttribute('aria-label')) ?? '').replace(/^Use /, '')
   expect(name, 'an action on hand to use').not.toBe('')
   await use.click()
-  await expect(row).toHaveAttribute('data-open', 'true')
-  await expect(row.getByRole('button', { name: `Cancel ${name}` })).toBeVisible()
+  // Use lifts the action out of the list onto the Moment (ADR-068).
+  const moment = page.locator('[data-play-moment]')
+  await expect(moment.locator(`[data-action-key="${key}"]`)).toHaveCount(1)
+  await expect(moment.getByRole('button', { name: `Cancel ${name}` })).toBeVisible()
 
   // Activate pays the cost where there is one to pay; a free action has none, nor an attack (r5 A16).
-  const activate = row.getByRole('button', { name: 'Activate', exact: true })
+  const activate = moment.getByRole('button', { name: 'Activate', exact: true })
   if ((await activate.count()) > 0 && (await activate.isEnabled())) {
     await activate.click()
-    await expect(row.getByRole('button', { name: 'Activated ✓' })).toBeVisible()
+    await expect(moment.getByRole('button', { name: 'Activated ✓' })).toBeVisible()
   }
 
   // The roll is the Core Mechanic table's stamp; the result its marked row (R8).
-  await row.getByRole('button', { name: 'Roll the die on Core Mechanic' }).click()
-  const marked = row.locator('.su-roll [aria-current="true"]')
+  await moment.getByRole('button', { name: 'Roll the die on Core Mechanic' }).click()
+  const marked = moment.locator('.su-roll [aria-current="true"]')
   await expect(marked.locator('.su-roll__tag')).toHaveText('Rolled 14')
   await expect(marked.locator('.su-roll__label')).toHaveText('Success')
 
-  // A Success writes nothing to a unit: no Apply, the row's Done finishes it (r6 A5).
-  await expect(row.getByRole('button', { name: 'Apply', exact: true })).toHaveCount(0)
-  await row.getByRole('button', { name: `Done with ${name}` }).click()
+  // A Success writes nothing to a unit: no Apply, the Moment's Done finishes it (r6 A5).
+  await expect(moment.getByRole('button', { name: 'Apply', exact: true })).toHaveCount(0)
+  await moment.getByRole('button', { name: `Done with ${name}` }).click()
+  await expect(moment).toHaveCount(0)
   // A finished action closes itself and reads Done (LG-12); the finish is said once, as a status.
   await expect(row).toHaveAttribute('data-done', 'true')
-  await expect(row).not.toHaveAttribute('data-open', 'true')
   await expect(row.getByRole('status')).toHaveText('Rolled 14 · Success')
   await expect(row.getByText('Done', { exact: true })).toBeVisible()
   return name
