@@ -1,9 +1,10 @@
 ---
 /**
- * The Discord Activity, `activity/index.html`: the page Discord frames when a
- * player starts SalvageUnion.io from the App Launcher. The portal's root URL
- * Mapping points at this directory; `public/_headers` lets Discord frame it
- * and nothing else. Its script is `src/activity/main.tsx`.
+ * The Discord Activity, built as `activity.html`: the page Discord frames
+ * when a player starts SalvageUnion.io from the App Launcher. The portal's
+ * root URL Mapping points at `/activity`; `su-activity` takes off the site's
+ * desk so it fills the frame; `public/_headers` lets Discord frame it and
+ * nothing else. Its script is `src/activity/main.tsx`.
  */
 
 import Fonts from '../../components/Fonts.astro'
@@ -18,7 +19,7 @@ import { BASE_STYLESHEET } from '../../lib/assets'
     <link rel="stylesheet" href={BASE_STYLESHEET.href} />
     <Fonts />
   </head>
-  <body>
+  <body class="su-activity">
     <div id="activity"></div>
     <script>
       import '../../../src/activity/main'

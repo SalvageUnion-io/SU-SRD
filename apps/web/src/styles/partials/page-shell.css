@@ -175,4 +175,10 @@
       inset var(--su-column-edge) 0 0 0 var(--color-desk),
       inset calc(-1 * var(--su-column-edge)) 0 0 0 var(--color-desk);
   }
+
+  /* The Discord Activity fills Discord's frame edge to edge: no desk. */
+  .su-activity,
+  .su-activity main {
+    box-shadow: none;
+  }
 }
