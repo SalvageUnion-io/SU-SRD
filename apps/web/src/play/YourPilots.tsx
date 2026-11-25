@@ -28,7 +28,14 @@ const COLUMNS = [
   { key: 'game', label: playCopy('game'), kind: 'text' },
 ] as const
 
-export function YourPilots({ games }: { games: readonly ShelfGame[] | undefined }) {
+export function YourPilots({
+  games,
+  makes = true,
+}: {
+  games: readonly ShelfGame[] | undefined
+  /** Offers "+ New Pilot"; the Discord Activity, which only plays, does not. */
+  makes?: boolean
+}) {
   useHydrateEntities(['pilot', 'mech', 'softLink'])
   const { canWrite } = useSync()
   const pilots = useOwnUnits('pilot')
@@ -43,7 +50,7 @@ export function YourPilots({ games }: { games: readonly ShelfGame[] | undefined 
       tone="pilot"
       columns={COLUMNS}
       action={
-        canWrite ? (
+        canWrite && makes ? (
           <Button href="/pilots/new" variant="default" size="compact">
             {playCopy('newPilot')}
           </Button>

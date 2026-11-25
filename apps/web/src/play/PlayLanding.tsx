@@ -469,7 +469,7 @@ function useCampaign(game: GameSummary) {
  * and its channel; its body is the crew, each unit opening its sheet; its
  * doors, last in the chip group, go into play.
  */
-function PlayGameItem({
+export function PlayGameItem({
   game,
   pilots,
   channel,

@@ -15,16 +15,22 @@ function assets() {
     fetch: async (request: Request) => {
       const url = new URL(request.url)
       asked.push(`${url.pathname}${url.search}`)
-      return new Response('ok')
+      return new Response('<html lang="en"><body></body></html>', {
+        headers: { 'content-type': 'text/html' },
+      })
     },
   }
 }
 
 describe('serveRoot', () => {
-  it("answers Discord's launch with the Activity's page, its query kept", async () => {
+  it("answers Discord's launch with the app's shell, its Union bar hidden", async () => {
     const binding = assets()
-    await serveRoot(new Request('https://salvageunion.io/?frame_id=f&instance_id=i'), binding)
-    expect(binding.asked).toEqual(['/activity?frame_id=f&instance_id=i'])
+    const res = await serveRoot(
+      new Request('https://salvageunion.io/?frame_id=f&instance_id=i'),
+      binding
+    )
+    expect(binding.asked).toEqual(['/build/'])
+    expect(await res.text()).toContain('<html data-union-bar-hidden lang="en">')
   })
 
   it('answers any other visit with the home page', async () => {

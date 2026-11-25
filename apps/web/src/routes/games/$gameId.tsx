@@ -10,6 +10,8 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
+import { ActivityHome } from '../../activity/ActivityHome'
+import { useActivity } from '../../activity/activityStore'
 import { areaTitle } from '../../lib/pageTitle'
 import { routesCopy } from '../../messages/routes'
 import { GamePage } from '../../play/games/GamePage'
@@ -21,5 +23,8 @@ export const Route = createFileRoute('/games/$gameId')({
 
 function GamePageRoute() {
   const { gameId } = Route.useParams()
+  const activity = useActivity()
+  // In the Discord Activity: the Game's line and its door; managing it is the web's.
+  if (activity !== null) return <ActivityHome only={gameId} />
   return <GamePage gameId={gameId} />
 }

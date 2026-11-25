@@ -12,7 +12,7 @@
  */
 
 import { afterAll, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { createElement } from 'react'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
@@ -114,6 +114,9 @@ const serverMocks = await installServerMocks({
     '../../play/PlayGate': () => ({
       PlayGate: (p: Props) => h('p', null, `Play gate for ${String(p.id)}`),
     }),
+    '../../activity/ActivityHome': () => ({
+      ActivityHome: (p: Props) => h('p', null, `Activity home ${String(p.only ?? 'all')}`),
+    }),
     '../../play/games/GamePage': () => ({
       GamePage: (p: Props) => h('p', null, `Game page for ${String(p.gameId)}`),
     }),
@@ -126,6 +129,7 @@ afterAll(() => serverMocks.restore())
 
 const { createMemoryHistory, createRouter, RouterProvider } = await import('@tanstack/react-router')
 const { routeTree } = await import('../../routeTree.gen')
+const { activityStore } = await import('../../activity/activityStore')
 
 type AppRouter = ReturnType<typeof createRouter>
 
@@ -386,6 +390,23 @@ describe('/games/$gameId', () => {
   test("hands the Game's id to its page", async () => {
     await mountAt('/games/g1')
     expect(await screen.findByText('Game page for g1')).toBeTruthy()
+  })
+})
+
+describe('/games/ and a Game in the Discord Activity', () => {
+  const me = { id: '1', name: 'Rae', avatarUrl: 'a' }
+  test("the Activity's home and the Game's line in place of the hub and the Game's page", async () => {
+    activityStore.start({ me, people: [me], layout: 'focused', openOutside: () => {} })
+    try {
+      await mountAt('/games/')
+      expect(await screen.findByText('Activity home all')).toBeTruthy()
+      cleanup()
+      await mountAt('/games/g1')
+      expect(await screen.findByText('Activity home g1')).toBeTruthy()
+      cleanup()
+    } finally {
+      activityStore.stop()
+    }
   })
 })
 
