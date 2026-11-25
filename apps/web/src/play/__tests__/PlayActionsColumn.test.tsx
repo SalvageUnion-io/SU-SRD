@@ -1047,6 +1047,15 @@ describe('Again and the Table’s Moment (ADR-068)', () => {
     expect(document.querySelector('[data-table-moment]')).toBeNull()
   })
 
+  test('from `lg`, a beat on the Moment and the list share one split; Ready has none', async () => {
+    renderBoarded()
+    expect(document.querySelector('.su-play-moment-split')).toBeNull()
+    await click(use(primary().name))
+    const split = document.querySelector('.su-play-moment-split')
+    expect(split?.querySelector(':scope > [data-play-moment]')).toBeTruthy()
+    expect(split?.querySelector(':scope > .su-play-act-list')).toBeTruthy()
+  })
+
   test('a crewmate only opening an action, or done with it, shares nothing', () => {
     const mech = makeMech()
     const pilot = makePilot()

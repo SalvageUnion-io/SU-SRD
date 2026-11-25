@@ -13,6 +13,16 @@
  * changes with the container, so all of it is here.
  */
 
+/* The frame fills the window and never scrolls it (`useHostHeight`), so it
+   keeps no scrollbar's room (the site's stable gutter): the window's width is
+   then the container's, and the `lg` rung `usePlayWide` reads agrees with the
+   one these queries read. With the gutter, from 1024 to 1038px wide the
+   panes were laid out as a phone's while all of them showed. */
+html:has(.su-play-root) {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
 .su-play-root {
   background: var(--color-wk-bg);
   color: var(--color-ink);
