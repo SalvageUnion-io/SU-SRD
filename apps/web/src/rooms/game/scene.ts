@@ -33,7 +33,15 @@ export type SceneRead = {
   onTable?: OnTable
   /** The Mediator is holding the table (ADR-068 §4); absent when not. */
   hold?: true
+  /**
+   * The rolls the Mediator asked a seat for (ADR-068 §4): all of them to the
+   * Mediator, and to a player only those asked of their own pilots.
+   */
+  asks?: RollAsk[]
 }
+
+/** A roll the Mediator asked of one seat: the pilot, and the table by its name. */
+export type RollAsk = { pilotId: string; table: string }
 
 /**
  * What the Mediator put on the table, as every seat is served it (ADR-068
@@ -47,6 +55,9 @@ export type OnTable =
 
 /** What the Mediator asks to put on the table: a tray NPC by id, or a roll table by name. */
 export type PutOnTable = { kind: 'npc'; npcId: string } | { kind: 'table'; name: string }
+
+/** The Mediator's markers on the table (ADR-068 §4), each one `change_log` row. */
+type MarkerField = 'onTable' | 'hold' | 'asks'
 
 /** The longest roll table name the table keeps: a name, never prose. */
 const TABLE_NAME = 80
@@ -69,13 +80,72 @@ export class GameScene {
     const round = this.round()
     const onTable = this.kept<{ spot: OnTable | null }>('onTable')?.value.spot ?? null
     const hold = this.kept<{ hold: boolean }>('hold')?.value.hold === true
+    const asks = this.asksFor(actor)
     return {
       ...(this.current() ?? CLEAR),
       ...(upNow === null ? {} : { upNow }),
       ...(round === null ? {} : { round }),
       ...(onTable === null ? {} : { onTable }),
       ...(hold ? { hold: true as const } : {}),
+      ...(asks.length === 0 ? {} : { asks }),
     }
+  }
+
+  /**
+   * Ask a seat to roll a table, or take the ask back with null: the
+   * Mediator's. A seat holds one ask at a time; a new one replaces it.
+   */
+  askRoll(actor: string, pilotId: string, table: string | null, at: number): void {
+    this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      if (this.store.unit(pilotId)?.kind !== 'pilot') {
+        throw new RoomRefusal('That is not a Pilot at this table')
+      }
+      const name = table === null ? null : this.tableName(table)
+      const asks = { ...this.asks() }
+      if (name === null) delete asks[pilotId]
+      else asks[pilotId] = name
+      this.keep('asks', { asks }, actor, at)
+    })
+  }
+
+  /** The seat answered its ask (it rolled), or the Mediator let it go: the ask is done. */
+  answerAsk(actor: string, pilotId: string, at: number): void {
+    this.store.sql.transaction(() => {
+      const member = this.store.requireMember(actor)
+      if (!member.mediator) {
+        const pilot = this.store.unit(pilotId)
+        if (pilot === null || pilot.kind !== 'pilot') {
+          throw new RoomRefusal('That is not a Pilot at this table')
+        }
+        this.units.assertMayWrite(actor, pilot)
+      }
+      const asks = { ...this.asks() }
+      if (!(pilotId in asks)) return
+      delete asks[pilotId]
+      this.keep('asks', { asks }, actor, at)
+    })
+  }
+
+  private asks(): Record<string, string> {
+    return this.kept<{ asks: Record<string, string> }>('asks')?.value.asks ?? {}
+  }
+
+  /** Every ask to the Mediator; to a player, those asked of the pilots they hold. */
+  private asksFor(actor: string): RollAsk[] {
+    const member = this.store.member(actor)
+    if (member === null) return []
+    return Object.entries(this.asks())
+      .filter(([pilotId]) => member.mediator || this.store.unit(pilotId)?.ownerId === actor)
+      .map(([pilotId, table]) => ({ pilotId, table }))
+  }
+
+  private tableName(table: string): string {
+    const name = table.trim()
+    if (name.length === 0 || name.length > TABLE_NAME) {
+      throw new RoomRefusal('That is not a roll table')
+    }
+    return name
   }
 
   /**
@@ -99,13 +169,7 @@ export class GameScene {
   }
 
   private shareable(put: PutOnTable): OnTable {
-    if (put.kind === 'table') {
-      const name = put.name.trim()
-      if (name.length === 0 || name.length > TABLE_NAME) {
-        throw new RoomRefusal('That is not a roll table')
-      }
-      return { kind: 'table', name }
-    }
+    if (put.kind === 'table') return { kind: 'table', name: this.tableName(put.name) }
     const row = this.store.rows('select body from tray where id = ?', put.npcId)[0]
     if (row === undefined) throw new RoomRefusal('That NPC is no longer on the tray')
     const body = fromJson<{ name?: unknown; refSchema?: unknown; refSlug?: unknown }>(row.body)
@@ -116,7 +180,7 @@ export class GameScene {
   }
 
   /** One `change_log` row per marker (`field`), replaced each time. */
-  private keep(field: 'onTable' | 'hold', value: object, actor: string, at: number): void {
+  private keep(field: MarkerField, value: object, actor: string, at: number): void {
     this.store.rows('delete from change_log where field = ?', field)
     this.store.rows(
       'insert into change_log (id, field, after, source, actor_id, ts) values (?, ?, ?, ?, ?, ?)',
@@ -129,7 +193,7 @@ export class GameScene {
     )
   }
 
-  private kept<T>(field: 'onTable' | 'hold'): { value: T; at: number } | null {
+  private kept<T>(field: MarkerField): { value: T; at: number } | null {
     const row = this.store.rows('select after, ts from change_log where field = ?', field)[0]
     if (row === undefined) return null
     return { value: fromJson<T>(row.after), at: Number(row.ts) }
@@ -255,7 +319,10 @@ export class GameScene {
       this.store.rows(`select updated_at from ${table} where id = 1`)[0]?.updated_at ?? 0
     )
     if (table !== 'scene') return at
-    const marks = [this.upNow()?.at, this.kept('onTable')?.at, this.kept('hold')?.at]
+    const marks = [
+      this.upNow()?.at,
+      ...(['onTable', 'hold', 'asks'] as const).map((f) => this.kept(f)?.at),
+    ]
     return Math.max(at, this.roundAt(), ...marks.map((m) => m ?? 0))
   }
 

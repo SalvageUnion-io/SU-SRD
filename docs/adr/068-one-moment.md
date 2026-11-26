@@ -48,5 +48,15 @@ own sees it on the Moment (`PlaySpotlight`), over the Table's Moment, until
 the Mediator clears it. Hold is a word on every seat's strip; it blocks
 nothing, and a beat in hand finishes.
 
-Still to build on this frame: the Mediator's Docket and asking a seat for a
-roll.
+The same sheet asks one seat for a roll: a seat holds one ask, served to it
+and the Mediator alone. It is a ticket on that seat's strip whose one press
+rolls the table from its Rolls and answers the ask (`useAskNotices`).
+
+### 5. The Docket
+
+The Mediator's Docket heads the Opposition: what the table waits on, as
+tickets taken in any order (`docketOf`). Morale due and To act open that NPC;
+Awaiting answer is a proposal not yet answered; a seat at its Heat Capacity
+owes a Heat Check; Asked has Withdraw. With nothing waiting it takes no room.
+It is read off what the Mediator's screen already holds, which the room
+serves to no one else.

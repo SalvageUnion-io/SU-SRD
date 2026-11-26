@@ -222,6 +222,10 @@ const GAME_ACTS = {
     c.room.scene.putOnTable(c.actor, a.put, c.at),
   'scenes.hold': (c: ActContext, a: { hold: boolean }) =>
     c.room.scene.setHold(c.actor, a.hold, c.at),
+  'scenes.askRoll': (c: ActContext, a: { pilotId: string; table: string | null }) =>
+    c.room.scene.askRoll(c.actor, a.pilotId, a.table, c.at),
+  'scenes.answerAsk': (c: ActContext, a: { pilotId: string }) =>
+    c.room.scene.answerAsk(c.actor, a.pilotId, c.at),
   'salvageAreas.here': (c: ActContext) => c.room.scene.salvageArea(c.actor),
   'salvageAreas.set': (c: ActContext, a: { area: SalvageArea | null }) =>
     c.room.scene.setSalvageArea(c.actor, a.area, c.at),

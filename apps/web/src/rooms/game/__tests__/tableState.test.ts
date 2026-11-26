@@ -102,6 +102,29 @@ describe('on the table, and Hold', () => {
   })
 })
 
+describe('asking a seat for a roll', () => {
+  test('the Mediator asks; only that seat and the Mediator read it; the seat answers it', () => {
+    const { room } = crewed()
+    room.scene.askRoll(MEDIATOR, 'p1', ' Core Mechanic ', AT + 1)
+    const ask = [{ pilotId: 'p1', table: 'Core Mechanic' }]
+    expect(room.scene.scene(MEDIATOR).asks).toEqual(ask)
+    expect(room.scene.scene(PLAYER).asks).toEqual(ask)
+    expect(room.scene.scene(ORGANIZER).asks).toBeUndefined()
+    expect(room.scene.updatedAt('scene')).toBe(AT + 1)
+    expect(() => room.scene.askRoll(PLAYER, 'p1', 'Core Mechanic', AT)).toThrow('Only the Mediator')
+    expect(() => room.scene.askRoll(MEDIATOR, 'c1', 'Core Mechanic', AT)).toThrow('not a Pilot')
+    expect(() => room.scene.answerAsk(ORGANIZER, 'p1', AT)).toThrow()
+    room.scene.answerAsk(PLAYER, 'p1', AT + 2)
+    expect(room.scene.scene(MEDIATOR).asks).toBeUndefined()
+    room.scene.askRoll(MEDIATOR, 'p1', 'Group Initiative', AT + 3)
+    room.scene.askRoll(MEDIATOR, 'p1', null, AT + 4)
+    expect(room.scene.scene(PLAYER)).toEqual({ conditions: [], hours: 0 })
+    const c = { room, actor: MEDIATOR, gameId: 'g1', at: AT + 5 }
+    expect(runAct(c, 'scenes.askRoll', { pilotId: 'p1', table: 'Core Mechanic' }).ok).toBe(true)
+    expect(runAct({ ...c, actor: PLAYER }, 'scenes.answerAsk', { pilotId: 'p1' }).ok).toBe(true)
+  })
+})
+
 describe("the Mediator's rolls", () => {
   const roll = (description: string, hidden: boolean, ts: number) => ({
     entityType: 'game',

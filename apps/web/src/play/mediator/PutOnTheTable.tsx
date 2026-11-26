@@ -1,8 +1,9 @@
 /**
  * PutOnTheTable — what the Mediator shares with every seat (ADR-068 §4),
  * from the Play bar's ⋯: one thing on the table at a time, a tray NPC (the
- * room keeps its name and kind alone) or a roll table, with Clear; and Hold,
- * a word on every seat's strip. Each seat sees what is on the table on its
+ * room keeps its name and kind alone) or a roll table, with Clear; a roll
+ * asked of one seat, a ticket on that seat's strip; and Hold, a word on
+ * every seat's strip. Each seat sees what is on the table on its
  * Moment while it has no beat of its own (`PlaySpotlight`).
  */
 
@@ -52,8 +53,16 @@ export function PutOnTheTable({ mediator }: { mediator: PlayMediator }) {
     failure: momentCopy('putDidNotLand'),
     toastId: 'table-hold',
   })
+  const ask = useServerAction(useTableAct('scenes.askRoll', gameId), {
+    failure: momentCopy('askDidNotLand'),
+    toastId: 'table-ask',
+  })
   const tables = SalvageUnionReference.RollTables.all()
   const [table, setTable] = useState(tables[0]?.name ?? '')
+  const seats = mediator.seats
+  const [seatId, setSeatId] = useState<string | null>(null)
+  const seat = seats.find((s) => s.pilotId === seatId) ?? seats[0] ?? null
+  const [asked, setAsked] = useState(tables[0]?.name ?? '')
   const off = !canWrite || put.pending
   const onTable = scene.onTable ?? null
   const npcs = mediator.npcs ?? []
@@ -113,6 +122,45 @@ export function PutOnTheTable({ mediator }: { mediator: PlayMediator }) {
           {momentCopy('show')}
         </Button>
       </div>
+      <section aria-label={momentCopy('askASeat')}>
+        <Eyebrow tone="muted">{momentCopy('askASeat')}</Eyebrow>
+        {seat === null ? (
+          <EmptyState variant="inline" body={momentCopy('noSeatToAsk')} />
+        ) : (
+          <div style={ROW}>
+            <Field label={momentCopy('aSeat')} htmlFor={`${id}-seat`}>
+              <Select
+                id={`${id}-seat`}
+                value={seat.pilotId}
+                onChange={(e) => setSeatId(e.target.value)}
+              >
+                {seats.map((s) => (
+                  <option key={s.pilotId} value={s.pilotId}>
+                    {s.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label={momentCopy('aRollTable')} htmlFor={`${id}-ask`}>
+              <Select id={`${id}-ask`} value={asked} onChange={(e) => setAsked(e.target.value)}>
+                {tables.map((t) => (
+                  <option key={t.name} value={t.name}>
+                    {t.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Button
+              size="compact"
+              disabled={!canWrite || ask.pending || asked === ''}
+              aria-label={momentCopy('askNamed', { seat: seat.name, table: asked })}
+              onClick={() => void ask.run({ pilotId: seat.pilotId, table: asked })}
+            >
+              {momentCopy('ask')}
+            </Button>
+          </div>
+        )}
+      </section>
       <div>
         <Toggle
           size="mini"

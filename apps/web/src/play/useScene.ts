@@ -10,7 +10,7 @@ import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableRead } from '../replica/useTable'
-import type { OnTable } from '../rooms/game/scene'
+import type { OnTable, RollAsk } from '../rooms/game/scene'
 
 export type SceneState = {
   /** In catalogue order, each once. */
@@ -25,6 +25,8 @@ export type SceneState = {
   onTable?: OnTable
   /** The Mediator is holding the table; absent when not. */
   hold?: true
+  /** The rolls the Mediator asked of this viewer's seats (all of them, to the Mediator). */
+  asks?: RollAsk[]
 }
 
 export const CLEAR_SCENE: SceneState = { conditions: [], hours: 0 }

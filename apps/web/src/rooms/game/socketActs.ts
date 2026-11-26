@@ -145,6 +145,8 @@ export const GAME_SOCKET_ACTS = {
       .nullable(),
   }),
   'scenes.hold': z.object({ hold: z.boolean() }),
+  'scenes.askRoll': z.object({ pilotId: z.string().min(1), table: z.string().min(1).nullable() }),
+  'scenes.answerAsk': z.object({ pilotId: z.string().min(1) }),
   'salvageAreas.set': SALVAGE_AREA_SET,
   'salvageAreas.spend': SALVAGE_AREA_SPEND,
   'safety.showStop': NONE,

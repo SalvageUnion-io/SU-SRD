@@ -48,6 +48,7 @@ import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
 import { groupRoll, trayEntries } from './opposition.model'
 import { dropChange, keepChange } from './oppositionUndo.model'
+import { PlayMediatorDocket } from './PlayMediatorDocket'
 import { PlayMediatorScene } from './PlayMediatorScene'
 import type { NpcHit } from './PlayNpcActions'
 import { PlayNpcActions } from './PlayNpcActions'
@@ -298,6 +299,18 @@ export function PlayMediatorOpposition({
         }
       />
       <OppositionJumps npcs={npcs ?? []} />
+      <PlayMediatorDocket
+        mediator={mediator}
+        acted={initiative?.acted ?? null}
+        onOpen={(id) => {
+          setOpenIds((ids) => (ids.includes(id) ? ids : [...ids, id]))
+          requestAnimationFrame(() => {
+            const box = document.querySelector<HTMLElement>(`[data-npc-id="${id}"]`)
+            box?.scrollIntoView?.({ block: 'nearest' })
+            box?.querySelector<HTMLElement>('button')?.focus()
+          })
+        }}
+      />
       {prep.running !== null && (
         <div style={RUNNING} role="status">
           <Stat label={mediatorCopy('running')} value={prep.running.name} size="mini" />

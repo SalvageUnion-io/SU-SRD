@@ -7,9 +7,12 @@
  * so a toast and its Feed line are the same event.
  */
 
+import { createElement } from 'react'
+import { Button } from '../components/index'
 import { proseWords } from '../lib/proseWords'
 import { momentCopy } from '../messages/play-moment'
 import type { TableEvent } from '../rooms/game/events'
+import type { RollAsk } from '../rooms/game/scene'
 import { STRIP_PINS } from './stripRuling.model'
 import type { Notice } from './TableNoticeStack'
 
@@ -480,5 +483,36 @@ export function holdNotice(gameId: string): Notice {
     tone: 'ink',
     title: momentCopy('tableHeld'),
     sig: `hold:${gameId}`,
+  }
+}
+
+/**
+ * A roll the Mediator asked of this seat (ADR-068 §4): on the strip until it
+ * is rolled. Its one press rolls the table where Play shows it; off Play, the
+ * way to the seat's table.
+ */
+export function askNotice(
+  ask: RollAsk,
+  to: { roll: () => void; pending: boolean } | { href: string; label: string }
+): Notice {
+  const title = momentCopy('askedForRoll', { table: ask.table })
+  const action =
+    'href' in to
+      ? createElement(Button, { size: 'compact', href: to.href }, to.label)
+      : createElement(
+          Button,
+          { variant: 'primary', size: 'compact', disabled: to.pending, onClick: to.roll },
+          momentCopy('rollNamed', { table: ask.table })
+        )
+  return {
+    key: `ask:${ask.pilotId}`,
+    kind: 'ask',
+    rank: 'answer',
+    ts: 0,
+    dismissible: false,
+    tone: 'pilot',
+    title,
+    actions: action,
+    sig: `ask:${ask.pilotId}:${ask.table}:${'href' in to ? to.href : to.pending}`,
   }
 }

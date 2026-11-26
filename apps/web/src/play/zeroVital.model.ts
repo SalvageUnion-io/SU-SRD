@@ -39,6 +39,11 @@ export function onPlayTableAsked(listener: TableListener): () => void {
   }
 }
 
+/** Whether a Play screen's roll tables are there to hear an ask. */
+export function playTablesShown(): boolean {
+  return listeners.size > 0
+}
+
 /** Ask Play to open a roll table by its name; with `roll`, to roll it too (the player's press). */
 export function askPlayTable(name: string, roll = false): void {
   for (const listener of [...listeners]) listener(name, { roll })

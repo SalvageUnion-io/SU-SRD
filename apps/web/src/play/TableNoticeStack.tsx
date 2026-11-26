@@ -43,6 +43,8 @@ export type Notice = StackedNotice & {
     | 'heat'
     // The Mediator is holding the table (ADR-068 §4).
     | 'hold'
+    // A roll the Mediator asked of the viewer's seat (ADR-068 §4).
+    | 'ask'
   tone: 'ink' | 'pilot' | 'crawler' | 'bad'
   title: string
   body?: string
