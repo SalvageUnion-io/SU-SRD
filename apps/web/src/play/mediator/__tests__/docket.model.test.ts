@@ -68,4 +68,23 @@ describe("the Mediator's Docket (ADR-068 §5)", () => {
     })
     expect(tickets).toEqual([])
   })
+
+  test('a group is due its Morale when half of it is down, named once by the group', () => {
+    const group = { id: 'g1', name: 'Raider Band' }
+    const tickets = docketOf({
+      npcs: [
+        npc('n1', 'Raider 1', { group, currentHp: 0, down: true }),
+        npc('n2', 'Raider 2', { group }),
+      ],
+      acted: null,
+      sent: [],
+      crew: null,
+      seats: [],
+      asks: [],
+      grouping: true,
+    })
+    expect(tickets).toEqual([
+      { kind: 'morale', key: 'morale:g1', name: 'Raider Band', npcId: 'n2' },
+    ])
+  })
 })
