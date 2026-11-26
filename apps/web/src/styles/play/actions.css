@@ -347,6 +347,7 @@ button.su-play-dt-track__step:disabled {
   gap: var(--space-6);
 }
 
+.su-play-moment__note,
 .su-play-moment__table > p {
   color: var(--color-ink-60);
   font-size: var(--text-caption);

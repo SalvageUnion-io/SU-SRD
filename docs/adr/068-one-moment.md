@@ -36,6 +36,27 @@ seat's beat from its Activate until its Apply, read-only, from what its seat
 shares (`tableBeat`). It never replaces the list. Again heads the list with
 the action you last finished, one tap, lifted out of its type's group.
 
-Still to build on this frame: the Next strip of tickets (the table's notices,
-promoted), and the Mediator's Docket, Spotlight and Put on the table, filtered
-on the server.
+The table's strip is the Next strip (as f3 has it, K15): what waits on you
+(the Heat Check, a proposal, your turn) stays there, each with its button.
+
+### 4. Put on the table
+
+From the Play bar's ⋯ the Mediator puts one thing on the table: a tray NPC,
+which the room keeps as its name and kind alone (never its numbers or
+actions), or a roll table, whole and read-only. Every seat with no beat of its
+own sees it on the Moment (`PlaySpotlight`), over the Table's Moment, until
+the Mediator clears it. Hold is a word on every seat's strip; it blocks
+nothing, and a beat in hand finishes.
+
+The same sheet asks one seat for a roll: a seat holds one ask, served to it
+and the Mediator alone. It is a ticket on that seat's strip whose one press
+rolls the table from its Rolls and answers the ask (`useAskNotices`).
+
+### 5. The Docket
+
+The Mediator's Docket heads the Opposition: what the table waits on, as
+tickets taken in any order (`docketOf`). Morale due and To act open that NPC;
+Awaiting answer is a proposal not yet answered; a seat at its Heat Capacity
+owes a Heat Check; Asked has Withdraw. With nothing waiting it takes no room.
+It is read off what the Mediator's screen already holds, which the room
+serves to no one else.

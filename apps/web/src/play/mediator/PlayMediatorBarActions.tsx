@@ -9,7 +9,7 @@
  *    which lands on each of their Feeds, with the last five sent under it.
  *  - **Start / End group session** (`SessionControl`, play.md §10): a bar
  *    button; End asks first.
- *  - **⋯**: Undo last change while an Opposition vital's change can be
+ *  - **⋯**: Put on the table (`PutOnTheTable`, ADR-068 §4), Undo last change while an Opposition vital's change can be
  *    undone (r8 B4), the
  *    Game's own page, the reference (the SRD Explorer, `SrdExplorer`) in
  *    an overlay over Play, and the Discord channel while none is bound.
@@ -24,9 +24,11 @@ import type { HeaderMenuItem } from '../../components/index'
 import { Button, HeaderMenu, ModalShell } from '../../components/index'
 import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
+import { momentCopy } from '../../messages/play-moment'
 import { SessionControl } from '../SessionControl'
 import { useGameSession } from '../useGameSession'
 import { undoLastChange, useLastChange } from './oppositionUndo.model'
+import { PutOnTheTable } from './PutOnTheTable'
 import { SrdExplorer } from './SrdExplorer'
 import { TellTheTable } from './TellTheTable'
 import { useMediatorKeys } from './useMediatorKeys'
@@ -53,6 +55,7 @@ export function PlayMediatorBarActions({
 }) {
   const router = useRouter({ warn: false })
   const [telling, setTelling] = useState(false)
+  const [putting, setPutting] = useState(false)
   // Typing starts in the alert, never on Close (MD2-04).
   const alertField = useRef<HTMLInputElement | null>(null)
   const [reference, setReference] = useState(false)
@@ -89,6 +92,15 @@ export function PlayMediatorBarActions({
               ]
             : [],
           [
+            // What every seat sees on its Moment, and Hold (ADR-068 §4).
+            {
+              id: 'put',
+              label: momentCopy('putOnTheTable'),
+              ...(mediator.scene.onTable === undefined
+                ? {}
+                : { hint: mediator.scene.onTable.name }),
+              onSelect: () => setPutting(true),
+            },
             {
               id: 'game',
               label: mediatorCopy('gamePage'),
@@ -123,6 +135,14 @@ export function PlayMediatorBarActions({
           <PlayKeysSheet mediator onClose={closeKeys} />
         </Suspense>
       )}
+      <ModalShell
+        open={putting}
+        onOpenChange={setPutting}
+        title={momentCopy('putOnTheTable')}
+        width="default"
+      >
+        <PutOnTheTable mediator={mediator} />
+      </ModalShell>
       <ModalShell
         open={telling}
         onOpenChange={setTelling}

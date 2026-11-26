@@ -50,6 +50,7 @@ import {
   downOf,
   endedSession,
   eventsToTell,
+  holdNotice,
   lostRole,
   myTurn,
   newsOver,
@@ -63,6 +64,7 @@ import {
   stripLine,
 } from './tableNotices.model'
 import { focusTheActions, rememberRole, seenRoles } from './tableNoticesDom.model'
+import { useAskNotices } from './useAskNotices'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
 import { useStopSign } from './useStopSign'
@@ -206,6 +208,13 @@ export function GameNotices({
   // becomes mine, so no toast repeats it (r3 H2).
   const scene = useTableRead('scenes.current', { gameId })
   const turn = myTurn(scene?.upNow, pilots)
+  // The rolls the Mediator asked of the viewer's own pilots (ADR-068 §4), never on Mediate.
+  const mine = pathname.startsWith(mediatePath(gameId)) ? [] : (scene?.asks ?? [])
+  const asks = useAskNotices(
+    gameId,
+    mine.filter((ask) => pilots.some((p) => p.id === ask.pilotId)),
+    canWrite
+  )
   // Every other seat of the Game reads who is up, on its pages (r6 A2).
   const everyPilot = usePilots()
   const upNow = myTurn(scene?.upNow, everyPilot)
@@ -397,6 +406,9 @@ export function GameNotices({
       sig: `turn:${gameId}:${title}:${canWrite}:${endTurn.pending}:${here}:${turnSeen.current.at}`,
     })
   }
+  // The Mediator holding the table (ADR-068 §4): here, until they let it go.
+  if (scene?.hold === true && here) notices.push(holdNotice(gameId))
+  notices.push(...asks)
   for (const p of pending ?? []) {
     // From and to: the size of it, before they answer (r2 C7).
     const what = `${p.targetName ?? p.entityType} ${proposalChange(p)}`

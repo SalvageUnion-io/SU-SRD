@@ -38,6 +38,7 @@ import { PlayActionsList, PlayActionsTools } from './PlayActionsList'
 import { PlayDowntimeColumn } from './PlayDowntimeColumn'
 import { PlayMoment } from './PlayMoment'
 import { PlayScene } from './PlayScene'
+import { PlaySpotlight } from './PlaySpotlight'
 import { PlayTableMoment } from './PlayTableMoment'
 import type { ListEntry } from './playActions.model'
 import type { Play, PlayColumnProps } from './situation.model'
@@ -68,9 +69,11 @@ export function PlayActionsColumn({
   const beat = usePlayBeat(actions, heat)
   const again = useAgain(play.target.pilotId, actions.doneKey)
   if (play.situation === 'downtime') return <PlayDowntimeColumn play={play} actions={actions} />
-  // With no beat of your own, the one another seat has in play (ADR-068 §3).
+  // With no beat of your own, what the Mediator put on the table (ADR-068
+  // §4), else the beat another seat has in play (§3).
+  const spot = beat.entry === null ? (play.scene.onTable ?? null) : null
   const shared: TableBeat | null =
-    beat.entry === null && table !== undefined
+    beat.entry === null && spot === null && table !== undefined
       ? tableBeat(table.seats, table.pilots, play.target.pilotId)
       : null
   // Below `lg` the Moment stands in the list's place, the list a tap away
@@ -79,10 +82,12 @@ export function PlayActionsColumn({
   // under it (ADR-068).
   const listed = wide || beat.entry === null || beat.listShown
   // From `lg`, a beat on the Moment sits beside the list where the pane has room for two.
-  const split = wide && (beat.entry !== null || shared !== null)
+  const split = wide && (beat.entry !== null || shared !== null || spot !== null)
   const moment =
     beat.entry === null || (!wide && beat.listShown) ? (
-      shared === null ? null : (
+      spot !== null ? (
+        <PlaySpotlight spot={spot} />
+      ) : shared === null ? null : (
         <PlayTableMoment beat={shared} />
       )
     ) : (

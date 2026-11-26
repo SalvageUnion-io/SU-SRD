@@ -136,6 +136,17 @@ export const GAME_SOCKET_ACTS = {
   'scenes.passHour': NONE,
   'scenes.setUpNow': z.object({ pilotId: z.string().nullable() }),
   'scenes.endTurn': NONE,
+  'scenes.putOnTable': z.object({
+    put: z
+      .discriminatedUnion('kind', [
+        z.object({ kind: z.literal('npc'), npcId: z.string().min(1) }),
+        z.object({ kind: z.literal('table'), name: z.string().min(1) }),
+      ])
+      .nullable(),
+  }),
+  'scenes.hold': z.object({ hold: z.boolean() }),
+  'scenes.askRoll': z.object({ pilotId: z.string().min(1), table: z.string().min(1).nullable() }),
+  'scenes.answerAsk': z.object({ pilotId: z.string().min(1) }),
   'salvageAreas.set': SALVAGE_AREA_SET,
   'salvageAreas.spend': SALVAGE_AREA_SPEND,
   'safety.showStop': NONE,
