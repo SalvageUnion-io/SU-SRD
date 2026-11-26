@@ -55,6 +55,53 @@ describe('up now', () => {
   })
 })
 
+/** ADR-068 §4: what the Mediator puts on the table, filtered as the room keeps it. */
+describe('on the table, and Hold', () => {
+  test('an NPC is served by its name and kind alone; a roll table by its name; null clears', () => {
+    const { room } = table()
+    const id = room.opposition.addNpc(
+      MEDIATOR,
+      { name: 'Raider 2', refSchema: 'npcs', refSlug: 'raider', currentHp: 5, maxHp: 6 },
+      AT
+    )
+    room.scene.putOnTable(MEDIATOR, { kind: 'npc', npcId: id }, AT + 1)
+    expect(room.scene.scene(PLAYER).onTable).toEqual({
+      kind: 'npc',
+      name: 'Raider 2',
+      refSchema: 'npcs',
+      refSlug: 'raider',
+    })
+    expect(room.scene.updatedAt('scene')).toBe(AT + 1)
+    // Its numbers moving changes nothing a player is served.
+    room.opposition.updateNpc(MEDIATOR, id, { currentHp: 1 }, AT + 2)
+    expect(JSON.stringify(room.scene.scene(PLAYER))).not.toContain('Hp')
+    room.scene.putOnTable(MEDIATOR, { kind: 'table', name: ' Core Mechanic ' }, AT + 3)
+    expect(room.scene.scene(PLAYER).onTable).toEqual({ kind: 'table', name: 'Core Mechanic' })
+    room.scene.putOnTable(MEDIATOR, null, AT + 4)
+    expect(room.scene.scene(PLAYER).onTable).toBeUndefined()
+    expect(room.scene.updatedAt('scene')).toBe(AT + 4)
+    expect(() => room.scene.putOnTable(PLAYER, { kind: 'table', name: 'X' }, AT)).toThrow(
+      'Only the Mediator'
+    )
+    expect(() => room.scene.putOnTable(MEDIATOR, { kind: 'npc', npcId: 'gone' }, AT)).toThrow(
+      'no longer on the tray'
+    )
+    expect(() => room.scene.putOnTable(MEDIATOR, { kind: 'table', name: ' ' }, AT)).toThrow()
+  })
+
+  test('the Mediator holds the table and lets it go; every seat reads it', () => {
+    const { room } = table()
+    room.scene.setHold(MEDIATOR, true, AT)
+    expect(room.scene.scene(PLAYER).hold).toBe(true)
+    expect(room.scene.scene(STRANGER).hold).toBeUndefined()
+    room.scene.setHold(MEDIATOR, false, AT + 1)
+    expect(room.scene.scene(PLAYER)).toEqual({ conditions: [], hours: 0 })
+    expect(() => room.scene.setHold(PLAYER, true, AT)).toThrow('Only the Mediator')
+    const c = { room, actor: MEDIATOR, gameId: 'g1', at: AT + 2 }
+    expect(runAct(c, 'scenes.hold', { hold: true })).toEqual({ ok: true, value: undefined })
+  })
+})
+
 describe("the Mediator's rolls", () => {
   const roll = (description: string, hidden: boolean, ts: number) => ({
     entityType: 'game',

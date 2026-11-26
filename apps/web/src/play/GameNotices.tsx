@@ -50,6 +50,7 @@ import {
   downOf,
   endedSession,
   eventsToTell,
+  holdNotice,
   lostRole,
   myTurn,
   newsOver,
@@ -397,6 +398,8 @@ export function GameNotices({
       sig: `turn:${gameId}:${title}:${canWrite}:${endTurn.pending}:${here}:${turnSeen.current.at}`,
     })
   }
+  // The Mediator holding the table (ADR-068 §4): here, until they let it go.
+  if (scene?.hold === true && here) notices.push(holdNotice(gameId))
   for (const p of pending ?? []) {
     // From and to: the size of it, before they answer (r2 C7).
     const what = `${p.targetName ?? p.entityType} ${proposalChange(p)}`

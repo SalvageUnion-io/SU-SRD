@@ -11,6 +11,7 @@ import type { LogEntry } from './log'
 import type { TrayPatch } from './opposition'
 import { noteReturned, owedTo } from './rejoin'
 import type { Profile } from './roster'
+import type { PutOnTable } from './scene'
 import { seedTemplate } from './template'
 
 /** Who is acting, in which Game, and when: the Worker vouches for the first, the room supplies the rest. */
@@ -217,6 +218,10 @@ const GAME_ACTS = {
     c.room.opposition.markActed(pilotId, c.at)
     return pilotId
   },
+  'scenes.putOnTable': (c: ActContext, a: { put: PutOnTable | null }) =>
+    c.room.scene.putOnTable(c.actor, a.put, c.at),
+  'scenes.hold': (c: ActContext, a: { hold: boolean }) =>
+    c.room.scene.setHold(c.actor, a.hold, c.at),
   'salvageAreas.here': (c: ActContext) => c.room.scene.salvageArea(c.actor),
   'salvageAreas.set': (c: ActContext, a: { area: SalvageArea | null }) =>
     c.room.scene.setSalvageArea(c.actor, a.area, c.at),

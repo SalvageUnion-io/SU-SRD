@@ -29,7 +29,27 @@ export type SceneRead = {
    * (r8 A3): the tracker itself stays the Mediator's. Absent with none kept.
    */
   round?: { n: number; acting: 'pilots' | 'opposition' | null }
+  /** What the Mediator put on the table (ADR-068 §4); absent with nothing. */
+  onTable?: OnTable
+  /** The Mediator is holding the table (ADR-068 §4); absent when not. */
+  hold?: true
 }
+
+/**
+ * What the Mediator put on the table, as every seat is served it (ADR-068
+ * §4): an NPC by its name and kind alone, never its numbers or actions,
+ * or a roll table by its name. The room keeps only this, so nothing more of
+ * the Opposition can reach a player.
+ */
+export type OnTable =
+  | { kind: 'npc'; name: string; refSchema: string; refSlug?: string }
+  | { kind: 'table'; name: string }
+
+/** What the Mediator asks to put on the table: a tray NPC by id, or a roll table by name. */
+export type PutOnTable = { kind: 'npc'; npcId: string } | { kind: 'table'; name: string }
+
+/** The longest roll table name the table keeps: a name, never prose. */
+const TABLE_NAME = 80
 
 /** The longest pilot id a marker keeps: an id, never prose. */
 const UP_NOW_ID = 128
@@ -47,11 +67,72 @@ export class GameScene {
     if (this.store.member(actor) === null) return CLEAR
     const upNow = this.upNow()?.pilotId ?? null
     const round = this.round()
+    const onTable = this.kept<{ spot: OnTable | null }>('onTable')?.value.spot ?? null
+    const hold = this.kept<{ hold: boolean }>('hold')?.value.hold === true
     return {
       ...(this.current() ?? CLEAR),
       ...(upNow === null ? {} : { upNow }),
       ...(round === null ? {} : { round }),
+      ...(onTable === null ? {} : { onTable }),
+      ...(hold ? { hold: true as const } : {}),
     }
+  }
+
+  /**
+   * Put a tray NPC or a roll table on the table, or clear it with null: the
+   * Mediator's. An NPC is kept as its name and kind alone, read from the
+   * tray here, so the room never serves a player more of it.
+   */
+  putOnTable(actor: string, put: PutOnTable | null, at: number): void {
+    this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      this.keep('onTable', { spot: put === null ? null : this.shareable(put) }, actor, at)
+    })
+  }
+
+  /** Hold the table, or let it go: the Mediator's, a word to every seat. */
+  setHold(actor: string, hold: boolean, at: number): void {
+    this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      this.keep('hold', { hold }, actor, at)
+    })
+  }
+
+  private shareable(put: PutOnTable): OnTable {
+    if (put.kind === 'table') {
+      const name = put.name.trim()
+      if (name.length === 0 || name.length > TABLE_NAME) {
+        throw new RoomRefusal('That is not a roll table')
+      }
+      return { kind: 'table', name }
+    }
+    const row = this.store.rows('select body from tray where id = ?', put.npcId)[0]
+    if (row === undefined) throw new RoomRefusal('That NPC is no longer on the tray')
+    const body = fromJson<{ name?: unknown; refSchema?: unknown; refSlug?: unknown }>(row.body)
+    const name = typeof body.name === 'string' ? body.name : ''
+    const refSchema = typeof body.refSchema === 'string' ? body.refSchema : 'npcs'
+    const refSlug = typeof body.refSlug === 'string' && body.refSlug !== '' ? body.refSlug : null
+    return { kind: 'npc', name, refSchema, ...(refSlug === null ? {} : { refSlug }) }
+  }
+
+  /** One `change_log` row per marker (`field`), replaced each time. */
+  private keep(field: 'onTable' | 'hold', value: object, actor: string, at: number): void {
+    this.store.rows('delete from change_log where field = ?', field)
+    this.store.rows(
+      'insert into change_log (id, field, after, source, actor_id, ts) values (?, ?, ?, ?, ?, ?)',
+      field,
+      field,
+      JSON.stringify(value),
+      'mediator-table',
+      actor,
+      at
+    )
+  }
+
+  private kept<T>(field: 'onTable' | 'hold'): { value: T; at: number } | null {
+    const row = this.store.rows('select after, ts from change_log where field = ?', field)[0]
+    if (row === undefined) return null
+    return { value: fromJson<T>(row.after), at: Number(row.ts) }
   }
 
   /**
@@ -173,7 +254,9 @@ export class GameScene {
     const at = Number(
       this.store.rows(`select updated_at from ${table} where id = 1`)[0]?.updated_at ?? 0
     )
-    return table === 'scene' ? Math.max(at, this.upNow()?.at ?? 0, this.roundAt()) : at
+    if (table !== 'scene') return at
+    const marks = [this.upNow()?.at, this.kept('onTable')?.at, this.kept('hold')?.at]
+    return Math.max(at, this.roundAt(), ...marks.map((m) => m ?? 0))
   }
 
   private upNow(): { pilotId: string | null; at: number } | null {

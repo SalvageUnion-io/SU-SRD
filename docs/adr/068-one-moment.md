@@ -36,6 +36,17 @@ seat's beat from its Activate until its Apply, read-only, from what its seat
 shares (`tableBeat`). It never replaces the list. Again heads the list with
 the action you last finished, one tap, lifted out of its type's group.
 
-Still to build on this frame: the Next strip of tickets (the table's notices,
-promoted), and the Mediator's Docket, Spotlight and Put on the table, filtered
-on the server.
+The table's strip is the Next strip (as f3 has it, K15): what waits on you
+(the Heat Check, a proposal, your turn) stays there, each with its button.
+
+### 4. Put on the table
+
+From the Play bar's ⋯ the Mediator puts one thing on the table: a tray NPC,
+which the room keeps as its name and kind alone (never its numbers or
+actions), or a roll table, whole and read-only. Every seat with no beat of its
+own sees it on the Moment (`PlaySpotlight`), over the Table's Moment, until
+the Mediator clears it. Hold is a word on every seat's strip; it blocks
+nothing, and a beat in hand finishes.
+
+Still to build on this frame: the Mediator's Docket and asking a seat for a
+roll.

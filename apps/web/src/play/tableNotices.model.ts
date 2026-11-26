@@ -8,8 +8,10 @@
  */
 
 import { proseWords } from '../lib/proseWords'
+import { momentCopy } from '../messages/play-moment'
 import type { TableEvent } from '../rooms/game/events'
 import { STRIP_PINS } from './stripRuling.model'
+import type { Notice } from './TableNoticeStack'
 
 /**
  * The window event the notices raise when their height changes: Play's frame
@@ -462,4 +464,21 @@ export function standingDownOnPurpose(gameId: string): () => void {
 export function lostRole(before: boolean | null, now: boolean, gameId: string): boolean {
   if (before !== true || now) return false
   return !ownStandingDown.delete(gameId)
+}
+
+/**
+ * The Mediator is holding the table (ADR-068 §4): a word on every seat's
+ * strip, never dismissed, which blocks nothing: a beat in hand finishes.
+ */
+export function holdNotice(gameId: string): Notice {
+  return {
+    key: `hold:${gameId}`,
+    kind: 'hold',
+    rank: 'alert',
+    ts: 0,
+    dismissible: false,
+    tone: 'ink',
+    title: momentCopy('tableHeld'),
+    sig: `hold:${gameId}`,
+  }
 }

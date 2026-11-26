@@ -1056,6 +1056,46 @@ describe('Again and the Table’s Moment (ADR-068)', () => {
     expect(split?.querySelector(':scope > .su-play-act-list')).toBeTruthy()
   })
 
+  test('what the Mediator put on the table heads Ready, over a crewmate’s beat (§4)', async () => {
+    const mech = makeMech()
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    const npc = { kind: 'npc', name: 'Raider 2', refSchema: 'npcs' } as const
+    const { rerender } = render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        gameId="g1"
+        store={store}
+        writes={[]}
+        scene={{ conditions: [], hours: 0, onTable: npc }}
+        table={{ seats: [{ pilotId: 'p2', resolving: mortar() }], pilots: [judge] }}
+      />
+    )
+    const spot = () => document.querySelector<HTMLElement>('[data-table-moment]')
+    expect(spot()?.textContent).toContain('Raider 2')
+    expect(spot()?.textContent).toContain('NPC')
+    expect(spot()?.textContent).not.toContain('Mini Mortar')
+    rerender(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        gameId="g1"
+        store={store}
+        writes={[]}
+        scene={{ conditions: [], hours: 0, onTable: { kind: 'table', name: 'Core Mechanic' } }}
+      />
+    )
+    expect(spot()?.textContent).toContain('Core Mechanic')
+    expect(spot()?.textContent).toContain('Nailed it')
+    // Read-only: its roll stands off, saying why, and your own beat takes the Moment back.
+    expect(spot()?.querySelector('button:not([disabled])')).toBeNull()
+    await click(use(primary().name))
+    expect(spot()).toBeNull()
+  })
+
   test('a crewmate only opening an action, or done with it, shares nothing', () => {
     const mech = makeMech()
     const pilot = makePilot()

@@ -41,6 +41,8 @@ export type Notice = StackedNotice & {
     | 'downtime'
     // The boarded Mech at its Heat Capacity: the Heat Check is due (r6 A6).
     | 'heat'
+    // The Mediator is holding the table (ADR-068 §4).
+    | 'hold'
   tone: 'ink' | 'pilot' | 'crawler' | 'bad'
   title: string
   body?: string
