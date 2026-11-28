@@ -80,6 +80,12 @@ export const DISCORD_COMMANDS: readonly DiscordCommand[] = [
     "needsAccount": true
   },
   {
+    "name": "play",
+    "description": "Open Play, the SalvageUnion.io Activity, here",
+    "options": [],
+    "needsAccount": true
+  },
+  {
     "name": "feedback",
     "description": "Suggest an idea or report a problem (filed publicly on GitHub, without your name)",
     "options": [

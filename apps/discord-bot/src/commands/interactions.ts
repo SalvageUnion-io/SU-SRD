@@ -72,6 +72,11 @@ export type CommandExecuteInteraction = {
   deferReply(options?: { flags?: MessageFlags.Ephemeral }): Promise<unknown>
   editReply(payload: EditReplyPayload): Promise<unknown>
   followUp(payload: ReplyPayload): Promise<unknown>
+  /**
+   * Answer by opening the app's Activity where the command ran (`/su play`):
+   * Discord's LAUNCH_ACTIVITY response, with no message of ours.
+   */
+  launchActivity(): Promise<unknown>
 }
 
 /**

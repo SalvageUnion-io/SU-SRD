@@ -60,3 +60,11 @@ Awaiting answer is a proposal not yet answered; a seat at its Heat Capacity
 owes a Heat Check; Asked has Withdraw. With nothing waiting it takes no room.
 It is read off what the Mediator's screen already holds, which the room
 serves to no one else.
+
+### 6. Opening it from Discord
+
+`/su play` answers with Discord's own launch (LAUNCH_ACTIVITY), so the bot
+sends no message. The app's Entry Point command (`entryPoint.ts`, `launch`)
+is Discord's Activity button; Discord launches it, so it never reaches the
+Worker, and `deploy-commands.ts` registers it beside `/su`. Both need
+Activities turned on for the app in the Developer Portal.

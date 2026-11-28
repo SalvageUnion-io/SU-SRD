@@ -1,6 +1,7 @@
 import { REST } from '@discordjs/rest'
 import { Routes } from 'discord-api-types/v10'
 import { commands } from './commands/index'
+import { entryPointCommand } from './entryPoint'
 
 /**
  * Register the slash commands with Discord. A local CLI (`bun run
@@ -21,7 +22,11 @@ const token = requireEnv('DISCORD_TOKEN')
 const clientId = requireEnv('DISCORD_CLIENT_ID')
 const guildId = process.env.DISCORD_GUILD_ID
 
-const commandData = Array.from(commands.values()).map((cmd) => cmd.data.toJSON())
+// The Entry Point command rides along: Discord launches it, so it has no handler here.
+const commandData = [
+  ...Array.from(commands.values()).map((cmd) => cmd.data.toJSON()),
+  entryPointCommand,
+]
 
 const rest = new REST({ version: '10' }).setToken(token)
 
