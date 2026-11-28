@@ -291,10 +291,8 @@ function equipmentItem(
     system: {
       description: [rulesHtml(equipment, actions, 'AP'), sourceLine(equipment)].join('\n').trim(),
       // Class-granted gear's level is the crew's crawler's ('C'); with no
-      // crawler it has none to write.
-      techLevel: techLevelCode(
-        crawler ? crawlerTechLevelOf(equipment, crawler.techLevel) : equipment.techLevel
-      ),
+      // crawler, its floor (Mecha Companion's 3, else Tech 1).
+      techLevel: techLevelCode(crawlerTechLevelOf(equipment, crawler?.techLevel ?? 1)),
       inventorySlots: equipmentSlotCost(equipment),
       ap: fields.cost,
       action: fields.action,
