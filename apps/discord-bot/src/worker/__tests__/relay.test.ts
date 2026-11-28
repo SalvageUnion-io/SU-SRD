@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import type { PostRollRelayResponse } from 'game-domain/botWire'
+import type { ChannelPlace, PostRollRelayResponse } from 'game-domain/botWire'
 import {
+  BOT_RELAY_CHANNEL_PATH,
   BOT_RELAY_POST_ALERT_PATH,
   BOT_RELAY_POST_ROLL_PATH,
   BOT_RELAY_POST_STOP_PATH,
@@ -235,5 +236,54 @@ describe('the post-alert relay', () => {
   test('refuses an empty alert or a channel that is not a snowflake', async () => {
     expect((await relay(alert({ channelId: ROLL.channelId, message: '  ' }))).status).toBe(400)
     expect((await relay(alert({ channelId: 'general', message: 'Hi' }))).status).toBe(400)
+  })
+})
+
+describe('the channel relay', () => {
+  const ask = async (channelId: unknown) =>
+    relay(relayRequest({ channelId }, BOT_RELAY_CHANNEL_PATH))
+  const placeOf = async (channelId: unknown) =>
+    (await (await ask(channelId)).json()) as ChannelPlace
+
+  test('reads the channel’s category and server with the bot token', async () => {
+    const read: { url: string; auth: string | null }[] = []
+    stubFetch(async (input, init) => {
+      read.push({ url: String(input), auth: new Headers(init?.headers).get('authorization') })
+      return Response.json({
+        id: ROLL.channelId,
+        parent_id: '222',
+        guild_id: '333',
+        name: 'salvage',
+      })
+    })
+    expect(await placeOf(ROLL.channelId)).toEqual({
+      categoryId: '222',
+      guildId: '333',
+      name: 'salvage',
+    })
+    expect(read).toEqual([
+      { url: `https://discord.com/api/v10/channels/${ROLL.channelId}`, auth: 'Bot a-token' },
+    ])
+  })
+
+  test('a channel outside a category, or one the bot cannot see, is nulls', async () => {
+    stubFetch(async () => Response.json({ id: ROLL.channelId, guild_id: '333' }))
+    expect(await placeOf(ROLL.channelId)).toEqual({
+      categoryId: null,
+      guildId: '333',
+      name: null,
+    })
+    stubFetch(async () =>
+      Response.json({ message: 'Missing Access', code: 50001 }, { status: 403 })
+    )
+    expect(await placeOf(ROLL.channelId)).toEqual({
+      categoryId: null,
+      guildId: null,
+      name: null,
+    })
+  })
+
+  test('refuses a channel that is not a snowflake', async () => {
+    expect((await ask('general')).status).toBe(400)
   })
 })

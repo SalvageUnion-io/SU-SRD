@@ -13,7 +13,14 @@ import { installServerMocks, setQueryAnswers } from '../../components/__tests__/
 import { closeRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 import type { SyncStatus } from '../../replica/sync'
 
+const binds: unknown[] = []
 const serverMocks = await installServerMocks({
+  router: true,
+  call: (name, args) => {
+    if (name !== 'channelBindings.bindHere') return undefined
+    binds.push(args)
+    return { ok: true }
+  },
   also: { '../../play/useGamePresence': () => ({ useGamePresence: () => null }) },
 })
 
@@ -23,6 +30,7 @@ const { hydrateStores } = await import('../../components/__tests__/hydrateStores
 const { useUnits } = await import('../../replica/units')
 const { resetSync } = await import('../../replica/sync')
 const { SITE_URL } = await import('../../lib/constants')
+const { activityStore } = await import('../activityStore')
 
 const GAME = {
   templateOrigin: undefined,
@@ -56,7 +64,10 @@ beforeAll(async () => {
     .adopt('pilot', pilotFixture({ id: 'act-rook', name: 'Rook', gameId: 'act-g1' }))
 })
 
-afterEach(closeRooms)
+afterEach(() => {
+  closeRooms()
+  act(() => activityStore.stop())
+})
 
 afterAll(async () => {
   await useUnits.getState().forget('pilot', 'act-rook')
@@ -120,5 +131,77 @@ describe('the Activity home', () => {
     expect(
       screen.getByText('You are in no Game yet. Make one, or join with an invite, on the web.')
     ).toBeTruthy()
+  })
+
+  describe('launched in a channel', () => {
+    const me = { id: '1', name: 'Rae', avatarUrl: 'a' }
+    function launchedIn(channelId: string) {
+      act(() =>
+        activityStore.start({
+          me,
+          people: [me],
+          layout: 'focused',
+          channelId,
+          openOutside: () => {},
+        })
+      )
+    }
+
+    test('the Game bound there opens at once', async () => {
+      launchedIn('100')
+      answerReads({
+        'channelBindings.launch': {
+          game: { gameId: 'act-g1', gameName: 'Tenacity' },
+          bindable: [],
+        },
+        'games.listMine': [GAME],
+        'downtime.state': null,
+        ...QUIET,
+      })
+      const before = serverMocks.navigations.length
+      await renderHome('live')
+      expect(serverMocks.navigations.slice(before)).toEqual([
+        { to: '/games/$gameId', params: { gameId: 'act-g1' } },
+      ])
+      expect(screen.queryByRole('heading', { name: 'Here' })).toBeNull()
+    })
+
+    test('none bound: a Mediator runs one of theirs here with one tap', async () => {
+      launchedIn('200')
+      answerReads({
+        'channelBindings.launch': {
+          game: null,
+          bindable: [{ gameId: 'act-g1', gameName: 'Tenacity' }],
+        },
+        'games.listMine': [GAME],
+        'downtime.state': null,
+        ...QUIET,
+      })
+      await renderHome('live')
+      expect(screen.getByRole('heading', { name: 'Here' })).toBeTruthy()
+      const before = serverMocks.navigations.length
+      await act(async () => {
+        screen.getByRole('button', { name: 'Run Tenacity here' }).click()
+      })
+      expect(binds.at(-1)).toEqual({ channelId: '200', gameId: 'act-g1' })
+      expect(serverMocks.navigations.slice(before)).toEqual([
+        { to: '/games/$gameId', params: { gameId: 'act-g1' } },
+      ])
+    })
+
+    test('none bound and none to run: ask the Mediator', async () => {
+      launchedIn('300')
+      answerReads({
+        'channelBindings.launch': { game: null, bindable: [] },
+        'games.listMine': [],
+        ...QUIET,
+      })
+      await renderHome('live')
+      expect(
+        screen.getByText(
+          'No Game is played here yet. Ask your Mediator to run one here, or play solo.'
+        )
+      ).toBeTruthy()
+    })
   })
 })

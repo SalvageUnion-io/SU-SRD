@@ -195,6 +195,10 @@ export type BindChannelArgs = {
   channelName?: string
   game?: string
   manageChannels?: boolean
+  /** The category the channel sits in (ADR-068 §6); absent outside one, or from an older bot. */
+  categoryId?: string
+  /** The server the channel is in; absent in a DM. */
+  guildId?: string
 }
 
 /**
@@ -231,6 +235,22 @@ export type UnbindChannelResult = { unbound: ChannelBindingSummary | null }
  * binding's `fetch` takes a whole URL; only its path is read (`relayUrl`).
  */
 export type BotRelay = { fetch(input: string, init?: RequestInit): Promise<Response> }
+
+/**
+ * Where a channel sits (ADR-068 §6): the site asks the bot, which holds the
+ * token to read it, for the category and server of the channel the Activity
+ * was launched in, and its name. POST `{ channelId }`; nulls for what Discord
+ * does not say.
+ */
+export const BOT_RELAY_CHANNEL_PATH = '/relay/channel'
+
+/** The answer of `BOT_RELAY_CHANNEL_PATH`. */
+export type ChannelPlace = {
+  categoryId: string | null
+  guildId: string | null
+  /** The channel's name, kept beside a binding so Play can show it. */
+  name: string | null
+}
 
 /** A relay path as a binding's `fetch` takes it. */
 export const relayUrl = (path: string): string => `https://relay${path}`

@@ -52,6 +52,8 @@ export const CALL_ARGS = {
   'entities.move': z.object({ kind: KIND, appId: z.string(), gameId: z.string().nullable() }),
   'channelBindings.mine': z.object({}),
   'channelBindings.current': z.object({ gameId: z.string().optional() }),
+  'channelBindings.launch': z.object({ channelId: z.string().min(1) }),
+  'channelBindings.bindHere': z.object({ channelId: z.string().min(1), gameId: z.string() }),
   'channelBindings.postRoll': z.object({
     gameId: z.string().optional(),
     pilotId: z.string().optional(),

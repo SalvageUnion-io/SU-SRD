@@ -21,6 +21,8 @@ export type ActivityState = {
   me: ActivityPerson
   people: readonly ActivityPerson[]
   layout: LayoutMode
+  /** The channel Discord launched the Activity in; null outside one (or in the stand-in). */
+  channelId?: string | null
   /** Opens a page in the player's browser, outside Discord (the SDK's `openExternalLink`). */
   openOutside: (url: string) => void
 }

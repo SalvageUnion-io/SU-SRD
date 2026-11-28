@@ -136,7 +136,14 @@ async function bind(
     gameId,
     channelName: args.channelName ?? null,
     manageChannels: manageChannelsOf(args),
+    categoryId: snowflakeOf(args.categoryId),
+    guildId: snowflakeOf(args.guildId),
   })
+}
+
+/** A Discord id as the wire sends it, or null for anything else. */
+function snowflakeOf(raw: unknown): string | null {
+  return typeof raw === 'string' && /^\d{1,25}$/.test(raw) ? raw : null
 }
 
 async function unbind(

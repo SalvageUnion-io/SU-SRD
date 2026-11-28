@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'bun:test'
-import { bindChannel, bindingForGame, soloBinding, unbindChannel } from '../channelBindings'
+import {
+  bindChannel,
+  bindingForGame,
+  launchBinding,
+  soloBinding,
+  unbindChannel,
+} from '../channelBindings'
 import { publishGame, testDb } from './d1'
 
 /** Rosa mediates Reclamation; Tam plays in it; Ines is in no Game. */
@@ -125,5 +131,72 @@ describe('channel bindings', () => {
   it('unbinds nothing without failing', async () => {
     const db = await table()
     expect(await unbindChannel(db, 'rosa', 'c-404')).toEqual({ ok: true, unbound: null })
+  })
+})
+
+describe('a Game’s category, and where the Activity opens it (ADR-068 §6)', () => {
+  const at = (
+    channelId: string,
+    categoryId: string | null = null,
+    guildId: string | null = null
+  ) => ({
+    channelId,
+    categoryId,
+    guildId,
+  })
+  const inCategory = (gameId: string, channelId: string, categoryId: string) => ({
+    channelId,
+    gameId,
+    categoryId,
+    guildId: 'server',
+  })
+
+  it('opens the Game bound in the launch channel’s category, from any channel in it', async () => {
+    const db = await table()
+    await bindChannel(db, 'rosa', inCategory('g-1', 'c-text', 'cat-eldridge'))
+    expect(await launchBinding(db, at('c-voice', 'cat-eldridge', 'server'))).toMatchObject({
+      gameId: 'g-1',
+      channelId: 'c-text',
+    })
+    // The bound channel itself, even when Discord names no category.
+    expect(await launchBinding(db, at('c-text'))).toMatchObject({ gameId: 'g-1' })
+  })
+
+  it('falls back to the server’s only bound Game, and to nothing with two', async () => {
+    const db = await table()
+    await bindChannel(db, 'rosa', inCategory('g-1', 'c-1', 'cat-1'))
+    expect(await launchBinding(db, at('c-elsewhere', 'cat-other', 'server'))).toMatchObject({
+      gameId: 'g-1',
+    })
+    await bindChannel(db, 'tam', inCategory('g-2', 'c-2', 'cat-2'))
+    expect(await launchBinding(db, at('c-elsewhere', 'cat-other', 'server'))).toBeNull()
+    expect(await launchBinding(db, at('c-elsewhere', 'cat-2', 'server'))).toMatchObject({
+      gameId: 'g-2',
+    })
+    expect(await launchBinding(db, at('c-dm'))).toBeNull()
+  })
+
+  it('a category holds one Game: another Game’s is taken only by who may manage it', async () => {
+    const db = await table()
+    await bindChannel(db, 'rosa', inCategory('g-1', 'c-1', 'cat-1'))
+    expect(await bindChannel(db, 'tam', inCategory('g-2', 'c-2', 'cat-1'))).toMatchObject({
+      ok: false,
+      reason: 'forbidden',
+    })
+    expect(
+      await bindChannel(db, 'tam', { ...inCategory('g-2', 'c-2', 'cat-1'), manageChannels: true })
+    ).toMatchObject({ ok: true })
+    expect(await bindingForGame(db, 'g-1')).toBeNull()
+    expect(await launchBinding(db, at('c-9', 'cat-1'))).toMatchObject({ gameId: 'g-2' })
+  })
+
+  it('solo play binds its channel alone; binding again keeps the category current', async () => {
+    const db = await table()
+    await bindChannel(db, 'tam', { channelId: 'c-solo', gameId: null, categoryId: 'cat-1' })
+    expect(await launchBinding(db, at('c-9', 'cat-1'))).toBeNull()
+    await bindChannel(db, 'rosa', inCategory('g-1', 'c-1', 'cat-1'))
+    await bindChannel(db, 'rosa', inCategory('g-1', 'c-1', 'cat-new'))
+    expect(await launchBinding(db, at('c-9', 'cat-new'))).toMatchObject({ gameId: 'g-1' })
+    expect(await launchBinding(db, at('c-9', 'cat-1'))).toBeNull()
   })
 })

@@ -58,6 +58,13 @@ export type CommandExecuteInteraction = {
    */
   channelName: string | null
   /**
+   * The category that channel sits in (`/su bind` binds the whole category,
+   * ADR-068 §6); null outside one, or when Discord sent no channel object.
+   */
+  categoryId: string | null
+  /** The server the command ran in; null in a DM. */
+  guildId: string | null
+  /**
    * Whether the member holds Manage Channels in that channel, from the
    * permissions Discord resolves into the interaction (`/su bind` needs it in
    * a server); null outside a server (a DM), where Discord sends no member.

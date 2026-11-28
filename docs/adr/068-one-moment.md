@@ -68,3 +68,12 @@ sends no message. The app's Entry Point command (`entryPoint.ts`, `launch`)
 is Discord's Activity button; Discord launches it, so it never reaches the
 Worker, and `deploy-commands.ts` registers it beside `/su`. Both need
 Activities turned on for the app in the Developer Portal.
+
+A Game's `/su bind` also keeps its channel's category and server
+(`channelBindings.ts`, migration 0012); a category holds one Game. The Activity
+opens the Game bound in its launch channel's category, else the one bound to
+the channel, else the server's only bound Game (`launchBinding`); the Worker
+reads the category through the bot (`/relay/channel`). With none, the home
+offers its Mediator or Organiser "Run it here", which binds that channel as
+`/su bind` would. The Activity cannot read Discord permissions, so that tap
+rests on the Game role alone.

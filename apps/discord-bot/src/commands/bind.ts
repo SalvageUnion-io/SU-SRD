@@ -9,10 +9,11 @@ import { respondWithSite, site } from './siteReply'
  * `/su bind` and `/su unbind`: which channel Play's rolls post to.
  *
  * `/su bind game:<Game>` binds the channel it runs in (its id, and its name
- * so Play can show `#salvage-run`) to one of your Games
- * (its Mediator or Organiser only); `/su bind` with no Game binds it to your
- * solo play. A Game posts to one channel and so does a person, so binding
- * again moves it. In a server, binding takes Manage Channels in the channel;
+ * so Play can show `#salvage-run`), and the category it sits in, to one of
+ * your Games (its Mediator or Organiser only): the Activity opens that Game
+ * anywhere in the category (ADR-068 §6), while rolls post to this channel.
+ * `/su bind` with no Game binds the channel alone to your solo play. A Game
+ * posts to one channel and so does a person, so binding again moves it. In a server, binding takes Manage Channels in the channel;
  * `/su unbind` releases it for whoever bound it, anyone with Manage Channels
  * there, or the Game's Mediator or Organiser, and rolls stop posting there.
  * The site decides who may do what (`worker/shared/channelBindings.ts`) from
@@ -82,7 +83,8 @@ export const bindCommand = {
           channelId,
           game,
           interaction.channelName,
-          interaction.manageChannels
+          interaction.manageChannels,
+          { categoryId: interaction.categoryId, guildId: interaction.guildId }
         ),
       render: (value) => boundContainer(value),
     })

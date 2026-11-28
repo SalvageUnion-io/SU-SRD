@@ -63,7 +63,9 @@ export type SiteClient = {
     channelId: string,
     game: string | null,
     channelName?: string | null,
-    manageChannels?: boolean | null
+    manageChannels?: boolean | null,
+    /** Where the channel sits: its category and server (ADR-068 §6). */
+    place?: { categoryId: string | null; guildId: string | null }
   ): Promise<SiteResult<BindChannelResult>>
   /** `/su unbind`: release whatever `channelId` is bound to. */
   unbindChannel(
@@ -158,13 +160,15 @@ export function createSiteClient(gateway: SiteGateway | undefined): SiteClient {
     mineForAutocomplete: (discordId) => call('mine', { discordId }, true),
     sheet: (discordId, table, entityId) => call('sheet', { discordId, table, entityId }),
     gamesForAutocomplete: (discordId) => call('games', { discordId }, true),
-    bindChannel: (discordId, channelId, game, channelName, manageChannels) => {
+    bindChannel: (discordId, channelId, game, channelName, manageChannels, place) => {
       const args: BindChannelArgs = {
         discordId,
         channelId,
         ...(channelName ? { channelName } : {}),
         ...(game === null ? {} : { game }),
         ...(typeof manageChannels === 'boolean' ? { manageChannels } : {}),
+        ...(place?.categoryId ? { categoryId: place.categoryId } : {}),
+        ...(place?.guildId ? { guildId: place.guildId } : {}),
       }
       return call('bindChannel', args)
     },
