@@ -74,7 +74,7 @@ export function techLevelLabel(level: number | 'B' | 'N' | 'C', minimum?: number
 
 /**
  * Extract tech level from an entity as a numeric value
- * Normalizes 'B' and 'N' to 1 for math operations
+ * Normalizes 'B' and 'N' to 1, and 'C' to its floor, for math operations
  * @param entity - The entity to extract from
  * @returns The tech level as a number or undefined
  */
@@ -87,6 +87,10 @@ export function getTechLevelNumber(entity: RefMetaEntity): number | undefined {
     }
     if (techLevel === 'B' || techLevel === 'N') {
       return 1
+    }
+    // The crawler's level, unknown here: its floor (Mecha Companion's 3, else 1).
+    if (techLevel === 'C') {
+      return getMinimumTechLevel(entity) ?? 1
     }
   }
   return undefined
