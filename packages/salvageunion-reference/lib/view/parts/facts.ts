@@ -279,7 +279,7 @@ export function techLevelFact(techLevel: number | 'B' | 'N' | 'C', minimum?: num
     key: 'tech-level',
     label: 'Tech Level',
     short: 'TL',
-    // Class-granted gear reads "Crawler" (Mecha Companion "Crawler 3+"), never "C".
+    // Class-granted gear reads "CL", Crawler Level (Mecha Companion "CL 3+"), never "C".
     value: techLevelLabel(techLevel, minimum),
     group: 'provenance',
   }

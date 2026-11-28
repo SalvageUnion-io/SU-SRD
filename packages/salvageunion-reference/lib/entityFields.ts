@@ -63,13 +63,13 @@ export function crawlerTechLevelOf(
 }
 
 /**
- * A Tech Level as a word, where a chip or heading prints it: the numeral, or
- * "Crawler" for the class-granted gear's (with its floor, "Crawler 3+").
+ * A Tech Level as a chip or band prints it: the numeral, or "CL" (Crawler
+ * Level) for the class-granted gear's (with its floor, "CL 3+").
  * Bio and Nanite keep their own spellings at each call site.
  */
 export function techLevelLabel(level: number | 'B' | 'N' | 'C', minimum?: number): string {
   if (level !== 'C') return String(level)
-  return minimum ? `Crawler ${minimum}+` : 'Crawler'
+  return minimum ? `CL ${minimum}+` : 'CL'
 }
 
 /**

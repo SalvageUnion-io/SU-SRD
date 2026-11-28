@@ -23,7 +23,7 @@ export const islandsCopy = messages({
   of: '{count} of {count2}',
   tl2: 'TL {level}',
   classGear: 'Class gear',
-  classGearShort: 'Class',
+  classGearShort: 'CL',
   clearAll: 'Clear all',
   nothingHere: 'Nothing here',
   noItemsMatchTheCurrent: 'No items match the current filters.',

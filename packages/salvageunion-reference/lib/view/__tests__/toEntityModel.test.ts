@@ -338,7 +338,7 @@ describe('toEntityModel — a player copy with picks and a host Tech Level', () 
 
   test("bare, it is the book: the crawler's Tech Level, 2 SP, Long", () => {
     const model = toEntityModel(sniper)
-    expect(fact(model, 'Tech Level')).toBe('Crawler')
+    expect(fact(model, 'Tech Level')).toBe('CL')
     expect(fact(model, 'Damage')).toBe('2 SP')
     expect(fact(model, 'Range')).toBe('Long')
   })
@@ -375,9 +375,9 @@ describe("toEntityModel — class-granted gear's Tech Level is the crawler's (R4
     return item
   }
 
-  test('bare, it reads Crawler and wears the class orange', () => {
+  test('bare, it reads CL and wears the class orange', () => {
     const model = toEntityModel(byName('Camo Suit'))
-    expect(fact(model, 'Tech Level')).toBe('Crawler')
+    expect(fact(model, 'Tech Level')).toBe('CL')
     expect(model.tone).toBe('pilot')
   })
 
@@ -387,7 +387,7 @@ describe("toEntityModel — class-granted gear's Tech Level is the crawler's (R4
 
   test('Mecha Companion keeps its Tech 3 floor (Core Book p.68)', () => {
     const mecha = byName('Mecha Companion')
-    expect(fact(toEntityModel(mecha), 'Tech Level')).toBe('Crawler 3+')
+    expect(fact(toEntityModel(mecha), 'Tech Level')).toBe('CL 3+')
     expect(fact(toEntityModel(mecha, { techLevel: 2 }), 'Tech Level')).toBe('3')
     expect(fact(toEntityModel(mecha, { techLevel: 5 }), 'Tech Level')).toBe('5')
   })
