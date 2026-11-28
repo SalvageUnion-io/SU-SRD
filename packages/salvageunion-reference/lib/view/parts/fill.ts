@@ -94,7 +94,8 @@ const SCHEMA_TONE: Partial<Record<RefEnumSchemaName, string>> = {
  * The tone token. An ACTION is `ink`: it has no tone of its own. A guide and
  * every rules entry (keyword, trait, distance, source, roll table) wear rules
  * blue (`wk-line`); gear rides the tech-level ramp (`tl-1`…`tl-6`, `tl-b`,
- * `tl-n`) — systems and modules included, as the book heads each entry and
+ * `tl-n`; class-granted gear, whose level is the crawler's, the class orange
+ * `pilot`) — systems and modules included, as the book heads each entry and
  * index row in its tech level's blue under the green Mech Workshop band
  * (Core Book pp. 162–164, 188–190); black-market goods are `ink-2`; abilities
  * take their tier tone; everything else its schema's hue.
@@ -108,6 +109,9 @@ export function entityTone(
   if (guide) return guide
   if (schemaDomain(schemaName) === 'gear') {
     const level = getTechLevel(entity)
+    // Class-granted gear ('C', the crawler's level) wears the class orange
+    // its Core abilities wear: it comes from your class, not off a shelf (R44).
+    if (level === 'C') return 'pilot'
     const tone = level === 'B' ? 'tl-b' : level === 'N' ? 'tl-n' : techLevelTone(level)
     if (tone) return tone
   }

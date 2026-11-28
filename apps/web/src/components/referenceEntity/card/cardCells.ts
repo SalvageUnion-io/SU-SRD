@@ -18,10 +18,12 @@ import type {
 } from 'salvageunion-reference'
 import {
   facetCells,
+  getMinimumTechLevel,
   isDoEntity,
   laneMeasure,
   naturalContext,
   schemaDomain,
+  techLevelLabel,
 } from 'salvageunion-reference'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
@@ -98,7 +100,7 @@ export type TechScaling = {
   effTechLevel: number | undefined
   /** The header TL cell: the EFFECTIVE level (base, or bumped by the external
    * `scalingParent` control) on a TL-scalable entity, else the base. */
-  techLevelDisplay: number | 'B' | 'N' | undefined
+  techLevelDisplay: number | 'B' | 'N' | 'C' | undefined
   /** Scaled above base — the TL cell wears the heavier solid `modified` frame. */
   techLevelModified: boolean
   /** A `perTechLevel` map (datavalue label, lowered → per-level increment) from
@@ -111,11 +113,20 @@ export type TechScaling = {
 
 export function resolveTechScaling(
   entity: RefMetaEntity,
-  techLevel: number | 'B' | 'N' | undefined,
+  techLevel: number | 'B' | 'N' | 'C' | undefined,
   entityChoices: RefObjectChoice[],
   scalingParent: Record<string, unknown> | undefined
 ): TechScaling {
-  const baseTechLevel = typeof techLevel === 'number' ? techLevel : undefined
+  // A class-granted item's Tech Level is the crawler's ('C'): its floor (Mecha
+  // Companion's "Tech 3 minimum", else 1) is the base its picks and damage
+  // count from until a crawler names the level.
+  const crawlerLevel = techLevel === 'C'
+  const baseTechLevel =
+    typeof techLevel === 'number'
+      ? techLevel
+      : crawlerLevel
+        ? (getMinimumTechLevel(entity) ?? 1)
+        : undefined
   const scalingTechLevel =
     typeof scalingParent?.techLevel === 'number' ? scalingParent.techLevel : undefined
   const resolvedTechLevel = scalingTechLevel ?? baseTechLevel
@@ -144,7 +155,14 @@ export function resolveTechScaling(
   const isTechScalable =
     perTechLevelByLabel.size > 0 ||
     entityChoices.some((c) => typeof c.cardinality?.max === 'object')
-  const techLevelDisplay = isTechScalable ? (effTechLevel ?? techLevel) : techLevel
+  // A crawler-level item reads the crawler's number wherever a crawler names
+  // it, scaling or not: that number IS its Tech Level.
+  const techLevelDisplay =
+    crawlerLevel && scalingTechLevel !== undefined
+      ? effTechLevel
+      : isTechScalable && !crawlerLevel
+        ? (effTechLevel ?? techLevel)
+        : techLevel
   const techLevelModified =
     isTechScalable &&
     baseTechLevel !== undefined &&
@@ -181,8 +199,8 @@ export function buildHeaderStats(options: {
   every?: boolean
   /** Actions and pattern LISTING rows carry no header stats at all. */
   none: boolean
-  techLevel: number | 'B' | 'N' | undefined
-  techLevelDisplay: number | 'B' | 'N' | undefined
+  techLevel: number | 'B' | 'N' | 'C' | undefined
+  techLevelDisplay: number | 'B' | 'N' | 'C' | undefined
   techLevelModified: boolean
 }): StatItem[] {
   const { entity, schemaName, asCompact = true, none, techLevel } = options
@@ -208,7 +226,10 @@ export function buildHeaderStats(options: {
           // one. The full-size vertical value box keeps two-line "Tech" / "Level".
           label: asCompact ? 'TL' : 'Tech',
           bottomLabel: asCompact ? undefined : 'Level',
-          value: String(options.techLevelDisplay),
+          value:
+            options.techLevelDisplay === undefined
+              ? ''
+              : techLevelLabel(options.techLevelDisplay, getMinimumTechLevel(entity)),
           group: 'provenance' as const,
           // A TL-scalable item shows the EFFECTIVE level; a heavier solid `modified`
           // frame when above base (controlled from without via `scalingParent`).

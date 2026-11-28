@@ -148,7 +148,8 @@ export function getEntitySchemas(): EnhancedSchemaMetadata[] {
 
 /**
  * Sort rank for a Tech Level: the numeric tiers 1–6 keep their own value, then
- * Bio ('B') at 7 and Nanite ('N') at 8.
+ * Bio ('B') at 7, Nanite ('N') at 8 and Crawler ('C', the class-granted gear,
+ * whose level is your crawler's) at 9.
  *
  * This ordering is a property of the game's TAXONOMY, not of any one widget, so
  * it lives here and every sorter composes it (`techLevelRank(a) -
@@ -161,9 +162,10 @@ export function getEntitySchemas(): EnhancedSchemaMetadata[] {
  * @returns The sort rank
  */
 
-export function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number {
+export function techLevelRank(techLevel: number | 'B' | 'N' | 'C' | undefined): number {
   if (techLevel === 'B') return 7
   if (techLevel === 'N') return 8
+  if (techLevel === 'C') return 9
   return typeof techLevel === 'number' ? techLevel : Number.POSITIVE_INFINITY
 }
 
@@ -187,21 +189,21 @@ export function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number
  * @returns Negative, zero or positive, per Array#sort
  */
 export function byTechLevelThenName(
-  a: { techLevel?: number | 'B' | 'N'; name: string },
-  b: { techLevel?: number | 'B' | 'N'; name: string }
+  a: { techLevel?: number | 'B' | 'N' | 'C'; name: string },
+  b: { techLevel?: number | 'B' | 'N' | 'C'; name: string }
 ): number {
   return techLevelRank(a.techLevel) - techLevelRank(b.techLevel) || a.name.localeCompare(b.name)
 }
 
 /**
  * Get unique tech levels from an array of entities, sorted correctly
- * Numeric levels ascending, then 'B', then 'N'
+ * Numeric levels ascending, then 'B', then 'N', then 'C'
  * @param entities - Array of entities to extract tech levels from
  * @returns Sorted array of unique tech levels
  */
 
-export function getUniqueTechLevels(entities: RefEntity[]): (number | 'B' | 'N')[] {
-  const levels = new Set<number | 'B' | 'N'>()
+export function getUniqueTechLevels(entities: RefEntity[]): (number | 'B' | 'N' | 'C')[] {
+  const levels = new Set<number | 'B' | 'N' | 'C'>()
   for (const entity of entities) {
     const tl = getTechLevel(entity)
     if (tl !== undefined) levels.add(tl)
@@ -261,7 +263,7 @@ export type ReferenceEntityData = {
   description: string | undefined
   source: string | undefined
   page: number | undefined
-  techLevel: number | 'B' | 'N' | undefined
+  techLevel: number | 'B' | 'N' | 'C' | undefined
   assetUrl: string | undefined
 }
 
@@ -298,7 +300,7 @@ export type StaticEntitySummary = {
   description: string | undefined
   source: string | undefined
   page: number | undefined
-  techLevel: number | 'B' | 'N' | undefined
+  techLevel: number | 'B' | 'N' | 'C' | undefined
   contentParagraphs: string[]
   stats: { label: string; value: string | number }[]
   traits: string[]

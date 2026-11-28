@@ -208,7 +208,7 @@
     "name": "Holo Companion",
     "source": "Salvage Union Workshop Manual",
     "page": 35,
-    "techLevel": 1,
+    "techLevel": "C",
     "actions": ["Holo Companion", "Project", "Un-Project"],
     "id": "dd96f7c0-3760-4b71-9451-77ced25a3b09",
     "content": [
@@ -649,7 +649,7 @@
   {
     "source": "Salvage Union Workshop Manual",
     "name": "Custom Sniper Rifle",
-    "techLevel": 1,
+    "techLevel": "C",
     "page": 50,
     "id": "fc761f88-48ef-4925-8335-b7a6908a27f3",
     "content": [
@@ -828,7 +828,7 @@
   {
     "source": "Salvage Union Workshop Manual",
     "name": "Auto-Turret",
-    "techLevel": 1,
+    "techLevel": "C",
     "moduleSlots": 1,
     "systemSlots": 9,
     "structurePoints": 9,
@@ -899,7 +899,7 @@
   {
     "name": "Camo Suit",
     "source": "Salvage Union Workshop Manual",
-    "techLevel": 1,
+    "techLevel": "C",
     "actions": ["Camo Suit"],
     "page": 51,
     "id": "12345678-90ab-4cd1-82e3-456789012345",
@@ -931,7 +931,7 @@
   {
     "name": "Wingsuit",
     "source": "Salvage Union Workshop Manual",
-    "techLevel": 1,
+    "techLevel": "C",
     "actions": ["Wingsuit"],
     "page": 51,
     "id": "21aa5d3f-2dfd-415f-8f60-86913aeb797b",
@@ -959,7 +959,7 @@
   {
     "name": "Hacking Kit",
     "source": "Salvage Union Workshop Manual",
-    "techLevel": 1,
+    "techLevel": "C",
     "actions": ["Hacking Kit"],
     "page": 34,
     "id": "c9929a61-d5fc-4362-827f-d0c7644ddd3d",
@@ -990,7 +990,7 @@
   {
     "name": "Teleport Beacon",
     "source": "Salvage Union Workshop Manual",
-    "techLevel": 1,
+    "techLevel": "C",
     "actions": ["Teleport Beacon"],
     "page": 51,
     "id": "b0de76c5-18e3-42b3-a5b3-8bcee8794ad0",
@@ -1026,7 +1026,7 @@
   {
     "name": "Stealth Field Generator",
     "source": "Salvage Union Workshop Manual",
-    "techLevel": 1,
+    "techLevel": "C",
     "actions": ["Stealth Field Generator"],
     "page": 73,
     "id": "f09dddca-4cf3-45fd-8ce7-640048a5c43d",
@@ -1062,7 +1062,7 @@
   {
     "name": "Knife Missile",
     "source": "Salvage Union Workshop Manual",
-    "techLevel": 1,
+    "techLevel": "C",
     "actions": ["Knife Missile"],
     "page": 73,
     "id": "256126db-8ba3-4a57-975a-2ed74832b983",
@@ -1094,7 +1094,7 @@
   {
     "name": "Miniaturised EMP",
     "source": "Salvage Union Workshop Manual",
-    "techLevel": 1,
+    "techLevel": "C",
     "actions": ["Miniaturised EMP"],
     "page": 64,
     "id": "663e628e-cf26-48a2-9c90-6714078d7418",
@@ -1134,7 +1134,7 @@
   {
     "name": "Custom Missile Launcher",
     "source": "Salvage Union Workshop Manual",
-    "techLevel": 1,
+    "techLevel": "C",
     "actions": ["Custom Missile Launcher"],
     "page": 55,
     "id": "d83b2f0b-ba15-431d-baa2-2e2381a4d9fb",
@@ -1283,7 +1283,7 @@
     "name": "Survey Drone",
     "traits": [{ "type": "hover" }],
     "source": "Salvage Union Workshop Manual",
-    "techLevel": 1,
+    "techLevel": "C",
     "moduleSlots": 1,
     "systemSlots": 3,
     "structurePoints": 2,
@@ -1334,7 +1334,7 @@
   },
   {
     "name": "Mecha Companion",
-    "techLevel": 3,
+    "techLevel": "C",
     "moduleSlots": 2,
     "systemSlots": 12,
     "structurePoints": 12,
@@ -1391,7 +1391,8 @@
           }
         ]
       }
-    ]
+    ],
+    "minimumTechLevel": 3
   },
   {
     "id": "fbb3002c-24d2-4a1b-a623-9c9eab3ac566",

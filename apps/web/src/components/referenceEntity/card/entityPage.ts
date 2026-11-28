@@ -84,7 +84,8 @@ function isBandStat(stat: BookStat): boolean {
 
 /**
  * A page's band spells a lettered Tech Level out, as it spells every label out:
- * "TECH LEVEL | BIO-CHASSIS" on a bio-chassis, never a bare "B".
+ * "TECH LEVEL | BIO-CHASSIS" on a bio-chassis, never a bare "B". Class-granted
+ * gear's fact already reads "CL", Crawler Level (`techLevelFact`).
  */
 function spelledTechLevel(value: string, entity: RefMetaEntity): string {
   if (value === 'N') return 'Nanite'

@@ -19,6 +19,16 @@ describe('listingEntries', () => {
     expect(names).not.toContain('Trading Bay') // a crawler bay's
   })
 
+  test('the equipment index leaves out granted-only gear; its pages stay (R63)', () => {
+    const equipment = SalvageUnionReference.Equipment.all() as RefEntity[]
+    const names = listingEntries('equipment', equipment).map((item) => item.name)
+    expect(names).toContain('First Aid Kit')
+    expect(names).not.toContain('Camo Suit')
+    expect(names).not.toContain('Mecha Companion')
+    expect(names).toHaveLength(equipment.length - 13)
+    expect(SalvageUnionReference.Equipment.getByName('Camo Suit')).toBeDefined()
+  })
+
   test('every listed table leads with a description', () => {
     const bare = listingEntries('roll-tables', rollTables()).filter(
       (table) => !firstParagraphText('content' in table ? table.content : undefined)

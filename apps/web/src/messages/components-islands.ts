@@ -22,6 +22,8 @@ export const islandsCopy = messages({
   allTrees: 'All {count} trees',
   of: '{count} of {count2}',
   tl2: 'TL {level}',
+  classGear: 'Class gear',
+  classGearShort: 'CL',
   clearAll: 'Clear all',
   nothingHere: 'Nothing here',
   noItemsMatchTheCurrent: 'No items match the current filters.',

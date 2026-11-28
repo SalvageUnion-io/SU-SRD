@@ -1,6 +1,6 @@
 import type { RefEquipment } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
+import { isGrantedOnly, isLegalCreationEquipment } from 'salvageunion-reference/rules'
 import { EmptyState, MasonryColumns, ReferenceEntityCard } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { fullWidthStyle } from './wizardStyles.model'
@@ -39,8 +39,10 @@ export function EquipmentStep({
   // PilotWizard passes the same shape), so the ONE cast lives here at the
   // seam: the production accessor really returns `RefEquipment[]`, and a
   // properly-typed item then flows into the card with no further forcing.
-  const equipment = surEquipment.findAll((e: unknown) =>
-    isLegalCreationEquipment(e as RefEquipment)
+  // Granted-only gear is its ability's, never a starting pick (R63).
+  const equipment = surEquipment.findAll(
+    (e: unknown) =>
+      isLegalCreationEquipment(e as RefEquipment) && !isGrantedOnly('equipment', e as RefEquipment)
   ) as RefEquipment[]
 
   // Copies picked per slug (duplicates allowed).

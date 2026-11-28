@@ -11,7 +11,7 @@ import {
   getChoices,
 } from '../actionResolution'
 import { resolveDataValueForTechLevel } from '../contentBlockHelpers'
-import { getReferenceEntityName, getTechLevel } from '../entityFields'
+import { getMinimumTechLevel, getReferenceEntityName, getTechLevel } from '../entityFields'
 import type { EntitySchemaName } from '../generated/schemaRegistry.generated'
 import { actionCostCurrency } from '../helpers'
 import { SalvageUnionReference } from '../index'
@@ -229,14 +229,25 @@ export function toEntityModel(
       ? formatCost(costSource.activationCost, actionCostCurrency(costSource))
       : undefined
 
-  const baseTechLevel = typeof techLevel === 'number' ? techLevel : undefined
+  // A class-granted item's level is the crawler's ('C'): its floor (Mecha
+  // Companion's Tech 3 minimum, else 1) is what its picks and damage count
+  // from until a host names the level.
+  const crawlerLevel = techLevel === 'C'
+  const baseTechLevel =
+    typeof techLevel === 'number'
+      ? techLevel
+      : crawlerLevel
+        ? (getMinimumTechLevel(entity) ?? 1)
+        : undefined
   const choices = view?.choices ?? getChoices(entity) ?? []
   const scalingByLabel = perTechLevelByLabel(entity)
   // A player's copy scales to its host's Tech Level, never below its own (as
   // the Card's `resolveTechScaling`), and only where something scales with it.
   const techScalable =
     scalingByLabel.size > 0 || choices.some((c) => typeof c.cardinality?.max === 'object')
-  const hostTechLevel = techScalable ? instance?.techLevel : undefined
+  // A crawler-level item reads its host's level scaling or not: that number
+  // IS its Tech Level.
+  const hostTechLevel = techScalable || crawlerLevel ? instance?.techLevel : undefined
   const effTechLevel =
     hostTechLevel === undefined
       ? baseTechLevel
@@ -261,7 +272,9 @@ export function toEntityModel(
   const shownTechLevel =
     hostTechLevel !== undefined && effTechLevel !== undefined ? effTechLevel : techLevel
   const facts: Fact[] = [
-    ...(!isAction && shownTechLevel != null ? [techLevelFact(shownTechLevel)] : []),
+    ...(!isAction && shownTechLevel != null
+      ? [techLevelFact(shownTechLevel, getMinimumTechLevel(entity))]
+      : []),
     ...stats,
     ...facets.facts,
   ]

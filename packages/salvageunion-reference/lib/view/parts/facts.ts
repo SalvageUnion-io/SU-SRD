@@ -11,6 +11,7 @@ import {
   getEnergyPoints,
   getHeatCapacity,
   getHitPoints,
+  getMinimumTechLevel,
   getModuleSlots,
   getSalvageValue,
   getSlotsRequired,
@@ -18,6 +19,7 @@ import {
   getSystemSlots,
   getUpgradeCost,
   getUpkeepCost,
+  techLevelLabel,
 } from '../../entityFields'
 import type { RefEnumSchemaName, RefMetaEntity } from '../../schemas/index'
 import type { Fact, StatGroup } from '../types'
@@ -231,7 +233,7 @@ const CHASSIS_CHIPS: ReadonlySet<StatKey> = new Set([
 
 type StatOptions = {
   schemaName?: RefEnumSchemaName | 'actions'
-  techLevel?: number | 'B' | 'N'
+  techLevel?: number | 'B' | 'N' | 'C'
   /** Every stat, a chassis's included: the Peek's. */
   every?: boolean
 }
@@ -272,12 +274,13 @@ export function entityStats(entity: RefMetaEntity, options: StatOptions): Fact[]
 }
 
 /** The Tech Level as a fact, keyed as the head's TL cell: first of every stat line. */
-export function techLevelFact(techLevel: number | 'B' | 'N'): Fact {
+export function techLevelFact(techLevel: number | 'B' | 'N' | 'C', minimum?: number): Fact {
   return {
     key: 'tech-level',
     label: 'Tech Level',
     short: 'TL',
-    value: String(techLevel),
+    // Class-granted gear reads "CL", Crawler Level (Mecha Companion "CL 3+"), never "C".
+    value: techLevelLabel(techLevel, minimum),
     group: 'provenance',
   }
 }
@@ -291,7 +294,7 @@ export function techLevelFact(techLevel: number | 'B' | 'N'): Fact {
 export function bookStats(entity: RefMetaEntity, options: StatOptions): Fact[] {
   const { techLevel } = options
   return [
-    ...(techLevel != null ? [techLevelFact(techLevel)] : []),
+    ...(techLevel != null ? [techLevelFact(techLevel, getMinimumTechLevel(entity))] : []),
     ...orderedStats(entity, options).map(({ config, value, names }) => ({
       key: `book-${STAT_LABELS[config.key].label}`,
       label: names.label,

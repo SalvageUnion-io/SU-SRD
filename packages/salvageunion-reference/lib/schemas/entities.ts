@@ -326,6 +326,15 @@ export const DroneSchema = BaseEntitySchema.extend({
 export const EquipmentSchema = BaseEntitySchema.extend({ ...StatsSchema.shape })
   .extend({
     techLevel: TechLevelSchema,
+    minimumTechLevel: z
+      .number()
+      .int()
+      .min(1)
+      .max(6)
+      .describe(
+        'The floor under a \'C\' (Crawler) Tech Level: "equal to your Union Crawler (Tech 3 minimum)" (Mecha Companion, Core Book p.68)'
+      )
+      .optional(),
     actions: z.array(z.string()).describe('Action names this equipment provides'),
     traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
     bonusPerTechLevel: StatsSchema.describe('Stat bonuses gained per tech level').optional(),

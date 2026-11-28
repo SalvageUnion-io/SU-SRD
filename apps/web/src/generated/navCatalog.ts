@@ -28,10 +28,10 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
       {
         "label": "Equipment",
         "href": "/equipment/",
-        "count": 82
+        "count": 69
       }
     ],
-    "total": 196
+    "total": 183
   },
   {
     "id": "mech-workshop",

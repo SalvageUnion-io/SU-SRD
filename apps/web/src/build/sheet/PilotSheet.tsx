@@ -55,7 +55,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
-import { pinFor } from 'salvageunion-reference/rules'
+import { isGrantedOnly, pinFor } from 'salvageunion-reference/rules'
 import { Entity } from '../../components/entity/Entity'
 import {
   Button,
@@ -532,6 +532,8 @@ export function PilotSheet({
       >
         <EntitySearcher
           schema="equipment"
+          // Granted-only gear comes from its ability, never added on its own (R63).
+          filter={(item) => !isGrantedOnly('equipment', item)}
           selected={pilot.equipment}
           onToggle={actions.toggleEquipment}
           idOf={(item) => nameToSlug(item.name)}

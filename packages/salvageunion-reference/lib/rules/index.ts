@@ -80,6 +80,7 @@ export {
   resolvePool,
   resolvePoolStart,
 } from './derivedStats'
+export { isGrantedOnly } from './grantedOnly'
 export {
   canActivateAction,
   canPush,

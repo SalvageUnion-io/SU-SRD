@@ -12,7 +12,9 @@ const MENU = cn('su-rail__menu', capsLabel({ weight: 'inherit', tracking: 'inher
 
 /** A tech level as the rail's toggle prints it: the numeral, or the word. */
 export function tlButtonLabel(level: TechLevel): string {
-  return level === 'B' ? 'Bio' : level === 'N' ? 'Nanite' : String(level)
+  if (level === 'B') return 'Bio'
+  if (level === 'N') return 'Nanite'
+  return level === 'C' ? islandsCopy('classGearShort') : String(level)
 }
 
 /** The source as the menu prints it: the core rulebook's series prefix is noise there. */

@@ -194,6 +194,18 @@ describe('a pilot as a Foundry Pilot', () => {
     })
   })
 
+  test("class-granted gear writes its crawler's Tech Level, else its floor", () => {
+    const withGear = pilotFixture({ ...pilot, equipment: ['camo-suit', 'mecha-companion'] })
+    const tlOf = (actorOf: FoundryActor, name: string) =>
+      actorOf.items.find((item) => item.name === name)?.system.techLevel
+    const bare = pilotToFoundry(withGear, null)
+    expect(tlOf(bare, 'Camo Suit')).toBe('T1')
+    expect(tlOf(bare, 'Mecha Companion')).toBe('T3')
+    const crewed = pilotToFoundry(withGear, { techLevel: 4 })
+    expect(tlOf(crewed, 'Camo Suit')).toBe('T4')
+    expect(tlOf(crewed, 'Mecha Companion')).toBe('T4')
+  })
+
   test('free-form inventory keeps its slots', () => {
     const scrap = actor.items.find((item) => item.name === 'Scrap ×2')
     expect(scrap?.system.inventorySlots).toBe(3)

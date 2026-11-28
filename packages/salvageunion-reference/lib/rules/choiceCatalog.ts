@@ -20,6 +20,7 @@
  */
 import { SalvageUnionReference } from '../index'
 import type { RefMetaAction, RefMetaEntity, RefObjectChoice } from '../schemas/index'
+import { isGrantedOnly } from './grantedOnly'
 
 type DamageType = 'HP' | 'SP'
 
@@ -99,7 +100,10 @@ export function resolveCatalogChoiceEntities(
   const { schema, shortlist, filter } = catalogSpec(choice)
   if (!schema || schema.length === 0) return []
 
-  const all = SalvageUnionReference.getAllBySchemaNames(schema).map((row) => row.entity)
+  // Granted-only gear is never a pick of its own (R63): only its grantor gives it.
+  const all = SalvageUnionReference.getAllBySchemaNames(schema)
+    .filter((row) => !isGrantedOnly(row.schemaName, row.entity))
+    .map((row) => row.entity)
 
   let entities: RefMetaEntity[]
   if (shortlist && shortlist.length > 0) {
