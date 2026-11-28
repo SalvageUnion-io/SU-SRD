@@ -1,7 +1,8 @@
 /**
  * The pinned vitals (play.md §11): what a spend reads above every pane on a
- * phone, with its − / + while the unit is live, so damage lands without a
- * switch to the Units tab; a unit that may not be written is a read-out.
+ * phone, five cells on one card. A live unit's cell opens that unit's rows
+ * with their − | +, so damage lands without a switch of tab; a unit that may
+ * not be written is a read-out.
  *
  * Uses toBeTruthy() not toBeInTheDocument() (jest-dom's matchers are not on
  * bun:test's expect).
@@ -32,21 +33,95 @@ const PINNED: PinnedUnit[] = [
   },
 ]
 
+const cell = (label: string) => screen.getByRole('button', { name: new RegExp(` ${label} \\d`) })
+
 describe('the pinned vitals', () => {
-  test('a live unit steps in place: − on HP writes HP − 1, + on Heat writes Heat + 1', () => {
-    const onWrite = mock((_kind: string, _field: string, _next: number) => {})
+  test('five cells on one card, closed until one is pressed', () => {
+    render(
+      <PlayPinnedVitals units={PINNED} live={{ pilot: true, mech: true }} onWrite={() => {}} />
+    )
+    expect(screen.getByRole('button', { name: 'Bonesaw HP 7 of 10. Change' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Buzzard Heat 3 of 9. Change' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Decrease/ })).toBeNull()
+  })
+
+  test("a live unit's cell opens its rows, and a step writes the unit's field", () => {
+    const onWrite = mock((_kind: string, _field: string, _next: number, _label: string) => {})
     render(<PlayPinnedVitals units={PINNED} live={{ pilot: true, mech: true }} onWrite={onWrite} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Decrease HP' }))
-    expect(onWrite).toHaveBeenLastCalledWith('pilot', 'currentHP', 6)
-    fireEvent.click(screen.getByRole('button', { name: 'Increase Heat' }))
-    expect(onWrite).toHaveBeenLastCalledWith('mech', 'currentHeat', 4)
+    fireEvent.click(cell('HP'))
+    expect(cell('HP').getAttribute('aria-expanded')).toBe('true')
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease Bonesaw Hit Points' }))
+    expect(onWrite).toHaveBeenLastCalledWith('pilot', 'currentHP', 6, 'HP')
+    fireEvent.click(cell('Heat'))
+    fireEvent.click(screen.getByRole('button', { name: 'Increase Buzzard Heat' }))
+    expect(onWrite).toHaveBeenLastCalledWith('mech', 'currentHeat', 4, 'Heat')
+  })
+
+  test('a second press closes the rows', () => {
+    render(
+      <PlayPinnedVitals units={PINNED} live={{ pilot: true, mech: true }} onWrite={() => {}} />
+    )
+    fireEvent.click(cell('SP'))
+    fireEvent.click(cell('SP'))
+    expect(screen.queryByRole('button', { name: /^Decrease/ })).toBeNull()
   })
 
   test('a unit that may not be written is a read-out', () => {
     render(
       <PlayPinnedVitals units={PINNED} live={{ pilot: false, mech: true }} onWrite={() => {}} />
     )
-    expect(screen.queryByRole('button', { name: 'Decrease HP' })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Decrease SP' })).toBeTruthy()
+    expect(cell('HP').hasAttribute('disabled')).toBe(true)
+    expect(cell('SP').hasAttribute('disabled')).toBe(false)
+  })
+
+  test("an open row's number asks for an amount and takes it in one write (LG-13)", () => {
+    const onWrite = mock((_kind: string, _field: string, _next: number, _label: string) => {})
+    render(<PlayPinnedVitals units={PINNED} live={{ pilot: true, mech: true }} onWrite={onWrite} />)
+    fireEvent.click(cell('HP'))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Change Bonesaw Hit Points by an amount, now 7 of 10' })
+    )
+    fireEvent.change(screen.getByRole('textbox', { name: 'HP amount' }), { target: { value: '3' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Take 3 from HP' }))
+    expect(onWrite).toHaveBeenCalledTimes(1)
+    expect(onWrite).toHaveBeenLastCalledWith('pilot', 'currentHP', 4, 'HP', undefined)
+    // Saved, the form and the rows close (r7 B7).
+    expect(screen.queryByRole('textbox', { name: 'HP amount' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Decrease Bonesaw Hit Points' })).toBeNull()
+  })
+
+  test('a saved step closes the rows at the next press outside them (r7 B7)', () => {
+    render(
+      <>
+        <PlayPinnedVitals units={PINNED} live={{ pilot: true, mech: true }} onWrite={() => {}} />
+        <button type="button">Elsewhere</button>
+      </>
+    )
+    fireEvent.click(cell('SP'))
+    // Nothing changed yet: a press elsewhere leaves it open.
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Elsewhere' }))
+    const less = screen.getByRole('button', { name: 'Decrease Buzzard Structure Points' })
+    // A run of steps stays open.
+    fireEvent.pointerDown(less)
+    fireEvent.click(less)
+    fireEvent.click(less)
+    expect(screen.getByRole('button', { name: 'Decrease Buzzard Structure Points' })).toBeTruthy()
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Elsewhere' }))
+    expect(screen.queryByRole('button', { name: /^Decrease/ })).toBeNull()
+  })
+})
+
+describe('a Shut down mech on the strip (r7 B2)', () => {
+  test('says Shut down and Vulnerable under the five', () => {
+    const [pilot, mech] = PINNED as [PinnedUnit, PinnedUnit]
+    render(
+      <PlayPinnedVitals
+        units={[pilot, { ...mech, states: ['shutdown', 'vulnerable'] }]}
+        live={{ pilot: true, mech: true }}
+        onWrite={() => undefined}
+      />
+    )
+    expect(screen.getByText('Shut down')).toBeTruthy()
+    expect(screen.getByText('Vulnerable')).toBeTruthy()
   })
 })

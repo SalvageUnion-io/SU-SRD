@@ -114,10 +114,11 @@ export function installedSlots(loadout: {
  * When `chassis-not-found` is present, `systemSlotsMax` and `moduleSlotsMax`
  * are both 0 and all slot violations are suppressed (can't enforce without a cap).
  *
- * A chassis with `heads` adds each head's slots to its own. A loadout that is
- * exactly a pattern in `AS_PRINTED_OVERFLOW` raises no over-slot violation: it
- * returns `asPrinted` (the pattern and its cite) instead, so a mech built from
- * the book reads as the book rather than as an error.
+ * A chassis with `heads` adds each head's slots to its own. A line (Systems
+ * or Modules) that is exactly a pattern's in `AS_PRINTED_OVERFLOW` raises no
+ * over-slot violation: `asPrinted` names the pattern, its cite and which lines
+ * are its own, so a mech built from the book reads as the book rather than as
+ * an error, and editing the other line leaves that reading alone.
  */
 export function computeMechCapacity(mech: MechInput): MechCapacityResult {
   const violations: CapacityViolation[] = []
@@ -163,27 +164,20 @@ export function computeMechCapacity(mech: MechInput): MechCapacityResult {
     0
   )
 
-  const asPrinted = asPrintedOverflowOf(chassis, mech)
-  if (asPrinted) {
-    return {
-      systemSlotsUsed,
-      systemSlotsMax,
-      moduleSlotsUsed,
-      moduleSlotsMax,
-      violations,
-      asPrinted: { pattern: asPrinted.pattern, cite: asPrinted.cite },
-    }
-  }
+  const asPrinted = asPrintedOverflowOf(chassis, mech, {
+    systems: systemSlotsUsed > systemSlotsMax,
+    modules: moduleSlotsUsed > moduleSlotsMax,
+  })
 
-  if (systemSlotsUsed > systemSlotsMax) {
+  if (systemSlotsUsed > systemSlotsMax && !asPrinted?.systems) {
     violations.push({
       kind: 'system-over-slots',
-      message: `System slots exceeded: ${systemSlotsUsed} used, ${systemSlotsMax} available.`,
+      message: `System Slots exceeded: ${systemSlotsUsed} used, ${systemSlotsMax} available.`,
       details: { used: systemSlotsUsed, max: systemSlotsMax },
     })
   }
 
-  if (moduleSlotsUsed > moduleSlotsMax) {
+  if (moduleSlotsUsed > moduleSlotsMax && !asPrinted?.modules) {
     violations.push({
       kind: 'module-over-slots',
       message: `Module slots exceeded: ${moduleSlotsUsed} used, ${moduleSlotsMax} available.`,
@@ -191,7 +185,14 @@ export function computeMechCapacity(mech: MechInput): MechCapacityResult {
     })
   }
 
-  return { systemSlotsUsed, systemSlotsMax, moduleSlotsUsed, moduleSlotsMax, violations }
+  return {
+    systemSlotsUsed,
+    systemSlotsMax,
+    moduleSlotsUsed,
+    moduleSlotsMax,
+    violations,
+    ...(asPrinted ? { asPrinted } : {}),
+  }
 }
 
 /** A pattern list's slugs, one per copy (`count` expanded), sorted. */
@@ -203,18 +204,34 @@ function sameRefs(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((ref, i) => ref === b[i])
 }
 
-/** The `AS_PRINTED_OVERFLOW` entry whose printed loadout this mech's is, if any. */
-function asPrintedOverflowOf(chassis: RefChassis, mech: MechInput): AsPrintedOverflow | undefined {
+/**
+ * The `AS_PRINTED_OVERFLOW` pattern this mech's loadout is, or still is on a
+ * line that is over its slots: the whole printed loadout, else the first
+ * pattern whose printed Systems (or Modules) are the mech's over-slot line.
+ */
+function asPrintedOverflowOf(
+  chassis: RefChassis,
+  mech: MechInput,
+  over: { systems: boolean; modules: boolean }
+): NonNullable<MechCapacityResult['asPrinted']> | undefined {
   const entries = AS_PRINTED_OVERFLOW.filter((entry) => entry.chassis === chassis.name)
   if (entries.length === 0) return undefined
   const systems = mech.systems.map((s) => s.ref).sort()
   const modules = mech.modules.map((m) => m.ref).sort()
-  return entries.find((entry) => {
+  const lines = entries.flatMap((entry) => {
     const pattern = chassis.patterns.find((p) => p.name === entry.pattern)
-    return (
-      pattern !== undefined &&
-      sameRefs(patternRefs(pattern.systems), systems) &&
-      sameRefs(patternRefs(pattern.modules), modules)
-    )
+    if (pattern === undefined) return []
+    return [
+      {
+        pattern: entry.pattern,
+        cite: entry.cite,
+        systems: sameRefs(patternRefs(pattern.systems), systems),
+        modules: sameRefs(patternRefs(pattern.modules), modules),
+      },
+    ]
   })
+  return (
+    lines.find((line) => line.systems && line.modules) ??
+    lines.find((line) => (line.systems && over.systems) || (line.modules && over.modules))
+  )
 }

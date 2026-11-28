@@ -19,8 +19,10 @@ export function useInsidePeek(): boolean {
 export const PEEK_ATTRIBUTE = 'data-peek'
 
 /**
- * Set on a trigger that is a button with nothing else to do: a press opens
- * its Peek at once, as focus does.
+ * Set on a button with nothing else to do: its press opens its Peek at once,
+ * as focus does. And on a reference TERM that links to its entry (a Mention,
+ * a Tag: E27): its press follows the link like any other, its Peek is hover's
+ * and focus's, and the plate offers Open page (`peekController`, `PeekPopup`).
  */
 export const PEEK_PRESS_ATTRIBUTE = 'data-peek-press'
 
@@ -42,6 +44,12 @@ export type PeekSize = 'compact' | 'mini'
  * to `mini`; outside them it is `compact`.
  */
 export const PeekSizeContext = createContext<PeekSize>('compact')
+
+/**
+ * Set where a trigger must not Peek: a picker's list, whose opened Page beside
+ * it is the read, so a card over the list would only hide the next entry.
+ */
+export const PeekOffContext = createContext(false)
 
 /** Set on a trigger whose Peek opens as a Mini (`PeekSizeContext`). */
 export const PEEK_SIZE_ATTRIBUTE = 'data-peek-size'
@@ -66,6 +74,14 @@ export type PeekAttrs = {
   [PEEK_ATTRIBUTE]?: string
   [PEEK_DOWN_ATTRIBUTE]?: 'damaged' | 'destroyed'
   [PEEK_SIZE_ATTRIBUTE]?: 'mini'
+}
+
+/**
+ * A linked term's attributes (E27): its Peek's, and that it is a term.
+ * A trigger with no Peek (inside one, a synthetic ref) is a plain link.
+ */
+export function termPeekAttrs(peek: PeekAttrs): PeekAttrs & { [PEEK_PRESS_ATTRIBUTE]?: '' } {
+  return peek[PEEK_ATTRIBUTE] ? { ...peek, [PEEK_PRESS_ATTRIBUTE]: '' } : peek
 }
 
 /**
@@ -98,7 +114,8 @@ export function tablePeekAddress(source: unknown): string | undefined {
  * The attributes that make an element a Peek trigger, or none: a synthetic ref
  * (built from embedded data) has no dataset row to show unless its caller
  * names one (`address`, an `embeddedPeekAddress`), a pattern is drawn by its
- * own page, and inside a Peek nothing peeks again. A `down` trigger (damaged
+ * own page, and inside a Peek (or a picker's list, `PeekOffContext`) nothing
+ * peeks. A `down` trigger (damaged
  * or destroyed) says so, and its Peek is down the same way; one inside a
  * Compact or a Mini says its Peek is a Mini (E23).
  */
@@ -109,7 +126,8 @@ export function usePeekAttrs(
 ): PeekAttrs {
   const inside = useInsidePeek()
   const size = useContext(PeekSizeContext)
-  if (inside) return {}
+  const off = useContext(PeekOffContext)
+  if (inside || off) return {}
   const at = address ?? (ref && !ref.synthetic && !ref.pattern ? peekAddress(ref) : undefined)
   if (!at) return {}
   const condition = conditionOf(down)

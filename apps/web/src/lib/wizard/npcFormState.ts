@@ -1,6 +1,6 @@
 /**
- * The NPC designer's form (`docs/architecture/npc-builder.md` §4.1):
- * five steps, a template that fills the stat block, and the projection to the
+ * The NPC designer's form (`docs/architecture/npc-builder.md` §4.1): its
+ * steps, a template that fills the stat block, and the projection to the
  * store's create input.
  *
  * Pure: the designer component owns the state, this owns what it means. The
@@ -8,22 +8,31 @@
  * wizards' do.
  */
 
-import type { Npc, NpcTemplateRef, NpcTrait } from 'game-domain/schemas/npc'
-import type { RefNPC } from 'salvageunion-reference'
+import type { Npc, NpcTemplateKind, NpcTemplateRef, NpcTrait } from 'game-domain/schemas/npc'
 import type { CreateInput } from '../../replica/types'
-import type { NpcStatFill } from '../npcs/npcModel'
+import type { DenizenTemplate, NpcStatFill } from '../npcs/npcModel'
 import { statFillFromReference } from '../npcs/npcModel'
 
-/** The designer's steps, in order. */
-export const NPC_STEPS = ['template', 'stats', 'actions', 'identity', 'review'] as const
-export type NpcStepId = (typeof NPC_STEPS)[number]
+/**
+ * A blank start's steps, in order: Template, then the stat block a step at a
+ * time. There is no Review step: the live preview is the card (r6 B3).
+ */
+export const NPC_STEPS = ['template', 'stats', 'actions', 'identity'] as const
+
+/**
+ * A template's steps, and a saved NPC's redesign: Template, then one page with
+ * the name first and the template's stats and actions below (r6 B3).
+ */
+export const NPC_TEMPLATE_STEPS = ['template', 'design'] as const
+
+export type NpcStepId = (typeof NPC_STEPS)[number] | (typeof NPC_TEMPLATE_STEPS)[number]
 
 export const NPC_STEP_LABELS: Record<NpcStepId, string> = {
   template: 'Template',
   stats: 'Stats',
   actions: 'Actions & traits',
   identity: 'Identity',
-  review: 'Review',
+  design: 'Design',
 }
 
 export type NpcFormState = {
@@ -126,7 +135,7 @@ const BLANK_STATS: ReturnType<typeof statsOf> = {
 }
 
 /** A reference NPC's own description: its first paragraph. */
-function npcTemplateProse(ref: RefNPC | undefined): string {
+function npcTemplateProse(ref: Pick<DenizenTemplate, 'content'> | undefined): string {
   const first = ref?.content?.find((b) => b.type === 'paragraph')
   return typeof first?.value === 'string' ? first.value : ''
 }
@@ -141,8 +150,12 @@ function untouchedDescription(form: NpcFormState): boolean {
  * Identity the player wrote (D4), and pre-fills the description with the
  * template's own words until the player changes them (D5).
  */
-export function applyNpcTemplate(form: NpcFormState, ref: RefNPC): NpcFormState {
-  const fill = statFillFromReference(ref)
+export function applyNpcTemplate(
+  form: NpcFormState,
+  ref: DenizenTemplate,
+  schema: NpcTemplateKind = 'npcs'
+): NpcFormState {
+  const fill = statFillFromReference(ref, schema)
   const prose = npcTemplateProse(ref)
   return {
     ...form,
@@ -279,4 +292,55 @@ export function npcFormToCreateInput(form: NpcFormState): CreateInput<'npc'> {
     if (value !== undefined) Object.assign(input, { [key]: value })
   }
   return input
+}
+
+/**
+ * A saved NPC as the designer's form, to redesign it in place: its stat block
+ * and identity as they stand, every action and trait it carries offered and
+ * checked.
+ */
+export function npcFormFromNpc(npc: Npc): NpcFormState {
+  return {
+    templateRef: npc.templateRef ?? null,
+    templateChosen: true,
+    name: npc.name,
+    position: npc.position ?? '',
+    description: npc.description ?? '',
+    keepsake: npc.keepsake ?? '',
+    motto: npc.motto ?? '',
+    hitPoints: String(npc.hitPoints),
+    damageType: npc.damageType,
+    bioSalvageValue: npc.bioSalvageValue === undefined ? '' : String(npc.bioSalvageValue),
+    actions: [...npc.actions],
+    traits: [...npc.traits],
+    offeredActions: [...npc.actions],
+    offeredTraits: [...npc.traits],
+    filledFrom: null,
+    filledDescription: '',
+  }
+}
+
+/**
+ * The redesign as a patch on the saved NPC: the stat block and the identity
+ * the designer edits, a cleared line unset. Its facts, picture and crew
+ * choices are not the designer's and are left alone; HP it no longer has room
+ * for comes down to the new most.
+ */
+export function npcFormToPatch(form: NpcFormState, npc: Pick<Npc, 'currentHP'>): Partial<Npc> {
+  const view = npcFormView(form)
+  return {
+    name: form.name.trim(),
+    position: optional(form.position),
+    description: optional(form.description),
+    keepsake: optional(form.keepsake),
+    motto: optional(form.motto),
+    hitPoints: view.hitPoints,
+    damageType: form.damageType,
+    bioSalvageValue: view.bioSalvageValue,
+    actions: form.actions,
+    traits: form.traits,
+    ...(npc.currentHP !== undefined && npc.currentHP > view.hitPoints
+      ? { currentHP: view.hitPoints }
+      : {}),
+  }
 }

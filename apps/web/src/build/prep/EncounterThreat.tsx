@@ -2,7 +2,8 @@
  * An encounter's threat read and spoils on its page (ADR-059 §5), from
  * `threat.model.ts`: the read under the opposition, set against a crew the
  * Mediator steps to size, and the spoils beside the notes. Both read the
- * encounter and write nothing to it; the crew is remembered on this device.
+ * encounter and write nothing to it; the crew opens at the Game's own (its
+ * Pilots, its crawler's Tech Level, r7 C13) where the encounter is prepared for one, and what is stepped to is remembered on this device.
  */
 
 import type { Crew } from 'game-domain/rules/threat'
@@ -10,7 +11,8 @@ import { CREW_DEFAULT, CREW_SIZE_MAX, TECH_LEVEL_MAX } from 'game-domain/rules/t
 import type { Encounter } from 'game-domain/schemas/encounter'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { Cluster, EmptyState, SlabSection, Stack, Stat, Text, tokens } from '../../components/index'
+import { Cluster } from '../../components/app'
+import { EmptyState, SlabSection, Stack, Stat, Text, tokens } from '../../components/index'
 import { localStore } from '../../lib/safeLocalStorage'
 import { buildPrepCopy } from '../../messages/build-prep'
 import type { Spoil } from './threat.model'
@@ -56,15 +58,31 @@ function writeCrew(crew: Crew): void {
 export function ThreatReadLine({
   encounter,
   editing,
+  gameCrew,
+  gameTech,
 }: {
   encounter: Encounter
   /** Edit: the crew steps. Read prints it, as every sheet's Read does (R11). */
   editing: boolean
+  /**
+   * The Pilots in the Game the encounter is prepared for, once known: the
+   * read opens at the real crew (r4 D5), never at a guess, until it is stepped.
+   */
+  gameCrew?: number | undefined
+  /** The Tech Level of that Game's crawler, once known (r7 C13): the crew's own, until stepped. */
+  gameTech?: number | undefined
 }) {
-  const [crew, setCrew] = useState(readCrew)
+  // What the Mediator stepped to on this page; until then the Game's crew,
+  // else the one remembered on this device.
+  const [stepped, setStepped] = useState<Crew | null>(null)
+  const [remembered] = useState(readCrew)
+  const crew = stepped ?? {
+    size: between(gameCrew, CREW_SIZE_MAX) ? gameCrew : remembered.size,
+    techLevel: between(gameTech, TECH_LEVEL_MAX) ? gameTech : remembered.techLevel,
+  }
   const step = (next: Partial<Crew>) => {
     const value = { ...crew, ...next }
-    setCrew(value)
+    setStepped(value)
     writeCrew(value)
   }
   const read = encounterThreat(encounter, crew)
@@ -122,7 +140,7 @@ export function ThreatReadLine({
   )
 }
 
-/** The spoils (Core Book p.246, 269): what each opponent could leave behind. */
+/** The spoils (Core Book p.246, 269, 275): what each opponent could leave behind. */
 export function EncounterSpoils({
   encounter,
   editing,
@@ -168,6 +186,14 @@ function SpoilLines({ spoil }: { spoil: Spoil }) {
             ? buildPrepCopy('scrap', { value: spoil.salvageValue })
             : buildPrepCopy('scrapTech', { value: spoil.salvageValue, tech: spoil.techLevel })}
         </Text>
+      </Stack>
+    )
+  }
+  if (spoil.kind === 'bio') {
+    return (
+      <Stack gap={4}>
+        <Text as="h3">{spoil.opponent.name}</Text>
+        <Text variant="body">{buildPrepCopy('bioSalvage', { value: spoil.bioSalvage })}</Text>
       </Stack>
     )
   }

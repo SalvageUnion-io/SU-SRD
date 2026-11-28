@@ -112,7 +112,12 @@ export function NavDrawer({
   extra,
   LinkComponent = 'a',
 }: NavDrawerProps) {
-  const [open, setOpen] = useState(false)
+  // `?nav=open` starts the drawer open, for a screenshot.
+  const [open, setOpen] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('nav') === 'open'
+  )
   const close = () => setOpen(false)
 
   return (

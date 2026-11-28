@@ -38,22 +38,22 @@ describe('collectTraitTypes', () => {
 })
 
 describe('findTraitCasingIssues', () => {
-  it('flags a capitalized trait type', () => {
+  it('flags a trait type that opens lower-case', () => {
     const issues = findTraitCasingIssues('equipment.json', [
-      { name: 'Launcher', traits: [{ type: 'Heavy' }] },
+      { name: 'Launcher', traits: [{ type: 'heavy' }] },
     ])
     expect(issues).toHaveLength(1)
     expect(issues[0]).toMatchObject({ entity: 'Launcher', kind: 'casing' })
-    expect(issues[0]?.detail).toContain('"heavy"')
+    expect(issues[0]?.detail).toContain('"Heavy"')
   })
 
-  it('accepts all-lowercase trait types', () => {
-    const entities = [{ name: 'OK', traits: [{ type: 'heavy' }, { type: 'anti-organic' }] }]
+  it('accepts trait types that open on a capital', () => {
+    const entities = [{ name: 'OK', traits: [{ type: 'Heavy' }, { type: 'Anti-organic' }] }]
     expect(findTraitCasingIssues('equipment.json', entities)).toEqual([])
   })
 
-  it('flags capitalized types nested under actions', () => {
-    const entities = [{ name: 'A', actions: [{ name: 'Act', traits: [{ type: 'Melee' }] }] }]
+  it('flags lower-case types nested under actions', () => {
+    const entities = [{ name: 'A', actions: [{ name: 'Act', traits: [{ type: 'melee' }] }] }]
     expect(findTraitCasingIssues('actions.json', entities)).toHaveLength(1)
   })
 })

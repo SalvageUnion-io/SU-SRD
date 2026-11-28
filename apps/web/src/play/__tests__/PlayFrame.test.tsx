@@ -8,11 +8,12 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { EntitySurfaceProvider } from '../../components/entity/EntitySurface'
 import { useEntitySurface } from '../../components/entity/entitySurfaceContext'
 import { PlayFrame } from '../PlayFrame'
+import { NOTICES_RESIZED } from '../tableNotices.model'
 
 /** A ref no app routes by itself: only a surface's own `hrefFor` links it. */
 const REF = { schemaName: 'systems', id: 'x', slug: 'x', name: 'X', synthetic: true } as const
@@ -95,6 +96,32 @@ describe('PlayFrame — one layout, its panes regions from `lg` and tabs below i
   })
 })
 
+describe('PlayFrame — each tab keeps its scroll (r6 A10)', () => {
+  test('narrow: back on a tab, its pane stands where it was scrolled', () => {
+    const at = (tab: 'centre' | 'start') => (
+      <PlayFrame
+        wide={false}
+        bar={null}
+        panes={PANES}
+        tab={tab}
+        onTab={() => undefined}
+        foot={null}
+        labels={['Units', 'Actions', 'Side']}
+      />
+    )
+    const { rerender } = render(at('centre'))
+    const centre = document.querySelector<HTMLElement>('[id$="-pane-centre"]')
+    if (centre === null) throw new Error('no centre pane')
+    centre.scrollTop = 120
+    fireEvent.scroll(centre)
+    rerender(at('start'))
+    // Hidden, a pane forgets its scroll, as a browser's does.
+    centre.scrollTop = 0
+    rerender(at('centre'))
+    expect(centre.scrollTop).toBe(120)
+  })
+})
+
 describe('PlayFrame — a sheet on the screen (play.md §18)', () => {
   const sheet = <span data-testid="sheet">sheet</span>
   test('wide: it stands in the centre column, the centre pane kept mounted and hidden', () => {
@@ -112,5 +139,64 @@ describe('PlayFrame — a sheet on the screen (play.md §18)', () => {
     expect(getByTestId('sheet')).toBeTruthy()
     expect(getByTestId('centre').closest('section')?.hidden).toBe(true)
     expect(getByRole('tablist')).toBeTruthy()
+  })
+})
+
+// LG-04: the pinned table notices sit above Play; when the last one is
+// answered or dismissed the frame takes the room back (the page never
+// scrolls, so nothing else would tell it its top moved).
+describe('PlayFrame — fills the window below its top', () => {
+  test('it takes back the room a dismissed notice leaves', () => {
+    const { container } = render(frame())
+    const host = container.querySelector('.su-play-root') as HTMLElement
+    let top = 77
+    host.getBoundingClientRect = () => ({ top }) as DOMRect
+    act(() => {
+      window.dispatchEvent(new Event('resize'))
+    })
+    expect(host.style.height).toBe(`${window.innerHeight - 77}px`)
+    top = 0
+    act(() => {
+      window.dispatchEvent(new Event(NOTICES_RESIZED))
+    })
+    expect(host.style.height).toBe(`${window.innerHeight}px`)
+  })
+})
+
+// r4 A3 (LG4-11): the first action was the 26th Tab stop.
+describe('PlayFrame — a skip link is the screen’s first Tab stop', () => {
+  const skipping = (onTab: (tab: string) => void) => (
+    <PlayFrame
+      wide={false}
+      bar={<button type="button">Bar</button>}
+      panes={[
+        { value: 'start', label: 'Start', column: 'start', node: null },
+        {
+          value: 'centre',
+          label: 'Centre',
+          column: 'centre',
+          node: (
+            <button type="button" data-first>
+              Use
+            </button>
+          ),
+        },
+      ]}
+      tab="centre"
+      onTab={onTab}
+      foot={null}
+      labels={['Units', 'Actions', 'Side']}
+      skip={{ pane: 'centre', label: 'Skip to actions', first: '[data-first]' }}
+    />
+  )
+
+  test('it comes before the bar, opens its pane and lands on the pane’s first control', () => {
+    const opened: string[] = []
+    const { getByRole, container } = render(skipping((tab) => opened.push(tab)))
+    const link = getByRole('link', { name: 'Skip to actions' })
+    expect(container.querySelector('a, button')).toBe(link)
+    act(() => link.click())
+    expect(opened).toEqual(['centre'])
+    expect(document.activeElement).toBe(getByRole('button', { name: 'Use' }))
   })
 })

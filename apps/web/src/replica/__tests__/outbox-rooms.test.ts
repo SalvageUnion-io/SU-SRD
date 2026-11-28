@@ -25,7 +25,10 @@ class FakeSocket {
   onopen: (() => void) | null = null
   onmessage: ((event: { data: string }) => void) | null = null
   onclose: (() => void) | null = null
-  sent: { type: string; ops: { id: string; unitId: string; patch: object }[] }[] = []
+  sent: {
+    type: string
+    ops: { id: string; unitId: string; baseSeq: number | null; patch: object }[]
+  }[] = []
   constructor() {
     FakeSocket.last = this
   }
@@ -88,6 +91,50 @@ describe('fed by the rooms', () => {
     const edit = useUnits.getState().update('pilot', 'gp', { name: 'After' }, TXN)
     await answer({ type: 'declined', reason: 'Not yours' })
     await expect(edit).rejects.toBeInstanceOf(RoomDeclined)
+  })
+
+  // LG-03: three quick − presses each read the copy the one before left, so
+  // none is made against a head its own earlier press has since moved.
+  test('a second edit made while the first is in flight waits for it', async () => {
+    const units = useUnits.getState()
+    const first = units.update('pilot', 'gp', { currentHP: 8 }, TXN)
+    const second = units.update('pilot', 'gp', { currentHP: 8, currentAP: 3 }, TXN)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    // Only the first has gone: the second is not built until it lands.
+    expect(socket.sent).toHaveLength(1)
+    const unit = {
+      kind: 'pilot',
+      appId: 'gp',
+      gameId: 'g1',
+      owner: null,
+      publicRead: false,
+      body: { ...pilotFixture({ id: 'gp', name: 'Before', gameId: 'g1' }), currentHP: 8 },
+      headSeq: 1,
+      fieldSeqs: { currentHP: 1 },
+      updatedAt: 1,
+    }
+    const op = { ...socket.sent[0]?.ops[0], author: 'u1', state: 'applied', seq: 1, before: {} }
+    socket.onmessage?.({ data: JSON.stringify({ type: 'applied', op, unit }) })
+    await answer({ type: 'ack' })
+    await first
+    await answer({ type: 'ack' })
+    await second
+    expect(socket.sent).toHaveLength(2)
+    // Made against the head the first left, naming only what it still changes.
+    expect(socket.sent[1]?.ops[0]).toMatchObject({ unitId: 'gp', baseSeq: 1 })
+    expect(Object.keys(socket.sent[1]?.ops[0]?.patch ?? {})).not.toContain('currentHP')
+    expect(useUnits.getState().get('pilot', 'gp')).toMatchObject({ currentHP: 8, currentAP: 3 })
+  })
+
+  test('a refused edit does not hold up the one behind it', async () => {
+    const units = useUnits.getState()
+    const first = units.update('pilot', 'gp', { name: 'Refused' }, TXN)
+    const second = units.update('pilot', 'gp', { name: 'After' }, TXN)
+    await answer({ type: 'declined', reason: 'No' })
+    await expect(first).rejects.toBeInstanceOf(RoomDeclined)
+    await answer({ type: 'ack' })
+    await second
+    expect(useUnits.getState().get('pilot', 'gp')?.name).toBe('After')
   })
 
   test('a unit on the Shelf fails as offline while its room is not open', async () => {

@@ -67,7 +67,7 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
       name="Mara Vex"
       strip={[
         { key: 'hp', label: 'HP', value: 7, max: 10 },
-        { key: 'cargo', label: 'Hold', value: 0, max: 6 },
+        { key: 'cargo', label: 'Cargo', value: 0, max: 6 },
       ]}
       renderBody={() => (
         <>
@@ -181,18 +181,46 @@ describe('LiveSheet — the chapter band', () => {
     expect(openPage).toHaveBeenCalledTimes(1)
   })
 
-  test('a detail that only repeats the name is not stamped', () => {
-    renderShell({ name: 'Scrapper', kindDetail: { label: 'Class', name: 'Scrapper' } })
-    const title = screen.getByRole('heading', { level: 1, name: 'Scrapper (Pilot)' })
-    const band = must(title.closest<HTMLElement>('.su-chapter-band'))
-    expect(within(band).getAllByText('Scrapper')).toHaveLength(1)
+  // r5 A15 (SB5-19): moved into a Game, Play solo became Open table with no word why.
+  test('in a Game the band says solo play is now its table', () => {
+    renderShell({
+      band: {
+        game: { name: 'Tenacity', href: '/games/g1' },
+        doorNote: 'Solo play is now Tenacity’s table: Open table plays here.',
+      },
+    })
+    const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex (Pilot)' })
+    const band = within(must(title.closest<HTMLElement>('.su-chapter-band')))
+    expect(band.getByText('Solo play is now Tenacity’s table: Open table plays here.')).toBeTruthy()
   })
 
-  test('a pattern-named mech says so: “its name” and a PATTERN chip', () => {
+  test('a detail is stamped even when it repeats the name (ADR-066: explicit)', () => {
+    renderShell({ name: 'Scrapper', kindDetail: { label: 'Chassis', name: 'Scrapper' } })
+    const title = screen.getByRole('heading', { level: 1, name: 'Scrapper (Pilot)' })
+    const band = must(title.closest<HTMLElement>('.su-chapter-band'))
+    expect(within(band).getAllByText('Scrapper')).toHaveLength(2)
+  })
+
+  test('a mech built from a pattern names it, linked to its page', () => {
+    renderShell({
+      variant: 'mech',
+      name: 'Mazona',
+      quoted: true,
+      fromPattern: { name: 'Nimble Hauler', href: '/p/pattern/p1' },
+    })
+    const title = screen.getByRole('heading', { level: 1, name: /“Mazona”/ })
+    const band = must(title.closest<HTMLElement>('.su-chapter-band'))
+    expect(within(band).getAllByText('Pattern')).toHaveLength(1)
+    expect(within(band).getByText('Nimble Hauler').closest('a')?.getAttribute('href')).toBe(
+      '/p/pattern/p1'
+    )
+  })
+
+  test('a pattern-named mech with no pattern to name wears no bare PATTERN chip (r2 G2)', () => {
     renderShell({ variant: 'mech', name: 'Mazona', quoted: true })
     const title = screen.getByRole('heading', { level: 1, name: /“Mazona”/ })
     const band = must(title.closest<HTMLElement>('.su-chapter-band'))
-    expect(within(band).getByText('Pattern')).toBeTruthy()
+    expect(within(band).queryByText('Pattern')).toBeNull()
   })
 
   test('the band’s controls sit in its top-right corner, above the name', () => {
@@ -259,16 +287,27 @@ describe('LiveSheet — the condensed bar’s linked units', () => {
     expect(bar().queryByRole('link', { name: /Mara Vex/ })).toBeNull()
   })
 
-  test('the condensed name wraps rather than cutting to "…" (E18)', () => {
+  test('the condensed name wraps rather than cutting to "…" (C5)', () => {
     renderShell()
     act(() => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
     const stamp = bar().getByText('Mara Vex')
+    // Its stylesheet rule wraps it; nothing inline holds it to one line.
+    expect(stamp.closest('.su-sheet-bar__name')).toBeTruthy()
     expect(stamp.style.textOverflow).toBe('')
-    expect(stamp.style.whiteSpace).toBe('normal')
+    expect(stamp.style.whiteSpace).not.toBe('nowrap')
   })
 })
+
+/** The condensed bar's figure reading `text` ("7/10"). */
+function figure(text: string): HTMLElement {
+  const found = [...document.querySelectorAll<HTMLElement>('.su-sheet-bar__figure')].find(
+    (el) => el.textContent === text
+  )
+  if (!found) throw new Error(`no ${text} figure`)
+  return found
+}
 
 describe('LiveSheet — condense strip gating', () => {
   test('resting state: strip is aria-hidden with pointer-events disabled', () => {
@@ -291,10 +330,10 @@ describe('LiveSheet — condense strip gating', () => {
     expect(wrapper.getAttribute('aria-hidden')).toBe('false')
     expect(wrapper.style.pointerEvents).toBe('')
     expect(wrapper.style.opacity).toBe('1')
-    // Live stat readout present in the condensed bar. The kind pill is NOT —
-    // the gutter wordmark carries the sheet's kind now.
-    expect(screen.getByText('7/10')).toBeTruthy()
-    expect(screen.queryByText('Pilot')).toBeNull()
+    // Live stat readout present in the condensed bar, the kind a quiet word
+    // after the name.
+    expect(figure('7/10')).toBeTruthy()
+    expect(bar().getByText('Pilot').closest('.su-sheet-bar__name')).toBeTruthy()
   })
 
   test('hero back in view: strip hides again', () => {
@@ -312,7 +351,7 @@ describe('LiveSheet — condense strip gating', () => {
   test('the strip transitions opacity for the CSS fade', () => {
     renderShell()
     expect(stripWrapper().style.transitionProperty).toContain('opacity')
-    expect(stripWrapper().style.transitionDuration).toBe('150ms')
+    expect(stripWrapper().style.transitionDuration).toBe('var(--dur-base)')
   })
 })
 
@@ -322,8 +361,8 @@ describe('LiveSheet — strip values', () => {
     act(() => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
-    expect(screen.getByText('7/10')).toBeTruthy()
-    expect(screen.getByText('0/6')).toBeTruthy()
+    expect(figure('7/10')).toBeTruthy()
+    expect(figure('0/6')).toBeTruthy()
   })
 
   test('variant sets the sheet tone class on the root', () => {
@@ -345,7 +384,7 @@ describe('LiveSheet — strip values', () => {
     // (`.su-sheet-live-stat-fold`: hidden, inline-flex from sm). It rides the
     // outer stat cell (the value text's parent).
     const fold = 'su-sheet-live-stat-fold'
-    const cell = (text: string) => must(screen.getByText(text).closest('.su-stat-cell'))
+    const cell = (text: string) => must(figure(text).closest('.su-sheet-bar__vital'))
     expect(cell('5/8').classList.contains(fold)).toBe(false)
     expect(cell('3/4').classList.contains(fold)).toBe(true)
   })

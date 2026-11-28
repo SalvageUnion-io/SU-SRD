@@ -20,6 +20,8 @@ import { ReferenceEntityIslandClient } from '../../src/components/islands/Refere
 import { RollTableIsland } from '../../src/components/islands/RollTableIsland'
 import { SchemaViewerIslandClient } from '../../src/components/islands/SchemaViewerIsland'
 import { SearchIslandClient } from '../../src/components/islands/SearchIsland'
+import { SearchResultsIslandClient } from '../../src/components/islands/SearchResultsIsland'
+import { SessionBarIslandClient } from '../../src/components/islands/SessionBarIsland'
 import type { InteractionOptions } from '../../src/runtime/directives/interaction'
 import type { IslandPart } from '../lib/islandParts'
 import { nowProps } from '../lib/islandParts'
@@ -39,10 +41,12 @@ const idle = { timeout: 2000 }
 {name === 'PeekIsland' && <PeekIslandClient client:interaction={wake} {...p} />}
 {name === 'AccountIsland' && <AccountIslandClient client:signedIn {...p} />}
 {name === 'AccountAvatarIsland' && <AccountAvatarIslandClient client:signedIn {...p} />}
+{name === 'SessionBarIsland' && <SessionBarIslandClient client:signedIn {...p} />}
 {name === 'ReferenceEntityIsland' && <ReferenceEntityIslandClient client:visible {...p}><Fragment set:html={standIn} /></ReferenceEntityIslandClient>}
 {name === 'KofiIsland' && <KofiIslandClient client:visible {...p}><Fragment set:html={standIn} /></KofiIslandClient>}
 {name === 'DidYouMeanIsland' && <DidYouMeanIslandClient client:idle={idle} {...p} />}
-{name === 'HomebrewIsland' && client === 'visible' && <HomebrewIslandClient client:visible {...p}><Fragment set:html={standIn} /></HomebrewIslandClient>}
+{name === 'SearchResultsIsland' && <SearchResultsIslandClient client:load {...p} />}
+{name === 'HomebrewIsland' && client === 'interaction' && <HomebrewIslandClient client:interaction={wake} {...p}><Fragment set:html={standIn} /></HomebrewIslandClient>}
 {name === 'HomebrewIsland' && client === 'load' && <HomebrewIslandClient client:load {...p}><Fragment set:html={standIn} /></HomebrewIslandClient>}
 {name === 'RollTableIsland' && <RollTableIsland client:idle={idle} {...p} />}
 {name === 'ColumnsTableIsland' && <ColumnsTableIsland client:idle={idle} {...p} />}

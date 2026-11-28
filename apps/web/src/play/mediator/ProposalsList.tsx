@@ -11,7 +11,8 @@
 
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, FeedList, tokens } from '../../components/index'
+import { FeedList } from '../../components/app'
+import { Button, EmptyState, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { MUTED } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
@@ -28,7 +29,8 @@ export function ProposalsList({
   limit,
   now,
   onMore,
-  empty = 'No proposals yet. Pick a seat, then propose the change you think it needs.',
+  onWithdraw,
+  empty = mediatorCopy('noProposalsYet'),
 }: {
   /** Null while the first answer is on its way. */
   proposals: readonly SentProposal[] | null
@@ -36,6 +38,8 @@ export function ProposalsList({
   limit: number
   now: number
   onMore: () => void
+  /** Withdraw a pending one (r2 C7); absent where writes cannot go. */
+  onWithdraw?: ((opId: string) => void) | undefined
   empty?: string
 }) {
   if (proposals === null) return <p style={MUTED}>{mediatorCopy('proposalsAreOnTheirWay')}</p>
@@ -44,7 +48,7 @@ export function ProposalsList({
     <div style={COLUMN}>
       <FeedList label={mediatorCopy('proposals')}>
         {proposals.map((p) => (
-          <ProposalRow key={p._id} proposal={p} now={now} />
+          <ProposalRow key={p._id} proposal={p} now={now} onWithdraw={onWithdraw} />
         ))}
       </FeedList>
       {proposals.length >= limit && (

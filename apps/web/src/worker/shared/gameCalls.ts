@@ -19,12 +19,17 @@
  */
 
 import type { BotRelay } from 'game-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll, relayUrl } from 'game-domain/botWire'
+import {
+  BOT_RELAY_POST_ROLL_PATH,
+  isPostableRoll,
+  ROLL_LABEL_MAX,
+  relayUrl,
+} from 'game-domain/botWire'
 import type { EntityKind } from 'game-domain/entityKinds'
-import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { mayBindChannel } from 'game-domain/games/discord'
-import { z } from 'salvageunion-reference/zod'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
+import type { GamePlan } from 'game-domain/schemas/gamePlan'
 import type { GameActAnswer, GameActArgs, GameActName, GameActResult } from '../../rooms/game/acts'
 import type { GameRead, Profile } from '../../rooms/game/roster'
 import { templateList } from '../../rooms/game/template'
@@ -33,9 +38,12 @@ import { handOff } from '../../rooms/handoff'
 import { RoomRefusal } from '../../rooms/refusal'
 import type { GameRoomStub } from '../roomStubs'
 import { shownProfile, signInProfile } from './accounts'
-import { bindingBy } from './channelBindings'
+import { gameBindingView, rollChannel, soloBindingView } from './channelBindings'
 import type { SharedDb } from './db'
+import { CALL_ARGS } from './gameCallArgs'
 import { gameOfInvite, gamesOf, memberAccountNames, membershipOf } from './games'
+import { bindHere, launchAnswer } from './launchBinding'
+import { bringBack } from './rejoin'
 
 /** A player's account room, as these calls use it. */
 type AccountStub = UnitHome & {
@@ -105,50 +113,19 @@ async function started(who: Caller, gameId: string, deps: CallDeps, start: () =>
   return republished(deps.game(gameId), gameId)
 }
 
+/**
+ * A Game's creator is its Organiser, and its Mediator too where they said so
+ * as they made it ("Will you be the Mediator?"): the Organiser's own appointment.
+ */
+async function mediatedByCreator(room: GameRoomStub, who: Caller, mediator: boolean | undefined) {
+  if (mediator !== true) return
+  await act(room, who.discordId, 'setMediator', { userId: who.discordId, mediator: true })
+}
+
 /** Have the room write its shared rows now, so the next list reads the change. */
 async function republished<T>(room: GameRoomStub, value: T): Promise<T> {
   await room.republish()
   return value
-}
-
-type BindingView = {
-  channelId: string
-  channelName: string | null
-  boundAt: number
-  /** The roller's own channel, standing in for a Game that has none bound (`rollChannel`). */
-  own?: true
-}
-
-/** A Game's binding, or the player's solo play's, as these calls answer it. */
-async function bindingView(
-  db: SharedDb,
-  by: 'game' | 'solo',
-  value: string
-): Promise<BindingView | null> {
-  const row = await bindingBy(db, by, value)
-  return row === null
-    ? null
-    : { channelId: row.channel_id, channelName: row.channel_name, boundAt: row.bound_at }
-}
-
-const gameBinding = (db: SharedDb, gameId: string) => bindingView(db, 'game', gameId)
-const soloBinding = (db: SharedDb, discordId: string) => bindingView(db, 'solo', discordId)
-
-/**
- * Where this caller's rolls post: solo, their own channel; in a Game, the
- * Game's, or their own where the Game has none bound, so a channel someone
- * bound always gets their rolls until it is unbound.
- */
-async function rollChannel(
-  db: SharedDb,
-  discordId: string,
-  gameId: string | null
-): Promise<BindingView | null> {
-  if (gameId === null) return soloBinding(db, discordId)
-  const game = await gameBinding(db, gameId)
-  if (game !== null) return game
-  const own = await soloBinding(db, discordId)
-  return own === null ? null : { ...own, own: true }
 }
 
 /** Where a unit the player may see lives, and whether they may write it; null when nowhere. */
@@ -184,11 +161,8 @@ async function rollerName(
 ) {
   if (pilotId !== undefined && gameId !== null) {
     const unit = await act(deps.game(gameId), who.discordId, 'unit', { unitId: pilotId })
-    const body = unit?.kind === 'pilot' ? unit.body : null
-    for (const field of ['callsign', 'name']) {
-      const value = body?.[field]
-      if (typeof value === 'string' && value.trim().length > 0) return value.trim()
-    }
+    const named = unit?.kind === 'pilot' ? pilotLabelOf(unit.body) : null
+    if (named !== null) return named
   }
   return (await profileOf(deps, who)).displayName ?? 'Crewmate'
 }
@@ -200,6 +174,31 @@ const CALLS = {
       games.map(({ gameId }) => act(deps.game(gameId), who.discordId, 'read', undefined as never))
     )
     return reads.flatMap((read) => (read === null ? [] : [gameView(read)]))
+  },
+  /**
+   * The caller's Games with a session running: a Reference page's session bar
+   * holds no socket. Each says whose door it is (r3 H3): the caller mediates,
+   * or the one pilot assigned to them there, whose seat the door opens.
+   */
+  'games.liveSessions': async (who: Caller, _: object, deps: CallDeps) => {
+    const games = await gamesOf(deps.db, who.discordId)
+    const live = games.map(async ({ gameId }) => {
+      const room = deps.game(gameId)
+      const session = await act(room, who.discordId, 'session.state', undefined as never)
+      const read = session.live ? await act(room, who.discordId, 'read', undefined as never) : null
+      if (read === null) return null
+      const units = await act(room, who.discordId, 'units', undefined as never)
+      const mine = units.filter((unit) => unit.kind === 'pilot' && unit.ownerId === who.discordId)
+      const seat = mine.length === 1 ? mine[0] : undefined
+      return {
+        gameId,
+        name: read.name,
+        startedAt: session.startedAt,
+        ...(read.mediator ? { mediator: true as const } : {}),
+        ...(seat === undefined ? {} : { pilotId: seat.id }),
+      }
+    })
+    return (await Promise.all(live)).filter((game) => game !== null)
   },
   'games.get': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
     const read = await act(deps.game(a.gameId), who.discordId, 'read', undefined as never)
@@ -223,18 +222,27 @@ const CALLS = {
   },
   'games.create': async (
     who: Caller,
-    a: { name: string; templateOrigin?: string },
+    { mediator, ...a }: { name: string; templateOrigin?: string; mediator?: boolean | undefined },
     deps: CallDeps
   ) => {
     const gameId = deps.newId()
     const profile = await profileOf(deps, who)
     return started(who, gameId, deps, async () => {
       await act(deps.game(gameId), who.discordId, 'create', { ...a, profile })
+      await mediatedByCreator(deps.game(gameId), who, mediator)
     })
   },
-  'games.destroy': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
+  /** End the Game; `dropTemplateUnits` takes a template's untouched units with it. */
+  'games.destroy': async (
+    who: Caller,
+    a: { gameId: string; dropTemplateUnits?: boolean },
+    deps: CallDeps
+  ) => {
     const room = deps.game(a.gameId)
-    const answer = await room.disband(who.discordId)
+    const answer = await room.disband(
+      who.discordId,
+      a.dropTemplateUnits === true ? { dropTemplateUnits: true } : {}
+    )
     if (!answer.ok) throw new RoomRefusal(answer.refusal)
     return republished(room, null)
   },
@@ -246,6 +254,63 @@ const CALLS = {
     const room = deps.game(a.gameId)
     await act(room, who.discordId, 'setMediator', { userId: a.userId, mediator: a.mediator })
     return republished(room, null)
+  },
+  /** The Game's name or description (ADR-067 §3), the Organiser's to change. */
+  'games.update': async (
+    who: Caller,
+    a: { gameId: string; name?: string; description?: string },
+    deps: CallDeps
+  ) => {
+    const room = deps.game(a.gameId)
+    const { gameId: _gameId, ...patch } = a
+    await act(room, who.discordId, 'updateSettings', patch)
+    return republished(room, null)
+  },
+  /** Leave (`userId` absent) or, as the Organiser, remove a member; their units go home first. */
+  'games.removeMember': async (
+    who: Caller,
+    a: { gameId: string; userId?: string },
+    deps: CallDeps
+  ) => {
+    const room = deps.game(a.gameId)
+    const answer = await room.dismiss(who.discordId, a.userId ?? who.discordId)
+    if (!answer.ok) throw new RoomRefusal(answer.refusal)
+    return republished(room, null)
+  },
+  /**
+   * Take an unused pre-generated Pilot, with its Mech, off the roster to the
+   * Organiser's Training Bay (LG4-20); answers the ids that left. `games.putBack`
+   * is its Undo.
+   */
+  'games.takeOffRoster': async (
+    who: Caller,
+    a: { gameId: string; pilotId: string },
+    deps: CallDeps
+  ) => {
+    const room = deps.game(a.gameId)
+    const answer = await room.shelve(who.discordId, a.pilotId)
+    if (!answer.ok) throw new RoomRefusal(answer.refusal)
+    return republished(room, answer.value)
+  },
+  'games.putBack': async (
+    who: Caller,
+    a: { gameId: string; unitIds: string[] },
+    deps: CallDeps
+  ) => {
+    const room = deps.game(a.gameId)
+    const answer = await room.unshelve(who.discordId, a.unitIds)
+    if (!answer.ok) throw new RoomRefusal(answer.refusal)
+    return republished(room, null)
+  },
+  /** The Game's plan (ADR-067 §4): its table runner's alone. */
+  'plan.get': async (who: Caller, a: { gameId: string }, deps: CallDeps) =>
+    act(deps.game(a.gameId), who.discordId, 'plan.get', undefined as never),
+  /** The caller's own notes from when they ran the table, or null: any member's read. */
+  'plan.mine': async (who: Caller, a: { gameId: string }, deps: CallDeps) =>
+    act(deps.game(a.gameId), who.discordId, 'plan.mine', undefined as never),
+  'plan.set': async (who: Caller, a: { gameId: string; plan: GamePlan }, deps: CallDeps) => {
+    await act(deps.game(a.gameId), who.discordId, 'plan.set', { plan: a.plan })
+    return null
   },
   'games.setPrimaryCrawler': async (
     who: Caller,
@@ -273,19 +338,23 @@ const CALLS = {
     // they are not in, which deletion's forget passes over.
     await deps.account(who.discordId).joinedGame(gameId)
     const kind = await act(room, who.discordId, 'redeem', { code: a.code, profile })
+    // Back after a removal: what it took comes back too (r6 C7).
+    if (kind === 'joined')
+      await bringBack(room, deps.account(who.discordId), gameId, who.discordId, deps.newId)
     return republished(room, { kind, gameId })
   },
 
   'templates.list': async () => templateList(),
   'templates.createGame': async (
     who: Caller,
-    a: { templateId: string; name?: string },
+    { mediator, ...a }: { templateId: string; name?: string; mediator?: boolean | undefined },
     deps: CallDeps
   ) => {
     const gameId = deps.newId()
     const profile = await profileOf(deps, who)
     return started(who, gameId, deps, async () => {
       await act(deps.game(gameId), who.discordId, 'createFromTemplate', { ...a, profile })
+      await mediatedByCreator(deps.game(gameId), who, mediator)
     })
   },
 
@@ -376,13 +445,21 @@ const CALLS = {
         gameId: game.gameId,
         gameName: game.name,
         mayBind: mayBindChannel(game),
-        binding: await gameBinding(deps.db, game.gameId),
+        binding: await gameBindingView(deps.db, game.gameId),
       })
     }
-    return { personal: await soloBinding(deps.db, who.discordId), games }
+    return { personal: await soloBindingView(deps.db, who.discordId), games }
   },
+  // The Activity's launch: the Game bound where it opened, or the one-tap bind (ADR-068 §6).
+  'channelBindings.launch': async (who: Caller, a: { channelId: string }, deps: CallDeps) =>
+    launchAnswer(deps.db, deps.bot, who.discordId, a.channelId),
+  'channelBindings.bindHere': async (
+    who: Caller,
+    a: { channelId: string; gameId: string; instanceId: string },
+    deps: CallDeps
+  ) => bindHere(deps.db, deps.bot, who.discordId, a),
   'channelBindings.current': async (who: Caller, a: { gameId?: string }, deps: CallDeps) => {
-    if (a.gameId === undefined) return soloBinding(deps.db, who.discordId)
+    if (a.gameId === undefined) return soloBindingView(deps.db, who.discordId)
     const read = await act(deps.game(a.gameId), who.discordId, 'read', undefined as never)
     return read === null ? null : rollChannel(deps.db, who.discordId, a.gameId)
   },
@@ -391,7 +468,7 @@ const CALLS = {
     a: {
       gameId?: string
       pilotId?: string
-      roll: { tableName: string; rolls: number[] }
+      roll: { tableName: string; rolls: number[]; label?: string | undefined }
     },
     deps: CallDeps
   ): Promise<PostRollResult> => {
@@ -403,7 +480,7 @@ const CALLS = {
     const binding = await rollChannel(deps.db, who.discordId, gameId)
     if (binding === null) return { kind: 'unbound' }
     const { channelId } = binding
-    const { tableName, rolls } = a.roll
+    const { tableName, rolls, label } = a.roll
     if (!isPostableRoll(tableName, rolls)) {
       return { kind: 'failed', channelId, message: 'That roll cannot be posted.' }
     }
@@ -418,6 +495,9 @@ const CALLS = {
       tableName,
       rolls,
       roller,
+      ...(label !== undefined && label !== tableName
+        ? { label: label.slice(0, ROLL_LABEL_MAX) }
+        : {}),
       ...(isDiscord ? { ownerDiscordId: who.discordId } : {}),
     }
     try {
@@ -457,42 +537,6 @@ export type GameCallArgs<N extends GameCallName> =
 
 /** What a call answers. */
 export type GameCallResult<N extends GameCallName> = Awaited<ReturnType<(typeof CALLS)[N]>>
-
-const GAME = z.object({ gameId: z.string() })
-const KIND = z.enum(ENTITY_KINDS)
-
-/**
- * What each call takes, parsed before it runs, as a socket act's args are
- * (`../../rooms/game/socketActs.ts`). What the args mean (a name not too
- * long, a unit that exists) is still the room's to refuse.
- */
-const CALL_ARGS = {
-  'games.listMine': z.object({}),
-  'games.get': GAME,
-  'games.names': GAME,
-  'games.create': z.object({ name: z.string(), templateOrigin: z.string().optional() }),
-  'games.destroy': GAME,
-  'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),
-  'games.setPrimaryCrawler': GAME.extend({ crawlerId: z.string() }),
-  'invites.link': GAME,
-  'invites.reset': GAME,
-  'invites.redeem': z.object({ code: z.string() }),
-  'templates.list': z.object({}),
-  'templates.createGame': z.object({ templateId: z.string(), name: z.string().optional() }),
-  'ownership.assign': GAME.extend({ entityId: z.string(), userId: z.string().optional() }),
-  'ownership.unassign': GAME.extend({ entityId: z.string() }),
-  'entities.remove': GAME.extend({ entityId: z.string() }),
-  'entities.removeCrawler': GAME.extend({ crawlerId: z.string() }),
-  'entities.locate': z.object({ kind: KIND, id: z.string() }),
-  'entities.move': z.object({ kind: KIND, appId: z.string(), gameId: z.string().nullable() }),
-  'channelBindings.mine': z.object({}),
-  'channelBindings.current': z.object({ gameId: z.string().optional() }),
-  'channelBindings.postRoll': z.object({
-    gameId: z.string().optional(),
-    pilotId: z.string().optional(),
-    roll: z.object({ tableName: z.string(), rolls: z.array(z.number()) }),
-  }),
-} satisfies Record<GameCallName, z.ZodType>
 
 /** The call a signed-out visitor may make: the template list. An invite's preview is a Worker route. */
 const SIGNED_OUT: ReadonlySet<string> = new Set(['templates.list'])

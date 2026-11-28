@@ -4,7 +4,7 @@ import type { Finding } from './_findings'
 import { fromFaults } from './_findings'
 
 /**
- * Hierarchy at render (hard rule R55): what the eye ranks, read off the page.
+ * Hierarchy at render (ruleset §4.8): what the eye ranks, read off the page.
  * Each fault is `<rule>: <detail>`, its rule one of
  *
  * - `type-ladder` (§4.8): a drawn font size that is no `--text-*` rung;
@@ -17,11 +17,16 @@ import { fromFaults } from './_findings'
  * - `stray-head` (R53): a heading that is no band title, Slab, entity title,
  *   contents chapter or screen-reader label; `nested-slab`: a Slab section in a Slab section,
  *   not Mini;
- * - `make-rust` (§3.13): a "+ New…" or "+ Design…" control not rust; `stamp-twin`: a button
- *   painted like a read stamp beside it on its line;
- * - `tool-title-clip` (C12): a TitledBox's title clipped to "…";
- * - `measure` (§1.10): a Reference or Manage band title off the page measure's
- *   left edge; `first-screen`: a phone page whose first content starts below
+ * - `door-rust` (§3.14): a "+ New…" or "+ Design…" control rust (a make is
+ *   outlined wherever it stands); `use-rust` (§3.13): a Use
+ *   that is not rust; `band-keyline`: a rust control on a colour band without
+ *   its ink keyline; `stamp-twin`: a button painted like a read stamp beside
+ *   it on its line;
+ * - `tool-title-clip` (C5): a TitledBox's title clipped to "…";
+ * - `act-twin` (§3.14, `actTwins`, over the whole walk): one act (its words,
+ *   every `+ New…` as one) drawn in two variants;
+ * - `measure` (§1.10): a Reference or Manage band title whose words start off
+ *   the page measure's left edge (its cut-out may hang into the margin); `first-screen`: a phone page whose first content starts below
  *   its first screen.
  */
 
@@ -117,19 +122,51 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
     if (!known && drawn(h)) out.push(`stray-head: ${name(h)}`)
   }
 
-  // make-rust and stamp-twin.
-  const probe = document.createElement('span')
-  probe.style.color = 'var(--color-rust)'
-  document.body.append(probe)
-  const rust = getComputedStyle(probe).color
-  probe.remove()
+  // door-rust, use-rust, band-keyline and stamp-twin.
+  const token = (name: string) => {
+    const probe = document.createElement('span')
+    probe.style.color = `var(${name})`
+    document.body.append(probe)
+    const value = getComputedStyle(probe).color
+    probe.remove()
+    return value
+  }
+  const rust = token('--color-rust')
+  const ink = token('--color-ink')
+  // The grounds that are no band: paper, cream, the page, ink.
+  const plain = new Set(
+    ['--color-paper', '--color-band-cream', '--color-wk-bg', '--color-ink', '--color-ink-deep'].map(
+      token
+    )
+  )
   const controls = [...document.querySelectorAll('button, a.su-btn, a[class*="su-button"]')].filter(
     drawn
   )
+  const label = (c: Element) => (c.textContent ?? '').trim()
+  const isRust = (c: Element) => getComputedStyle(c).backgroundColor === rust
+  const isMake = (c: Element) => /^\+\s*(?:New|Design)\b/i.test(label(c))
+  const isUse = (c: Element) => /^Use\b/.test(label(c))
+  /** The ground a control stands on: its nearest painted ancestor's colour. */
+  const ground = (c: Element) => {
+    for (let el = c.parentElement; el; el = el.parentElement) {
+      const bg = getComputedStyle(el).backgroundColor
+      const alpha = Number((bg.match(/[\d.]+/g) ?? [])[3] ?? 1)
+      if (bg !== 'rgba(0, 0, 0, 0)' && alpha >= 0.5) return bg
+    }
+    return ''
+  }
   for (const c of controls) {
-    const text = (c.textContent ?? '').trim()
-    if (/^\+\s*(?:New|Design)\b/i.test(text) && getComputedStyle(c).backgroundColor !== rust)
-      out.push(`make-rust: ${name(c)}`)
+    const off = (c as HTMLButtonElement).disabled || c.getAttribute('aria-disabled') === 'true'
+    if (isUse(c) && !off && !isRust(c)) out.push(`use-rust: ${name(c)}`)
+    if (isMake(c) && isRust(c)) out.push(`door-rust: ${name(c)} is rust; a make is outlined`)
+    if (isRust(c)) {
+      const on = ground(c)
+      // A strip's Mini control draws its edge as an outline (its border is its hit area).
+      const cs = getComputedStyle(c)
+      const keyed =
+        cs.borderTopColor === ink || (cs.outlineStyle !== 'none' && cs.outlineColor === ink)
+      if (on && !plain.has(on) && !keyed) out.push(`band-keyline: ${name(c)}`)
+    }
   }
   const fill = (el: Element) => getComputedStyle(el).backgroundColor
   const dark = (rgb: string) => {
@@ -176,11 +213,15 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
       Number.parseFloat(
         getComputedStyle(document.documentElement).getPropertyValue('--page-measure')
       ) * 16
-    const left = band.getBoundingClientRect().left
+    // The title's words stand on the measure; its paper cut-out may hang into
+    // the margin around them (§1.10).
+    const words = document.createRange()
+    words.selectNodeContents(band)
+    const left = words.getClientRects()[0]?.left ?? band.getBoundingClientRect().left
     const want = Math.max(0, (document.documentElement.clientWidth - measure) / 2)
     if (left + 1 < want)
       out.push(
-        `measure: the band title starts at ${Math.round(left)}px, the measure at ${Math.round(want)}px`
+        `measure: the band title's words start at ${Math.round(left)}px, the measure at ${Math.round(want)}px`
       )
   }
   if (phone && band) {
@@ -193,15 +234,11 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
     for (let n = texts.nextNode(); n; n = texts.nextNode()) {
       const el = n.parentElement
       if (!el || !n.textContent?.trim() || !drawn(el)) continue
-      if (
-        el.closest('button, a.su-btn, input, select, label, [role="search"], [data-slab], header')
-      )
+      if (el.closest('button, a.su-btn, input, select, label, [role="search"], [data-slab]'))
         continue
       const top = el.getBoundingClientRect().top + scrollY
-      if (top >= foot) {
-        first = top
-        break
-      }
+      // Drawn order, not source order: a side column's prose can come first in the markup.
+      if (top >= foot) first = Math.min(first ?? top, top)
     }
     if (first !== undefined && first > innerHeight)
       out.push(
@@ -211,7 +248,73 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
   return out
 }
 
-/** Every hierarchy fault on the page as it stands (R55). */
+/** One drawn button's act: its words (a make's family, `+ New…`, as one), its variant and where it stood. */
+export type Act<F extends string = string> = {
+  act: string
+  variant: string
+  family: F
+  where: string
+}
+
+type Look = { act: string; variant: string }
+
+/**
+ * Runs in the page: every drawn, labelled `Button` and its variant; a Toggle's
+ * pressed plate is state, not emphasis, and a role's door (`data-role-door`,
+ * §1.9) is rust by the viewer's role.
+ */
+function readActsIn(): Look[] {
+  const out: Look[] = []
+  for (const el of document.querySelectorAll('.su-btn:not([aria-pressed], [data-role-door])')) {
+    const r = el.getBoundingClientRect()
+    const s = getComputedStyle(el)
+    if (r.width < 2 || r.height < 2 || s.visibility === 'hidden' || Number(s.opacity) === 0)
+      continue
+    const words = (el.textContent ?? '').trim().replace(/\s+/g, ' ')
+    if (!words || words.length > 40) continue
+    const variant = [...el.classList]
+      .map((c) => c.match(/^su-btn--(default|primary|ghost|ink|quiet|pencil)$/)?.[1])
+      .find(Boolean)
+    if (!variant) continue
+    const act = /^\+\s*(?:New|Design)\b/i.test(words) ? '+ New…' : words.toLowerCase()
+    out.push({ act, variant })
+  }
+  return out
+}
+
+/** The page's acts as they stand (ruleset §3.14), for `actTwins`. */
+export async function readActs<F extends string>(
+  page: Page,
+  at: { family: F; where: string }
+): Promise<Act<F>[]> {
+  return (await page.evaluate(readActsIn)).map((a) => ({ ...a, ...at }))
+}
+
+/**
+ * `act-twin` (ruleset §3.14, one act, one emphasis): an act drawn in two
+ * variants anywhere on the walk, each variant with the first place it stood.
+ */
+export function actTwins<F extends string>(
+  acts: readonly Act<F>[]
+): { family: F; rule: 'act-twin'; line: string }[] {
+  const seen = new Map<string, Map<string, Act<F>>>()
+  for (const a of acts) {
+    const looks = seen.get(a.act) ?? new Map<string, Act<F>>()
+    if (!looks.has(a.variant)) looks.set(a.variant, a)
+    seen.set(a.act, looks)
+  }
+  return [...seen].flatMap(([act, looks]) => {
+    const [first, ...others] = [...looks.values()]
+    if (!first || others.length === 0) return []
+    return others.map((o) => ({
+      family: o.family,
+      rule: 'act-twin' as const,
+      line: `act-twin: "${act}" ${o.variant} at ${o.where}, ${first.variant} at ${first.where}`,
+    }))
+  })
+}
+
+/** Every hierarchy fault on the page as it stands (§4.8). */
 export async function findHierarchy(page: Page, at: Context): Promise<Finding[]> {
   return fromFaults(await page.evaluate(scan, { ...at, ladder: LADDER }))
 }

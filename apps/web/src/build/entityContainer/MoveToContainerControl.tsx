@@ -57,13 +57,15 @@
  */
 
 import type { Container, ContainerFields } from 'game-domain/container'
-import { containerOf, moveTo } from 'game-domain/container'
+import { containerOf, moveTo, sameContainer } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
-import { Field, FieldError } from '../../components/index'
+import { FieldError } from '../../components/app'
+import { Field, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { entityContainerCopy } from '../../messages/build-entity-container'
+import { buildShelvesCopy } from '../../messages/build-shelves'
 import { CONTAINER_MOVE } from '../../replica/provenance'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
@@ -118,10 +120,15 @@ function ConnectedMoveToContainerControl({
 
   async function move(next: Container) {
     await useUnits.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
+    // The move says where the build went, as a shelf row's does (MD2-14).
+    const label = destinations.find((d) => sameContainer(d.container, next))?.label
+    if (label !== undefined) {
+      toast.success(buildShelvesCopy('movedTo', { name: entity.name, label }))
+    }
     onChanged?.()
   }
 
-  const moveNow = useServerAction(move, { failure: 'This build could not be moved. Try again.' })
+  const moveNow = useServerAction(move, { failure: entityContainerCopy('buildNotMoved') })
   const { pending, error } = moveNow
 
   function handlePick(next: Container) {

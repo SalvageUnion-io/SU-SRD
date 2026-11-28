@@ -41,18 +41,16 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
+import { heatDangerFrom, linesFromBreakdown, summarizeBreakdown } from '../../components/app'
 import type { ReferenceEntityControl, StatItem } from '../../components/index'
 import {
   Button,
   EntitySearcher,
   Field,
-  heatDangerFrom,
-  linesFromBreakdown,
   MiniGrid,
   ReferenceEntityCard,
   SlabSection,
   Stack,
-  summarizeBreakdown,
 } from '../../components/index'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
@@ -192,7 +190,7 @@ export function PartnerCard({
     patch({ [field]: pin }, LIVE_SHEET_OVERRIDE)
   }
 
-  // The mech's vitals, gauge for gauge (`MechVitals`): Edit pins a max with
+  // The mech's vitals, gauge for gauge (`mechVitalRows`): Edit pins a max with
   // its provenance and ↺ reverts it; Read draws the track alone.
   const vitals: {
     vital: SheetVital
@@ -344,7 +342,10 @@ export function PartnerCard({
         {/* Contentful Minis in a masonry grid, each Peeking its whole card. */}
         {slugs.length > 0 && (
           <MiniGrid
-            label={`${partner.name ?? 'Partner'} ${kind === 'system' ? 'systems' : 'modules'} installed`}
+            label={buildSheetCopy(
+              kind === 'system' ? 'partnerSystemsInstalled' : 'partnerModulesInstalled',
+              { name: partner.name ?? buildSheetCopy('partnerFallbackName') }
+            )}
             edit={!readOnly}
           >
             {slugs.map((slug, index) => (
@@ -391,7 +392,7 @@ export function PartnerCard({
       <SheetPickerModal
         open={picker === kind}
         onClose={() => setPicker(null)}
-        title={isSystem ? buildSheetCopy('addSystems') : buildSheetCopy('addModules')}
+        title={isSystem ? buildSheetCopy('manageSystems') : buildSheetCopy('manageModules')}
         floating
       >
         <EntitySearcher

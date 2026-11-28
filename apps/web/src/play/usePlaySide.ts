@@ -12,24 +12,33 @@
  * (`PlayMediatorCockpit`) calls too.
  */
 
+import { mayBindChannel } from 'game-domain/games/discord'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { useState } from 'react'
-import type { PlayBinding } from './channels.model'
+import { logDefaults } from '../build/sheet/changeLog.model'
+import { useViewerId } from '../replica/roomCalls'
+import { useUnits } from '../replica/units'
+import type { ChannelOwner, PlayBinding } from './channels.model'
 import type { FeedSources } from './feed.model'
 import { playFeedEntries } from './feed.model'
 import type { PlayScreen } from './play.model'
-import { usePlayRollLog } from './playRolls.model'
+import { usePlayRollLog, useRollScreen } from './playRolls.model'
 import type { PlayColumnProps } from './situation.model'
 import { useGameBoardSources } from './useBoardSources'
 import type { GameFeed } from './useGameFeed'
 import { useGameFeed } from './useGameFeed'
 import type { PlayRollDispatch } from './usePlayChannel'
 import { usePlayChannelBinding, usePlayRollDispatch } from './usePlayChannel'
+import type { LoggedUnit } from './useSoloVitalsFeed'
+import { mechNumbers, pilotNumbers, useSoloLastTime, useSoloVitalsFeed } from './useSoloVitalsFeed'
 
 /** What a screen's Tables and Feed share, the player's or the Mediator's. */
 export type SideFeed = {
   /** The Game the Feed is of; null at the solo table. */
   gameId: string | null
   binding: PlayBinding | null | undefined
+  /** Whose channel the Rolls pane's row is of, and whether the viewer may bind it. */
+  channel: { owner: ChannelOwner; mayBind: boolean }
   dispatch: PlayRollDispatch
   /** The Feed's lines, newest first. */
   entries: ReturnType<typeof playFeedEntries>
@@ -43,23 +52,52 @@ export function useSideFeed({
   target,
   rollerName,
   binding,
-  log = true,
+  channel,
   rolls,
   alerts,
+  events,
   proposals,
-}: Pick<FeedSources, 'rolls' | 'alerts' | 'proposals'> & {
+  logged,
+}: Pick<FeedSources, 'rolls' | 'alerts' | 'events' | 'proposals'> & {
   target: PlayScreen
   /** Who the Feed and the Game's log say rolled from this screen. */
   rollerName: string
   binding: PlayBinding | null | undefined
-  /** Write each roll to the Game's log; the Mediator's screen does not. */
-  log?: boolean
+  channel: SideFeed['channel']
+  /** Solo, the units whose Change Logs say what happened last time (r7 A8). */
+  logged?: { pilot: LoggedUnit | null; mech: LoggedUnit | null }
 }): SideFeed {
-  const dispatch = usePlayRollDispatch({ target, rollerName, binding, log })
+  const dispatch = usePlayRollDispatch({ target, rollerName, binding })
   const [openedAt] = useState(() => Date.now())
-  const mine = usePlayRollLog().filter((roll) => roll.at >= openedAt)
-  const entries = playFeedEntries({ rolls, alerts, proposals, mine, rollerName })
-  return { gameId: target.gameId, binding, dispatch, entries }
+  // Solo there is no Game's log: the Feed is every line this pilot's screen
+  // recorded in this tab, so leaving Play loses none (r6 A8). In a Game the
+  // log holds what came before.
+  const screen = `${target.gameId ?? 'solo'}:${target.pilotId ?? 'mediator'}`
+  useRollScreen(screen)
+  const log = usePlayRollLog()
+  const mine = log.filter((roll) =>
+    target.gameId === null ? roll.screen === screen : roll.at >= openedAt
+  )
+  const viewerId = useViewerId()
+  // Solo, the Feed opens with the last visit, under "Last time" (r7 A8).
+  const before = Math.min(openedAt, ...mine.map((roll) => roll.at))
+  const last = useSoloLastTime(
+    logged?.pilot ?? null,
+    logged?.mech ?? null,
+    before,
+    target.gameId === null && logged !== undefined
+  )
+  const entries = playFeedEntries({
+    rolls,
+    alerts,
+    events,
+    proposals,
+    mine,
+    rollerName,
+    viewerId,
+    last,
+  })
+  return { gameId: target.gameId, binding, channel, dispatch, entries }
 }
 
 export type PlaySide = SideFeed & {
@@ -69,16 +107,74 @@ export type PlaySide = SideFeed & {
 
 export function usePlaySide({ target, play }: PlayColumnProps): PlaySide {
   const inGame = target.gameId !== null
+  // Solo, what the pilot and their mech take is said on the Feed too (r6 A8).
+  const store = useUnits()
+  const mechId = play.boardedMechId ?? play.mechs?.[0]?.mechId ?? null
+  const mech = play.boardedMech ?? (mechId === null ? null : store.get('mech', mechId))
+  useSoloVitalsFeed(
+    [
+      ...(play.pilot === null
+        ? []
+        : [{ id: play.pilot.id, name: pilotLabel(play.pilot), vitals: pilotNumbers(play.pilot) }]),
+      ...(mech === null
+        ? []
+        : [
+            {
+              id: mech.id,
+              name: mech.name,
+              vitals: mechNumbers(mech, play.seat?.seat.activeEffects ?? []),
+            },
+          ]),
+    ],
+    !inGame
+  )
   const feed = useGameFeed(play.pilot)
   const sources = useGameBoardSources(target.gameId)
   const binding = usePlayChannelBinding(target)
   const side = useSideFeed({
     target,
     // The name the crew calls them by, as the Game's log and the bot's card print it.
-    rollerName: play.pilot?.callsign || play.pilot?.name || 'Pilot',
+    rollerName: pilotLabel(play.pilot),
     binding,
+    // A Game's channel is its Mediator's or Organiser's to bind; solo, the player's own.
+    channel: inGame
+      ? {
+          owner: { kind: 'game', gameName: target.gameName },
+          mayBind: mayBindChannel({
+            mediator: target.mediator,
+            organizer: target.organizer === true,
+          }),
+        }
+      : { owner: { kind: 'solo' }, mayBind: true },
+    logged: inGame
+      ? undefined
+      : {
+          pilot:
+            play.pilot === null
+              ? null
+              : {
+                  kind: 'pilot',
+                  id: play.pilot.id,
+                  name: pilotLabel(play.pilot),
+                  defaults: logDefaults({ kind: 'pilot', entity: play.pilot, crawler: null }),
+                },
+          mech:
+            mech === null
+              ? null
+              : {
+                  kind: 'mech',
+                  id: mech.id,
+                  name: mech.name,
+                  defaults: logDefaults({
+                    kind: 'mech',
+                    entity: mech,
+                    pilotAbilities: play.pilot?.abilities,
+                  }),
+                },
+        },
     rolls: inGame ? feed.rolls : null,
     alerts: inGame ? feed.alerts : [],
+    events: inGame ? feed.events : null,
     proposals: inGame ? feed.proposals : [],
   })
   return { ...side, feed, seats: sources.seats }

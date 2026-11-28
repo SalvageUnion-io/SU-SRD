@@ -1,12 +1,11 @@
 /**
- * StarterSetRoster — Leyline Press's pre-generated crew, laid out like a Game's
- * roster: three columns, a `StarterCard` per build — the same card the front
- * door lists them with.
+ * StarterSetRoster — Leyline Press's pre-generated crew on its own page: the
+ * one Ledger every surface lists it with (`StarterCrewLedger`).
  *
  * It is a pseudo-Game rather than a Game. Nobody is a member, nothing in it can
  * change, and it is the same for everyone — signed out included, because
- * reading it needs no account. Each card opens the build's read-only sheet
- * (`/starter/:kind/:id`), and, signed in, offers "Copy to…" Shelves or one of
+ * reading it needs no account. Each line opens the build's read-only sheet
+ * (`/starter/:kind/:id`), and, signed in, offers "Make a copy" into Shelves or one of
  * the player's Games. The copy is theirs; the template is untouched
  * (`lib/starterSet/copyStarter.ts`).
  *
@@ -22,40 +21,34 @@
  */
 
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
-import { ChapterBand, PageShell, Slab, Text, tokens } from '../../components/index'
-import type { Confirm } from '../../components/shared/useConfirm'
+import { PageShell } from '../../components/app'
+import { ChapterBand, Slab, Text, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
-import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
 import {
   QUICKSTART_BOOK,
   STARTER_SET_ADVENTURE,
   STARTER_SET_PUBLISHER,
-  starterRoster,
 } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { useSync } from '../../replica/syncContext'
-import type { SegmentKind } from '../roster/RosterColumn'
-import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
+import { RailActs } from '../sheet/RailActs'
 import { CopyCrew } from './CopyCrew'
-import { CopyStarterMenu } from './CopyStarterMenu'
-import { StarterCard } from './StarterCard'
-import { starterShelves } from './starterShelves.model'
+import { StarterAside } from './StarterAside'
+import { StarterCrewLedger } from './StarterCrewLedger'
 import { useCopyCrewOnArrival } from './useCopyCrewOnArrival'
 
 const HEADER = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[8],
+  marginBottom: tokens.space[12],
 } satisfies CSSProperties
 
 // Under the signed-out Roster's sign-in panel the h2 keeps its distance. On its
 // own page the band is the page shell's first child, so it bleeds to the
 // masthead.
 const SUB_HEADER = { ...HEADER, marginTop: tokens.space[32] } satisfies CSSProperties
-
-const ROW = { listStyle: 'none' } satisfies CSSProperties
 
 type StarterSetRosterProps = {
   /** `h1` on its own page; `h2` under the signed-out Roster's sign-in panel. */
@@ -70,6 +63,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
   useCopyCrewOnArrival(copy, confirm)
 
   const body = (
+    // The crew as a paired manifest.
     <>
       <section aria-label={buildStarterSetCopy('starterSet2')}>
         <div style={headingLevel === 'h1' ? HEADER : SUB_HEADER}>
@@ -77,14 +71,17 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
             <Slab as="h2" label={buildStarterSetCopy('starterSet2')} flush />
           )}
           <Text variant="body">
-            The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
-            Read-only reference: open any sheet to read it.{' '}
+            {buildStarterSetCopy('thePreGeneratedCrewOwnedBy', {
+              adventure: STARTER_SET_ADVENTURE,
+              publisher: STARTER_SET_PUBLISHER,
+            })}{' '}
             {status === 'live'
               ? buildStarterSetCopy('copyOneIntoYourTraining')
               : buildStarterSetCopy('signInToCopyOne')}
           </Text>
         </div>
-        <CrewColumns roster="starter-set" confirm={confirm} />
+        {/* On its own page the band's h1 stands over the ledgers: they are h2. */}
+        <StarterCrewLedger confirm={confirm} as={headingLevel === 'h1' ? 'h2' : 'h3'} />
       </section>
       {headingLevel === 'h1' && (
         <section aria-label={buildStarterSetCopy('quickstartCrew')}>
@@ -102,7 +99,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
                 : buildStarterSetCopy('signInToCopyOne')}
             </Text>
           </div>
-          <CrewColumns roster="quickstart" confirm={confirm} />
+          <StarterCrewLedger roster="quickstart" confirm={confirm} />
         </section>
       )}
       {dialog}
@@ -117,64 +114,23 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
         <ChapterBand
           tone="build"
           measure={PAGE_MEASURE}
-          aside={<CopyCrew confirm={confirm} />}
-          asideAt="controls"
+          // The page's act rides the area rail.
+          corner={
+            <RailActs>
+              <CopyCrew confirm={confirm} />
+            </RailActs>
+          }
         >
           {buildStarterSetCopy('starterSet2')}
         </ChapterBand>
       }
     >
-      {body}
+      {/* The crews stand in the page's main track, as a Reference Page's do,
+          the way to the table and the book in the side track beside them. */}
+      <div className="su-starter-tracks">
+        <div className="su-main-track">{body}</div>
+        <StarterAside signedIn={status === 'live'} />
+      </div>
     </PageShell>
-  )
-}
-
-/** One crew's columns, a card per build; signed in, each card's last chip copies it. */
-function CrewColumns({ roster, confirm }: { roster: StarterRosterId; confirm: Confirm }) {
-  const { status } = useSync()
-  const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
-  const shelves = starterShelves(roster)
-  return (
-    <>
-      <SegmentSwitch active={activeSegment} onChange={setActiveSegment} />
-      <RosterGrid>
-        {shelves.map(({ kind, title, builds }) => (
-          <RosterColumn
-            key={kind}
-            kind={kind}
-            title={title}
-            active={activeSegment === kind}
-            label={buildStarterSetCopy('crewKind', {
-              crew: starterRoster(roster).name,
-              lowerCase: title.toLowerCase(),
-            })}
-            emptyMessage={buildStarterSetCopy('noCrawlerSheet')}
-            empty={builds.length === 0}
-          >
-            <RosterList>
-              {builds.map((build) => (
-                <li key={build.id} style={ROW}>
-                  {/* Signed in, "Copy to…" is the Compact's last chip (C8, hard rule R6). */}
-                  <StarterCard
-                    kind={kind}
-                    build={build}
-                    controls={
-                      status === 'live' ? (
-                        <CopyStarterMenu
-                          kind={kind}
-                          templateId={build.id}
-                          name={build.name}
-                          confirm={confirm}
-                        />
-                      ) : undefined
-                    }
-                  />
-                </li>
-              ))}
-            </RosterList>
-          </RosterColumn>
-        ))}
-      </RosterGrid>
-    </>
   )
 }

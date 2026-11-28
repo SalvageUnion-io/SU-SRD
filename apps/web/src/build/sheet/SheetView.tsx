@@ -32,7 +32,10 @@
 
 import { containerOf } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
+import { gamePath } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { useMemo } from 'react'
+import { AssignSelfButton } from '../../play/games/AssignSelfButton'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { CrewSheetBanner } from './CrewSheetBanner'
@@ -49,10 +52,8 @@ type SheetViewProps = { kind: SheetKind; id: string }
 
 export function SheetView({ kind, id }: SheetViewProps) {
   const { status: sync } = useSync()
-  const { status, held, gameId, listing, members, viewerId, sheetMode, crew } = useLocatedSheet(
-    kind,
-    id
-  )
+  const { status, held, gameId, listing, listedRow, members, viewerId, sheetMode, crew } =
+    useLocatedSheet(kind, id)
 
   // The Game whose crawler this sheet's cargo reaches: the server's answer once
   // it has one, the local copy's until then (a linked crawler shares its
@@ -64,8 +65,10 @@ export function SheetView({ kind, id }: SheetViewProps) {
     sync === 'live' && tableId !== null ? { gameId: tableId } : 'skip'
   )
   const crawlerReadOnly = tableId !== null && table?.tableRunner !== true
+  // The Game it is in, a GAME chip on the band.
+  const game = tableId !== null && table ? { name: table.name, href: gamePath(tableId) } : undefined
 
-  // Who holds each listed pilot and mech: the owner chips on Assigned units.
+  // Who holds each listed pilot and mech: the owner chips on Related units.
   const ownerOf = useMemo<OwnerOf | undefined>(
     () => (listing && members ? ownersFromListing(listing, members, viewerId) : undefined),
     [listing, members, viewerId]
@@ -91,6 +94,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
           others={others}
           crawlerReadOnly={crawlerReadOnly}
           ownerOf={ownerOf}
+          game={game}
         />
       </SheetModeContext.Provider>
     )
@@ -103,9 +107,25 @@ export function SheetView({ kind, id }: SheetViewProps) {
   if (store.getState().get(kind, id) === null) {
     return <SheetFallback kind={kind} status="unreadable" back={crew} />
   }
+  const row = listedRow as { _id?: string; ownerId?: string | null; body?: unknown }
+  const unassigned = kind !== 'crawler' && row.ownerId === null
   return (
-    <CrewSheetBanner kind={kind}>
-      <Sheet kind={kind} id={id} store={store} back={crew} readOnly ownerOf={ownerOf} />
+    <CrewSheetBanner
+      kind={kind}
+      unassigned={unassigned}
+      // Claimed in place, no trip Back to the Game's page (r6 C8).
+      assign={
+        unassigned && tableId !== null && row._id !== undefined ? (
+          <AssignSelfButton
+            gameId={tableId}
+            entityId={row._id}
+            appId={id}
+            name={pilotLabel(row.body as { callsign?: unknown; name?: unknown })}
+          />
+        ) : undefined
+      }
+    >
+      <Sheet kind={kind} id={id} store={store} back={crew} readOnly ownerOf={ownerOf} game={game} />
     </CrewSheetBanner>
   )
 }

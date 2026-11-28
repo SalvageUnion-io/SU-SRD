@@ -86,6 +86,19 @@ export function hourSteps(
 }
 
 /**
+ * How one step's cost reaches its player (r4 A9): a number to change (SP,
+ * Heat, HP) is `proposed`; what the app does not track (a Heat Check, an
+ * injury, a rolled row) is a `notice` to apply by hand; `both` where the hour
+ * asks both. A rolled table is a notice, and may add a proposal (Freezing).
+ */
+export function hourDelivery(step: HourStep): 'proposed' | 'notice' | 'both' {
+  const { cost } = step
+  const proposed = cost.damage > 0 || (step.target.kind === 'mech' && cost.heat > 0)
+  const notice = cost.heatCheck || cost.injuries.length > 0 || cost.tables.length > 0
+  return proposed && notice ? 'both' : proposed ? 'proposed' : 'notice'
+}
+
+/**
  * The proposals one step makes, `extraDamage` from its rolls (Freezing's cold
  * erosion) added: SP and Heat for a Mech, HP for a Pilot, each held to its
  * pool (0 up, the Heat Cap down). None where the hour changes nothing.

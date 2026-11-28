@@ -98,7 +98,22 @@ function readIfPresent(path: string): string | undefined {
   }
 }
 
-type Result = { name: string; ok: boolean; verdict: string; output: string }
+type Result = { name: string; ok: boolean; verdict: string; output: string; failed: string[] }
+
+/** A line of a run's output that says what failed: a failed test, a count that is not zero, an error outside any test. */
+const FAILURE_LINE = /^\(fail\)|^\s*[1-9]\d* (?:fail|errors?)\b|nhandled/
+
+/**
+ * What a failed run said went wrong, for the end of the log, where a reader
+ * (and a log's tail) finds it: its failure lines, else its last lines that are
+ * not the coverage table's.
+ */
+export function failureLines(output: string): string[] {
+  const lines = output.split('\n').map((line) => line.trimEnd())
+  const named = lines.filter((line) => FAILURE_LINE.test(line))
+  if (named.length > 0) return named
+  return lines.filter((line) => line !== '' && !line.includes(' | ')).slice(-20)
+}
 
 /** Where a job runs, and the `bun` it runs (a stub, in the script's tests). */
 export type JobOptions = { root: string; shards?: number; bun?: readonly string[] }
@@ -122,16 +137,16 @@ export async function runJob(name: string, floor: number, options: JobOptions): 
         )
   const outputs = await Promise.all(runs)
   const took = `${((performance.now() - started) / 1000).toFixed(1)} s`
-  const failed = outputs.find((run) => run.exitCode !== 0)
+  const broken = outputs.find((run) => run.exitCode !== 0)
   const stdout =
     shardCount === 1
       ? (outputs[0]?.stdout.toString() ?? '')
       : outputs
           .map((run, i) => `── shard ${i + 1}/${shardCount} ──\n${run.stdout.toString().trimEnd()}`)
           .join('\n')
-  let ok = failed === undefined
-  let verdict = failed
-    ? `TESTS FAILED (exit ${failed.exitCode}) in ${took}`
+  let ok = broken === undefined
+  let verdict = broken
+    ? `TESTS FAILED (exit ${broken.exitCode}) in ${took}`
     : `tests passed in ${took}${shardCount > 1 ? ` (${shardCount} shards)` : ''}`
   if (ok && shardCount > 1) {
     const reports = outputs.map((_, i) => join(cwd, coverage, `shard-${i + 1}`, 'lcov.info'))
@@ -153,7 +168,16 @@ export async function runJob(name: string, floor: number, options: JobOptions): 
         ? `NO COVERAGE: tests passed in ${took} but coverage/lcov.info holds no lines`
         : `${pct.toFixed(2)}% of lines, floor ${floor}%${ok ? '' : ' (BELOW FLOOR)'}, ${verdict}`
   }
-  return { name, ok, verdict, output: `\n━━━━ ${name}: ${verdict} ━━━━\n${stdout.trimEnd()}` }
+  const failed = outputs
+    .filter((run) => run.exitCode !== 0)
+    .flatMap((run) => failureLines(run.stdout.toString()))
+  return {
+    name,
+    ok,
+    verdict,
+    output: `\n━━━━ ${name}: ${verdict} ━━━━\n${stdout.trimEnd()}`,
+    failed,
+  }
 }
 
 /** What `main` runs and where it reports; the defaults are the repo's and CI's. */
@@ -187,6 +211,9 @@ export async function main({
       return result
     })
   )
+  for (const r of results) {
+    if (r.failed.length > 0) log(`\n${r.name}, what failed:\n${r.failed.join('\n')}`)
+  }
   const width = Math.max(...results.map((r) => r.name.length))
   const summary = results.map((r) => `${r.ok ? '✓' : '✗'} ${r.name.padEnd(width)}  ${r.verdict}`)
   log(`\n${summary.join('\n')}`)

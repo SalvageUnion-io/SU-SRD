@@ -7,15 +7,12 @@ import { Speckle } from './Speckle'
  * tools ends, a row of two ends: `start` (an entity page's citation, then the
  * licence) and `end` (the site's own links and the mark).
  *
- * It wears the colour of the band the page leads with, as the Union bar does
- *: its ground, foreground and grain are the
- * `--su-foot-*` properties (`.su-chapter-foot` in `styles/partials/shell.css`),
- * ink with paper flecks until the leading band's rule sets them to its own
- * (`footerMatchCss`, `unionBarMatch.ts`). The band cannot reach the foot
- * through the cascade (they are siblings), so the rule is keyed on it, and a
- * static page, no JS, matches too. Both grains are served; the ground's shows.
+ * It wears the Union bar's chrome (K13): its ground, foreground and grain are
+ * the `--su-foot-*` properties (`.su-chapter-foot` in
+ * `styles/partials/shell.css`), ink-deep with paper flecks on every page.
+ * Both grains are served; the ground's shows.
  *
- * A foot band carries TEXT, never chips (hard rule R4).
+ * A foot band carries TEXT, never chips (C10).
  */
 
 export type ChapterFootProps = {
@@ -42,9 +39,10 @@ export function ChapterFoot({ cite, start, end, measure }: ChapterFootProps) {
   return (
     <div
       className="su-chapter-foot"
-      // A foot band is text, never chips (hard rule R4): `chip-strips.e2e.ts` reads it.
+      // A foot band is text, never chips (C10): `chip-strips.e2e.ts` reads it.
       data-foot-band=""
-      style={ROOT}
+      // The measure its rows keep (`.su-chapter-foot__row` in `shell.css`).
+      style={measure ? ({ ...ROOT, '--su-foot-measure': measure } as CSSProperties) : ROOT}
     >
       <span className="su-chapter-foot__grain su-chapter-foot__grain--paper">
         <Speckle grain="paper" />
@@ -52,12 +50,8 @@ export function ChapterFoot({ cite, start, end, measure }: ChapterFootProps) {
       <span className="su-chapter-foot__grain su-chapter-foot__grain--ink">
         <Speckle grain="ink" />
       </span>
-      {cite != null && (
-        <div className="su-chapter-foot__cite" style={measure ? { maxWidth: measure } : undefined}>
-          {cite}
-        </div>
-      )}
-      <div className="su-chapter-foot__row" style={measure ? { maxWidth: measure } : undefined}>
+      {cite != null && <div className="su-chapter-foot__cite">{cite}</div>}
+      <div className="su-chapter-foot__row">
         {start != null && <div className="su-chapter-foot__start">{start}</div>}
         {end != null && <div className="su-chapter-foot__end">{end}</div>}
       </div>

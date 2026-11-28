@@ -6,6 +6,8 @@
  * `publicRead`, each pattern's `sharing` record, and the acts that set them.
  */
 
+import type { MechPattern } from 'game-domain/schemas/pattern'
+import { parseMechPattern } from 'game-domain/schemas/pattern'
 import { useCallback, useSyncExternalStore } from 'react'
 import type { PublicPatternAnswer } from '../../build/mech/Pattern/PublicPattern'
 import type { PublicSheetAnswer } from '../../build/sheet/readOnlySheetStore.model'
@@ -84,6 +86,44 @@ export function useHomebrewModeration(): HomebrewModeration | null | undefined {
 /** The patterns crewmates shared with the reader's Games; not asked for with `live` false. */
 export function useCrewPatterns(live: boolean): CrewPattern[] | undefined {
   return useWorkerRead(live ? sharedPaths.crewPatterns() : null)
+}
+
+/**
+ * Whether a pattern the reader does not hold themselves is gone (r3 G3): its
+ * page answers nothing by link and no crew of theirs shares it, as after its
+ * maker deleted it. False while either answer is still out, and not asked
+ * with `ask` false.
+ */
+export function usePatternGone(appId: string | undefined, ask: boolean): boolean {
+  const asked = ask && appId !== undefined
+  const byLink = usePatternByLink(asked ? appId : undefined)
+  const crew = useCrewPatterns(asked)
+  if (!asked || byLink !== null || crew === undefined) return false
+  return !crew.some((pattern) => pattern.appId === appId)
+}
+
+/**
+ * A pattern the reader does not hold, as its link or a crew of theirs answers
+ * for it (r5 D3): a Mech built from someone else's pattern names it. Undefined
+ * while out, not asked, or answered by neither.
+ */
+export function usePatternElsewhere(
+  appId: string | undefined,
+  ask: boolean,
+  /** Ask the reader's crews too; false for a reader with no account (a public sheet's, r7 G7). */
+  crewsToo = true
+): MechPattern | undefined {
+  const asked = ask && appId !== undefined
+  const byLink = usePatternByLink(asked ? appId : undefined)
+  const crew = useCrewPatterns(asked && crewsToo)
+  if (!asked) return undefined
+  const body = byLink?.body ?? crew?.find((pattern) => pattern.appId === appId)?.body
+  const parsed = body === undefined ? undefined : parseMechPattern(body)
+  return parsed?.success ? parsed.data : undefined
+}
+
+function usePatternByLink(appId: string | undefined): PublicPatternPage | null | undefined {
+  return useWorkerRead(appId === undefined ? null : sharedPaths.sheet('pattern', appId))
 }
 
 /** Which of the reader's sheets anyone with the link may read. */

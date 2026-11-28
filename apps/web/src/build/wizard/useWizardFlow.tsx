@@ -15,20 +15,36 @@
  * `shell` is every `WizShell` prop the wizards share
  * (stepper, Back / Next / Cancel, the step gate and the Off-Rules escape);
  * each wizard spreads it and adds only its own kind, copy and trackers.
+ *
+ * Leaving a unit's wizard any way but Create or Cancel (a nav link, the
+ * browser's Back) keeps its draft, and says so once, by toast: the Training
+ * Bay offers it back (`WizardDrafts`).
  */
 
 import { moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
-import type { ReactNode } from 'react'
-import { startTransition, useState } from 'react'
+import { startTransition, useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/index'
+import { focusHeadingOnArrival } from '../../lib/arrivalFocus'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { unitDisplayName } from '../../lib/entities/unitDisplayName'
+import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
+import { draftExportBundle } from '../../lib/export/draftExport'
 import type { StepGateResult } from '../../lib/rules/creation'
-import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
+import { wizardDraftSummary } from '../../lib/wizard/draftSummary'
+import {
+  clearWizardDraft,
+  DRAFT_SCOPE,
+  markWizardSignIn,
+  readWizardReached,
+  readWizardSignIn,
+  writeWizardReached,
+} from '../../lib/wizard/wizardDraft'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import { useSync } from '../../replica/syncContext'
 import type { CreateInput } from '../../replica/types'
 import { useUnits } from '../../replica/units'
-import { OffRulesEscape } from './OffRulesEscape'
+import type { KeepAsFileActs } from './KeepAsFile'
 
 /**
  * The slice of a Zod object schema this hook uses.
@@ -83,22 +99,40 @@ export type WizardFlowOptions<
    * (`?game=<id>`, ADR-052 §3). Unset, the store decides.
    */
   gameId?: string | undefined
+  /**
+   * The saved unit this run redesigns (the NPC designer's Redesign from a template): Save
+   * validates the form the same way, then hands it to `save`, which writes
+   * that unit in place, and nothing is created. The unit is already whole, so
+   * every step is reached from the start and each one saves (MD3-06).
+   */
+  existing?: { id: string; save: (form: TForm) => Promise<unknown> } | undefined
 }
 
 /** The `WizShell` props every creation wizard passes the same way. */
 type WizardShellProps = {
   steps: readonly string[]
   active: number
+  /** The furthest step reached: every step up to it is a way there. */
+  reached: number
   onStepClick: (index: number) => void
-  escapeAction: ReactNode
   onEscape: (() => void) | undefined
   onBack: (() => void) | undefined
   onCancel: () => void
   confirmCancel: boolean
   /** Advance, or submit when already on `submitStep`. */
   onNext: () => void
+  /** Redesigning a saved unit: save from the step it is on, whichever that is. */
+  saveNow: (() => void) | undefined
   nextDisabled: boolean
   busy: boolean
+  /** Saving signed out asks for an account; the draft is kept (`SaveSignInDialog`). */
+  signIn: { open: boolean; onClose: () => void }
+  /** Signed out, the first step says up front that saving needs a sign-in. */
+  tryNote: string | undefined
+  /** Back from the sign-in Save asked for, on the submit step: the bar says Save is still to press. */
+  signedInBack: boolean
+  /** Signed out on the submit step: keep the build as a file, or print it. */
+  keepAsFile: KeepAsFileActs | undefined
 }
 
 export type WizardFlow<TStep extends string> = {
@@ -108,6 +142,10 @@ export type WizardFlow<TStep extends string> = {
   submitError: string | null
   /** Spread onto `WizShell`. */
   shell: WizardShellProps
+  /** Signed out: open the shell's "Sign in to save" (a step's own save asks as Create does); else undefined. */
+  askSignIn: (() => void) | undefined
+  /** Go to a step at once (a full pattern's pick opens Name & Review, r7 F9); the rail keeps the ones between. */
+  goTo: (step: TStep) => void
 }
 
 export function useWizardFlow<
@@ -132,12 +170,62 @@ export function useWizardFlow<
   onCancel,
   onOffRules,
   gameId,
+  existing,
 }: WizardFlowOptions<TStep, TForm, T>): WizardFlow<TStep> {
-  const [step, setStep] = useState<TStep>(initialStep)
+  // A reload reopens at the furthest step the draft reached, short of the
+  // first step whose gate its picks no longer pass.
+  const [step, setStep] = useState<TStep>(() => {
+    const start = Math.max(steps.indexOf(initialStep), 0)
+    const stored = Math.min(readWizardReached(draftKey), steps.length - 1)
+    let at = Math.max(start, stored)
+    for (let i = start; i < at; i++) {
+      const s = steps[i]
+      if (s && !gateFor(s).ok) at = i
+    }
+    return steps[at] ?? initialStep
+  })
+  const [reached, setReached] = useState(() =>
+    existing === undefined ? Math.max(steps.indexOf(step), 0) : steps.length - 1
+  )
   // The form's own words for what it is missing; a failed write is `save.error`.
   const [invalid, setInvalid] = useState<string | null>(null)
+  // A wizard runs signed out; Save is where an account is asked for. The form
+  // is already the browser's draft, so signing in comes back to it.
+  const { status, canWrite } = useSync()
+  const [askSignIn, setAskSignIn] = useState(false)
+  // Save asked for the sign-in this draft has come back from (r5 C14).
+  const [askedSignIn] = useState(() => readWizardSignIn(draftKey))
 
   const currentIndex = steps.indexOf(step)
+
+  // Left with a draft kept (not created, not cancelled): said as it happens.
+  // The check waits a microtask, so a remount in the same commit says nothing.
+  const leaving = useRef({ mounted: false, settled: false, dirty: formDirty })
+  leaving.current.dirty = formDirty
+  useEffect(() => {
+    const state = leaving.current
+    state.mounted = true
+    return () => {
+      state.mounted = false
+      queueMicrotask(() => {
+        if (state.mounted || state.settled || !state.dirty || entityType === 'npc') return
+        const draft = wizardDraftSummary(entityType)
+        if (draft)
+          toast.info(
+            buildWizardCopy(DRAFT_SCOPE === 'tab' ? 'draftKept' : 'draftKeptBrowser', {
+              label: draft.label,
+            })
+          )
+      })
+    }
+  }, [entityType])
+
+  useEffect(() => {
+    if (currentIndex > reached) setReached(currentIndex)
+  }, [currentIndex, reached])
+  useEffect(() => {
+    if (reached > 0) writeWizardReached(draftKey, reached)
+  }, [draftKey, reached])
 
   const save = useServerAction(
     async () => {
@@ -154,10 +242,14 @@ export function useWizardFlow<
       })
       if (!validation.success) {
         const messages = (validation.error?.issues ?? []).map((e) => e.message).join('; ')
-        setInvalid(`Validation error: ${messages}`)
+        setInvalid(buildWizardCopy('validationError', { messages }))
         return null
       }
 
+      if (existing !== undefined) {
+        await existing.save(form)
+        return { id: existing.id }
+      }
       return useUnits
         .getState()
         .create(entityType, gameId === undefined ? rawInput : inGame(rawInput, gameId))
@@ -165,12 +257,49 @@ export function useWizardFlow<
     { failure: failureMessage }
   )
 
+  const signedOut = status === 'signedOut' && !canWrite
+
+  /**
+   * The build as a file, for a reader with no account (`draftExportBundle`):
+   * validated as Save validates it, and the Training Bay's Import… reads it.
+   */
+  // A pilot's file and its Saved toast go by its callsign (r8 F1).
+  const shownName = unitDisplayName(form).trim() || noun
+  const fileName = exportFileName(entityType, shownName)
+  function download(): boolean {
+    if (entityType === 'npc') return false
+    setInvalid(null)
+    const now = new Date().toISOString()
+    const input = toCreateInput(form)
+    const validation = schema.safeParse({
+      ...input,
+      id: 'temp-validate-only',
+      createdAt: now,
+      updatedAt: now,
+    })
+    if (!validation.success) {
+      const messages = (validation.error?.issues ?? []).map((e) => e.message).join('; ')
+      setInvalid(buildWizardCopy('validationError', { messages }))
+      return false
+    }
+    downloadJson(fileName, draftExportBundle(entityType, input, now))
+    return true
+  }
+
   async function handleSubmit() {
     setInvalid(null)
+    if (signedOut) {
+      markWizardSignIn(draftKey)
+      setAskSignIn(true)
+      return
+    }
     const result = await save.run()
     if (!result.ok || result.value === null) return
-    toast.success(buildWizardCopy('saved', { value: form.name.trim() || noun }))
+    toast.success(buildWizardCopy('saved', { value: shownName }))
+    leaving.current.settled = true
     clearWizardDraft(draftKey)
+    // What was made takes focus on its page's heading (r6 F7).
+    if (existing === undefined) focusHeadingOnArrival()
     onComplete(result.value.id)
   }
 
@@ -178,8 +307,30 @@ export function useWizardFlow<
   // systems list) renders in slices behind the pressed button, so the press
   // paints at once rather than after one long render (INP).
   function goTo(next: TStep) {
+    // A step forward is a history entry of its own, so the browser's Back is
+    // one step back (below); a step back rewrites the entry it is on.
+    const to = steps.indexOf(next)
+    if (typeof window !== 'undefined' && to >= 0) {
+      const write = to > currentIndex ? 'pushState' : 'replaceState'
+      window.history[write](window.history.state, '', stepHash(to))
+    }
     startTransition(() => setStep(next))
   }
+
+  // The browser's Back and Forward land on an entry's step, where the draft
+  // has reached it; the entry the wizard opened on is its first step.
+  const reachedRef = useRef(reached)
+  reachedRef.current = reached
+  useEffect(() => {
+    const first = Math.max(steps.indexOf(initialStep), 0)
+    const onPop = () => {
+      const at = stepOfHash(window.location.hash) ?? first
+      const s = steps[Math.min(at, reachedRef.current)]
+      if (s) startTransition(() => setStep(s))
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [steps, initialStep])
 
   function goNext() {
     if (step === submitStep) {
@@ -198,31 +349,58 @@ export function useWizardFlow<
   }
 
   const gate = gateFor(step)
+  // A step ahead is open only while every gate before it passes.
+  let open = Math.max(reached, currentIndex)
+  for (let i = currentIndex; i < open; i++) {
+    const s = steps[i]
+    if (s && !gateFor(s).ok) open = i
+  }
 
   return {
     step,
     gate,
     submitError: invalid ?? save.error,
+    askSignIn: signedOut ? () => setAskSignIn(true) : undefined,
+    goTo,
     shell: {
       steps: steps.map((s) => stepLabels[s]),
       active: currentIndex,
+      reached: open,
       onStepClick: (i) => {
         const s = steps[i]
-        if (s) goTo(s)
+        if (s && i <= open) goTo(s)
       },
-      escapeAction: !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined,
       onEscape: !gate.ok && onOffRules ? onOffRules : undefined,
       onBack: currentIndex > 0 ? goBack : undefined,
       onCancel: () => {
+        leaving.current.settled = true
         clearWizardDraft(draftKey)
         onCancel()
       },
       confirmCancel: formDirty,
       onNext: goNext,
+      saveNow: existing === undefined ? undefined : () => void handleSubmit(),
       nextDisabled: !gate.ok,
       busy: save.pending,
+      signIn: { open: askSignIn, onClose: () => setAskSignIn(false) },
+      tryNote:
+        signedOut && currentIndex === 0
+          ? buildWizardCopy(DRAFT_SCOPE === 'tab' ? 'tryItNowTab' : 'tryItNow')
+          : undefined,
+      signedInBack: askedSignIn && canWrite && step === submitStep && existing === undefined,
+      keepAsFile:
+        signedOut && step === submitStep && entityType !== 'npc'
+          ? { fileName, onDownload: download, onPrint: () => window.print() }
+          : undefined,
     },
   }
+}
+
+/** A step's history entry: its number in the address's fragment (`#step-2`). */
+const stepHash = (index: number) => `#step-${index + 1}`
+const stepOfHash = (hash: string): number | undefined => {
+  const match = /^#step-(\d+)$/.exec(hash)
+  return match ? Number(match[1]) - 1 : undefined
 }
 
 /** A create input filed under a Game: its container decided, so the store keeps it. */

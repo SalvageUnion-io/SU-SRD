@@ -6,6 +6,7 @@
  */
 
 import type { TrayNpcBody } from 'game-domain/games/encounters'
+import { instanceName, numberFirst } from 'game-domain/games/encounters'
 import type { Encounter, EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
 import {
   ENCOUNTER_MAX_GROUP_NAME,
@@ -18,8 +19,9 @@ import {
 import type { HeaderMenuItem } from '../../components/index'
 import { copyName } from '../../lib/copyEntity'
 import { buildPrepCopy } from '../../messages/build-prep'
+import { npcKind } from '../../play/mediator/npcActions.model'
 import type { TrayNpc } from '../../play/mediator/opposition.model'
-import { readTrayNpc } from '../../play/mediator/opposition.model'
+import { newTrayNpc, readTrayNpc } from '../../play/mediator/opposition.model'
 import type { EncounterCreateInput } from '../../replica/collections'
 
 /** An encounter's page, in the Training Bay. */
@@ -32,10 +34,16 @@ export function blankEncounter(name = buildPrepCopy('newEncounter')): EncounterC
   return { schemaVersion: 1, name, opposition: [], tables: [], notes: '' }
 }
 
-/** Make a copy: everything but its name, which says it is a copy (and still fits). */
-export function encounterCopy(encounter: Encounter): EncounterCreateInput {
+/**
+ * Make a copy: everything but its name, which is numbered past the names
+ * `taken` on the shelf (`Ambush 2`) and still fits.
+ */
+export function encounterCopy(
+  encounter: Encounter,
+  taken: readonly string[] = []
+): EncounterCreateInput {
   const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = encounter
-  return { ...rest, name: copyName(encounter.name).slice(0, ENCOUNTER_MAX_NAME) }
+  return { ...rest, name: copyName(encounter.name, taken).slice(0, ENCOUNTER_MAX_NAME) }
 }
 
 /**
@@ -49,10 +57,148 @@ export function opponentFrom(npc: TrayNpcBody, id: string): EncounterOpponent {
     refSlug: npc.refSlug,
     ...(npc.refPattern === undefined ? {} : { refPattern: npc.refPattern }),
     ...(npc.userPattern === undefined ? {} : { userPattern: npc.userPattern }),
+    ...(npc.built === undefined ? {} : { built: npc.built }),
     name: npc.name,
     maxHp: npc.maxHp,
     statKind: npc.statKind,
   }
+}
+
+/**
+ * The opposition with a removed opponent back where it stood (Undo, MD2-20):
+ * unchanged when it is there already or there is no room, and alone when the
+ * group it fought in has gone since.
+ */
+export function restoredOpponent(
+  encounter: Pick<Encounter, 'opposition' | 'groups'>,
+  opponent: EncounterOpponent,
+  at: number
+): EncounterOpponent[] {
+  const { opposition } = encounter
+  if (opposition.some((o) => o.id === opponent.id) || !hasRoomFor(encounter)) return [...opposition]
+  const { groupId, ...alone } = opponent
+  const grouped = (encounter.groups ?? []).some((g) => g.id === groupId)
+  const back = grouped ? opponent : alone
+  const index = Math.max(0, Math.min(at, opposition.length))
+  return [...opposition.slice(0, index), back, ...opposition.slice(index)]
+}
+
+/**
+ * The opposition with a copy of one opponent right after it, named apart
+ * ("Raider 1", then "Raider 2": `numberFirst`), in the same group; unchanged
+ * with no room.
+ */
+export function duplicateOpponent(
+  encounter: Pick<Encounter, 'opposition'>,
+  opponentId: string,
+  id: string
+): EncounterOpponent[] {
+  const at = encounter.opposition.findIndex((o) => o.id === opponentId)
+  const source = encounter.opposition[at]
+  if (source === undefined || !hasRoomFor(encounter)) return [...encounter.opposition]
+  const copy = {
+    ...source,
+    id,
+    name: instanceName(
+      source.name,
+      encounter.opposition.map((o) => o.name)
+    ),
+  }
+  return withAdded(
+    [...encounter.opposition.slice(0, at + 1), copy, ...encounter.opposition.slice(at + 1)],
+    copy
+  )
+}
+
+/** The opposition once `added` has joined it: a second of a kind numbers the first ("Raider 1"). */
+function withAdded(
+  opposition: readonly EncounterOpponent[],
+  added: Pick<EncounterOpponent, 'name'>
+): EncounterOpponent[] {
+  return [...numberFirst(opposition, added.name)]
+}
+
+/**
+ * The opposition with `count` more of one kind (r7 C13), each drawn by `draw`
+ * from the names already in it and numbered as every add is; it stops at the
+ * encounter's room.
+ */
+export function withCopies(
+  opposition: readonly EncounterOpponent[],
+  count: number,
+  draw: (names: string[]) => TrayNpcBody
+): EncounterOpponent[] {
+  let next = [...opposition]
+  for (let i = 0; i < count && hasRoomFor({ opposition: next }); i++) {
+    const added = opponentFrom(draw(next.map((o) => o.name)), crypto.randomUUID())
+    next = withAdded([...next, added], added)
+  }
+  return next
+}
+
+/**
+ * The opposition with one more drawn from a Reference denizen (its page's "Add
+ * to an encounter"), named apart from the rest; `null` with no room.
+ */
+export function oppositionWith(
+  encounter: Pick<Encounter, 'opposition'>,
+  schema: Parameters<typeof newTrayNpc>[0],
+  entity: Parameters<typeof newTrayNpc>[1],
+  id: string,
+  now: string
+): EncounterOpponent[] | null {
+  if (!hasRoomFor(encounter)) return null
+  const body = newTrayNpc(
+    schema,
+    entity,
+    encounter.opposition.map((o) => o.name),
+    now
+  )
+  const added = opponentFrom(body, id)
+  return withAdded([...encounter.opposition, added], added)
+}
+
+/**
+ * The opposition after one of the Mediator's designs was redesigned (ADR-067
+ * §1, as amended): every opponent drawn from it takes the design's new stat
+ * block (`built`, HP or SP), and its new name where it still went by the old
+ * one. `null` when the encounter fields none of it, or nothing changed.
+ */
+export function redesignedOpposition(
+  opposition: readonly EncounterOpponent[],
+  npcId: string,
+  design: { built: NonNullable<EncounterOpponent['built']>; maxHp: number; statKind: 'hp' | 'sp' }
+): EncounterOpponent[] | null {
+  let changed = false
+  const next = opposition.map((opponent) => {
+    if (opponent.built?.npcId !== npcId) return opponent
+    const renamed = opponent.name === opponent.built.name ? design.built.name : opponent.name
+    const updated = { ...opponent, ...design, name: renamed }
+    if (JSON.stringify(updated) !== JSON.stringify(opponent)) changed = true
+    return updated
+  })
+  return changed ? next : null
+}
+
+/** The encounters that field the saved NPC `npcId`, in the order given (MD3-08). */
+export function encountersFielding<E extends Pick<Encounter, 'opposition'>>(
+  encounters: readonly E[],
+  npcId: string
+): E[] {
+  return encounters.filter((e) => e.opposition.some((o) => o.built?.npcId === npcId))
+}
+
+/**
+ * The opposition without the saved NPC `npcId`, whatever name each copy went
+ * by: deleting a design takes it out of what was prepared with it. Null when
+ * it fields none, so the encounter is not written.
+ */
+export function withoutDesign(
+  opposition: readonly EncounterOpponent[],
+  npcId: string
+): EncounterOpponent[] | null {
+  const next = opposition.filter((o) => o.built?.npcId !== npcId)
+  return next.length === opposition.length ? null : next
 }
 
 /** Whether another opponent fits. */
@@ -63,6 +209,25 @@ export function hasRoomFor(encounter: Pick<Encounter, 'opposition'>): boolean {
 /** An opponent read the way the Opposition reads a tray row, at full HP or SP. */
 export function opponentAsTray(opponent: EncounterOpponent): TrayNpc {
   return readTrayNpc({ _id: opponent.id, body: { ...opponent, currentHp: opponent.maxHp } })
+}
+
+/**
+ * What a row is, beside its name: its kind, then what it was drawn from where
+ * the name no longer says ("Bio-Titan · Scylla" for a renamed Scylla, "Mech ·
+ * Hussar" for a Hussar renamed for its pattern alone, "Bio-Titan" for a design
+ * built from one). A plain NPC under its own name has nothing to add.
+ */
+export function opponentNote(opponent: EncounterOpponent): string | undefined {
+  const { entity, pattern } = opponentAsTray(opponent)
+  const named = opponent.name.trim().toLowerCase()
+  // What the name already says is not said twice ("Bobcat · Mr Miner" names both).
+  const source = [entity?.name, pattern?.name].filter(
+    (part): part is string => typeof part === 'string' && !named.includes(part.toLowerCase())
+  )
+  // A design is the kind it was built from (its own name is its source).
+  const kind = { refSchema: opponent.refSchema, builtKind: opponent.built?.kind ?? null }
+  if ((kind.builtKind ?? kind.refSchema) === 'npcs' && source.length === 0) return undefined
+  return [npcKind(kind), ...source].join(' · ')
 }
 
 /** The tables with `name` pinned last, once; unchanged when it is pinned or there is no room. */

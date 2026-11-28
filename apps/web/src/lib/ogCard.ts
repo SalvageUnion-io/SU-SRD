@@ -19,6 +19,7 @@ import {
   ogCardTitle,
   ogReferenceAddressFits,
 } from '../components/index'
+import { libCopy } from '../messages/lib'
 import { itemHref, patternHref } from './entityHref'
 
 /**
@@ -65,9 +66,12 @@ export function ogAddress(href: string): string {
 
 /**
  * The head tags a preview needs beyond the image: `og:title` is the name as
- * the book prints it (the card sets it in caps; the tag is plain text),
- * `og:description` the kind and byline (never the body), and `theme-color`
- * the band's tone so Discord's side bar matches the card.
+ * the book prints it (the card sets it in caps; the tag is plain text), then
+ * its kind and the game, so a shared link says what it is ("Hot · Salvage
+ * Union trait", RR7-15),
+ * `og:description` the kind and byline (an entity page says its stats and
+ * summary instead, `previewDescriptionFor`), and `theme-color` the band's tone
+ * so Discord's side bar matches the card.
  */
 export function ogMetaFor(card: OgCardProps): {
   ogTitle: string
@@ -75,7 +79,13 @@ export function ogMetaFor(card: OgCardProps): {
   themeColor: string
 } {
   return {
-    ogTitle: displayTitle(ogCardTitle(card)),
+    ogTitle:
+      card.kind === 'private'
+        ? ogCardTitle(card)
+        : libCopy('previewTitle', {
+            name: displayTitle(ogCardTitle(card)),
+            kind: (card.kicker.split(' · ')[0] ?? card.kicker).toLowerCase(),
+          }),
     ogDescription: ogCardDescription(card),
     themeColor: ogCardThemeColor(card),
   }

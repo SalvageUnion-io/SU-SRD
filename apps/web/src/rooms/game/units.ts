@@ -7,8 +7,10 @@ import {
   isSlotted,
 } from 'game-domain/links/linkRules'
 import { parseUnit } from 'game-domain/ops/applyOp'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
 import type { ApplyOp, OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
+import { hiddenFrom, readerOf } from './readers'
 import type { GameStore, Member, StoredOp, UnitRow } from './store'
 
 /**
@@ -37,14 +39,11 @@ export function parseUnitBody(
   return result.data as Record<string, unknown>
 }
 
-/** What a sheet is called on a roster or a proposal: a pilot's callsign first. */
+/** What a sheet is called on a roster or a proposal: a pilot's callsign, then their name (`pilotLabelOf`). */
 export function unitName(unit: Pick<UnitRow, 'kind' | 'body'>): string | null {
-  const fields = unit.kind === 'pilot' ? ['callsign', 'name'] : ['name']
-  for (const field of fields) {
-    const value = unit.body[field]
-    if (typeof value === 'string' && value.trim().length > 0) return value.trim()
-  }
-  return null
+  if (unit.kind === 'pilot') return pilotLabelOf(unit.body)
+  const value = unit.body.name
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
 }
 
 const UNASSIGNED = 'That entity is unassigned — it must be assigned before it can be edited'
@@ -67,7 +66,8 @@ const PAIRED_ELSEWHERE =
 export type SubmitResult =
   /** `fresh`: the op ids this batch applied; the rest of `applied` had landed before. */
   | { ok: true; applied: { id: string; seq: number }[]; fresh: string[] }
-  | { ok: false; opId: string; reason: 'conflict'; fields: string[] }
+  /** `own`: every change the op ran into was the sender's own, made from another screen. */
+  | { ok: false; opId: string; reason: 'conflict'; fields: string[]; own?: true }
   | { ok: false; opId: string; reason: 'invalid'; message: string }
 
 type Refused = Extract<SubmitResult, { ok: false }>
@@ -197,7 +197,13 @@ export class GameUnits {
     if (!result.ok) {
       throw new BatchRefused(
         result.reason === 'conflict'
-          ? { ok: false, opId: input.id, reason: 'conflict', fields: result.fields }
+          ? {
+              ok: false,
+              opId: input.id,
+              reason: 'conflict',
+              fields: result.fields,
+              ...(this.metOwn(unit, input, result.fields, author) ? { own: true as const } : {}),
+            }
           : { ok: false, opId: input.id, reason: 'invalid', message: result.message }
       )
     }
@@ -218,6 +224,20 @@ export class GameUnits {
       updatedAt: input.at,
     })
     return result.seq
+  }
+
+  /**
+   * Whether every applied op `input` conflicts with is `author`'s own: the
+   * same player on a second screen. Still a conflict (a stale absolute value
+   * would undo the other screen's press), but the refusal can say whose.
+   */
+  private metOwn(unit: UnitRow, input: OpInput, fields: readonly string[], author: string) {
+    const base = input.baseSeq ?? 0
+    const met = this.store
+      .opsOf(unit.id)
+      .filter((op) => op.state === 'applied' && (op.seq ?? 0) > base)
+      .filter((op) => fields.some((f) => f in op.patch || (op.unset ?? []).includes(f)))
+    return met.length > 0 && met.every((op) => op.author === author)
   }
 
   /**
@@ -260,21 +280,23 @@ export class GameUnits {
     })
   }
 
-  /** Every unit, for any member to read. Non-members read nothing (ADR-030 §5). */
+  /** Every unit `actor` may read (`readerOf`): an NPC is not every member's (r3 A3). */
   list(actor: string): UnitRow[] {
-    if (this.store.member(actor) === null) return []
-    return this.store.units()
+    return this.store.units().filter(readerOf(this.store, actor))
   }
 
-  /** The Game's wiring, for any member. */
+  /** The Game's wiring, for any member: never a link to a unit they may not read. */
   links(actor: string): LinkShape[] {
     if (this.store.member(actor) === null) return []
-    return this.store.links()
+    const hidden = hiddenFrom(this.store, actor)
+    return this.store.links().filter((l) => !hidden.has(l.from.id) && !hidden.has(l.to.id))
   }
 
   /** One unit's op log, newest first, for its Change Log. */
   history(actor: string, unitId: string): StoredOp[] {
+    const unit = this.store.unit(unitId)
     if (this.store.member(actor) === null) return []
+    if (unit !== null && !readerOf(this.store, actor)(unit)) return []
     return this.store.opsOf(unitId).reverse()
   }
 
@@ -284,7 +306,8 @@ export class GameUnits {
    * Assign a pilot or mech to a member (`userId`, the caller when absent).
    * Any member takes a free one for themselves; only the table runner
    * assigns to someone else or takes one a crewmate holds (ADR-055).
-   * Assigning moves nothing and touches no link.
+   * Assigning moves nothing and touches no link. A pilot's mech goes with
+   * them where it was held as they were (`withMech`).
    */
   assign(actor: string, unitId: string, at: number, userId?: string): void {
     this.store.sql.transaction(() => {
@@ -303,7 +326,7 @@ export class GameUnits {
       if (!self && this.store.member(assignee) === null) {
         throw new RoomRefusal('They are not in this Game')
       }
-      this.reassign(unit, assignee, actor, at)
+      this.withMech(unit, assignee, actor, at)
     })
   }
 
@@ -316,8 +339,26 @@ export class GameUnits {
       if (unit.ownerId !== actor && !this.store.isTableRunner(member)) {
         throw new RoomRefusal('Only its holder or the Mediator can unassign this')
       }
-      this.reassign(unit, null, actor, at)
+      this.withMech(unit, null, actor, at)
     })
+  }
+
+  /**
+   * Put a holder on a pilot or mech, and on a pilot's mech with them when it
+   * was held as the pilot was (both free, or both one member's): a template's
+   * pairs are handed out whole, and the Game page lists such a mech on its
+   * pilot's line alone (MD2-10). A mech somebody else holds is left alone.
+   */
+  private withMech(unit: UnitRow, ownerId: string | null, author: string, at: number): void {
+    const was = unit.ownerId
+    this.reassign(unit, ownerId, author, at)
+    if (unit.kind !== 'pilot') return
+    for (const link of this.store.links()) {
+      if (link.type !== 'mech-to-pilot' || link.to.id !== unit.id) continue
+      const mech = this.store.unit(link.from.id)
+      if (mech === null || mech.kind !== 'mech' || mech.leaseId !== null) continue
+      if (mech.ownerId === was) this.reassign(mech, ownerId, author, at)
+    }
   }
 
   private ownable(unitId: string): UnitRow {

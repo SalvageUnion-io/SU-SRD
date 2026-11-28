@@ -16,12 +16,23 @@
  * included), so a Mediator roll can be shown to stay off it.
  */
 
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
 import type { QueryAnswers } from '../../components/__tests__/serverMock'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
+import { ToasterMount } from '../../components/index'
 import {
   acts,
   answerActs,
@@ -32,8 +43,24 @@ import {
 import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './mediatorFixture'
 import { narrowViewport } from './narrowViewport'
 
-/** Every act the Game's room was sent: its name and args. */
-const sent = () => acts.map(({ name, args }) => ({ name, args }))
+const LOG = 'changeLog.appendChangeLog'
+/** Every act the Game's room was sent, its name and args; a roll's log row is `logged()`'s. */
+const sent = () => acts.filter((a) => a.name !== LOG).map(({ name, args }) => ({ name, args }))
+/** The rows this screen's rolls put on the Game's log. */
+const logged = () =>
+  acts
+    .filter((a) => a.name === LOG)
+    .flatMap(
+      (a) =>
+        (
+          a.args as {
+            entries: {
+              field: string
+              after: { description: string; private?: true; veiled?: string }
+            }[]
+          }
+        ).entries
+    )
 const postRoll = mock(async (_args: unknown) => ({
   kind: 'posted',
   channelId: 'c-1',
@@ -196,8 +223,10 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       },
     ],
     'channelBindings.current': { channelId: 'c-1', boundAt: 1 },
+    'games.listMine': [],
     'safety.stopSign': null,
     'account.me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
+    'plan.get': null,
     ...over,
   }
 }
@@ -216,7 +245,7 @@ function downtimeAt(stepIndex: number, upkeepSpent = false): QueryAnswers {
   }
 }
 
-async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
+async function renderCockpit(over: QueryAnswers = {}, canWrite = true, die = 14) {
   const all = answers(over)
   setQueryAnswers(all)
   serveReads(GAME, all)
@@ -232,7 +261,7 @@ async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
         <PlayMediatorCockpit
           gameId={GAME}
           gameName="The Rust Belt Run"
-          rollFor={async () => () => 14}
+          rollFor={async () => () => die}
         />
       </SyncContext.Provider>
     )
@@ -278,12 +307,22 @@ describe('the bar', () => {
     expect(bar.getByRole('button', { name: 'Game channel: where rolls post' })).toBeTruthy()
   })
 
-  test('Begin Downtime starts it for the whole table', async () => {
+  test('Begin Downtime asks once, then starts it for the whole table (r2 E2)', async () => {
     await renderCockpit()
     const state = within(screen.getByRole('group', { name: 'Game state' }))
     expect(state.getByRole('button', { name: 'Scene' }).getAttribute('aria-pressed')).toBe('true')
     await click(state.getByRole('button', { name: 'Begin Downtime' }))
+    expect(names()).toEqual([])
+    const ask = within(screen.getByRole('alertdialog', { name: 'Begin Downtime?' }))
+    await click(ask.getByRole('button', { name: 'Begin Downtime' }))
     expect(names()).toEqual(['downtime.begin'])
+  })
+
+  test('while Downtime runs no seat reads Boarded: a seat aboard is in the Mech Bay (r2 E2)', async () => {
+    await renderCockpit(downtimeAt(2))
+    const seats = within(screen.getByRole('list', { name: 'Seats' }))
+    expect(seats.queryByText(/Boarded · /)).toBeNull()
+    expect(seats.getAllByText(/^In the Mech Bay · /).length).toBeGreaterThan(0)
   })
 
   test('running, it names the step; Scene ends it, asking first before the last step', async () => {
@@ -298,11 +337,65 @@ describe('the bar', () => {
     expect(names()).toEqual(['downtime.end'])
   })
 
+  // r5 A3 (MD5-17): a jump from step 1 to 7 took one click, and the Mediator saw nothing skipped.
+  test('a Downtime jump past more than one step asks first, and lists what was passed over', async () => {
+    await renderCockpit(downtimeAt(0))
+    await click(named(/^Step 5: /))
+    expect(names()).toEqual([])
+    const ask = within(screen.getByRole('alertdialog', { name: /^Jump to step 5 / }))
+    await click(ask.getByRole('button', { name: 'Jump' }))
+    expect(sent()).toEqual([{ name: 'downtime.setStep', args: { stepIndex: 4 } }])
+    // The step left with seats still working, then each step jumped over.
+    expect(
+      screen.getByText(/^Passed over: 1 Tally Salvage \(Bonesaw, Wren still working\), 2 .*, 4 /)
+    ).toBeTruthy()
+  })
+
+  // MD8-19: Tell the table was twenty Shift+Tabs away, and "?" showed nothing.
+  test('T opens Tell the table, N moves initiative on, "?" lists the keys (r8 B10)', async () => {
+    await renderCockpit({ 'mediator.initiative': { round: 2, side: 'pilots', acted: [] } })
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 't' })
+    })
+    frame.mockRestore()
+    expect(screen.getByRole('dialog', { name: 'Tell the table' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'Escape' })
+    })
+    acts.length = 0
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'n' })
+    })
+    expect(
+      sent()
+        .filter((s) => s.name === 'mediator.setInitiative')
+        .map((s) => s.args.initiative)
+    ).toEqual([{ round: 2, side: 'opposition', acted: [] }])
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: '?' })
+    })
+    const keys = await screen.findByRole('dialog', { name: 'Keys' })
+    expect(within(keys).getByText('Tell the table')).toBeTruthy()
+  })
+
   test('Tell the table sends one word to every player', async () => {
     await renderCockpit()
+    // The dialog focuses on the next frame; the frame is run here, so the
+    // test waits on no timer.
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
     await click(named('Tell the table'))
+    frame.mockRestore()
     const dialog = within(screen.getByRole('dialog', { name: 'Tell the table' }))
     expect(dialog.getByText('Contact front')).toBeTruthy()
+    // Typing starts in the alert, not on Close (MD2-04).
+    expect(document.activeElement === dialog.getByLabelText('Alert')).toBe(true)
     await act(async () => {
       fireEvent.change(dialog.getByLabelText('Alert'), { target: { value: 'Two squads east' } })
     })
@@ -316,6 +409,9 @@ describe('the Scene', () => {
 
   test('every condition is a toggle; pressing one puts the Scene under it', async () => {
     await renderCockpit()
+    // One row until Change opens it in place (r7 C8, MD7-16).
+    expect(screen.queryByRole('list', { name: 'Scene conditions' })).toBeNull()
+    await click(named('Change the Scene conditions'))
     const storm = named('The Scene is under Radiation Storm')
     expect(storm.getAttribute('aria-pressed')).toBe('false')
     expect(named('An hour passes').hasAttribute('disabled')).toBe(true)
@@ -323,6 +419,22 @@ describe('the Scene', () => {
     expect(sent()).toEqual([
       { name: 'scenes.setConditions', args: { conditions: ['radiation-storm'] } },
     ])
+  })
+
+  // MD6-08: six condition buttons took 180 px over the Opposition all fight.
+  test('once one is on, the chooser folds to what is on, with Change for the rest (r6 B6)', async () => {
+    await renderCockpit(STORM)
+    const grid = () => within(screen.getByRole('list', { name: 'Scene conditions' }))
+    expect(
+      grid()
+        .getAllByRole('button')
+        .map((b) => b.getAttribute('aria-label'))
+    ).toEqual(['The Scene is under Radiation Storm'])
+    await click(named('Change the Scene conditions'))
+    expect(grid().getAllByRole('button').length).toBeGreaterThan(1)
+    expect(named('Done').getAttribute('aria-expanded')).toBe('true')
+    await click(named('Done'))
+    expect(grid().getAllByRole('button')).toHaveLength(1)
   })
 
   test('pressed again, it lifts', async () => {
@@ -338,6 +450,13 @@ describe('the Scene', () => {
     await click(named('An hour passes'))
     const dialog = within(screen.getByRole('alertdialog'))
     expect(screen.getByRole('alertdialog', { name: 'Pass hour 3?' })).toBeTruthy()
+    // r4 A9: the dialog says how each cost reaches its player.
+    expect(dialog.getByText(/reaches its player as a notice to apply by hand/)).toBeTruthy()
+    const rows = dialog.getAllByRole('listitem').map((li) => li.textContent)
+    expect(rows).toContain(
+      'Bonesaw’s Buzzard · Radiation Stormproposed its change, and a notice to apply by hand'
+    )
+    expect(rows).toContain('Rook · Radiation Storma notice to apply by hand')
     // Wren sheltered in the crawler: untick them.
     await click(dialog.getByLabelText('Wren’s Mule · Radiation Storm'))
     await click(dialog.getByRole('button', { name: 'An hour passes' }))
@@ -364,7 +483,7 @@ describe('the Scene', () => {
     expect(proposals.some((p) => p.entityId === 'row-mule')).toBe(false)
     const alert = sent().find((s) => s.name === 'changeLog.broadcast')?.args.message
     expect(alert).toBe(
-      'Hour 3 under Radiation Storm. Bonesaw’s Buzzard: make a Heat Check. Mags’s Atlas: make a Heat Check. Rook: suffer a Major Injury.'
+      'Hour 3 under Radiation Storm. Bonesaw’s Buzzard: make a Heat Check. Mags’s Atlas: make a Heat Check. Rook: suffer a Major Injury. Apply this on your sheet.'
     )
   })
 
@@ -408,32 +527,114 @@ describe('the table', () => {
 
   test('a seat that stopped beating is away, and says where it was last seen', async () => {
     await renderCockpit()
-    const wren = screen.getByRole('button', { name: /^Wren, away/ }).closest('li') as HTMLElement
+    const wren = screen
+      .getByRole('button', { name: /^Wren \(Pilot\), away/ })
+      .closest('li') as HTMLElement
     expect(wren.dataset.away).toBe('true')
     expect(within(wren).getByText('Last seen Boarded · Mule')).toBeTruthy()
   })
 
-  test('tapping a seat aims Propose at that pilot and focuses To; the proposal sends', async () => {
+  // LG8-02: every hit on a player was the five-field Propose form.
+  test('a seat’s HP is one press from a hit: press, type, Enter proposes it (r8 B1)', async () => {
     await renderCockpit()
-    await click(screen.getByRole('button', { name: /^Rook, here/ }))
-    const dock = region('Propose')
-    expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')
-    expect(document.activeElement).toBe(dock.getByLabelText('To'))
+    acts.length = 0
+    await click(screen.getByRole('button', { name: /^Propose a hit to Rook: HP / }))
+    const amount = screen.getByLabelText('HP amount')
     await act(async () => {
-      fireEvent.change(dock.getByLabelText('To'), { target: { value: '6' } })
+      fireEvent.change(amount, { target: { value: '3' } })
     })
-    await click(dock.getByRole('button', { name: 'Propose' }))
+    await act(async () => {
+      fireEvent.submit(amount.closest('form') as HTMLFormElement)
+    })
+    // A proposal the player accepts, never applied for them: Rook at 4 HP is left 1.
     expect(sent()).toEqual([
       {
         name: 'ops.propose',
-        args: { entityId: 'row-rook', entityType: 'pilot', field: 'currentHP', after: 6 },
+        args: { entityId: 'row-rook', entityType: 'pilot', field: 'currentHP', after: 1 },
+      },
+    ])
+    expect(screen.queryByLabelText('HP amount')).toBeNull()
+  })
+
+  test('tapping a seat aims Propose at that pilot and focuses its number; Change opens on Take, so a typed 3 is 3 damage (r4 D2)', async () => {
+    await renderCockpit()
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
+    const dock = region('Propose')
+    expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')
+    expect((dock.getByLabelText('Change') as HTMLSelectElement).value).toBe('take')
+    expect(document.activeElement).toBe(dock.getByLabelText('Amount'))
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('Amount'), { target: { value: '3' } })
+    })
+    await click(dock.getByRole('button', { name: 'Propose' }))
+    // Rook is at 4 HP: taking 3 leaves 1, never "HP set to 3".
+    expect(sent()).toEqual([
+      {
+        name: 'ops.propose',
+        args: { entityId: 'row-rook', entityType: 'pilot', field: 'currentHP', after: 1 },
       },
     ])
   })
 
+  test('a boarded pilot’s seat aims at the Mech, the pilot one press away; Enter sends (r5 B7)', async () => {
+    await renderCockpit()
+    await click(screen.getByRole('button', { name: /^Bonesaw \(Pilot\), here/ }))
+    const dock = region('Propose')
+    expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-buzzard')
+    await click(dock.getByRole('button', { name: 'Aim at Bonesaw' }))
+    expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-bonesaw')
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('Amount'), { target: { value: '2' } })
+    })
+    await act(async () => {
+      fireEvent.submit(dock.getByLabelText('Amount').closest('form') as HTMLFormElement)
+    })
+    expect(sent()).toEqual([
+      {
+        name: 'ops.propose',
+        args: { entityId: 'row-bonesaw', entityType: 'pilot', field: 'currentHP', after: 5 },
+      },
+    ])
+  })
+
+  test('Set to still proposes the value itself', async () => {
+    await renderCockpit()
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
+    const dock = region('Propose')
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('Change'), { target: { value: 'set' } })
+    })
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('To'), { target: { value: '6' } })
+    })
+    await click(dock.getByRole('button', { name: 'Propose' }))
+    expect(sent()[0]?.args).toMatchObject({ field: 'currentHP', after: 6 })
+  })
+
+  test('a Mech target can be proposed EP, between SP and Heat (r4 D2)', async () => {
+    await renderCockpit()
+    const dock = region('Propose')
+    const target = dock.getByLabelText('Target') as HTMLSelectElement
+    const atlas = [...target.options].find((o) => o.textContent === "Mags's Atlas")
+    await act(async () => {
+      fireEvent.change(target, { target: { value: atlas?.value } })
+    })
+    const field = dock.getByLabelText('Field') as HTMLSelectElement
+    expect([...field.options].map((o) => o.textContent)).toEqual(['SP', 'EP', 'Heat'])
+    await act(async () => {
+      fireEvent.change(field, { target: { value: 'currentEP' } })
+    })
+    await act(async () => {
+      fireEvent.change(dock.getByLabelText('Amount'), { target: { value: '2' } })
+    })
+    await click(dock.getByRole('button', { name: 'Propose' }))
+    // Atlas holds 5 of 5 EP.
+    expect(sent()[0]?.args).toMatchObject({ entityType: 'mech', field: 'currentEP', after: 3 })
+  })
+
   test('Setbacks fills Propose with the book’s 2 HP default for the pilot aimed at', async () => {
     await renderCockpit()
-    await click(screen.getByRole('button', { name: /^Rook, here/ }))
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
     const dock = region('Propose')
     await click(dock.getByRole('button', { name: 'Setbacks' }))
     const dialog = within(screen.getByRole('dialog'))
@@ -444,6 +645,18 @@ describe('the table', () => {
       'Setback: 2 HP damage'
     )
     expect((dock.getByLabelText('To') as HTMLInputElement).value).not.toBe('')
+  })
+
+  // LG6-28: the crawler was missing from Propose's targets with no word why.
+  test('Propose says the crawler is the Mediator’s own and leads to its SP (r6 B13)', async () => {
+    await renderCockpit()
+    const propose = within(screen.getByRole('region', { name: 'Propose' }))
+    expect(propose.getByText(/Tenacity is yours to change/)).toBeTruthy()
+    const options = propose.getAllByRole('option').map((o) => o.textContent)
+    expect(options).not.toContain('Tenacity')
+    await click(propose.getByRole('button', { name: 'Go to its SP' }))
+    const crawler = screen.getByRole('region', { name: 'Crawler: Tenacity' })
+    expect(crawler.contains(document.activeElement)).toBe(true)
   })
 
   test('the crawler is the Units column’s box, live for the Mediator', async () => {
@@ -466,14 +679,64 @@ describe('the Opposition', () => {
     ])
   })
 
-  test('a downed NPC is struck and dashed, never removed for you; Delete asks first', async () => {
+  // MD8-04: a typo downed Scylla with no way back.
+  test('a vital’s change offers Undo, on its toast and in the ⋯ (r8 B4)', async () => {
     await renderCockpit()
-    const raider = within(screen.getByRole('region', { name: 'NPC: Raider, down' }))
-    expect(raider.getByText('At 0 · down')).toBeTruthy()
-    await click(raider.getByRole('button', { name: 'Delete Raider' }))
+    await act(async () => {
+      render(<ToasterMount />)
+    })
+    const scylla = within(screen.getByRole('region', { name: 'Bio-Titan: Scylla' }))
+    await click(scylla.getByRole('button', { name: 'Decrease SP' }))
+    expect(await screen.findByText('Scylla · SP 30 → 29')).toBeTruthy()
+    acts.length = 0
+    await click(screen.getByRole('button', { name: 'More' }))
+    await click(
+      within(screen.getByRole('menu')).getByRole('menuitem', { name: /^Undo last change/ })
+    )
+    expect(sent()).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-scylla', patch: { currentHp: 30 } } },
+    ])
+    // Spent: the ⋯ offers it no more.
+    await click(screen.getByRole('button', { name: 'More' }))
+    expect(
+      within(screen.getByRole('menu')).queryByRole('menuitem', { name: /^Undo last change/ })
+    ).toBeNull()
+  })
+
+  // MD6-16: a downed mook kept its full card, a red Delete beside Actions.
+  test('a downed NPC folds to one line below the living, never removed for you; Delete is in its ⋯ and asks first (r6 B8)', async () => {
+    await renderCockpit()
+    const region = screen.getByRole('region', { name: 'NPC: Raider, down' })
+    const raider = within(region)
+    expect(region.closest('[data-folded]')).toBeTruthy()
+    expect(raider.queryByRole('button', { name: 'Raider’s actions' })).toBeNull()
+    expect(raider.queryByRole('button', { name: 'Delete Raider' })).toBeNull()
+    const list = screen.getByRole('list', { name: 'Opposition' })
+    const units = [...list.querySelectorAll(':scope > [data-npc-id]')]
+    expect(units.at(-1)?.getAttribute('data-npc-id')).toBe('n-raider')
+    await click(raider.getByRole('button', { name: 'More for Raider' }))
+    await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete…' }))
     expect(names()).toEqual([])
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
     expect(sent()).toEqual([{ name: 'mediator.removeNpc', args: { npcId: 'n-raider' } }])
+  })
+
+  test('Clear the downed removes every downed unit in one press, and Undo puts them back (r6 B8)', async () => {
+    await renderCockpit()
+    await act(async () => {
+      render(<ToasterMount />)
+    })
+    await click(named('Clear the downed'))
+    await waitFor(() =>
+      expect(sent()).toEqual([{ name: 'mediator.removeNpc', args: { npcId: 'n-raider' } }])
+    )
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    await click(await screen.findByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(names()).toContain('mediator.addNpc'))
+    const added = sent().find((s) => s.name === 'mediator.addNpc')?.args as {
+      body: { id?: string }
+    }
+    expect(added.body.id ?? 'n-raider').toBe('n-raider')
   })
 
   test('a downed Vehicle breaks down for its Scrap into the crawler, claimed once', async () => {
@@ -500,7 +763,7 @@ describe('the Opposition', () => {
     await restoreCrawler()
   })
 
-  test('a downed Mech rolls Mech Salvage; what the band allows goes to the crawler’s hold', async () => {
+  test('a downed Mech rolls Mech Salvage; the pick goes to the crew as an offer on the crawler (r7 D8)', async () => {
     const mule = {
       _id: 'n-mule',
       body: {
@@ -516,20 +779,46 @@ describe('the Opposition', () => {
     const box = within(screen.getByRole('region', { name: /^Mech: Mule, down/ }))
     await click(box.getByRole('button', { name: /Roll/ }))
     await click(box.getByRole('button', { name: 'Mule · T1 · 7 Slots' }))
-    await click(box.getByRole('button', { name: 'Take to the crawler' }))
+    await click(box.getByRole('button', { name: 'Offer to the crew' }))
+    // The roll is kept with the wreck first (r5 B1), the wreck is claimed, then offered.
     await waitFor(() =>
-      expect(
-        useUnits
-          .getState()
-          .get('crawler', tenacity.id)
-          ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
-      ).toBe(true)
+      expect(names()).toEqual(['mediator.updateNpc', 'mediator.updateNpc', 'ops.propose'])
     )
-    expect(names()).toEqual(['mediator.updateNpc'])
+    const offer = sent()[2]?.args as {
+      entityId: string
+      field: string
+      after: { name: string }[]
+      offer: { picked: string[] }
+    }
+    expect(offer.entityId).toBe(tenacity.id)
+    expect(offer.field).toBe('cargoLots')
+    expect(offer.after.map((l) => l.name)).toEqual(['Mule (Damaged)'])
+    expect(offer.offer.picked).toHaveLength(1)
+    // Nothing is written to the crawler until the crew answers.
+    expect(
+      useUnits
+        .getState()
+        .get('crawler', tenacity.id)
+        ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
+    ).not.toBe(true)
     await restoreCrawler()
   })
 
-  test('a salvaged wreck says nothing is left to take', async () => {
+  // MD6-06: every card read 'No Morale roll yet', a lone NPC's too, and none could roll it.
+  test('Morale shows where the rules use it; every card’s ⋯ rolls it on the spot (r6 B5)', async () => {
+    await renderCockpit()
+    const strike = within(screen.getByRole('region', { name: 'NPC: Strikebreaker' }))
+    expect(strike.queryByText('No Morale roll yet')).toBeNull()
+    const scylla = within(screen.getByRole('region', { name: 'Bio-Titan: Scylla' }))
+    expect(scylla.getByText('No Morale roll yet')).toBeTruthy()
+    await click(strike.getByRole('button', { name: 'More for Strikebreaker' }))
+    await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Roll Morale' }))
+    await waitFor(() => expect(names()).toEqual(['mediator.updateNpc']))
+    const patch = sent()[0]?.args.patch as { lastMediatorRoll?: { table: string } }
+    expect(patch.lastMediatorRoll?.table).toBe('morale')
+  })
+
+  test('a salvaged wreck folds to its one line: nothing is left to take', async () => {
     const tank = {
       _id: 'n-tank',
       body: {
@@ -543,7 +832,10 @@ describe('the Opposition', () => {
       },
     }
     await renderCockpit({ 'mediator.npcs': [tank] })
-    expect(screen.getByText('Salvaged: nothing is left to take.')).toBeTruthy()
+    // Nothing left to do with it: it folds to its one line (r6 B8).
+    const region = screen.getByRole('region', { name: 'Vehicle: Tank, down' })
+    expect(region.closest('[data-folded]')).toBeTruthy()
+    expect(screen.queryByText('Salvaged: nothing is left to take.')).toBeNull()
   })
 
   test('Area sets the area being salvaged; its line names it and Clear clears it', async () => {
@@ -557,8 +849,99 @@ describe('the Opposition', () => {
     expect(names()).toEqual(['salvageAreas.set'])
   })
 
-  test('the chosen NPC’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed and in Discord, off the log', async () => {
+  test('Actions opens a unit’s actions inside its own card, each on its own; none is open until asked for (r4 D1)', async () => {
     await renderCockpit()
+    expect(screen.queryByRole('list', { name: /’s actions$/ })).toBeNull()
+    await click(named('Scylla’s actions'))
+    expect(named('Scylla’s actions').getAttribute('aria-pressed')).toBe('true')
+    const scylla = screen.getByRole('list', { name: 'Scylla’s actions' })
+    // In the card: the unit's own list item holds its box and its actions.
+    const card = scylla.closest('.su-play-npc') as HTMLElement
+    expect(within(card).getByRole('region', { name: /Scylla/ })).toBeTruthy()
+    // Another unit's opens beside it; Scylla's stays where it was.
+    await click(named('Strikebreaker’s actions'))
+    expect(screen.getByRole('list', { name: 'Scylla’s actions' })).toBe(scylla)
+    expect(
+      screen.getByRole('list', { name: 'Strikebreaker’s actions' }).closest('.su-play-npc')
+    ).not.toBe(card)
+    // Pressed again, it shuts.
+    await click(named('Scylla’s actions'))
+    expect(screen.queryByRole('list', { name: 'Scylla’s actions' })).toBeNull()
+    expect(named('Scylla’s actions').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  test('a weapon’s roll offers its hit: Propose 3 HP to…, the Pilots listed, and a seat pressed is proposed it (r4 D2)', async () => {
+    await renderCockpit({
+      'mediator.npcs': [
+        {
+          _id: 'n-raider',
+          body: { name: 'Raider', refSchema: 'npcs', refSlug: 'raider', currentHp: 3, maxHp: 3 },
+        },
+      ],
+    })
+    await click(named('Raider’s actions'))
+    const list = within(screen.getByRole('list', { name: 'Raider’s actions' }))
+    // Nothing is offered before the roll.
+    await click(list.getByRole('button', { name: /^Use Improvised Firearm.* for Raider$/ }))
+    expect(screen.queryByRole('button', { name: /^Propose 3 HP/ })).toBeNull()
+    await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
+    const offer = await screen.findByRole('button', { name: 'Propose 3 HP from Raider to…' })
+    expect(offer.textContent).toContain('Propose 3 HP to…')
+    // Beside the result, above the table's rows, in view after the roll (r5 B6).
+    const firstRow = offer.closest('.su-play-resolve')?.querySelector('.su-roll__row') as Element
+    expect(offer.compareDocumentPosition(firstRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    acts.length = 0
+    await click(offer)
+    // HP damage goes to the Pilots first, then to the Mechs at half (r8 B6);
+    // each says what it is left with.
+    const seats = screen.getAllByRole('menuitem').map((item) => item.textContent)
+    expect(seats.some((s) => s?.startsWith('Rook') && s.includes('HP 4 → 1'))).toBe(true)
+    const mech = seats.findIndex((s) => s?.includes('Buzzard') === true)
+    expect(seats[mech]).toMatch(/SP (\d+) → /)
+    expect(mech).toBeGreaterThan(seats.findIndex((s) => s?.startsWith('Rook') === true))
+    await click(screen.getByRole('menuitem', { name: /^Rook/ }))
+    await waitFor(() =>
+      expect(sent()).toEqual([
+        {
+          name: 'ops.propose',
+          args: {
+            entityId: 'row-rook',
+            entityType: 'pilot',
+            field: 'currentHP',
+            after: 1,
+            reason: 'Mediator rolled · NPC Action',
+          },
+        },
+      ])
+    )
+  })
+
+  test('a miss offers no hit and folds the action: the table’s Failure rows propose nothing (r4 D2, r8 B5)', async () => {
+    await renderCockpit(
+      {
+        'mediator.npcs': [
+          {
+            _id: 'n-raider',
+            body: { name: 'Raider', refSchema: 'npcs', refSlug: 'raider', currentHp: 3, maxHp: 3 },
+          },
+        ],
+      },
+      true,
+      3
+    )
+    await click(named('Raider’s actions'))
+    const list = within(screen.getByRole('list', { name: 'Raider’s actions' }))
+    await click(list.getByRole('button', { name: /^Use Improvised Firearm.* for Raider$/ }))
+    await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
+    // Its line is on the Feed, and the panel is done with: one Roll the die is ever open.
+    await waitFor(() => expect(feedLines().some((l) => / · 3 · Failure/.test(l))).toBe(true))
+    expect(list.queryByRole('button', { name: 'Roll the die on NPC Action' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Propose 3 HP/ })).toBeNull()
+  })
+
+  test('a unit’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed, the Game’s log and Discord', async () => {
+    await renderCockpit()
+    await click(named('Strikebreaker’s actions'))
     const list = within(screen.getByRole('list', { name: 'Strikebreaker’s actions' }))
     await click(
       list.getAllByRole('button', { name: /^Use .* for Strikebreaker$/ })[0] as HTMLElement
@@ -569,18 +952,133 @@ describe('the Opposition', () => {
       expect(feedLines().some((l) => /^You · Strikebreaker · .* · 14 · Success/.test(l))).toBe(true)
     )
     expect(postRoll).toHaveBeenCalledTimes(1)
-    expect(sent().map((a) => a.name)).not.toContain('changeLog.appendChangeLog')
+    // On the Game's log, so the players' Feeds show it and a reload keeps it (B8).
+    await waitFor(() => expect(logged()).toHaveLength(1))
+    expect(logged()[0]?.field).toBe('roll')
+    expect(logged()[0]?.after.description).toMatch(/^Mediator · Strikebreaker · /)
+    expect(logged()[0]?.after).not.toHaveProperty('private')
+    // The players' line names neither the NPC nor its weapon (r2 B1).
+    expect(logged()[0]?.after.veiled).toBe('Mediator rolled · 14 · Success')
+    // Nor does the bot's card: the Mediator's carries its table alone.
+    expect(JSON.stringify(postRoll.mock.calls[0])).not.toContain('Strikebreaker')
   })
 
-  test('Actions on another NPC lists its actions instead', async () => {
+  test('a veiled roll says the players miss its names, and Reveal shows the table the whole line (r2 B1)', async () => {
+    await renderCockpit({
+      'changeLog.events': [
+        {
+          _id: 'e-veiled',
+          ts: NOW - 1000,
+          kind: 'roll',
+          text: 'Mediator · Strikebreaker · Fists · 9 · Tough Choice',
+          actorId: 'u-gm',
+          veiled: true,
+        },
+      ],
+    })
+    expect(feedLines().some((l) => l.includes('Players see the result, not the names'))).toBe(true)
+    await click(named(/^Reveal to the table: /))
+    expect(sent()).toEqual([{ name: 'changeLog.reveal', args: { rollId: 'e-veiled' } }])
+  })
+
+  test('a private roll says only the Mediator sees it, never that players saw the result, and Reveal sends it (r3 A1)', async () => {
+    await renderCockpit({
+      'changeLog.events': [
+        {
+          _id: 'e-private',
+          ts: NOW - 1000,
+          kind: 'roll',
+          text: 'Mediator · Strikebreaker · Fists · 15 · Success',
+          actorId: 'u-gm',
+          private: true,
+          veiled: true,
+        },
+      ],
+    })
+    const line = feedLines().find((l) => l.includes('Strikebreaker · Fists')) ?? ''
+    expect(line).toContain('· Only you')
+    expect(line).toContain('Only the Mediator sees this roll')
+    expect(line).not.toContain('Players see the result')
+    await click(named(/^Reveal to the table: /))
+    expect(sent()).toEqual([{ name: 'changeLog.reveal', args: { rollId: 'e-private' } }])
+  })
+
+  // MD6-20: on, it was only a darker button; the roll and the Rolls looked the same.
+  test('Private rolls on: the roll reads Roll privately, the Rolls carry a Private band, each line says Only you, and nothing reaches Discord (r6 B10)', async () => {
     await renderCockpit()
-    await click(named('Scylla’s actions'))
-    expect(named('Scylla’s actions').getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByRole('list', { name: 'Scylla’s actions' })).toBeTruthy()
+    expect(screen.queryByText(/^Private: only you see these rolls/)).toBeNull()
+    await click(named('Private rolls'))
+    expect(named('Private rolls').getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByText(/^Private: only you see these rolls/)).toBeTruthy()
+    await click(named('Strikebreaker’s actions'))
+    await click(named('Roll privately on Morale'))
+    await waitFor(() =>
+      expect(feedLines().some((l) => /^You · Strikebreaker · Morale · .* · Only you/.test(l))).toBe(
+        true
+      )
+    )
+    await waitFor(() => expect(logged()).toHaveLength(1))
+    expect(logged()[0]?.after.private).toBe(true)
+    expect(postRoll).not.toHaveBeenCalled()
+  })
+
+  test('Private rolls is remembered for the Game across a reload, and sits in the Rolls head (r2 B2)', async () => {
+    await renderCockpit()
+    await click(named('Private rolls'))
+    cleanup()
+    await renderCockpit()
+    const again = named('Private rolls')
+    expect(again.getAttribute('aria-pressed')).toBe('true')
+    expect(again.closest('section')?.querySelector('h2')?.textContent).toBe('Rolls')
+    // And the next roll after the reload is private at once.
+    await click(named('Strikebreaker’s actions'))
+    await click(named('Roll privately on Morale'))
+    await waitFor(() => expect(logged()).toHaveLength(1))
+    expect(logged()[0]?.after.private).toBe(true)
+    await click(again)
+    cleanup()
+    await renderCockpit()
+    expect(named('Private rolls').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  test('a roll made before a reload is on the Feed from the Game’s log', async () => {
+    await renderCockpit({
+      'changeLog.rolls': [
+        {
+          _id: 'r1',
+          ts: NOW - 1000,
+          source: 'play',
+          description: 'Mediator · Strikebreaker · Morale · 4 · Holds',
+          actorName: 'Med',
+          private: true,
+        },
+      ],
+    })
+    expect(
+      feedLines().some((l) => l.startsWith('You · Strikebreaker · Morale · 4 · Holds · Only you'))
+    ).toBe(true)
+  })
+
+  test('Up now marks a seat for the table, and pressing it again clears it', async () => {
+    await renderCockpit()
+    const first = screen.getAllByRole('button', { name: /^Give the turn: / })[0] as HTMLElement
+    expect(first.getAttribute('aria-pressed')).toBe('false')
+    await click(first)
+    expect(sent()).toHaveLength(1)
+    expect(sent()[0]?.name).toBe('scenes.setUpNow')
+    const marked = String(sent()[0]?.args.pilotId)
+    cleanup()
+    acts.length = 0
+    await renderCockpit({ 'scenes.current': { conditions: [], hours: 0, upNow: marked } })
+    const again = screen.getAllByRole('button', { name: /^Give the turn: / })[0] as HTMLElement
+    expect(again.getAttribute('aria-pressed')).toBe('true')
+    await click(again)
+    expect(sent()).toEqual([{ name: 'scenes.setUpNow', args: { pilotId: null } }])
   })
 
   test('Morale rolls on the Morale table, kept on the NPC and on the Feed', async () => {
     await renderCockpit()
+    await click(named('Strikebreaker’s actions'))
     await click(named('Roll the die on Morale'))
     await waitFor(() => expect(names()).toEqual(['mediator.updateNpc']))
     const patch = sent()[0]?.args.patch as { lastMediatorRoll?: { table: string } }
@@ -665,11 +1163,11 @@ describe('the Opposition', () => {
     act(() => useEncounters.setState({ encounters: [] }))
   })
 
-  test('with nothing prepped, Run an encounter points to the Training Bay', async () => {
+  test('with nothing prepped, Run an encounter points to the Mediator’s Kit', async () => {
     await renderCockpit()
     await click(named('Run an encounter'))
     const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
-    expect(dialog.getByRole('link', { name: 'Training Bay' })).toBeTruthy()
+    expect(dialog.getByRole('link', { name: 'Mediator’s Kit' })).toBeTruthy()
     await click(dialog.getAllByRole('button', { name: 'Close' }).at(-1) as HTMLElement)
     expect(sent().some((s) => s.name === 'mediator.runEncounter')).toBe(false)
   })
@@ -686,8 +1184,33 @@ describe('the Opposition', () => {
     })
     expect(screen.getByText('Behind the crusher.')).toBeTruthy()
     expect(screen.getByRole('list', { name: "This encounter's tables" })).toBeTruthy()
-    await click(named('End Ambush'))
+    await click(named('End encounter: Ambush'))
+    // With opposition still out, End asks whether to clear it (ADR-007: never for you).
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'End' }))
     expect(sent()).toContainEqual({ name: 'mediator.endEncounter', args: {} })
+  })
+
+  // r4 A11 (MD4-20): a condition stayed on, unseen, through the end of the encounter.
+  test('with a Scene condition on, the bar names it and End asks whether to clear it', async () => {
+    await renderCockpit({
+      'scenes.current': { conditions: ['radiation-storm'], hours: 1 },
+      'mediator.npcs': [],
+      'mediator.running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: [],
+        notes: '',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    expect(within(screen.getByRole('banner')).getByText('Scene · Radiation Storm')).toBeTruthy()
+    await click(named('End encounter: Ambush'))
+    const dialog = within(screen.getByRole('alertdialog'))
+    expect(dialog.getByLabelText('Keep the Scene under Radiation Storm')).toBeTruthy()
+    await click(dialog.getByLabelText('Clear Radiation Storm'))
+    await click(dialog.getByRole('button', { name: 'End' }))
+    expect(sent()).toContainEqual({ name: 'mediator.endEncounter', args: {} })
+    expect(sent()).toContainEqual({ name: 'scenes.setConditions', args: { conditions: [] } })
   })
 
   test('a briefing stays behind its flag, off in a production build', async () => {
@@ -725,10 +1248,67 @@ describe('Downtime', () => {
     await renderCockpit(downtimeAt(2))
     await click(named('Back to Step 2'))
     await click(named('Next: Step 4'))
+    // Two seats are still working: moving on asks, once for the step (r8 B9).
+    const ask = within(screen.getByRole('alertdialog', { name: /^Move on from 3 / }))
+    expect(ask.getByText(/^Still working: /)).toBeTruthy()
+    await click(ask.getByRole('button', { name: 'Move on' }))
     expect(sent()).toEqual([
       { name: 'downtime.setStep', args: { stepIndex: 1 } },
       { name: 'downtime.advance', args: {} },
     ])
+    acts.length = 0
+    await click(named('Next: Step 4'))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(names()).toEqual(['downtime.advance'])
+  })
+
+  // MD8-15: pressing Step 2 landed on 3, the step passing by itself.
+  test('a step pressed on the track is the step opened: it waits for Next (r8 B9)', async () => {
+    await renderCockpit(downtimeAt(0))
+    await click(named(/^Step 2: /))
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Move on' }))
+    expect(sent()).toEqual([{ name: 'downtime.setStep', args: { stepIndex: 1 } }])
+  })
+
+  // r7 D3 (LG7-23): a step every seat had finished still waited for the Mediator's Next.
+  test('a step every seat has finished moves on by itself, once, and says so', async () => {
+    const everyone = ['u-bonesaw', 'u-mags', 'u-rook', 'u-wren'].map((userId) => ({
+      userId,
+      displayName: userId,
+    }))
+    await renderCockpit({
+      'downtime.state': { running: true, stepIndex: 5, completedBy: everyone, upkeepSpent: true },
+    })
+    expect(sent()).toEqual([{ name: 'downtime.advance', args: { auto: true } }])
+    expect(screen.getByText(/^Moved on by itself, nothing left to do: 6 /)).toBeTruthy()
+  })
+
+  test('the last step, and one a seat is still working in, wait for the Mediator', async () => {
+    await renderCockpit(downtimeAt(5))
+    expect(names()).toEqual([])
+    cleanup()
+    const everyone = ['u-bonesaw', 'u-mags', 'u-rook', 'u-wren'].map((userId) => ({
+      userId,
+      displayName: userId,
+    }))
+    await renderCockpit({
+      'downtime.state': { running: true, stepIndex: 9, completedBy: everyone, upkeepSpent: true },
+    })
+    expect(names()).toEqual([])
+  })
+
+  // LG8-10: back on step 3 after seeing all ten, End still said "early".
+  test('End Downtime after the table reached the last step does not ask (r8 B9)', async () => {
+    await renderCockpit(downtimeAt(9))
+    // Back on step 3, as the room answers a Back.
+    await act(async () => {
+      serveReads(GAME, answers(downtimeAt(2)))
+    })
+    await waitFor(() => expect(named('Back to Step 2')).toBeTruthy())
+    acts.length = 0
+    await click(named('End Downtime'))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(names()).toEqual(['downtime.end'])
   })
 
   test('End Downtime before the last step asks first', async () => {
@@ -749,12 +1329,12 @@ describe('Downtime', () => {
 
   test('Upkeep waits for Upkeep & Upgrade: Pay is off in any other step', async () => {
     await renderCockpit(downtimeAt(0))
-    expect((named('Pay') as HTMLButtonElement).disabled).toBe(true)
+    expect((named('Pay 5 Scrap') as HTMLButtonElement).disabled).toBe(true)
   })
 
   test('in Upkeep & Upgrade, Pay sends the Scrap as the run’s one Upkeep op', async () => {
     await renderCockpit(downtimeAt(UPKEEP_STEP))
-    await click(named('Pay'))
+    await click(named('Pay 5 Scrap'))
     await waitFor(() => expect(screen.getByText(/^Paid the Upkeep/)).toBeTruthy())
     expect(sent()).toMatchObject([
       {
@@ -769,8 +1349,25 @@ describe('Downtime', () => {
 
   test('paid, it says so', async () => {
     await renderCockpit(downtimeAt(UPKEEP_STEP, true))
-    expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Pay / })).toBeNull()
     expect(screen.getByText('Paid')).toBeTruthy()
+  })
+
+  // r4 A7 (LG4-12): an empty pool was marked Paid.
+  test('a pool too small reads Short by N, Pay says what it takes and is off, and the book is cited', async () => {
+    await act(async () => {
+      await useUnits.getState().update('crawler', tenacity.id, { scrapPool: {} }, PLAY_TXN)
+    })
+    try {
+      await renderCockpit(downtimeAt(UPKEEP_STEP))
+      expect((named('Pay 5 Scrap') as HTMLButtonElement).disabled).toBe(true)
+      expect(screen.getByText('Short by 5')).toBeTruthy()
+      expect(screen.getByText('Unpaid Upkeep: Workshop Manual · p.218.')).toBeTruthy()
+      expect(screen.queryByText('Paid')).toBeNull()
+      expect(names()).toEqual([])
+    } finally {
+      await restoreCrawler()
+    }
   })
 
   test('with a Nanite Processing Bay, Process Nanites runs in the Craft step', async () => {
@@ -814,7 +1411,7 @@ describe('every Mediator capability is reachable here', () => {
     await renderCockpit()
     const bar = within(screen.getAllByRole('banner')[0] as HTMLElement)
     expect(bar.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe(
-      `/play/games/${GAME}`
+      `/games/${GAME}`
     )
   })
 
@@ -824,10 +1421,10 @@ describe('every Mediator capability is reachable here', () => {
     expect(flagged).toHaveLength(1)
   })
 
-  test('Saved is the foot’s, beside the Opposition reminder', async () => {
+  test('the foot is Play’s own, with no Opposition reminder on it', async () => {
     await renderCockpit()
     const foot = within(screen.getByRole('contentinfo'))
-    expect(foot.getByText('Players see the Opposition only through what you post')).toBeTruthy()
+    expect(foot.queryByText(/Players see the Opposition/)).toBeNull()
   })
 
   test('The table: View a seat’s sheet is its Sheet', async () => {
@@ -846,7 +1443,10 @@ describe('every Mediator capability is reachable here', () => {
         primaryCrawlerId: null,
       },
     })
-    expect(screen.getByRole('link', { name: 'Raise one from the Game page' })).toBeTruthy()
+    // It points at the Game page's add controls, where a crawler is added.
+    expect(
+      screen.getByRole('link', { name: 'Add a crawler on the Game page' }).getAttribute('href')
+    ).toBe(`/games/${GAME}#add-crew`)
   })
 
   test('Opposition: Rename is the NPC’s ⋯ menu', async () => {
@@ -876,16 +1476,38 @@ describe('every Mediator capability is reachable here', () => {
     expect(dialog.getByText(/^Rook · HP → 6/)).toBeTruthy()
   })
 
+  test('a pending proposal is withdrawn from All proposals; an answered one offers nothing (r2 C7)', async () => {
+    await renderCockpit({
+      'ops.sent': [
+        { ...SENT_PROPOSAL, state: 'proposed' },
+        { ...SENT_PROPOSAL, _id: 'p-0', targetName: 'Mags', state: 'applied' },
+      ],
+    })
+    await click(named('All proposals'))
+    const dialog = within(screen.getByRole('dialog', { name: 'Proposals you sent' }))
+    expect(dialog.queryByRole('button', { name: /^Withdraw: Mags/ })).toBeNull()
+    await click(dialog.getByRole('button', { name: /^Withdraw: Rook · HP → 6/ }))
+    expect(sent()).toEqual([{ name: 'ops.withdraw', args: { opId: 'p-1' } }])
+  })
+
   test('the roll tables are the Tables section, and its rolls post', async () => {
     await renderCockpit()
     expect(screen.getByText('Rolls post to the Game’s channel')).toBeTruthy()
     expect(screen.getByRole('list', { name: 'Pinned tables' })).toBeTruthy()
   })
 
-  test('the reference is ⋯ › Reference', async () => {
+  test('the Rules are a pane beside the board, so the ⋯ has no row for them', async () => {
     await renderCockpit()
+    const side = within(screen.getByRole('region', { name: 'Rolls, Rules and Propose' }))
+    // Shut until asked for, so Propose is on the first screen (r2 I2).
+    expect(side.queryByLabelText('Search the Reference')).toBeNull()
+    expect(side.getByRole('button', { name: 'Propose' })).toBeTruthy()
+    await click(side.getByRole('button', { name: 'Open the Rules' }))
+    expect(side.getByLabelText('Search the Reference')).toBeTruthy()
+    await click(side.getByRole('button', { name: 'Close the Rules' }))
+    expect(side.queryByLabelText('Search the Reference')).toBeNull()
     await click(named('More'))
-    expect(screen.getByRole('menuitem', { name: 'Reference' })).toBeTruthy()
+    expect(screen.queryByRole('menuitem', { name: 'Rules' })).toBeNull()
   })
 
   test('the Game’s rolls and the alerts sent are the Feed', async () => {
@@ -925,38 +1547,247 @@ describe('below `lg`, on a phone (play.md §11)', () => {
     return within(open[0] as HTMLElement)
   }
 
-  test('Table, Opposition, Tables, Propose under the pinned Scene / Downtime switch', async () => {
+  // r7 C8 (MD7-16): the sticky head is the game bar alone; the switch heads the Table pane.
+  test('Table, Opposition, Tables, Propose, the Scene / Downtime switch heading the Table', async () => {
     await renderCockpit()
     expect(screen.queryByRole('region', { name: 'The table' })).toBeNull()
     const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
-    expect(tabs.map((t) => t.textContent)).toEqual(['Table', 'Opposition', 'Tables', 'Propose'])
-    const state = screen.getByRole('group', { name: 'Game state' })
-    expect(state.closest('[role="tabpanel"]')).toBeNull()
+    expect(tabs.map((t) => t.textContent)).toEqual(['Table', 'Opposition', 'Rolls', 'Propose'])
+    expect(document.querySelector('.su-play-frame__pinned')).toBeNull()
+    expect(openPanel().getByRole('group', { name: 'Game state' })).toBeTruthy()
     expect(openPanel().getByRole('heading', { name: 'The table' })).toBeTruthy()
+    // The Feed, the table's log, runs under the Table.
+    expect(openPanel().getByRole('heading', { name: 'Feed' })).toBeTruthy()
     await click(phoneTab('Opposition'))
     expect(openPanel().getAllByText('Strikebreaker').length).toBeGreaterThan(0)
-    await click(phoneTab('Tables'))
+    // The units come before the Scene, in reading and Tab order (r7 C8, MD7-16, MD7-21).
+    const units = openPanel().getByRole('list', { name: 'Opposition' })
+    const scene = openPanel().getByRole('heading', { name: 'Scene' })
+    expect(units.compareDocumentPosition(scene) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    await click(phoneTab('Rolls'))
     expect(
       openPanel()
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent)
-    ).toEqual(['Tables', 'Feed'])
+    ).toEqual(['Rolls'])
     await click(phoneTab('Propose'))
     expect(openPanel().getByRole('region', { name: 'Propose' })).toBeTruthy()
   })
 
   test('tapping a seat opens Propose, aimed at that pilot, with focus in To', async () => {
     await renderCockpit()
-    await click(screen.getByRole('button', { name: /^Rook, here/ }))
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
     expect(phoneTab('Propose').getAttribute('aria-selected')).toBe('true')
     const dock = within(openPanel().getByRole('region', { name: 'Propose' }))
     expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')
-    expect(document.activeElement).toBe(dock.getByLabelText('To'))
+    expect(document.activeElement).toBe(dock.getByLabelText('Amount'))
+  })
+
+  test('the running encounter’s Notes sit on the Opposition tab, under its name, not on Rolls (r4 D3)', async () => {
+    await renderCockpit({
+      'mediator.running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: [],
+        notes: 'The gantry gives way on a Cascade Failure.',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    await click(phoneTab('Opposition'))
+    const panel = openPanel()
+    const notes = panel.getByRole('heading', { name: 'Notes' })
+    const name = panel.getByText('Ambush')
+    expect(name.compareDocumentPosition(notes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(panel.getByText('The gantry gives way on a Cascade Failure.')).toBeTruthy()
+    await click(phoneTab('Rolls'))
+    expect(openPanel().queryByRole('heading', { name: 'Notes' })).toBeNull()
+  })
+
+  // MD6-12: with five units, eleven skip links stood before the header.
+  test('four skip links lead the screen, whatever the fight; each opens its tab and moves focus into its pane (r4 D6, r6 B11)', async () => {
+    await renderCockpit()
+    const jumps = within(screen.getByRole('navigation', { name: 'Jump to' })).getAllByRole('link')
+    expect(jumps.map((j) => j.textContent)).toEqual([
+      'Skip to The table',
+      'Skip to Opposition',
+      'Skip to Rolls',
+      'Skip to Feed',
+    ])
+    // Skip to Feed points at the Feed, never at the Table pane (r7 C8, MD7-21).
+    expect(jumps[3]?.getAttribute('href')).toBe('#mediate-feed')
+    expect(jumps[0]?.getAttribute('href')).not.toBe('#mediate-feed')
+    // The Opposition jump lands on its heading, which leads into its own list of units.
+    await click(jumps[1] as HTMLElement)
+    expect(phoneTab('Opposition').getAttribute('aria-selected')).toBe('true')
+    expect(document.activeElement?.textContent).toBe('Opposition')
+    const units = within(screen.getByRole('navigation', { name: 'Opposition units' }))
+      .getAllByRole('link')
+      .map((link) => link as HTMLElement)
+    expect(units.at(-1)?.textContent).toBe('Skip to Add opposition')
+    const strike = units.find((j) => j.textContent === 'Skip to Strikebreaker’s vitals')
+    expect(strike).toBeTruthy()
+    await click(strike as HTMLElement)
+    expect(document.activeElement?.closest('[data-npc-id]')?.textContent).toContain('Strikebreaker')
+    await click(units.at(-1) as HTMLElement)
+    expect(document.activeElement?.getAttribute('aria-label')).toBe(
+      'Add opposition from the reference'
+    )
+    await click(jumps[3] as HTMLElement)
+    expect(phoneTab('Table').getAttribute('aria-selected')).toBe('true')
+    expect(document.activeElement?.textContent).toBe('Feed')
   })
 
   test('in Downtime the second tab says so and holds the track', async () => {
     await renderCockpit(downtimeAt(2))
     await click(phoneTab('Downtime'))
     expect(openPanel().getByRole('list', { name: 'Downtime steps' })).toBeTruthy()
+  })
+})
+
+describe('from `lg`: the Mediator’s jumps and notes', () => {
+  // MD6-09: the session plan was in Prep only, a trip away from the table.
+  test('the end column holds the Plan from Prep, under the Rolls (r6 B7)', async () => {
+    await renderCockpit({
+      'plan.get': {
+        schemaVersion: 1,
+        notes: 'The bridge is out.',
+        sessions: [{ id: 's1', date: '2999-01-01', title: 'The Pylon', note: 'Kessler turns.' }],
+      },
+    })
+    const plan = await screen.findByRole('region', { name: 'Plan' })
+    expect(within(plan).getByLabelText('Session plan · The Pylon')).toBeTruthy()
+    expect(within(plan).getByLabelText('Game notes')).toBeTruthy()
+  })
+
+  test('the skip links come before everything else on the screen, and Notes head the end column', async () => {
+    await renderCockpit({
+      'mediator.running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: [],
+        notes: 'Hold fire.',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    const main = screen.getByRole('main')
+    const first = main.querySelector('a, button') as HTMLElement
+    expect(first.textContent).toBe('Skip to The table')
+    await click(screen.getByRole('link', { name: 'Skip to Rolls' }))
+    const pane = document.activeElement as HTMLElement
+    expect(within(pane).getByRole('heading', { name: 'Rolls' })).toBeTruthy()
+    // From `lg` the Notes stay in the end column, above the Rolls.
+    expect(within(pane).getByRole('heading', { name: 'Notes' })).toBeTruthy()
+    expect(
+      within(screen.getByRole('region', { name: 'Opposition' })).queryByRole('heading', {
+        name: 'Notes',
+      })
+    ).toBeNull()
+  })
+})
+
+// r7 C5 (LG7-09): a Pilot's hit carries its damage to the Mediator's cards.
+describe('a Pilot’s hit on the Opposition (r7 C5)', () => {
+  const HIT = {
+    _id: 'r-hit',
+    ts: NOW - 1_000,
+    description: 'Hotdog · Improvised Melee Weapon · 11 · Success',
+    actorName: 'Sam',
+    source: 'play',
+  }
+
+  test('a landed hit is one press on each unit it can land on, and applies its damage', async () => {
+    await renderCockpit({ 'changeLog.rolls': [HIT] })
+    // HP damage: Strikebreaker (HP) takes it; Scylla (SP) and the downed Raider do not.
+    const apply = named('Apply Hotdog’s hit, 2 HP, to Strikebreaker')
+    expect(apply.textContent).toBe('Hotdog’s hit: 2 HP')
+    expect(screen.queryByRole('button', { name: /hit, 2 HP, to Scylla/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /hit, 2 HP, to Raider/ })).toBeNull()
+    await click(apply)
+    expect(sent().filter((s) => s.name === 'mediator.updateNpc')).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-strike', patch: { currentHp: 8 } } },
+    ])
+    // Applied once: the offer goes.
+    expect(screen.queryByRole('button', { name: /^Apply Hotdog’s hit/ })).toBeNull()
+  })
+
+  test('a miss offers nothing', async () => {
+    await renderCockpit({
+      'changeLog.rolls': [
+        { ...HIT, description: 'Hotdog · Improvised Melee Weapon · 3 · Failure' },
+      ],
+    })
+    expect(screen.queryByRole('button', { name: /^Apply Hotdog’s hit/ })).toBeNull()
+  })
+})
+
+// MD6-04: Group Initiative (Core Book p.235–236) had no place on Mediate.
+describe('Group Initiative on the table (r6 B4)', () => {
+  const initiative = () =>
+    sent()
+      .filter((s) => s.name === 'mediator.setInitiative')
+      .map((s) => s.args.initiative)
+
+  test('Start keeps round 1, who acts first not yet said', async () => {
+    await renderCockpit()
+    await click(named('Start Group Initiative'))
+    expect(initiative()).toEqual([{ round: 1, acted: [] }])
+  })
+
+  test('New round asks who acts first: a choice, or the table’s roll answers it', async () => {
+    await renderCockpit({ 'mediator.initiative': { round: 1, acted: [] } })
+    const tracker = region('Group Initiative')
+    await click(tracker.getByRole('button', { name: 'Opposition first' }))
+    expect(initiative()).toEqual([{ round: 1, acted: [], side: 'opposition' }])
+    acts.length = 0
+    // A roll on the Group Initiative Table answers it: which face says which is
+    // `firstSideOf`'s (lib/rules), whatever die this run's table serves.
+    const roll = tracker
+      .getAllByRole('button')
+      .find((b) => /^Roll/.test(b.getAttribute('aria-label') ?? b.textContent ?? ''))
+    await click(roll as HTMLElement)
+    await waitFor(() => expect(initiative()).toHaveLength(1))
+    const [answered] = initiative() as { side?: string }[]
+    expect(['pilots', 'opposition']).toContain(answered?.side ?? '')
+  })
+
+  test('the round, whose side is to act, each mark, Next side and New round', async () => {
+    const seat = MEDIATOR_SEATS[0]?.pilotId ?? ''
+    await renderCockpit({
+      'mediator.initiative': { round: 2, side: 'pilots', acted: [seat] },
+    })
+    const tracker = region('Group Initiative')
+    expect(tracker.getByText('Pilots to act')).toBeTruthy()
+    const marks = screen.getAllByRole('button', { name: /^(Acted|To act): / })
+    expect(marks.map((m) => m.getAttribute('aria-pressed'))).toContain('true')
+    // Its name says what it shows (r8 B5, MD8-26).
+    const strike = named('To act: Strikebreaker')
+    expect(strike.getAttribute('aria-pressed')).toBe('false')
+    await click(strike)
+    expect(initiative()).toEqual([{ round: 2, side: 'pilots', acted: [seat, 'n-strike'] }])
+    acts.length = 0
+    await click(tracker.getByRole('button', { name: 'Next side' }))
+    expect(initiative()).toEqual([{ round: 2, side: 'opposition', acted: [seat] }])
+    acts.length = 0
+    await click(tracker.getByRole('button', { name: 'New round' }))
+    expect(initiative()).toEqual([{ round: 3, acted: [] }])
+    // Give the turn still works within a side.
+    expect(screen.getAllByRole('button', { name: /^Give the turn: / }).length).toBeGreaterThan(0)
+  })
+
+  // r7 C3 (MD7-04): turns run themselves, each step with Undo on the tracker.
+  test('a side all acted passes play on by itself, and Undo puts it back', async () => {
+    // Every Pilot has ended their turn: the room marked each one.
+    const acted = ['bonesaw', 'mags', 'rook', 'wren']
+    await renderCockpit({ 'mediator.initiative': { round: 2, side: 'pilots', acted } })
+    await waitFor(() => expect(initiative()).toEqual([{ round: 2, side: 'opposition', acted }]))
+  })
+
+  test('with every side done, New round is the one way on', async () => {
+    const acted = ['bonesaw', 'mags', 'rook', 'wren', 'n-strike', 'n-scylla']
+    await renderCockpit({ 'mediator.initiative': { round: 2, side: 'opposition', acted } })
+    const tracker = region('Group Initiative')
+    expect(tracker.queryByRole('button', { name: 'Next side' })).toBeNull()
+    expect(tracker.getByRole('button', { name: 'New round' })).toBeTruthy()
+    expect(initiative()).toEqual([])
   })
 })

@@ -23,14 +23,15 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import { linesFromBreakdown } from '../../components/app'
 import type { ProvenanceLine } from '../../components/index'
-import { linesFromBreakdown } from '../../components/index'
 import { useCargo } from '../../lib/cargo/useCargo'
 import {
   hasChassisModder,
   moddableChassisAbilities,
   moddedChassisAbility,
 } from '../../lib/rules/chassisModder'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 /** One chassis stat as the strip prints it: the numeral and its full name. */
 
@@ -157,17 +158,17 @@ export function useMechSheetModel({
   const spLines = linesFromBreakdown(spParts, {
     base: `${chassisName} chassis`,
     baseDetail: 'base',
-    installed: 'Installed systems & modules',
+    installed: buildSheetCopy('installedSystemsAndModules'),
   })
   const epLines = linesFromBreakdown(epParts, {
     base: `${chassisName} chassis`,
     baseDetail: 'base',
-    installed: 'Installed systems & modules',
+    installed: buildSheetCopy('installedSystemsAndModules'),
   })
   const heatLines = linesFromBreakdown(heatParts, {
     base: `${chassisName} chassis`,
     baseDetail: 'base',
-    installed: 'Installed systems & modules',
+    installed: buildSheetCopy('installedSystemsAndModules'),
   })
 
   const scrapPool = crawler ? (crawler.scrapPool ?? {}) : null

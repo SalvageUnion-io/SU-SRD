@@ -21,12 +21,13 @@ import {
   mock,
   test,
 } from 'bun:test'
-import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import { acts, closeRooms, openRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 import type { SyncStatus } from '../../replica/sync'
+import { resetSync, setSyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
 import type { Play } from '../situation.model'
 import type { SheetTarget } from '../useOpenSheet'
@@ -130,6 +131,8 @@ async function renderSide(
   show: (target: SheetTarget) => void = () => {}
 ) {
   const canWrite = status === 'live'
+  // The replica's writers read the status the screen's context says.
+  setSyncStatus(status)
   const target: PlayTarget = {
     pilotId: 'bonesaw',
     gameId,
@@ -187,6 +190,7 @@ beforeEach(() => openRooms(GAME))
 afterEach(() => {
   cleanup()
   closeRooms()
+  resetSync()
   clearPlayRolls()
   postRoll.mockClear()
   postResult = async () => ({ kind: 'posted', channelId: 'c-1', messageId: 'm-1' })
@@ -201,11 +205,17 @@ describe('the Crew (play.md §7)', () => {
     const crew = within(screen.getByRole('list', { name: 'Crew' }))
     const links = crew.getAllByRole('button', { name: /Open their sheet/ })
     expect(links.map((l) => l.getAttribute('aria-label'))).toEqual([
-      'Mags, here, Boarded · Atlas, SP 22, fine. Open their sheet',
-      'Rook, here, On foot, Injured. Open their sheet',
-      'Wren, away, Boarded · Mule, SP 26, fine. Open their sheet',
+      'Mags, here, Boarded · Atlas, SP 22, fine, HP 10/10, AP 5/5, SP 22/26, EP 6/6, Heat 0/9. Open their sheet',
+      'Rook, here, On foot, Injured, HP 4/10, AP 5/5. Open their sheet',
+      'Wren, away, Boarded · Mule, SP 26, fine, HP 10/10, AP 5/5, SP 26/26, EP 6/6, Heat 0/9. Open their sheet',
     ])
     expect(crew.getByText('▲ HP')).toBeTruthy()
+    // A crewmate's name is whole (R56, r2 I3): its Mini wraps its chips rather than cut it.
+    const pills = [
+      ...screen.getByRole('list', { name: 'Crew' }).querySelectorAll('.su-entity-mini__pill'),
+    ]
+    expect(pills).toHaveLength(3)
+    expect(pills.every((pill) => pill.hasAttribute('data-whole-name'))).toBe(true)
     // Presence is a chip on each crewmate's Mini (ruleset §1.3): two here, one away.
     expect(crew.getAllByText('Here')).toHaveLength(2)
     expect(crew.getByText('Away')).toBeTruthy()
@@ -227,7 +237,7 @@ describe('the Crew (play.md §7)', () => {
       const rerender = await renderSide()
       const label = (name: string) =>
         screen.getByRole('button', { name: new RegExp(`^${name},`) }).getAttribute('aria-label')
-      expect(label('Rook')).toBe('Rook, here, On foot, Injured. Open their sheet')
+      expect(label('Rook')).toBe('Rook, here, On foot, Injured, HP 4/10, AP 5/5. Open their sheet')
 
       // Rook climbs into Mule, healed; Mags takes a hit. The crew read answers anew.
       const crew = crewAt()
@@ -249,14 +259,16 @@ describe('the Crew (play.md §7)', () => {
       })
       answers({ 'crew.vitals': crew })
       await rerender()
-      expect(label('Rook')).toBe('Rook, here, Boarded · Mule, SP 26, fine. Open their sheet')
-      expect(label('Mags')).toBe('Mags, here, Boarded · Atlas, Injured. Open their sheet')
+      expect(label('Rook')).toMatch(
+        /^Rook, here, Boarded · Mule, SP 26, fine, HP 10\/10, AP 5\/5, SP 26\/26/
+      )
+      expect(label('Mags')).toMatch(/^Mags, here, Boarded · Atlas, Injured, HP 2\/10/)
       expect(screen.getByText('▲ HP')).toBeTruthy()
 
       // Rook closes the tab: the room says so, and Rook turns away.
       presence.here = new Set(['u-bonesaw', 'u-mags'])
       await rerender()
-      expect(label('Rook')).toBe('Rook, away, Boarded · Mule, SP 26, fine. Open their sheet')
+      expect(label('Rook')).toMatch(/^Rook, away, Boarded · Mule, SP 26, fine/)
       expect(label('Mags')).toMatch(/^Mags, here,/)
     } finally {
       presence.here = CREW_HERE
@@ -274,6 +286,33 @@ describe('the Crew (play.md §7)', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
+  test('Up now: the Mediator’s marker names the crewmate, or says it is you', async () => {
+    answers({ 'scenes.current': { conditions: [], hours: 0, upNow: 'mags' } })
+    await renderSide()
+    // Said, never drawn above the first card (r4 B3): the mark is on Mags's own card.
+    expect(screen.getByText('Up now · Mags').className).toBe('su-sr-only')
+    const crew = within(screen.getByRole('list', { name: 'Crew' }))
+    expect(
+      within(crew.getByRole('button', { name: /^Mags, / }).closest('li') as HTMLElement).getByText(
+        'Up now'
+      )
+    ).toBeTruthy()
+    expect(crew.getAllByText('Up now')).toHaveLength(1)
+    expect(
+      crew.getByRole('button', {
+        name: 'Mags, here, Boarded · Atlas, SP 22, fine, HP 10/10, AP 5/5, SP 22/26, EP 6/6, Heat 0/9, Up now. Open their sheet',
+      })
+    ).toBeTruthy()
+    cleanup()
+    answers({ 'scenes.current': { conditions: [], hours: 0, upNow: 'bonesaw' } })
+    await renderSide()
+    expect(screen.getByText('Up now · You')).toBeTruthy()
+    cleanup()
+    answers()
+    await renderSide()
+    expect(screen.queryByText(/^Up now/)).toBeNull()
+  })
+
   test('solo has no Crew', async () => {
     answers()
     await renderSide({ gameId: null })
@@ -289,11 +328,11 @@ describe('the Feed (play.md §8)', () => {
     expect(feedLines()).toEqual([
       expect.stringContaining('Mediator proposes Bonesaw HP → 5'),
       expect.stringContaining('You · Core Mechanic · 14 · Success'),
-      'Mags · Core Mechanic · 20 · Nailed it',
+      expect.stringContaining('Mags · Core Mechanic · 20 · Nailed it'),
     ])
   })
 
-  test('Accept applies the proposal and lands on the Feed as a change', async () => {
+  test('Accept applies the proposal; the table’s own line says it, so this screen adds none (r3 A5)', async () => {
     answers()
     await renderSide()
     await act(async () => {
@@ -302,7 +341,7 @@ describe('the Feed (play.md §8)', () => {
     await waitFor(() =>
       expect(acts).toEqual([{ gameId: GAME, name: 'ops.accept', args: { opId: 'p-1' } }])
     )
-    await waitFor(() => expect(feed().getByText('You · Applied · Bonesaw HP → 5')).toBeTruthy())
+    expect(feedLines().some((line) => line.includes('Applied'))).toBe(false)
   })
 
   test('solo shows only my own', async () => {
@@ -354,7 +393,14 @@ describe('Discord (play.md §9)', () => {
     await act(async () => {
       recordPlayChange('Vent · Heat 6→0, Vulnerable')
     })
-    expect(feedLines()).toContain('You · Vent · Heat 6→0, Vulnerable')
+    // My own line carries its time, as the table's do (r5 A9).
+    expect(feedLines().some((line) => line.startsWith('You · Vent · Heat 6→0, Vulnerable'))).toBe(
+      true
+    )
+    const vent = feed()
+      .getAllByRole('listitem')
+      .find((li) => li.textContent?.startsWith('You · Vent'))
+    expect(vent?.querySelector('time')).not.toBeNull()
     expect(postRoll).not.toHaveBeenCalled()
   })
 
@@ -408,12 +454,32 @@ describe('Discord (play.md §9)', () => {
     expect(postRoll).toHaveBeenCalledTimes(1)
   })
 
-  test('nothing bound: the Tables say rolls stay in Play; nothing is sent', async () => {
+  test('nothing bound: the Tables say rolls stay at the table; nothing is sent', async () => {
     answers({ 'channelBindings.current': null })
     await renderSide()
-    expect(screen.getByText(/No channel is bound yet/)).toBeTruthy()
+    // A player cannot bind a Game's channel: told who can, offered no control.
+    expect(screen.getByText('None bound: the Mediator or Organiser connects one')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Set up a Discord channel' })).toBeNull()
     await roll([3])
     expect(postRoll).not.toHaveBeenCalled()
+  })
+
+  test('solo, nothing bound: no channel hint, for there is no channel button to follow (SB-28)', async () => {
+    answers({ 'channelBindings.current': null })
+    await renderSide({ gameId: null })
+    expect(screen.queryByText(/No channel is bound yet/)).toBeNull()
+  })
+
+  test('nothing bound, the Mediator’s: the row sets one up, with the bot’s link and the command', async () => {
+    answers({ 'channelBindings.current': null })
+    await renderSide({ mediator: true })
+    expect(screen.getByText('None bound: rolls stay at the table')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Set up a Discord channel' }))
+    const dialog = within(await screen.findByRole('dialog'))
+    expect(
+      dialog.getByRole('link', { name: 'Add the bot to your server' }).getAttribute('href')
+    ).toContain('discord.com/oauth2/authorize')
+    expect(dialog.getByRole('button', { name: 'Copy /su bind' })).toBeTruthy()
   })
 })
 
@@ -428,6 +494,7 @@ describe('the Tables (play.md §8)', () => {
       'Critical Damage',
       'Reactor Overload',
       'Critical Injury',
+      'Group Initiative',
     ])
     const damage = pins.getByRole('button', { name: 'Critical Damage' })
     expect(damage.getAttribute('aria-pressed')).toBe('false')
@@ -458,7 +525,7 @@ describe('the Tables (play.md §8)', () => {
 })
 
 describe('read-only (play.md §7)', () => {
-  test('offline: Accept is withdrawn and a roll says it was not posted', async () => {
+  test('offline: Accept is withdrawn and a roll is held, Not sent yet (r5 A6)', async () => {
     answers()
     await renderSide({}, 'offline')
     expect(
@@ -470,8 +537,43 @@ describe('read-only (play.md §7)', () => {
     ).toBe(true)
     await roll([14])
     expect(postRoll).not.toHaveBeenCalled()
-    expect(feed().getByRole('alert').textContent).toBe(
-      'Not posted to Discord: Not posted: Play is read-only for now.'
+    expect(feed().getByText('Not sent yet')).toBeTruthy()
+    // Nothing failed, and Discord is not what it waits on.
+    expect(feed().queryByRole('alert')).toBeNull()
+    const retry = feed().getByRole('button', {
+      name: 'Try again: send Core Mechanic to the table',
+    }) as HTMLButtonElement
+    expect(retry.disabled).toBe(true)
+  })
+
+  test('a held roll is sent when the connection returns (r5 A6)', async () => {
+    answers()
+    const target: PlayTarget = {
+      pilotId: 'bonesaw',
+      gameId: GAME,
+      gameName: 'Rust Belt Run',
+      mediator: false,
+    }
+    const tree = (live: boolean) => (
+      <SyncContext.Provider
+        value={{ status: live ? 'live' : 'offline', canWrite: live, outdated: false }}
+      >
+        <SideColumn target={target} play={playFor(target, live)} />
+      </SyncContext.Provider>
     )
+    let view: ReturnType<typeof render> | null = null
+    await act(async () => {
+      view = render(tree(false))
+    })
+    await roll([14])
+    expect(feed().getByText('Not sent yet')).toBeTruthy()
+    await act(async () => {
+      view?.rerender(tree(true))
+      // As `SyncProvider` does, after the screen's own effects.
+      setSyncStatus('live')
+    })
+    expect(postRoll).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(feed().getByText('Posted')).toBeTruthy())
+    expect(feed().queryByText('Not sent yet')).toBeNull()
   })
 })

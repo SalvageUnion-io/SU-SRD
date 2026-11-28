@@ -9,6 +9,7 @@ import {
   getUniqueSources,
   techLevelRank,
 } from 'salvageunion-reference'
+import { libCopy } from '../messages/lib'
 
 /**
  * How a schema listing groups its entities. The island groups its live grid
@@ -30,7 +31,7 @@ export function orderTechLevels(techLevels: readonly TechLevel[]): TechLevel[] {
 
 /** A tech level as a group heading and a filter token say it. */
 export function tlName(level: TechLevel): string {
-  return level === 'B' ? 'Bio-tech' : level === 'N' ? 'Nanite' : `Tech Level ${level}`
+  return level === 'B' ? 'Bio-tech' : level === 'N' ? 'Nanite' : libCopy('techLevel', { level })
 }
 
 /** A listing's groups, in the order the book prints them. */
@@ -136,8 +137,8 @@ export function groupEntities(items: RefEntity[], groupBy: GroupBy): ListingGrou
           : groupBy === 'bay'
             ? `${String(bay)} Bays`
             : hybrid
-              ? 'Hybrid Classes'
-              : 'Core Classes'
+              ? libCopy('hybridClasses')
+              : libCopy('coreClasses')
     const group = byKey.get(key) ?? { key, label, items: [] }
     group.items.push(item)
     byKey.set(key, group)
@@ -150,19 +151,3 @@ export function groupEntities(items: RefEntity[], groupBy: GroupBy): ListingGrou
   if (groupBy === 'bay') groups.sort((a) => (a.key === 'standard' ? -1 : 1))
   return groups
 }
-
-/** A listing's default groups, unfiltered: what the island renders on mount. */
-export function defaultGroups(
-  items: RefEntity[],
-  trees: string[],
-  techLevels: readonly TechLevel[],
-  schemaId?: string
-): ListingGroup[] {
-  return groupEntities(items, resolveGroupBy(items, trees, orderTechLevels(techLevels), schemaId))
-}
-
-/**
- * Listings whose cards carry a long row of value cells take a wider column, so
- * the cells hold one line beside the art (two across at the page's measure).
- */
-export const WIDE_LISTINGS: ReadonlySet<string> = new Set(['chassis'])

@@ -19,9 +19,11 @@
  * tag and a default tag can never both survive for a parser to choose between.
  */
 
+import { PRODUCT } from 'game-domain/product'
 import { unionHere } from '../lib/barLinks'
 import type { PreviewMeta } from '../lib/documentHead'
 import { escapeMarkup, META_END, META_START, metaTags, renderTags } from '../lib/documentHead'
+import { areaTitle } from '../lib/pageTitle'
 import { BAR_HIDDEN_ATTRIBUTE } from '../shell/unionSlots'
 
 /**
@@ -105,23 +107,35 @@ function withAttribute(tag: string, name: string, value: string | null): string 
   return present.test(tag) ? tag.replace(present, attribute) : tag.replace(/>$/, `${attribute}>`)
 }
 
+/** The shell's title as it is built, and as a Games route is served it. */
+const AREA_TITLE = {
+  build: `<title>${escapeMarkup(areaTitle(PRODUCT.build))}</title>`,
+  play: `<title>${escapeMarkup(areaTitle(PRODUCT.play))}</title>`,
+} as const
+
+/**
+ * The shell opens titled for the Training Bay; on a Games route its tab says
+ * Games from the start (MD3-17), until the page names itself. Only the
+ * area's own title is swapped: a shell built with a page's title keeps it.
+ */
+function titledFor(mode: ReturnType<typeof unionHere>, shell: string): string {
+  const other = mode === 'play' ? 'build' : 'play'
+  return shell.replace(AREA_TITLE[other], () => AREA_TITLE[mode])
+}
+
 /**
  * Mark the shell's Union bar for the route it is served on (`unionHere`), so
- * the right tab, nav and nav item paint first: the bar wears the route's mode
- * (`data-mode`, which also shows that mode's nav), its tab is current, and
- * so is the nav link of the page you are on. The app moves all three as it
- * routes (`UnionBarSlots`). Only the bar's tags change: the header by its
- * class, the tabs by `data-tool`, the links by `data-nav`; React escapes
- * every attribute value, so no `>` sits inside a tag.
+ * the right tab paints first: the bar wears the route's mode (`data-mode`) and
+ * its tab is current. The app moves both as it routes (`UnionBarSlots`). Only
+ * the bar's tags change: the header by its class, the tabs by `data-tool`;
+ * React escapes every attribute value, so no `>` sits inside a tag.
  */
 export function markUnionRoute(shell: string, route: string): string {
-  const { mode, nav } = unionHere(route)
-  return shell.replace(/<(?:header|a)\s[^>]*>/g, (tag) => {
+  const mode = unionHere(route)
+  return titledFor(mode, shell).replace(/<(?:header|a)\s[^>]*>/g, (tag) => {
     if (tag.includes('class="su-union-bar"')) return withAttribute(tag, 'data-mode', mode)
     const tool = /\sdata-tool="([^"]*)"/.exec(tag)?.[1]
     if (tool !== undefined) return withAttribute(tag, 'aria-current', tool === mode ? 'true' : null)
-    const link = /\sdata-nav="([^"]*)"/.exec(tag)?.[1]
-    if (link !== undefined) return withAttribute(tag, 'aria-current', link === nav ? 'page' : null)
     return tag
   })
 }

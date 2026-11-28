@@ -43,7 +43,13 @@ const CRAWLER = 'units-tenacity'
 const GAME_CRAWLER = 'units-game-crawler'
 const RESTORE_STEP = downtimeGuideSteps().findIndex((s) => s.name === RESTORE_STEP_NAME)
 
-const pilot = pilotFixture({ id: PILOT, name: 'Bonesaw', currentHP: 7, currentAP: 3 })
+const pilot = pilotFixture({
+  id: PILOT,
+  name: 'Bonesaw',
+  callsign: 'Bonesaw',
+  currentHP: 7,
+  currentAP: 3,
+})
 
 beforeAll(async () => {
   await hydrateStores()
@@ -152,7 +158,9 @@ function playFor({
       end: () => {},
       doneSteps: gameId === null ? [] : null,
       markStepDone: gameId === null ? async () => true : null,
+      healAgain: null,
       claim: async () => true,
+      moveScrap: null,
     },
     canWrite: true,
     readOnly: null,
@@ -274,12 +282,16 @@ describe('the Units column (play.md §4)', () => {
     ).toBe('12')
     expect(within(mechBox).getByRole('note', { name: 'EP restores to 4' })).toBeTruthy()
     expect(within(mechBox).getByRole('note', { name: 'Heat restores to 0' })).toBeTruthy()
+    // In the Mech Bay the mech's sheet is on hand, as the crawler's is (r5 A14).
+    expect(within(mechBox).getByRole('button', { name: 'Open Buzzard’s sheet' })).toBeTruthy()
 
     const crawlerBox = box('Crawler: Tenacity')
     expect(isReference(crawlerBox)).toBe(false)
     expect(within(crawlerBox).getByText('Downtime')).toBeTruthy()
     expect(within(crawlerBox).getByRole('button', { name: 'Decrease SP' })).toBeTruthy()
     expect(within(crawlerBox).getByText('Upkeep')).toBeTruthy()
+    // Its Scrap Pool by that name, beside what it pays (r8 D2).
+    expect(within(crawlerBox).getByText('Scrap Pool')).toBeTruthy()
     expect(within(crawlerBox).getByRole('button', { name: 'Open Tenacity’s sheet' })).toBeTruthy()
   })
 

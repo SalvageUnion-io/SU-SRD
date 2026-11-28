@@ -1,15 +1,21 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { PRODUCT } from 'game-domain/product'
 import type { NpcDesignerView } from '../../build/npc/NpcDesignerPage'
 import { NpcDesignerPage } from '../../build/npc/NpcDesignerPage'
 import { NewEntityScreen } from '../../build/wizard/NewEntityScreen'
+import { isDenizenKind } from '../../lib/npcs/npcModel'
 import { areaTitle } from '../../lib/pageTitle'
+import { parseGameParam } from '../../lib/wizard/fromGame'
 import { routesCopy } from '../../messages/routes'
+import { gamePrepPath } from '../../play/games/prep/gamePrep.model'
 
 type NpcsNewSearch = {
   view: NpcDesignerView
   crawler?: string
   slot?: string
+  /** `&from=<schema>:<slug>`: the Reference denizen to design from. */
+  from?: string
+  /** `&game=<id>`: the Game whose Prep it is designed from; the NPC is made there. */
+  game?: string
 }
 
 /**
@@ -20,18 +26,32 @@ type NpcsNewSearch = {
  * here. Always the guided designer: an NPC has no Blank door (D4).
  */
 export const Route = createFileRoute('/npcs/new')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, routesCopy('designAnNpc')) }] }),
+  head: () => ({
+    meta: [{ title: areaTitle(routesCopy('mediatorsKit'), routesCopy('designAnNpc')) }],
+  }),
   validateSearch: (search: Record<string, unknown>): NpcsNewSearch => ({
     view: search.view === 'crew' ? 'crew' : 'any',
     ...(typeof search.crawler === 'string' && search.crawler ? { crawler: search.crawler } : {}),
     ...(typeof search.slot === 'string' && search.slot ? { slot: search.slot } : {}),
+    ...(typeof search.from === 'string' && search.from ? { from: search.from } : {}),
+    ...(parseGameParam(search.game) ? { game: parseGameParam(search.game) } : {}),
   }),
   component: NpcsNewPage,
 })
 
 function NpcsNewPage() {
   const navigate = useNavigate()
-  const { view, crawler, slot } = Route.useSearch()
+  const { view, crawler, slot, from, game } = Route.useSearch()
+  // Kept through the designer's own navigation, so the NPC still lands in its Game.
+  const inGame = game ? { game } : {}
+  // Saved from a Game's Prep, it goes back there, where it is now listed (r7 C13).
+  const created = (id: string) =>
+    void navigate(game ? { to: gamePrepPath(game) } : { to: '/npcs/$id', params: { id } })
+  const [fromSchema, fromSlug] = (from ?? '').split(':')
+  const startFrom =
+    fromSchema && fromSlug && isDenizenKind(fromSchema)
+      ? { schema: fromSchema, slug: fromSlug }
+      : undefined
 
   return (
     <NewEntityScreen
@@ -42,11 +62,15 @@ function NpcsNewPage() {
           view={view}
           crawlerId={crawler}
           slot={slot}
+          from={startFrom}
+          gameId={game}
           onViewChange={(next) =>
             void navigate({
               to: '/npcs/new',
               search:
-                next === 'crew' ? { view: next, ...(crawler ? { crawler } : {}) } : { view: next },
+                next === 'crew'
+                  ? { view: next, ...(crawler ? { crawler } : {}), ...inGame }
+                  : { view: next, ...inGame },
               replace: true,
             })
           }
@@ -57,16 +81,18 @@ function NpcsNewPage() {
                 view: 'crew',
                 ...(next.crawler ? { crawler: next.crawler } : {}),
                 ...(next.slot ? { slot: next.slot } : {}),
+                ...inGame,
               },
               replace: true,
             })
           }
-          onCreated={(id) => void navigate({ to: '/npcs/$id', params: { id } })}
-          onCancel={() => void navigate({ to: '/' })}
+          onCreated={created}
+          // From a Game's Prep, cancelling goes back there.
+          onCancel={() => void navigate({ to: game ? gamePrepPath(game) : '/' })}
         />
       }
       onModeChange={() => undefined}
-      onCreated={(id) => void navigate({ to: '/npcs/$id', params: { id } })}
+      onCreated={created}
     />
   )
 }

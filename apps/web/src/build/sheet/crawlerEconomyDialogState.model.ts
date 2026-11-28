@@ -15,12 +15,34 @@
  */
 
 import { plainTraitText, resultForTable, SalvageUnionReference } from 'salvageunion-reference'
-import type { DeteriorationEffect, TradingRollResult } from '../../lib/rules/crawlerEconomy'
+import type {
+  DeteriorationEffect,
+  TradingRollResult,
+  UpkeepPayment,
+} from '../../lib/rules/crawlerEconomy'
 import { exchangeStep } from '../../lib/rules/crawlerEconomy'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 // ---------------------------------------------------------------------------
 // Pay Upkeep
 // ---------------------------------------------------------------------------
+
+/** The Pay Upkeep readout: what was drawn, any free credit, and where the Upgrade Pool stands. */
+export function describeUpkeepPaid(
+  payment: UpkeepPayment,
+  upgradePool: number,
+  upgradeCost: number | undefined
+): string {
+  const drawText = payment.draws.map((d) => `${d.count}× T${d.tl}`).join(' + ')
+  return buildSheetCopy('paidUpkeep', {
+    drawn: payment.drawn,
+    cost: payment.cost,
+    draws: drawText || buildSheetCopy('paidNoDraws'),
+    free: payment.freeCredit > 0 ? buildSheetCopy('paidFree', { count: payment.freeCredit }) : '',
+    pool: upgradePool,
+    ofCost: upgradeCost === undefined ? '' : buildSheetCopy('paidOfCost', { cost: upgradeCost }),
+  })
+}
 
 export type UpkeepState = {
   /** The last outcome, announced as a status line. */
@@ -107,9 +129,9 @@ export function describeDeterioration(effect: DeteriorationEffect, bayName: stri
   const row = resultForTable(table, effect.roll)
   const applied = [
     row.success ? plainTraitText(row.result.value) : '',
-    bayName === null ? '' : `${bayName} is Damaged.`,
-    effect.spLoss > 0 ? `SP now ${effect.nextSP}.` : '',
-    effect.spLoss > 0 && effect.nextSP === 0 ? 'At 0 SP, roll the Crawler Damage Table.' : '',
+    bayName === null ? '' : buildSheetCopy('bayIsDamaged', { bay: bayName }),
+    effect.spLoss > 0 ? buildSheetCopy('spNow', { sp: effect.nextSP }) : '',
+    effect.spLoss > 0 && effect.nextSP === 0 ? buildSheetCopy('atZeroSpRollDamage') : '',
   ]
   return `Deterioration ${effect.roll}: ${applied.filter(Boolean).join(' ')}`
 }

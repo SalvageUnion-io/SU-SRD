@@ -22,11 +22,25 @@
 import type { SearchOptions, SearchResult } from 'salvageunion-reference'
 import {
   matchSearchTokens,
+  SEARCH_NAMES_IT,
   scoreSearchMatch,
+  searchKindQuery,
+  searchNamesTerm,
   searchNameWords,
+  searchTermScore,
   tokenizeSearchQuery,
 } from 'salvageunion-reference'
 import type { CompactSearchEntry } from './searchIndexTypes'
+
+/**
+ * A hit on the compact index: the package's result, with what a pattern's row
+ * says of itself (`CompactSearchEntry.pattern`), which no schema does.
+ */
+export type CompactSearchResult = SearchResult & {
+  pattern?: CompactSearchEntry['pattern']
+  /** Ranked as a rules term inside the query (`rankTermsInQuery`), not as naming it. */
+  term?: true
+}
 
 /**
  * Search a compact index built by `searchIndexBuild.ts`. Same call/result
@@ -39,14 +53,14 @@ import type { CompactSearchEntry } from './searchIndexTypes'
 export function searchCompactIndex(
   index: readonly CompactSearchEntry[],
   options: SearchOptions
-): SearchResult[] {
+): CompactSearchResult[] {
   const { query, schemas: schemaFilter, limit } = options
   const parsed = tokenizeSearchQuery(query)
   if (!parsed) return []
-  const { loweredQuery, tokens } = parsed
+  const { tokens } = parsed
   const schemasToSearch = schemaFilter ? new Set(schemaFilter) : null
 
-  const results: SearchResult[] = []
+  const results: CompactSearchResult[] = []
 
   for (const entry of index) {
     if (schemasToSearch && !schemasToSearch.has(entry.schemaName)) continue
@@ -57,7 +71,15 @@ export function searchCompactIndex(
     )
     if (!matches) continue
 
-    const score = scoreSearchMatch({ nameText, loweredQuery, tokens, usedTypo })
+    // A pattern is ranked as itself, never lifted by its host's kind; a rule
+    // told inside a guide is a rule.
+    const score = scoreSearchMatch({
+      ...parsed,
+      nameText,
+      usedTypo,
+      ...(entry.pattern && !entry.rule ? {} : { schemaName: entry.schemaName }),
+      ...(entry.embedded ? { embedded: true } : {}),
+    })
 
     results.push({
       schemaName: entry.schemaName,
@@ -73,9 +95,91 @@ export function searchCompactIndex(
       entityName: entry.name,
       matchedFields: [],
       matchScore: score,
+      ...(entry.pattern ? { pattern: entry.pattern } : {}),
     })
+  }
+
+  // "engineer class": the Engineer of the Classes listing, ranked as its name (r8 G1).
+  const kind = searchKindQuery(parsed)
+  if (kind && (!schemasToSearch || schemasToSearch.has(kind.schemaName))) {
+    for (const hit of searchCompactIndex(index, {
+      query: kind.query,
+      schemas: [kind.schemaName],
+    })) {
+      const found = results.find((result) => result.entityId === hit.entityId)
+      if (found) found.matchScore = Math.max(found.matchScore, hit.matchScore)
+      else results.push(hit)
+    }
+  }
+
+  // Nothing names the query: a rules term inside it leads (r7 E1).
+  if (!results.some((result) => result.matchScore >= NAMES_IT)) {
+    rankTermsInQuery(index, parsed, schemasToSearch, results)
   }
 
   results.sort((a, b) => b.matchScore - a.matchScore)
   return limit && results.length > limit ? results.slice(0, limit) : results
+}
+
+/** The lowest literal name tier (`scoreSearchMatch`): a result at or over it names the query. */
+const NAMES_IT = SEARCH_NAMES_IT
+
+/**
+ * Each guide, keyword or trait whose name the query holds among its words
+ * (`searchNamesTerm`: "overheat" in "what happens when my mech overheats"),
+ * added or lifted to its term score, the rarer term first.
+ */
+function rankTermsInQuery(
+  index: readonly CompactSearchEntry[],
+  parsed: NonNullable<ReturnType<typeof tokenizeSearchQuery>>,
+  schemas: ReadonlySet<string> | null,
+  results: CompactSearchResult[]
+): void {
+  for (const entry of index) {
+    if (schemas && !schemas.has(entry.schemaName)) continue
+    if (entry.pattern && !entry.rule) continue
+    const nameText = entry.name.toLowerCase()
+    if (!searchNamesTerm(parsed, nameText, entry.schemaName)) continue
+    const share = index.filter((other) => other.text.includes(nameText)).length / index.length
+    const score = searchTermScore(entry.schemaName, share)
+    const found = results.find((result) => result.entityId === entry.id)
+    if (found) {
+      found.matchScore = Math.max(found.matchScore, score)
+      found.term = true
+      continue
+    }
+    results.push({
+      schemaName: entry.schemaName,
+      schemaTitle: entry.schemaTitle,
+      entity: {
+        id: entry.id,
+        name: entry.name,
+        schemaName: entry.schemaName,
+      } as SearchResult['entity'],
+      entityId: entry.id,
+      entityName: entry.name,
+      matchedFields: [],
+      matchScore: score,
+      ...(entry.pattern ? { pattern: entry.pattern } : {}),
+      term: true,
+    })
+  }
+}
+
+/** Under it a result matched the query in its words alone (a rules kind's boost at most). */
+const RELEVANCE_FLOOR = 10
+
+/**
+ * The dropdown's relevance floor (SB6-28): once a result names the query, the
+ * ones that only say it somewhere in their words are left out ("pinning" is
+ * Pinning, never Retreat or Leviathan). With nothing named, every match stays:
+ * the words are the only answer there is, under any rules term the query holds.
+ */
+export function aboveFloor<R extends { matchScore: number; term?: true }>(
+  results: readonly R[]
+): R[] {
+  // A rules term inside the query leads, but names no more than its own word:
+  // the prose that holds the rest of the query stays under it.
+  const named = results.some((result) => result.matchScore >= NAMES_IT && !result.term)
+  return named ? results.filter((result) => result.matchScore >= RELEVANCE_FLOOR) : [...results]
 }

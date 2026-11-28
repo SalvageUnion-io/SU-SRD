@@ -1,11 +1,15 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import type { Provenance } from 'salvageunion-reference'
 import { citeLine, provenancePrintings } from 'salvageunion-reference'
 import { color, fontSize, space, weight } from '../../../design/tokens'
+import { bookHrefs } from '../../../lib/bookHref'
 import { cn } from '../../../lib/cn'
 import type { Size } from '../../../styles/sizing'
 import { CiteLine } from '../../atoms/CiteLine'
 import { capsLabel } from '../../atoms/capsLabel'
+import { EntitySurfaceProvider } from '../../entity/EntitySurface'
+import type { EntitySurfaceValue } from '../../entity/entitySurfaceContext'
+import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import type { CardColors } from './cardChrome'
 import type { CardGrain } from './cardGrain'
 import { grainClass } from './cardGrain'
@@ -33,7 +37,7 @@ type EntityCardIdentityFooterProps = {
    * citation takes on a canon card. It replaces the citation: a homebrew card
    * has no page to cite, and the card passes no source with it.
    */
-  credit?: string
+  credit?: ReactNode
   /**
    * The head band's colours (`resolveCardColors`): the foot wears the same
    * ground and foreground (ruleset Source 2), so a card and a Peek read as one
@@ -43,6 +47,14 @@ type EntityCardIdentityFooterProps = {
   band?: CardColors
   /** The head band's speckle, worn on the foot's band too. */
   grain?: CardGrain | undefined
+  /**
+   * A foot whose meta is a sentence (a list's `COSTS | …`): where the line is
+   * too narrow for both, the meta wraps onto a line of its own under the
+   * source, which keeps its place at the band's top edge.
+   */
+  wrap?: boolean
+  /** Each printing links to its book's page (Source 2); off inside a Peek, whose one link is its name (E16). */
+  linkBooks?: boolean
 }
 
 const PAD_X: Record<Size, string> = { full: space[14], compact: space[12], mini: space[8] }
@@ -66,7 +78,7 @@ const truncate = {
  *
  * ONE line, right-aligned, and no kind (E9): every printing, the book first,
  * then each reprint, `//` between (`citeLine`) — "Workshop Manual · p.80 //
- * Salvage Union Starter Set (PH) · p.38". A user-made card puts its `credit`
+ * Starter Set (PH) · p.38". A user-made card puts its `credit`
  * ("Made by alxjrvs") where the citation goes.
  */
 const CITE = { display: 'inline-block', overflowWrap: 'break-word' } satisfies CSSProperties
@@ -94,6 +106,15 @@ const CUTOUT_SLOT = {
   marginTop: `calc(-1 * ${space[8]})`,
 } satisfies CSSProperties
 
+type RouterLink = NonNullable<EntitySurfaceValue['linkAs']>
+
+/** A plain anchor: a book's page is the Reference's, outside any router. */
+function DocumentAnchor({ children, ...rest }: ComponentProps<RouterLink>) {
+  return <a {...rest}>{children}</a>
+}
+
+const DOCUMENT_LINKS = { linkAs: DocumentAnchor } satisfies Partial<EntitySurfaceValue>
+
 export function EntityCardIdentityFooter({
   provenance,
   footMeta,
@@ -102,9 +123,28 @@ export function EntityCardIdentityFooter({
   credit,
   band,
   grain,
+  wrap = false,
+  linkBooks = true,
 }: EntityCardIdentityFooterProps) {
-  const printed = provenance ? citeLine(provenancePrintings(provenance)) : undefined
-  const citation = credit ?? (printed ? <CiteLine text={printed} /> : undefined)
+  const { hrefFor } = useEntitySurface()
+  const printings = provenance ? provenancePrintings(provenance) : []
+  const printed = citeLine(printings)
+  // The surface's routes link each book (the SRD's); the app, which has none
+  // but links out to the Reference (`externalLink`), links each to its
+  // Reference page, as a plain anchor (Source 2).
+  const routed = linkBooks ? bookHrefs(printings, hrefFor) : []
+  const outward = linkBooks && !routed.some(Boolean) && externalLink ? bookHrefs(printings) : []
+  const citation =
+    credit ??
+    (printed ? (
+      outward.some(Boolean) ? (
+        <EntitySurfaceProvider value={DOCUMENT_LINKS}>
+          <CiteLine text={printed} hrefs={outward} />
+        </EntitySurfaceProvider>
+      ) : (
+        <CiteLine text={printed} hrefs={routed} />
+      )
+    ) : undefined)
   // Foot extras force the footer even without source/page data — they are
   // affordances, not source chrome.
   const hasFootExtras = (footMeta?.length ?? 0) > 0 || !!externalLink
@@ -114,7 +154,7 @@ export function EntityCardIdentityFooter({
 
   return (
     <div
-      // A foot band is text, never chips (hard rule R4): `chip-strips.e2e.ts` reads it.
+      // A foot band is text, never chips (C10): `chip-strips.e2e.ts` reads it.
       data-foot-band=""
       // The head's speckle, on the band only (never on paper, R10).
       data-grain={onBand ? grain : undefined}
@@ -125,6 +165,8 @@ export function EntityCardIdentityFooter({
         color: onBand ? `var(--color-${band?.onBand})` : color.ink2,
         alignItems: 'baseline',
         display: 'flex',
+        // Reversed, the first line (the meta) is the lower one.
+        flexWrap: wrap ? 'wrap-reverse' : undefined,
         fontSize: fontSize.caption,
         gap: space[8],
         justifyContent: 'flex-end',
@@ -142,8 +184,10 @@ export function EntityCardIdentityFooter({
           style={{
             alignItems: 'baseline',
             display: 'inline-flex',
-            flexShrink: 0,
+            flexShrink: wrap ? 1 : 0,
+            flexWrap: wrap ? 'wrap' : undefined,
             gap: space[4],
+            minWidth: wrap ? 0 : undefined,
           }}
         >
           <span className={TYPE_LABEL} style={TYPE_CAPS}>
@@ -160,7 +204,7 @@ export function EntityCardIdentityFooter({
         <span
           style={{
             contain: 'inline-size',
-            flex: '1 1 0',
+            flex: wrap ? '1 1 12rem' : '1 1 0',
             minWidth: 0,
             textAlign: 'right',
             ...(onBand ? CUTOUT_SLOT : {}),

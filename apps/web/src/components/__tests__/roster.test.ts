@@ -1,13 +1,17 @@
 import { describe, expect, test } from 'bun:test'
-import * as barrel from '../index'
+import * as appOnly from '../app'
+import * as islands from '../index'
+
+/** Both barrels: the islands' (`index.ts`) and what only the app draws (`app.ts`). */
+const barrel = { ...islands, ...appOnly }
 
 /**
- * The roster gate: `components/index.ts` exports exactly what a law
+ * The roster gate: `components/index.ts` and `components/app.ts` export exactly what a law
  * names, so a new parallel primitive cannot land without amending the law
  * first. Each value export sits under the law that sanctions it; types are
  * erased and not counted.
  *
- * To add an export: name it in its law (ruleset §5 or §6, chrome.md's K-roles,
+ * To add an export: name it in its law (ruleset §5 or §6, hard-rules' chrome K-roles,
  * the EDL) or as a named composition, then list it here under that law. To
  * retire one: delete it from the barrel and from here.
  */
@@ -19,11 +23,13 @@ const ROSTER = {
     'TitledBox', // §5.2 Frame, cut-out
     'Callout', // §5.2 a note
     'Stat', // §5.4 Well
-    'StatColumn', // §5.4 Wells at the book's scale (R36)
+    'StatColumn', // §5.4 Wells at the book's scale (§3.7)
     'VitalGauge', // §5.5 Gauge
     'Button', // §5.6 Btn
     'buttonVariants', // §5.6 Btn's recipe
     'Slab', // §5.7 Slab
+    'SlabLookProvider', // §5.7 Slab: its look, set once a surface
+    'useSlabLook', // §5.7 Slab: its look, read
     'SlabSection', // §6.4 Section
     'RollTableInstrument', // §5.8 RollTable
     'StatusBadge', // §5.9 Condition
@@ -31,13 +37,26 @@ const ROSTER = {
     'slotPips', // §4.5 a slot count as pips, a wizard's tracker tab
     'ActivationCost', // §6.1 the cost's pointed box, the one standout
     'ChipButton', // §6.1 Badge: a chip that is its own control (R16)
+    'Ledger', // §5.12 Ledger: a compared or picked list's table (L9)
+    'TechLevel', // L4 a row's one rank stamp, the Tech Level swatch
+    'Facts', // §3.7 a list of labelled values
+    'Prose', // §3.7's words at length: a sheet's long text, folded
+    'Strip', // §1.2 a Live Sheet's masthead
+    'StripFigure', // §1.2 the masthead's fixed figures
+    'STRIP_ART', // §1.2 the masthead's art plate
+    'RuleBreakMark', // R71 the one mark of a build past its rules, by its count
   ],
-  /** chrome.md's roles (K1–K11) and the chrome hard rules (R16, R20, R22, R24, R27, R29). */
+  /** the chrome laws (K1–K11) and hard rule R16. */
   chrome: [
+    'PictureRadio', // R16 a picture plate that is a radio
     // K5 notices
     'ToasterMount',
     'toast',
+    'ACTION_TOAST_MS', // K5 a toast with an action stays 20s
+    'MOST_ACTION_TOASTS', // K5 one toast at a time (r7 A4)
     'toastRoll',
+    'holdToastsOnTop', // K5 a screen whose foot is controls (a search) holds its toasts at the top
+    'holdPlayToasts', // K5 Play's toasts: one at a time, bottom left, above the tabs (r6 A3)
     'Banner',
     'FieldError',
     'CopiedIcon',
@@ -90,7 +109,7 @@ const ROSTER = {
     'HeaderMenu',
     'PopoverPanel',
     'useModKeyHint',
-    // R14 caps: the one recipe a label in caps asks
+    // §3.12 caps: the one recipe a label in caps asks
     'capsLabel',
     // The shell: the Union bar, its drawer and foot, the chapter band (ruleset Source 2, §3.11)
     'AppBar',
@@ -115,6 +134,7 @@ const ROSTER = {
   /** The EDL's forms and modes, the entity module's face, and the Card and Page. */
   edl: [
     'Entity',
+    'NeighbourRow', // a Page's neighbours: the foot's cut-outs (EDL form 5)
     'MiniGroup', // a Mini and the Minis that belong to it, one border (no nesting, E6)
     'Mention',
     'PeekHost',
@@ -125,11 +145,11 @@ const ROSTER = {
     'EntityDetailDialog', // the Page in a dialog (the app's open-in-place reading)
     'ActionMinis',
     'PatternListing',
+    'EntityCardIdentityFooter', // Source 2: the foot band and its cite cut-out
     'EntityPageStamps',
     'resolveEntityPageMeta',
     'isLegalStartingPatternOf',
     'WhenDamaged',
-    'BayInfo',
     'EntityRollMini',
     'EntityChoices',
     'LinkedUnits', // EDL: a linked unit is its header-only Mini, never a chip
@@ -155,6 +175,7 @@ const ROSTER = {
   /** Named compositions: product surfaces built from the above. */
   compositions: [
     'AbilityTrack',
+    'abilityTreeNeighbours',
     'BrandCard',
     'OgCard',
     'ogCardForEntity',
@@ -165,10 +186,17 @@ const ROSTER = {
     'ogCardTitle',
     'ogReferenceAddressFits',
     'ContentsChapter',
+    'CardImage', // an entity's art plate, the home page's hero
+    'PhoneVitals', // a phone sheet's and Play's pinned vitals block
+    'PhoneVitalsGlance', // the same block at a glance row's size: Play's pinned cells
+    'FrontPitch', // the home page's pitch
     'EntitySearcher',
     'SearchListbox',
     'useSearchCombobox',
     'StartHere',
+    'StatMeanings', // a sheet's stat labels open what the number means (r4 E21)
+    'StatMeaning', // one such label alone: the mech wizard's chassis legend (r6 F3)
+    'ScrapSplit', // a build's Scrap in a narrow cell, broken between Tech Levels (r6 E4)
     'MarkdownSection',
     'InlineMarkdown',
     'TraitProse',
@@ -214,7 +242,7 @@ describe('the components roster', () => {
       .sort()
     expect(
       unnamed,
-      'a new export: name it in its law (ruleset §5/§6, chrome.md, the EDL) or as a composition, then add it to ROSTER'
+      'a new export: name it in its law (ruleset §5/§6, the chrome K laws, the EDL) or as a composition, then add it to ROSTER'
     ).toEqual([])
   })
 

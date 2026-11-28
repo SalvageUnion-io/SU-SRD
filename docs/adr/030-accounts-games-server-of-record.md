@@ -52,7 +52,7 @@ An entity is in exactly one container, encoded as two nullable columns:
 | Verb     | Result |
 | -------- | ------ |
 | **Move** | The **same** entity: same id, body and history; only `gameId` changes. |
-| **Copy** | A **new** entity: new id, `COPY OF <name>`, always `gameId: null`, no relationship to the source or its Game. |
+| **Copy** | A **new** entity: new id, its name numbered past its shelf's (`Mara Voss 2`), always `gameId: null`, no relationship to the source or its Game. |
 
 `gameId` is a single nullable column, so there is nothing to fork:
 `MoveToContainerControl` re-stamps `gameId` in place and
@@ -81,6 +81,27 @@ out a pilot.
 Game page, and the player applies or declines it. Proposals persist until
 answered: no expiry, **no force-apply**. A newer proposal on the same field
 supersedes the older one. Alerts and cross-player writes are one mechanism.
+
+Amended (r2 C7, C6). A Mediator may **withdraw** a proposal still awaiting its
+answer (`ops.withdraw`): the op is `declined`, as a superseded one is, with
+`superseded_by` holding `withdrawn` (no op has that id), so the sent list
+reads Withdrawn. The proposal still stores no before; `ops.pending` serves the
+player the sheet's value as it is when read (`current`, absent on a sent
+row), so their notice says from and to ("HP 7 → 0"). A player who accepts one
+may undo it: their own write to their own sheet, like any other. Additive and
+optional: no table or column is added.
+
+Amended (r7 D8). **A wreck's salvage is the crew's to pick.** After the
+Mediator rolls Mech Salvage, their pick is a proposal: to the Game's crawler,
+it is the one proposal a crawler takes, and **any member of the crew** but
+the Mediator who sent it may accept it, decline it, or change it to another
+pick the roll allows (`ops.accept`'s `picked`, written as its own op, the
+offer reading superseded). To a crew Mech it stays its holder's to answer.
+The accepted write lands on the crawler as its Mediator's (§5). What the
+answer may pick from (the band, the wreck's parts, the pick) is kept by the
+op's id in `salvage_offers`, a table only such a proposal has a row in.
+Additive and optional: no column is added, and every other proposal is as
+before. Switched by one constant (`WRECK_SALVAGE`).
 
 **Assign, never claim** (ADR-055). Inside a Game, `ownerId` names who a
 pilot or mech is **assigned** to, not who owns it: the assigned member edits
@@ -157,8 +178,26 @@ Game's newest open standing invite row (`convex/model/invites.ts#currentInvite`)
 | every **crawler**                | the deleting Organizer's shelf |
 
 A shelved crawler takes an owner (`null`/`null` stays invalid). What goes is
-the table: memberships, invites, the opposition tray and the soft links, so
-shelved entities land unwired.
+the table: memberships, invites, the Opposition on the field and the soft
+links, so shelved entities land unwired.
+
+**The field goes with the Game** (amended 2026-11-22, third persona review).
+The Game room used to file its Opposition in the Organiser's account room as
+loose tray NPCs, so a delete left second copies of designed NPCs in the
+Mediator's Kit. A fielded unit is a copy made for a fight: it ends with the
+room, as the dialog says and the Organiser confirms. The NPC it was drawn from
+is a unit and lands with its holder, once. Rows an earlier delete filed stay
+where they are until their owner removes them: the Kit says what they are in
+one line with a Remove act behind a confirm. Nothing is migrated.
+
+**A template's untouched units are the one exception, and only when asked.**
+A Game made from a template arrives with units nobody built. The delete
+dialog offers "Also delete the N units it came with?", ticked when every one
+of them is still as it arrived (unassigned, no op applied); ticked, those end
+with the Game instead of landing on the Organizer's shelf
+(`games.destroy`'s `dropTemplateUnits`). A unit somebody was handed or changed
+is never among them. Nothing is stored for this: a template unit is one made
+in the Game's first moment.
 
 ## The Change Log
 

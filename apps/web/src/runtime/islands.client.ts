@@ -9,17 +9,28 @@
  */
 
 import { watchStaticChipFill, watchStaticTokenOverflow } from '../components/entity/staticRuntime'
-import { readAccountHint } from '../lib/accountHint'
-import { browserStorage, markSignedIn } from '../lib/accountState'
+import { widthAtLeast } from '../design/breakpoint'
+import { readAccountHint, readLastGame } from '../lib/accountHint'
+import { browserStorage, markLastGame, markSignedIn } from '../lib/accountState'
+import { appPath } from '../lib/appBase'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
+import { correctShortcutHints, isSearchShortcut } from '../lib/searchShortcut'
 import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { installTrustedTypesPolicy } from '../lib/trustedTypes'
-import { revealWikiLinks } from '../lib/wikiLink'
+import { focusMarkedContent } from './focusMarked'
+import { isInstalledApp } from './installedApp'
 import { ISLAND_COMMIT } from './islandCommit'
+import { PAGE_CONTENTS_MENU_ID } from './pageContentsMenuId'
+import { trackScrollbarWidth } from './scrollbarWidth'
+import { shrinkWrap } from './shrinkWrap'
+import { watchSlideshow } from './slideshow'
 import { whenShown } from './whenShown'
 
+// A page opened from search: the next Tab starts in its content, the page at its top (r8 G3).
+focusMarkedContent()
 // Browser error reporting to the Worker (production builds), from the single client entry.
+trackScrollbarWidth()
 initBrowserObservability()
 
 // An island's chunk is the first import to fail on a page older than the
@@ -32,6 +43,10 @@ installTrustedTypesPolicy()
 // Sign in hides while somebody is signed in (`lib/accountBar.ts`); the
 // account islands read the same hint (`directives/signedIn.ts`).
 markSignedIn(document, readAccountHint(browserStorage()) !== null)
+// The home's welcome-back strip names the Game last opened, where the device remembers one.
+markLastGame(document, readLastGame(browserStorage()), (gameId) =>
+  appPath(`/games/${encodeURIComponent(gameId)}`)
+)
 
 // A contentful Mini's chips that do not fit beside its name go to its body's first row (C2b); an island's fit from `Mini`.
 watchStaticTokenOverflow()
@@ -44,26 +59,65 @@ document.addEventListener(ISLAND_COMMIT, (event) => {
   if ((event.target as HTMLElement).dataset.island === 'SearchIsland') searchMounted = true
 })
 
-/**
- * Cmd+K / Ctrl+K before any search field has mounted: focus the server-rendered
- * field on show, which wakes its island (`interaction`), and the island's
- * mount keeps the focus. After that `SearchIsland` answers the shortcut itself.
- */
-function onSearchShortcut(event: KeyboardEvent): void {
-  if (searchMounted || !(event.metaKey || event.ctrlKey) || event.key !== 'k') return
+/** Focuses the page's search field (the first one drawn); false where it has none. */
+function focusSearch(): boolean {
   for (const input of document.querySelectorAll<HTMLInputElement>(
     '[data-island="SearchIsland"] input'
   )) {
     if (input.getClientRects().length === 0) continue
-    event.preventDefault()
     input.focus()
-    return
+    input.select()
+    return true
   }
+  return false
+}
+
+/**
+ * Cmd+K / Ctrl+K, or "/", before any search field has mounted: focus the
+ * server-rendered field on show, which wakes its island (`interaction`), and
+ * the island's mount keeps the focus. After that `SearchIsland` answers the
+ * shortcut itself.
+ */
+function onSearchShortcut(event: KeyboardEvent): void {
+  if (searchMounted || !isSearchShortcut(event)) return
+  if (focusSearch()) event.preventDefault()
 }
 
 document.addEventListener('keydown', onSearchShortcut)
-revealWikiLinks(document)
+// A link that opens search where the page has one (the home's "Look something
+// up"): with none, or without this script, it goes where it points.
+document.addEventListener('click', (event) => {
+  const link = event.target instanceof Element ? event.target.closest('[data-search-open]') : null
+  if (!link || event.defaultPrevented) return
+  if (event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey)) return
+  if (focusSearch()) event.preventDefault()
+})
+// The served key caps say "⌘K"; off a Mac they say "Ctrl K" from the start.
+correctShortcutHints(document, navigator.platform)
 watchSharePage(document)
+// A long page's floating "On this page": search and its sections in reach, on
+// a phone. Its script loads only at a phone's width, where the button draws,
+// or on a Page whose sections are the band's menu, which floats it on a
+// desktop too (`PageContentsMenu`).
+const phone = matchMedia(`not ${widthAtLeast('sm')}`)
+const contentsMenu = document.getElementById(PAGE_CONTENTS_MENU_ID)
+function startPageJump(): void {
+  if (!phone.matches && !contentsMenu) return
+  phone.removeEventListener('change', startPageJump)
+  void import('./pageJump').then(({ watchPageJump }) => watchPageJump(document))
+}
+phone.addEventListener('change', startPageJump)
+startPageJump()
+// A section followed from the band's menu closes it.
+contentsMenu?.addEventListener('click', (event) => {
+  if (event.target instanceof Element && event.target.closest('a[href^="#"]')) {
+    contentsMenu.hidePopover?.()
+  }
+})
+// The home's slide captions: each cut-out as wide as its own words.
+shrinkWrap(document, '.su-front__show-body')
+// The home's slideshow: its Pause.
+watchSlideshow(document)
 
 // A guide page served as static HTML: its contents mark the section in view.
 // Plain DOM in its own chunk, fetched only on such a page; a guide card that
@@ -87,11 +141,11 @@ whenShown(registerSiteWorker)
  * the page the reader actually asked for has been dealt with.
  *
  * Hung off `load` rather than `DOMContentLoaded`, so a background warm of every page can never compete with first paint or with
- * the interactive parts of the page. In a browser tab this costs one function
- * call and a `matchMedia` check — see `offlineWarm.client.ts` for why the guard
- * is the first thing it does.
+ * the interactive parts of the page. In a browser tab it costs a `matchMedia`
+ * check and nothing more: the warm's chunk loads only in an installed app.
  */
 function startOfflineWarm(): void {
+  if (!isInstalledApp()) return
   void import('./offlineWarm.client')
     .then((m) => m.warmOfflineCacheIfInstalled())
     .catch((error: unknown) => {

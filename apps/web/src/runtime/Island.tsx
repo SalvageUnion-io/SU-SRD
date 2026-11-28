@@ -23,6 +23,7 @@ export type IslandName =
   | 'MobileSearchIsland'
   | 'AccountIsland'
   | 'AccountAvatarIsland'
+  | 'SessionBarIsland'
   | 'MobileNavIsland'
   | 'SchemaViewerIsland'
   | 'ReferenceEntityIsland'
@@ -33,6 +34,7 @@ export type IslandName =
   | 'OgCardIsland'
   | 'PeekIsland'
   | 'HomebrewIsland'
+  | 'SearchResultsIsland'
 
 /**
  * When the client mounts an island: Astro's directive of the same name, or

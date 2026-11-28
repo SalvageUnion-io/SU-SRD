@@ -26,11 +26,11 @@ export function toPascalCase(id: string): string {
 }
 
 /**
- * A name as the book prints it. The glossaries (keywords, traits) store their
- * names lower-case ("bio-titan"); the web sets them in caps with CSS, which
- * plain text cannot carry — a page `<title>`, meta and JSON-LD, a link
- * preview, a Discord heading. A name with any capital is already as printed
- * and is left alone.
+ * A name for plain text — a page `<title>`, meta and JSON-LD, a link preview,
+ * a Discord heading — which cannot carry the web's CSS caps. A lower-case name
+ * (a stored NPC type, a hand-typed one) is title-cased; a name with any
+ * capital is already as written and is left alone (the glossaries open theirs
+ * on a capital: "Bio-titan").
  *   bio-titan -> Bio-Titan
  *   Mule -> Mule
  */

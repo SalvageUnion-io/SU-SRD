@@ -9,6 +9,11 @@
  * off the interaction and sends it as `manageChannels`); in a DM, where it is
  * absent, nobody holds it and nobody needs it.
  *
+ * A Game's binding also keeps the Discord category its channel sits in and its
+ * server (ADR-068 §6): the Activity launched anywhere in that category opens
+ * that Game, and a server with one bound Game opens it from any channel
+ * (`launchBinding`). A category holds one Game.
+ *
  * Binding again moves the binding: the Game's (or the account's) old channel
  * is released. A channel somebody else's Game or solo play holds is taken
  * only by a caller who could have unbound it: whoever bound it, anyone with
@@ -125,10 +130,17 @@ export async function bindChannel(
     gameId: string | null
     channelName?: string | null
     manageChannels?: boolean
+    /** The Discord category the channel sits in; null outside one. */
+    categoryId?: string | null
+    /** The server the channel is in; null in a DM. */
+    guildId?: string | null
   },
   now = Date.now()
 ): Promise<BotFailure | BotSuccess<BindChannelResult>> {
   const { channelId, gameId, manageChannels } = args
+  // Only a Game's binding covers a category: solo play is one channel.
+  const categoryId = gameId === null ? null : (args.categoryId ?? null)
+  const guildId = args.guildId ?? null
   const channelName = channelNameOf(args.channelName)
   if (manageChannels === false) {
     return { ok: false, reason: 'forbidden', message: BIND_NEEDS_MANAGE_CHANNELS }
@@ -151,13 +163,24 @@ export async function bindChannel(
     (gameId === null
       ? held.game_id === null && held.bound_by === discordId
       : held.game_id === gameId)
-  if (held !== null && sameTarget) {
-    if (channelName !== null && held.channel_name !== channelName) {
-      await db
-        .prepare('update channel_bindings set channel_name = ?1 where channel_id = ?2')
-        .bind(channelName, channelId)
-        .run()
+  const categoryHeld = await categoryHolders(db, categoryId, gameId)
+  for (const other of categoryHeld) {
+    if (!(await mayManage(db, discordId, other, manageChannels))) {
+      return {
+        ok: false,
+        reason: 'forbidden',
+        message: 'This channel’s category is already bound to another Game.',
+      }
     }
+  }
+  if (held !== null && sameTarget && categoryHeld.length === 0) {
+    await db
+      .prepare(
+        `update channel_bindings set channel_name = coalesce(?1, channel_name),
+         category_id = ?2, guild_id = coalesce(?3, guild_id) where channel_id = ?4`
+      )
+      .bind(channelName, categoryId, guildId, channelId)
+      .run()
     return {
       ok: true,
       binding: summaryOf({ ...held, channel_name: channelName ?? held.channel_name }),
@@ -186,12 +209,16 @@ export async function bindChannel(
   await db.batch([
     db.prepare('delete from channel_bindings where channel_id = ?1').bind(channelId),
     releasePrevious,
+    ...categoryHeld.map((other) =>
+      db.prepare('delete from channel_bindings where channel_id = ?1').bind(other.channel_id)
+    ),
     db
       .prepare(
-        `insert into channel_bindings (channel_id, game_id, bound_by, channel_name, bound_at)
-         values (?1, ?2, ?3, ?4, ?5)`
+        `insert into channel_bindings
+         (channel_id, game_id, bound_by, channel_name, bound_at, category_id, guild_id)
+         values (?1, ?2, ?3, ?4, ?5, ?6, ?7)`
       )
-      .bind(channelId, gameId, discordId, channelName, now),
+      .bind(channelId, gameId, discordId, channelName, now, categoryId, guildId),
   ])
   const bound = await bindingBy(db, 'channel', channelId)
   if (bound === null) throw new Error('channel binding vanished on insert')
@@ -201,6 +228,48 @@ export async function bindChannel(
     previousChannelId:
       previous !== null && previous.channelId !== channelId ? previous.channelId : null,
   }
+}
+
+/** Other Games' bindings that hold this category: binding here takes it from them. */
+async function categoryHolders(
+  db: SharedDb,
+  categoryId: string | null,
+  gameId: string | null
+): Promise<BindingColumns[]> {
+  if (categoryId === null || gameId === null) return []
+  const { results } = await db
+    .prepare(`${BINDING} where b.category_id = ?1 and b.game_id is not null and b.game_id != ?2`)
+    .bind(categoryId, gameId)
+    .all<BindingColumns>()
+  return results
+}
+
+/**
+ * The Game the Activity opens where it was launched (ADR-068 §6): the Game
+ * bound in the launch channel's category, else the one bound to the channel
+ * itself, else the server's only bound Game; null when none fits.
+ */
+export async function launchBinding(
+  db: SharedDb,
+  at: { channelId: string; categoryId: string | null; guildId: string | null }
+): Promise<ChannelBindingSummary | null> {
+  const game = 'b.game_id is not null'
+  if (at.categoryId !== null) {
+    const row = await db
+      .prepare(`${BINDING} where ${game} and b.category_id = ?1 order by b.bound_at desc`)
+      .bind(at.categoryId)
+      .first<BindingColumns>()
+    if (row !== null) return summaryOf(row)
+  }
+  const own = await bindingBy(db, 'channel', at.channelId)
+  if (own !== null && own.game_id !== null) return summaryOf(own)
+  if (at.guildId === null) return null
+  const { results } = await db
+    .prepare(`${BINDING} where ${game} and b.guild_id = ?1 limit 2`)
+    .bind(at.guildId)
+    .all<BindingColumns>()
+  const [only, another] = results
+  return only !== undefined && another === undefined ? summaryOf(only) : null
 }
 
 /**
@@ -228,4 +297,45 @@ export async function unbindChannel(
   }
   await db.prepare('delete from channel_bindings where channel_id = ?1').bind(channelId).run()
   return { ok: true, unbound: summaryOf(held) }
+}
+
+type BindingView = {
+  channelId: string
+  channelName: string | null
+  boundAt: number
+  /** The roller's own channel, standing in for a Game that has none bound (`rollChannel`). */
+  own?: true
+}
+
+/** A Game's binding, or the player's solo play's, as these calls answer it. */
+async function bindingView(
+  db: SharedDb,
+  by: 'game' | 'solo',
+  value: string
+): Promise<BindingView | null> {
+  const row = await bindingBy(db, by, value)
+  return row === null
+    ? null
+    : { channelId: row.channel_id, channelName: row.channel_name, boundAt: row.bound_at }
+}
+
+export const gameBindingView = (db: SharedDb, gameId: string) => bindingView(db, 'game', gameId)
+export const soloBindingView = (db: SharedDb, discordId: string) =>
+  bindingView(db, 'solo', discordId)
+
+/**
+ * Where this caller's rolls post: solo, their own channel; in a Game, the
+ * Game's, or their own where the Game has none bound, so a channel someone
+ * bound always gets their rolls until it is unbound.
+ */
+export async function rollChannel(
+  db: SharedDb,
+  discordId: string,
+  gameId: string | null
+): Promise<BindingView | null> {
+  if (gameId === null) return soloBindingView(db, discordId)
+  const game = await gameBindingView(db, gameId)
+  if (game !== null) return game
+  const own = await soloBindingView(db, discordId)
+  return own === null ? null : { ...own, own: true }
 }

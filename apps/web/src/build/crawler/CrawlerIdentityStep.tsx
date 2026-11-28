@@ -6,14 +6,12 @@ import { crawlerCopy } from '../../messages/build-crawler'
 import { RollTableButton } from '../wizard/RollTableButton'
 import type { RollTableDeps } from '../wizard/rollTableHelpers.model'
 import { CRAWLER_NAME_TABLE } from '../wizard/rollTableHelpers.model'
+import { WizTextField } from '../wizard/WizTextField'
 
 /** The step's column, capped at 48rem. */
 const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties
 
 const SCRAP_HINT = { marginBottom: tokens.space[12] } satisfies CSSProperties
-
-/** The bucket inputs; the column count is `.su-wiz-scrap-grid`. */
-const SCRAP_GRID = { display: 'grid', gap: tokens.space[12] } satisfies CSSProperties
 
 const SCRAP_BUCKETS = ['tl1', 'tl2', 'tl3', 'tl4', 'tl5', 'tl6'] as const
 
@@ -32,8 +30,8 @@ function parseCount(raw: string): number {
 }
 
 /**
- * Step 5 · Name your Crawler (Union Crawler p.212): the sheets' IdentityField
- * idiom (the wizard previews exactly the live sheet) with a d20 Crawler Names
+ * Step 5 · Name your Crawler (Union Crawler p.212): live text fields
+ * (`WizTextField`, saved as typed) with a d20 Crawler Names
  * Table assist (p.226) — the roll writes into the field and stays editable.
  * The Scrap Pool relocates here, a section of the step under its Slab (no
  * titled box, ruleset N5): an explicit, OPTIONAL numeric input — the manual
@@ -53,10 +51,10 @@ export function CrawlerIdentityStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={COLUMN}>
-      <Field
+      <WizTextField
         label={crawlerCopy('crawlerName')}
         value={name}
-        onSave={(next) => onChange({ name: next })}
+        onChange={(next) => onChange({ name: next })}
         placeholder={crawlerCopy('eGCrawler132Aka')}
         labelAction={
           <RollTableButton
@@ -67,11 +65,11 @@ export function CrawlerIdentityStep({
         }
       />
 
-      <Field
+      <WizTextField
         label={crawlerCopy('description')}
         value={description}
         multiline
-        onSave={(next) => onChange({ description: next })}
+        onChange={(next) => onChange({ description: next })}
         placeholder={crawlerCopy('whatTheCrawlerIsIts')}
       />
 
@@ -80,7 +78,7 @@ export function CrawlerIdentityStep({
           {crawlerCopy('theGroupsBankedScrapBucketed')}
         </Text>
 
-        <div className="su-wiz-scrap-grid" style={SCRAP_GRID}>
+        <div className="su-wiz-scrap-grid">
           {SCRAP_BUCKETS.map((bucket, i) => {
             const id = `crawler-scrap-${bucket}`
             return (

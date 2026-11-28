@@ -1,5 +1,5 @@
 /**
- * SearchListbox — the one list a search's results hang in: Minis or Compacts by
+ * SearchListbox — the one list a search's results hang in: a Ledger or Compacts by
  * `size`, a category line that links or acts by `target`, and the searcher's
  * empty line (chrome K8).
  */
@@ -53,13 +53,20 @@ describe('SearchListbox', () => {
     expect(options[1]?.getAttribute('aria-selected')).toBe('true')
   })
 
-  test('size picks the entity form: a Compact or a Mini', () => {
+  test('size picks the entity form: a Compact each, or one Ledger', () => {
     const { container, unmount } = list({ size: 'compact' })
     expect(container.querySelector('.su-entity-compact')).not.toBeNull()
+    expect(container.querySelector('.su-search-ledger')).toBeNull()
     unmount()
-    const tokens = list({ size: 'mini' })
-    expect(tokens.container.querySelector('.su-entity-mini-list')).not.toBeNull()
-    expect(tokens.container.querySelector('.su-entity-compact')).toBeNull()
+    const ledger = list({ size: 'mini' })
+    expect(ledger.container.querySelectorAll('.su-search-ledger tbody tr')).toHaveLength(1)
+  })
+
+  test('a Ledger keeps the search’s order: a category first stays first', () => {
+    list({ size: 'mini', results: [CHASSIS, MULE], selectedIndex: 0 })
+    const options = screen.getAllByRole('option')
+    expect(options.map((o) => o.id)).toEqual(['opt-0', 'opt-1'])
+    expect(options[0]?.textContent).toContain('Category')
   })
 
   test('a link target makes the category a link; an act target, an act', () => {
@@ -81,22 +88,91 @@ describe('SearchListbox', () => {
     expect(screen.getByText(NO_RESULTS)).toBeTruthy()
   })
 
-  test('kinds: a Mini result says what kind of thing it is, a stamp beside its name', () => {
-    list({ size: 'mini', kinds: true })
+  test('a Ledger row says what kind of thing it is, in a column beside its name', () => {
+    list({ size: 'mini' })
     const mule = screen.getAllByRole('option')[0]
-    expect(mule?.textContent).toContain('Chassis')
+    expect(mule?.closest('tr')?.textContent).toContain('Chassis')
   })
 
-  test('the row for what a full list left out is an option like any other', () => {
+  test('two Compacts of one name say their kind; a name of its own does not (r5 E3)', () => {
+    const heat = (id: string, group: string, stamp: string) => ({
+      result: { ...MULE, id, title: 'Heat', group } as SearchComboboxResult,
+      model: { ...model, title: 'Heat', kind: { ...model.kind, stamp } },
+    })
+    const rows = [heat('g', 'Guides', 'Guide'), heat('k', 'Keywords', 'Keyword')]
+    list({
+      results: [...rows.map((r) => r.result), MULE],
+      modelOf: (r) => rows.find((row) => row.result.id === r.id)?.model ?? model,
+    })
+    // What the eye reads: the screen reader's own kind label left out.
+    const seen = (option: HTMLElement | undefined) => {
+      const row = option?.closest('.su-entity-compact')?.cloneNode(true)
+      if (!(row instanceof HTMLElement)) return ''
+      for (const sr of row.querySelectorAll('.su-sr-only')) sr.remove()
+      return row.textContent ?? ''
+    }
+    const [guide, keyword, mule] = screen.getAllByRole('option')
+    expect(seen(guide)).toContain('Guide')
+    expect(seen(keyword)).toContain('Keyword')
+    expect(seen(mule)).toBe('Mule')
+  })
+
+  test('a dropdown row answers in place: its range and damage, a term its meaning, a shared name its kind (RR6-04, RR6-15)', () => {
+    const facts = [
+      {
+        key: 'range',
+        label: 'Range',
+        short: 'RNG',
+        value: 'Long',
+        shortValue: 'Long',
+        kind: 'fact',
+      },
+      { key: 'damage', label: 'Damage', short: 'DMG', value: '9 SP', kind: 'fact' },
+    ]
+    const railgun = {
+      result: { ...MULE, id: 'railgun', title: 'Railgun', group: 'Systems', schemaId: 'systems' },
+      model: { ...model, title: 'Railgun', facts },
+    }
+    const heat = (id: string, schemaId: string, lead?: string) => ({
+      result: { ...MULE, id, title: 'Heat', schemaId } as SearchComboboxResult,
+      model: { ...model, title: 'Heat', ...(lead ? { lead } : {}) },
+    })
+    const rows = [
+      railgun,
+      heat('k', 'keywords', 'Generates on your Mech when you perform various tasks.'),
+      heat('g', 'guides'),
+    ]
+    list({
+      size: 'mini',
+      results: rows.map((r) => r.result as SearchComboboxResult),
+      selectedIndex: -1,
+      modelOf: (r) => rows.find((row) => row.result.id === r.id)?.model as typeof model,
+    })
+    const [gun, keyword, guide] = screen.getAllByRole('option')
+    expect(gun?.closest('tr')?.textContent).toContain('Long')
+    expect(gun?.closest('tr')?.textContent).toContain('9 SP')
+    expect(keyword?.textContent).toBe('Heat · Keyword')
+    expect(guide?.textContent).toBe('Heat · Guide')
+    expect(keyword?.closest('tr')?.textContent).toContain('Generates on your Mech')
+  })
+
+  test('"See all N results" is an option that links to the page of every result (r8 G2)', () => {
     const more: SearchComboboxResult = {
       kind: 'more',
-      id: 'more:chassis',
-      title: '12 more Chassis',
-      group: 'Open the filtered list',
-      schemaId: 'chassis',
-      query: 'mu',
+      id: 'more',
+      title: 'See all 19 results',
+      group: '',
+      query: 'mule',
     }
     list({ results: [MULE, more] })
-    expect(screen.getAllByRole('option')[1]?.textContent).toContain('12 more Chassis')
+    const row = screen.getAllByRole('option')[1] as HTMLElement
+    expect(row.textContent).toBe('See all 19 results')
+    expect(row.tagName).toBe('A')
+    expect(row.getAttribute('href')).toBe('/more')
+  })
+
+  test('a search waiting on its index says it is searching (r4 F2)', () => {
+    list({ ready: false })
+    expect(screen.getByRole('status').textContent).toBe('Searching…')
   })
 })

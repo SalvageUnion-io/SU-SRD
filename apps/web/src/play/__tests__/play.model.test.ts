@@ -1,14 +1,15 @@
 import { describe, expect, test } from 'bun:test'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { pilotFixture } from '../../components/__tests__/fixtures'
 import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
 import { foregroundOn } from '../../design/contrast'
 import {
   connectionLine,
   gamePilots,
   PHASE_TONE,
+  pilotHolder,
+  playReadOnly,
   playStamp,
   playTitle,
-  soloPilots,
 } from '../play.model'
 
 describe('playTitle', () => {
@@ -61,26 +62,54 @@ describe('the landing’s pilots', () => {
   const rook = pilotFixture({ id: 'p-rook', name: 'Rook', gameId: 'g1' })
   const wren = pilotFixture({ id: 'p-wren', name: 'Wren', gameId: null })
   const kite = pilotFixture({ id: 'p-kite', name: 'Kite', gameId: null })
-  const scrapper = mechFixture({ id: 'm-scrapper', name: 'Scrapper', gameId: null })
-  const link = {
-    id: 'l1',
-    type: 'mech-to-pilot' as const,
-    from: { type: 'mech' as const, id: 'm-scrapper' },
-    to: { type: 'pilot' as const, id: 'p-wren' },
-    createdAt: FIXTURE_NOW,
-  }
-
-  test('Solo lists the shelf’s pilots, each with its assigned mech or none, and its HP and AP', () => {
-    const solo = soloPilots([rook, wren, kite], [scrapper], [], [link])
-    expect(solo.map(({ readings: _, ...p }) => p)).toEqual([
-      { pilotId: 'p-wren', name: 'Wren', mechName: 'Scrapper', mechId: 'm-scrapper' },
-      { pilotId: 'p-kite', name: 'Kite', mechName: null, mechId: null },
-    ])
-    expect(solo[0]?.readings.map((r) => r.label)).toEqual(['HP', 'AP'])
-  })
-
   test('a Game’s Play doors are your pilots in that Game alone', () => {
     expect(gamePilots([rook, wren, kite], 'g1').map((p) => p.id)).toEqual(['p-rook'])
     expect(gamePilots([rook, wren, kite], 'g2')).toEqual([])
+  })
+})
+
+// LG-02: Play opened on a pilot assigned to somebody else looked live, then
+// refused every press. It is read-only, and says whose the pilot is.
+describe('a pilot you cannot edit', () => {
+  const pilots = [
+    { _id: 'p1', appId: 'p1', ownerId: 'u-me', body: {} },
+    { _id: 'p2', appId: 'p2', ownerId: 'u-nell', body: {} },
+    { _id: 'p3', appId: 'p3', ownerId: null, body: {} },
+  ]
+  const members = [{ userId: 'u-nell', displayName: 'Nell' }]
+  const live = { status: 'live', canWrite: true } as const
+
+  test('yours has no holder to name, nor one not known yet', () => {
+    expect(pilotHolder({ pilotId: 'p1', viewerId: 'u-me', pilots, members })).toBeNull()
+    expect(pilotHolder({ pilotId: 'p2', viewerId: null, pilots, members })).toBeNull()
+    expect(pilotHolder({ pilotId: 'p2', viewerId: 'u-me', pilots: undefined, members })).toBeNull()
+    expect(pilotHolder({ pilotId: 'p9', viewerId: 'u-me', pilots, members })).toBeNull()
+  })
+
+  test('a crewmate’s is read-only, with their name', () => {
+    const holder = pilotHolder({ pilotId: 'p2', viewerId: 'u-me', pilots, members })
+    expect(holder).toEqual({ name: 'Nell' })
+    expect(playReadOnly(live, holder)).toEqual({
+      stamp: 'Read-only · Nell’s Pilot',
+      says: 'Read-only: this Pilot is assigned to Nell. Only they can play it.',
+    })
+  })
+
+  test('a crewmate whose name has not loaded is still named as one', () => {
+    const holder = pilotHolder({ pilotId: 'p2', viewerId: 'u-me', pilots, members: undefined })
+    expect(playReadOnly(live, holder)?.stamp).toBe('Read-only · a crewmate’s Pilot')
+  })
+
+  test('an unassigned one is read-only until it is assigned', () => {
+    const holder = pilotHolder({ pilotId: 'p3', viewerId: 'u-me', pilots, members })
+    expect(holder).toEqual({ name: null, unassigned: true })
+    expect(playReadOnly(live, holder)?.stamp).toBe('Read-only · unassigned')
+  })
+
+  test('the connection’s reason comes first, and yours writes as before', () => {
+    expect(playReadOnly({ status: 'offline', canWrite: false }, { name: 'Nell' })?.stamp).toBe(
+      playReadOnly({ status: 'offline', canWrite: false })?.stamp
+    )
+    expect(playReadOnly(live, null)).toBeNull()
   })
 })

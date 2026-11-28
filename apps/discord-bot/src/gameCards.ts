@@ -1,6 +1,7 @@
 import { appPath } from 'game-domain/appAddress'
 import { gamePath, kindOf, publicPath, sheetPath } from 'game-domain/entityKinds'
 import { hasCondition, storedMechConditions } from 'game-domain/mechConditions'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
 import {
@@ -182,7 +183,7 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
 /**
  * Web URLs. The glance lives in Discord; the surface lives in the app.
  *
- * Both mirror real TanStack routes — `/play/games/$gameId`, the Game's page in
+ * Both mirror real TanStack routes — `/games/$gameId`, the Game's page in
  * Play (ADR-052 §5), and `/pilots/$id` and its siblings (`sheetPath`). A link
  * that 404s is worse than no link: it reads as the app having lost the thing,
  * not the bot having guessed.
@@ -284,11 +285,11 @@ export function meCard(me: MeResult): ContainerData {
   })
 }
 
-/** `/su games` — every Game you belong to, each linked to its Play page; the card to Play's hub. */
+/** `/su games` — every Game you belong to, each linked to its page; the card to Your Games. */
 export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,
-    url: appUrl('/play/'),
+    url: appUrl('/games/'),
     accent: DISCORD_NEUTRAL_ACCENT,
     description: gameLines(games),
     fields: [],
@@ -473,9 +474,7 @@ function pilotSheet(body: EntityBody, derived: PilotDerived | null): RenderedShe
   })
 
   const conditions = chipRun(strArray(body, 'conditions'))
-  if (conditions !== null) {
-    fields.push({ name: 'Conditions', value: conditions, inline: true })
-  }
+  if (conditions !== null) fields.push({ name: 'Conditions', value: conditions, inline: true })
 
   const level = num(body, 'crawlerLevel')
   const subtitleParts = [refName('classes', classRef)]
@@ -483,7 +482,7 @@ function pilotSheet(body: EntityBody, derived: PilotDerived | null): RenderedShe
   const motto = str(body, 'motto')
 
   return {
-    name: str(body, 'callsign') ?? str(body, 'name') ?? 'Pilot',
+    name: pilotLabel(body),
     subtitle: `*${subtitleParts.join(' · ')}*${motto === null ? '' : `\n> ${motto}`}`,
     fields,
     thumbnail: refArtwork('classes', classRef),

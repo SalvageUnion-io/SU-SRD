@@ -1,27 +1,18 @@
 import type { CSSProperties } from 'react'
 import type { RefCrawler, RefMetaCrawlerTechLevel, RefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import {
-  Box,
-  Callout,
-  EmptyState,
-  FieldError,
-  ReferenceEntityCard,
-  Stat,
-  tokens,
-} from '../../components/index'
+import { FieldError } from '../../components/app'
+import { Box, Callout, ReferenceEntityCard, Stat, tokens } from '../../components/index'
 import { resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 import { crawlerCopy } from '../../messages/build-crawler'
+import { weaponColumns } from '../wizard/pickColumns'
+import { ReviewLedger } from '../wizard/ReviewLedger'
 import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 
-/** Recap and cards; the column split is `.su-wiz-review-grid`. */
-const REVIEW_GRID = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
-
-/** The recap column sits at the top of its row. */
-const RECAP = { alignSelf: 'start' } satisfies CSSProperties
+const WEAPON_COLUMNS = weaponColumns<RefSystem>()
 
 /** The Augmented reminder's body copy. */
 const REMINDER = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
@@ -33,8 +24,6 @@ const CHIPS = {
   flexWrap: 'wrap',
   gap: tokens.space[6],
 } satisfies CSSProperties
-
-/** The empty-weapons line, in the surrounding text colour. */
 
 type CrawlerReviewStepProps = {
   form: CrawlerWizardFormState
@@ -105,8 +94,10 @@ export function CrawlerReviewStep({
   const crew = crewNames.map((name) => unitRowModel({ kind: 'npc', name }))
 
   return (
-    <div className="su-wiz-review-grid" style={REVIEW_GRID}>
-      <div className="su-wiz-stack su-wiz-stack--12" style={RECAP}>
+    // The review's one form: the recap and the weapons as a Ledger down the
+    // main column, the type as its card beside them.
+    <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
+      <div className="su-wiz-compare-main">
         <Box bodyClassName="su-wiz-review-panel">
           {/* The recap: Stats, the type as its chip, the rest as Minis. */}
           <Recap>
@@ -114,17 +105,9 @@ export function CrawlerReviewStep({
             <RecapEntity label={crawlerCopy('type')} entity={selectedType} required />
             <RecapStat label={crawlerCopy('tl')} value={techLevel?.techLevel} required />
             {spChip ?? <RecapStat label={crawlerCopy('sp')} value={null} required />}
-            <RecapStat
-              label={crawlerCopy('bays')}
-              value="Full base set, seeded automatically · all Intact"
-            />
+            <RecapStat label={crawlerCopy('bays')} value={crawlerCopy('fullBaseSetAllIntact')} />
             {scrapChips.length > 0 && <span style={CHIPS}>{scrapChips}</span>}
             <RecapMinis label={crawlerCopy('ability')} entities={abilities} />
-            <RecapMinis
-              label={crawlerCopy('weapons')}
-              entities={systems}
-              empty={crawlerCopy('required')}
-            />
             <RecapMinis
               label={crawlerCopy('crew')}
               models={crew}
@@ -133,32 +116,25 @@ export function CrawlerReviewStep({
           </Recap>
           {submitError && <FieldError>{submitError}</FieldError>}
         </Box>
+        <ReviewLedger
+          title={crawlerCopy('weapons')}
+          entities={systems}
+          columns={WEAPON_COLUMNS}
+          empty={crawlerCopy('noWeaponsMounted')}
+        />
         {isAugmented && (
           <Callout tone="crawler">
             <span style={REMINDER}>
-              Every Pilot gains <strong>{crawlerCopy('n1TrainingPoint')}</strong> (Augment ability
-              tree only). Apply it on each Pilot&rsquo;s sheet yourself.
+              {crawlerCopy('everyPilotGains')} <strong>{crawlerCopy('n1TrainingPoint')}</strong>{' '}
+              {crawlerCopy('augmentOnlyApplyItYourself')}
             </span>
           </Callout>
         )}
       </div>
 
-      {/* chosen cards */}
-      <div className="su-wiz-stack su-wiz-stack--12">
+      <div className="su-wiz-compare-detail">
         {selectedType && (
           <ReferenceEntityCard data={selectedType} size="compact" hide={{ choices: true }} />
-        )}
-        {systems.map((system) => (
-          <ReferenceEntityCard
-            key={system.id}
-            data={system}
-            size="compact"
-            status="intact"
-            hide={{ actions: true, choices: true }}
-          />
-        ))}
-        {systems.length === 0 && (
-          <EmptyState variant="quiet" body={crawlerCopy('noWeaponsMounted')} bodyInk="inherit" />
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 {
   "name": "susrd",
   "private": true,
-  "version": "4.10.0",
+  "version": "4.11.0",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",
@@ -31,6 +31,9 @@
       "undici": "7.30.1"
     },
     "@cloudflare/vitest-plugin": {
+      "zod": "4.6.6"
+    },
+    "@discord/embedded-app-sdk": {
       "zod": "4.6.6"
     },
     "deepmerge": "file:./vendor/deepmerge",

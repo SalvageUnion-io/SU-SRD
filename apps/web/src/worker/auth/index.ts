@@ -7,6 +7,9 @@
  *   - `GET /auth/callback` → the account saved, a session opened, back to `to`.
  *   - `GET /auth/session` → who is signed in (`SessionAnswer`), or 401.
  *   - `POST /auth/sign-out` → the session closed.
+ *   - `GET /auth/activity` → the Discord application's client id, for the
+ *     Activity's Embedded App SDK; `POST /auth/activity {code}` → that SDK's
+ *     code traded for a session and Discord's access token (`activityToken`).
  *   - `POST /auth/test-sign-in` → the test seam, only where `TEST_AUTH` is
  *     exactly `'true'` (never production's `wrangler.jsonc`); a 404 elsewhere.
  *
@@ -22,9 +25,10 @@
 
 import { Discord, generateCodeVerifier, generateState, OAuth2RequestError } from 'arctic'
 import { APP_BASE } from 'game-domain/appAddress'
-import type { SessionAnswer } from '../../lib/auth/paths'
+import type { ActivityToken, SessionAnswer } from '../../lib/auth/paths'
 import { AUTH_PATHS } from '../../lib/auth/paths'
 import type { SharedDb } from '../shared/db'
+import { activityOrigin } from '../shared/refusals'
 import { base64urlJson, passwordHash, sha256Hex } from './crypto'
 import type { Account, AuthSql, SignIn } from './store'
 import {
@@ -80,24 +84,39 @@ export async function handleAuth(request: Request, deps: AuthDeps): Promise<Resp
       return get ? session(request, url, deps) : null
     case AUTH_PATHS.signOut:
       return request.method === 'POST'
-        ? guarded(request, url, () => signOut(request, url, deps))
+        ? guarded(request, url, deps, () => signOut(request, url, deps))
         : null
     case AUTH_PATHS.deleteAccount:
       return request.method === 'POST'
-        ? guarded(request, url, () => deleteAccount(request, url, deps))
+        ? guarded(request, url, deps, () => deleteAccount(request, url, deps))
         : null
+    case AUTH_PATHS.activity:
+      if (request.method === 'GET') return activityClient(deps)
+      if (request.method !== 'POST') return null
+      return fromActivity(request, url, deps)
+        ? activityToken(request, url, deps)
+        : new Response('Forbidden', { status: 403 })
     case AUTH_PATHS.testSignIn:
       if (!deps.testAuth || request.method !== 'POST') return null
-      return guarded(request, url, () => testSignIn(request, url, deps))
+      return guarded(request, url, deps, () => testSignIn(request, url, deps))
     default:
       return null
   }
 }
 
-/** A POST from another origin is refused: the cookie alone must not sign anyone out or in. */
-function guarded(request: Request, url: URL, run: () => Promise<Response>): Promise<Response> {
-  if (request.headers.get('origin') !== url.origin)
+/**
+ * A POST from another origin is refused: the cookie alone must not sign anyone
+ * out or in. This site's pages and its Discord Activity's frame are not another.
+ */
+function guarded(
+  request: Request,
+  url: URL,
+  deps: AuthDeps,
+  run: () => Promise<Response>
+): Promise<Response> {
+  if (!fromActivity(request, url, deps)) {
     return Promise.resolve(new Response('Forbidden', { status: 403 }))
+  }
   return run()
 }
 
@@ -115,6 +134,52 @@ function sitePath(raw: string | null | undefined): string {
 function cookie(url: URL, name: string, value: string, maxAgeS: number, path = '/'): string {
   const secure = url.protocol === 'https:' ? '; Secure' : ''
   return `${name}=${value}; Path=${path}; Max-Age=${maxAgeS}; HttpOnly; SameSite=Lax${secure}`
+}
+
+/**
+ * A cookie for the Activity's frame. Discord shows it on discord.com, so the
+ * frame is a third party there: the browser keeps only a cookie that is
+ * `SameSite=None`, `Secure` and `Partitioned` (CHIPS), kept for discord.com
+ * alone.
+ */
+function activityCookie(name: string, value: string, maxAgeS: number): string {
+  return `${name}=${value}; Path=/; Max-Age=${maxAgeS}; HttpOnly; SameSite=None; Secure; Partitioned`
+}
+
+/**
+ * Whether a request comes from the Activity's frame: its origin, or, for a
+ * same-origin GET that sends none, its referrer.
+ */
+function inActivity(request: Request, deps: AuthDeps): boolean {
+  if (deps.discord === undefined) return false
+  const frame = activityOrigin(deps.discord.clientId)
+  const origin = request.headers.get('origin')
+  if (origin !== null) return origin === frame
+  return (request.headers.get('referer') ?? '').startsWith(`${frame}/`)
+}
+
+/**
+ * The session cookie for this request: the Activity's frame keeps only a
+ * partitioned one (`activityCookie`), so a renewal or a sign-out there writes
+ * that kind, which a site page's `SameSite=Lax` one would not replace.
+ */
+function sessionCookie(
+  request: Request,
+  url: URL,
+  deps: AuthDeps,
+  value: string,
+  maxAgeS: number
+): string {
+  return inActivity(request, deps)
+    ? activityCookie(SESSION_COOKIE, value, maxAgeS)
+    : cookie(url, SESSION_COOKIE, value, maxAgeS)
+}
+
+/** A POST from this site's own page, or from the Activity's frame. */
+function fromActivity(request: Request, url: URL, deps: AuthDeps): boolean {
+  const origin = request.headers.get('origin')
+  if (origin === url.origin) return true
+  return deps.discord !== undefined && origin === activityOrigin(deps.discord.clientId)
 }
 
 function readCookie(request: Request, name: string): string | null {
@@ -247,14 +312,72 @@ async function callback(request: Request, url: URL, deps: AuthDeps): Promise<Res
 async function signInAs(
   url: URL,
   deps: AuthDeps,
-  signIn: SignIn & { secret?: string }
+  signIn: SignIn & { secret?: string },
+  inActivity = false
 ): Promise<string> {
   const { sql } = deps
   const now = (deps.now ?? Date.now)()
   const accountId = (await accountIdOf(sql, signIn)) ?? crypto.randomUUID()
-  await saveAccount(sql, { ...signIn, accountId }, now)
+  await saveAccount(sql, { ...signIn, accountId }, now, inActivity)
   const token = await openSession(sql, accountId, now)
-  return cookie(url, SESSION_COOKIE, token, SESSION_MS / 1000)
+  return inActivity
+    ? activityCookie(SESSION_COOKIE, token, SESSION_MS / 1000)
+    : cookie(url, SESSION_COOKIE, token, SESSION_MS / 1000)
+}
+
+/** `GET /auth/activity`: the client id the Activity's SDK starts with, or 503 unset. */
+function activityClient(deps: AuthDeps): Response {
+  if (!deps.discord) return new Response('Sign-in is not configured here', { status: 503 })
+  return json({ clientId: deps.discord.clientId }, 200)
+}
+
+/**
+ * `POST /auth/activity {code}`: the code the SDK's `authorize` gave, traded
+ * with Discord (no redirect: an Activity's code has none), the account saved
+ * and a session opened in the frame's partitioned cookie. Answers Discord's
+ * access token (`ActivityToken`), which the SDK's `authenticate` takes. A
+ * refused code is a 401, and nothing is saved.
+ */
+async function activityToken(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
+  if (!deps.discord) return new Response('Sign-in is not configured here', { status: 503 })
+  const body = (await request.json().catch(() => null)) as { code?: unknown } | null
+  const code = body?.code
+  if (typeof code !== 'string' || code === '') return json({ errorMessage: 'No code' }, 400)
+  const traded = await fetch('https://discord.com/api/oauth2/token', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: deps.discord.clientId,
+      client_secret: deps.discord.clientSecret,
+      grant_type: 'authorization_code',
+      code,
+    }),
+  })
+  if (!traded.ok) {
+    console.error(`Discord refused the Activity's code: ${traded.status}`)
+    return json({ errorMessage: 'Discord refused the sign-in' }, 401)
+  }
+  const { access_token: accessToken } = (await traded.json()) as { access_token?: string }
+  if (!accessToken) return json({ errorMessage: 'Discord refused the sign-in' }, 401)
+  const res = await fetch('https://discord.com/api/users/@me', {
+    headers: { authorization: `Bearer ${accessToken}` },
+  })
+  if (!res.ok) return json({ errorMessage: 'Discord refused the sign-in' }, 401)
+  const user = (await res.json()) as DiscordUser
+  const session = await signInAs(
+    url,
+    deps,
+    {
+      discordId: user.id,
+      testEmail: null,
+      name: user.global_name || user.username,
+      avatarUrl: discordAvatar(user),
+      email: user.email || null,
+    },
+    true
+  )
+  const answer: ActivityToken = { accessToken }
+  return json(answer, 200, [session])
 }
 
 function json(body: unknown, status: number, cookies: string[] = []): Response {
@@ -316,13 +439,16 @@ async function deleteAccount(request: Request, url: URL, deps: AuthDeps): Promis
   await forgetAccount(sql, session.account.accountId)
   return new Response(null, {
     status: 204,
-    headers: { 'set-cookie': cookie(url, SESSION_COOKIE, '', 0), 'cache-control': 'no-store' },
+    headers: {
+      'set-cookie': sessionCookie(request, url, deps, '', 0),
+      'cache-control': 'no-store',
+    },
   })
 }
 
 async function session(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
   const raw = readCookie(request, SESSION_COOKIE)
-  const signedOut = () => json(null, 401, raw ? [cookie(url, SESSION_COOKIE, '', 0)] : [])
+  const signedOut = () => json(null, 401, raw ? [sessionCookie(request, url, deps, '', 0)] : [])
   if (!raw) return signedOut()
   const { sql } = deps
   const session = await readSession(sql, raw, (deps.now ?? Date.now)())
@@ -334,7 +460,7 @@ async function session(request: Request, url: URL, deps: AuthDeps): Promise<Resp
   return json(
     answer,
     200,
-    session.renewed ? [cookie(url, SESSION_COOKIE, raw, SESSION_MS / 1000)] : []
+    session.renewed ? [sessionCookie(request, url, deps, raw, SESSION_MS / 1000)] : []
   )
 }
 
@@ -343,7 +469,10 @@ async function signOut(request: Request, url: URL, deps: AuthDeps): Promise<Resp
   if (raw) await closeSession(deps.sql, raw)
   return new Response(null, {
     status: 204,
-    headers: { 'set-cookie': cookie(url, SESSION_COOKIE, '', 0), 'cache-control': 'no-store' },
+    headers: {
+      'set-cookie': sessionCookie(request, url, deps, '', 0),
+      'cache-control': 'no-store',
+    },
   })
 }
 

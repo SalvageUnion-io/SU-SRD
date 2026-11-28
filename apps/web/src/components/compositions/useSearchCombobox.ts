@@ -16,10 +16,10 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { RefEntity, RefEnumSchemaName, SearchResult } from 'salvageunion-reference'
-import { getEntitySchemas, search } from 'salvageunion-reference'
+import { getEntitySchemas, search, searchOneSlipAway } from 'salvageunion-reference'
 import { schemaPluralLabel } from '../../lib/schemaLabels'
 import { compositionsCopy } from '../../messages/components-compositions'
-import { loadingCopy } from '../containers/loadingCopy'
+import { SEARCHING } from '../containers/loadingCopy'
 import { NO_RESULTS } from './searchCopy'
 
 export type SearchComboboxResult =
@@ -43,20 +43,25 @@ export type SearchComboboxResult =
       group: string
       schemaId: RefEnumSchemaName
       entity: SearchResult['entity'] & RefEntity
+      /**
+       * A result with a page that is not its schema's item page, and a kind
+       * that is not its schema's name: a pattern, under its host.
+       */
+      page?: { href: string; kind: string }
     }
   | {
       /**
-       * The row after the last result when more matched than the list holds
-       * (`moreRow`): the kind with the most left out, opening its listing
-       * filtered by the query.
+       * The row after the last result when the page of every result holds
+       * more than the list (`countAll`): "See all 19 results", which opens
+       * that page (`onSubmitQuery`, r8 G2).
        */
       kind: 'more'
       id: string
-      /** '12 more Abilities'. */
+      /** 'See all 19 results'. */
       title: string
+      /** Nothing: the title says it all. */
       group: string
-      schemaId: RefEnumSchemaName
-      /** The query, for the listing's name filter. */
+      /** The query whose page it opens. */
       query: string
     }
 
@@ -74,13 +79,22 @@ export type UseSearchComboboxOptions = {
   /** Category rows reserved out of `limit`. Default 3. */
   schemaSlots?: number
   /**
-   * End a list that leaves matches out with a row for them (`kind: 'more'`),
-   * inside `limit`. Default false: a host must know where that row goes.
+   * How many results the host's page of every result holds for a query: a
+   * list that lists fewer ends with "See all N results" (`kind: 'more'`),
+   * which opens that page through `onSubmitQuery`. None, and there is no
+   * such row.
    */
-  moreRow?: boolean
+  countAll?: (query: string) => number
   /** Invoked on Enter (highlighted row, else first row) — and by row clicks
    *  when the caller wires them through submit(). */
   onSubmit: (result: SearchComboboxResult) => void
+  /**
+   * Invoked instead of `onSubmit` on Enter with no row highlighted, with the
+   * trimmed query: the host's page of every result (the site's search). A
+   * list of one result opens it instead. Without it, that Enter opens the
+   * first row.
+   */
+  onSubmitQuery?: (query: string) => void
   /**
    * Override the entity-search implementation. Defaults to the ORM-backed
    * `search()` from `salvageunion-reference`. Pass a different implementation
@@ -88,67 +102,80 @@ export type UseSearchComboboxOptions = {
    * SearchIsland runs a build-time-generated compact index instead of
    * preloading the ~1.3 MB corpus just to power search.
    */
-  searchFn?: (options: Parameters<typeof search>[0]) => SearchResult[]
+  searchFn?: (options: Parameters<typeof search>[0]) => SearchHit[]
 }
+
+/** A hit, with what a pattern's row says of itself (the compact index's `pattern`). */
+type SearchHit = SearchResult & { pattern?: { href: string; kind: string } }
+
+/** A query with nothing but its letters and digits, as a kind's name is compared. */
+function squashed(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '')
+}
+
+/** The shortest query a slip is forgiven in, as an entity's name is. */
+const SLIP_MIN_LENGTH = 4
 
 function matchSchemas(query: string, slots: number): SearchComboboxResult[] {
   const q = query.toLowerCase().trim()
   if (!q) return []
+  // A kind is found without its punctuation too: "biotitan" finds Bio-Titans.
+  const bare = squashed(q)
 
-  return getEntitySchemas()
-    .filter(
-      (s) =>
-        s.displayName.toLowerCase().includes(q) ||
-        s.displayNamePlural.toLowerCase().includes(q) ||
-        s.id.includes(q)
-    )
-    .slice(0, slots)
-    .map((s) => ({
-      kind: 'schema' as const,
-      id: `schema:${s.id}`,
-      title: s.displayNamePlural,
-      group: 'Category',
-      schemaId: s.id as RefEnumSchemaName,
-    }))
+  const literal = getEntitySchemas().filter(
+    (s) =>
+      s.displayName.toLowerCase().includes(q) ||
+      s.displayNamePlural.toLowerCase().includes(q) ||
+      s.id.includes(q) ||
+      (bare.length > 2 && squashed(s.displayNamePlural).includes(bare))
+  )
+  // With no kind named as typed, one a slip away ("chasis" finds Chassis):
+  // the forgiveness an entity's name gets (`searchOneSlipAway`).
+  const found =
+    literal.length > 0 || q.length < SLIP_MIN_LENGTH
+      ? literal
+      : getEntitySchemas().filter((s) =>
+          [s.displayName, s.displayNamePlural].some((name) =>
+            searchOneSlipAway(q, name.toLowerCase())
+          )
+        )
+
+  return found.slice(0, slots).map((s) => ({
+    kind: 'schema' as const,
+    id: `schema:${s.id}`,
+    title: s.displayNamePlural,
+    group: 'Category',
+    schemaId: s.id as RefEnumSchemaName,
+  }))
 }
 
-/** Every match is counted up to here; a search this wide is not a list anyone reads. */
+/** Every match is counted up to here, as the page of every result lists them. */
 const COUNT_LIMIT = 200
 
-/**
- * The row for the matches a full list left out: the kind with the most whose
- * NAME holds the query (what its listing's filter matches), or none.
- */
-function moreResult(hidden: readonly SearchResult[], query: string): SearchComboboxResult[] {
-  const q = query.toLowerCase().trim()
-  const counts = new Map<RefEnumSchemaName, number>()
-  for (const hit of hidden) {
-    if (!hit.entityName.toLowerCase().includes(q)) continue
-    counts.set(hit.schemaName, (counts.get(hit.schemaName) ?? 0) + 1)
+/** "See all N results": the page of every result, with the count it will say. */
+function allResults(query: string, count: number): SearchComboboxResult {
+  return {
+    kind: 'more',
+    id: 'more',
+    // At the count's limit there may be more than were counted, as that page says.
+    title: compositionsCopy('seeAllResults', {
+      count: `${count}${count >= COUNT_LIMIT ? '+' : ''}`,
+    }),
+    group: '',
+    query,
   }
-  const top = [...counts].sort((a, b) => b[1] - a[1])[0]
-  if (!top) return []
-  const [schemaId, count] = top
-  return [
-    {
-      kind: 'more',
-      id: `more:${schemaId}`,
-      title: `${count} more ${schemaPluralLabel(schemaId)}`,
-      group: compositionsCopy('openTheFilteredList'),
-      schemaId,
-      query: query.trim(),
-    },
-  ]
 }
 
-function toEntityResult(result: SearchResult): SearchComboboxResult {
+function toEntityResult(result: SearchHit): SearchComboboxResult {
+  const { pattern } = result
   return {
     kind: 'entity',
     id: result.entityId,
     title: result.entityName,
-    group: schemaPluralLabel(result.schemaName),
+    group: pattern ? pattern.kind : schemaPluralLabel(result.schemaName),
     schemaId: result.schemaName,
     entity: result.entity,
+    ...(pattern ? { page: pattern } : {}),
   }
 }
 
@@ -157,8 +184,9 @@ export function useSearchCombobox({
   debounceMs = 150,
   limit = 10,
   schemaSlots = 3,
-  moreRow = false,
+  countAll,
   onSubmit,
+  onSubmitQuery,
   searchFn = search,
 }: UseSearchComboboxOptions) {
   const [query, setQuery] = useState('')
@@ -174,6 +202,9 @@ export function useSearchCombobox({
   // Results stay hidden until data is ready — prevents phantom aria-live
   // announcements and Enter navigating to an unseen row.
   const results = useMemo(() => (ready ? rawResults : []), [ready, rawResults])
+  // The rows listed, "See all" apart: it is the way on, not a result.
+  const listed = results.filter((result) => result.kind !== 'more').length
+  const more = results.find((result) => result.kind === 'more')
 
   const performSearch = useCallback(
     (searchQuery: string) => {
@@ -185,20 +216,15 @@ export function useSearchCombobox({
       }
       const schemaResults = matchSchemas(searchQuery, schemaSlots)
       const room = limit - schemaResults.length
-      if (!moreRow) {
-        const hits = ready ? searchFn({ query: searchQuery, limit: room }) : []
-        setRawResults([...schemaResults, ...hits.map(toEntityResult)])
-      } else {
-        const all = ready ? searchFn({ query: searchQuery, limit: COUNT_LIMIT }) : []
-        // A full list gives its last line to the row for what it left out.
-        const more = all.length > room ? moreResult(all.slice(room - 1), searchQuery) : []
-        const hits = all.slice(0, room - more.length)
-        setRawResults([...schemaResults, ...hits.map(toEntityResult), ...more])
-      }
+      const hits = ready ? searchFn({ query: searchQuery, limit: room }) : []
+      // A list that holds fewer than the page of every result ends with the way to it.
+      const total = ready && countAll ? Math.min(countAll(searchQuery.trim()), COUNT_LIMIT) : 0
+      const more = total > hits.length ? [allResults(searchQuery.trim(), total)] : []
+      setRawResults([...schemaResults, ...hits.map(toEntityResult), ...more])
       setHasSearched(true)
       setSelectedIndex(-1)
     },
-    [ready, limit, schemaSlots, moreRow, searchFn]
+    [ready, limit, schemaSlots, countAll, searchFn]
   )
 
   const handleInput = useCallback(
@@ -231,9 +257,11 @@ export function useSearchCombobox({
 
   const submit = useCallback(
     (result: SearchComboboxResult) => {
-      onSubmit(result)
+      // "See all N results" is the page of every result.
+      if (result.kind === 'more') onSubmitQuery?.(result.query)
+      else onSubmit(result)
     },
-    [onSubmit]
+    [onSubmit, onSubmitQuery]
   )
 
   /** Arrow/Enter handling — callers chain their own Escape behavior. */
@@ -247,11 +275,16 @@ export function useSearchCombobox({
         setSelectedIndex((prev) => Math.max(prev - 1, -1))
       } else if (e.key === 'Enter') {
         e.preventDefault()
+        // One result listed is the answer: Enter opens it (r8 G2).
+        if (selectedIndex < 0 && onSubmitQuery && query.trim() && listed !== 1) {
+          onSubmitQuery(query.trim())
+          return
+        }
         const target = selectedIndex >= 0 ? results[selectedIndex] : results[0]
         if (target) submit(target)
       }
     },
-    [results, selectedIndex, submit]
+    [results, selectedIndex, submit, onSubmitQuery, query, listed]
   )
 
   /** Screen-reader result-count announcement (render in an aria-live region). */
@@ -259,10 +292,10 @@ export function useSearchCombobox({
     ? null
     : !ready
       ? query.trim()
-        ? loadingCopy('reference data')
+        ? SEARCHING
         : null
-      : results.length > 0
-        ? `${results.length} result${results.length === 1 ? '' : 's'} found`
+      : listed > 0
+        ? `${listed} result${listed === 1 ? '' : 's'} found${more ? `, ${more.title}` : ''}`
         : NO_RESULTS
 
   /** Spread onto the <input>; add aria-expanded (open semantics differ per shell). */

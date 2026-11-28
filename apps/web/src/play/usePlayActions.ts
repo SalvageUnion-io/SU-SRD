@@ -11,27 +11,53 @@
  * Downtime actions). Every die it reads is recorded on Play's one roll log
  * (`reportingRoll`, `playRolls.model.ts`), which puts it on the Feed, the
  * Game's log and, with Post on, Discord, once.
+ *
+ * An action of a unit that is Down (at 0 SP or 0 HP, r5 A1) asks "Thresher is
+ * at 0 SP. Act anyway?" once, the first Use while it stays Down: the table
+ * decides what a Down unit may do, so it is never refused.
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { closeRangeOnly, sceneHeatScale } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import type { ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import { resolveSheetComposition } from '../build/sheet/composition.model'
 import { rollForTable } from '../components/index'
-import { buildMechActions, buildPilotActions } from '../lib/rules/actionPatches'
+import { useConfirm } from '../components/shared/useConfirm'
+import { buildCompanionActions, buildMechActions, buildPilotActions } from '../lib/rules/actionList'
+import { activatableEffects, effectUsed } from '../lib/rules/activatableEffects'
+import { playCopy } from '../messages/play'
 import { useUnits } from '../replica/units'
+import type { DeckRoll, ResolveModel } from './actionsDeck.model'
 import type { PlayStore } from './play.model'
 import type { ListEntry, TypeFilter } from './playActions.model'
 import { buildActionList, filterEntries, splitOnHand } from './playActions.model'
 import type { PlayRollMeta } from './playRolls.model'
 import { reportingRoll } from './playRolls.model'
 import type { Play } from './situation.model'
-import type { ResolveModel } from './useActionsDeck'
 import { useActionsDeck } from './useActionsDeck'
 import { useSalvageArea } from './useSalvageArea'
+import { isDown } from './zeroVital.model'
+
+/** The Down units whose Act anyway was answered, by id, until they rise (r5 A1). */
+const actingDown = new Set<string>()
+
+/** The unit an action of `source` belongs to, while it is Down; null else. */
+function downUnit(
+  source: string,
+  pilot: Pilot | null,
+  mech: Mech | null
+): { id: string; name: string; label: string } | null {
+  if (source === 'mech' && mech !== null && isDown(mech.currentSP))
+    return { id: mech.id, name: mech.name, label: 'SP' }
+  if (source === 'pilot' && pilot !== null && isDown(pilot.currentHP))
+    return { id: pilot.id, name: pilotLabel(pilot), label: 'HP' }
+  return null
+}
 
 /** What a test injects: the store the writes go to, and the dice. */
 export type PlayActionsDeps = {
@@ -67,8 +93,14 @@ export type PlayActions = {
    * word when its action leaves the hand (`PlayOrphanResolve`).
    */
   resolvingUntouched: boolean
-  /** Open an on-hand action's resolve in its row (Use). */
+  /** The action that just finished and closed itself: its row says Done. */
+  doneKey: string | null
+  /** What that row says it came to (r6 A5). */
+  doneSays: string
+  /** Open an on-hand action's resolve in its row (Use); a Down unit's asks first (r5 A1). */
   open: (key: string) => void
+  /** The Act anyway question, to render. */
+  dialog: ReactNode
   /**
    * The dice a roll here reads, recorded under `label`. `outcome`, read once
    * the dice are, says what the roll came to ("Heat Check passed", a rumour).
@@ -115,6 +147,11 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     pilotActions: pilot ? buildPilotActions(pilot) : [],
     mechActions: mech ? buildMechActions(mech) : [],
     hasMech: mech !== null,
+    // The companions' actions join the board (R65).
+    companionActions: [
+      ...(pilot ? buildCompanionActions({ kind: 'pilot', id: pilot.id }, pilot.partners) : []),
+      ...(mech ? buildCompanionActions({ kind: 'mech', id: mech.id }, mech.partners) : []),
+    ],
   })
   const { onHand, away } = splitOnHand(filterEntries(entries, filter, find))
 
@@ -137,9 +174,15 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
   const resolving = play.seat.seat.resolving
   const resolvingName = useRef<string | null>(null)
   resolvingName.current = resolving?.name ?? null
-  const deckRoll: typeof rollForTable = async (tableName, options) =>
-    reportingRoll(await baseRoll(tableName, options), tableName, () =>
-      meta(resolvingName.current ?? tableName)
+  // A Push's Heat Check says itself (r7 A5): its own label and what it came to.
+  const deckRoll: DeckRoll = async (tableName, options) =>
+    reportingRoll(
+      await baseRoll(
+        tableName,
+        options?.plainD20s === undefined ? undefined : { plainD20s: options.plainD20s }
+      ),
+      tableName,
+      () => meta(options?.label ?? resolvingName.current ?? tableName, options?.outcome)
     )
 
   const heatScale = sceneHeatScale(play.scene.conditions)
@@ -153,13 +196,50 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     crawler,
     situation,
     resolving,
-    onResolving: (next) =>
-      next === null ? play.seat.clearResolving() : play.seat.setResolving(next),
+    onResolving: (next) => {
+      if (next === null) return play.seat.clearResolving()
+      // A Pilot ability used while Boarded switches its effect on (r8 A8):
+      // the Mech's Effects list it once it is in force.
+      const used = effectUsed(
+        resolving,
+        next,
+        entries.flatMap((e) => (e.kind === 'action' && e.key === next.ref ? [e.action] : []))[0],
+        situation === 'boarded' && mech !== null ? activatableEffects(mech, pilot?.abilities) : [],
+        play.seat.seat.activeEffects
+      )
+      if (used !== null) play.seat.toggleEffect(used)
+      return play.seat.setResolving(next)
+    },
+    held: play.seat.seat.held === true,
     store,
     rollFor: deckRoll,
     heatScale,
     salvageArea,
   })
+
+  // Risen units are asked again the next time they go Down.
+  for (const id of [...actingDown]) {
+    const current = id === pilot?.id ? pilot.currentHP : id === mech?.id ? mech.currentSP : null
+    if (current !== null && !isDown(current)) actingDown.delete(id)
+  }
+  const { confirm, dialog } = useConfirm()
+  const open = (key: string) => {
+    const entry = entries.find((e) => e.key === key)
+    const down = entry?.kind === 'action' ? downUnit(entry.source, pilot, mech) : null
+    if (down === null || actingDown.has(down.id)) return deck.open(key)
+    confirm({
+      title: playCopy('downActAnyway', { name: down.name, label: down.label }),
+      body: [playCopy('downActAnywayBody')],
+      confirmLabel: playCopy('actAnyway'),
+      pendingLabel: playCopy('actAnyway'),
+      tone: 'default',
+      failure: playCopy('actAnyway'),
+      onConfirm: () => {
+        actingDown.add(down.id)
+        deck.open(key)
+      },
+    })
+  }
 
   return {
     pilot,
@@ -182,7 +262,10 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
       resolving.salvage === undefined &&
       !resolving.activated &&
       !resolving.applied,
-    open: deck.open,
+    open,
+    dialog,
+    doneKey: deck.doneKey,
+    doneSays: deck.doneSays,
     heatScale,
     closeOnly: closeRangeOnly(play.scene.conditions),
     rollFor,

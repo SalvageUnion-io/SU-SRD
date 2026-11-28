@@ -6,21 +6,17 @@
  * A type change is DESTRUCTIVE and stateful: it resets the crawler's special
  * type NPC to the new type's default, drops the orphaned old type's Keepsake/
  * Motto selections, and leaves every bay's live state untouched — one
- * multi-write, via the applyCrawlerCrewAndTypeEdit helper. A confirm step
- * guards the change.
+ * multi-write, via the applyCrawlerCrewAndTypeEdit helper. Choose on a type's
+ * Page is the pick (r2 G3: no Apply step); because the change is destructive it
+ * opens the one danger confirm, and backing out of that returns to the picker
+ * on the crawler's current type.
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import {
-  Button,
-  ConfirmDialog,
-  EntitySearcher,
-  ModalShell,
-  Text,
-  toast,
-} from '../../components/index'
+import { ConfirmDialog } from '../../components/app'
+import { Button, EntitySearcher, ModalShell, Text, toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
@@ -55,7 +51,7 @@ export function CrawlerTypeEditModal({
       const form: CrawlerWizardFormState = { ...EMPTY_CRAWLER_FORM_STATE, type: to, crew: {} }
       return applyCrawlerCrewAndTypeEdit(storeState, crawler.id, form, from, to)
     },
-    { failure: 'The crawler type could not be changed. Try again.', toastId: 'crawler-type' }
+    { failure: crawlerCopy('typeNotChanged'), toastId: 'crawler-type' }
   )
 
   // Reset the picker to the crawler's current type each time it opens. Depends
@@ -79,7 +75,9 @@ export function CrawlerTypeEditModal({
     // A failure is already toasted by the server action; ConfirmDialog closes
     // on return, which drops the reader back on the picker.
     if (!result.ok) return
-    toast.success(`Changed crawler type to ${selectedEntity?.name ?? 'new type'}.`)
+    toast.success(
+      crawlerCopy('changedCrawlerTypeTo', { name: selectedEntity?.name ?? crawlerCopy('newType') })
+    )
     onClose()
   }
 
@@ -98,9 +96,11 @@ export function CrawlerTypeEditModal({
           schema="crawlers"
           mode="single"
           selected={selected ? [selected] : []}
-          // Single-select: picking replaces the prior pick, picking the current
-          // one clears it (the confirm button then disables).
-          onToggle={(ref) => setSelected((prev) => (prev === ref ? null : ref))}
+          // Choose picks the type and asks at once: the confirm is its one guard.
+          onToggle={(ref) => {
+            setSelected(ref)
+            setConfirming(true)
+          }}
           // The crawler record stores its type as a slug.
           idOf={(item) => nameToSlug(item.name)}
           // Five types — a Tech-Level / status facet row would be chrome over a
@@ -112,33 +112,26 @@ export function CrawlerTypeEditModal({
           emptyMessage={crawlerCopy('noMatchingCrawlerTypes')}
           onClose={onClose}
           railActions={
-            <>
-              <Button variant="ghost" size="compact" onClick={onClose}>
-                {crawlerCopy('cancel')}
-              </Button>
-              <Button
-                variant="primary"
-                size="compact"
-                disabled={!changed}
-                onClick={() => setConfirming(true)}
-              >
-                {crawlerCopy('changeType')}
-              </Button>
-            </>
+            <Button variant="ghost" size="compact" onClick={onClose}>
+              {crawlerCopy('cancel')}
+            </Button>
           }
         />
       </ModalShell>
 
       <ConfirmDialog
         open={confirming && changed}
-        onOpenChange={setConfirming}
+        // Backing out drops the pick: the picker shows the crawler's own type again.
+        onOpenChange={(next) => {
+          setConfirming(next)
+          if (!next) setSelected(currentType)
+        }}
         title={crawlerCopy('changeCrawlerType2')}
         tone="danger"
         body={
           <Text variant="note">
-            Change to <strong>{selectedEntity?.name}</strong>? This resets the crawler's special NPC
-            to the new type's default (its name, description and HP are cleared) and drops the old
-            type's Keepsake/Motto. Your bays and their crew are kept.
+            {crawlerCopy('changeTo')} <strong>{selectedEntity?.name}</strong>
+            {crawlerCopy('changeToResets')}
           </Text>
         }
         confirmLabel={crawlerCopy('changeType2')}

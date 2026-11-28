@@ -20,7 +20,7 @@ import {
 } from 'salvageunion-reference'
 import { ogCardForEntity } from '../../compositions/ogCardForEntity'
 import { EntityPageStamps } from '../../referenceEntity/card/EntityPageStamps'
-import { resolveEntityPageMeta } from '../../referenceEntity/card/entityPage'
+import { pageStatLine, resolveEntityPageMeta } from '../../referenceEntity/card/entityPage'
 import { ReferenceEntityCard } from '../../referenceEntity/card/ReferenceEntityCard'
 import { Entity } from '../Entity'
 import { PeekCard } from '../PeekCard'
@@ -137,8 +137,12 @@ describe('one stat order on every surface', () => {
           domLabels(peek.container.querySelector('[data-chip-group]'))
         )
         peek.unmount()
+        // A Page's stats lead its body as the stat column; its chips ride its band.
         const page = render(<EntityPageStamps meta={resolveEntityPageMeta(entity)} />)
-        expectInOrder(entity, `${name} page`, domLabels(page.container))
+        expectInOrder(entity, `${name} page`, [
+          ...pageStatLine(entity).map((stat) => stat.label),
+          ...domLabels(page.container),
+        ])
         page.unmount()
         expectInOrder(entity, `${name} og`, ogLabels(schemaName, entity))
         const discord = discordCardParts(toEntityModel(entity)).head.slice(1).join(' · ')

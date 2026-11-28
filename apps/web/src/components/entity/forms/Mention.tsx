@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { InlineRef } from '../../atoms/InlineRef'
 import { useEntitySurface } from '../entitySurfaceContext'
-import { useInsidePeek, usePeekAttrs } from '../peekContext'
+import { termPeekAttrs, useInsidePeek, usePeekAttrs } from '../peekContext'
 
 export type MentionProps = {
   /**
@@ -12,12 +12,25 @@ export type MentionProps = {
   entityRef: EntityRef | undefined
   /** The words as the prose prints them ("Burn (X)"). */
   children: ReactNode
+  /**
+   * The link exists to take the reader somewhere (a list's row, Used by, Next
+   * and Previous): its Peek offers no Open page. Every link's press opens its
+   * Page; the Peek is hover's and focus's alone (E27).
+   */
+  goes?: boolean
+  /**
+   * A later link to a term its paragraph already links: still a link, never a
+   * second Tab stop (the keyboard reads a paragraph without stopping twice at
+   * one word).
+   */
+  repeat?: boolean
 }
 
 /**
  * MENTION (entity display language, E4): an entity named in prose. The name in
- * the prose's own type (`InlineRef`), the Page on click and the Peek on hover,
- * focus or long-press.
+ * the prose's own type (`InlineRef`), the Peek on hover or focus, and the Page
+ * on a press or the Peek's Open page (E27). A Mention that is a list's row or
+ * a way onward (`goes`) is not a term: its Peek offers no Open page.
  *
  * Where it goes comes from the SURFACE: its route (`hrefFor`, the SRD) makes it
  * a link; else the Page opener (`openPage`, the app) makes it a button; else it is
@@ -27,15 +40,16 @@ export type MentionProps = {
  * The Peek itself is the page's one `PeekHost`: the Mention only carries its
  * address (`data-peek`), so it renders the same on the server.
  */
-export function Mention({ entityRef, children }: MentionProps) {
+export function Mention({ entityRef, children, goes = false, repeat = false }: MentionProps) {
   const surface = useEntitySurface()
   const insidePeek = useInsidePeek()
-  const peek = usePeekAttrs(entityRef)
+  const own = usePeekAttrs(entityRef)
+  const peek = repeat ? { ...own, tabIndex: -1 } : own
   if (!entityRef || entityRef.synthetic || insidePeek) return <InlineRef>{children}</InlineRef>
   const href = surface.hrefFor(entityRef)
   if (href) {
     return (
-      <InlineRef href={href} {...peek}>
+      <InlineRef href={href} {...(goes ? peek : termPeekAttrs(peek))}>
         {children}
       </InlineRef>
     )

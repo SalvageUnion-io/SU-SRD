@@ -44,6 +44,8 @@ export type PatternSharing = {
   visibility: PatternVisibility
   gameId: string | null
   builtCount: number
+  /** Listed on the Reference (Homebrew, ADR-061). */
+  homebrew?: boolean
 }
 
 /** One of an item's own chips: label-only (`Only me`), or split when it has a value. */
@@ -62,7 +64,12 @@ export type ShelfRelation = {
 }
 
 /** Who can see an item, in the words its chip wears. */
-const WHO = { link: 'Shared by link', me: 'Only me' } as const
+const WHO = {
+  link: buildShelvesCopy('sharedByLink'),
+  me: buildShelvesCopy('onlyMe'),
+  mediator: buildShelvesCopy('onlyTheMediator'),
+  table: buildShelvesCopy('theTable'),
+} as const
 
 /** The class a pilot is, by the name the book gives it. */
 export function pilotFact(pilot: Pick<Pilot, 'classRef'>): string | undefined {
@@ -165,8 +172,9 @@ export function crawlerChips(args: {
 }
 
 /**
- * Who can see a pattern. A crew share names its Game from the player's own
- * Games; one they are no longer in reaches nobody, so it reads as theirs alone.
+ * Who can see a pattern. On the Reference says so first; a crew share names
+ * its Game from the player's own Games; one they are no longer in reaches
+ * nobody, so it reads as theirs alone.
  */
 export function patternChips(
   sharing: PatternSharing | undefined,
@@ -177,16 +185,29 @@ export function patternChips(
 }
 
 function patternWho(sharing: PatternSharing, games: readonly ShelfGame[] | undefined): string {
+  // Switched on for the Reference it is read by everyone there (r4 E13).
+  if (sharing.homebrew) return buildShelvesCopy('inTheReference')
   if (sharing.visibility === 'link') return WHO.link
   if (sharing.visibility !== 'game') return WHO.me
-  if (games === undefined) return 'Shared with a crew'
+  if (games === undefined) return buildShelvesCopy('sharedWithACrew')
   const game = games.find((g) => g._id === sharing.gameId)
-  return game === undefined ? WHO.me : `Shared with ${game.name}`
+  return game === undefined ? WHO.me : buildShelvesCopy('sharedWith', { game: game.name })
 }
 
 /** An NPC's reading is its hit (or structure) points: `HP 6/6`. */
 export function npcReading(npc: Pick<Npc, 'hitPoints' | 'damageType' | 'currentHP'>): UnitReading {
   return vitalReading(npc.damageType, resolvePool(npc.currentHP, npc.hitPoints), npc.hitPoints)
+}
+
+/** The head of a column that holds HP for one row and SP for another: an NPC list's (MD3-15). */
+export const HP_OR_SP = buildShelvesCopy('hpOrSp')
+
+/**
+ * A reading in an HP column: the figures alone, or with its own label where it
+ * is not Hit Points (`SP 39/39`), so a mech-scale NPC never reads as HP.
+ */
+export function hpColumnCell(reading: UnitReading): string {
+  return reading.label === VITAL.hp ? String(reading.value) : `${reading.label} ${reading.value}`
 }
 
 /** An encounter-tray NPC's reading, on the same footing. */
@@ -205,14 +226,21 @@ export function linkChip(sharedByLink: readonly string[] | undefined, id: string
 }
 
 /**
- * Who can see an NPC: anyone with the link once its owner shares it so; else
- * nobody but you while it is in your Training Bay. In a Game the table sees it, which
- * its Game relation (`gameRelation`) already says, so no chip repeats it.
+ * Who can see an NPC, always said, so the column never comes and goes (r3
+ * A3): anyone with the link once its owner shares it so; nobody but you while
+ * it is in your Training Bay; in a Game only its Mediator (the room withholds
+ * it from the players, `rooms/game/readers.ts`), unless it crews a crawler,
+ * whose sheet shows it to the table.
  */
-export function npcChips(args: { npc: Pick<Npc, 'gameId'>; sharedByLink?: boolean }): ShelfChip[] {
+export function npcChips(args: {
+  npc: Pick<Npc, 'gameId'>
+  sharedByLink?: boolean
+  /** It fills a crawler's crew slot (`crewLinkOf`). */
+  crews?: boolean
+}): ShelfChip[] {
   if (args.sharedByLink) return [{ key: 'who', label: WHO.link }]
   if (typeof args.npc.gameId !== 'string') return [{ key: 'who', label: WHO.me }]
-  return []
+  return [{ key: 'who', label: args.crews ? WHO.table : WHO.mediator }]
 }
 
 /** The personal tray's NPCs live in the Training Bay alone, so only the owner sees them. */
@@ -223,13 +251,4 @@ export function encounterNpcChips(): ShelfChip[] {
 /** An encounter's reading: what it fields, `OPPOSITION | 4` (ADR-059). */
 export function encounterReading(encounter: Pick<Encounter, 'opposition'>): UnitReading {
   return { label: 'Opposition', value: encounter.opposition.length }
-}
-
-/** An encounter is only ever its maker's: the label every one wears. */
-export function encounterChips(encounter: Pick<Encounter, 'tables'>): ShelfChip[] {
-  const tables = encounter.tables.length
-  return [
-    { key: 'who', label: WHO.me },
-    ...(tables > 0 ? [{ key: 'tables', label: 'Tables', value: String(tables) }] : []),
-  ]
 }

@@ -37,7 +37,10 @@ const PORT = Number(process.env.PORT ?? portFor())
 // (`src/lib/constants.ts`): the dev server names itself, for both apps.
 if (process.argv.includes('dev')) process.env.VITE_SITE_ORIGIN ||= `http://localhost:${PORT}`
 
-/** The page script and the islands, which Astro loads: what `appGraph` keeps off the app's groups. */
+/**
+ * The page script and the islands, which Astro loads: what `appGraph` keeps
+ * off the app's groups.
+ */
 const ISLANDS = join(HERE, 'src/components/islands')
 const graph = appGraph({
   pageEntries: [

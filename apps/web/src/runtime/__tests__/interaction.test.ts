@@ -173,6 +173,49 @@ describe('watchInteraction with a page-wide trigger', () => {
     watch.finish()
   })
 
+  test("a term's press (`data-peek-press`) is never held either: it follows its link (r4 F3)", () => {
+    trigger.setAttribute('data-peek-press', '')
+    const watch = watchInteraction(host, () => {}, { trigger: '[data-peek]' })
+    for (const init of [{ detail: 1 }, { detail: 1, ctrlKey: true }, { detail: 0 }]) {
+      const follow = new MouseEvent('click', { bubbles: true, cancelable: true, ...init })
+      trigger.querySelector('span')?.dispatchEvent(follow)
+      expect(follow.defaultPrevented).toBe(false)
+    }
+    let pressed = 0
+    trigger.addEventListener('click', () => pressed++)
+    replayInteraction(host, watch.finish())
+    // Nothing is pressed again for it.
+    expect(pressed).toBe(0)
+  })
+
+  test("a finger's tap on a term is held, and tapped again once the island listens (RR6-03)", () => {
+    trigger.setAttribute('data-peek-press', '')
+    let woken = 0
+    const watch = watchInteraction(host, () => woken++, { trigger: '[data-peek]' })
+    trigger.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'touch' }))
+    expect(woken).toBe(1)
+    const tap = new MouseEvent('click', { bubbles: true, cancelable: true })
+    trigger.querySelector('span')?.dispatchEvent(tap)
+    // It does not leave the page while the Peek wakes.
+    expect(tap.defaultPrevented).toBe(true)
+    const heard: string[] = []
+    for (const type of ['pointerdown', 'pointerup', 'click'])
+      trigger.addEventListener(type, (event) => {
+        heard.push(`${type}:${(event as PointerEvent).pointerType ?? ''}`)
+        event.preventDefault()
+      })
+    replayInteraction(host, watch.finish())
+    expect(heard).toEqual(['pointerdown:touch', 'pointerup:touch', 'click:'])
+  })
+
+  test('any touch on the page wakes the page-wide island, before a term is tapped', () => {
+    let woken = 0
+    const watch = watchInteraction(host, () => woken++, { trigger: '[data-peek]' })
+    document.body.dispatchEvent(new Event('touchstart', { bubbles: true }))
+    expect(woken).toBe(1)
+    watch.finish()
+  })
+
   test('announces focus on the trigger again for a host that missed it', () => {
     const watch = watchInteraction(host, () => {}, { trigger: '[data-peek]' })
     trigger.focus()

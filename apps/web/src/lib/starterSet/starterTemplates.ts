@@ -29,16 +29,17 @@ import {
   STARTER_PILOTS,
   STARTER_SOFT_LINKS,
 } from 'game-domain/starterSet/starterSet'
+import { libStarterSetCopy } from '../../messages/lib-starter-set'
 import { areaTitle, pageTitle } from '../pageTitle'
 
 /** Who the Starter Set belongs to — the seal on every row and sheet. */
-export const STARTER_SET_PUBLISHER = 'Leyline Press'
+export const STARTER_SET_PUBLISHER = libStarterSetCopy('leylinePress')
 
 /** The adventure the pre-generated crew comes from. */
-export const STARTER_SET_ADVENTURE = 'Reclamation of the Wastes'
+export const STARTER_SET_ADVENTURE = libStarterSetCopy('reclamationOfTheWastes')
 
 /** The Quickstart's own name: its premade crew is Crawler #279's. */
-export const QUICKSTART_BOOK = 'Salvage Union Quickstart'
+export const QUICKSTART_BOOK = libStarterSetCopy('salvageUnionQuickstart')
 
 export type StarterRosterId = 'starter-set' | 'quickstart'
 
@@ -59,8 +60,8 @@ export type StarterRoster = {
 export const STARTER_ROSTERS: readonly StarterRoster[] = [
   {
     id: 'starter-set',
-    name: 'Starter Set',
-    from: `the Salvage Union Starter Set, ${STARTER_SET_ADVENTURE}`,
+    name: libStarterSetCopy('starterSet'),
+    from: libStarterSetCopy('fromTheStarterSet', { adventure: STARTER_SET_ADVENTURE }),
     pilots: STARTER_PILOTS,
     mechs: STARTER_MECHS,
     crawlers: STARTER_CRAWLERS,
@@ -118,7 +119,7 @@ export function rosterOf(id: string): StarterRoster | null {
 const KIND_LABEL: Record<SheetKind, string> = {
   pilot: 'Pilot',
   mech: 'Mech',
-  crawler: 'Union Crawler',
+  crawler: libStarterSetCopy('unionCrawler'),
 }
 
 /** One Starter Set build's page: its address inside the app, and its words. */
@@ -158,7 +159,7 @@ export function starterPages(): StarterPage[] {
 }
 
 /** The Starter Set roster's own title, and any build's page that names nothing. */
-export const STARTER_SET_TITLE = areaTitle(PRODUCT.build, 'Starter Set')
+export const STARTER_SET_TITLE = areaTitle(PRODUCT.build, libStarterSetCopy('starterSet'))
 
 /** A build's tab title by its route params; the Starter Set's own for one it does not hold. */
 export function starterPageTitle(kind: string, id: string): string {

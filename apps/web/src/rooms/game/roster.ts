@@ -1,8 +1,10 @@
+import { GAME_MAX_DESCRIPTION } from 'game-domain/schemas/gamePlan'
 import type { UnitParcel } from '../handoff'
 import { parcelUnit } from '../leases'
 import { RoomRefusal } from '../refusal'
-import type { GameStore, Member } from './store'
-import { bit, fromJson } from './store'
+import { noteLeft } from './rejoin'
+import type { GameRow, GameStore, Member, UnitRow } from './store'
+import { bit } from './store'
 import type { GameUnits } from './units'
 import { unitName } from './units'
 
@@ -16,6 +18,7 @@ import { unitName } from './units'
 export type GameRead = {
   gameId: string
   name: string
+  description: string | null
   templateOrigin: string | null
   mediator: boolean
   organizer: boolean
@@ -28,10 +31,42 @@ export type GameRead = {
   crawlerName: string | null
   /** The primary crawler's id, or null before one exists. */
   primaryCrawlerId: string | null
+  /**
+   * The days the table next meets, soonest first, from yesterday on (a
+   * member's own clock picks today's): all of the plan a member is told.
+   */
+  sessionDays: string[]
+  /**
+   * A Game made from a template: the units it came with that nobody has
+   * changed or been handed (`untouched`), of those still here (`came`).
+   * Deleting the Game can take the untouched ones with it (MD2-02).
+   */
+  templateUnits?: { came: number; untouched: number }
+  /**
+   * The pilots and mechs a template Game came with that are still here, by
+   * id: the Game's own, which stay when the member holding one goes (LG4-03)
+   * and which its Organiser can take off the roster while unassigned (LG4-20).
+   */
+  templateUnitIds?: string[]
 }
 
 /** What a profile shows on a roster, as the member's account room last sent it. */
 export type Profile = { displayName: string | null; avatarUrl: string | null }
+
+const DAY_MS = 24 * 60 * 60_000
+
+/**
+ * A unit a template Game came with: `seedTemplate` stamps the Game and each
+ * of its units with one time, and a unit that arrives later is stamped anew.
+ */
+const cameWithGame = (game: GameRow, unit: UnitRow) =>
+  game.templateOrigin !== null && unit.createdAt === game.createdAt
+
+/** The `change_log` row that says a unit was taken off the roster (`shelving`). */
+const shelfKey = (unitId: string) => `shelved:${unitId}`
+
+/** Nobody was handed it and nothing was applied to it: as the template left it. */
+const untouched = (unit: UnitRow) => unit.ownerId === null && unit.headSeq === 0
 
 /** The longest name a Game takes: every member's list and the bot show it. */
 const GAME_NAME_MAX = 80
@@ -42,9 +77,6 @@ const GAME_NAME_MAX = 80
  * one once.
  */
 export type Delivery = { to: string; parcel: UnitParcel }
-
-/** The Opposition tray, handed to the Organizer's shelf tray when the Game ends. */
-export type TrayDelivery = { to: string; npcs: Record<string, unknown>[] }
 
 /**
  * Crockford base32: 0-9 and A-Z minus I, L, O and U. Sixteen characters, 80
@@ -63,11 +95,23 @@ function normalizeCode(raw: string): string {
   return raw.trim().toUpperCase()
 }
 
+/** A Game's name as it is kept: trimmed, never blank, never too long. */
+function gameName(raw: string): string {
+  const name = raw.trim()
+  if (name.length === 0) throw new RoomRefusal('A Game needs a name')
+  if (name.length > GAME_NAME_MAX) {
+    throw new RoomRefusal(`A Game’s name is at most ${GAME_NAME_MAX} characters`)
+  }
+  return name
+}
+
 export class GameRoster {
   constructor(
     private readonly store: GameStore,
     private readonly units: GameUnits,
-    private readonly mintCode: () => string = randomInviteCode
+    private readonly mintCode: () => string = randomInviteCode,
+    /** The plan's session days from a day on (`GamePlanStore.sessionDays`). */
+    private readonly sessionDays: (from: string) => string[] = () => []
   ) {}
 
   /**
@@ -78,11 +122,7 @@ export class GameRoster {
     actor: string,
     args: { gameId: string; name: string; templateOrigin?: string; profile: Profile; at: number }
   ): void {
-    const name = args.name.trim()
-    if (name.length === 0) throw new RoomRefusal('A Game needs a name')
-    if (name.length > GAME_NAME_MAX) {
-      throw new RoomRefusal(`A Game’s name is at most ${GAME_NAME_MAX} characters`)
-    }
+    const name = gameName(args.name)
     this.store.sql.transaction(() => {
       if (this.store.game() !== null) return
       this.store.rows(
@@ -103,7 +143,7 @@ export class GameRoster {
   }
 
   /** The Game for one member, or null for anyone else: a non-member cannot tell it exists. */
-  read(actor: string): GameRead | null {
+  read(actor: string, at: number = Date.now()): GameRead | null {
     const game = this.store.game()
     const member = this.store.member(actor)
     if (game === null || member === null) return null
@@ -111,6 +151,7 @@ export class GameRoster {
     return {
       gameId: game.gameId,
       name: game.name,
+      description: game.description,
       templateOrigin: game.templateOrigin,
       mediator: member.mediator,
       organizer: member.organizer,
@@ -120,10 +161,188 @@ export class GameRoster {
       mechCount: this.store.units('mech').length,
       crawlerName: primary === null ? null : unitName(primary),
       primaryCrawlerId: primary?.id ?? null,
+      sessionDays: this.sessionDays(new Date(at - DAY_MS).toISOString().slice(0, 10)),
+      ...(game.templateOrigin === null
+        ? {}
+        : {
+            templateUnits: this.templateUnits(game),
+            templateUnitIds: this.store
+              .units()
+              .filter((unit) => unit.kind !== 'crawler' && cameWithGame(game, unit))
+              .map((unit) => unit.id),
+          }),
     }
   }
 
+  /**
+   * The units a template Game came with are those made in its first moment
+   * (`seedTemplate` stamps the Game and each unit with one time). One is
+   * untouched while it is unassigned and no op has been applied to it: an
+   * assignment or an edit each move its head on.
+   */
+  private templateUnits(game: GameRow): { came: number; untouched: number } {
+    const came = this.store.units().filter((unit) => cameWithGame(game, unit))
+    return { came: came.length, untouched: came.filter(untouched).length }
+  }
+
   /** The roster, for any member. */
+  /**
+   * The Game's settings (ADR-067 §3), the Organiser's to change: its name,
+   * and the description its invite shows (blank clears it).
+   */
+  updateSettings(actor: string, patch: { name?: string; description?: string }): void {
+    this.store.sql.transaction(() => {
+      this.store.requireOrganizer(actor)
+      if (patch.name !== undefined) {
+        this.store.rows('update game set name = ? where id = 1', gameName(patch.name))
+      }
+      if (patch.description !== undefined) {
+        const description = patch.description.trim()
+        if (description.length > GAME_MAX_DESCRIPTION) {
+          throw new RoomRefusal(
+            `A Game’s description is at most ${GAME_MAX_DESCRIPTION} characters`
+          )
+        }
+        this.store.rows(
+          'update game set description = ? where id = 1',
+          description === '' ? null : description
+        )
+      }
+    })
+  }
+
+  /**
+   * Who may take `userId` out of the Game, and what leaves with them: a
+   * member leaves on their own word, the Organiser removes anyone else, and
+   * the Organiser stays (the Game is theirs to delete). Answers the ids of the
+   * pilots and mechs the member brought, which go back to their Training Bay
+   * before they are forgotten (`forgetMember`); never deleted (ADR-007).
+   *
+   * A pilot or mech the Game came with is the Game's own (LG4-03): it is
+   * unassigned here and stays on the roster for the next player, with every
+   * change made to it.
+   */
+  leaving(actor: string, userId: string, at: number): string[] {
+    return this.store.sql.transaction(() => {
+      const game = this.store.requireGame()
+      if (this.store.member(actor) === null) throw new RoomRefusal('Not a member of this Game')
+      const target = this.store.member(userId)
+      if (target === null) throw new RoomRefusal('That user is not a member of this Game')
+      if (actor !== userId) this.store.requireOrganizer(actor)
+      if (target.organizer) {
+        throw new RoomRefusal('The Organiser cannot leave their own Game: delete it instead')
+      }
+      const held = this.store
+        .units()
+        .filter((unit) => unit.ownerId === userId && unit.kind !== 'crawler')
+      const kept: string[] = []
+      for (const unit of held) {
+        if (cameWithGame(game, unit) && unit.leaseId === null) {
+          this.units.reassign(unit, null, actor, at)
+          kept.push(unit.id)
+        }
+      }
+      // One already on its way out (a retried leave) finishes the trip it started.
+      const moved = held
+        .filter((unit) => !cameWithGame(game, unit) || unit.leaseId !== null)
+        .map((unit) => unit.id)
+      // Removed, not leaving: rejoining brings these back (r6 C7, `rejoin.ts`).
+      if (actor !== userId) noteLeft(this.store, userId, { moved, kept }, at)
+      return moved
+    })
+  }
+
+  /**
+   * Take an unused pre-generated pilot off the roster (LG4-20): the
+   * Organiser's, for a pilot the Game came with that nobody is assigned. It
+   * is assigned to the Organiser, its unassigned mech with it, and the ids
+   * answered are what the Worker then hands to their Training Bay; nothing
+   * is deleted (ADR-007).
+   */
+  shelving(actor: string, pilotId: string, at: number): string[] {
+    return this.store.sql.transaction(() => {
+      const game = this.store.requireGame()
+      this.store.requireOrganizer(actor)
+      const pilot = this.store.requireUnit(pilotId)
+      if (pilot.kind !== 'pilot' || !cameWithGame(game, pilot)) {
+        throw new RoomRefusal('Only a Pilot this Game came with can be taken off its roster')
+      }
+      if (pilot.ownerId !== null && pilot.ownerId !== actor) {
+        throw new RoomRefusal('That Pilot is assigned to a player: unassign it first')
+      }
+      this.units.assign(actor, pilotId, at)
+      const going = this.store
+        .units()
+        .filter(
+          (unit) =>
+            unit.id === pilotId ||
+            (unit.kind === 'mech' && unit.ownerId === actor && this.fliesIt(unit.id, pilotId))
+        )
+        .filter((unit) => cameWithGame(game, unit))
+        .map((unit) => unit.id)
+      // What left this way, so the Undo can bring back these and nothing else.
+      for (const id of going) {
+        this.store.rows(
+          `insert or replace into change_log (id, field, after, source, actor_id, ts)
+             values (?, 'shelved', null, 'roster', ?, ?)`,
+          shelfKey(id),
+          actor,
+          at
+        )
+      }
+      return going
+    })
+  }
+
+  /**
+   * The Undo of `shelving` may bring back only what `shelving` took off:
+   * any other unit of the Organiser's stays theirs, never the Game's own
+   * (ADR-007). Refuses the whole Undo over one id it did not take.
+   */
+  unshelving(actor: string, unitIds: readonly string[]): void {
+    this.store.requireOrganizer(actor)
+    if (unitIds.length === 0 || !unitIds.every((id) => this.wasShelved(id))) {
+      throw new RoomRefusal('Only what was taken off this roster can be put back')
+    }
+  }
+
+  private wasShelved(unitId: string): boolean {
+    return (
+      this.store.rows(
+        "select 1 from change_log where id = ? and field = 'shelved'",
+        shelfKey(unitId)
+      ).length > 0
+    )
+  }
+
+  /**
+   * Undo of `shelving`, once the Worker has brought the units back in: each
+   * is the Game's own again, unassigned, as it was before it was taken off.
+   */
+  reshelved(actor: string, unitIds: readonly string[], at: number): void {
+    this.store.sql.transaction(() => {
+      const game = this.store.requireGame()
+      this.store.requireOrganizer(actor)
+      for (const id of unitIds) {
+        const unit = this.store.unit(id)
+        if (!this.wasShelved(id)) continue
+        this.store.rows("delete from change_log where id = ? and field = 'shelved'", shelfKey(id))
+        if (unit === null || unit.kind === 'crawler' || unit.ownerId !== actor) continue
+        this.units.reassign(unit, null, actor, at)
+        // Arriving stamped it anew: it is one the Game came with again.
+        this.store.rows('update units set created_at = ? where id = ?', game.createdAt, id)
+      }
+    })
+  }
+
+  private fliesIt(mechId: string, pilotId: string): boolean {
+    return this.store
+      .links()
+      .some(
+        (link) => link.type === 'mech-to-pilot' && link.from.id === mechId && link.to.id === pilotId
+      )
+  }
+
   members(actor: string): Member[] {
     if (this.store.member(actor) === null) return []
     return this.store.members()
@@ -229,16 +448,26 @@ export class GameRoster {
    * End the Game. Organizer only, whether or not it has a Mediator (ADR-030
    * §3: it is about the table's existence). Nothing anybody built is
    * destroyed: a held pilot, mech or NPC goes to its holder's Training Bay;
-   * an unassigned one, every crawler and the Opposition tray go to the
-   * Organizer's. Links, invites, seats, Downtime and the running encounter go
-   * with the Game.
+   * an unassigned one and every crawler go to the Organizer's. Links, invites,
+   * seats, Downtime, the running encounter and the Opposition on the field go
+   * with the Game (ADR-030, MD3-03): a fielded unit is a copy made for the
+   * fight, the dialog says it goes, and the Organiser confirms. The NPC it was
+   * drawn from is a unit like any other and is delivered, once.
    *
    * From the first call the Game refuses every other act, so what it hands
    * back cannot change under the delivery; calling it again answers the same
    * deliveries. The Worker hands each to its account room (an accept per
-   * lease, so a retry delivers once), files the tray, then wipes this room.
+   * lease, so a retry delivers once), then wipes this room.
+   *
+   * `dropTemplateUnits` (MD2-02): a template Game's untouched units are not
+   * delivered, so they end with the room. One somebody was handed or changed
+   * is theirs and is always delivered.
    */
-  disband(actor: string, at: number): { deliveries: Delivery[]; tray: TrayDelivery } {
+  disband(
+    actor: string,
+    at: number,
+    opts: { dropTemplateUnits?: boolean } = {}
+  ): { deliveries: Delivery[] } {
     return this.store.sql.transaction(() => {
       const game = this.store.requireGame()
       const organizer = this.store.member(actor)
@@ -247,7 +476,10 @@ export class GameRoster {
       if (game.disbandingAt === null) {
         this.store.rows('update game set disbanding_at = ? where id = 1', at)
       }
-      const deliveries = this.store.units().map((unit) => {
+      const dropped = (unit: UnitRow) =>
+        opts.dropTemplateUnits === true && cameWithGame(game, unit) && untouched(unit)
+      const kept = this.store.units().filter((unit) => !dropped(unit))
+      const deliveries = kept.map((unit) => {
         const to = unit.kind === 'crawler' ? actor : (unit.ownerId ?? actor)
         const parcel: UnitParcel = {
           leaseId: `disband:${game.gameId}:${unit.id}`,
@@ -259,10 +491,7 @@ export class GameRoster {
         }
         return { to, parcel }
       })
-      const npcs = this.store
-        .rows('select body from tray order by added_at, id')
-        .map((row) => fromJson<Record<string, unknown>>(row.body))
-      return { deliveries, tray: { to: actor, npcs } }
+      return { deliveries }
     })
   }
 

@@ -37,8 +37,9 @@ describe('copyForShelf', () => {
     expect(containerOf(copy).kind).toBe('shelf')
   })
 
-  test('announces itself as a copy', () => {
-    expect(copyForShelf(SOURCE, 'Pilot').name).toBe('COPY OF Babe')
+  test('keeps its name where the shelf has none like it, and is numbered where it has (r3 L5)', () => {
+    expect(copyForShelf(SOURCE, 'Pilot').name).toBe('Babe')
+    expect(copyForShelf(SOURCE, 'Pilot', ['Babe']).name).toBe('Babe 2')
   })
 
   test('keeps no identity from the source', () => {
@@ -61,9 +62,9 @@ describe('copyForShelf', () => {
     expect(copy.callsign).toBe('Babe')
   })
 
-  test('falls back rather than naming something COPY OF nothing', () => {
-    expect(copyForShelf({ ...SOURCE, name: '' }, 'Pilot').name).toBe('COPY OF Pilot')
-    expect(copyForShelf({ ...SOURCE, name: undefined }, 'Mech').name).toBe('COPY OF Mech')
+  test('falls back rather than leaving a copy nameless', () => {
+    expect(copyForShelf({ ...SOURCE, name: '' }, 'Pilot').name).toBe('Pilot')
+    expect(copyForShelf({ ...SOURCE, name: undefined }, 'Mech').name).toBe('Mech')
   })
 
   test('does not mutate the source', () => {
@@ -77,18 +78,45 @@ describe('copyForShelf', () => {
     expect(source.gameId).toBe('game-123')
   })
 
-  test('a copy of a copy is honest about it', () => {
-    const once = copyForShelf(SOURCE, 'Pilot')
-    const twice = copyForShelf(once, 'Pilot')
+  test('a copy of a copy is named once: the next number, never a copy of a copy (r3 L5)', () => {
+    const once = copyForShelf(SOURCE, 'Pilot', ['Babe'])
+    const twice = copyForShelf(once, 'Pilot', ['Babe', 'Babe 2'])
 
-    expect(twice.name).toBe('COPY OF COPY OF Babe')
+    expect(once.name).toBe('Babe 2')
+    expect(twice.name).toBe('Babe 3')
   })
 })
 
 describe('copyName', () => {
-  test('prefixes rather than suffixes', () => {
-    // Prefixed so a copy never sorts next to the original and gets mistaken
-    // for it in a list.
-    expect(copyName('Reaper')).toBe('COPY OF Reaper')
+  test('a name the shelf does not have is kept', () => {
+    expect(copyName('Reaper')).toBe('Reaper')
+  })
+
+  test('a second copy is numbered, so no two rows read alike', () => {
+    expect(copyName('Leaky', ['Leaky'])).toBe('Leaky 2')
+    expect(copyName('Leaky', ['Leaky', 'Leaky 2'])).toBe('Leaky 3')
+    expect(copyName('Leaky 2', ['Leaky', 'Leaky 2'])).toBe('Leaky 3')
+    expect(copyForShelf({ name: 'Leaky' }, 'Leaky', ['Leaky']).name).toBe('Leaky 2')
+  })
+
+  test('a number that is part of the name stays', () => {
+    expect(copyName('Unit 7', ['Unit 7'])).toBe('Unit 7 2')
+  })
+})
+
+describe('a Mech’s copy starts fresh (r8 E5)', () => {
+  test('undamaged, at full EP and 0 Heat, with no conditions; its build stays', async () => {
+    const { freshMechCopy } = await import('../copyEntity')
+    const copy = freshMechCopy({
+      name: 'Tab B 2',
+      systems: ['red-laser'],
+      currentSP: 10,
+      currentEP: 3,
+      currentHeat: 2,
+      systemConditions: { 'red-laser': 'damaged' },
+      moduleConditions: {},
+      conditions: ['Vulnerable'],
+    })
+    expect(copy).toEqual({ name: 'Tab B 2', systems: ['red-laser'], conditions: [] })
   })
 })

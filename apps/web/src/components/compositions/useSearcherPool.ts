@@ -13,6 +13,7 @@ import {
   searchIn,
   techLevelRank,
 } from 'salvageunion-reference'
+import { compositionsCopy } from '../../messages/components-compositions'
 import type {
   EntityLike,
   FacetConfig,
@@ -20,9 +21,10 @@ import type {
   PoolEntity,
   TechLevelLike,
 } from './entitySearcherTypes'
+import { carriedTraits, namedBy } from './searcherFacts'
 
 /** The Tech level row's label: the one row the toolbar may set inline. */
-export const TECH_LEVEL_ROW = 'Tech level'
+export const TECH_LEVEL_ROW = compositionsCopy('techLevel')
 
 function tlLabel(tl: TechLevelLike): string {
   return typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'
@@ -39,16 +41,31 @@ function toggleIn<T>(set: Set<T>, value: T, setter: (s: Set<T>) => void) {
   setter(next)
 }
 
+/** A trait is searched for by this much of its name or more ("hot"). */
+const TRAIT_QUERY_MIN = 3
+
 type SearcherPoolOptions = {
   schema: EntitySchemaName
   selected: string[]
   idOf: (item: EntityLike) => string
   filter?: (item: EntityLike) => boolean
   facets?: FacetConfig
+  /** The caller's own entities, searched instead of the collection. */
+  entities?: readonly PoolEntity[]
+  /** The query the field opens with. */
+  initialQuery?: string
   /** A browser chooses nothing, so it has no Status facet. */
   browse: boolean
   /** The chosen-list noun, for the Status facet's "… only" chip. */
   chosenLabel: string
+  /** The Tech Level the picker opens on (`EntitySearcher`'s `techLevel`). */
+  homeTechLevel?: number
+}
+
+/** Whether `tl` is above `home`: a lettered level (Bio, Nanite) always is. */
+export function aboveTechLevel(tl: TechLevelLike | undefined, home: number | undefined): boolean {
+  if (home === undefined || tl === undefined) return false
+  return typeof tl !== 'number' || tl > home
 }
 
 type SearcherPool = {
@@ -58,6 +75,13 @@ type SearcherPool = {
   pool: PoolEntity[]
   /** The pool after the query and every active facet. */
   visible: PoolEntity[]
+  /**
+   * What the query NAMES in a Tech Level that is switched off (r4 E5): it
+   * passes every other facet, and is listed under "In other Tech Levels".
+   */
+  outside: PoolEntity[]
+  /** How many Tech level chips are set: the toolbar's own row, not Filters'. */
+  activeTechLevels: number
   /** Copies of pool entities in `selected`. */
   totalOnSheet: number
   /** Copies of `item` in `selected`. */
@@ -68,6 +92,8 @@ type SearcherPool = {
   showRow: FacetRowConfig | null
   /** How many facet chips are narrowing the pool. */
   activeFilters: number
+  /** Drop the Tech level chips: every level shows. Null when none is set. */
+  showAllTechLevels: (() => void) | null
 }
 
 export function useSearcherPool({
@@ -76,28 +102,40 @@ export function useSearcherPool({
   idOf,
   filter,
   facets,
+  entities,
+  initialQuery = '',
   browse,
   chosenLabel,
+  homeTechLevel,
 }: SearcherPoolOptions): SearcherPool {
-  const [query, setQuery] = useState('')
-  const [activeTls, setActiveTls] = useState<Set<TechLevelLike>>(() => new Set())
+  const [query, setQuery] = useState(initialQuery)
+  // Opens on the home Tech Level and every numbered one under it; the chips
+  // (and "Show all Tech Levels") widen it from there.
+  const [activeTls, setActiveTls] = useState<Set<TechLevelLike>>(() => {
+    const home = new Set<TechLevelLike>()
+    if (homeTechLevel !== undefined) for (let tl = 1; tl <= homeTechLevel; tl++) home.add(tl)
+    return home
+  })
   const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set())
   const [activeTraits, setActiveTraits] = useState<Set<string>>(() => new Set())
   const [status, setStatus] = useState<'all' | 'equipped' | 'available'>('all')
 
   // Base pool — the whole collection, optionally narrowed, sorted by TL then name.
   const pool = useMemo(() => {
-    const items: PoolEntity[] = SalvageUnionReference.findAllIn(schema, (item) =>
-      filter ? filter(item) : true
+    const items: PoolEntity[] = entities
+      ? entities.filter((item) => (filter ? filter(item) : true))
+      : SalvageUnionReference.findAllIn(schema, (item) => (filter ? filter(item) : true))
+    return [...items].sort(
+      facets?.order ??
+        ((a, b) => {
+          const ta = a.techLevel
+          const tb = b.techLevel
+          if (ta !== undefined && tb !== undefined && ta !== tb)
+            return techLevelRank(ta) - techLevelRank(tb)
+          return a.name.localeCompare(b.name)
+        })
     )
-    return [...items].sort((a, b) => {
-      const ta = a.techLevel
-      const tb = b.techLevel
-      if (ta !== undefined && tb !== undefined && ta !== tb)
-        return techLevelRank(ta) - techLevelRank(tb)
-      return a.name.localeCompare(b.name)
-    })
-  }, [schema, filter])
+  }, [schema, filter, entities, facets?.order])
 
   // Available facet options, derived from the pool. A facet with <2 options is
   // useless, so it hides itself (also hides TL/traits on schemas that lack them).
@@ -110,7 +148,7 @@ export function useSearcherPool({
 
   const traitOptions = useMemo(() => {
     const s = new Set<string>()
-    for (const i of pool) for (const t of i.traits ?? []) s.add(t.type)
+    for (const i of pool) for (const t of carriedTraits(i)) s.add(t)
     return [...s].sort((a, b) => a.localeCompare(b))
   }, [pool])
 
@@ -137,30 +175,44 @@ export function useSearcherPool({
     const q = query.trim()
     if (!q) return null
     // A meta collection (the actions) is not in the search index: match its names.
-    const ranked: EntityLike[] = isSchemaName(schema)
-      ? searchIn(schema, q)
-      : pool.filter((item) => item.name.toLowerCase().includes(q.toLowerCase()))
+    // Nor are a caller's own entities.
+    const ranked: EntityLike[] =
+      isSchemaName(schema) && !entities
+        ? searchIn(schema, q)
+        : pool.filter((item) => item.name.toLowerCase().includes(q.toLowerCase()))
     const order = new Map<string, number>()
     ranked.forEach((e, i) => {
       order.set(e.id, i)
     })
+    // A trait's name finds every part that carries it (r5 E2), after the
+    // parts the words themselves found.
+    const trait = q.toLowerCase()
+    if (trait.length >= TRAIT_QUERY_MIN) {
+      for (const item of pool) {
+        if (order.has(item.id)) continue
+        if (carriedTraits(item).some((name) => name.toLowerCase().startsWith(trait))) {
+          order.set(item.id, order.size)
+        }
+      }
+    }
     return order
-  }, [schema, query, pool])
+  }, [schema, query, pool, entities])
 
   const categoryOf = facets?.category?.of
 
-  const visible = useMemo(() => {
+  const later = facets?.later?.of
+  const { visible, outside } = useMemo(() => {
     let list = pool
     if (searchOrder) {
       list = list
         .filter((i) => searchOrder.has(i.id))
         .sort((a, b) => (searchOrder.get(a.id) ?? 0) - (searchOrder.get(b.id) ?? 0))
     }
-    return list.filter((item) => {
-      if (showTl && activeTls.size && !(item.techLevel != null && activeTls.has(item.techLevel)))
-        return false
+    const inTl = (item: PoolEntity) =>
+      !(showTl && activeTls.size) || (item.techLevel != null && activeTls.has(item.techLevel))
+    const passes = (item: PoolEntity) => {
       if (showTraits && activeTraits.size) {
-        const types = new Set((item.traits ?? []).map((t) => t.type))
+        const types = new Set(carriedTraits(item))
         if (![...activeTraits].some((t) => types.has(t))) return false
       }
       if (showCat && activeCats.size && categoryOf) {
@@ -173,8 +225,16 @@ export function useSearcherPool({
         if (status === 'available' && has) return false
       }
       return true
-    })
+    }
+    const q = query.trim()
+    const shown = list.filter((item) => inTl(item) && passes(item))
+    // What the pick does not meet yet goes last, in its own order (r7 D5).
+    return {
+      visible: later ? [...shown.filter((i) => !later(i)), ...shown.filter(later)] : shown,
+      outside: q ? list.filter((item) => !inTl(item) && passes(item) && namedBy(item, q)) : [],
+    }
   }, [
+    query,
     pool,
     searchOrder,
     showTl,
@@ -188,6 +248,7 @@ export function useSearcherPool({
     status,
     selected,
     idOf,
+    later,
   ])
 
   const totalOnSheet = useMemo(
@@ -236,7 +297,7 @@ export function useSearcherPool({
           [
             ['all', 'All'],
             ['equipped', `${chosenLabel} only`],
-            ['available', 'Not yet added'],
+            ['available', compositionsCopy('notYetAdded')],
           ] as const
         ).map(([value, label]) => ({
           key: value,
@@ -258,10 +319,13 @@ export function useSearcherPool({
     setQuery,
     pool,
     visible,
+    outside,
+    activeTechLevels: showTl ? activeTls.size : 0,
     totalOnSheet,
     countOf,
     facetRows,
     showRow,
     activeFilters,
+    showAllTechLevels: showTl && activeTls.size > 0 ? () => setActiveTls(new Set()) : null,
   }
 }

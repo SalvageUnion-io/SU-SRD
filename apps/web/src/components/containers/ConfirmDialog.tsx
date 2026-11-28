@@ -1,7 +1,8 @@
 import { Dialog } from '@base-ui/react/dialog'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useRef, useState } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
+import { containersCopy } from '../../messages/components-containers'
 import { Button } from '../atoms/Button'
 import { FieldError } from '../atoms/FieldError'
 import { DialogActions } from './DialogActions'
@@ -60,16 +61,26 @@ type ConfirmDialogProps = {
    * `danger` for destructive confirms — the danger header, focus on Cancel.
    * `default` for constructive ones — pilot-blue header, focus on the
    * confirm. The confirm button is rust either way: no state colour fills a
-   * button (ruleset §3.1, hard rule R9).
+   * button (ruleset §3.1).
    */
   tone?: 'danger' | 'default'
   /** The action. A returned promise holds the dialog in its pending state. */
   onConfirm: () => void | Promise<void>
+  /**
+   * A second way to say yes ("Pilot only" beside "Copy both"): a ghost button
+   * between Cancel and the confirm, run and awaited as the confirm is.
+   */
+  alternate?: { label: string; onConfirm: () => void | Promise<void> }
   /** Turn a rejection from `onConfirm` into the line the reader sees. */
   describeError?: (error: unknown) => ReactNode
+  /**
+   * Where focus starts instead: the one field a dialog exists to fill (a
+   * name), so typing lands in it. Never for a `danger` confirm.
+   */
+  initialFocus?: RefObject<HTMLElement | null>
 }
 
-const GENERIC_FAILURE = 'That did not work. Try again.'
+const GENERIC_FAILURE = containersCopy('thatDidNotWork')
 
 const panelStyle = {
   display: 'flex',
@@ -94,6 +105,9 @@ const bodyStyle = {
   color: color.wkMuted,
 } satisfies CSSProperties
 
+/** The one-line fields whose Enter confirms: typed text, never a tick or a choice. */
+const TYPED = new Set(['text', 'search', 'number', 'date', 'email', 'url'])
+
 export function ConfirmDialog({
   open,
   onOpenChange,
@@ -104,7 +118,9 @@ export function ConfirmDialog({
   cancelLabel = 'Cancel',
   tone = 'default',
   onConfirm,
+  alternate,
   describeError = () => GENERIC_FAILURE,
+  initialFocus,
 }: ConfirmDialogProps) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<ReactNode>(null)
@@ -130,13 +146,13 @@ export function ConfirmDialog({
     onOpenChange(next)
   }
 
-  async function handleConfirm() {
+  async function handleConfirm(run: () => void | Promise<void> = onConfirm) {
     if (inFlight.current) return
     inFlight.current = true
     setPending(true)
     setError(null)
     try {
-      await onConfirm()
+      await run()
     } catch (err) {
       // Explained, not dropped: the reason goes on the dialog, which stays
       // open so the reader can see that nothing happened.
@@ -158,10 +174,21 @@ export function ConfirmDialog({
       title={title}
       description={null}
       tone={danger ? 'danger' : 'action'}
-      initialFocus={danger ? cancelRef : confirmRef}
+      initialFocus={danger ? cancelRef : (initialFocus ?? confirmRef)}
     >
       <div style={panelStyle} aria-busy={pending || undefined}>
-        <Dialog.Description render={<div />} style={bodyStyle}>
+        <Dialog.Description
+          render={<div />}
+          style={bodyStyle}
+          // Enter in a one-line field is the dialog's yes, as in any form
+          // (MD2-20); a danger confirm is never one keypress away.
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' || danger || event.defaultPrevented) return
+            if (!(event.target instanceof HTMLInputElement) || !TYPED.has(event.target.type)) return
+            event.preventDefault()
+            void handleConfirm()
+          }}
+        >
           {body}
         </Dialog.Description>
         <FieldError>{error}</FieldError>
@@ -175,6 +202,16 @@ export function ConfirmDialog({
           >
             {cancelLabel}
           </Button>
+          {alternate && (
+            <Button
+              variant="ghost"
+              size="compact"
+              disabled={pending}
+              onClick={() => void handleConfirm(alternate.onConfirm)}
+            >
+              {alternate.label}
+            </Button>
+          )}
           <Button
             ref={confirmRef}
             variant="primary"

@@ -19,7 +19,7 @@ import type { OwnerOf } from './unitOwners.model'
 /**
  * A linked unit the viewer may not read — on a public sheet, an assignment
  * whose far end is not published itself (`publicSheet.get` serves its kind and
- * nothing else). The rail shows "Not shared" in its slot: no name, no vitals,
+ * nothing else). The rail shows "Mech · not shared" in its slot: no name, no vitals,
  * no way in. `name` is set only for a published unit whose body this app
  * cannot render. `key` is a render key, not an id.
  */
@@ -32,6 +32,10 @@ export type WithheldUnit = { key: string; kind: EntityRef['type']; name?: string
  */
 export type SheetBand = {
   actions?: ReactNode
+  /** The Game the unit is in: a GAME relation chip on the band, linking to its page. */
+  game?: { name: string; href: string } | undefined
+  /** In a Game, under the door: solo play is now that Game's table (r5 A15). */
+  doorNote?: string | undefined
 }
 
 export type SheetViewCommonProps = {
@@ -42,6 +46,12 @@ export type SheetViewCommonProps = {
   segments?: LiveSheetSegment[]
   editable: boolean
   readOnly: boolean
+  /**
+   * The viewer may write this sheet, in
+   * Read as in Edit, so session state (a mech's SP, EP and Heat) is live in
+   * Read. False on a public, crewmate's or Starter Set sheet.
+   */
+  liveInRead?: boolean
   /** Who holds each unit in the Game (`unitOwners.model.ts`); absent outside one. */
   ownerOf?: OwnerOf
   /**
@@ -61,7 +71,7 @@ export type SheetViewCommonProps = {
   holds: (kind: EntityRef['type'], id: string) => boolean
   /** Where a linked unit's View goes; `undefined` renders no View at all. */
   hrefFor: (kind: EntityRef['type'], id: string) => string | undefined
-  /** Assigned units to name without reading (public sheets); usually empty. */
+  /** Related units to name without reading (public sheets); usually empty. */
   withheld: readonly WithheldUnit[]
   /** Persist a partial patch on the sheet's own entity (fire-and-forget). */
   patch: SheetPatch

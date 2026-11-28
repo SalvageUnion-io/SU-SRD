@@ -20,8 +20,9 @@ import type { RefAbility } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { pilotMaxAPParts, pilotMaxHPParts } from 'salvageunion-reference/rules'
 import { isPilotDead, resolvePool } from 'salvageunion-reference/rules'
+import { linesFromBreakdown } from '../../components/app'
 import type { ProvenanceLine, TreeTrack } from '../../components/index'
-import { linesFromBreakdown, trackForTree } from '../../components/index'
+import { trackForTree } from '../../components/index'
 import { resolveClass } from '../../lib/classRef'
 import { readReference } from '../../lib/readReference'
 import {
@@ -29,6 +30,7 @@ import {
   pilotInventoryCapacity,
   pilotInventoryUsed,
 } from '../../lib/rules/pilotInventory'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsState } from '../../replica/units'
 import type { ClassLike } from '../pilot/abilityTrees.model'
 import { treesFor } from '../pilot/abilityTrees.model'
@@ -325,7 +327,7 @@ export function usePilotSheetModel({
     base: 'Pilot',
     baseDetail: 'base',
     installed: 'Injuries',
-    installedDetail: 'rules A11',
+    installedDetail: buildSheetCopy('rulesA11'),
   })
   const apLines = linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' })
   const hp = resolvePool(pilot.currentHP, maxHP)
@@ -360,4 +362,14 @@ export function usePilotSheetModel({
     ap,
     tp,
   }
+}
+
+/** Whether the pilot carries nothing: Read leaves the empty section out (R11). */
+export function inventoryEmpty(
+  pilot: Pilot,
+  model: Pick<PilotSheetModel, 'granted' | 'genericInventory'>
+): boolean {
+  return (
+    pilot.equipment.length === 0 && model.granted.size === 0 && model.genericInventory.length === 0
+  )
 }

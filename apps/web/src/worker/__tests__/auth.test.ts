@@ -282,7 +282,7 @@ describe("Discord's round trip", () => {
     const d = deps()
     const start = await answer(
       new Request(
-        `${ORIGIN}${AUTH_PATHS.signIn}?to=${encodeURIComponent('/play/invite/abc?join=1')}`
+        `${ORIGIN}${AUTH_PATHS.signIn}?to=${encodeURIComponent('/games/invite/abc?join=1')}`
       ),
       d
     )
@@ -294,7 +294,7 @@ describe("Discord's round trip", () => {
       d
     )
     expect(back.status).toBe(302)
-    expect(back.headers.get('location')).toBe('/play/invite/abc?join=1')
+    expect(back.headers.get('location')).toBe('/games/invite/abc?join=1')
     const session = back.headers.getSetCookie().find((c) => c.startsWith('su_session='))
     expect(session).toBeDefined()
   })
@@ -352,6 +352,108 @@ describe('a Preview signing in through the callback origin', () => {
       )
       expect(res.headers.get('location')).toBe('/build/')
     }
+  })
+})
+
+describe('the Discord Activity', () => {
+  const ACTIVITY = 'https://client.discordsays.com'
+
+  it("answers the client id the Activity's SDK starts with", async () => {
+    const res = await answer(new Request(`${ORIGIN}${AUTH_PATHS.activity}`), deps())
+    expect(await res.json()).toEqual({ clientId: 'client' })
+    const unset = await answer(
+      new Request(`${ORIGIN}${AUTH_PATHS.activity}`),
+      deps({ discord: undefined })
+    )
+    expect(unset.status).toBe(503)
+  })
+
+  it("trades the SDK's code for a partitioned session and Discord's token", async () => {
+    const d = deps()
+    const res = await answer(
+      post(AUTH_PATHS.activity, { code: 'sdk-code' }, { origin: ACTIVITY }),
+      d
+    )
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ accessToken: 'discord-token' })
+    const set = res.headers.get('set-cookie') ?? ''
+    expect(set).toStartWith('su_session=')
+    expect(set).toContain('SameSite=None')
+    expect(set).toContain('Secure')
+    expect(set).toContain('Partitioned')
+    const trade = calls.find((c) => c.url === 'https://discord.com/api/oauth2/token')
+    const form = new URLSearchParams(String(trade?.body))
+    expect(form.get('code')).toBe('sdk-code')
+    expect(form.get('grant_type')).toBe('authorization_code')
+    expect(form.get('client_id')).toBe('client')
+    expect(form.has('redirect_uri')).toBe(false)
+    // The cookie it set signs the same Discord account in.
+    const who = await answer(
+      new Request(`${ORIGIN}${AUTH_PATHS.session}`, { headers: { cookie: cookieOf(res) } }),
+      d
+    )
+    expect(((await who.json()) as SessionAnswer).person).toBe('80351110224678912')
+  })
+
+  it("renews and clears the frame's session as the frame's partitioned kind", async () => {
+    const d = deps()
+    const res = await answer(
+      post(AUTH_PATHS.activity, { code: 'sdk-code' }, { origin: ACTIVITY }),
+      d
+    )
+    const out = await answer(
+      post(AUTH_PATHS.signOut, {}, { origin: ACTIVITY, cookie: cookieOf(res) }),
+      d
+    )
+    expect(out.headers.get('set-cookie') ?? '').toContain('Partitioned')
+    const site = await answer(post(AUTH_PATHS.signOut, {}, { origin: ORIGIN }), d)
+    expect(site.headers.get('set-cookie') ?? '').toContain('SameSite=Lax')
+  })
+
+  it('keeps the email a site sign-in saved: the Activity never asks for it', async () => {
+    const d = deps()
+    discordUser = { ...discordUser, email: 'rae@example.com' }
+    const site = await answer(new Request(`${ORIGIN}${AUTH_PATHS.signIn}?to=/build/`), d)
+    const oauth = cookieOf(site)
+    const state = new URL(site.headers.get('location') ?? '').searchParams.get('state')
+    await answer(
+      new Request(`${ORIGIN}${AUTH_PATHS.callback}?code=c&state=${state}`, {
+        headers: { cookie: oauth },
+      }),
+      d
+    )
+    discordUser = { id: discordUser.id, username: 'rae', global_name: 'Rae Voss', avatar: null }
+    await answer(post(AUTH_PATHS.activity, { code: 'sdk-code' }, { origin: ACTIVITY }), d)
+    const row = await d.sql.first<{ email: string | null }>(
+      'select email from accounts where discord_id = ?',
+      discordUser.id as string
+    )
+    expect(row?.email).toBe('rae@example.com')
+  })
+
+  it("refuses another app's frame or another site", async () => {
+    for (const origin of ['https://other.discordsays.com', 'https://evil.example']) {
+      const res = await answer(post(AUTH_PATHS.activity, { code: 'c' }, { origin }), deps())
+      expect(res.status).toBe(403)
+    }
+    expect(calls).toEqual([])
+  })
+
+  it('saves nothing when Discord refuses the code', async () => {
+    ;(
+      globalThis.fetch as unknown as { mockImplementation: (f: unknown) => void }
+    ).mockImplementation(async () => new Response('{"error":"invalid_grant"}', { status: 400 }))
+    const res = await answer(
+      post(AUTH_PATHS.activity, { code: 'stale' }, { origin: ACTIVITY }),
+      deps()
+    )
+    expect(res.status).toBe(401)
+    expect(res.headers.get('set-cookie')).toBeNull()
+  })
+
+  it('wants a code', async () => {
+    const res = await answer(post(AUTH_PATHS.activity, {}, { origin: ACTIVITY }), deps())
+    expect(res.status).toBe(400)
   })
 })
 

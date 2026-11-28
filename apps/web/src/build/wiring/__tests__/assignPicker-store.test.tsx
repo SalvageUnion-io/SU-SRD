@@ -111,7 +111,8 @@ async function confirmAndSettle(confirmName: RegExp) {
 
 async function pick(trigger: RegExp, name: string, confirmName: RegExp) {
   fireEvent.click(screen.getByRole('button', { name: trigger }))
-  fireEvent.click(screen.getByRole('radio', { name: new RegExp(name) }))
+  // The dialog is a lazy chunk: its candidates draw once it has loaded.
+  fireEvent.click(await screen.findByRole('radio', { name: new RegExp(name) }))
   await confirmAndSettle(confirmName)
 }
 

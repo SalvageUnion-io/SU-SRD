@@ -19,14 +19,16 @@
 
 import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { FieldError } from '../../components/app'
 import {
   Button,
   Field,
-  FieldError,
   Input,
   ModalShell,
   Pending,
+  Segmented,
+  SegmentedOption,
   SlabSection,
   Text,
   tokens,
@@ -34,7 +36,9 @@ import {
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildGamesCopy } from '../../messages/build-games'
-import type { GameCallArgs } from '../../replica/roomCalls'
+import { TableNameField } from '../../play/games/TableNameField'
+import { useTableName } from '../../play/games/useTableName'
+import type { GameCallArgs, GameCallResult } from '../../replica/roomCalls'
 import { useGamesCall, useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 
@@ -65,26 +69,81 @@ const ROW = {
 
 const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 
-const HINT = { textAlign: 'left' } satisfies CSSProperties
+type Template = NonNullable<GameCallResult<'templates.list'>>[number]
+
+/**
+ * One template, started under the dialog's one Game name (r8 C1, LG8-16): a
+ * name typed there is the Game's whichever button starts it. Left as
+ * suggested, the Game takes the campaign's short name (r6 C9), which the
+ * section says, its crawler named on its own line.
+ */
+function TemplateStart({
+  template,
+  busy,
+  named,
+  onStart,
+}: {
+  template: Template
+  busy: boolean
+  /** A name was typed in the Game name field, so it is this Game's too. */
+  named: boolean
+  onStart: () => void
+}) {
+  return (
+    <SlabSection as="h4" title={template.shortName} bodyStyle={STACK}>
+      <Text variant="hint">{template.description}</Text>
+      <div style={ROW}>
+        <Button variant="default" size="full" disabled={busy} onClick={onStart}>
+          {buildGamesCopy('startThisGame')}
+        </Button>
+      </div>
+      <Text variant="hint">
+        {buildGamesCopy('comesWithCrawler', { crawler: template.crawler })}
+      </Text>
+      {!named && (
+        <Text variant="hint">
+          {buildGamesCopy('templateNamedAs', { name: template.shortName })}
+        </Text>
+      )}
+    </SlabSection>
+  )
+}
 
 type NewGameDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Made for something already on screen (a move's "where to"): stay there, the new Game listed. */
+  stay?: boolean
 }
 
-function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
+function ConnectedNewGameDialog({ open, onOpenChange, stay = false }: NewGameDialogProps) {
   // Read only while the dialog is open: the list is for choosing from, and a
   // subscription held for every visit to the hub would serve nobody.
   const templates = useGamesQuery('templates.list', open ? {} : 'skip')
   const create = useGamesCall('games.create')
   const createFromTemplate = useGamesCall('templates.createGame')
+  // Most tables are started by whoever runs them, so Yes is the answer given.
+  const [mediates, setMediates] = useState(true)
   const go = useGo()
 
-  const [name, setName] = useState('')
+  // The suggested name is a real value, so Create works from the start (r7 C15, LG7-04).
+  const suggested = buildGamesCopy('unionCrawler430')
+  const [name, setName] = useState(suggested)
+  // One Game name for both ways to start (r8 C1): typed, it names a template's Game too.
+  const named = name.trim() !== '' && name !== suggested
+  // How the table will call its maker, asked here once and filled in (r7 C1).
+  const you = useTableName()
+  // Typing starts in the name, never on Close (MD2-04).
+  const nameField = useRef<HTMLInputElement | null>(null)
   const start = useServerAction(
-    (from: { name: string } | { templateId: TemplateId }) =>
-      'templateId' in from ? createFromTemplate(from) : create(from),
-    { failure: 'That Game could not be created. Try again.' }
+    // The creator is the Organiser, who appoints the Mediator: themselves, if they said so.
+    async (from: { name: string } | { templateId: TemplateId; name: string }) => {
+      await you.keep()
+      return 'templateId' in from
+        ? createFromTemplate({ ...from, mediator: mediates })
+        : create({ ...from, mediator: mediates })
+    },
+    { failure: buildGamesCopy('gameNotCreated') }
   )
   const { pending: busy, error } = start
 
@@ -96,30 +155,58 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
 
   /** Open the new Game's own page; the dialog has done its job. */
   function enter(gameId: string) {
-    go(gamePath(gameId))
-    setName('')
+    if (!stay) go(gamePath(gameId))
+    setName(suggested)
     onOpenChange(false)
   }
 
-  async function startGame(from: { name: string } | { templateId: TemplateId }) {
+  async function startGame(from: { name: string } | { templateId: TemplateId; name: string }) {
     const result = await start.run(from)
     if (result.ok) enter(result.value)
   }
 
   return (
-    <ModalShell open={open} onOpenChange={onOpenChange} title={buildGamesCopy('newGame')}>
+    <ModalShell
+      open={open}
+      onOpenChange={onOpenChange}
+      title={buildGamesCopy('newGame')}
+      initialFocus={nameField}
+    >
       <div style={BODY}>
+        <TableNameField name={you} />
+        <div style={STACK}>
+          <div style={ROW}>
+            <Text variant="body">{buildGamesCopy('willYouBeTheMediator')}</Text>
+            <Segmented label={buildGamesCopy('willYouBeTheMediator')} size="compact">
+              <SegmentedOption pressed={mediates} onClick={() => setMediates(true)}>
+                {buildGamesCopy('yes')}
+              </SegmentedOption>
+              <SegmentedOption pressed={!mediates} onClick={() => setMediates(false)}>
+                {buildGamesCopy('no')}
+              </SegmentedOption>
+            </Segmented>
+          </div>
+          <Text variant="hint">{buildGamesCopy('organiserExplained')}</Text>
+        </div>
         <SlabSection as="h3" id="new-game-start" title={buildGamesCopy('startAGame')}>
           <div style={ROW}>
             <div style={GROW}>
-              <Field label={buildGamesCopy('name')}>
+              <Field label={buildGamesCopy('gameName')}>
                 <Input
+                  ref={nameField}
                   aria-label={buildGamesCopy('newGameName')}
-                  placeholder={buildGamesCopy('unionCrawler430')}
                   value={name}
+                  // The suggestion goes as the first key is typed.
+                  onFocus={(e) => e.currentTarget.select()}
                   // The room's cap on a Game's name (`rooms/game/roster.ts`).
                   maxLength={80}
                   onChange={(e) => setName(e.target.value)}
+                  // The cursor starts here, so Enter is Create (LG3-10).
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !busy && name.trim().length > 0) {
+                      void startGame({ name })
+                    }
+                  }}
                 />
               </Field>
             </div>
@@ -142,28 +229,20 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
         >
           {templates === undefined && <Pending label="templates" />}
           {templates?.map((t) => (
-            <SlabSection as="h4" title={t.name} key={t.id} bodyStyle={STACK}>
-              <Text variant="hint" style={HINT}>
-                {t.description}
-              </Text>
-              <div>
-                <Button
-                  variant="default"
-                  size="compact"
-                  disabled={busy}
-                  // `t.id`, not a hardcoded template id — see `templates.list`.
-                  onClick={() => void startGame({ templateId: t.id })}
-                >
-                  {buildGamesCopy('startThisGame')}
-                </Button>
-              </div>
-            </SlabSection>
+            <TemplateStart
+              key={t.id}
+              template={t}
+              busy={busy}
+              // `t.id`, not a hardcoded template id — see `templates.list`.
+              named={named}
+              onStart={() =>
+                void startGame({ templateId: t.id, name: named ? name.trim() : t.shortName })
+              }
+            />
           ))}
         </SlabSection>
 
-        <Text variant="hint" style={HINT}>
-          {buildGamesCopy('joiningAFriendsGameOpen')}
-        </Text>
+        <Text variant="hint">{buildGamesCopy('joiningAFriendsGameOpen')}</Text>
 
         <FieldError>{error}</FieldError>
       </div>
@@ -171,22 +250,26 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   )
 }
 
-function ConnectedNewGameControl() {
+function ConnectedNewGameControl({ stay }: { stay: boolean }) {
   const [open, setOpen] = useState(false)
   return (
     <>
-      {/* A make, so rust (ruleset §1.9). */}
-      <Button variant="primary" size="compact" onClick={() => setOpen(true)}>
+      {/* A make (+ New) is outlined wherever it stands (ruleset §3.14). */}
+      <Button variant="default" size="compact" onClick={() => setOpen(true)}>
         {buildGamesCopy('newGame2')}
       </Button>
-      <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />
+      <ConnectedNewGameDialog open={open} onOpenChange={setOpen} stay={stay} />
     </>
   )
 }
 
-/** "+ New Game" and its dialog; nothing at all outside Connected mode. */
-export function NewGameControl() {
+/**
+ * "+ New Game" and its dialog; nothing at all outside Connected mode. With
+ * `stay` the new Game does not open: whoever asked (Move to a Game… with no
+ * Game to move to, r4 E15) lists it and carries on.
+ */
+export function NewGameControl({ stay = false }: { stay?: boolean }) {
   const { status } = useSync()
   if (status !== 'live') return null
-  return <ConnectedNewGameControl />
+  return <ConnectedNewGameControl stay={stay} />
 }

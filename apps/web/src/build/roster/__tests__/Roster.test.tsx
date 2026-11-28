@@ -14,7 +14,7 @@
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
@@ -28,6 +28,8 @@ const { SyncContext } = await import('../../../replica/syncContext')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { useUnits } = await import('../../../replica/units')
 const { Roster } = await import('../Roster')
+const { Shelves } = await import('../../shelves/Shelves')
+const { ShelvesPart } = await import('../../shelves/shelvesPart.model')
 
 withSignedInBackend()
 
@@ -89,7 +91,21 @@ async function renderShelves() {
       </SyncContext.Provider>
     )
   })
-  await settle(() => screen.queryByRole('heading', { name: 'Pilots' }) !== null)
+  await settle(() => screen.queryByRole('region', { name: 'Pilots' }) !== null)
+}
+
+/** The Mediator's Kit, the Games front's half of the shelves (NPCs, Encounters). */
+async function renderKit() {
+  await act(async () => {
+    render(
+      <SyncContext.Provider value={CONNECTED}>
+        <ShelvesPart.Provider value="kit">
+          <Shelves />
+        </ShelvesPart.Provider>
+      </SyncContext.Provider>
+    )
+  })
+  await settle(() => screen.queryByRole('region', { name: 'NPCs' }) !== null)
 }
 
 /** Seed one entity the way a signed-in player builds it: a store create. */
@@ -152,7 +168,7 @@ describe('Roster — signed out, it is the front door', () => {
     // The intro band is gone: signing in is the header's.
     expect(screen.queryByRole('region', { name: 'Welcome' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Sign in to build' })).toBeNull()
-    expect(screen.queryByRole('link', { name: /Create Pilot|New pilot/ })).toBeNull()
+    expect(screen.queryByRole('link', { name: /Create Pilot|New Pilot/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Backups: import and export' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
   })
@@ -183,21 +199,25 @@ describe('Roster — signed out, it is the front door', () => {
     ])
   })
 
-  test('the Starter Set is clickable rows, with one Leyline Press credit', async () => {
+  test('the Starter Set crew is one Ledger, a line a build that opens its sheet, credited once', async () => {
     await act(async () => {
       render(<Roster />)
     })
 
     const starter = screen.getByRole('region', { name: 'Starter Set' })
-    expect(within(starter).getByRole('link', { name: 'Read Bonesaw' }).getAttribute('href')).toBe(
+    const crew = within(starter).getByRole('table', { name: 'Pilots & their Mechs' })
+    expect(within(crew).getByRole('link', { name: 'Bonesaw' }).getAttribute('href')).toBe(
       '/starter/pilot/starter-pilot-bonesaw'
     )
-    expect(within(starter).getAllByText(/Leyline Press/)).toHaveLength(1)
+    // Each Pilot's line names their Mech, which opens its own sheet; the
+    // Crawler is its own Ledger under them.
+    const bonesaw = within(crew).getByRole('link', { name: 'Bonesaw' }).closest('tr')
+    const mech = bonesaw?.querySelector<HTMLAnchorElement>('td a')
+    expect(mech?.getAttribute('href')).toMatch(/^\/starter\/mech\//)
+    expect(within(starter).getByRole('table', { name: 'Union Crawler' })).toBeTruthy()
+    // Whose crew it is, said once over the list (the Ledger's foot cites the book).
+    expect(within(starter).getAllByText(/Leyline Press/, { selector: 'p' })).toHaveLength(1)
     expect(within(starter).getByText(/sign in to copy one/)).toBeTruthy()
-    // A shelf per kind, each counting its rows.
-    expect(within(starter).getByRole('region', { name: 'Starter Set pilots' })).toBeTruthy()
-    expect(within(starter).getByRole('region', { name: 'Starter Set mechs' })).toBeTruthy()
-    expect(within(starter).getByRole('region', { name: 'Starter Set crawler' })).toBeTruthy()
   })
 })
 
@@ -230,33 +250,43 @@ describe('Training Bay — the band', () => {
 })
 
 describe('Training Bay — one shelf per kind', () => {
-  test('Pilots, Mechs, Crawlers, Patterns and NPCs, then the Starter Set', async () => {
+  test('Pilots, Mechs, Crawlers and Patterns, then the Starter crews; NPCs are the Games front kit', async () => {
     await renderShelves()
 
-    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Patterns', 'NPCs', 'Starter Set']) {
+    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Patterns', 'Starter crews']) {
       expect(screen.getByRole('region', { name })).toBeTruthy()
     }
+    // The Mediator's Kit is on the Games front (ADR-066), never the Training Bay.
+    expect(screen.queryByRole('region', { name: 'NPCs' })).toBeNull()
   })
 
   test('each unit shelf builds a new one onto the shelf', async () => {
     await renderShelves()
 
     const hrefOf = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
-    expect(hrefOf('+ New pilot')).toBe('/pilots/new')
-    expect(hrefOf('+ New mech')).toBe('/mechs/new')
+    expect(hrefOf('+ New Pilot')).toBe('/pilots/new')
+    expect(hrefOf('+ New Mech')).toBe('/mechs/new')
     expect(hrefOf('+ New crawler')).toBe('/crawlers/new')
-    expect(screen.getByRole('button', { name: '+ From a mech' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '+ From a Mech' })).toBeTruthy()
   })
 
   test('an empty shelf says so', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    expect(within(pilots).getByText('No pilots yet.')).toBeTruthy()
+    expect(within(pilots).getByText('No Pilots yet.')).toBeTruthy()
   })
 
-  test('patterns are user-made, and the NPC shelf offers the designer', async () => {
+  test('a signed-in bay with nothing in it keeps Start here; one unit and it is gone', async () => {
     await renderShelves()
-    expect(screen.getByText('Your patterns, ready to build a Mech from.')).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Start here' })).toBeTruthy()
+    cleanup()
+    await seedEntity('mech', 'Iron Jaw')
+    await renderShelves()
+    expect(screen.queryByRole('region', { name: 'Start here' })).toBeNull()
+  })
+
+  test('the NPC shelf offers the designer', async () => {
+    await renderKit()
     const npcs = screen.getByRole('region', { name: 'NPCs' })
     expect(within(npcs).getByText(/No NPCs yet/)).toBeTruthy()
     expect(within(npcs).queryByText(/on its way/)).toBeNull()
@@ -265,7 +295,7 @@ describe('Training Bay — one shelf per kind', () => {
     )
   })
 
-  test('a designed NPC is a dashed line with who can see it, in a Training Bay marked yours', async () => {
+  test('a designed NPC is a line that opens its sheet, with who can see it', async () => {
     const store = useUnits.getState()
     await store.hydrate('npc')
     const npc = await store.create('npc', {
@@ -277,45 +307,49 @@ describe('Training Bay — one shelf per kind', () => {
       actions: [],
       traits: [],
     })
-    await renderShelves()
+    await renderKit()
 
     const npcs = screen.getByRole('region', { name: 'NPCs' })
-    expect(within(npcs).getByText('Yours')).toBeTruthy()
-    // Its chips lead the Compact's chip group, so the link is the Compact's cover and
-    // the Compact (`.su-entity-compact`) holds what it reads.
-    const line = within(npcs)
-      .getAllByRole('link')
-      .find((a) => a.getAttribute('href') === `/npcs/${npc.id}`)
-      ?.closest('.su-entity-compact')
-    expect(line?.querySelector('[data-user-made]')).not.toBeNull()
-    // The HOMEBREW stamp says it in a word.
-    expect(line?.textContent).toContain('Homebrew')
-    expect(within(npcs).getByText('Only me')).toBeTruthy()
+    // Its name is the link to its sheet; its line reads its position, who can
+    // see it and its HP, a column each; in no Game, the shelf has no Game column (L5).
+    const line = within(npcs).getByRole('link', { name: 'Doc Marrow' }).closest('tr')
+    expect(within(npcs).getByRole('link', { name: 'Doc Marrow' }).getAttribute('href')).toBe(
+      `/npcs/${npc.id}`
+    )
+    expect(
+      within(line as HTMLElement)
+        .getAllByRole('cell')
+        .map((td) => td.textContent)
+        .slice(0, 3)
+    ).toEqual(['Doc', 'Only me', '6/6'])
     expect(within(npcs).getByRole('button', { name: 'More for Doc Marrow' })).toBeTruthy()
   })
 
-  test('the Starter Set is folded under your builds, and opens to the front door’s cards', async () => {
+  test('the Starter crews are one shelf folded under your builds, and open to the front door’s Ledgers (r6 E12)', async () => {
     await renderShelves()
-    const starter = screen.getByRole('region', { name: 'Starter Set' })
-    expect(within(starter).getByText('read-only')).toBeTruthy()
-    const toggle = within(starter).getByRole('button', { name: 'Expand Starter Set' })
+    expect(screen.queryByRole('region', { name: 'Quickstart crew' })).toBeNull()
+    const shelf = screen.getByRole('region', { name: 'Starter crews' })
+    expect(within(shelf).getByText('read-only')).toBeTruthy()
+    const toggle = within(shelf).getByRole('button', { name: 'Expand Starter crews' })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    expect(within(starter).queryByRole('link', { name: 'Read Bonesaw' })).toBeNull()
+    expect(within(shelf).queryByRole('link', { name: 'Bonesaw' })).toBeNull()
 
     fireEvent.click(toggle)
+    // One line says which to try first.
+    expect(within(shelf).getByText(/Try the Quickstart crew/)).toBeTruthy()
+    expect(within(shelf).getByRole('region', { name: 'Quickstart crew' })).toBeTruthy()
+    const starter = within(shelf).getByRole('region', { name: 'Starter Set' })
 
     expect(
-      within(starter)
-        .getByRole('button', { name: 'Collapse Starter Set' })
+      within(shelf)
+        .getByRole('button', { name: 'Collapse Starter crews' })
         .getAttribute('aria-expanded')
     ).toBe('true')
-    expect(within(starter).getByRole('link', { name: 'Read Bonesaw' }).getAttribute('href')).toBe(
+    const crew = within(starter).getByRole('table', { name: 'Pilots & their Mechs' })
+    expect(within(crew).getByRole('link', { name: 'Bonesaw' }).getAttribute('href')).toBe(
       '/starter/pilot/starter-pilot-bonesaw'
     )
-    expect(within(starter).getAllByText(/Leyline Press/)).toHaveLength(1)
-    expect(within(starter).getByRole('region', { name: 'Starter Set pilots' })).toBeTruthy()
-    expect(within(starter).getByRole('region', { name: 'Starter Set mechs' })).toBeTruthy()
-    expect(within(starter).getByRole('region', { name: 'Starter Set crawler' })).toBeTruthy()
+    expect(within(shelf).getAllByText(/Leyline Press/, { selector: 'p' })).toHaveLength(1)
   })
 })
 
@@ -325,23 +359,18 @@ describe('Training Bay — items', () => {
     await renderShelves()
 
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const link = within(pilots)
-      .getAllByRole('link')
-      .find((a) => a.getAttribute('href') === `/pilots/${id}`)
-    expect(link?.getAttribute('aria-label')).toContain('Nia Vale')
-    const line = link?.closest('.su-entity-compact')
-    expect(line?.textContent).toContain('Nia Vale')
+    const link = within(pilots).getByRole('link', { name: 'Ghost' })
+    expect(link.getAttribute('href')).toBe(`/pilots/${id}`)
+    const line = link.closest('tr')
     // What it is built as, never its kind (EDL E9: screen readers hear that).
     expect(line?.textContent).toContain('Engineer')
     expect(line?.textContent).not.toContain('Pilot ·')
-    // The defining fact takes the vital's place on a shelf (C4).
-    expect(line?.textContent).not.toContain('HP')
-    // In no Game: no Game chip, and never an "Unassigned" one (C11).
-    expect(line?.querySelector('[data-chip-class="relation"] a[data-tag]')).toBeNull()
+    // In no Game: its Game column is empty, never "Unassigned" (C11).
+    expect(line?.querySelector('a[href^="/games/"]')).toBeNull()
     expect(line?.textContent).not.toContain('Unassigned')
   })
 
-  test('linked units are each other’s header-only Minis, never chips', async () => {
+  test('a pilot’s line carries the mech it flies, a link to its sheet; the Mechs ledger holds the rest', async () => {
     const store = useUnits.getState()
     await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('softLink')])
     const pilot = await store.create('pilot', { ...basePilotInput, name: 'Mara Vex' })
@@ -354,19 +383,25 @@ describe('Training Bay — items', () => {
 
     await renderShelves()
 
-    // Each a header-only Mini in the other's body, never a chip.
-    const linked = Array.from(document.querySelectorAll('[data-entity-linked]')).map((el) =>
-      (el.textContent ?? '').trim()
-    )
-    // Each opens on its name; its stat chips follow (`Iron Fist (Mech)SP0/0`).
-    expect(linked.some((text) => text.startsWith('Iron Fist (Mech)'))).toBe(true)
-    expect(linked.some((text) => text.startsWith('Mara Vex (Pilot)'))).toBe(true)
-    const chips = Array.from(document.querySelectorAll('[data-tag]')).map((el) => el.textContent)
-    expect(chips.some((text) => /Iron Fist|Mara Vex/.test(text ?? ''))).toBe(false)
+    // The pilot's line names its Mech (ADR-066 §4): its column, and under the
+    // name for a phone, where the column is hidden.
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    const itsMech = within(
+      within(pilots).getByRole('link', { name: 'Ghost' }).closest('tr') as HTMLElement
+    ).getAllByRole('link', { name: 'Iron Fist' })
+    expect(itsMech.map((a) => a.getAttribute('href'))).toEqual([
+      `/mechs/${mech.id}`,
+      `/mechs/${mech.id}`,
+    ])
+    // The Mechs ledger lists it too, as a line that names its pilot (r4 E20): never "None".
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    const line = within(mechs).getByRole('link', { name: 'Iron Fist' }).closest('tr') as HTMLElement
+    expect(within(line).getByRole('link', { name: 'Ghost' })).toBeTruthy()
+    expect(within(mechs).queryByText(/^None/)).toBeNull()
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 
-  test('the ⋯ menu offers Open, Move, Make a copy, Save as pattern (mechs), Export and Delete', async () => {
+  test('the ⋯ menu offers Open, Move, Rename and Save as pattern (mechs), Export and Delete; Copy is on the row (r6 E9)', async () => {
     await seedEntity('mech', 'Iron Jaw')
     await renderShelves()
 
@@ -375,42 +410,88 @@ describe('Training Bay — items', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map((item) => item.textContent)
-    ).toEqual(['Open', 'Move to a Game…', 'Make a copy', 'Save as pattern', 'Export', 'Delete…'])
+    ).toEqual(['Open', 'Move to a Game…', 'Rename…', 'Save as pattern', 'Export', 'Delete'])
+  })
+
+  test('Rename… changes a mech’s name from the list', async () => {
+    const mech = await seedEntity('mech', 'Iron Jaw')
+    await renderShelves()
+    fireEvent.click(within(await openMenu('Iron Jaw')).getByRole('menuitem', { name: 'Rename…' }))
+    const field = (await screen.findByRole('textbox', { name: 'Mech name' })) as HTMLInputElement
+    // It opens with the old name selected, so typing replaces it (r3 J2).
+    field.focus()
+    expect([field.selectionStart, field.selectionEnd]).toEqual([0, 'Iron Jaw'.length])
+    fireEvent.change(field, { target: { value: 'Iron Jaw Mk II' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
+    await waitFor(() => expect(useUnits.getState().get('mech', mech)?.name).toBe('Iron Jaw Mk II'))
+  })
+
+  test('Select checks Mechs, shift-click a range, and Delete N deletes them under one notice (r6 E3)', async () => {
+    await seedEntity('mech', 'Alpha')
+    await seedEntity('mech', 'Bravo')
+    await seedEntity('mech', 'Charlie')
+    await renderShelves()
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    fireEvent.click(within(mechs).getByRole('button', { name: 'Select' }))
+    const check = (name: string) => within(mechs).getByRole('checkbox', { name: `Select ${name}` })
+    const [first, , last] = within(mechs)
+      .getAllByRole('checkbox')
+      .map((box) => box.getAttribute('aria-label')?.replace('Select ', '') ?? '')
+    fireEvent.click(check(first ?? ''))
+    fireEvent.click(check(last ?? ''), { shiftKey: true })
+    await act(async () => {
+      fireEvent.click(within(mechs).getByRole('button', { name: 'Delete 3' }))
+    })
+    await settle(() => useUnits.getState().list('mech').length === 0)
+    expect(useUnits.getState().list('mech')).toHaveLength(0)
+  })
+
+  test('the Mechs shelf says a build’s slots and Scrap, and a column sorts it', async () => {
+    await seedEntity('mech', 'Bravo')
+    await useUnits
+      .getState()
+      .create('mech', { ...baseMechInput, name: 'Alpha', chassisRef: 'mule' })
+    await renderShelves()
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    const names = () =>
+      within(mechs)
+        .getAllByRole('link')
+        .map((a) => a.textContent)
+        .filter((text) => text === 'Alpha' || text === 'Bravo')
+    expect(within(mechs).getByRole('button', { name: /sort by scrap/i })).toBeTruthy()
+    const byName = () => within(mechs).getByRole('button', { name: /sort by mechs/i })
+    fireEvent.click(byName())
+    expect(names()).toEqual(['Alpha', 'Bravo'])
+    fireEvent.click(byName())
+    expect(names()).toEqual(['Bravo', 'Alpha'])
   })
 
   test('a pilot’s menu has no Save as pattern', async () => {
     await seedEntity('pilot', 'Kael Dusk')
     await renderShelves()
 
-    const menu = await openMenu('Kael Dusk')
+    const menu = await openMenu('Ghost')
     expect(within(menu).queryByRole('menuitem', { name: 'Save as pattern' })).toBeNull()
   })
 })
 
 describe('Training Bay — Make a copy', () => {
-  test('asks first, then puts a separate copy on the shelf', async () => {
+  test('the row’s Copy copies at once, with no confirm, and puts a separate copy on the shelf', async () => {
     await seedEntity('pilot', 'Fen Oya')
     await renderShelves()
 
-    const menu = await openMenu('Fen Oya')
     await act(async () => {
-      fireEvent.click(within(menu).getByRole('menuitem', { name: 'Make a copy' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Make a copy of Ghost' }))
     })
-    const dialog = screen.getByRole('alertdialog')
-    expect(dialog.textContent).toContain('Make a copy of Fen Oya?')
+    await settle(() => screen.queryByText('Ghost 2') !== null)
 
-    await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Make a copy' }))
-    })
-    await settle(() => screen.queryByText('COPY OF Fen Oya') !== null)
-
-    expect(screen.getByText('COPY OF Fen Oya')).toBeTruthy()
-    expect(screen.getByText('Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Ghost 2')).toBeTruthy()
+    expect(screen.getByText('Ghost')).toBeTruthy()
     const names = useUnits
       .getState()
       .list('pilot')
       .map((p) => p.name)
-    expect(names.sort()).toEqual(['COPY OF Fen Oya', 'Fen Oya'])
+    expect(names.sort()).toEqual(['Fen Oya', 'Fen Oya 2'])
   })
 })
 
@@ -419,36 +500,36 @@ describe('Training Bay — delete flow', () => {
     await seedEntity('pilot', 'Mira Cole')
     await renderShelves()
 
-    const menu = await openMenu('Mira Cole')
+    const menu = await openMenu('Ghost')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
 
     expect(screen.getByRole('alertdialog')).toBeTruthy()
-    expect(screen.getAllByText(/Delete Mira Cole/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Delete Ghost/i).length).toBeGreaterThan(0)
   })
 
   test('confirming removes it from the shelf', async () => {
     await seedEntity('pilot', 'Tov Heln')
     await renderShelves()
 
-    const menu = await openMenu('Tov Heln')
+    const menu = await openMenu('Ghost')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
     })
-    await settle(() => screen.queryAllByText('Tov Heln').filter((n) => n.isConnected).length === 0)
+    await settle(() => screen.queryAllByText('Ghost').filter((n) => n.isConnected).length === 0)
 
-    expect(screen.queryAllByText('Tov Heln').filter((n) => n.isConnected)).toHaveLength(0)
+    expect(screen.queryAllByText('Ghost').filter((n) => n.isConnected)).toHaveLength(0)
   })
 
   test('cancelling leaves it where it was', async () => {
     await seedEntity('pilot', 'Fen Oya')
     await renderShelves()
 
-    const menu = await openMenu('Fen Oya')
+    const menu = await openMenu('Ghost')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
@@ -456,7 +537,7 @@ describe('Training Bay — delete flow', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     })
 
-    expect(screen.getByText('Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Ghost')).toBeTruthy()
     expect(screen.queryByRole('alertdialog')).toBeFalsy()
   })
 })

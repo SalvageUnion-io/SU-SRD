@@ -5,14 +5,22 @@
  *
  * - Hover (a mouse or a pen): opens after a short rest, closes shortly after
  *   the pointer leaves both the trigger and the popup (so the pointer can
- *   cross into the popup and read it).
+ *   cross into the popup and read it). Only a pointer that moved onto the
+ *   trigger: content that scrolls or swaps in under a resting pointer opens
+ *   nothing until the pointer moves (RR7-06, LG7-12).
  * - Keyboard focus: opens at once; blur closes. Focus that a pointer press
- *   gave does not (the press is a click: it follows the link).
+ *   gave does not (the press is a click: it follows the link), nor, on a
+ *   screen with no hover, a list's row name's: there a tap on the name opens
+ *   its page, always (r8 G4).
  * - Touch: a long press opens it and swallows the click and the callout the
  *   press would otherwise make; a tap elsewhere closes it.
- * - A press on a trigger that does nothing else (`data-peek-press`) opens it
- *   at once.
- * - Escape closes it, and only it: the dialog or page under it stays.
+ * - A press on a button marked `data-peek-press`, which does nothing else,
+ *   opens it at once. A press on a link always follows the link, however
+ *   soon (E27): a reference term's Peek is hover's and focus's. Touch has no
+ *   hover, so there a tap on a term (a link marked `data-peek-press`)
+ *   explains it in place: its Peek opens, Open page on it (r5 E4).
+ * - Escape closes it, and only it: the dialog or page under it stays. Focus
+ *   an Escape hands back (a closing dialog's opener) opens nothing.
  *
  * A trigger inside the popup never peeks (E16: a Peek is terminal).
  */
@@ -30,8 +38,11 @@ const PRESS_SLOP = 10
 /** Focus this soon after a pointer press came from the press. */
 const POINTER_FOCUS_WINDOW = 600
 
+/** How a Peek was opened: a rest of the pointer, the keyboard's focus, or a press (a tap, a long press). */
+export type PeekOpening = 'hover' | 'focus' | 'press'
+
 export type PeekControllerCallbacks = {
-  open: (trigger: HTMLElement, address: string) => void
+  open: (trigger: HTMLElement, address: string, how: PeekOpening) => void
   close: () => void
 }
 
@@ -51,6 +62,14 @@ function triggerOf(target: EventTarget | null): HTMLElement | null {
   return trigger instanceof HTMLElement ? trigger : null
 }
 
+/** A list's row (a Ledger's): on a phone its name opens its page (r8 G4). */
+const LIST_ROW = '.su-ledger__table tr'
+
+/** A screen read by touch alone, with no hover. */
+function noHover(): boolean {
+  return typeof window.matchMedia === 'function' && window.matchMedia('(hover: none)').matches
+}
+
 /** Install the listeners on `doc`; returns the uninstaller. */
 export function installPeekController(doc: Document, callbacks: PeekControllerCallbacks) {
   let current: HTMLElement | null = null
@@ -61,6 +80,12 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   let pressAt: { x: number; y: number } | undefined
   let swallowClick = false
   let lastPress = Number.NEGATIVE_INFINITY
+  /** The last press was a finger's: a tap on a term explains it rather than leaving. */
+  let touched = false
+  /** Where the pointer last moved to; unknown until it moves on this page. */
+  let pointer: { x: number; y: number } | undefined
+  /** A trigger that came under a resting pointer: it waits for the pointer to move. */
+  let resting: HTMLElement | null = null
 
   const clearOpen = () => {
     clearTimeout(openTimer)
@@ -77,13 +102,13 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     pressAt = undefined
   }
 
-  const openNow = (trigger: HTMLElement) => {
+  const openNow = (trigger: HTMLElement, how: PeekOpening) => {
     clearOpen()
     clearClose()
     const address = trigger.getAttribute(PEEK_ATTRIBUTE)
     if (!address) return
     current = trigger
-    callbacks.open(trigger, address)
+    callbacks.open(trigger, address, how)
   }
   const closeNow = () => {
     clearOpen()
@@ -97,8 +122,25 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     closeTimer = setTimeout(closeNow, PEEK_CLOSE_DELAY)
   }
 
+  /**
+   * Whether the pointer is somewhere it was not when it last moved: a
+   * boundary event at the same place came from the page moving under it. A
+   * pointer not yet seen to move on this page counts as moving.
+   */
+  const moved = (event: PointerEvent) =>
+    !pointer || pointer.x !== event.clientX || pointer.y !== event.clientY
+
+  const armHover = (trigger: HTMLElement) => {
+    resting = null
+    if (trigger === pending) return
+    clearOpen()
+    pending = trigger
+    openTimer = setTimeout(() => openNow(trigger, 'hover'), PEEK_OPEN_DELAY)
+  }
+
   const onPointerOver = (event: PointerEvent) => {
     if (event.pointerType === 'touch') return
+    const hasMoved = moved(event)
     if (insidePopup(event.target)) {
       clearClose()
       return
@@ -109,10 +151,12 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
       clearClose()
       return
     }
-    if (trigger === pending) return
-    clearOpen()
-    pending = trigger
-    openTimer = setTimeout(() => openNow(trigger), PEEK_OPEN_DELAY)
+    // Brought under a still pointer (a scroll, a new screen): wait for a move.
+    if (!hasMoved) {
+      resting = trigger
+      return
+    }
+    armHover(trigger)
   }
 
   const onPointerOut = (event: PointerEvent) => {
@@ -122,6 +166,7 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     // Still within the same trigger, or crossing into the popup.
     if (from && elementOf(to) && from.contains(elementOf(to))) return
     if (insidePopup(to)) return
+    if (from && from === resting) resting = null
     if (from && from === pending) clearOpen()
     if (from === current || insidePopup(event.target)) scheduleClose()
   }
@@ -130,7 +175,9 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     const trigger = triggerOf(event.target)
     if (!trigger) return
     if (performance.now() - lastPress < POINTER_FOCUS_WINDOW) return
-    openNow(trigger)
+    // A tap the controller never saw (it mounted under the finger) still opens the page.
+    if (trigger.closest(LIST_ROW) && noHover()) return
+    openNow(trigger, 'focus')
   }
 
   const onFocusOut = (event: FocusEvent) => {
@@ -138,7 +185,12 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   }
 
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== 'Escape' || !current) return
+    if (event.key !== 'Escape') return
+    // An Escape that closes a dialog hands focus back to its opener: a press, not a Tab (r8 E10).
+    if (!current) {
+      lastPress = performance.now()
+      return
+    }
     // The Peek is the topmost thing: Escape dismisses it and nothing beneath.
     event.stopPropagation()
     closeNow()
@@ -147,6 +199,7 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   const onPointerDown = (event: PointerEvent) => {
     lastPress = performance.now()
     swallowClick = false
+    touched = event.pointerType === 'touch'
     const trigger = triggerOf(event.target)
     if (current && !insidePopup(event.target) && trigger !== current) closeNow()
     if (event.pointerType !== 'touch' || !trigger) return
@@ -155,11 +208,17 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     pressTimer = setTimeout(() => {
       pressTimer = undefined
       swallowClick = true
-      openNow(trigger)
+      openNow(trigger, 'press')
     }, PEEK_LONG_PRESS)
   }
 
   const onPointerMove = (event: PointerEvent) => {
+    if (event.pointerType !== 'touch') {
+      pointer = { x: event.clientX, y: event.clientY }
+      // The pointer moved on a trigger that came under it at rest: now it hovers.
+      if (resting && triggerOf(event.target) === resting) armHover(resting)
+      else resting = null
+    }
     if (!pressAt) return
     if (Math.hypot(event.clientX - pressAt.x, event.clientY - pressAt.y) > PRESS_SLOP) clearPress()
   }
@@ -168,9 +227,22 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
 
   const onClick = (event: MouseEvent) => {
     if (!swallowClick) {
-      // A trigger whose press does nothing else opens its Peek.
       const trigger = triggerOf(event.target)
-      if (trigger?.hasAttribute(PEEK_PRESS_ATTRIBUTE)) openNow(trigger)
+      if (!trigger?.hasAttribute(PEEK_PRESS_ATTRIBUTE)) return
+      // A link is followed, never held (E27): a click costs one click.
+      // Its Peek, open or on its way, goes: the reader is leaving for the page.
+      // A finger's tap explains the term in place instead, Open page on its
+      // Peek (r5 E4): touch has no hover to Peek it by.
+      if (trigger instanceof HTMLAnchorElement && trigger.hasAttribute('href')) {
+        if (!touched) {
+          closeNow()
+          return
+        }
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      // A trigger whose press does nothing else opens its Peek.
+      openNow(trigger, 'press')
       return
     }
     // The long press opened the Peek: the click it ends with must not follow

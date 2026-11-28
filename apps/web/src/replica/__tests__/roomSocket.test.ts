@@ -246,6 +246,21 @@ describe('openRoom', () => {
     close()
   })
 
+  test('a room opened again waits for its new socket, though the old one closes after', async () => {
+    // Torn down and opened again at once (a remount; React's double-run
+    // effect): the old socket's close lands while the new one is opening.
+    const first = openRoom('/__rooms/account/socket', 'account')
+    first()
+    const close = openRoom('/__rooms/account/socket', 'account')
+    const [old, socket] = FakeSocket.all as [FakeSocket, FakeSocket]
+    old.onclose?.({ code: 1006 })
+    const ready = roomReady(null, { standIns: false })
+    socket.opens()
+    expect(await ready).not.toBeNull()
+    expect(await ready).toBe(roomOf(null))
+    close()
+  })
+
   test('with no socket coming, or none opening in time, there is no room', async () => {
     expect(await roomReady(null, { standIns: false })).toBeNull()
     const close = openRoom('/__rooms/account/socket', 'account')

@@ -16,6 +16,7 @@ import { dieForTable, rollD20 } from '../dice'
 import { noEffectContainer, unknownTableContainer } from '../errorContainer'
 import { buildRollContainerData } from '../rollContainer'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { site } from './siteReply'
 
 type RollTable = ReturnType<typeof SalvageUnionReference.RollTables.all>[number]
 
@@ -54,12 +55,43 @@ function replayResult(payload: string):
 
 /**
  * A Components V2 payload ready for `interaction.reply`, or a user-facing
- * error. `data` is the pure container it was rendered from; it and
- * `ephemeral` are ours, and the transport's `toWire` drops them.
+ * error. `data` is the pure container it was rendered from; it, `ephemeral`
+ * and `rolled` are ours, and the transport's `toWire` drops them.
  */
 export type RollMessage =
-  | { flags: number; components: [APIContainerComponent]; data: ContainerData; ephemeral?: true }
+  | {
+      flags: number
+      components: [APIContainerComponent]
+      data: ContainerData
+      ephemeral?: true
+      /** The row it landed on, for the Game's Feed (`logPublicRoll`); absent for no effect. */
+      rolled?: RolledRow
+    }
   | { error: string }
+
+/** A roll that landed on a row: what the Game's Feed line says of it. */
+type RolledRow = { tableName: string; rolls: number[]; outcome: string }
+
+/**
+ * Put a public roll on its Game's Feed (`logRoll`): the site keeps it only
+ * where the channel is bound to a Game the roller is in, so this asks for every
+ * public roll and the answer is not awaited by the reply. A private roll is
+ * never sent, nor one made where Discord named no channel.
+ */
+export async function logPublicRoll(
+  interaction: { user: { id: string; displayName?: string }; channelId?: string | null },
+  message: RollMessage
+): Promise<void> {
+  if ('error' in message || message.ephemeral || message.rolled === undefined) return
+  const channelId = interaction.channelId ?? null
+  if (channelId === null) return
+  await site().logRoll({
+    discordId: interaction.user.id,
+    channelId,
+    ...message.rolled,
+    ...(interaction.user.displayName ? { roller: interaction.user.displayName } : {}),
+  })
+}
 
 /**
  * The one row every roll result carries: `↻ Roll again` (Primary: it is the
@@ -155,7 +187,12 @@ export function buildRollMessage(
     ),
   })
 
-  return { ...v2Reply(data, isPrivate), data, ...(isPrivate ? { ephemeral: true as const } : {}) }
+  return {
+    ...v2Reply(data, isPrivate),
+    data,
+    rolled: { tableName: table.name, rolls, outcome: outcome.label ?? outcome.value },
+    ...(isPrivate ? { ephemeral: true as const } : {}),
+  }
 }
 
 /**
@@ -173,7 +210,9 @@ export function buildPostedRollMessage(
   payload: string,
   roller?: string,
   /** Who posted it: the roller, since only they could see the private roll. */
-  ownerId?: string
+  ownerId?: string,
+  /** What the roll was for (an ability's name), beside the table's. */
+  label?: string
 ): (RollMessage & { data: ContainerData & { tableName: string } }) | { error: string } {
   const replayed = replayResult(payload)
   if ('error' in replayed) return replayed
@@ -182,14 +221,25 @@ export function buildPostedRollMessage(
   if (!outcome.success || outcome.kind === 'no-effect')
     return { error: 'That roll can no longer be rendered.' }
 
-  const data = buildRollContainerData(table, outcome, { roller })
+  const data = buildRollContainerData(table, outcome, {
+    roller,
+    ...(label === undefined ? {} : { label }),
+  })
   // Posted, so public: its re-roll is public too.
   data.blocks.push({
     kind: 'buttons',
     buttons: rollButtons(table.name, payload, { id: ownerId, isPrivate: false }),
   })
 
-  return { ...v2Reply(data), data: { ...data, tableName: table.name } }
+  return {
+    ...v2Reply(data),
+    data: { ...data, tableName: table.name },
+    rolled: {
+      tableName: table.name,
+      rolls: replayed.decoded.rolls,
+      outcome: outcome.label ?? outcome.value,
+    },
+  }
 }
 
 /**
@@ -282,5 +332,6 @@ export const rollCommand = {
       return
     }
     await interaction.reply(message)
+    await logPublicRoll(interaction, message)
   },
 }

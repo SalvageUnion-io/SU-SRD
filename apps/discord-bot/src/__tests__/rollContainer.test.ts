@@ -15,6 +15,7 @@ import {
 } from 'salvageunion-reference'
 import { buildPostedRollMessage, buildRollMessage } from '../commands/roll'
 import type { ContainerData } from '../container'
+import { encodeRollResult } from '../customId'
 import { buildRollContainerData, isTieredTable } from '../rollContainer'
 
 // No preload here. `apps/discord-bot/bunfig.toml` preloads
@@ -282,5 +283,29 @@ describe('private rolls and Post to channel', () => {
   test('a malformed post payload errors rather than throwing', () => {
     expect(buildPostedRollMessage('not-a-payload')).toHaveProperty('error')
     expect(buildPostedRollMessage('Core Mechanic|99')).toHaveProperty('error')
+  })
+})
+
+describe('the context line names what the roll was for', () => {
+  const text = (label?: string) => {
+    const message = buildPostedRollMessage(
+      encodeRollResult('Core Mechanic', [14]),
+      'Alex',
+      '1',
+      label
+    )
+    if ('error' in message) throw new Error(message.error)
+    const first = message.data.blocks[0]
+    return first?.kind === 'text' ? first.content : ''
+  }
+
+  test('an ability rolled on the Core Mechanic is named beside the table', () => {
+    expect(text('120mm Cannon')).toBe('-# CORE MECHANIC · 120MM CANNON · rolled by Alex')
+  })
+
+  test('the table itself, or nothing, adds nothing; markup is flattened', () => {
+    expect(text()).toBe('-# CORE MECHANIC · rolled by Alex')
+    expect(text('Core Mechanic')).toBe('-# CORE MECHANIC · rolled by Alex')
+    expect(text('**@everyone**\n# hi')).toBe('-# CORE MECHANIC · EVERYONE HI · rolled by Alex')
   })
 })

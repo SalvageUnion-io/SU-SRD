@@ -21,7 +21,7 @@
     "hasArtwork": true,
     "traits": [
       {
-        "type": "burrower"
+        "type": "Burrower"
       }
     ],
     "actions": ["Acid Spit", "Corrosive Skin Glands"],
@@ -76,7 +76,7 @@
     "hasArtwork": true,
     "traits": [
       {
-        "type": "burrower"
+        "type": "Burrower"
       }
     ],
     "actions": ["Iron Claw"],
@@ -96,7 +96,7 @@
     "name": "Carrion Bird",
     "traits": [
       {
-        "type": "fly"
+        "type": "Fly"
       }
     ],
     "actions": ["Talons"],
@@ -143,7 +143,7 @@
     "source": "Reclamation of the Wastes",
     "page": 108,
     "name": "Artl Queen",
-    "traits": [{ "type": "burrower" }],
+    "traits": [{ "type": "Burrower" }],
     "actions": ["Armoured Carapace", "Scythe Swipe", "Acid Spray", "Corrosive Skin Glands"],
     "hitPoints": 20,
     "content": [

@@ -15,6 +15,11 @@
  * signed out (`auth/storedSession.ts`), so the hint counts only while it
  * is present: a session that ended anywhere shows signed out here too.
  *
+ * Beside it, the LAST GAME the reader opened (`su:last-game`: its id and its
+ * name), so the home's welcome-back strip can name it and link straight to it.
+ * The same trust rule holds: it counts only while a session is stored, and it
+ * is forgotten with the account hint.
+ *
  * The library holds the contract, not the storage (ADR-010): each app passes
  * its own `localStorage`, or null where there is none. Dependency-free on
  * purpose: the SRD's client entry imports it on every page without pulling
@@ -66,10 +71,54 @@ export function writeAccountHint(hint: AccountHint, storage: Storage | null): vo
   }
 }
 
-/** Forgets who was signed in. */
+/** The `localStorage` key of the last Game opened. */
+export const LAST_GAME_KEY = 'su:last-game'
+
+export type LastGameHint = { id: string; name: string }
+
+/** The last Game the signed-in reader opened, or null (nobody signed in, none opened, unreadable). */
+export function readLastGame(storage: Storage | null): LastGameHint | null {
+  if (!storage) return null
+  try {
+    const raw = storage.getItem(LAST_GAME_KEY)
+    if (raw === null || !storage.getItem(STORED_SESSION_KEY)) return null
+    const parsed: unknown = JSON.parse(raw)
+    if (typeof parsed !== 'object' || parsed === null) return null
+    const { id, name } = parsed as Record<string, unknown>
+    const [gameId, gameName] = [textOrNull(id), textOrNull(name)]
+    return gameId && gameName ? { id: gameId, name: gameName } : null
+  } catch {
+    return null
+  }
+}
+
+/** Records the Game the reader has open. */
+export function writeLastGame(game: LastGameHint, storage: Storage | null): void {
+  try {
+    storage?.setItem(LAST_GAME_KEY, JSON.stringify({ id: game.id, name: game.name }))
+  } catch {
+    // Full or blocked storage: the home names no Game, and still links to Games.
+  }
+}
+
+/**
+ * The Game the home names on a device (r3 I4): the one last opened here while
+ * the account is still in it, under its current name; else the first of the
+ * account's Games, so a phone that has only signed in names one too. Null
+ * with no Games: Games stays the way in.
+ */
+export function lastGameAmong(
+  remembered: LastGameHint | null,
+  games: readonly LastGameHint[]
+): LastGameHint | null {
+  return games.find((game) => game.id === remembered?.id) ?? games[0] ?? null
+}
+
+/** Forgets who was signed in, and the Game they last opened. */
 export function clearAccountHint(storage: Storage | null): void {
   try {
     storage?.removeItem(ACCOUNT_HINT_KEY)
+    storage?.removeItem(LAST_GAME_KEY)
   } catch {
     // Blocked storage held no hint to clear.
   }

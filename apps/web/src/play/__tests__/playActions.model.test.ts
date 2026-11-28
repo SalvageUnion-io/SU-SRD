@@ -8,7 +8,7 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import type { RefMetaAction } from 'salvageunion-reference'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
-import type { PlayAction } from '../../lib/rules/actionPatches'
+import type { PlayAction } from '../../lib/rules/actionList'
 import type { ListEntry } from '../playActions.model'
 import {
   actionTypeOf,
@@ -153,6 +153,29 @@ describe('on hand, by Situation', () => {
         if (entry.need !== null) expect(NEED_TEXT[entry.need]).toBeTruthy()
       }
     }
+  })
+})
+
+describe('one name, two actions (r7 B5)', () => {
+  test('a Mech System and a Pilot ability that share a name each say whose', () => {
+    const shared = (key: string, currency: 'EP' | 'AP') => ({
+      ...action(key, 'Short', currency),
+      name: 'System Repair',
+    })
+    const entries = buildActionList({
+      situation: 'boarded',
+      pilotActions: [shared('p-repair', 'AP'), ...PILOT],
+      mechActions: [shared('m-repair', 'EP'), ...MECH],
+      hasMech: true,
+    })
+    const names = entries.flatMap((e) => (e.kind === 'action' ? [e.name] : []))
+    expect(names).toContain('System Repair · Mech')
+    expect(names).toContain('System Repair · Pilot')
+    expect(names).not.toContain('System Repair')
+    // Every other name stays bare.
+    expect(names).toContain('cannon')
+    // Find still finds both by the bare name.
+    expect(filterEntries(entries, 'All', 'system repair')).toHaveLength(2)
   })
 })
 

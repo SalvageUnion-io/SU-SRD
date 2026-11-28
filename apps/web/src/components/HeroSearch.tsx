@@ -1,16 +1,16 @@
 import type { FormEventHandler, ReactNode } from 'react'
 import { HERO_SEARCH_PLACEHOLDER } from '../lib/heroSearch'
-import { SEARCH_PAGE, SEARCH_PARAM } from '../lib/searchHref'
+import { RESULTS_PAGE, SEARCH_PAGE, SEARCH_PARAM } from '../lib/searchHref'
 import { componentsCopy } from '../messages/components'
 import { Button, SearchField } from './index'
 
 /**
- * The 404's search: a wide field and a Search button on its band. The home
- * page searches from the Union bar, as every other page does.
+ * A page's own search: a wide field and a Search button, on the 404's band
+ * and atop the results page (where it carries no key cap).
  *
  * Two renderings share this shell so the page never shifts when the island
  * mounts: `HeroSearchStatic` is the server markup (a plain GET form to the
- * home page, `/?q=…`, whose search opens on its query once its island
+ * Reference page, `/reference/?q=…`, whose search opens on its query once its island
  * mounts), and `SearchIsland`'s `hero` variant renders the same form around
  * its combobox.
  */
@@ -18,14 +18,16 @@ import { Button, SearchField } from './index'
 type HeroSearchFormProps = {
   /** The field (and, in the island, its listbox). */
   children: ReactNode
-  /** The island's submit handler; the static form goes to `/?q=…` itself. */
+  /** The island's submit handler; the static form goes to `/reference/?q=…` itself. */
   onSubmit?: FormEventHandler<HTMLFormElement>
+  /** Where the form goes: the Reference page's search, or the results page's own (RR6-02). */
+  action?: string
 }
 
-export function HeroSearchForm({ children, onSubmit }: HeroSearchFormProps) {
+export function HeroSearchForm({ children, onSubmit, action = SEARCH_PAGE }: HeroSearchFormProps) {
   return (
     <search>
-      <form action={SEARCH_PAGE} method="get" className="su-hero-search" onSubmit={onSubmit}>
+      <form action={action} method="get" className="su-hero-search" onSubmit={onSubmit}>
         {children}
         <Button type="submit" variant="primary" size="full">
           {componentsCopy('search')}
@@ -35,17 +37,27 @@ export function HeroSearchForm({ children, onSubmit }: HeroSearchFormProps) {
   )
 }
 
-/** The server markup: the same form, no listeners. */
-export function HeroSearchStatic() {
+/**
+ * The server markup: the same form, no listeners. The results page's (`query`)
+ * keeps what was searched for in its field, to refine it (RR6-02).
+ */
+export function HeroSearchStatic({
+  shortcut = '⌘K',
+  query,
+}: {
+  shortcut?: string
+  query?: string
+} = {}) {
   return (
-    <HeroSearchForm>
+    <HeroSearchForm {...(query === undefined ? {} : { action: RESULTS_PAGE })}>
       <div className="su-hero-search__box">
         <SearchField
           type="search"
           name={SEARCH_PARAM}
+          defaultValue={query}
           placeholder={HERO_SEARCH_PLACEHOLDER}
           aria-label={componentsCopy('searchTheReference')}
-          shortcut="⌘K"
+          shortcut={shortcut}
           glyph="full"
           containerClassName="su-hero-search__field"
         />

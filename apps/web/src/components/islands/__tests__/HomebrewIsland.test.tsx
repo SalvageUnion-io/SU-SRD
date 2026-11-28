@@ -2,11 +2,12 @@
  * Homebrew on the SRD (ADR-061): on a chassis page, a "Show Homebrew" switch
  * that is off until a reader turns it on, remembered in this browser, and
  * lists that chassis's shared patterns while on; on `/homebrew/`, every one.
+ * Either way the patterns are one Ledger, a line each.
  */
 
 import { afterEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SHOW_HOMEBREW_KEY } from '../../../lib/homebrew/homebrew'
+import { SHOW_HOMEBREW_KEY } from '../../../lib/homebrew/endpoint'
 import { HomebrewIsland } from '../HomebrewIsland'
 
 const body = (id: string, name: string, chassisRef: string) => ({
@@ -60,44 +61,48 @@ describe('on a chassis page', () => {
     await settle()
     expect(asked).toEqual(['/homebrew/patterns.json?chassis=mule'])
     expect(localStorage.getItem(SHOW_HOMEBREW_KEY)).toBe('on')
+    // The switch says what a press does now, and stays pressed while on.
+    expect(screen.queryByRole('button', { name: 'Show Homebrew' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Hide Homebrew' }).getAttribute('aria-pressed')).toBe(
+      'true'
+    )
     const links = screen.getAllByRole('link').map((a) => a.getAttribute('href'))
     expect(links).toEqual(['/build/p/pattern/pat-a', '/build/p/pattern/pat-b'])
-    // The section's title, then each row's HOMEBREW stamp.
-    expect(screen.getAllByText(/^homebrew$/i)).toHaveLength(3)
-  })
-
-  test('one "Show all" under it counts the book’s and the homebrew; a phone waits on the rest', async () => {
-    localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
-    answer(() => new Response(JSON.stringify(ROWS)))
-    const { container } = render(<HomebrewIsland chassisRef="mule" bookPatterns={1} />)
+    // One Ledger, a line a pattern, all of them at every width.
+    expect(screen.getAllByRole('table')).toHaveLength(1)
+    expect(document.querySelectorAll('tbody tr')).toHaveLength(2)
     expect(screen.queryByRole('link', { name: /show all/i })).toBeNull()
-    await settle()
-    const more = screen.getByRole('link', { name: 'Show all 3 patterns' })
-    expect(more.getAttribute('href')).toBe('#patterns')
-    // The book's one shows, then the first homebrew; the second waits for "Show all".
-    expect(container.querySelectorAll('.su-homebrew__more')).toHaveLength(1)
   })
 
-  test('with no book patterns, "Show all" opens the Homebrew section', async () => {
-    localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
-    answer(() => new Response(JSON.stringify([...ROWS, { ...ROWS[0], appId: 'pat-c' }])))
-    render(<HomebrewIsland chassisRef="mule" />)
-    await settle()
-    const more = screen.getByRole('link', { name: 'Show all 3 patterns' })
-    expect(more.getAttribute('href')).toBe('#homebrew-patterns')
-  })
-
-  test('remembered on, it lists at once; none shared, it says so; turned off, it hides them', async () => {
+  test('remembered on with none shared, it says so and the switch stays, so it can be turned off here (r5 E11)', async () => {
     localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
     answer(() => new Response('[]'))
     render(<HomebrewIsland chassisRef="mule" />)
     await settle()
-    expect(screen.getByText('No player has shared a pattern for this chassis yet.')).toBeTruthy()
+    expect(screen.getByText(/No player has shared a pattern for this chassis yet\./)).toBeTruthy()
+    // None here is not a dead end: the note leads to every chassis's (RR2-17).
+    expect(
+      screen.getByRole('link', { name: 'Every chassis’s Homebrew' }).getAttribute('href')
+    ).toBe('/homebrew/')
+    expect(screen.getByRole('button', { name: 'Hide Homebrew' }).getAttribute('aria-pressed')).toBe(
+      'true'
+    )
+    // The reader's choice is kept for the next chassis.
+    expect(localStorage.getItem(SHOW_HOMEBREW_KEY)).toBe('on')
+  })
+
+  test('remembered on, it lists at once; turned off, it hides them', async () => {
+    localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
+    answer(() => new Response(JSON.stringify(ROWS)))
+    render(<HomebrewIsland chassisRef="mule" />)
+    await settle()
+    expect(document.querySelectorAll('tbody tr')).toHaveLength(2)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Show Homebrew' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Hide Homebrew' }))
     })
     expect(localStorage.getItem(SHOW_HOMEBREW_KEY)).toBeNull()
+    expect(screen.getByRole('button', { name: 'Show Homebrew' })).toBeTruthy()
     expect(screen.getByText(/Not from the book/)).toBeTruthy()
   })
 })
@@ -108,10 +113,9 @@ describe('on the Homebrew page', () => {
     render(<HomebrewIsland />)
     await settle()
     expect(asked).toEqual(['/homebrew/patterns.json'])
-    // Each pattern's head opens it (its loadout's parts link to their own pages).
-    const links = [...document.querySelectorAll('a.su-pattern-rows__head')].map((a) =>
-      a.getAttribute('href')
-    )
+    // Each pattern's name opens it, and its row says who made it.
+    const links = screen.getAllByRole('link').map((a) => a.getAttribute('href'))
+    expect(document.querySelector('tbody')?.textContent).toContain('Rosa')
     expect(links).toEqual(['/build/p/pattern/pat-a', '/build/p/pattern/pat-b'])
   })
 

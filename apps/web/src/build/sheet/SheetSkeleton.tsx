@@ -30,7 +30,11 @@ const SLAB_HEAD = {
 
 const SLAB_LEADER = { height: tokens.space[2], flex: '1 1 0%' } satisfies CSSProperties
 
-const SLAB_GRID = { display: 'grid', gap: tokens.space[12] } satisfies CSSProperties
+const SLAB_GRID = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
 const SLAB_CARD = {
   height: '80px',
@@ -39,7 +43,9 @@ const SLAB_CARD = {
   backgroundColor: tokens.color.paper,
 } satisfies CSSProperties
 
-const ROOT = { minHeight: '100dvh', backgroundColor: tokens.color.wkBg } satisfies CSSProperties
+// The page is as tall as its content; `#root`'s
+// column keeps a short page's foot on the window's edge.
+const ROOT = { backgroundColor: tokens.color.wkBg } satisfies CSSProperties
 
 const BAR = {
   display: 'flex',

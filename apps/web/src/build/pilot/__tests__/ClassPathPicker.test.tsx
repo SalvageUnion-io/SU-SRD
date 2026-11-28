@@ -68,7 +68,7 @@ describe('ClassPathPicker — the ring', () => {
     const text = document.body.textContent ?? ''
     const from = text.indexOf('From Hacker')
     const rehome = text.indexOf('Re-home to a Core Class')
-    const offRing = text.indexOf("Not on this pilot's ring")
+    const offRing = text.indexOf("Not on this Pilot's ring")
     expect(from).toBeGreaterThanOrEqual(0)
     expect(rehome).toBeGreaterThan(from)
     expect(offRing).toBeGreaterThan(rehome)

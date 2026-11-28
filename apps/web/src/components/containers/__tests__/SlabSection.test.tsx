@@ -21,8 +21,8 @@ describe('SlabSection', () => {
     expect(region.className).not.toContain('su-slab-section--page')
     // The print stylesheet's page-break target.
     expect(region.className).toContain('su-sheet-section')
-    const slab = region.querySelector('[data-slab]') as HTMLElement
-    expect(slab.style.marginBottom).toBe('0px')
+    // A section head is the label on a rule (`auto`), flush on its body.
+    expect(region.querySelector('.su-slab-section__head.su-rule-head')).not.toBeNull()
     expect(within(region).getByRole('heading', { level: 2, name: 'Crew' }).id).toBe('crew')
     expect(region.querySelector('.su-slab-section__body')?.textContent).toBe('Bonesaw')
   })

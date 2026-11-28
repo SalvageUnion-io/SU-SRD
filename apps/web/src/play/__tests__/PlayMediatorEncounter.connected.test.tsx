@@ -25,6 +25,8 @@ import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './
 
 /** What the Game's room was sent, by name. */
 const sent = acts
+/** Its names, less the roll's own row on the Game's log, which lands after the write. */
+const tray = () => sent.map((s) => s.name).filter((n) => n !== 'changeLog.appendChangeLog')
 
 const serverMocks = await installServerMocks({
   also: { '../../play/useGamePresence': () => ({ useGamePresence: () => TABLE_HERE }) },
@@ -155,8 +157,10 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'changeLog.alerts': [],
     'changeLog.rolls': [],
     'channelBindings.current': null,
+    'games.listMine': [],
     'safety.stopSign': null,
     'account.me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
+    'plan.get': null,
     ...over,
   }
 }
@@ -199,7 +203,7 @@ describe('groups on the tray', () => {
   test('one Reaction roll for the whole group is sent for its members', async () => {
     await renderCockpit()
     await click(named('Roll Reaction for Raider Band'))
-    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator.recordGroupRoll']))
+    await waitFor(() => expect(tray()).toEqual(['mediator.recordGroupRoll']))
     expect(sent[0]).toMatchObject({ gameId: GAME })
     expect(sent[0]?.args).toMatchObject({
       groupId: 'band',
@@ -223,6 +227,23 @@ describe('groups on the tray', () => {
     expect(screen.getAllByText('Reaction 4 · Hostile').length).toBeGreaterThan(0)
   })
 
+  // r7 C7 (MD7-08): a group's roll reads once, under its header, never again on its members.
+  test('a group roll kept on every member reads once', async () => {
+    const rolled = {
+      table: 'morale',
+      roll: 14,
+      label: 'Keep Fighting',
+      value: 'The NPCs continue.',
+      rolledAt: STAMP,
+    }
+    await renderCockpit({
+      'mediator.npcs': TRAY.map((row) =>
+        'group' in row.body ? { ...row, body: { ...row.body, lastMediatorRoll: rolled } } : row
+      ),
+    })
+    expect(screen.getAllByText(/Keep Fighting/)).toHaveLength(1)
+  })
+
   test('a Mech at half its SP shows Morale due with Roll; Roll checks it', async () => {
     await renderCockpit()
     const mule = within(screen.getByRole('region', { name: 'Mech: Mule' }))
@@ -230,7 +251,7 @@ describe('groups on the tray', () => {
     const loner = within(screen.getByRole('region', { name: 'NPC: Loner' }))
     expect(loner.queryByText('Morale due')).toBeNull()
     await click(mule.getByRole('button', { name: 'Roll Morale for Mule' }))
-    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator.updateNpc']))
+    await waitFor(() => expect(tray()).toEqual(['mediator.updateNpc']))
     expect(sent[0]?.args).toMatchObject({
       npcId: 'n-mule',
       patch: { lastMediatorRoll: { table: 'morale' } },
@@ -264,12 +285,50 @@ describe('waves', () => {
     await renderCockpit({ 'mediator.running': null })
     await click(named('Run an encounter'))
     const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
+    // r7 C6 (MD7-03): with no session live, running one says it starts it, ticked.
+    const tick = dialog.getByRole('checkbox', { name: 'Start the group session too' })
+    expect((tick as HTMLInputElement).checked).toBe(true)
     await click(dialog.getByRole('button', { name: 'Run Ambush' }))
-    expect(sent.find((s) => s.name === 'mediator.runEncounter')?.args).toMatchObject({
+    const args = sent.find((s) => s.name === 'mediator.runEncounter')?.args
+    expect(args).toMatchObject({
       encounter: { id: 'enc-1', name: 'Ambush' },
       clear: false,
       waves: true,
     })
+    expect(args).not.toHaveProperty('startSession')
+    // A test run clears the tick and starts no session.
+    sent.length = 0
+    await click(named('Run an encounter'))
+    const again = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
+    await click(again.getByRole('checkbox', { name: 'Start the group session too' }))
+    await click(again.getByRole('button', { name: 'Run Ambush' }))
+    expect(sent.find((s) => s.name === 'mediator.runEncounter')?.args).toMatchObject({
+      startSession: false,
+    })
+    act(() => useEncounters.setState({ encounters: [] }))
+  })
+
+  test('Run an encounter picks the first one not yet run here (r8 B8)', async () => {
+    const shelf = (id: string, name: string) => ({
+      id,
+      schemaVersion: 1 as const,
+      name,
+      opposition: [],
+      tables: [],
+      notes: '',
+      createdAt: STAMP,
+      updatedAt: STAMP,
+    })
+    useEncounters.setState({
+      encounters: [shelf('enc-1', 'Ambush'), shelf('enc-2', 'Spider in the Pass')],
+    })
+    await renderCockpit({ 'mediator.running': null, 'mediator.ran': ['enc-1'] })
+    await click(named('Run an encounter'))
+    const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
+    expect(
+      (dialog.getByRole('radio', { name: /Spider in the Pass/ }) as HTMLInputElement).checked
+    ).toBe(true)
+    expect(dialog.getByRole('button', { name: 'Run Spider in the Pass' })).toBeTruthy()
     act(() => useEncounters.setState({ encounters: [] }))
   })
 })

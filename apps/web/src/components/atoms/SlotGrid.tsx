@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
+import { atomsCopy } from '../../messages/components-atoms'
 import { statBlockRowStarts } from './pipRows'
 
 type SlotGridProps = {
@@ -14,6 +15,10 @@ type SlotGridProps = {
    * Dashed means "fillable" and a read-only sheet fills nothing.
    */
   readOnly?: boolean
+  /** Cells to a row, at most the law's 6: a pilot's six slots sit 3 × 2. */
+  perRow?: number
+  /** `mini`: cells small enough to sit in a table's head or cell. */
+  size?: 'sheet' | 'mini'
 }
 
 /**
@@ -33,7 +38,7 @@ type SlotGridProps = {
  */
 const GRID = {
   alignItems: 'center',
-  display: 'flex',
+  display: 'inline-flex',
   flexDirection: 'column',
   gap: space[4],
 } satisfies CSSProperties
@@ -50,6 +55,15 @@ const CELL = {
   width: '1.25rem',
 } satisfies CSSProperties
 
+/** A mini cell: a table head's or cell's line, two rows to its height. */
+const MINI_CELL = {
+  borderWidth: borderWidth.hairline,
+  height: space[12],
+  width: space[12],
+} satisfies CSSProperties
+
+const MINI_GAP = { gap: space[2] } satisfies CSSProperties
+
 const CELL_STATE = {
   filled: { backgroundColor: color.cargo, borderColor: color.cargo },
   /** Fillable: a dashed ink-40 outline on paper. */
@@ -59,22 +73,29 @@ const CELL_STATE = {
   over: { backgroundColor: color.statusBad, borderColor: color.statusBad },
 } satisfies Record<string, CSSProperties>
 
-export function SlotGrid({ used, cap, label, readOnly = false }: SlotGridProps) {
+export function SlotGrid({
+  used,
+  cap,
+  label,
+  readOnly = false,
+  perRow,
+  size = 'sheet',
+}: SlotGridProps) {
+  const mini = size === 'mini'
   const safeCap = Math.max(0, Math.floor(cap))
   const safeUsed = Math.max(0, Math.floor(used))
   const total = Math.max(safeCap, safeUsed)
   const over = safeUsed > safeCap
 
+  const summary = label ?? atomsCopy('slotsFilled', { used: safeUsed, cap: safeCap })
   return (
-    <div
+    <span
       role="img"
-      aria-label={
-        label ?? `${safeUsed} of ${safeCap} slots filled${over ? ' — over capacity' : ''}`
-      }
-      style={GRID}
+      aria-label={over ? atomsCopy('overCapacity', { summary }) : summary}
+      style={mini ? { ...GRID, ...MINI_GAP } : GRID}
     >
-      {statBlockRowStarts(total).map((row) => (
-        <div key={row.start} style={ROW}>
+      {statBlockRowStarts(total, perRow).map((row) => (
+        <span key={row.start} style={mini ? { ...ROW, ...MINI_GAP } : ROW}>
           {Array.from({ length: row.count }, (_, c) => {
             const i = row.start + c
             const state = i >= safeCap ? 'over' : i < safeUsed ? 'filled' : 'empty'
@@ -84,13 +105,14 @@ export function SlotGrid({ used, cap, label, readOnly = false }: SlotGridProps) 
                 aria-hidden="true"
                 style={{
                   ...CELL,
+                  ...(mini ? MINI_CELL : {}),
                   ...CELL_STATE[state === 'empty' && readOnly ? 'emptyReadOnly' : state],
                 }}
               />
             )
           })}
-        </div>
+        </span>
       ))}
-    </div>
+    </span>
   )
 }

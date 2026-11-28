@@ -53,8 +53,10 @@ export type EntityProps = EntitySource &
     peek?: boolean
     /** Index Compact only: its art loads at once and first (a listing's opening row). */
     priority?: boolean
-    /** Index Compact only: the catalog has art; this art-less entity's place among its art-less ones (a censor mark). */
+    /** Index Compact only: the catalog has art; this art-less entity's place among its art-less ones (a No illustration plate). */
     missingArt?: number
+    /** Index Compact only: art the site holds for an entity whose data names none (a book's cover). */
+    artUrl?: string
     /**
      * Mini only: the Peek address for a record with none of its own (a crawler
      * bay's crew NPC, through its bay: `embeddedPeekAddress`).
@@ -63,15 +65,16 @@ export type EntityProps = EntitySource &
     /** Compact only: the title's element — a heading where the Compact is a page's entry (default `span`). */
     titleAs?: ElementType
     /**
-     * Compact only: the name is never cut (hard rule R56, a Game's on the Play
+     * Compact: the name is never cut (hard rule R56, a Game's on the Play
      * hub): where it and the host's controls do not share the head's line, the
-     * controls are the body's first row.
+     * controls are the body's first row. Mini: a seat's name at the Play table
+     * is whole too, its chips wrapping to a line over it.
      */
     wholeName?: boolean
     /**
      * Compact and Mini: the host's controls (Use, Assign, Unassign, View), the chip
      * group's last slot after the cost, ahead of a Compact's `trailing` "⋯" (C8,
-     * hard rule R6).
+     * C8).
      * They never nest in a link or select surface.
      */
     controls?: ReactNode
@@ -138,6 +141,7 @@ function EntityForm(props: EntityProps) {
     titleAs,
     wholeName,
     missingArt,
+    artUrl,
     controls,
     labels,
     relations,
@@ -181,6 +185,7 @@ function EntityForm(props: EntityProps) {
         lead={lead}
         priority={priority}
         missingArt={missingArt}
+        artUrl={artUrl}
       />
     )
   }
@@ -227,9 +232,16 @@ function EntityForm(props: EntityProps) {
           mode={mode}
           omit={omit}
           slots={
-            state || peekAt || relations || tint || uses !== undefined || controls !== undefined
+            state ||
+            peekAt ||
+            relations ||
+            tint ||
+            wholeName ||
+            uses !== undefined ||
+            controls !== undefined
               ? {
                   ...(tint ? { tint } : {}),
+                  ...(wholeName ? { wholeName } : {}),
                   ...(state ? { state } : {}),
                   ...(stateActs ? { stateActs } : {}),
                   ...(peekAt ? { peekAt } : {}),

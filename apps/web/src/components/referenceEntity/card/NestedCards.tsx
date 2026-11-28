@@ -3,6 +3,7 @@ import { useContext, useState } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { entityRef, getReferenceEntityName, resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import type { Size } from '../../../styles/sizing'
 import { MiniGrid } from '../../containers/MiniGrid'
 import { Entity } from '../../entity/Entity'
@@ -266,7 +267,7 @@ function NestedMini({
   const { NestedCard } = host
   const [open, setOpen] = useState(false)
   const href = useEntitySurface().hrefFor(entityRef(data as RefMetaEntity))
-  const entityName = getReferenceEntityName(data) ?? 'Entity details'
+  const entityName = getReferenceEntityName(data) ?? referenceEntityCopy('entityDetails')
   // A nested ACTION drops its ` (Host)` suffix: its host is right above it.
   const title = titleOverride ?? stripHostParenthetical(entityName, host.entityName)
   const condition = conditionOf(host.isDown)
@@ -424,7 +425,7 @@ const ACTION_ITEM = { flexDirection: 'column', gap: space[4] } satisfies CSSProp
  * (less its ` (Host)` suffix, its host right above it) with its type, range,
  * traits and cost, then its rules, every paragraph. An action that names a
  * roll table keeps it on the line under its text, folded as a nested table is
- * (E14: Mini, Table, Roll the Die), never inside the Mini, which nests
+ * (R8: nested, a Mini), never inside the Mini, which nests
  * nothing (E6). Its choices are its Peek's and its Page's. Inside a Peek the
  * Mini reads and the table is left out: a Peek is terminal (E16).
  */
@@ -460,23 +461,31 @@ export function ActionMinis({
       'tableName' in action && typeof action.tableName === 'string' ? action.tableName : title
     return (
       <li key={cardKey(action, index)} style={ACTION_ITEM}>
+        {/* An action's own roll sits inside it, at the foot of its body
+            (best, revision 8), not on a strip of its own under it. */}
         <Entity
           size="mini"
           context="play"
           entity={action as RefMetaEntity}
           instance={{ title, ...(condition ? { condition } : {}) }}
-          body={{ chassisName }}
+          body={{
+            chassisName,
+            ...(table
+              ? {
+                  children: (
+                    <CardRollTable
+                      table={table}
+                      name={tableName}
+                      size={size}
+                      disabled={!!hostDown}
+                      inline
+                      peekAt={tablePeekAddress(action)}
+                    />
+                  ),
+                }
+              : {}),
+          }}
         />
-        {table && (
-          <CardRollTable
-            table={table}
-            name={tableName}
-            size={size}
-            disabled={!!hostDown}
-            nested
-            peekAt={tablePeekAddress(action)}
-          />
-        )}
       </li>
     )
   })

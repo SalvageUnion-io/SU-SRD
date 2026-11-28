@@ -11,19 +11,14 @@ import { tokens } from '../../components/index'
 const { space } = tokens
 
 /**
- * The page body under the band (`PageShell`'s measured body, at
- * `PAGE_MEASURE`): its height reserves a stable footprint, so the roster
- * replacing the skeleton does not shift the page.
+ * The main column and the sidebar, side by side while both fit. No top margin:
+ * the page body's own padding is the space under the band (§1.7).
  */
-export const GAME_BODY = { minHeight: '60vh' } satisfies CSSProperties
-
-/** The main column and the sidebar, side by side while both fit. */
 export const HUB_COLUMNS = {
   alignItems: 'flex-start',
   display: 'flex',
   flexWrap: 'wrap',
   gap: space[24],
-  marginTop: space[24],
 } satisfies CSSProperties
 
 const COLUMN = {
@@ -43,5 +38,15 @@ export const HUB_SIDEBAR = { ...COLUMN, flex: '1 1 18rem' } satisfies CSSPropert
 export const HUB_BODY = {
   display: 'flex',
   flexDirection: 'column',
+  gap: space[8],
+} satisfies CSSProperties
+
+/**
+ * A sidebar section's buttons, as its body: under the title, never on a line
+ * above it (the strip wraps what does not fit over the cut-out).
+ */
+export const HUB_ACTIONS = {
+  display: 'flex',
+  flexWrap: 'wrap',
   gap: space[8],
 } satisfies CSSProperties

@@ -1,7 +1,7 @@
 import { Drawer } from '@base-ui/react/drawer'
 import { Search } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { color, fontSize, iconSize, layer, radius, space } from '../design/tokens'
 import { componentsCopy } from '../messages/components'
 import { capsLabel } from './atoms/capsLabel'
@@ -75,6 +75,10 @@ const TRIGGER = {
  */
 export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
   const [open, setOpen] = useState(false)
+  // The sheet opens to type in: its field takes the focus, on a touch too
+  // (the sheet's default there is the sheet itself, a tap short of typing).
+  const popup = useRef<HTMLDivElement>(null)
+  const searchField = () => popup.current?.querySelector('input') ?? true
 
   return (
     <Drawer.Root open={open} onOpenChange={setOpen} swipeDirection="up">
@@ -99,7 +103,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
       <Drawer.Portal>
         <Drawer.Backdrop className="su-backdrop" />
         <Drawer.Viewport style={VIEWPORT}>
-          <Drawer.Popup className="su-drawer" style={POPUP}>
+          <Drawer.Popup ref={popup} className="su-drawer" style={POPUP} initialFocus={searchField}>
             <div style={TITLE_ROW}>
               <Drawer.Title className={TITLE_CAPS} style={TITLE}>
                 {componentsCopy('search')}

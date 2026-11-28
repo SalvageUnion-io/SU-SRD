@@ -1,3 +1,4 @@
+import { libCopy } from '../messages/lib'
 import { SITE_NAME } from './documentHead'
 import { pageTitle } from './pageTitle'
 import { originOf } from './site'
@@ -14,17 +15,16 @@ import { originOf } from './site'
 export const SITE_URL = originOf(import.meta.env.VITE_SITE_ORIGIN)
 
 /** The site's description: the home page's, and any page's that sets none. */
-export const DEFAULT_DESCRIPTION =
-  'The rules reference and character manager for the Salvage Union TTRPG: every chassis, system, module and ability, and the app to run Pilots, Mechs and Crawlers.'
+export const DEFAULT_DESCRIPTION = libCopy('defaultDescription')
 
 /** The site in structured data: the home page's WebSite, and what every other page is part of. */
 export const WEBSITE = { '@type': 'WebSite', name: SITE_NAME, url: `${SITE_URL}/` } as const
 
 /** The game's publisher in structured data: the books' author, the listings' creator. */
-export const PUBLISHER = { '@type': 'Organization', name: 'Leyline Press' } as const
+export const PUBLISHER = { '@type': 'Organization', name: libCopy('leylinePress') } as const
 
 /** Every trail's first crumb: the SRD's home page. */
-export const SRD_CRUMB = { name: 'Reference', url: `${SITE_URL}/` } as const
+export const SRD_CRUMB = { name: 'Reference', url: `${SITE_URL}/reference/` } as const
 
 /**
  * The SalvageUnion.io Discord bot's install link. The client id is public by design —
@@ -51,6 +51,24 @@ export function entityTitle(name: string, kind: string): string {
   if (full.length <= TITLE_MAX) return full
   const named = pageTitle(name)
   return named.length <= TITLE_MAX ? named : name
+}
+
+/** The words a title leaves in lower case, but its first. */
+const TITLE_SMALL_WORDS = new Set(['a', 'an', 'and', 'of', 'or', 'the', 'to', 'in', 'on'])
+
+/**
+ * A glossary term's name as a title prints it. The data keeps keywords and
+ * traits in sentence case ("Weapons system"); the book prints its terms
+ * capitalised, and so does a browser tab: "Weapons System - Keyword". Any
+ * other kind's name is its own.
+ */
+export function titleName(schemaId: string, name: string): string {
+  if (schemaId !== 'keywords' && schemaId !== 'traits') return name
+  return name.replace(/(^|[\s(])([a-z][a-z]*)/g, (whole, lead: string, word: string) =>
+    lead !== '' && TITLE_SMALL_WORDS.has(word)
+      ? whole
+      : `${lead}${word.charAt(0).toUpperCase()}${word.slice(1)}`
+  )
 }
 
 /** Meta descriptions are cut to this, ellipsis included: about what a search snippet shows. */

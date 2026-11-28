@@ -15,7 +15,7 @@ const LINKS = [
 const GOPHER: FooterFoot = {
   printings: [
     { book: 'Workshop Manual', page: 112 },
-    { book: 'Salvage Union Starter Set (PC)', page: 26 },
+    { book: 'Starter Set (PC)', page: 26 },
   ],
   measure: '75rem',
 }
@@ -115,7 +115,7 @@ describe('Footer', () => {
     expect(band.querySelector('.su-footer__legal')).not.toBeNull()
     expect(within(band).getByRole('navigation', { name: 'Site' })).toBeTruthy()
     expect(band.querySelector('.su-stat-column, .su-badge-stamp, [data-chip-class]')).toBeNull()
-    expect(band.querySelector<HTMLElement>('.su-chapter-foot__row')?.style.maxWidth).toBe('75rem')
+    expect(band.style.getPropertyValue('--su-foot-measure')).toBe('75rem')
   })
 
   // Every printing on ONE line, the book first, `//` between.
@@ -125,9 +125,7 @@ describe('Footer', () => {
     )
     const lines = container.querySelectorAll('.su-footer__citation')
     expect(lines).toHaveLength(1)
-    expect(lines[0]?.textContent).toBe(
-      'Workshop Manual · p.112 // Salvage Union Starter Set (PC) · p.26'
-    )
+    expect(lines[0]?.textContent).toBe('Workshop Manual · p.112 // Starter Set (PC) · p.26')
     expect(container.textContent).not.toContain('Also in')
   })
 
@@ -140,9 +138,8 @@ describe('Footer', () => {
     expect(container.textContent).not.toContain('Chassis')
   })
 
-  // Rulings 2 and 4: the footer wears the page's leading band, as the Union
-  // bar does, through the stylesheet (`footerMatchCss`), never a colour of its own.
-  test('wears the leading band through the matched foot, with no colour of its own', () => {
+  // The footer's colour is the stylesheet's (ink-deep, K13), never a style of its own.
+  test('wears no colour of its own', () => {
     for (const foot of [undefined, GOPHER]) {
       const { container, unmount } = render(
         <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={foot} />
@@ -150,7 +147,7 @@ describe('Footer', () => {
       const band = container.querySelector<HTMLElement>('.su-chapter-foot')
       expect(band?.style.backgroundColor).toBe('')
       expect(band?.style.color).toBe('')
-      // Both grains are served; the matched rule shows the band's.
+      // Both grains are served; the stylesheet shows one.
       expect(band?.querySelectorAll('.su-chapter-foot__grain')).toHaveLength(2)
       unmount()
     }
@@ -213,5 +210,20 @@ describe('Footer on a homebrew page', () => {
     const citation = container.querySelector('.su-footer__citation')?.textContent
     expect(citation).toBe('Homebrew // Made by alxjrvs')
     expect(container.querySelector('.su-footer__legal')).not.toBeNull()
+  })
+
+  test('a page’s foot carries its address, for paper alone, beside its citation (r5 E9)', () => {
+    const { container } = render(
+      <Footer
+        links={LINKS}
+        poweredBySalvageUrl="/mark.webp"
+        foot={{ ...GOPHER, address: 'https://salvageunion.io/systems/gopher/' }}
+      />
+    )
+    const cite = container.querySelector('.su-chapter-foot__cite')
+    expect(cite?.querySelector('.su-footer__citation')?.textContent).toContain('Workshop Manual')
+    expect(cite?.querySelector('.su-footer__address')?.textContent).toBe(
+      'https://salvageunion.io/systems/gopher/'
+    )
   })
 })

@@ -1,5 +1,6 @@
 import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText } from 'salvageunion-reference'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { digestColumnsTable, digestRollTable } from '../compositions/digestRollTable'
 import { RollTableInstrument } from '../compositions/RollTableInstrument'
 import { InsidePeekContext } from './peekContext'
@@ -18,7 +19,7 @@ export function PeekTable({ name, table }: { name: string; table: RefObjectTable
         title={name}
         size="mini"
         frame="box"
-        stamp={table.type === 'columns' ? 'Roll the Dice:' : undefined}
+        stamp={table.type === 'columns' ? compositionsCopy('rollTheDice') : undefined}
         table={
           table.type === 'columns'
             ? { kind: 'columns', columns: digestColumnsTable(table) }

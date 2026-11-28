@@ -1,7 +1,8 @@
 /**
  * RunningBriefing — the running encounter's briefing in the Mediator's side
  * column (ADR-059 §5): what the Pilots see, as the Mediator wrote it, and
- * Tell the table, which sends it to every player as an alert
+ * Send the briefing, which sends it to every player as an alert (the
+ * header's Tell the table is for an alert of the Mediator's own words, r5 B10)
  * (`proposals.broadcast`). Nothing reaches the players until it is pressed.
  */
 
@@ -46,7 +47,7 @@ export function RunningBriefing({
       title={mediatorCopy('briefing')}
       actions={
         <Button size="mini" disabled={!canWrite || telling} onClick={tell}>
-          {mediatorCopy('tellTheTable')}
+          {mediatorCopy('sendTheBriefing')}
         </Button>
       }
     >

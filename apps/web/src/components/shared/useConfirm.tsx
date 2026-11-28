@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { useCallback, useState } from 'react'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import type { ConfirmCopy } from '../../lib/games/rowActionCopy'
-import { ConfirmDialog } from '../index'
+import { ConfirmDialog } from '../app'
+import { toast } from '../containers/toast'
 
 /**
  * One confirm dialog for a whole surface, opened imperatively.
@@ -33,6 +34,8 @@ import { ConfirmDialog } from '../index'
 type ConfirmRequest = ConfirmCopy & {
   /** The action. Runs only on confirm; a rejection keeps the dialog open. */
   onConfirm: () => void | Promise<void>
+  /** A second yes beside the confirm (`ConfirmDialog`'s `alternate`). */
+  alternate?: { label: string; onConfirm: () => void | Promise<void> }
 }
 
 export type Confirm = (request: ConfirmRequest) => void
@@ -58,7 +61,12 @@ export function useConfirm(): { confirm: Confirm; dialog: ReactNode } {
         confirmLabel={request.confirmLabel}
         pendingLabel={request.pendingLabel}
         tone={request.tone}
-        onConfirm={request.onConfirm}
+        onConfirm={async () => {
+          await request.onConfirm()
+          // What it did, once it is done (r5 C12): "Deleted Scuttler."
+          if (request.done) toast.success(request.done)
+        }}
+        {...(request.alternate ? { alternate: request.alternate } : {})}
         describeError={(err) => failureMessage(err, request.failure)}
       />
     )

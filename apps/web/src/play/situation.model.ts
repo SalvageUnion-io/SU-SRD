@@ -14,6 +14,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatMount } from 'game-domain/schemas/seat'
 import type { SoftLink } from 'game-domain/schemas/softLink'
+import { playCopy } from '../messages/play'
 import type { BoardOption } from './boardMenu.model'
 import type { PlayReadOnly, PlayTarget } from './play.model'
 import type { SceneState } from './useScene'
@@ -32,7 +33,7 @@ export function situationOf(downtimeRunning: boolean, mount: SeatMount): Situati
  * A solo pilot's mechs, as the Board menu offers them: every mech on the
  * owner's shelf (what `seats.board` accepts for a solo seat), the pilot's
  * assigned mech (`mech-to-pilot`) first. A destroyed mech is listed with its
- * reason and boards nothing.
+ * reason and boards nothing; one another pilot is assigned says so.
  */
 export function soloMechOptions(
   pilotId: string,
@@ -41,17 +42,24 @@ export function soloMechOptions(
 ): BoardOption[] {
   const assigned =
     softLinks.find((l) => l.type === 'mech-to-pilot' && l.to.id === pilotId)?.from.id ?? null
+  // A mech another of your pilots is assigned: it still boards, and says whose.
+  const others = new Set(
+    softLinks.filter((l) => l.type === 'mech-to-pilot' && l.to.id !== pilotId).map((l) => l.from.id)
+  )
   return mechs
     .filter((mech) => containerOf(mech).kind === 'shelf')
-    .map(
-      (mech): BoardOption => ({
+    .map((mech): BoardOption => {
+      const destroyed = mechHasCondition(mech, 'Destroyed')
+      const flownByOther = others.has(mech.id) && mech.id !== assigned
+      return {
         mechId: mech.id,
         serverId: null,
         name: mech.name,
-        state: mechHasCondition(mech, 'Destroyed') ? 'destroyed' : 'yours',
-        note: mechHasCondition(mech, 'Destroyed') ? 'Destroyed' : null,
-      })
-    )
+        state: destroyed ? 'destroyed' : 'yours',
+        note: destroyed ? 'Destroyed' : flownByOther ? playCopy('anotherPilotsMech') : null,
+        ...(flownByOther ? { flownByOther } : {}),
+      }
+    })
     .sort((a, b) => Number(b.mechId === assigned) - Number(a.mechId === assigned))
 }
 
@@ -70,6 +78,8 @@ export type DowntimeView = {
   upkeepSpent: boolean
   /** Every member of the Game: one ready pip each; none solo. */
   members: readonly DowntimeMember[]
+  /** The pilots whose carried Scrap is in the crawler this Downtime (r6 D1); a Game's only. */
+  scrapMoved?: readonly string[]
 }
 
 /** The Game's or the solo seat's Downtime, and the writes Play may send for it. */
@@ -81,6 +91,8 @@ export type PlayDowntime = {
   begin: () => void
   /** The next step (the Mediator, or solo). */
   advance: () => void
+  /** The Mediator's screen passing a step nobody can act in (r7 D3): the Feed says it passed automatically (r8 A4). */
+  pass?: () => void
   /** Put the Downtime on a step, back or forward: solo, or the Game's Mediator; else null. */
   setStep: ((stepIndex: number) => void) | null
   /** End it: everyone goes back to their seat. */
@@ -106,6 +118,12 @@ export type PlayDowntime = {
       ) => Promise<boolean>)
     | null
   /**
+   * Solo, Restore's healing for a pilot who took the step before there was a
+   * Med Bay (r5 A12): its own op, once (`downtimeHealOpId`). True when this
+   * call applied it. Null in a Game and on the Mediator's own screen.
+   */
+  healAgain: ((stepIndex: number, pilotPatch: Record<string, unknown>) => Promise<boolean>) | null
+  /**
    * Pay the crawler's Upkeep or process its Nanites: its patch, sent as this
    * Downtime's one op for it (`downtime.claim`, in its own step). True when
    * this call applied it; false when it already had been, or was refused
@@ -116,6 +134,14 @@ export type PlayDowntime = {
     crawlerId: string,
     patch: Record<string, unknown>
   ) => Promise<boolean>
+  /**
+   * Tally Salvage: move a pilot's carried Scrap (theirs and their mech's) into
+   * the crawler, taking the step (`downtime.moveScrap`, r6 D1). True when this
+   * call moved it. Null where no screen moves any.
+   */
+  moveScrap:
+    | ((move: { pilotId: string; mechId: string | null; crawlerId: string }) => Promise<boolean>)
+    | null
 }
 
 /**

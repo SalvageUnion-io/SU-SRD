@@ -1,9 +1,8 @@
 import type { CSSProperties } from 'react'
+import { Cluster, PageShell } from '../../components/app'
 import {
   ChapterBand,
-  Cluster,
   EmptyState,
-  PageShell,
   Pending,
   SlabSection,
   Stack,

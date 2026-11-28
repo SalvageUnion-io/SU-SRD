@@ -5,8 +5,8 @@
  *
  * **Move** changes `gameId` on the same record — same id, same body, same
  * history. **Copy** mints a genuinely new entity that has no relationship to
- * what it came from: new id, `COPY OF <name>`, always on the shelf, never in a
- * Game. It does not track its origin, sync with it, or follow it anywhere.
+ * what it came from: new id, its name numbered past its shelf's (`Mara Voss 2`),
+ * always on the shelf, never in a Game. It does not track its origin, sync with it, or follow it anywhere.
  *
  * That absence of a relationship is what makes copying safe, and it is exactly
  * what separates it from the **fork** ADR-030 originally specified and has since
@@ -59,10 +59,39 @@ export type CopyableBody = Record<string, unknown>
  */
 const DROPPED_FIELDS = ['id', 'createdAt', 'updatedAt'] as const
 
-/** How a copy announces itself. Prefixed, so it sorts beside nothing and reads as derived. */
-export function copyName(name: string): string {
-  return `COPY OF ${name}`
+/**
+ * A copy's name: the name it was copied from, numbered past the names `taken`
+ * on the shelf it lands on (`Mara Voss 2`), so no two rows read alike. Named
+ * once (r3 L5): a copy of `Mara Voss 2` is `Mara Voss 3`, never a copy of a
+ * copy, and a name nobody on the shelf has is kept as it is.
+ */
+export function copyName(name: string, taken: readonly string[] = []): string {
+  return freeName(numberedFrom(name, taken), taken)
 }
+
+/**
+ * `name`, or numbered past the names `taken` ("Leaky Hauler 2"): a second
+ * thing made under one name still reads apart from the first.
+ */
+function freeName(name: string, taken: readonly string[] = []): string {
+  if (!taken.includes(name)) return name
+  let n = 2
+  while (taken.includes(`${name} ${n}`)) n += 1
+  return `${name} ${n}`
+}
+
+/**
+ * The name a numbered one counts on from: `Ghost 2` beside a `Ghost` is the
+ * second Ghost, so its copy is `Ghost 3`, never `Ghost 2 2`. A number that is
+ * part of the name (`Unit 7`, with no `Unit` on the shelf) stays.
+ */
+function numberedFrom(name: string, taken: readonly string[]): string {
+  const numbered = /^(.*\S) \d+$/.exec(name)
+  return numbered?.[1] !== undefined && taken.includes(numbered[1]) ? numbered[1] : name
+}
+
+/** The names on a shelf, as `copyName` takes them. */
+export const namesOn = (rows: readonly { name: string }[]): string[] => rows.map((row) => row.name)
 
 /**
  * Build the create-input for a copy of `source`, destined for the copier's shelf.
@@ -75,19 +104,23 @@ export function copyName(name: string): string {
  * bad write would produce.
  *
  * `fallbackName` is used when the body carries no usable name, so a copy is
- * never called `COPY OF ` with nothing after it. Callers pass the name they are
- * already displaying.
+ * never nameless. Callers pass the name they are
+ * already displaying. `taken` is the names on the shelf, for the copy's number.
  *
  * The body is otherwise copied **verbatim** — conditions, damage, scrap, TP and
  * all. A copy of a character mid-campaign is that character mid-campaign; a
  * pristine one is what the wizard is for.
  */
-export function copyForShelf(source: CopyableBody, fallbackName: string): CopyableBody {
+export function copyForShelf(
+  source: CopyableBody,
+  fallbackName: string,
+  taken: readonly string[] = []
+): CopyableBody {
   const copy: CopyableBody = { ...source }
   for (const field of DROPPED_FIELDS) delete copy[field]
 
   const sourceName = typeof source.name === 'string' && source.name.length > 0 ? source.name : null
-  copy.name = copyName(sourceName ?? fallbackName)
+  copy.name = copyName(sourceName ?? fallbackName, taken)
 
   // Explicitly null, never absent: `null` IS the shelf, while an absent
   // `gameId` would let `entityStore.create` stamp whatever container happens
@@ -96,4 +129,38 @@ export function copyForShelf(source: CopyableBody, fallbackName: string): Copyab
   copy.gameId = null
 
   return copy
+}
+
+/** What a Mech's play has done to it: a copy starts without it (r8 E5). */
+const PLAYED_MECH_FIELDS = [
+  'currentSP',
+  'currentEP',
+  'currentHeat',
+  'systemConditions',
+  'moduleConditions',
+] as const
+
+/**
+ * A Mech's copy starts fresh, as Build With This makes one (r8 E5):
+ * undamaged, its EP full, at 0 Heat, with no conditions. The build stays.
+ */
+export function freshMechCopy(copy: CopyableBody): CopyableBody {
+  const fresh: CopyableBody = { ...copy, conditions: [] }
+  for (const field of PLAYED_MECH_FIELDS) delete fresh[field]
+  return fresh
+}
+
+/**
+ * A copy that stays where its original is (MD3-12): an NPC kept in a Game is
+ * prepared for that Game, so its copy is too, on the Game's Prep at once.
+ * Still a new, separate record of its maker's; one in no Game is copied into
+ * none. Pilots, mechs and crawlers copy to the shelf (`copyForShelf`).
+ */
+export function copyBeside(
+  source: CopyableBody,
+  fallbackName: string,
+  taken: readonly string[] = []
+): CopyableBody {
+  const copy = copyForShelf(source, fallbackName, taken)
+  return typeof source.gameId === 'string' ? { ...copy, gameId: source.gameId } : copy
 }

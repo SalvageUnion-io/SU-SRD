@@ -7,7 +7,7 @@ import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 
 /**
  * A card's controls and condition as its head's chip-group slots
- * (`chips-and-actions.md` C8, hard rule R6): nothing rides the frame or sits
+ * (`chips-and-actions.md` C8): nothing rides the frame or sits
  * under the strip.
  *
  * - `state`: the condition (`StatusBadge`, ruleset §2.3: a `status` control

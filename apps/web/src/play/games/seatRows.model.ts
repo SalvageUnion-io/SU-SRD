@@ -5,10 +5,13 @@
  */
 
 import { sheetPath } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { resolvePool } from 'salvageunion-reference/rules'
+import { playGamesCopy } from '../../messages/play-games'
 import type { GameListing } from '../../replica/gameListing'
 import type { ReadAnswer } from '../../replica/useTable'
 import type { CrewVitals } from '../../rooms/vitals'
+import { pilotMechs } from './crewMechs.model'
 
 type Listing = GameListing
 type Members = ReadAnswer<'games.members'>
@@ -53,6 +56,43 @@ const linkId = (row: { appId: string | null; body: unknown }): string | null =>
   row.appId ?? text(row.body, 'id')
 
 /**
+ * Each Pilot's listed Mech by its link id, null for none (`pilotMechs`, r8
+ * C5): aboard, the one it boarded (`crew.vitals`); on foot, its assigned one
+ * while it is still theirs.
+ */
+export function pilotMechIds(listing: Listing, vitals?: Vitals): Map<string, string | null> {
+  const linked = new Map<string, string>()
+  for (const link of listing.softLinks) {
+    if (link.type === 'mech-to-pilot') linked.set(link.to.id, link.from.id)
+  }
+  const aboard = new Map<string, string>()
+  for (const p of vitals?.pilots ?? []) {
+    if (p.boarded && p.mechId !== null) aboard.set(p._id, p.mechId)
+  }
+  const holder = new Map<string, string | null>()
+  for (const m of listing.mechs) {
+    const id = linkId(m)
+    if (id !== null) holder.set(id, m.ownerId)
+  }
+  return pilotMechs(
+    listing.pilots.flatMap((p) => {
+      const id = linkId(p)
+      if (id === null) return []
+      const boarded = aboard.get(p._id)
+      return [
+        {
+          id,
+          ownerId: p.ownerId,
+          boarded: boarded !== undefined,
+          mechId: boarded ?? linked.get(id) ?? null,
+        },
+      ]
+    }),
+    (id) => holder.get(id)
+  )
+}
+
+/**
  * The rows, in join order: each member's pilots (or one "Runs the table" /
  * "No pilot yet" row), then the open seats.
  */
@@ -63,19 +103,16 @@ export function seatRows(
   vitals?: Vitals
 ): { rows: SeatRow[]; claimed: number; total: number } {
   const hp = hpById(vitals)
-  const mechOfPilot = new Map<string, string>()
-  for (const link of listing.softLinks) {
-    if (link.type === 'mech-to-pilot') mechOfPilot.set(link.to.id, link.from.id)
-  }
+  const mechOfPilot = pilotMechIds(listing, vitals)
   const mechName = new Map<string, string>()
   for (const m of listing.mechs) {
     const id = linkId(m)
     if (id !== null) mechName.set(id, text(m.body, 'name') ?? 'a mech')
   }
   const pilotOf = (pilot: Listing['pilots'][number]): NonNullable<SeatRow['pilot']> => {
-    const callsign = text(pilot.body, 'callsign') ?? text(pilot.body, 'name') ?? 'Pilot'
+    const callsign = pilotLabel(pilot.body as Record<string, unknown> | null)
     const id = linkId(pilot)
-    const mechId = id === null ? undefined : mechOfPilot.get(id)
+    const mechId = (id === null ? undefined : mechOfPilot.get(id)) ?? undefined
     const mech = (mechId === undefined ? undefined : mechName.get(mechId)) ?? null
     return {
       name: callsign,
@@ -87,7 +124,7 @@ export function seatRows(
   }
   const unitOf = (pilot: Listing['pilots'][number]): string => {
     const { name, mech } = pilotOf(pilot)
-    return `${name} · ${mech ?? 'on foot'}`
+    return `${name} · ${mech ?? playGamesCopy('onFootUnit')}`
   }
 
   const rows: SeatRow[] = []
@@ -101,7 +138,7 @@ export function seatRows(
         key: member.userId,
         role,
         who,
-        unit: member.mediator ? 'Runs the table' : 'No pilot yet',
+        unit: member.mediator ? playGamesCopy('runsTheTable') : playGamesCopy('noPilotYet'),
         pilot: null,
         hp: null,
       })
@@ -120,12 +157,12 @@ export function seatRows(
   }
   const open = listing.pilots.filter((p) => p.ownerId === null)
   for (const pilot of open) {
-    const callsign = text(pilot.body, 'callsign') ?? 'Pilot'
+    const callsign = pilotLabel(pilot.body as Record<string, unknown> | null)
     rows.push({
       key: pilot._id,
       role: 'Open',
       who: callsign,
-      unit: 'Waiting for a player',
+      unit: playGamesCopy('waitingForAPlayer'),
       pilot: { ...pilotOf(pilot), name: callsign },
       hp: hp.get(pilot._id) ?? null,
     })

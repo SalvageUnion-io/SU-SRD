@@ -24,42 +24,55 @@ import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { HeaderMenuItem } from '../../components/index'
 import { Button, HeaderMenu, toast, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { copyForShelf } from '../../lib/copyEntity'
+import { copyAsking } from '../../lib/copiedToast'
+import { unitDisplayName } from '../../lib/entities/unitDisplayName'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
-import type { MoveTargetGame } from '../../lib/games/gameRoster'
-import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { runWrite } from '../../lib/runWrite'
+import { useOpenedOnce } from '../../lib/useOpenedOnce'
 import { buildExportCopy } from '../../messages/build-export'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { askToBoard } from '../../play/boardIntent.model'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
-import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { exportToFoundry } from '../export/exportToFoundry.model'
-import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import type { MoveSubject } from '../shelves/MoveToGameDialog'
-import { MoveToGameDialog } from '../shelves/MoveToGameDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
-import { ChangeLogDrawer } from './ChangeLogDrawer'
 import { CrawlerLiveSheet } from './CrawlerLiveSheet'
+import { logDefaults } from './changeLog.model'
 import type { EntityLookup } from './composition.model'
 import { resolveSheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
 import { MechLiveSheet } from './MechLiveSheet'
+import { typeNameOnArrival } from './nameOnArrival.model'
 import { PilotLiveSheet } from './PilotLiveSheet'
+import { usePrinting } from './printing.model'
 import { SheetFallback } from './SheetFallback'
 import { SheetModeToggle } from './SheetModeToggle'
+import { sheetDeleteItem } from './sheetDelete.model'
 import { useSheetMode } from './sheetMode.model'
+import { undoMenuItems, useSheetUndo } from './sheetUndo.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
+import { leaveSheet } from './undoToast.model'
 import type { OwnerOf } from './unitOwners.model'
+
+// Each opens from the ⋯ menu, so each is a chunk of its own, fetched on the
+// first opening (`useOpenedOnce`): a sheet nobody opens them on never carries them.
+const ChangeLogDrawer = lazy(() =>
+  import('./ChangeLogDrawer').then((m) => ({ default: m.ChangeLogDrawer }))
+)
+const SavePatternDialog = lazy(() =>
+  import('../mech/Pattern/SavePatternDialog').then((m) => ({ default: m.SavePatternDialog }))
+)
+const SheetMove = lazy(() => import('./SheetMove').then((m) => ({ default: m.SheetMove })))
 
 /**
  * The sheet's own entity, resolved with its kind as a discriminant so the
@@ -128,12 +141,12 @@ type SheetProps = {
    *
    * The public-sheet query resolves the refs server-side, and this passes them
    * in explicitly rather than fabricating a pilot record — a synthetic pilot
-   * would surface in the Assigned Units rail as a unit that was never shared.
+   * would surface in the Related units rail as a unit that was never shared.
    */
   pilotAbilities?: string[]
   /**
    * Entities the viewer may read but not edit — a Game's crewmates, from
-   * `useGameListing` (`readOnlySheetStore.model.ts`). Assigned units the store does not
+   * `useGameListing` (`readOnlySheetStore.model.ts`). Related units the store does not
    * hold resolve through it, so your crawler lists its whole crew and your
    * pilot shows the crewmate's mech flying them. Nothing on the sheet writes to
    * what only this holds (`holds` in `sheetViewProps.model.ts`).
@@ -141,33 +154,17 @@ type SheetProps = {
   others?: EntityLookup
   /** Where a linked unit's View goes; the live sheet route when omitted. */
   hrefFor?: (kind: EntityRef['type'], id: string) => string | undefined
-  /** Assigned units to name without reading — a public sheet's private assignments. */
+  /** Related units to name without reading — a public sheet's private assignments. */
   withheld?: readonly WithheldUnit[]
   /** Controls on the band (the Starter Set's "Make a copy"). */
   bandActions?: ReactNode
-  /** Who holds each unit in the Game: the owner chips on its Assigned units. */
+  /** The Game the unit is in, named and linked on its band. */
+  game?: SheetBand['game']
+  /** Who holds each unit in the Game: the owner chips on its Related units. */
   ownerOf?: OwnerOf
 }
 
 const NONE_WITHHELD: readonly WithheldUnit[] = []
-
-/**
- * "Move to a Game…" over a sheet: the Bay's dialog, with the server's list of
- * your Games. Mounted only while it is open and the session is live, so the
- * Games call has a server to ask.
- */
-function SheetMove({
-  subject,
-  onClose,
-  confirm,
-}: {
-  subject: MoveSubject
-  onClose: () => void
-  confirm: ReturnType<typeof useConfirm>['confirm']
-}) {
-  const games = useGamesQuery('games.listMine', {}) as readonly MoveTargetGame[] | undefined
-  return <MoveToGameDialog subject={subject} onClose={onClose} games={games} confirm={confirm} />
-}
 
 /** The bar's trailing cluster: Play, Share (while this sheet can write) and ⋯. */
 const ACTIONS = {
@@ -191,13 +188,20 @@ export function Sheet({
   withheld = NONE_WITHHELD,
   ownerOf,
   bandActions,
+  game,
 }: SheetProps) {
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [savePatternOpen, setSavePatternOpen] = useState(false)
   const [moving, setMoving] = useState<MoveSubject | null>(null)
+  const changeLogMounted = useOpenedOnce(changeLogOpen)
+  const savePatternMounted = useOpenedOnce(savePatternOpen)
   const go = useGo()
+  // An Undo stays with its sheet (r3 B3): leaving takes the sheet's lines down.
+  // A read-only rendering (Play's sheet pane, a public sheet) raised none, and
+  // Play's own lines about the same unit are not this sheet's to take.
+  useEffect(() => (readOnlyProp ? undefined : () => leaveSheet(id)), [id, readOnlyProp])
   // A menu row has no line of its own, so a failed export is a toast.
   const exportOne = useServerAction(
     async (name: string) => {
@@ -213,7 +217,9 @@ export function Sheet({
   // Read | Edit (`sheetMode.model.ts`): the route's choice, or always writable when
   // nothing provides one (a test).
   const sheetMode = useSheetMode()
-  const editing = sheetMode === null || sheetMode.editing
+  // Paper is always the Read view, whichever tab is up (r4 E9).
+  const printing = usePrinting()
+  const editing = !printing && (sheetMode === null || sheetMode.editing)
 
   // Signed in and offline: a pilot or mech edit waits in the outbox (ADR-063),
   // but a crawler is the crew's and the server refuses it (ADR-030 §1), so its
@@ -254,6 +260,24 @@ export function Sheet({
       ? { ...linked, mech: linked.crawlerMechs.find((m) => holds('mech', m.id)) ?? null }
       : linked
   const resolved = resolveSheetEntity(own, kind, id)
+  // What an absent number stood for: the Change Log's reading, and Undo's.
+  const defaults = !resolved
+    ? {}
+    : logDefaults(
+        resolved.kind === 'pilot'
+          ? { ...resolved, crawler: composition.crawler }
+          : resolved.kind === 'mech'
+            ? { ...resolved, pilotAbilities: pilotAbilities ?? composition.pilot?.abilities }
+            : resolved
+      )
+  const undo = useSheetUndo({
+    kind,
+    id,
+    gameId: resolved?.entity.gameId ?? null,
+    storeState,
+    defaults,
+    blocked: readOnlyProp || writesBlocked || !resolved,
+  })
 
   if (!resolved) {
     return <SheetFallback kind={kind} status="missing" back={back} />
@@ -287,15 +311,26 @@ export function Sheet({
               pilotAbilities: pilotAbilities ?? composition.pilot?.abilities,
             })
         : undefined
+  // A pilot goes by its callsign in the menu, its toasts and its file (r8 F1).
+  const shownName = unitDisplayName(entity)
+  const exportFlown = resolved.kind === 'pilot' ? composition.mech?.name : undefined
   const menu: HeaderMenuItem[][] = [
     [
       { id: 'print', label: buildSheetCopy('print'), onSelect: () => window.print() },
       {
         id: 'export',
-        label: buildExportCopy('export'),
+        // A pilot's export takes the Mech they fly, and says so (r6 E17).
+        label: exportFlown
+          ? buildExportCopy('exportWith', { name: shownName, mech: exportFlown })
+          : buildExportCopy('export'),
         onSelect: () => {
-          void exportOne.run(entity.name).then((result) => {
-            if (result.ok) toast.success(buildExportCopy('exported', { name: entity.name }))
+          void exportOne.run(shownName).then((result) => {
+            if (result.ok)
+              toast.success(
+                exportFlown
+                  ? buildExportCopy('exportedWith', { name: shownName, mech: exportFlown })
+                  : buildExportCopy('exported', { name: shownName })
+              )
           })
         },
       },
@@ -309,6 +344,7 @@ export function Sheet({
         label: buildSheetCopy('changeLog'),
         onSelect: () => setChangeLogOpen(true),
       },
+      ...undoMenuItems(undo, writesBlocked || status !== 'live'),
     ],
     [
       {
@@ -323,17 +359,16 @@ export function Sheet({
       {
         id: 'copy',
         label: buildSheetCopy('makeACopy'),
-        onSelect: writable(() =>
-          confirm({
-            ...ROW_ACTION_COPY.copyOnShelf(entity.name),
-            onConfirm: async () => {
-              const created = await storeState.create(
-                kind,
-                copyForShelf(entity, entity.name) as never
-              )
-              toast.success(buildSheetCopy('made', { name: created.name }))
-            },
-          })
+        // A copy only adds: it runs at once, and its notice opens it. A
+        // pilot with a mech is asked whether the mech comes too. A Mech's
+        // copy opens at once, its name selected for typing, and the notice
+        // leads back (r7 G4).
+        onSelect: writable(
+          () =>
+            void copyAsking(confirm, kind, shownName, entity, go, {
+              units: storeState,
+              ...(kind === 'mech' && { openCopy: true, landed: typeNameOnArrival }),
+            })
         ),
       },
       // A mech saves as a pattern in a dialog over its sheet.
@@ -348,45 +383,37 @@ export function Sheet({
         : []),
     ],
     [
-      {
-        id: 'delete',
-        label: buildSheetCopy('delete'),
-        tone: 'danger',
-        onSelect: writable(() =>
-          confirm({
-            ...(inGame
-              ? ROW_ACTION_COPY.deleteFromGame(entity.name)
-              : ROW_ACTION_COPY.deleteBuild(entity.name)),
-            onConfirm: async () => {
-              await storeState.delete(kind, id)
-              go(back.href)
-            },
-          })
-        ),
-      },
+      sheetDeleteItem(
+        { kind, id, name: shownName, inGame },
+        storeState,
+        confirm,
+        () => go(back.href),
+        writable
+      ),
     ],
   ]
-  // The sheet's door into Play (ruleset §1.9: rust is the door into play): a
-  // pilot's own Play screen, in its Game or solo, the address the Play hub
-  // opens; a mech's goes through the pilot assigned to it, when this session
-  // holds that pilot. Signed out there is no Play.
+  // The sheet's Play mode (ADR-066): a pilot's own Play, in its Game or solo;
+  // a mech's goes through the pilot assigned to it, when this session holds
+  // that pilot (Play runs a pilot, the mech optional). Signed out there is no
+  // Play.
   const playPilot =
     resolved.kind === 'pilot'
       ? resolved.entity
       : resolved.kind === 'mech' && composition.pilot && holds('pilot', composition.pilot.id)
         ? composition.pilot
         : null
-  const playDoor =
-    playPilot && status !== 'signedOut' ? (
-      <Button
-        href={cockpitPath(playPilot.id)}
-        variant="primary"
-        aria-label={buildSheetCopy('playAs', { name: playPilot.name })}
-        className="su-page-action"
-      >
-        {buildSheetCopy('play')}
-      </Button>
-    ) : null
+  const play =
+    playPilot && status !== 'signedOut'
+      ? {
+          name: unitDisplayName(playPilot),
+          gameId: playPilot.gameId ?? null,
+          onPlay: () => {
+            // From a Mech's sheet, Play opens boarded in it (r6 A10).
+            if (resolved.kind === 'mech') askToBoard(playPilot.id, resolved.entity.id)
+            go(cockpitPath(playPilot.id))
+          },
+        }
+      : undefined
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local
   // export, not less. Only Share goes — switching the public sheet on or off is
@@ -400,7 +427,6 @@ export function Sheet({
   // See ShareStatusDialog's header.
   const actions = !readOnlyProp ? (
     <div style={ACTIONS}>
-      {playDoor}
       {!writesBlocked && (
         <Button
           aria-label={buildSheetCopy('shareThis', { kind })}
@@ -417,6 +443,9 @@ export function Sheet({
         trigger={null}
         label={buildSheetCopy('moreActions')}
         sections={menu}
+        onOpenChange={(open) => {
+          if (open && !writesBlocked && status === 'live') void undo.look()
+        }}
       />
     </div>
   ) : undefined
@@ -426,7 +455,7 @@ export function Sheet({
   // A counterpart with nowhere to go (`hrefFor` → undefined) gets no segment.
   // A crawler has none: it homes a whole crew, many pilots and mechs, so one
   // Pilot and one Mech segment (and the sticky bar's linked Minis, which read
-  // the same set) misname it; its Assigned units list them all.
+  // the same set) misname it; its Related units list them all.
   let segments: LiveSheetSegment[] | undefined
   if (wired && kind !== 'crawler') {
     segments = []
@@ -438,7 +467,8 @@ export function Sheet({
     for (const { key, label, unit } of counterparts) {
       const href = unit ? hrefFor(key, unit.id) : undefined
       if (unit && href !== undefined) {
-        segments.push({ key, label, name: unit.name, href, active: kind === key })
+        const name = unitDisplayName(unit)
+        segments.push({ key, label, name, id: unit.id, href, active: kind === key })
       }
     }
   }
@@ -456,15 +486,23 @@ export function Sheet({
     runWrite(() => storeState.update(kind, id, fields, LIVE_SHEET_MANUAL))
   }
 
-  // The band: the type stamps' provenance, and Read | Edit only where the
-  // viewer may write. A read-only sheet (`readOnlyProp`: the Starter Set's, a
-  // crewmate's, a public one) has nothing to switch to, so it prints no toggle
-  // at all — a disabled Edit was a control that could only say no.
+  // The band: the type stamps' provenance, and Read | Edit | Play. Read | Edit
+  // only where the viewer may write: a read-only sheet (`readOnlyProp`: the
+  // Starter Set's, a crewmate's, a public one) has nothing to switch to — a
+  // disabled Edit was a control that could only say no. Play wherever there is
+  // a pilot of yours to play.
+  const editable = sheetMode !== null && !readOnlyProp && !writesBlocked
   const modeToggle =
-    sheetMode !== null && !readOnlyProp && !writesBlocked ? (
-      <SheetModeToggle mode={sheetMode} kind={kind} />
+    editable || (play && !readOnlyProp) ? (
+      <SheetModeToggle
+        mode={editable ? sheetMode : null}
+        kind={kind}
+        play={readOnlyProp ? undefined : play}
+      />
     ) : null
   const band: SheetBand = {
+    game,
+    // The Play tab is the door; no line under it repeats it (r6 C4).
     actions:
       modeToggle === null && bandActions === undefined ? undefined : (
         <>
@@ -481,6 +519,8 @@ export function Sheet({
     segments,
     editable: !readOnly,
     readOnly,
+    // Read still writes session state.
+    liveInRead: !readOnlyProp && !writesBlocked,
     ownerOf,
     crawlerReadOnly,
     store,
@@ -509,13 +549,21 @@ export function Sheet({
       {sheetView}
       {!readOnlyProp && (
         <>
-          <ChangeLogDrawer
-            entityType={kind}
-            entityId={id}
-            entityName={entity.name}
-            open={changeLogOpen}
-            onOpenChange={setChangeLogOpen}
-          />
+          {changeLogMounted && (
+            <Suspense fallback={null}>
+              <ChangeLogDrawer
+                entityType={kind}
+                entityId={id}
+                entityName={shownName}
+                open={changeLogOpen}
+                onOpenChange={setChangeLogOpen}
+                defaults={defaults}
+                onRestore={
+                  writesBlocked ? undefined : (change, did) => void undo.reverse(change, did)
+                }
+              />
+            </Suspense>
+          )}
           {/*
             Mounted here, beside the Change Log, for the same reason: the dialog
             must outlive the control that opens it. Its contents (and the
@@ -525,20 +573,24 @@ export function Sheet({
           <ShareStatusDialog
             kind={kind}
             id={id}
-            name={entity.name}
+            name={shownName}
             gameId={entity.gameId ?? null}
             open={shareOpen}
             onOpenChange={setShareOpen}
           />
-          {resolved.kind === 'mech' && (
-            <SavePatternDialog
-              source={resolved.entity}
-              open={savePatternOpen}
-              onOpenChange={setSavePatternOpen}
-            />
+          {resolved.kind === 'mech' && savePatternMounted && (
+            <Suspense fallback={null}>
+              <SavePatternDialog
+                source={resolved.entity}
+                open={savePatternOpen}
+                onOpenChange={setSavePatternOpen}
+              />
+            </Suspense>
           )}
           {moving && status === 'live' && (
-            <SheetMove subject={moving} onClose={() => setMoving(null)} confirm={confirm} />
+            <Suspense fallback={null}>
+              <SheetMove subject={moving} onClose={() => setMoving(null)} confirm={confirm} />
+            </Suspense>
           )}
           {confirmDialog}
         </>

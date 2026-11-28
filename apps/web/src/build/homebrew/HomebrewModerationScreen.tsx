@@ -1,4 +1,5 @@
-import { ChapterBand, PageShell, Text } from '../../components/index'
+import { PageShell } from '../../components/app'
+import { ChapterBand, Text } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { useHomebrewModeration } from '../../lib/sharing/reads'
 import { buildHomebrewCopy } from '../../messages/build-homebrew'

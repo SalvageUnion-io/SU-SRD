@@ -57,25 +57,42 @@
   }
 }
 
+/* The results page's own field: on a phone the bar's holds the query (r7 E2). */
+@media not (width >= 40rem) {
+  .su-search-refine {
+    display: none;
+  }
+}
+
 .su-hero-search__field {
   border-width: var(--bw-chrome);
   min-height: var(--size-full);
   padding-inline: var(--space-14);
 }
 
-/* The quoted tagline (`Tagline.tsx`), a band's aside on the app's front door
-   and the SRD's home: ink, on the band at its right end and set right; on a
-   phone ChapterBand sets it under the band on the page ground, set left. */
+/* The quoted tagline (`Tagline.tsx`), every landing page's: the quote and
+   its credit hang on the ground they stand on, bold; at the band's right end
+   set right, on a phone under it, left. */
 .su-tagline {
+  align-items: flex-start;
   color: var(--color-ink);
+  display: flex;
+  flex-direction: column;
   margin: 0;
   text-align: left;
 }
 
 @media (width >= 40rem) {
   .su-tagline {
+    align-items: flex-end;
     text-align: right;
   }
+}
+
+/* On the home show's ink-deep plate the tagline is paper, as every plate's
+   words. */
+.su-front__show-plate--quote .su-tagline {
+  color: var(--color-paper);
 }
 
 /*
@@ -132,9 +149,7 @@
 }
 
 .su-not-found__chapter-list {
-  display: grid;
-  gap: var(--space-12);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  --su-grid-min: 16rem;
 }
 
 /* A chapter as the home index opens one: its colour band on top
@@ -219,9 +234,24 @@
   padding: var(--space-6) 0;
 }
 
-.su-contents__total {
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
+/* A section's name that opens its full list reads as the link it is: ruled
+   under, heavier on hover. */
+.su-contents__title-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: var(--bw-hairline);
+  text-underline-offset: 3px;
+}
+
+.su-contents__title-link:hover {
+  text-decoration-thickness: var(--bw-pill);
+}
+
+/* A big list's sub-head (a tech level, a tree, a letter): small caps over
+   its run of rows, a step of air above. */
+.su-contents__group-head {
+  color: var(--color-ink-2);
+  margin: var(--space-12) 0 var(--space-4);
 }
 
 .su-contents__rows {
@@ -249,7 +279,7 @@
   text-underline-offset: 3px;
 }
 
-.su-contents__count {
+.su-contents__page {
   color: var(--color-ink-2);
   font-family: var(--font-cond);
   font-variant-numeric: tabular-nums;
@@ -274,9 +304,87 @@
   min-height: var(--size-full);
 }
 
+/* A chapter's index (`chapter.page.tsx`): its sections one under another,
+   each under its own heading, its rows running down as many 20rem columns as
+   fit beneath it (three at the page's measure, one on a phone). No list is
+   parted from its heading: a run stays whole under its sub-head, and a long
+   run (a Tech Level of thirty) takes the section's full width and columns of
+   its own under its sub-head, so the columns still stand level. */
+.su-chapter-flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.su-chapter-flow .su-contents__body,
+.su-chapter-flow .su-contents__group--long > .su-contents__rows {
+  column-gap: var(--space-28);
+  column-width: 20rem;
+}
+
+.su-chapter-flow .su-contents__group-head {
+  break-after: avoid;
+}
+
+.su-chapter-flow .su-contents__group,
+.su-chapter-flow .su-contents__rows > li {
+  break-inside: avoid;
+}
+
+.su-chapter-flow .su-contents__group--long {
+  column-span: all;
+}
+
+/* The columns' tops stand level: a margin is cut at a column break but
+   kept at the first column's top, so a sub-head's air above is its run's own
+   padding, which every column keeps alike. */
+.su-chapter-flow .su-contents__group {
+  padding-top: var(--space-12);
+}
+
+.su-chapter-flow .su-contents__group-head {
+  margin-top: 0;
+}
+
+.su-chapter-flow .su-contents__rows {
+  display: block;
+}
+
 .su-nav-drawer__link[aria-current='page'] {
   font-weight: var(--font-weight-semibold);
   text-decoration: underline;
   text-decoration-thickness: var(--bw-pill);
   text-underline-offset: 3px;
+}
+
+/* A measured page (front, listing, entity page, guide) drops its inner
+     padding there, so its text starts under the brand like a sheet's; a
+     window no wider than the measure keeps the shell's least gutter. */
+@media (width >= 80rem) {
+  .su-page-body {
+    padding-inline: max(0px, calc(var(--space-16) - (100vw - var(--page-measure)) / 2));
+  }
+}
+
+/* Crawler pink carries paper (6.4:1), never ink (3.3:1): the band's kicker
+   and its tagline. */
+.su-chapter-band[data-paint='crawler'] :is(.su-chapter-band__eyebrow, .su-tagline),
+.su-chapter-band[data-paint='crawler'] :is(.su-chapter-band__eyebrow, .su-tagline) * {
+  color: var(--color-paper);
+}
+
+/* On a phone a notch aside drops under the band on to the page ground
+   (`chapter-band-controls.css`), so the tagline there is ink again. */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-paint='crawler'][data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__aside
+    .su-tagline,
+  .su-chapter-band[data-paint='crawler'][data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__aside
+    .su-tagline
+    * {
+    color: var(--color-ink);
+  }
 }

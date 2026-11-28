@@ -9,6 +9,7 @@
  * hub pages, which draw no frame, take none of them.
  */
 @import './frame.css';
+@import './sheet.css';
 @import './instruments.css';
 @import './bar.css';
 @import './units.css';
@@ -16,3 +17,4 @@
 @import './side.css';
 @import './mediator.css';
 @import './touch.css';
+@import './activity.css';

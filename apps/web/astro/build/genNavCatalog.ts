@@ -2,7 +2,7 @@
 /**
  * Generates `src/generated/navCatalog.ts` — the mobile nav drawer's index,
  * frozen at build time: the SRD's chapters (`src/lib/chapters.ts`), each a
- * section stamp over its schemas' rows and counts, the same index the home
+ * section stamp over its schemas' rows, the same index the home
  * page prints, so the drawer and Contents cannot disagree.
  *
  * Why this exists at all:
@@ -42,8 +42,7 @@ export async function renderNavCatalogModule(): Promise<string> {
     id: chapter.id,
     title: chapter.title,
     tone: chapter.tone,
-    rows: chapter.rows.map((row) => ({ label: row.label, href: row.href, count: row.count })),
-    total: chapter.total,
+    rows: chapter.rows.map((row) => ({ label: row.label, href: row.href })),
   }))
 
   if (sections.length === 0) {

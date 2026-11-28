@@ -1,62 +1,41 @@
 /**
  * PlayPinnedVitals — the live vitals pinned above every pane below `lg`
  * (play.md §11, `pinnedUnits`): what a spend reads, in reach whichever pane
- * is open, with its − / + while the unit is live, so damage lands without a
- * tab switch. From `lg` the Units column holds them, so nothing is pinned.
+ * is open. One quiet card of five cells (`PhoneVitalsGlance`), the pilot's HP
+ * and AP then the mech's SP, EP and Heat. Tapping a cell opens that unit's
+ * `PhoneVitals` block under the card (its rows with their − | + at 44px), so
+ * the five take one line of the screen until a number has to change; a second
+ * tap closes it. A row's number asks for an amount (`PlayVitalAmount`: "take
+ * 3" is one write, LG-13). Once a change is saved the block closes (r7 B7):
+ * an amount at once, a step at the next press outside it, so a run of − −
+ * stays open and the block never sits over the screen after. A unit that isn't live is a read-out. From `lg` the Units
+ * column holds them, so nothing is pinned.
  */
 
-import type { CSSProperties } from 'react'
-import { Box, capsLabel, heatDangerFrom, tokens } from '../components/index'
+import { useEffect, useRef, useState } from 'react'
+import { SHEET_VITALS } from '../build/sheet/sheetVitals.model'
+import { heatDangerFrom, PhoneVitals, PhoneVitalsGlance } from '../components/app'
+import type { CSSVarStyle, PhoneVitalCell } from '../components/index'
+import { Stat } from '../components/index'
 import { playCopy } from '../messages/play'
-import { PlayVital } from './PlayVital'
+import { PlayVitalAmount } from './PlayVitalAmount'
 import type { PinnedUnit } from './playPanes.model'
+import { REACTOR_STATE_TEXT } from './reactorWrites.model'
 import { tableUnits } from './tableMode.model'
 
-/** One unit a line: its gauges share it. */
-const UNITS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[6],
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
+/** Each vital's words in full, for assistive tech (`PhoneVitals`' `name`). */
+const VITAL_NAME: Record<string, string> = {
+  HP: SHEET_VITALS.hp.label,
+  AP: SHEET_VITALS.ap.label,
+  SP: SHEET_VITALS.sp.label,
+  EP: SHEET_VITALS.ep.label,
+}
 
-const UNIT = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[4],
-  minWidth: 0,
-  padding: `${tokens.space[6]} ${tokens.space[8]}`,
-} satisfies CSSProperties
+const danger = (v: { label: string; max: number }) =>
+  v.label === 'Heat' && v.max > 0 ? heatDangerFrom(v.max) : undefined
 
-const UNIT_NAME = {
-  margin: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-const UNIT_NAME_CAPS = capsLabel({ size: 'caption' })
+const tone = (kind: PinnedUnit['kind']) => ({ '--tone': `var(--color-${kind})` }) as CSSVarStyle
 
-const CELLS = {
-  display: 'flex',
-  gap: tokens.space[12],
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
-/** Each gauge an equal share of its unit's line. */
-const CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
-
-/**
- * The pinned vitals (`pinnedUnits`): one line per unit,
- * its name, then its vitals as the Units column draws them (`PlayVital`, the
- * compact `VitalGauge`: R7, Play's vitals are the sheet's gauge in a darker
- * skin, never a listing's Stat), each unit's HP and AP in a box in its tone.
- * A live unit's vitals take their − / + and write the field the Units pane
- * writes (`tableUnits`); a unit that isn't live is a read-out. Nothing in
- * Downtime.
- */
 export function PlayPinnedVitals({
   units,
   live,
@@ -65,35 +44,105 @@ export function PlayPinnedVitals({
   units: readonly PinnedUnit[]
   /** Which units take writes (`usePlayUnits().live`). */
   live: Record<PinnedUnit['kind'], boolean>
-  /** The Units pane's write: the unit, the record field, the clamped value. */
-  onWrite: (kind: PinnedUnit['kind'], field: string, next: number) => void
+  /** The Units pane's write: the unit, the record field, the clamped value, the vital's label. */
+  /** `note` is the amount entry's, when what was typed was capped. */
+  onWrite: (
+    kind: PinnedUnit['kind'],
+    field: string,
+    next: number,
+    label: string,
+    note?: string
+  ) => void
 }) {
+  const [open, setOpen] = useState<string | null>(null)
+  // "Take 3 damage" in one write: an open row's number asks for the amount.
+  const [asking, setAsking] = useState<string | null>(null)
+  // A step saved: the next press outside the block closes it (r7 B7).
+  const changed = useRef(false)
+  const host = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (open === null) return
+    const outside = (event: PointerEvent) => {
+      if (!changed.current || host.current?.contains(event.target as Node)) return
+      changed.current = false
+      setOpen(null)
+      setAsking(null)
+    }
+    document.addEventListener('pointerdown', outside, true)
+    return () => document.removeEventListener('pointerdown', outside, true)
+  }, [open])
+  const write: typeof onWrite = (...args) => {
+    changed.current = true
+    onWrite(...args)
+  }
   if (units.length === 0) return null
+  const all = tableUnits(units).flatMap((unit) => unit.vitals.map((v) => ({ unit, v })))
+  const picked = all.find(({ v, unit }) => v.label === open && live[unit.kind])
+  const asked = picked?.unit.vitals.find((v) => v.label === asking)
+  const cells: PhoneVitalCell[] = all.map(({ unit, v }) => {
+    const redline = danger(v)
+    return {
+      key: v.label,
+      label: v.label,
+      name: `${unit.name} ${v.label}`,
+      value: v.value,
+      max: v.max,
+      style: tone(unit.kind),
+      hot: redline !== undefined && v.value > redline,
+      open: picked?.v.label === v.label,
+      ...(live[unit.kind]
+        ? {
+            onPress: () => {
+              changed.current = false
+              setOpen(open === v.label ? null : v.label)
+            },
+          }
+        : {}),
+    }
+  })
+  // A mech's Shut down and Vulnerable, under the five (r7 B2).
+  const states = units.flatMap((unit) => unit.states ?? [])
   return (
-    <section aria-label={playCopy('pinnedVitals')} style={UNITS}>
-      {tableUnits(units).map((unit) => (
-        <Box key={unit.kind} frameColor={`var(--color-${unit.kind})`} body="flush" bodyStyle={UNIT}>
-          <p className={UNIT_NAME_CAPS} style={UNIT_NAME}>
-            {unit.name}
-          </p>
-          <ul aria-label={playCopy('sVitals', { name: unit.name })} style={CELLS}>
-            {unit.vitals.map((v) => (
-              <li key={v.label} style={CELL}>
-                <PlayVital
-                  label={v.label}
-                  value={v.value}
-                  max={v.max}
-                  tone={unit.kind}
-                  danger={v.label === 'Heat' && v.max > 0 ? heatDangerFrom(v.max) : undefined}
-                  onChange={
-                    live[unit.kind] ? (next) => onWrite(unit.kind, v.field, next) : undefined
-                  }
-                />
-              </li>
-            ))}
-          </ul>
-        </Box>
-      ))}
+    <section ref={host} aria-label={playCopy('pinnedVitals')} className="su-play-pins">
+      <PhoneVitalsGlance cells={cells} />
+      {states.length > 0 ? (
+        <div className="su-play-pins__states">
+          {states.map((state) => (
+            <Stat key={state} size="mini" state="critical" label={REACTOR_STATE_TEXT[state]} />
+          ))}
+        </div>
+      ) : null}
+      {picked && asked ? (
+        <div className="su-play-pins__amount" style={tone(picked.unit.kind)}>
+          <PlayVitalAmount
+            label={asked.label}
+            value={asked.value}
+            max={asked.max}
+            onChange={(next, note) => {
+              onWrite(picked.unit.kind, asked.field, next, asked.label, note)
+              // An amount is the whole change: saved, the block closes (r7 B7).
+              setOpen(null)
+            }}
+            onClose={() => setAsking(null)}
+            size="full"
+          />
+        </div>
+      ) : picked ? (
+        <PhoneVitals
+          label={playCopy('sVitals', { name: picked.unit.name })}
+          style={tone(picked.unit.kind)}
+          vitals={picked.unit.vitals.map((v) => ({
+            key: v.label.toLowerCase(),
+            label: v.label,
+            name: `${picked.unit.name} ${VITAL_NAME[v.label] ?? v.label}`,
+            value: v.value,
+            max: v.max,
+            ...(danger(v) !== undefined ? { danger: danger(v) } : {}),
+            onChange: (next: number) => write(picked.unit.kind, v.field, next, v.label),
+            onValuePress: () => setAsking(v.label),
+          }))}
+        />
+      ) : null}
     </section>
   )
 }

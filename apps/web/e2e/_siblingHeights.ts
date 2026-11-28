@@ -29,9 +29,13 @@ export type SiblingMismatch = {
 }
 
 const CONTROL = [
-  'button:not(.su-chip-link)',
+  // A compact gauge's value is its head's read-out, pressable (`VitalGaugeValue`):
+  // it heads the pips, and is no control on the steppers' line beside them.
+  'button:not(.su-chip-link):not(.su-vital-gauge__value-button)',
   'a.su-btn',
-  '[role=button]:not(.su-chip-link)',
+  // A multiline field's read state is prose as tall as it runs, as its
+  // `Textarea` is: neither is a control on a line.
+  '[role=button]:not(.su-chip-link):not([data-multiline])',
   '[role=radio]',
   '[role=tab]',
   'input:not([type=hidden]):not([type=checkbox]):not([type=radio])',
@@ -195,7 +199,7 @@ export async function findSiblingHeights(page: Page, within?: string): Promise<F
 
 /**
  * A Button beside Tabs (or a Segmented row) is their Size (ruleset §4.7,
- * R41):
+ * §4.7):
  * on the Tabs' line or in the band that holds them (the nearest ancestor,
  * four levels up at most, that holds a Button too), every Button but a
  * strip's chip is a tab's height. One `tab-size:` line per Button off it.

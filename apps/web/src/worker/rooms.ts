@@ -21,6 +21,8 @@ import type {
   UnitSheet,
 } from '../rooms/game/acts'
 import { GAME_READ_ACTS, runAct } from '../rooms/game/acts'
+import type { TableEvent } from '../rooms/game/events'
+import { isMirrored, isUndone } from '../rooms/game/events'
 import {
   appliedMessages,
   batchAnswer,
@@ -30,6 +32,7 @@ import {
   refusedBatch,
 } from '../rooms/game/feed'
 import { GameRoomLogic } from '../rooms/game/gameRoomLogic'
+import { readerOf } from '../rooms/game/readers'
 import {
   ACCOUNT_SOCKET_ACTS,
   actAnswer,
@@ -38,6 +41,7 @@ import {
 } from '../rooms/game/socketActs'
 import type { UnitRow } from '../rooms/game/store'
 import { GameStore } from '../rooms/game/store'
+import { handOffTogether } from '../rooms/handoff'
 import type { PresenceMessage, SocketSeat } from '../rooms/presence'
 import { HERE_ACT, presentMembers, seatOf } from '../rooms/presence'
 import type { ClientMessage, ServerMessage } from '../rooms/protocol'
@@ -55,8 +59,9 @@ import { membershipGameIds } from './shared/games'
 import { RoomPublisher, sharedDb } from './shared/roomRows'
 import { AccountTotalsWriter } from './shared/signals'
 import type { StopSignEnv } from './shared/stopSign'
-import { postStopSign, postTableAlert } from './shared/stopSign'
+import { postStopSign, postTableAlert, postTableEvents } from './shared/stopSign'
 import { isShelfAct, runShelfAct } from './shelfActs'
+import { shelved, unshelved } from './shelving'
 
 /**
  * @public A player's shelf, named by their Discord id; loaded by workerd
@@ -111,12 +116,6 @@ export class AccountRoom extends Room {
     const unit = this.logic.shelf.list(actor).find((u) => u.id === unitId)
     if (unit === undefined) return null
     return { ...unit, vitals: await unitVitals(this.logic.shelf.store, unitId) }
-  }
-
-  /** A disbanded Game's Opposition, filed in its Organizer's NPC tray once per lease. */
-  fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): void {
-    this.logic.transit.fileTray(leaseId, npcs, at)
-    this.broadcastSnapshots()
   }
 
   /** The player's socket, which the Worker let through: their Shelf, then its changes. */
@@ -267,6 +266,12 @@ export class AccountRoom extends Room {
   }
 }
 
+/** How long the table must be quiet before its events post to Discord. */
+const MIRROR_QUIET_MS = 3_000
+
+/** The longest a burst of events waits to post. */
+const MIRROR_MAX_MS = 10_000
+
 /**
  * @public A Game; loaded by workerd (`wrangler.jsonc` `exports`), named by
  * its Game id. The Worker and the bot name the player (`actor`, a Discord id,
@@ -296,20 +301,25 @@ export class GameRoom extends Room {
     return name
   }
 
-  /**
-   * One member's act, by name (`GAME_ACTS`); a refusal comes back as an
-   * answer. Every open socket then hears what changed.
-   */
+  /** One member's act by name (`GAME_ACTS`), a refusal as an answer; every socket hears it. */
   act<N extends GameActName>(
     actor: string,
     name: N,
     args: GameActArgs<N>
   ): GameActAnswer<GameActResult<N>> {
-    const answer = runAct(
-      { room: this.logic, actor, gameId: this.gameId, at: Date.now() },
-      name,
-      args
-    )
+    const at = Date.now()
+    const gameId = this.gameId
+    // A forgotten session ends itself first (r8 B12): every socket and the Feed hear it.
+    const idle = this.logic.endIdleSession(at)
+    if (idle.length > 0) this.broadcastSnapshots()
+    const before = GAME_READ_ACTS.has(name) ? null : this.logic.events.before(name, args)
+    const answer = runAct({ room: this.logic, actor, gameId, at }, name, args)
+    // What the act did, as the table's events: the Feed, the toasts, Discord.
+    const events =
+      answer.ok && before !== null
+        ? this.logic.events.after(actor, name, args, answer.value, before, at)
+        : []
+    this.mirror([...idle, ...events])
     if (name === 'safety.showStop' && answer.ok && answer.value === true) {
       this.ctx.waitUntil(this.postStop())
     }
@@ -331,15 +341,53 @@ export class GameRoom extends Room {
       else if (result.ok) {
         const ids = result.applied.map((op) => op.id)
         this.broadcast(appliedMessages(this.logic.store, ids, this.gameId))
-        // A Downtime step is read back off its op (`downtime` record's `doneSteps`).
-        if (ids.some(isDowntimeStepOp)) this.broadcastSnapshots()
+        // A Downtime step is read back off its op (`doneSteps`); a proposal's Undo off its row.
+        if (ids.some(isDowntimeStepOp) || events.some(isUndone)) this.broadcastSnapshots()
         else {
-          this.broadcast([{ type: 'record', table: 'crew', record: crewRecord(this.logic) }])
+          this.broadcast([
+            { type: 'record', table: 'crew', record: crewRecord(this.logic) },
+            // A vital's change is no private event, so every member hears the same record.
+            ...events.map((event) => ({
+              type: 'record' as const,
+              table: 'events' as const,
+              record: { appId: event._id, body: { ...event }, updatedAt: event.ts },
+            })),
+          ])
           this.published()
         }
       }
     }
     return answer
+  }
+
+  /** The lines waiting to post to the bound channel, by event id: a merged repeat rewrites its own. */
+  private readonly mirroring = new Map<string, string>()
+  private mirrorTimer: ReturnType<typeof setTimeout> | null = null
+  private mirrorSince = 0
+
+  /**
+   * Mirror events to the bound Discord channel, a burst as one message: it
+   * posts once the table has been quiet for `MIRROR_QUIET_MS`, or
+   * `MIRROR_MAX_MS` after the burst began. Posting seals the lines, so a
+   * later repeat starts a new one. A private event never enters (`isMirrored`).
+   */
+  private mirror(events: readonly TableEvent[]): void {
+    const lines = events.filter(isMirrored)
+    if (lines.length === 0) return
+    if (this.mirroring.size === 0) this.mirrorSince = Date.now()
+    for (const event of lines) this.mirroring.set(event._id, event.text)
+    if (this.mirrorTimer !== null) clearTimeout(this.mirrorTimer)
+    const wait = Math.max(
+      0,
+      Math.min(MIRROR_QUIET_MS, this.mirrorSince + MIRROR_MAX_MS - Date.now())
+    )
+    this.mirrorTimer = setTimeout(() => {
+      this.mirrorTimer = null
+      const posting = [...this.mirroring.values()]
+      this.mirroring.clear()
+      this.logic.events.seal()
+      this.ctx.waitUntil(postTableEvents(this.env as StopSignEnv, this.gameId, posting))
+    }, wait)
   }
 
   /** The Stop Sign to the bound channel, while it is still up. */
@@ -375,25 +423,70 @@ export class GameRoom extends Room {
 
   /**
    * End the Game (Organizer only): every unit goes to its holder's Training
-   * Bay, the rest and the tray to the Organizer's, each member's room drops
-   * the Game from its list, then the room is wiped.
+   * Bay, the rest to the Organizer's, each member's room drops the Game from
+   * its list, then the room is wiped, the Opposition on its field with it.
    * A retry after a failed delivery delivers only what had not landed.
+   * `dropTemplateUnits`: a template Game's untouched units end with it.
    */
-  async disband(actor: string): Promise<GameActAnswer<null>> {
+  async disband(
+    actor: string,
+    opts: { dropTemplateUnits?: boolean } = {}
+  ): Promise<GameActAnswer<null>> {
     const at = Date.now()
-    const disbanded = answerOrRefuse(() => this.logic.roster.disband(actor, at))
+    const disbanded = answerOrRefuse(() => this.logic.roster.disband(actor, at, opts))
     if (!disbanded.ok) return disbanded
     const ended = disbanded.value
     for (const { to, parcel } of ended.deliveries) {
       await accountHome(to).accept(parcel, to, at)
     }
-    await accountHome(ended.tray.to).fileTray(`disband-tray:${this.gameId}`, ended.tray.npcs, at)
     for (const { userId } of this.logic.store.members()) {
       await accountHome(userId).leftGame(this.gameId)
     }
     await this.wipe()
     this.dropStrangers()
     return { ok: true, value: null }
+  }
+
+  /**
+   * A member leaves, or the Organiser removes them (ADR-067 §3): each pilot
+   * and mech they brought (one the Game came with stays, unassigned: `leaving`,
+   * LG4-03) is handed back to their Training Bay first, by a player's own
+   * handoff, so nothing is ever deleted; then the roster forgets them and their
+   * room drops the Game. A retry moves only what had not landed.
+   */
+  async dismiss(actor: string, userId: string): Promise<GameActAnswer<null>> {
+    const at = Date.now()
+    const leaving = answerOrRefuse(() => this.logic.roster.leaving(actor, userId, at))
+    if (!leaving.ok) return leaving
+    const to = { kind: 'account', userId } as const
+    // Together, so a pilot and their mech arrive still assigned to each other.
+    await handOffTogether(
+      this.logic.transit,
+      accountHome(userId),
+      leaving.value.map((unitId) => ({
+        leaseId: crypto.randomUUID(),
+        unitId,
+        actor: userId,
+        to,
+        at,
+      }))
+    )
+    // The table is told of a removal, as it was of the joining (r3 A4); leaving is one's own.
+    const told = actor === userId ? [] : [this.logic.events.removed(actor, userId, at)]
+    this.logic.roster.forgetMember(userId)
+    await accountHome(userId).leftGame(this.gameId)
+    this.dropStrangers()
+    this.mirror(told)
+    return { ok: true, value: null }
+  }
+
+  /** An unused pre-gen leaves the roster, and its Undo (`shelving.ts`, LG4-20). */
+  async shelve(actor: string, pilotId: string): Promise<GameActAnswer<string[]>> {
+    return shelved(this.logic, actor, pilotId, () => this.broadcastSnapshots())
+  }
+
+  async unshelve(actor: string, unitIds: readonly string[]): Promise<GameActAnswer<null>> {
+    return unshelved(this.logic, this.gameId, actor, unitIds, () => this.broadcastSnapshots())
   }
 
   /** A member deleted their account; a Game left with nobody is wiped. */
@@ -476,9 +569,17 @@ export class GameRoom extends Room {
     this.published()
   }
 
-  /** The same messages to every member's open socket. */
+  /**
+   * The same messages to every member's open socket; a unit's `applied` only
+   * to the members the room serves that unit (`readerOf`, r3 A3).
+   */
   private broadcast(messages: readonly ServerMessage[]): void {
-    sendEach(this.ctx, messages, (member) => this.isMember(member))
+    const { store } = this.logic
+    for (const message of messages) {
+      const unit = message.type === 'applied' ? store.unit(message.unit.appId) : null
+      const hears = (m: string) => this.isMember(m) && (unit === null || readerOf(store, m)(unit))
+      sendEach(this.ctx, [message], hears)
+    }
   }
 
   /** Who is here, to every open socket but `gone` (the one closing). */

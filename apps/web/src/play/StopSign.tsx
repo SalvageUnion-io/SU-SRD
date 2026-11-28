@@ -3,103 +3,173 @@
  * time, with no reason asked, and the game pauses to talk out of character.
  *
  * `useStopSign` reads it once per screen; `StopSignButton` is Play's bar
- * control and the Game page's; `StopSignBanner` is what every open screen of the Game shows while it is
+ * control and the Game page's; the pinned notice (`TableNotices`) is what every screen of the app shows a member while it is
  * up, without saying who showed it. Whoever did, or the table runner, may
  * lift it (`safety.liftStop`). Solo play has no table, so it has none.
  */
 
 import { OctagonPause } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { Button, Callout, Text, tokens } from '../components/index'
+import { useEffect, useId, useRef, useState } from 'react'
+import { Button, tokens } from '../components/index'
 import { playSafetyCopy } from '../messages/play-safety'
 import type { StopSign } from './useStopSign'
+
+/** How long a phone's Stop Sign is held before it fires (r2 I3). */
+const STOP_HOLD_MS = 600
+
+/** The hold's clock, which a test runs itself. */
+type HoldTimer = { set: (run: () => void, ms: number) => number; clear: (id: number) => void }
+
+const WINDOW_TIMER: HoldTimer = {
+  set: (run, ms) => window.setTimeout(run, ms),
+  clear: (id) => window.clearTimeout(id),
+}
+
+/** The phone's label beside its octagon. */
+const LABELLED = {
+  alignItems: 'center',
+  display: 'inline-flex',
+  gap: tokens.space[4],
+} satisfies CSSProperties
 
 /**
  * The control: **Stop Sign**, by the one name on the bar and the Game page, rust, the one press anyone may make. Pressed while
  * the sign is up it does nothing more, so it says so by being disabled. On
- * the phone's bar, where a word would push ⋯ off the line, it is the
- * octagon alone.
+ * the phone's bar, where the whole name would push ⋯ off the line, it is the
+ * octagon and "Stop · hold" (r6 A12), and it fires on a hold (`STOP_HOLD_MS`), never on a
+ * brushed tap; a keyboard's or a screen reader's press, which no finger
+ * brushes, fires it at once.
+ *
+ * The hold explains itself (r4 B6): the first tap says "Hold to show the Stop
+ * Sign" right at the button (a toast at the page's foot left it looking
+ * dead), and a finger held down fills the button over the hold, so the wait
+ * is seen (`.su-play-stop`, `styles/play/bar.css`).
  */
 export function StopSignButton({
   sign,
   compact = false,
+  inPlay = false,
+  timer = WINDOW_TIMER,
 }: {
   sign: StopSign | null
   compact?: boolean
+  /** On a Play screen, whose strip shows the offline line as a row of its own (r8 A1). */
+  inPlay?: boolean
+  /** The hold's clock (a test's own). */
+  timer?: HoldTimer
 }) {
+  // The running hold; `fired` once it ran out with the finger still down.
+  const hold = useRef<{ id: number | null; fired: boolean } | null>(null)
+  // A finger is down and the hold is running: the button fills.
+  const [holding, setHolding] = useState(false)
+  // A tap came up short: the button says to hold, until the next press.
+  const [hinted, setHinted] = useState(false)
+  useEffect(
+    () => () => {
+      if (hold.current?.id != null) timer.clear(hold.current.id)
+    },
+    [timer]
+  )
   if (sign === null) return null
+  if (sign.offline) return <OfflineStop compact={compact} inStrip={inPlay} />
+  const disabled = !sign.canWrite || sign.shown || sign.pending
+  if (!compact) {
+    return (
+      <Button
+        variant="primary"
+        size="compact"
+        aria-label={playSafetyCopy('showTheStopSign')}
+        disabled={disabled}
+        onClick={sign.show}
+      >
+        {playSafetyCopy('stopSign')}
+      </Button>
+    )
+  }
+  const letGo = () => {
+    if (hold.current?.id != null) timer.clear(hold.current.id)
+    if (hold.current) hold.current.id = null
+    setHolding(false)
+  }
   return (
-    <Button
-      variant="primary"
-      size={compact ? 'iconOnly' : 'compact'}
-      aria-label={playSafetyCopy('showTheStopSign')}
-      title={compact ? playSafetyCopy('showTheStopSign') : undefined}
-      disabled={!sign.canWrite || sign.shown || sign.pending}
-      onClick={sign.show}
-    >
-      {compact ? (
-        <OctagonPause size={tokens.iconSize.compact} aria-hidden="true" />
-      ) : (
-        playSafetyCopy('stopSign')
-      )}
-    </Button>
+    <span className="su-play-stop" data-holding={holding ? '' : undefined}>
+      <Button
+        variant="primary"
+        size="compact"
+        aria-label={playSafetyCopy('showTheStopSign')}
+        title={playSafetyCopy('holdToShow')}
+        disabled={disabled}
+        onBlur={() => setHinted(false)}
+        onPointerDown={() => {
+          letGo()
+          const mine = { id: null as number | null, fired: false }
+          mine.id = timer.set(() => {
+            mine.id = null
+            mine.fired = true
+            setHolding(false)
+            sign.show()
+          }, STOP_HOLD_MS)
+          hold.current = mine
+          setHinted(false)
+          setHolding(true)
+        }}
+        onPointerUp={letGo}
+        onPointerLeave={letGo}
+        onPointerCancel={letGo}
+        // A long press is the hold, never the browser's menu.
+        onContextMenu={(event) => event.preventDefault()}
+        onClick={(event) => {
+          // A pointer's click ends a tap or a hold; any other press (a key, a
+          // screen reader) has no hold to make, so it fires.
+          const pressed = hold.current
+          hold.current = null
+          if (pressed === null && event.detail === 0) sign.show()
+          else if (pressed?.fired !== true) setHinted(true)
+        }}
+      >
+        <span style={LABELLED}>
+          <OctagonPause size={tokens.iconSize.mini} aria-hidden="true" />
+          {playSafetyCopy('stopHold')}
+        </span>
+      </Button>
+      <span className="su-play-stop__fill" aria-hidden="true" />
+      {/* Always there, so it is announced as it fills; empty, it takes no room. */}
+      <span role="status" className="su-play-stop__hint">
+        {hinted && !sign.shown ? playSafetyCopy('holdToShow') : ''}
+      </span>
+    </span>
   )
 }
 
-const BANNER = { flexShrink: 0 } satisfies CSSProperties
-
 /**
- * Play's place for it, right under the bar: the canvas's bar bleeds to the
- * frame's edges and the phone's has no gutter, so it takes its own.
+ * Offline the sign cannot reach the table (r7 B4): the button is greyed, and
+ * carries one line at it, as the hold's hint does: say it aloud.
  */
-const PLAY_BANNER = {
-  canvas: { ...BANNER, padding: `${tokens.space[8]} ${tokens.space[12]} 0` },
-  phone: { ...BANNER, padding: `${tokens.space[8]} ${tokens.space[8]} 0` },
-} satisfies Record<string, CSSProperties>
-
-const BANNER_BODY = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  justifyContent: 'space-between',
-} satisfies CSSProperties
-
-const BANNER_TEXT = {
-  display: 'flex',
-  flex: '1 1 16rem',
-  flexDirection: 'column',
-  gap: tokens.space[2],
-  minWidth: 0,
-} satisfies CSSProperties
-
-const PAUSED = { fontWeight: tokens.weight.bold } satisfies CSSProperties
-
-/** While the sign is up: the game is paused, on every open screen of the Game. */
-export function StopSignBanner({
-  sign,
-  play,
-}: {
-  sign: StopSign | null
-  /** Under Play's bar, in its form: the canvas's or the phone's. */
-  play?: 'canvas' | 'phone'
-}) {
-  if (sign === null || !sign.shown) return null
+function OfflineStop({ compact, inStrip }: { compact: boolean; inStrip: boolean }) {
+  const why = useId()
   return (
-    <div style={play === undefined ? BANNER : PLAY_BANNER[play]} role="status">
-      <Callout tone="bad">
-        <div style={BANNER_BODY}>
-          <div style={BANNER_TEXT}>
-            <Text style={PAUSED}>{playSafetyCopy('paused')}</Text>
-            <Text>{sign.mine ? playSafetyCopy('pausedYours') : playSafetyCopy('pausedBody')}</Text>
-          </div>
-          {sign.mayLift && (
-            <Button size="compact" disabled={!sign.canWrite || sign.pending} onClick={sign.lift}>
-              {playSafetyCopy('resume')}
-            </Button>
-          )}
-        </div>
-      </Callout>
-    </div>
+    <span className="su-play-stop">
+      <Button
+        variant="primary"
+        size="compact"
+        aria-label={playSafetyCopy('showTheStopSign')}
+        aria-describedby={why}
+        disabled
+      >
+        {compact ? (
+          <span style={LABELLED}>
+            <OctagonPause size={tokens.iconSize.mini} aria-hidden="true" />
+            {playSafetyCopy('stopHold')}
+          </span>
+        ) : (
+          playSafetyCopy('stopSign')
+        )}
+      </Button>
+      {/* On a Play screen the strip shows it, a row of its own above the notices (r8 A1). */}
+      <span id={why} className={inStrip ? 'su-sr-only' : 'su-play-stop__hint'}>
+        {playSafetyCopy('offlineSayAloud')}
+      </span>
+    </span>
   )
 }

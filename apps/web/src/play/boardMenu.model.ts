@@ -23,10 +23,12 @@
  */
 
 import { hasCondition, storedMechConditions } from 'game-domain/mechConditions'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
 import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 import type { HeaderMenuItem } from '../components/index'
+import { playCopy } from '../messages/play'
 
 /** A pilot or mech row as `useGameListing` returns it. */
 export type CrewRow = {
@@ -69,8 +71,10 @@ export type BoardOption = {
   serverId: string | null
   name: string
   state: BoardState
-  /** Why it can't be boarded, or that it is a spare; null for your own. */
+  /** Why it can't be boarded, that it is a spare, or which of your pilots flies it; else null. */
   note: string | null
+  /** One of yours that another of your pilots is assigned: boardable, but not this pilot's hangar. */
+  flownByOther?: boolean
 }
 
 /** Whether choosing this option does anything: your own boards, a spare is assigned to you first. */
@@ -90,7 +94,10 @@ export function boardMenuSections(
   return [
     mechs.map((option) => ({
       id: option.mechId,
-      label: option.state === 'spare' ? `Assign and board ${option.name}` : option.name,
+      label:
+        option.state === 'spare'
+          ? playCopy('assignAndBoardName', { name: option.name })
+          : option.name,
       hint: option.state === 'spare' ? undefined : (option.note ?? undefined),
       onSelect: boardable(option) ? () => choose(option) : undefined,
     })),
@@ -140,10 +147,11 @@ function stateOf(args: {
   aboard: string | null
   owner: 'yours' | 'spare' | 'others'
 }): Pick<BoardOption, 'state' | 'note'> {
-  if (args.destroyed) return { state: 'destroyed', note: 'Destroyed' }
-  if (args.aboard !== null) return { state: 'aboard', note: `${args.aboard} is aboard` }
-  if (args.owner === 'spare') return { state: 'spare', note: 'Unassigned spare' }
-  if (args.owner === 'others') return { state: 'others', note: 'Another player’s mech' }
+  if (args.destroyed) return { state: 'destroyed', note: playCopy('destroyed') }
+  if (args.aboard !== null)
+    return { state: 'aboard', note: playCopy('isAboard', { name: args.aboard }) }
+  if (args.owner === 'spare') return { state: 'spare', note: playCopy('unassignedSpare') }
+  if (args.owner === 'others') return { state: 'others', note: playCopy('anotherPlayersMech') }
   return { state: 'yours', note: null }
 }
 
@@ -161,12 +169,12 @@ export function boardMenu(args: {
   const pilotName = new Map<string, string>()
   for (const p of listing?.pilots ?? []) {
     const id = linkId(p)
-    if (id !== null) pilotName.set(id, nameOf(p.body, 'Another pilot'))
+    if (id !== null) pilotName.set(id, pilotLabelOf(bodyOf(p.body)) ?? playCopy('anotherPilot'))
   }
   const aboard = new Map<string, string>()
   for (const seat of sources.seats) {
     if (seat.pilotId === pilotId || seat.mount.kind !== 'boarded') continue
-    aboard.set(seat.mount.mechId, pilotName.get(seat.pilotId) ?? 'Another pilot')
+    aboard.set(seat.mount.mechId, pilotName.get(seat.pilotId) ?? playCopy('anotherPilot'))
   }
 
   // The assigned mech as the local store has it, which holds only the viewer's
@@ -215,6 +223,15 @@ export function boardMenu(args: {
         aboard: aboard.get(mechId) ?? null,
         owner: row.ownerId === null ? 'spare' : row.ownerId === viewerId ? 'yours' : 'others',
       }),
+    }
+    // One of yours another of your pilots is assigned: boardable, and says whose.
+    const flownBy = listing.softLinks.find(
+      (l) => l.type === 'mech-to-pilot' && l.from.id === mechId && l.to.id !== pilotId
+    )?.to.id
+    if (option.state === 'yours' && flownBy !== undefined && mechId !== assigned?.id) {
+      const flier = pilotName.get(flownBy)
+      option.note = flier ? playCopy('pilotsMech', { name: flier }) : playCopy('anotherPilotsMech')
+      option.flownByOther = true
     }
     ranked.push({ option, rank: mechId === assigned?.id ? 0 : row.ownerId === viewerId ? 1 : 2 })
   }

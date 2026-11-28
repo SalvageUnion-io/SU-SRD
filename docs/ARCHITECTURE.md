@@ -29,7 +29,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
    `/schema/*` serves the same files byte for byte, the unversioned alias; each schema's `$id` is the URL it is served at; CORS on.
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
-   Imports `game-domain` types, and values only from its leaf modules (botWire, product, appAddress, entityKinds, mechConditions; `noRestrictedImports`); changing them is cross-package. Lookup = embed: `discordEntryCard`.
+   Imports `game-domain` types, values only from leaf modules (botWire, product, appAddress, entityKinds, mechConditions, pilotLabel; `noRestrictedImports`); changes are cross-package. Lookup = embed: `discordEntryCard`.
 9. **game-domain** <a id="game-domain"></a>
    Zod schemas, roles, link/crew/downtime rules and bot wire types for the app, the rooms and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars a rule in a product folder.
@@ -48,7 +48,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
 15. **Deployments** <a id="deployments"></a>
-    Production is the su-srd Worker with D1 `su-shared`; each Preview has its own rooms and the D1 `su-shared-preview`. Convex was retired and deleted (2026-10-27): its last export is in the private R2 bucket `su-archive`, and the `convex-last` tag holds its code.
+    Production is the su-srd Worker with D1 `su-shared`; each Preview has its own rooms and the D1 `su-shared-preview`. Retired Convex: its last export in private R2 `su-archive`, its code at tag `convex-last`.
     `bun run dev` runs the Worker beside the dev server with test auth; setup and rotations are the `site-ops` skill.
 16. **Worker environment** <a id="worker-env"></a>
     Sign-in is the site Worker's (`src/worker/auth/`, D1 `SHARED`): `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`; the bot is reached by service binding (`BOT`), with no shared secret.
@@ -60,14 +60,14 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Enforcement follows the surface's mode: Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play and Adjudicate (Play), Frozen (`/p/`). Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
     The app automates bookkeeping (Heat, EP / AP, uses, SP damage) but never changes a condition or destroys without the player; conditions cycle intact → damaged → destroyed by `StatusBadge`.
 19. **Live-Sheet transactions** <a id="live-sheet"></a>
-    A closed list: crawler Upkeep / Upgrade / Trade, bay Repair, item repair and uses; advisory, never blocking.
-    Any new transaction goes in Play.
+    A closed list: crawler Upkeep / Upgrade / Trade / Craft, bay Repair, item repair and uses; advisory, never blocking.
+    New ones go in Play.
 20. **Change Log** <a id="change-log"></a>
     A unit's history is its applied ops (`transaction` / `override` / `manual`, ADR-063); `changeLog` keeps Game rows and moves.
     Read in `ChangeLogDrawer`; destruction waits for the player (ADR-007).
 21. **Combat loop** <a id="combat"></a>
-    A shared living sheet: no combat RPCs, turns or undo; the math is the reference package's `lib/rules/`, patches are the app's.
-    Activation is a sequential write-through (ADR-008); item conditions change only by player action (ADR-009).
+    A shared living sheet: no combat RPCs, undo or turn system (Initiative: a self-passing tracker); math: the reference's `lib/rules/`, patches the app's.
+    Activation is sequential (ADR-008); only players change item conditions (ADR-009).
 22. **Display system** · ADR-010, ADR-026, ADR-028, ADR-053 · [spec](architecture/entity-card.md) <a id="display"></a>
     Entity forms (Mention, Mini, Compact, index Compact, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; contentful forms and Page are `ReferenceEntityCard`, the only one, app UI layered on. `Box` is every other frame, never merged with it.
     App UI goes through `controls` and slot props, never schema props. Every design law in `docs/design-system/` names its gate (`CANON`, `bun run check canon`), or is cut.
@@ -120,7 +120,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Duration effects are Play's and never persisted; every stated mechanical change is a contribution or a reasoned exemption.
 39. **UI words** · ADR-054 · [spec](architecture/messages.md) <a id="messages"></a>
     Every word the app draws is a key in `apps/web/src/messages/`, values as `{name}` placeholders; English only.
-    The `ui-strings` rule set ratchets the strings still typed at the call site.
+    The `ui-strings` rule set allows no string typed at the call site.
 40. **Addresses** · ADR-048, ADR-062 · [spec](architecture/addresses.md) <a id="addresses"></a>
     Reference `/`, Training Bay `/build/`, Play `/play/`, one app mapped by `appPath` / `routeInApp`; sheets `/build/<kind>s/:id`.
     Every retired address 301s once (`retiredTarget`).
@@ -131,20 +131,20 @@ ADRs are never renumbered: entry N is ADR-N. A new decision lands as an entry an
 Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-031, ADR-035, ADR-039, ADR-045, ADR-047.
 
 8. **ADR-008 Sequential client-side mutations**
-   No atomic transaction or rollback; affordability is checked before an action runs. Amended by ADR-063.
+   No atomic transaction or rollback; affordability is checked first. Amended by ADR-063.
 22. **ADR-022 Change Log and stat overrides**
     Every write appends to a per-entity log; a cap override is an absolute pin, a zero-delta pin none.
     Amended by ADR-030 and ADR-034: the log is account data on Convex; by ADR-063: the log is the op log.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 (§1, §4) and ADR-064.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 (§1, §4) and ADR-064; §4: crew-answered salvage.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
     Amends ADR-030's visibility rule; amended by ADR-036, ADR-061.
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
     Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-048, ADR-050, ADR-064.
 34. **ADR-034 Persistence requires an account**
-    Signed out is read-only, every record is Convex-backed, the app is a PWA.
+    Signed out saves nothing, every record is Convex-backed, the app is a PWA.
     Amends ADR-022 and ADR-030; amended by ADR-058.
 36. **ADR-036 Retire snapshot shares**
     The public sheet is the only account-free share; no `/api/snapshots`. Amends ADR-032.
@@ -163,22 +163,22 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
-    Built: Play beside Reference and Build; one layout, phone first: tabs below `lg`, Units | Actions | Crew, Tables, Feed from it; solo seats.
-    Supersedes ADR-038 §1, §9 and its layout, and ADR-045; amends ADR-030; amended by ADR-052. As built: [play.md](architecture/play.md).
+    Built: one Cockpit, phone first (tabs below `lg`); solo seats.
+    Supersedes ADR-038 §1, §9, its layout, ADR-045; amends ADR-030; amended by ADR-052, ADR-066, ADR-068. As built: [play.md](architecture/play.md).
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
-    Built: Build lists and reads only what you own, a Game a chip and never a filter; Play has the hub, Game pages, invites, Cockpits.
-    Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062.
+    Built: Build lists only what you own, a Game a chip, never a filter.
+    Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062, ADR-066.
 55. **ADR-055 Crew assets are assigned, never claimed** · [full text](adr/055-crew-assets-assign.md)
     Built: in a Game the assigned member edits, the crew reads, the table runner reassigns; Game reads answer empty to ex-members.
     Amends ADR-030 §2, §4–6.
 57. **ADR-057 Usage signals and feedback** · [full text](adr/057-usage-signals-feedback.md)
-    Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues; `/roadmap` retired (4.5.63).
+    Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues.
 58. **ADR-058 A read-only device copy** · [full text](adr/058-device-copy.md)
     Built: offline, the player's own sheets come back from the device; Convex stays of record.
     Amends ADR-030 §1 and ADR-034; replaced by ADR-063 decision 9 (the outbox).
 59. **ADR-059 The Mediator's prep kit** · [full text](adr/059-mediator-prep-kit.md)
-    Built: encounters on the Training Bay shelf (opposition, tables, private notes), run into a Game's Opposition as a copy. §5 (flagged): groups, waves, a briefing to tell the table; encounters in the device copy.
-    Amends ADR-052 §1.
+    Built: encounters, run into a Game's Opposition as a copy. §5 (flagged): groups, waves, a briefing.
+    Amends ADR-052 §1; amended by ADR-067.
 60. **ADR-060 Feature flags** · [full text](adr/060-feature-flags.md)
     Built: `src/lib/flags.ts`; unfinished surfaces merge dark: off on production's origin, on in Previews, dev and test-seam builds.
 61. **ADR-061 Homebrew on the SRD** · [full text](adr/061-homebrew.md)
@@ -188,5 +188,12 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     A unit changes only by an op through the pure `applyOp`; its body is a snapshot at `headSeq`. Offline, ops on your own units wait in an outbox.
     Amends ADR-008, ADR-022 and ADR-030 §1, §4; replaces ADR-058.
 64. **ADR-064 Cloudflare rooms are the server of record** · [full text](adr/064-cloudflare-rooms.md)
-    A SQLite Durable Object per account and per Game, D1 for cross-room reads, R2 for art and backups; the Worker signs in. One cutover at 4.5.0.
+    A SQLite Durable Object per account and per Game, D1 for cross-room reads, R2 for art and backups; the Worker signs in.
     Supersedes ADR-030 §1's Convex sentence and ADR-033 §5.
+66. **ADR-066 Reference | Training Bay | Games** · [full text](adr/066-training-bay-and-games.md)
+    Header links Reference | Training Bay | Games, logo `/`; Play is a pilot page's mode; no Games in Builder.
+    Amends ADR-051 §1, ADR-052 §1, §4–§6, ADR-062 §1–§3.
+67. **ADR-067 Game Prep and plan** · [full text](adr/067-game-prep.md)
+    Amends ADR-059.
+68. **ADR-068 One Moment** · [full text](adr/068-one-moment.md)
+    Amends ADR-051 §6.

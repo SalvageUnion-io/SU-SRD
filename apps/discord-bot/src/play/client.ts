@@ -3,6 +3,7 @@ import type {
   BotFeedbackArgs,
   BotOpName,
   BotUsageArgs,
+  LogRollArgs,
   UnbindChannelArgs,
 } from 'game-domain/botWire'
 import { PRODUCT } from 'game-domain/product'
@@ -13,6 +14,7 @@ import type {
   BotUsageResult,
   DenialReason,
   GamesResult,
+  LogRollResult,
   MeResult,
   MineResult,
   SheetResult,
@@ -61,7 +63,9 @@ export type SiteClient = {
     channelId: string,
     game: string | null,
     channelName?: string | null,
-    manageChannels?: boolean | null
+    manageChannels?: boolean | null,
+    /** Where the channel sits: its category and server (ADR-068 §6). */
+    place?: { categoryId: string | null; guildId: string | null }
   ): Promise<SiteResult<BindChannelResult>>
   /** `/su unbind`: release whatever `channelId` is bound to. */
   unbindChannel(
@@ -71,6 +75,8 @@ export type SiteClient = {
   ): Promise<SiteResult<UnbindChannelResult>>
   /** One answered command for the weekly tallies (ADR-057): its name and server, never who. */
   usage(name: string, guildId: string | null): Promise<SiteResult<BotUsageResult>>
+  /** A public roll answered in `channelId`: onto its Game's Feed where the channel is bound to one. */
+  logRoll(args: LogRollArgs): Promise<SiteResult<LogRollResult>>
   /** `/su feedback`: hand a note on to be filed as a GitHub issue. */
   feedback(
     discordId: string,
@@ -154,13 +160,15 @@ export function createSiteClient(gateway: SiteGateway | undefined): SiteClient {
     mineForAutocomplete: (discordId) => call('mine', { discordId }, true),
     sheet: (discordId, table, entityId) => call('sheet', { discordId, table, entityId }),
     gamesForAutocomplete: (discordId) => call('games', { discordId }, true),
-    bindChannel: (discordId, channelId, game, channelName, manageChannels) => {
+    bindChannel: (discordId, channelId, game, channelName, manageChannels, place) => {
       const args: BindChannelArgs = {
         discordId,
         channelId,
         ...(channelName ? { channelName } : {}),
         ...(game === null ? {} : { game }),
         ...(typeof manageChannels === 'boolean' ? { manageChannels } : {}),
+        ...(place?.categoryId ? { categoryId: place.categoryId } : {}),
+        ...(place?.guildId ? { guildId: place.guildId } : {}),
       }
       return call('bindChannel', args)
     },
@@ -176,6 +184,7 @@ export function createSiteClient(gateway: SiteGateway | undefined): SiteClient {
       const args: BotUsageArgs = { name, ...(guildId === null ? {} : { guildId }) }
       return call('usage', args)
     },
+    logRoll: (args) => call('logRoll', args),
     feedback: (discordId, kind, text) => {
       const args: BotFeedbackArgs = { discordId, kind, text }
       return call('feedback', args)

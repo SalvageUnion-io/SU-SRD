@@ -25,6 +25,7 @@ import { PRODUCT } from 'game-domain/product'
 import { libGamesCopy } from '../../messages/lib-games'
 import { copyName } from '../copyEntity'
 import type { ClearedAssignment } from '../links/clearedByMove'
+import { homeName } from './gameRoster'
 
 /** Which kind of build a confirm is about. Decides the pronoun, nothing else. */
 export type RowActionKind = EntityKind
@@ -42,7 +43,13 @@ export type ConfirmCopy = {
    * the player (a refusal brings its own wording; anything else gets this).
    */
   failure: string
+  /** What a toast says once the action is done (r5 C12: "Deleted Scuttler."). */
+  done?: string
 }
+
+/** The line saying a deleted pilot's mech stays, when they fly one. */
+const mechKept = (mech: string | undefined): string[] =>
+  mech ? [libGamesCopy('mechIsKept', { mech })] : []
 
 /** A pilot or an NPC is a person; a mech or a crawler is a thing. */
 function them(kind: RowActionKind): string {
@@ -53,7 +60,7 @@ function them(kind: RowActionKind): string {
 export type MoveDestination = { kind: 'shelf' } | { kind: 'game'; name: string | null }
 
 /** A Game the reader cannot name (still loading, or one they have left). */
-const UNNAMED_GAME = 'this Game'
+const UNNAMED_GAME = libGamesCopy('thisGame')
 
 /**
  * What a move out of a Game undoes (ADR-037: a move prunes every link it would
@@ -61,16 +68,10 @@ const UNNAMED_GAME = 'this Game'
  * pairing; a crawler loses the crew assigned to it.
  */
 function clearedAssignments(kind: RowActionKind, from: string): string {
-  if (kind === 'pilot') {
-    return `Their crawler assignment in ${from} is cleared, and so is the mech they fly there, if any.`
-  }
-  if (kind === 'mech') {
-    return `Its crawler assignment in ${from} is cleared, and so is the pilot flying it there, if any.`
-  }
-  if (kind === 'npc') {
-    return `Their crew slot on a crawler in ${from} is cleared, and that slot goes back to the book's crew line.`
-  }
-  return `Everyone in ${from} assigned to it is unassigned.`
+  if (kind === 'pilot') return libGamesCopy('clearedPilot', { from })
+  if (kind === 'mech') return libGamesCopy('clearedMech', { from })
+  if (kind === 'npc') return libGamesCopy('clearedNpc', { from })
+  return libGamesCopy('clearedCrawler', { from })
 }
 
 /** "a, b and c". */
@@ -81,11 +82,11 @@ function listOf(names: readonly string[]): string {
 
 /** "One build", "3 builds". */
 function builds(n: number): string {
-  return n === 1 ? 'One build' : `${n} builds`
+  return n === 1 ? libGamesCopy('oneBuild') : `${n} builds`
 }
 
 /** Where the other end of a link cleared on the way into a Game still is. */
-const STILL_IN_TRAINING_BAY = `(still in your ${PRODUCT.build})`
+const STILL_IN_TRAINING_BAY = libGamesCopy('stillInBay', { bay: PRODUCT.build })
 
 /**
  * What a move from your shelf into a Game clears, one line per assignment: a
@@ -100,63 +101,33 @@ function clearedOnEntry(kind: RowActionKind, cleared: readonly ClearedAssignment
       ...(named.length > 0 ? [`${listOf(named)} ${STILL_IN_TRAINING_BAY}`] : []),
       ...(unnamed === 0 ? [] : [named.length > 0 ? `${unnamed} more` : builds(unnamed)]),
     ].join(' and ')
-    return [`${who} ${cleared.length === 1 ? 'leaves' : 'leave'} its crew.`]
+    return [libGamesCopy(cleared.length === 1 ? 'crewLeaves' : 'crewLeave', { who })]
   }
-  const they = kind === 'pilot' || kind === 'npc' ? 'They leave' : 'It leaves'
-  const their = kind === 'pilot' || kind === 'npc' ? 'Their' : 'Its'
+  const person = kind === 'pilot' || kind === 'npc'
   const pairings = cleared.filter((c) => c.type === 'mech-to-pilot')
   const crews = cleared.filter((c) => c.type !== 'mech-to-pilot')
   return [
     ...pairings.map((c) =>
       c.other.name === null
-        ? `${their} pairing with a ${c.other.kind} is cleared.`
-        : `${their} pairing with ${c.other.name} ${STILL_IN_TRAINING_BAY} is cleared.`
+        ? libGamesCopy(person ? 'pairingUnnamedTheir' : 'pairingUnnamedIts', {
+            kind: c.other.kind,
+          })
+        : libGamesCopy(person ? 'pairingNamedTheir' : 'pairingNamedIts', {
+            name: c.other.name,
+            still: STILL_IN_TRAINING_BAY,
+          })
     ),
     ...crews.map((c) =>
       c.other.name === null
-        ? `${they} ${their.toLowerCase()} crawler's crew.`
-        : `${they} ${c.other.name}'s crew.`
+        ? libGamesCopy(person ? 'theyLeaveTheirCrew' : 'itLeavesItsCrew')
+        : libGamesCopy(person ? 'theyLeaveNamedCrew' : 'itLeavesNamedCrew', {
+            name: c.other.name,
+          })
     ),
   ]
 }
 
 export const ROW_ACTION_COPY = {
-  /**
-   * Assigning an unassigned character to yourself. Constructive, so the
-   * default tone — the dialog exists to say what happens next (you edit it,
-   * and it lands in this browser), which the seal alone cannot.
-   */
-  assignSelf(name: string): ConfirmCopy {
-    return {
-      title: libGamesCopy('assignSelfTitle', { name }),
-      body: [libGamesCopy('assignSelfBody', { name }), libGamesCopy('assignSelfUndo')],
-      confirmLabel: libGamesCopy('assignToMe'),
-      pendingLabel: libGamesCopy('assigning'),
-      tone: 'default',
-      failure: libGamesCopy('assignSelfFailed', { name }),
-    }
-  },
-
-  /**
-   * The table runner placing a character with a crewmate (or themselves),
-   * whoever holds it now. It moves who edits it, not what is on it.
-   */
-  assignTo(name: string, kind: RowActionKind, to: string, from: string | null): ConfirmCopy {
-    return {
-      title: libGamesCopy('assignToTitle', { name, to }),
-      body: [
-        from === null
-          ? libGamesCopy('assignToFresh', { to, name, them: them(kind) })
-          : libGamesCopy('assignToFrom', { to, name, from, them: them(kind) }),
-        libGamesCopy('assignToUndo'),
-      ],
-      confirmLabel: libGamesCopy('assignTo', { to }),
-      pendingLabel: libGamesCopy('assigning'),
-      tone: 'default',
-      failure: libGamesCopy('assignToFailed', { name, to }),
-    }
-  },
-
   /**
    * Unassigning: by its holder, or the table runner on their behalf. Reversible
    * — but only while nobody else takes it, so the undo is stated with its
@@ -187,15 +158,15 @@ export const ROW_ACTION_COPY = {
    */
   copyOnShelf(name: string): ConfirmCopy {
     return {
-      title: `Make a copy of ${name}?`,
+      title: libGamesCopy('copyTitle', { name }),
       body: [
-        `This puts “${copyName(name)}” in your ${PRODUCT.build}, in no Game. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
-        "Don't want it later? Delete the copy.",
+        libGamesCopy('copyBody', { copy: copyName(name), bay: PRODUCT.build, name }),
+        libGamesCopy('copyUndo'),
       ],
-      confirmLabel: 'Make a copy',
+      confirmLabel: libGamesCopy('makeACopy'),
       pendingLabel: 'Copying…',
       tone: 'default',
-      failure: `${name} could not be copied. Try again.`,
+      failure: libGamesCopy('copyFailed', { name }),
     }
   },
 
@@ -205,29 +176,90 @@ export const ROW_ACTION_COPY = {
    * somebody else could have them, and a player who deletes when they meant to
    * hand over cannot undo it.
    */
-  deleteFromGame(name: string): ConfirmCopy {
+  deleteFromGame(name: string, mech?: string): ConfirmCopy {
     return {
       title: `Delete ${name}?`,
       body: [
-        `This cannot be undone. ${name} will be removed from this Game for everyone, and from this browser.`,
-        'Only leaving the table? “Offer to the crew” hands them back instead — they stay in the Game for somebody else to pick up.',
+        libGamesCopy('deleteFromGameBody', { name }),
+        ...mechKept(mech),
+        libGamesCopy('deleteFromGameInstead'),
       ],
       confirmLabel: 'Delete',
       pendingLabel: 'Deleting…',
       tone: 'danger',
-      failure: `${name} could not be deleted. Try again.`,
+      failure: libGamesCopy('deleteFailed', { name }),
+      done: libGamesCopy('deleted', { name }),
     }
   },
 
-  /** Deleting a build from the Roster — wherever it lives. */
-  deleteBuild(name: string): ConfirmCopy {
+  /**
+   * Deleting a build from the Roster — wherever it lives. A pilot's `mech` is
+   * named as kept: the delete takes the pilot alone.
+   */
+  deleteBuild(name: string, mech?: string): ConfirmCopy {
     return {
       title: `Delete ${name}?`,
-      body: [`This action cannot be undone. ${name} will be permanently removed.`],
+      body: [libGamesCopy('deleteBuildBody', { name }), ...mechKept(mech)],
       confirmLabel: 'Delete',
       pendingLabel: 'Deleting…',
       tone: 'danger',
-      failure: `${name} could not be deleted. Try again.`,
+      failure: libGamesCopy('deleteFailed', { name }),
+      done: libGamesCopy('deleted', { name }),
+    }
+  },
+
+  /**
+   * Deleting a Mech of the Training Bay (r5 D9), where a confirm is still
+   * asked: its own notice undoes it, so the confirm says no `done` of its own
+   * (one notice, r6 E3).
+   */
+  deleteMech(name: string): ConfirmCopy {
+    const { done: _done, ...build } = ROW_ACTION_COPY.deleteBuild(name)
+    return { ...build, body: [libGamesCopy('deleteMechBody', { name })] }
+  },
+
+  /**
+   * Deleting an NPC the Mediator designed (MD3-08): theirs alone, so nothing
+   * of crews, browsers or handing back. `encounters` are the names of those
+   * that field it, which it leaves on confirm.
+   */
+  deleteNpc(name: string, encounters: readonly string[]): ConfirmCopy {
+    return {
+      title: `Delete ${name}?`,
+      body: [
+        libGamesCopy('deleteNpcBody', { name }),
+        ...(encounters.length === 0
+          ? []
+          : [
+              libGamesCopy(encounters.length === 1 ? 'deleteNpcFromOne' : 'deleteNpcFromMany', {
+                name,
+                encounters: listOf(encounters),
+              }),
+            ]),
+      ],
+      confirmLabel: 'Delete',
+      pendingLabel: 'Deleting…',
+      tone: 'danger',
+      failure: libGamesCopy('deleteFailed', { name }),
+      done: libGamesCopy('deleted', { name }),
+    }
+  },
+
+  /**
+   * Removing the rows an earlier Game delete left in the Kit (MD3-03): fielded
+   * copies, named, so the Mediator sees what goes before anything does.
+   */
+  removeLeftovers(names: readonly string[]): ConfirmCopy {
+    return {
+      title:
+        names.length === 1
+          ? libGamesCopy('removeLeftoversOne', { names: listOf(names) })
+          : libGamesCopy('removeLeftoversMany', { count: names.length }),
+      body: [libGamesCopy('removeLeftoversBody', { names: listOf(names) })],
+      confirmLabel: 'Remove',
+      pendingLabel: 'Removing…',
+      tone: 'danger',
+      failure: libGamesCopy('removeLeftoversFailed'),
     }
   },
 
@@ -235,11 +267,11 @@ export const ROW_ACTION_COPY = {
   scrap(name: string): ConfirmCopy {
     return {
       title: `Delete ${name}?`,
-      body: [`This deletes ${name} for everyone in the Game and can't be undone.`],
+      body: [libGamesCopy('scrapBody', { name })],
       confirmLabel: 'Delete',
       pendingLabel: 'Deleting…',
       tone: 'danger',
-      failure: `${name} could not be deleted. Try again.`,
+      failure: libGamesCopy('deleteFailed', { name }),
     }
   },
 
@@ -267,30 +299,30 @@ export const ROW_ACTION_COPY = {
   }): ConfirmCopy {
     const from = args.from ?? UNNAMED_GAME
     const it = them(args.kind)
-    const failure = `${args.name} could not be moved. Try again.`
+    const failure = libGamesCopy('moveFailed', { name: args.name })
 
     if (args.to.kind === 'shelf') {
       return {
-        title: `Move ${args.name} out of ${from}?`,
+        title: libGamesCopy('moveOutTitle', { name: args.name, from }),
         body: [
-          `${args.name} leaves the Game's roster and goes back to your ${PRODUCT.build}, so the rest of the table won't see ${it} any more.`,
+          libGamesCopy('moveOutBody', { name: args.name, bay: homeName(args.kind), it }),
           clearedAssignments(args.kind, from),
-          `You can move ${it} back into the Game later.`,
+          libGamesCopy('moveBackIntoGame', { it }),
         ],
-        confirmLabel: `Move to your ${PRODUCT.build}`,
+        confirmLabel: libGamesCopy('moveToYourBay', { bay: homeName(args.kind) }),
         pendingLabel: 'Moving…',
         tone: 'danger',
         failure,
       }
     }
 
-    const to = args.to.name ?? 'another Game'
+    const to = args.to.name ?? libGamesCopy('anotherGame')
     return {
       title: `Move ${args.name} to ${to}?`,
       body: [
-        `${args.name} leaves ${from}'s roster and joins ${to}'s, so ${from}'s table won't see ${it} any more.`,
+        libGamesCopy('moveOnBody', { name: args.name, from, to, it }),
         clearedAssignments(args.kind, from),
-        `You can move ${it} back later.`,
+        libGamesCopy('moveBackLater', { it }),
       ],
       confirmLabel: 'Move',
       pendingLabel: 'Moving…',
@@ -320,18 +352,20 @@ export const ROW_ACTION_COPY = {
     cleared: readonly ClearedAssignment[]
   }): ConfirmCopy {
     const game = args.game ?? UNNAMED_GAME
-    const assignments = args.cleared.length === 1 ? 'that assignment' : 'those assignments'
     return {
       title: `Move ${args.name} into ${game}?`,
       body: [
         `${args.name} joins ${game}'s roster.`,
         ...clearedOnEntry(args.kind, args.cleared),
-        `You can move ${them(args.kind)} back to your ${PRODUCT.build} later, but you'll need to make ${assignments} again.`,
+        libGamesCopy(args.cleared.length === 1 ? 'enterUndoOne' : 'enterUndoMany', {
+          them: them(args.kind),
+          bay: PRODUCT.build,
+        }),
       ],
       confirmLabel: 'Move',
       pendingLabel: 'Moving…',
       tone: 'danger',
-      failure: `${args.name} could not be moved. Try again.`,
+      failure: libGamesCopy('moveFailed', { name: args.name }),
     }
   },
 }

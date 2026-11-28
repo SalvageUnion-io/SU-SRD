@@ -10,12 +10,15 @@
  * room, or the account room's for the solo table (`gameId` null).
  */
 
+import { memberName } from 'game-domain/memberName'
 import type { RunningEncounter } from 'game-domain/schemas/encounter'
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import type { z } from 'salvageunion-reference/zod'
+import type { Initiative } from '../lib/rules/initiative'
 import type { PatternSharing } from '../rooms/account/sharing'
 import type { SoloSeatRead } from '../rooms/account/soloPlay'
 import type { GameActName, GameActResult } from '../rooms/game/acts'
+import type { TableEvent } from '../rooms/game/events'
 import type { AlertRow, RollRow } from '../rooms/game/log'
 import type { DowntimeRead } from '../rooms/game/play'
 import type { ProposalRead, SentProposal } from '../rooms/game/proposals'
@@ -90,22 +93,31 @@ function downtimeState(held: unknown, args: Args): DowntimeState | null {
 /**
  * A Game's member as a screen names them: the name their account goes by
  * (`games.names`, read fresh, never stored in the Game), else the one the
- * Game last heard, else Crewmate.
+ * Game last heard, else their place in the joining order, "Player 2"
+ * (`memberName`, r6 C11), never one word for everybody.
  */
 type GameMemberRead = Omit<Member, 'displayName' | 'avatarUrl'> & {
   displayName: string
   avatarUrl?: string
+  /** No account name: `displayName` is their place in the joining order. */
+  unnamed?: true
 }
 
-function memberRead({ displayName, avatarUrl, ...member }: Member): GameMemberRead {
+function memberRead(
+  { displayName, avatarUrl, ...member }: Member,
+  joinIndex: number
+): GameMemberRead {
+  const unnamed = displayName === null || displayName.trim() === ''
   return {
     ...member,
-    displayName: displayName ?? CREWMATE,
+    displayName: memberName(displayName, joinIndex),
+    ...(unnamed ? { unnamed: true as const } : {}),
     ...(avatarUrl === null ? {} : { avatarUrl }),
   }
 }
 
-const CREWMATE = 'Crewmate'
+/** The name of a member whose account has none. */
+export const CREWMATE = 'Crewmate'
 
 /** The roster with each member's account name over the one the Game holds. */
 export function namedMembers(
@@ -115,7 +127,9 @@ export function namedMembers(
   if (names === undefined) return [...members]
   return members.map((m) => {
     const name = names[m.userId]
-    return name === undefined || name === m.displayName ? m : { ...m, displayName: name }
+    if (name === undefined || name === m.displayName) return m
+    const { unnamed: _unnamed, ...named } = m
+    return { ...named, displayName: name }
   })
 }
 
@@ -124,7 +138,7 @@ const ANSWERED_BY: Record<ReadName, Answer> = {
   // The roster, in join order, off the Game's snapshot.
   'games.members': {
     table: 'members',
-    answer: (held) => (held as Member[]).map(memberRead),
+    answer: (held) => (held as Member[]).map((member, i) => memberRead(member, i)),
   },
   'scenes.current': { table: 'scene' },
   'salvageAreas.here': { table: 'salvageArea' },
@@ -137,6 +151,16 @@ const ANSWERED_BY: Record<ReadName, Answer> = {
     answer: (held) => (held as { running?: unknown } | null)?.running ?? null,
   },
   'mediator.amMediator': { table: 'mediator', answer: (held) => held !== null },
+  // The Group Initiative tracker rides the same record (r6 B4).
+  'mediator.initiative': {
+    table: 'mediator',
+    answer: (held) => (held as { initiative?: unknown } | null)?.initiative ?? null,
+  },
+  // The encounters run here (r8 B8), on the same record.
+  'mediator.ran': {
+    table: 'mediator',
+    answer: (held) => (held as { ran?: unknown } | null)?.ran ?? [],
+  },
   'seats.forGame': { table: 'seats' },
   'seats.solo': { table: 'seats', answer: soloSeat },
   'downtime.state': {
@@ -147,6 +171,8 @@ const ANSWERED_BY: Record<ReadName, Answer> = {
   'ops.sent': { table: 'sentProposals', answer: newest(20) },
   'changeLog.rolls': { table: 'rolls', answer: newest(30) },
   'changeLog.alerts': { table: 'alerts', answer: newest(20) },
+  // Deltas append, so a reader sorts by `ts` (`feed.model.ts`).
+  'changeLog.events': { table: 'events' },
   'crew.vitals': { table: 'crew' },
   'shelf.patternSharing': { table: 'sharing' },
 }
@@ -161,6 +187,8 @@ type Reads = {
   'mediator.npcs': { _id: string; body: Record<string, unknown> }[]
   'mediator.running': RunningEncounter | null
   'mediator.amMediator': boolean
+  'mediator.initiative': Initiative | null
+  'mediator.ran': string[]
   'seats.forGame': SeatRead[]
   'seats.solo': SoloSeatRead | null
   'downtime.state': DowntimeState | null
@@ -168,6 +196,7 @@ type Reads = {
   'ops.sent': SentProposal[]
   'changeLog.rolls': RollRow[]
   'changeLog.alerts': AlertRow[]
+  'changeLog.events': TableEvent[]
   'crew.vitals': CrewVitals | null
   'shelf.patternSharing': (PatternSharing & { appId: string })[]
 }

@@ -1,6 +1,6 @@
 /**
  * PlayTableMode — a phone's one focused Play screen (play.md §11, table mode):
- * what the TABLE toggle beside the Situation switch swaps the tabs for,
+ * what ⋯'s Table mode row (`situationRows`) swaps the tabs for,
  * while the screen stays awake (`useWakeLock`).
  *
  *  - **Roll the die**: one Full button, a d20 on the Core Mechanic
@@ -17,23 +17,14 @@
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
+import { heatDangerFrom, VitalGauge } from '../components/app'
 import type { CSSVarStyle } from '../components/index'
-import {
-  Box,
-  Button,
-  capsLabel,
-  EmptyState,
-  heatDangerFrom,
-  Toggle,
-  tokens,
-  VitalGauge,
-} from '../components/index'
+import { Box, Button, capsLabel, EmptyState, tokens } from '../components/index'
 import { dieForTable } from '../lib/dice'
 import { playCopy } from '../messages/play'
 import { recordPlayRoll } from './playRolls.model'
 import type { TableUnit } from './tableMode.model'
 import { TABLE_ROLL } from './tableMode.model'
-import { useTableMode } from './useTableMode'
 
 const ROOT = {
   display: 'flex',
@@ -82,15 +73,20 @@ const UNIT_NAME = {
 } satisfies CSSProperties
 const UNIT_NAME_CAPS = capsLabel({ size: 'caption' })
 
-/** Two gauges a line: a phone's width holds two Full gauges and their − / +. */
+/**
+ * Two gauges a line: a phone's width holds two Full gauges and their − / +.
+ * A gauge alone on its line (a mech's third) takes it whole (R68).
+ */
 const GAUGES = {
-  display: 'grid',
+  display: 'flex',
+  flexWrap: 'wrap',
   gap: tokens.space[12],
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   listStyle: 'none',
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
+
+const GAUGE = { flex: '1 1 40%', minWidth: 0 } satisfies CSSProperties
 
 /** The gauge's `--tone` pair per unit, as `PlayVital` sets it. */
 const TONES: Record<TableUnit['kind'], CSSVarStyle> = {
@@ -168,7 +164,7 @@ export function PlayTableMode({
               </p>
               <ul aria-label={playCopy('unitVitals', { name: unit.name })} style={GAUGES}>
                 {unit.vitals.map((v) => (
-                  <li key={v.label}>
+                  <li key={v.label} style={GAUGE}>
                     <VitalGauge
                       label={v.label}
                       value={v.value}
@@ -189,18 +185,5 @@ export function PlayTableMode({
         </section>
       )}
     </section>
-  )
-}
-
-/**
- * TABLE, beside the phone's Situation switch: table mode on or off, this
- * device's choice (`useTableMode`): a `Toggle`, the switch's Compact Size.
- */
-export function TableModeToggle() {
-  const [on, setOn] = useTableMode()
-  return (
-    <Toggle pressed={on} aria-label={playCopy('tableMode')} onClick={() => setOn(!on)}>
-      {playCopy('table')}
-    </Toggle>
   )
 }

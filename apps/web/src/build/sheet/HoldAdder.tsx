@@ -1,20 +1,13 @@
 /**
- * HoldAdder — a Hold container's own intake form (`StorageManifest`).
+ * HoldAdder — a hold's own intake form.
  */
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot } from 'game-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
-import { useId, useState } from 'react'
-import {
-  AdderBox,
-  AdderField,
-  Button,
-  Input,
-  Segmented,
-  SegmentedOption,
-  tokens,
-} from '../../components/index'
+import { useId, useRef, useState } from 'react'
+import { AdderBox, AdderField } from '../../components/app'
+import { Button, Input, Segmented, SegmentedOption, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 
 /** A slot cost is a non-negative INTEGER (`CargoLotSchema.units` is `.int()`). */
@@ -48,9 +41,9 @@ function coerceTl(raw: string): number {
  *   - `Cargo` (default) — a free-text SEALED unit lot (name + slot cost) via
  *     `makeUnitLot`, the original behaviour.
  *   - `Scrap` — an arbitrary bulk SCRAP lot at a chosen tech level (1–6) via
- *     `makeScrapLot`, so a crawler (or mech) can stow scrap by hand. This is
- *     the physical-cargo path; the crawler's abstract scrap POOL is not
- *     edited here.
+ *     `makeScrapLot`, so a crawler (or mech) can stow scrap by hand. Into a
+ *     mech it joins the row of its Tech Level; into the Storage Bay it goes
+ *     to the crawler's scrap pool, the one Scrap it has (r5 B3).
  * The verb is the side's intake word — 'Load' into the mech hold, 'Stow' into
  * the crawler Storage Bay.
  */
@@ -70,6 +63,9 @@ export function HoldAdder({
   const [amount, setAmount] = useState(1)
   const [tl, setTl] = useState(1)
 
+  const nameRef = useRef<HTMLInputElement>(null)
+  const amountRef = useRef<HTMLInputElement>(null)
+
   const canCommit = kind === 'scrap' ? amount > 0 : name.trim().length > 0
 
   function commit() {
@@ -81,6 +77,16 @@ export function HoldAdder({
     }
     setName('')
     setAmount(1)
+    // The next lot starts where this one did (r5 C4).
+    const first = kind === 'scrap' ? amountRef : nameRef
+    first.current?.focus()
+  }
+
+  // Enter in any of the form's fields loads, as Load does (r5 C4).
+  const onEnter = (e: { key: string; preventDefault: () => void }) => {
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+    commit()
   }
 
   return (
@@ -101,10 +107,9 @@ export function HoldAdder({
           value={name}
           aria-label={buildSheetCopy('newCargoName')}
           placeholder={buildSheetCopy('cargoName')}
+          ref={nameRef}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') commit()
-          }}
+          onKeyDown={onEnter}
           style={NAME_INPUT}
         />
       ) : (
@@ -120,6 +125,7 @@ export function HoldAdder({
             value={tl}
             aria-label={buildSheetCopy('scrapTechLevel')}
             onChange={(e) => setTl(coerceTl(e.target.value))}
+            onKeyDown={onEnter}
             style={NUMBER_INPUT}
           />
         </AdderField>
@@ -144,11 +150,14 @@ export function HoldAdder({
           // accepts a typed "1.5". Without truncating here the lot fails its Zod
           // parse on commit — and since the form clears itself immediately, the
           // cargo would just vanish. Coerce at the edge instead.
+          ref={amountRef}
           onChange={(e) => setAmount(coerceSlots(e.target.value))}
+          onKeyDown={onEnter}
           style={NUMBER_INPUT}
         />
       </AdderField>
       <Button
+        variant="pencil"
         size="compact"
         disabled={!canCommit}
         aria-label={buildSheetCopy('intoThe', { verb, kind, containerLabel })}

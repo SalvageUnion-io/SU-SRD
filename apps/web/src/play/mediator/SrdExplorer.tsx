@@ -45,10 +45,12 @@ import {
   Stat,
   TitledBox,
   tokens,
+  useDisclosure,
   useSearchCombobox,
 } from '../../components/index'
 import { buildChapters } from '../../lib/chapters'
 import { useGameData } from '../../lib/useGameData'
+import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
 
 const HIDE_CHOICES = { choices: true } as const
@@ -116,7 +118,7 @@ function SrdHome({
     onSubmit: (result) => {
       if (result.kind === 'entity') {
         onPickEntity(result.entity)
-      } else {
+      } else if (result.kind === 'schema') {
         onPickSchema(result.schemaId, result.title)
       }
     },
@@ -173,7 +175,6 @@ function SrdHome({
                 id={`srd-explorer-${chapter.id}`}
                 title={chapter.title}
                 tone={chapter.tone}
-                total={chapter.total}
                 rows={chapter.rows.map((row) => ({
                   ...row,
                   onOpen: () => onPickSchema(row.schemaId, row.label),
@@ -213,10 +214,23 @@ type SrdView =
 /** The dialog's frame around a view: `top` is what the view sets on the band. */
 type SrdFrame = (body: ReactNode, top?: ReactNode) => ReactNode
 
-export function SrdExplorer({ onClose }: { onClose?: () => void }) {
+export function SrdExplorer({
+  onClose,
+  fold,
+}: {
+  onClose?: () => void
+  /**
+   * A pane that folds, and the state it starts in: the Mediator's board keeps
+   * the Rules shut so Propose is on the first screen (r2 I2). Shut, the frame
+   * is its head alone.
+   */
+  fold?: 'open' | 'closed'
+}) {
   const { ready } = useGameData()
   const [view, setView] = useState<SrdView>({ kind: 'home' })
   const home = () => setView({ kind: 'home' })
+  const disclosure = useDisclosure(fold !== 'closed')
+  const shut = fold !== undefined && !disclosure.open
 
   // The open category, on the band beside the title: its × is the way back.
   const chip =
@@ -228,15 +242,27 @@ export function SrdExplorer({ onClose }: { onClose?: () => void }) {
 
   const frame: SrdFrame = (body, top) => (
     <TitledBox
-      title={mediatorCopy('reference')}
+      title={playCopy('rules')}
       tone="pilot"
       className="su-modal-panel"
       body="flush"
       chips={chip}
-      controls={onClose && <CloseButton onClick={onClose} />}
-      top={top}
+      controls={
+        fold ? (
+          <Button size="mini" {...disclosure.toggleProps}>
+            {disclosure.open ? mediatorCopy('rulesShut') : mediatorCopy('rulesOpen')}
+          </Button>
+        ) : (
+          onClose && <CloseButton onClick={onClose} />
+        )
+      }
+      top={shut ? undefined : top}
     >
-      <div style={FRAME_BODY}>{body}</div>
+      {shut ? null : (
+        <div id={fold ? disclosure.panelId : undefined} style={FRAME_BODY}>
+          {body}
+        </div>
+      )}
     </TitledBox>
   )
 

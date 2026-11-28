@@ -38,7 +38,7 @@ describe('EntityPageFrame', () => {
       '/guides/create-a-mech/',
       STARTER_SET_HREF,
     ])
-    expect(within(exits).getByRole('link', { name: 'Build a pilot' })).toBeDefined()
+    expect(within(exits).getByRole('link', { name: 'Build a Pilot' })).toBeDefined()
     expect(within(exits).getByRole('link', { name: /Next: Create a Mech/ })).toBeDefined()
     expect(within(exits).getByRole('link', { name: 'Or play the Starter Set' })).toBeDefined()
     // The exits follow the body.
@@ -97,6 +97,11 @@ describe('EntityPageFrame', () => {
     // Static markup the client entry makes live (`watchSharePage`): no island.
     expect(share.hasAttribute('data-share-page')).toBe(true)
     expect(share.closest('[data-island]')).toBeNull()
+    // A copy shows the word beside its Check (r4 F8): in the markup, shown by
+    // `data-copied`, and said aloud by the status, never twice.
+    const copied = share.querySelector('.su-share-page__copied')
+    expect(copied?.textContent).toBe('Copied')
+    expect(copied?.getAttribute('aria-hidden')).toBe('true')
   })
 
   test('a page with nothing to build still carries Share', () => {

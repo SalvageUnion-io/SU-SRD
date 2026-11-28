@@ -2,7 +2,7 @@
  * `PlayRollTable` — Play's roll table (the Tables column, a
  * Downtime step): the shared `RollTableInstrument` with this app's host around
  * it. The instrument's own anatomy is the library's test; this file clicks the
- * roll and follows the result path: the mark, the toast, the hand-off to the
+ * roll and follows the result path: the mark (never a toast, r6 A4), the hand-off to the
  * Game log, Copy, the picker trigger, and the two-roll columns variant.
  *
  * **The die.** The host takes its dice from `lib/dice`, so that module is
@@ -132,7 +132,7 @@ const COLUMNS_TABLE = {
 // ---------------------------------------------------------------------------
 
 describe('rolling a standard table', () => {
-  test('a roll marks exactly one row and raises its toast', async () => {
+  test('a roll marks exactly one row, and no toast repeats it (r6 A4)', async () => {
     queued = [7]
     render(
       <>
@@ -148,10 +148,10 @@ describe('rolling a standard table', () => {
     expect(marked()).toHaveLength(1)
     expect(marked()[0]?.textContent).toContain('Tough Choice')
     expect(marked()[0]?.textContent).toContain('Rolled 7')
-    expect(await screen.findByText('Core Mechanic: rolled 7 (2–10)')).toBeTruthy()
+    expect(screen.queryByText('Core Mechanic: rolled 7 (2–10)')).toBeNull()
   })
 
-  test('a roll on no row is still a roll: No effect, reported and toasted', async () => {
+  test('a roll on no row is still a roll: No effect, reported', async () => {
     const reported: Array<[string, string]> = []
     queued = [5]
     render(
@@ -167,7 +167,7 @@ describe('rolling a standard table', () => {
     await roll()
     expect(marked()).toHaveLength(0)
     expect(reported).toEqual([['No effect', '']])
-    expect(await screen.findByText('Gapped: rolled 5')).toBeTruthy()
+    expect(screen.queryByText('Gapped: rolled 5')).toBeNull()
   })
 
   test('the table asks for its own die by name', async () => {
@@ -285,7 +285,7 @@ describe('the columns variant', () => {
     expect(marked()[0]?.textContent).toBe('9-12 entry 3')
     expect(document.querySelector('th[data-rolled="true"]')?.textContent).toBe('9–12')
     expect(reported).toEqual([['9-12 entry 3', '3']])
-    expect(await screen.findByText('NPC Generator: rolled 3 (column 9–12)')).toBeTruthy()
+    expect(screen.queryByText('NPC Generator: rolled 3 (column 9–12)')).toBeNull()
   })
 
   test('the column is chosen by range, not by the raw number', async () => {
@@ -320,5 +320,42 @@ describe('the columns variant', () => {
     }
     // 5 columns x 20 rows.
     expect(document.querySelectorAll('tbody td.su-roll__cell')).toHaveLength(100)
+  })
+})
+
+// MD6-08: an opened table stayed whole after a roll, pushing the encounter's notes off screen.
+describe('on Mediate (r6 B6, B10)', () => {
+  test('rolled, the table folds to the row it landed on; Whole table opens it again', async () => {
+    const { FoldRolledTables } = await import('../privateRolls.model')
+    queued = [7, 15]
+    render(
+      <FoldRolledTables.Provider value={true}>
+        <PlayRollTable table={RANGE_TABLE} name="Core Mechanic" />
+      </FoldRolledTables.Provider>
+    )
+    const rows = () => document.querySelectorAll('.su-roll__row')
+    expect(rows()).toHaveLength(4)
+    await roll()
+    expect(rows()).toHaveLength(1)
+    expect(rows()[0]?.textContent).toContain('Tough Choice')
+    const whole = screen.getByRole('button', { name: 'Whole table' })
+    expect(whole.getAttribute('aria-expanded')).toBe('false')
+    await act(async () => {
+      fireEvent.click(whole)
+    })
+    expect(rows()).toHaveLength(4)
+    await roll()
+    expect(rows()).toHaveLength(1)
+    expect(rows()[0]?.textContent).toContain('Success')
+  })
+
+  test('with Private rolls on, the roll reads Roll privately', async () => {
+    const { PrivateRolls } = await import('../privateRolls.model')
+    render(
+      <PrivateRolls.Provider value={true}>
+        <PlayRollTable table={RANGE_TABLE} name="Core Mechanic" />
+      </PrivateRolls.Provider>
+    )
+    expect(screen.getByRole('button', { name: 'Roll privately on Core Mechanic' })).toBeTruthy()
   })
 })

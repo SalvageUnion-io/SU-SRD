@@ -160,6 +160,48 @@ describe('Search API', () => {
     })
   })
 
+  describe('finding a rule without its name', () => {
+    const first = (query: string) => search({ query, limit: 5 })[0]
+
+    test('a question finds the guide it asks about', () => {
+      expect(first('how does salvaging work')?.entityName).toBe('Salvaging')
+    })
+
+    test('another form of a word finds its rule', () => {
+      const names = search({ query: 'overheating', limit: 5 }).map((r) => r.entityName)
+      expect(names).toContain('Overheat')
+    })
+
+    test('a stat abbreviation finds the stat', () => {
+      expect(first('sp')?.entityName).toBe('Structure points')
+      expect(first('ap')?.entityName).toBe('Ability points')
+      expect(first('tp')?.entityName).toBe('Crawler Downtime')
+    })
+
+    test('a full question finds rules by its key words (r2 H7)', () => {
+      const names = search({ query: 'what happens when my mech hits 0 sp', limit: 10 }).map(
+        (r) => r.entityName
+      )
+      expect(names).toContain('Mech Damage')
+    })
+
+    test('a name without its punctuation', () => {
+      expect(first('biotitan')?.entityName).toBe('Bio-titan')
+    })
+
+    test("a guide's step and a roll table's result are searched", () => {
+      const heat = search({ query: 'venting heat' }).find((r) => r.entityName === 'Heat')
+      expect(heat?.matchedFields).toContain('rules')
+      expect(first('nat 20')?.entityName).toBe('Core Mechanic')
+      expect(search({ query: 'nailed it' }).map((r) => r.entityName)).toContain('Core Mechanic')
+    })
+
+    test("prose-only matches put the rules' own kinds first", () => {
+      const kinds = search({ query: 'turn order', limit: 3 }).map((r) => r.schemaName)
+      expect(kinds[0]).toBe('roll-tables')
+    })
+  })
+
   describe('searchIn()', () => {
     test('should search within specific schema', () => {
       const systems = searchIn('systems', 'laser')
@@ -271,5 +313,40 @@ describe('Search API', () => {
       expect(defined(fresh[0]).entityName).toBe(defined(cached[0]).entityName)
       expect(defined(fresh[0]).entityId).toBe(defined(cached[0]).entityId)
     })
+  })
+})
+
+describe('the thing named, however it is typed (r4 F1)', () => {
+  test("a trait with its number finds the trait: 'hot 3'", () => {
+    expect(search({ query: 'hot 3', limit: 3 })[0]).toMatchObject({
+      entityName: 'Hot',
+      schemaName: 'traits',
+    })
+  })
+
+  test('a trait as printed, its number in brackets, finds the trait (r5 E1)', () => {
+    for (const query of ['Hot (3)', 'hot(3)']) {
+      expect(search({ query, limit: 3 })[0]).toMatchObject({
+        entityName: 'Hot',
+        schemaName: 'traits',
+      })
+    }
+  })
+
+  test("an ability's own roll table ranks under the ability", () => {
+    const found = search({ query: 'system and software hacker' })
+      .filter((result) => result.entityName === 'System and Software Hacker')
+      .map((result) => result.schemaName)
+    expect(found.indexOf('abilities')).toBeLessThan(found.indexOf('roll-tables'))
+    expect(found).toContain('roll-tables')
+  })
+})
+
+describe('a question finds the rules term it holds, as the compact index does (r7 E1)', () => {
+  test('the term leads the phrase it is in, the rarer first', () => {
+    const names = search({ query: 'what happens when my mech overheats' }).map(
+      (r) => `${r.entityName} (${r.schemaName})`
+    )
+    expect(names.slice(0, 2)).toEqual(['Overheat (traits)', 'Mech (keywords)'])
   })
 })

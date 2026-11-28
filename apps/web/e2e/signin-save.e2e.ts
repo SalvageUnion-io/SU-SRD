@@ -8,9 +8,9 @@ test.use({ account: 'anonymous' })
 /**
  * Sign in → build → save (ADR-034 decision 1, as amended).
  *
- * Signed out, the app is read-only: a visitor who opens a wizard is asked to sign
- * in instead, so there is never unsaved anonymous work to hand off. This pins
- * both halves — the refusal, and that what is built after signing in is
+ * Signed out, nothing is saved: a guided wizard runs as a session draft and
+ * asks for the account at Save, and a blank sheet (written at once) asks
+ * first. This pins both halves — the refusal, and that what is built after signing in is
  * durable — and it is a consumer of the Worker's test sign-in
  * (`POST /auth/test-sign-in`). Without the specs that sign in, that route is an
  * auth surface with no consumer, so fix this file rather than delete it.
@@ -46,13 +46,13 @@ test('a signed-out visitor is asked to sign in, and what they build then is save
   // spec skipped everywhere including nightly while reading as coverage.
   requireSeam(await seamIsPresent(page), testInfo)
 
-  // Signed out, the wizard is a sign-in panel: nothing can be built.
-  await openApp(page, '/pilots/new')
+  // Signed out, a blank sheet is a sign-in panel: nothing is written.
+  await openApp(page, '/pilots/new?mode=blank')
   await expect(page.getByRole('heading', { name: 'Sign in to build a pilot' })).toBeVisible()
   await expect(page.getByRole('button', { name: /guided/i })).toHaveCount(0)
 
   await signInFresh(page)
-  await buildPilot(page, 'Saved By Signing In', 'Keeper')
+  await buildPilot(page, 'Keeper', 'Saved By Signing In')
   await expect(page.getByText('Saved By Signing In').first()).toBeVisible({ timeout: 30_000 })
 
   // Reload to prove it is DURABLE — on the server, not merely in this tab:

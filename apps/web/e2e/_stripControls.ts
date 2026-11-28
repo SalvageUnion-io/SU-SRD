@@ -3,8 +3,8 @@ import type { Finding } from './_findings'
 import { fromFaults } from './_findings'
 
 /**
- * Nothing beside or under a strip (hard rule R6; `chips-and-actions.md` C1,
- * C8; EDL E8) as the rendered page draws it. In every entity list item, every
+ * Nothing beside or under a strip (C8,
+ * C8; ruleset §1.5) as the rendered page draws it. In every entity list item, every
  * control belongs to an entity and sits in that entity's chip group
  * (`[data-chip-group]`, `Chips`): its state, uses and actions inlined last,
  * after the cost. `findStripControls` returns one per control that does
@@ -32,6 +32,11 @@ import { fromFaults } from './_findings'
  * Mention in an entity's text (a name the rules text links, `InlineRef`) is
  * its prose, not a control. A nested entity's controls are that entity's,
  * held to its own chip group.
+ *
+ * The one thing that opens under a strip (ruleset §1.5): a prep list row's
+ * card (`[data-prep-card]`), its entity's own card, read-only, opened and shut
+ * by the row's name. What the card holds is the card's, never the strip's; a
+ * control beside that card in the item is still found.
  */
 export type StripControlSelectors = {
   /** A list item: an `li`, an ARIA list item or option. */
@@ -62,6 +67,8 @@ export type StripControlSelectors = {
   tokenGroup: string
   /** A sectioning wrapper: a slot ends at it, so the sibling scan never climbs past it. */
   section: string
+  /** A prep list row's open card (ruleset §1.5): its entity's card under it, read-only. */
+  prepCard: string
 }
 
 export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
@@ -90,6 +97,7 @@ export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
   tokenGroup: '.su-mini-group',
   section:
     'section, article, aside, nav, main, header, footer, form, dialog, fieldset, [role="region"], [role="tabpanel"], [role="dialog"]',
+  prepCard: '[data-prep-card]',
 }
 
 /**
@@ -131,6 +139,7 @@ export function scanStripControls(a: StripControlSelectors): string[] {
         control.matches(a.check) ||
         control.matches(a.mention) ||
         control.closest(a.body) !== null ||
+        control.closest(a.prepCard) !== null ||
         control.querySelector(a.head) !== null
       ) {
         continue
@@ -167,7 +176,7 @@ export function scanStripControls(a: StripControlSelectors): string[] {
   for (const entity of document.querySelectorAll(a.entity)) {
     if (!visible(entity)) continue
     // A nested entity's place is its parent's strip, held above (a Card's too).
-    if (entity.parentElement?.closest(`${a.entity}, ${a.card}`)) continue
+    if (entity.parentElement?.closest(`${a.entity}, ${a.card}, ${a.prepCard}`)) continue
     // Its list item; in a slot, the entity with every wrapper that holds it alone.
     let unit = entity.closest(a.item)
     if (!unit) {

@@ -5,6 +5,7 @@
  */
 import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
+import { search } from 'salvageunion-reference'
 import { schemaPluralLabel } from '../../../lib/schemaLabels'
 import { must } from '../../__tests__/must'
 import { useSearchCombobox } from '../useSearchCombobox'
@@ -50,23 +51,56 @@ describe('useSearchCombobox', () => {
     )
   })
 
-  test('moreRow: a full list ends in the row for what it left out, by kind', async () => {
-    const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {}, moreRow: true }))
+  test('countAll: "See all N results" follows the list, and opens the page of every result (r8 G2)', async () => {
+    const onSubmit = mock(() => {})
+    const queries: string[] = []
+    const { result } = renderHook(() =>
+      useSearchCombobox({
+        onSubmit,
+        onSubmitQuery: (q) => queries.push(q),
+        countAll: () => 42,
+      })
+    )
     await typeAndSettle(result, 'laser')
 
-    expect(result.current.results.length).toBeLessThanOrEqual(10)
+    expect(result.current.results).toHaveLength(11)
     const last = must(result.current.results.at(-1))
     expect(last.kind).toBe('more')
-    if (last.kind !== 'more') return
-    expect(last.title).toMatch(/^\d+ more /)
-    expect(last.title).toContain(schemaPluralLabel(last.schemaId))
-    expect(last.query).toBe('laser')
+    expect(last.title).toBe('See all 42 results')
+
+    act(() => result.current.submit(last))
+    // The page of every result, never a row of it.
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(queries).toEqual(['laser'])
   })
 
-  test('moreRow: a list with room for every match has no such row', async () => {
-    const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {}, moreRow: true }))
+  test('countAll: a list holding every match has no such row', async () => {
+    const { result } = renderHook(() =>
+      useSearchCombobox({ onSubmit: () => {}, countAll: () => 1 })
+    )
     await typeAndSettle(result, 'mining laser')
     expect(result.current.results.some((r) => r.kind === 'more')).toBe(false)
+  })
+
+  test('one result listed: bare Enter opens it, not the page of every result (r8 G2)', async () => {
+    const picked: string[] = []
+    const queries: string[] = []
+    const { result } = renderHook(() =>
+      useSearchCombobox({
+        onSubmit: (r) => picked.push(r.id),
+        onSubmitQuery: (q) => queries.push(q),
+        countAll: () => 19,
+        searchFn: (options) => search(options).slice(0, 1),
+      })
+    )
+    await typeAndSettle(result, 'mule')
+    expect(result.current.results.map((r) => r.kind)).toEqual(['entity', 'more'])
+    const preventDefault = () => {}
+    act(() => {
+      result.current.handleKeyDown({ key: 'Enter', preventDefault })
+    })
+    expect(picked).toEqual([must(result.current.results[0]).id])
+    expect(queries).toEqual([])
   })
 
   test('multi-token queries match ("mining laser")', async () => {
@@ -119,12 +153,48 @@ describe('useSearchCombobox', () => {
     expect(picked).toHaveLength(2)
   })
 
-  test('results stay hidden and announcement reads loading while not ready', async () => {
+  test('with onSubmitQuery, bare Enter hands it the query; a highlighted row still opens (r5 E3)', async () => {
+    const picked: string[] = []
+    const queries: string[] = []
+    const { result } = renderHook(() =>
+      useSearchCombobox({
+        onSubmit: (r) => picked.push(r.id),
+        onSubmitQuery: (q) => queries.push(q),
+      })
+    )
+    await typeAndSettle(result, ' laser ')
+    const preventDefault = () => {}
+    act(() => {
+      result.current.handleKeyDown({ key: 'Enter', preventDefault })
+    })
+    expect(queries).toEqual(['laser'])
+    expect(picked).toEqual([])
+
+    act(() => {
+      result.current.handleKeyDown({ key: 'ArrowDown', preventDefault })
+    })
+    act(() => {
+      result.current.handleKeyDown({ key: 'Enter', preventDefault })
+    })
+    expect(picked).toEqual([must(result.current.results[0]).id])
+    expect(queries).toHaveLength(1)
+  })
+
+  test('the count announced is the rows listed, then the page of every result (r8 G2)', async () => {
+    const { result } = renderHook(() =>
+      useSearchCombobox({ onSubmit: () => {}, countAll: () => 42 })
+    )
+    await typeAndSettle(result, 'laser')
+    expect(must(result.current.results.at(-1)).kind).toBe('more')
+    expect(result.current.announcement).toBe('10 results found, See all 42 results')
+  })
+
+  test('results stay hidden and announcement reads Searching while not ready (r4 F2)', async () => {
     const { result } = renderHook(() => useSearchCombobox({ ready: false, onSubmit: () => {} }))
     await typeAndSettle(result, 'laser')
 
     expect(result.current.results).toEqual([])
-    expect(result.current.announcement).toBe('Loading reference data…')
+    expect(result.current.announcement).toBe('Searching…')
   })
 
   test('flipping ready re-runs the pending query', async () => {

@@ -6,12 +6,15 @@
  *
  * ADR-007: Eject is behind a confirm, and so is assigning an unassigned spare.
  * A Mini one a line in the list (ruleset §1.3; `playLineModel`, Mount being
- * no reference entity), its controls in its chip group (R6); not on hand, the
+ * no reference entity), its controls in its chip group (C8); not on hand, the
  * need is its chip.
  */
 
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import { useState } from 'react'
-import { Button, ConfirmDialog, Entity, HeaderMenu } from '../components/index'
+import { ConfirmDialog } from '../components/app'
+import { Button, Entity, HeaderMenu } from '../components/index'
+import { newMechForPilotHref } from '../lib/wizard/fromGame'
 import { playCopy } from '../messages/play'
 import { AssignAndBoardConfirm } from './AssignAndBoardConfirm'
 import type { BoardOption } from './boardMenu.model'
@@ -55,12 +58,23 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
   ) : (
     <>
       {main === undefined ? (
-        // Said, never a disabled Board with a hover title a phone can't read.
-        <NeedChip need={playCopy('noMechToBoard')} />
+        <>
+          {/* Said, never a disabled Board with a hover title a phone can't read. */}
+          <NeedChip need={playCopy('noMechToBoard')} />
+          {/* Replacing a lost Mech is one path: the Pilot and Game carried, back here after (r5 B17). */}
+          {!off && (
+            <Button
+              size="mini"
+              variant="primary"
+              href={newMechForPilotHref(play.target.pilotId, play.target.gameId, true)}
+            >
+              {playCopy('buildANewMech')}
+            </Button>
+          )}
+        </>
       ) : (
-        // The outlined Button reads on the Mini's pill (R19),
-        // beside the Use and Eject a filled one draws.
-        <Button size="mini" onClick={() => choose(main)} disabled={off}>
+        // Boarding is what the line is for: rust, as every Use (§3.13).
+        <Button size="mini" variant="primary" onClick={() => choose(main)} disabled={off}>
           {main.state === 'spare'
             ? playCopy('assignAndBoard2', { name: main.name })
             : playCopy('board2', { name: main.name })}
@@ -71,7 +85,8 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
           variant="button"
           disabled={off}
           label={playCopy('boardChooseAMech')}
-          trigger="Board"
+          // Its own words: Board is the rust act beside it and on a parked Mech (§3.14).
+          trigger={playCopy('chooseWhichMech')}
           sections={boardMenuSections(play.mechs, choose)}
         />
       )}
@@ -84,10 +99,10 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         size="mini"
         context="play"
         model={MODEL}
-        // Getting in and out of a mech wears the mech's tone,
-        // faded while there is nothing it can do.
+        // Getting in and out of a mech wears the mech's tone, faded while
+        // there is nothing it can do (with no Mech, it can build one).
         tint="mech"
-        dim={away || off || (!boarded && main === undefined)}
+        dim={away || off}
         // Which mech is the Situation switch's to say ("Boarded · Buzzard"):
         // the line carries only its controls.
         {...(away ? { state: <NeedChip need={need} /> } : { controls })}
@@ -97,7 +112,10 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         onOpenChange={setEjecting}
         tone="danger"
         title={playCopy('eject2')}
-        body={`${play.pilot?.name ?? 'Your Pilot'} leaves ${boardedName ?? 'the Mech'} at once, wherever it is. The Mech stays where it stands.`}
+        body={playCopy('ejectBody', {
+          pilot: play.pilot ? pilotCallsign(play.pilot) : playCopy('yourPilotLeads'),
+          mech: boardedName ?? playCopy('theMech'),
+        })}
         confirmLabel={playCopy('eject')}
         onConfirm={() => {
           play.seat.eject()

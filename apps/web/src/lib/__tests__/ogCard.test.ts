@@ -59,8 +59,8 @@ describe('ogMetaFor', () => {
   if (!scrapper) throw new Error('no Scrapper')
   const meta = ogMetaFor(ogCardFor('chassis', 'scrapper', scrapper))
 
-  it('titles the preview with the name', () => {
-    expect(meta.ogTitle).toBe('Scrapper')
+  it('titles the preview with the name, its kind and the game (RR7-15)', () => {
+    expect(meta.ogTitle).toBe('Scrapper · Salvage Union chassis')
   })
 
   it('describes it by its kind and cite, never the body', () => {
@@ -71,10 +71,12 @@ describe('ogMetaFor', () => {
     expect(meta.themeColor).toBe(tokens.color.mech)
   })
 
-  it('titles a lower-case glossary name as the book prints it', () => {
-    const bioTitan = SalvageUnionReference.Keywords.getByName('bio-titan')
+  it('titles a glossary name as the glossary spells it', () => {
+    const bioTitan = SalvageUnionReference.Keywords.getByName('Bio-titan')
     if (!bioTitan) throw new Error('no bio-titan keyword')
-    expect(ogMetaFor(ogCardFor('keywords', 'bio-titan', bioTitan)).ogTitle).toBe('Bio-Titan')
+    expect(ogMetaFor(ogCardFor('keywords', 'bio-titan', bioTitan)).ogTitle).toBe(
+      'Bio-titan · Salvage Union keyword'
+    )
   })
 })
 

@@ -31,10 +31,12 @@ import { isBaseAdvancedClass, isCoreClass, SalvageUnionReference } from 'salvage
 import type { AdvancementOption } from 'salvageunion-reference/rules'
 import {
   advancementOptionsFor,
+  enrichPilotSnapshot,
   liveAdvancementDataset,
   originsForHybrid,
   resolveAdvancementTrees,
 } from 'salvageunion-reference/rules'
+import { libRulesCopy } from '../../messages/lib-rules'
 
 type ClassPathGroupKind = 'reachable' | 'core' | 'off-ring'
 
@@ -66,6 +68,35 @@ export type ClassPathConsequence = {
   needsOrigin: boolean
   /** The Core classes to offer when `needsOrigin`. */
   originChoices: readonly string[]
+  /**
+   * What the book asks before an Advanced or Hybrid class is taken (Core Book
+   * p.23), and what of it this pilot has not met. Said beside the pick and
+   * confirmed once on it (`CLASS_PREREQUISITE`), never a gate. Empty for a
+   * Core class, which asks nothing.
+   */
+  needs: readonly string[]
+  missing: readonly string[]
+}
+
+/** The Core abilities an Advanced or Hybrid class asks for, and a whole tree's worth of one. */
+const CORE_ABILITIES_NEEDED = 6
+const TREE_ABILITIES = 3
+
+/** What of the Advanced / Hybrid bar the abilities do not meet, as the rules check counts it. */
+function advancedBarMissing(abilities: readonly string[]): string[] {
+  const core = enrichPilotSnapshot({ abilities: [...abilities] }).abilities.filter(
+    (a) => a.tier === 'core'
+  )
+  const perTree = new Map<string, number>()
+  for (const a of core) {
+    if (a.tree !== undefined) perTree.set(a.tree, (perTree.get(a.tree) ?? 0) + 1)
+  }
+  const missing: string[] = []
+  if (core.length < CORE_ABILITIES_NEEDED)
+    missing.push(libRulesCopy('coreAbilitiesOfSix', { count: core.length }))
+  if (![...perTree.values()].some((n) => n >= TREE_ABILITIES))
+    missing.push(libRulesCopy('noCoreTreeComplete'))
+  return missing
 }
 
 /**
@@ -106,7 +137,8 @@ export function classPathGroups(
 
   groups.push({
     kind: 'core',
-    label: reachableNames.size > 0 ? 'Re-home to a Core Class' : 'Core Classes',
+    label:
+      reachableNames.size > 0 ? libRulesCopy('rehomeToACoreClass') : libRulesCopy('coreClasses'),
     options: allClasses
       .filter(isCoreClass)
       .map((cls) => ({ cls, current: cls.id === currentClassRef })),
@@ -116,10 +148,10 @@ export function classPathGroups(
   if (offRing.length > 0) {
     groups.push({
       kind: 'off-ring',
-      label: reachableNames.size > 0 ? "Not on this pilot's ring" : 'Advanced / Hybrid',
+      label: reachableNames.size > 0 ? libRulesCopy('notOnThisPilotsRing') : 'Advanced / Hybrid',
       options: offRing.map((cls) => ({
         cls,
-        note: 'asks origin',
+        note: libRulesCopy('asksOrigin'),
         current: cls.id === currentClassRef,
       })),
     })
@@ -139,7 +171,9 @@ export function classPathGroups(
 export function classPathConsequence(
   allClasses: readonly RefClass[],
   currentClassRef: string,
-  pendingRef: string
+  pendingRef: string,
+  /** The pilot's abilities, by slug: what `missing` is counted from. */
+  abilities: readonly string[] = []
 ): ClassPathConsequence | undefined {
   const data = liveAdvancementDataset()
   const current = allClasses.find((c) => c.id === currentClassRef)
@@ -151,9 +185,11 @@ export function classPathConsequence(
       title: pending.name,
       gain: resolveAdvancementTrees(data, undefined, pending.name).open,
       lose: [],
-      keep: ['Every ability already learned'],
+      keep: [libRulesCopy('everyAbilityAlreadyLearned')],
       needsOrigin: false,
       originChoices: [],
+      needs: [],
+      missing: [],
     }
   }
 
@@ -177,7 +213,7 @@ export function classPathConsequence(
 
   const lose: string[] = [...foreclosed.map((n) => `${n} — forever`)]
   if (trees.sealed.length > 0) {
-    lose.push(`${trees.sealed.join(' and ')} seal — no new picks`)
+    lose.push(libRulesCopy('sealNoNewPicks', { trees: trees.sealed.join(' and ') }))
   }
 
   return {
@@ -185,12 +221,14 @@ export function classPathConsequence(
     gain: [pending.name, ...gained],
     lose,
     keep: [
-      'Every ability already learned, permanently',
-      ...(gate === undefined ? [] : [`${gate} stays open`]),
+      libRulesCopy('everyAbilityAlreadyLearnedPermanently'),
+      ...(gate === undefined ? [] : [libRulesCopy('staysOpen', { gate })]),
     ],
     impliedOrigin,
     needsOrigin: impliedOrigin === undefined,
     originChoices: candidates,
+    needs: [libRulesCopy('sixCoreAbilitiesOneTree')],
+    missing: advancedBarMissing(abilities),
   }
 }
 

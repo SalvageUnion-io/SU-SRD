@@ -12,7 +12,20 @@ export const AUTH_PATHS = {
   testSignIn: '/auth/test-sign-in',
   /** `POST`: deletes everything the account holds, then its sign-in and every session. */
   deleteAccount: '/auth/delete-account',
+  /**
+   * The Discord Activity's sign-in (`src/activity/`): `GET` answers the
+   * application's client id; `POST {code}` trades the code the Embedded App
+   * SDK's `authorize` gave for a session and the access token its
+   * `authenticate` takes (`ActivityToken`).
+   */
+  activity: '/auth/activity',
 } as const
+
+/** What `activity` answers to a `POST`. */
+export type ActivityToken = {
+  /** Discord's access token, for the SDK's `authenticate`. */
+  accessToken: string
+}
 
 export const AUTH_PREFIX = '/auth/'
 

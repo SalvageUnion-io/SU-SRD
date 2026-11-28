@@ -260,3 +260,26 @@ describe('Content — section grouping', () => {
     expect(screen.getByText('Tech Level')).toBeTruthy()
   })
 })
+
+describe('Content — "See rules for X" (r5 C11)', () => {
+  test('names the glossary entry it points to as a Mention of it', () => {
+    cleanup()
+    render(
+      <Content
+        body={blocks({
+          type: 'paragraph',
+          value: 'This chassis is made of living Bio-Titan flesh. See rules for Bio-Chassis.',
+        })}
+      />
+    )
+    // A Mention of the Bio-chassis keyword: it links, opens or Peeks as its surface does.
+    const mention = screen.getByText('Bio-Chassis')
+    expect(mention.getAttribute('data-peek')).toMatch(/^keywords:/)
+  })
+
+  test('a name no glossary carries stays plain words', () => {
+    cleanup()
+    render(<Content body={blocks({ type: 'paragraph', value: 'See rules for Nothing Here.' })} />)
+    expect(screen.getByText('See rules for Nothing Here.')).toBeTruthy()
+  })
+})

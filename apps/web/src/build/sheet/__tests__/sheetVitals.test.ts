@@ -7,7 +7,7 @@
 import { describe, expect, test } from 'bun:test'
 import { STAT_LABELS } from 'salvageunion-reference'
 import { SHEET_VITAL_WORDS } from '../../../../e2e/_sheetGrammar'
-import { SHEET_VITALS, vitalWords } from '../sheetVitals.model'
+import { SHEET_VITALS, vitalName, vitalWords } from '../sheetVitals.model'
 
 describe('the one vitals map', () => {
   test('the e2e copy is the map', () => {
@@ -25,5 +25,10 @@ describe('the one vitals map', () => {
 
   test('a gauge stamps the short label and captions the full words', () => {
     expect(vitalWords('sp')).toEqual({ label: 'SP', subLabel: 'Structure Points' })
+  })
+
+  test("Heat's controls move the Heat, never its Capacity (r8 E10)", () => {
+    expect(vitalName('heat')).toBe('Heat')
+    expect(vitalName('sp')).toBe('Structure Points')
   })
 })

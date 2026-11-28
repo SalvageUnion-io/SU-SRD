@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 5 of 20: Tabs, the condensed-caps label,
+ * The package stylesheet: Tabs, the condensed-caps label,
  * overlays, the entity-searcher picker and Segmented. `../index.css` imports the parts
  * in cascade order.
  */
@@ -303,9 +303,11 @@
   gap: var(--space-6);
 }
 
+/* Browsing, the list is the item grid (`.su-grid`): 16rem lines, the last row filled. */
 .su-searcher--browse .su-searcher__list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  --su-grid-gap: var(--space-6);
+  --su-grid-min: 16rem;
+  flex-direction: row;
 }
 
 /* One line per entity: the Mini filling it, and once chosen its label.
@@ -339,8 +341,58 @@
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
-.su-searcher__item.su-entity-mini-line > .su-badge-stamp {
+/* The keyboard's highlight (r4 E4, r8 E7): the one row Enter acts on, a
+   solid ink bar at the row's start, in the list's padding, so it never reads
+   as the chosen ring or the opened Page's thin one. */
+.su-searcher__item[data-cursor] {
+  position: relative;
+}
+
+.su-searcher__item[data-cursor]::before {
+  background: var(--color-ink);
+  content: '';
+  inset-block: 0;
+  inset-inline-start: calc(-1 * var(--space-12));
+  position: absolute;
+  width: var(--space-6);
+}
+
+/* What a search names in the other picker (r8 E7): a line above the toolbar. */
+.su-searcher__elsewhere {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin: 0;
+  padding: var(--space-8) var(--space-16) 0;
+}
+
+/* A wide row's facts (r4 E6): a line of running text under the Mini, so the
+   name keeps the row's width. */
+.su-searcher__item.su-entity-mini-line:has(> .su-searcher__facts) {
+  flex-wrap: wrap;
+}
+
+.su-searcher__facts {
+  color: var(--color-wk-muted);
+  display: flex;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  font-size: var(--text-caption);
+  gap: var(--space-2) var(--space-12);
+  padding: 0 var(--space-6) var(--space-2);
+}
+
+.su-searcher__item.su-entity-mini-line > .su-badge-stamp,
+.su-searcher__item.su-entity-mini-line > .su-stat-cell,
+.su-searcher__item.su-entity-mini-line > .su-searcher__add {
   align-self: center;
+  flex: none;
+}
+
+/* The + ends its line, tagged or not (r8 E7). */
+.su-searcher__item.su-entity-mini-line > .su-searcher__add {
+  margin-inline-start: auto;
 }
 
 .su-searcher__item[data-focused][data-selected] {
@@ -492,7 +544,7 @@
 }
 
 /* A row of many options (a filter's chips, Play's effects) wraps onto more
-   lines inside its frame rather than scrolling them out of sight (EDL E18). */
+   lines inside its frame rather than scrolling them out of sight (C5). */
 .su-seg[data-wrap] {
   flex-wrap: wrap;
   overflow-x: visible;

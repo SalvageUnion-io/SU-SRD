@@ -126,7 +126,7 @@ function menuDoor(): HTMLElement {
   lane.setAttribute('data-chip-class', 'menu')
   lane.style.display = 'contents'
   const door = document.createElement('a')
-  door.href = '/play/games/g/mediate'
+  door.href = '/games/g/mediate'
   door.textContent = 'Mediate'
   door.getBoundingClientRect = () => ({ width: 80 }) as DOMRect
   lane.append(door)

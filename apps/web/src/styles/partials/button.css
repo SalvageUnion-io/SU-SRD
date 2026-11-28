@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 2 of 20: Button: its variants and size ladder.
+ * The package stylesheet: Button: its variants and size ladder.
  * `../index.css` imports the parts in cascade order.
  */
 
@@ -80,6 +80,15 @@
   border-color: var(--color-rust-hi); /* design-tokens-ignore(rust-allowlist): Button's rust */
 }
 
+/* On a band rust wears an ink keyline (ruleset §3.13): no band's colour
+   reaches 3 : 1 against rust, and ink does against every one. A Mini's
+   strip control wears its own in `entity-forms.css`. */
+/* A section's strip is a band's colour too: a rust control on it keys the same. */
+:is(.su-chapter-band, .su-play-bar, .su-rule-head, .su-open thead, .su-ledger)
+.su-btn--primary:not(:disabled) {
+  border-color: var(--color-ink);
+}
+
 /* Filled ink: the close stamp on a lifted plate (the detail dialog, the /about
    lightbox) and every other ink-plate control. Paper text; the fill lifts to
    the second ink step under the pointer. */
@@ -94,13 +103,13 @@
 }
 
 /* Frameless: an icon control in a header that already frames it (a dialog's
-   or the nav drawer's close ×). Ink at 60%, full ink on a faint wash under the
+   or the nav drawer’s close ×). Ink at 75% (4.5:1 for its words), full ink on a faint wash under the
    pointer. The border stays, transparent, so a quiet button is exactly as big
    as a framed one at the same rung. */
 .su-btn--quiet {
   background-color: transparent;
   border-color: transparent;
-  color: var(--color-ink-60);
+  color: var(--color-ink-75);
 }
 
 .su-btn--quiet:hover:not(:disabled) {

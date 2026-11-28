@@ -1,5 +1,6 @@
 import { Button, cn } from '../../components/index'
 import { signIn } from '../../lib/auth/session'
+import { hereInApp } from '../../lib/hereInApp'
 import { buildAccountCopy } from '../../messages/build-account'
 import { useSync } from '../../replica/syncContext'
 import { useSignOut } from './useSignOut'
@@ -26,21 +27,30 @@ type SignInControlProps = {
    * Unset, the app's front door.
    */
   redirectTo?: string
+  /**
+   * Come back to the page the press was on, read at the press: the header's
+   * Sign in, which is on every page, a shared sheet's among them (r3 E3).
+   */
+  returnHere?: boolean
   /** The button's words. Defaults to "Sign in with Discord". */
   label?: string
   /** `full` for a page's primary call to action (the front door). */
   size?: 'compact' | 'full'
   /** Placement classes from the caller, e.g. `su-page-action` on a sheet band. */
   className?: string
+  /** `default` where another act leads the page (a dead invite's Games, r8 C7). */
+  variant?: 'primary' | 'default'
 }
 
 /** Sign in / sign out with Discord. */
 export function SignInControl({
   inBar,
   redirectTo,
-  label = 'Sign in with Discord',
+  returnHere,
+  label = buildAccountCopy('signInWithDiscord'),
   size = 'compact',
   className,
+  variant = 'primary',
 }: SignInControlProps) {
   const signOut = useSignOut()
   const { status } = useSync()
@@ -64,10 +74,10 @@ export function SignInControl({
 
   return (
     <Button
-      variant={inBar ? 'ghost' : 'primary'}
+      variant={inBar ? 'ghost' : variant}
       size={size}
       className={cn(inBar && BAR_BUTTON, className)}
-      onClick={() => signIn(redirectTo)}
+      onClick={() => signIn(redirectTo ?? (returnHere ? hereInApp() : undefined))}
     >
       {label}
     </Button>

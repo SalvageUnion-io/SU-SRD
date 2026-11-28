@@ -17,12 +17,12 @@ const MECH = {
 }
 
 describe('crewPair', () => {
-  test('boarded: the mech, its stats, a PILOT chip naming who is aboard', () => {
+  test('boarded: the mech’s Mini and stats, still named for the pilot, a MECH chip naming the mech', () => {
     const unit = crewPair({ pilot: PILOT, mech: MECH, boarded: true })
-    expect(unit).toMatchObject({ kind: 'mech', name: 'Spectrum', href: '/mechs/m1' })
+    expect(unit).toMatchObject({ kind: 'mech', name: 'Rook', href: '/pilots/p1' })
     expect(unit.readings).toEqual([{ label: 'SP', value: '6/9' }])
     expect(unit.relations?.map((r) => [r.name, r.param, r.href])).toEqual([
-      ['Pilot', 'Rook', '/pilots/p1'],
+      ['Mech', 'Spectrum', '/mechs/m1'],
     ])
   })
 

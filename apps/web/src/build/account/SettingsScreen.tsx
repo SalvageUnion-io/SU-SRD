@@ -1,14 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
+import { Cluster, ConfirmDialog, FieldError, PageShell } from '../../components/app'
 import {
   Button,
   ChapterBand,
-  Cluster,
-  ConfirmDialog,
   EmptyState,
-  FieldError,
   Input,
-  PageShell,
   Pending,
   SlabSection,
   Stack,
@@ -28,9 +25,8 @@ import { useSignOut } from './useSignOut'
  * The settings screen (ADR-030 §6), at `/settings`: profile, export, delete.
  *
  * `/account` redirects here (`routes/account.tsx`), so old links and the
- * Discord bot's still land. Your Games are listed in Play: its hub and its
- * Games menu (`build/entityContainer/GamesMenu.tsx`), each opening a Game's
- * page (ADR-052 §4).
+ * Discord bot's still land. Your Games are their own tab, `/games/`, each
+ * opening a Game's page (ADR-066).
  *
  * It wears the Training Bay's clothes (`build/shelves/Shelves.tsx`): the ink
  * band on the workshop ground, the 75rem column, and each concern a section
@@ -50,7 +46,7 @@ const BODY = {
   gap: tokens.space[12],
 } satisfies CSSProperties
 
-const NOTE = { margin: 0, textAlign: 'left' } satisfies CSSProperties
+const NOTE = { margin: 0 } satisfies CSSProperties
 
 const GROW = { flex: '1 1 12rem', maxWidth: '24rem', minWidth: 0 } satisfies CSSProperties
 
@@ -82,13 +78,15 @@ function SignedInAccount() {
   const me = useMe()
   const exported = useAccountExport()
   const save = useServerAction(useUpdateProfile(), {
-    failure: 'Your display name could not be saved. Try again.',
+    failure: buildAccountCopy('displayNameNotSaved'),
   })
   const erase = useServerAction(deleteAccount, {
-    failure: 'Your account could not be deleted. Try again.',
+    failure: buildAccountCopy('accountNotDeleted'),
   })
 
   const [name, setName] = useState<string | null>(null)
+  // The answer to Save: said once it is kept, taken back when the name is typed in again.
+  const [saved, setSaved] = useState(false)
   const [confirming, setConfirming] = useState(false)
   // The words a failed deletion was given (`useServerAction`), for the dialog,
   // which holds the failure on itself (ruleset §3.1: destruction behind
@@ -101,6 +99,10 @@ function SignedInAccount() {
     return <EmptyState variant="quiet" body={buildAccountCopy('noAccountIsHeldFor')} />
 
   const value = name ?? me.displayName ?? ''
+  const saveName = () => {
+    setSaved(false)
+    void save.run({ displayName: value }).then((answer) => setSaved(answer.ok))
+  }
 
   return (
     <Stack gap={32}>
@@ -113,19 +115,31 @@ function SignedInAccount() {
             placeholder={buildAccountCopy('yourDiscordName')}
             style={GROW}
             value={value}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setSaved(false)
+              setName(e.target.value)
+            }}
+            // Enter saves, as Save does (r5 C4).
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' || save.pending) return
+              e.preventDefault()
+              saveName()
+            }}
           />
           <Button
             variant="primary"
             size="full"
             className={ACTION}
             disabled={save.pending}
-            onClick={() => void save.run({ displayName: value })}
+            onClick={saveName}
           >
             {save.pending ? buildAccountCopy('saving') : buildAccountCopy('save')}
           </Button>
         </Cluster>
         <FieldError>{save.error}</FieldError>
+        <Text as="p" variant="hint" role="status" style={NOTE}>
+          {saved ? buildAccountCopy('saved') : ''}
+        </Text>
       </Section>
 
       <Section id="settings-data" title={buildAccountCopy('yourData')}>

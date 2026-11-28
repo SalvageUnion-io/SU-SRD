@@ -5,9 +5,12 @@
  * the crawler wizard on that type. The app's `/…/new` routes read the slug
  * (`apps/web/src/lib/wizard/preselect.ts`) and keep it through sign-in.
  *
- * Offered only where the wizard would accept the pick — a Tech 1 chassis, a
- * core class, any crawler type — by the same rules its pickers filter on, so
- * the button never lands on a wizard that silently ignores it.
+ * A page's own link opens the wizard only where it would accept the pick — a
+ * Tech 1 chassis, a core class, any crawler type — by the same rules its
+ * pickers filter on, so the button never lands on a wizard that silently
+ * ignores it. Every other chassis (higher Tech Levels, Bio-Chassis) opens a
+ * Blank build of it, which takes any chassis (r5 D8). A pattern page always
+ * has one (`patternBuildLinkFor`).
  *
  * A creation guide ends on its exits (`guideExitsFor`): the same wizard, unseeded,
  * the next guide, and the Starter Set.
@@ -23,6 +26,7 @@ import {
   isLegalCreationClass,
   isLegalStartingPattern,
 } from 'salvageunion-reference/rules'
+import { referenceCopy } from '../messages/reference'
 import { appPath } from './appBase'
 import { itemHref } from './entityHref'
 
@@ -34,7 +38,7 @@ import { itemHref } from './entityHref'
 export type BuildLink = { href: string; label: string; ariaLabel?: string }
 
 /** The page action's one visible label, whatever it builds. */
-const BUILD_WITH_THIS = 'Build With This'
+const BUILD_WITH_THIS = referenceCopy('buildWithThis')
 
 /**
  * A `/…/new` path in the app, opened straight on the guided wizard, with
@@ -56,15 +60,16 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
   const slug = getEntitySlug(item)
   switch (schemaId) {
     case 'chassis':
-      return 'techLevel' in item &&
-        item.techLevel !== undefined &&
-        isLegalCreationChassis(item.techLevel)
-        ? {
-            href: wizardHref('/mechs/new', { chassis: slug }),
-            label: BUILD_WITH_THIS,
-            ariaLabel: `${BUILD_WITH_THIS}: a mech`,
-          }
-        : null
+      return {
+        href:
+          'techLevel' in item &&
+          item.techLevel !== undefined &&
+          isLegalCreationChassis(item.techLevel)
+            ? wizardHref('/mechs/new', { chassis: slug })
+            : `${appPath('/mechs/new')}?${new URLSearchParams({ mode: 'blank', chassis: slug })}`,
+        label: BUILD_WITH_THIS,
+        ariaLabel: `${BUILD_WITH_THIS}: a mech`,
+      }
     case 'classes':
       return 'coreTrees' in item && isLegalCreationClass(item.coreTrees)
         ? {
@@ -79,6 +84,12 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
         label: BUILD_WITH_THIS,
         ariaLabel: `${BUILD_WITH_THIS}: a crawler`,
       }
+    // A denizen's page leads into the Mediator's Kit, signed in or out (r5 B19):
+    // static markup, so the Reference page loads no script for it.
+    case 'npcs':
+    case 'squads':
+    case 'creatures':
+      return { href: designHref(schemaId, item), label: referenceCopy('designFromThis') }
     case 'guides': {
       // A creation guide's band opens the builder for what it creates.
       const step = CREATION_GUIDES.find(
@@ -91,12 +102,46 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
   }
 }
 
+/** The Reference kinds an encounter fields and the NPC designer starts from. */
+const DENIZEN_KINDS = ['npcs', 'squads', 'creatures', 'vehicles', 'drones', 'meld', 'bio-titans']
+
 /**
- * A pattern page's "Build With This": the mech wizard on the pattern's chassis
- * with the pattern's loadout prefilled (`/mechs/new?chassis=mule&pattern=hauler`).
- * Offered only for a pattern the wizard's own pattern strip offers — a
- * `legalStarting` pattern of a Tech 1 chassis — so a Bio-Titan's or a
- * higher-tech pattern has none.
+ * A denizen page's way into the Mediator's tools, shown to a signed-in reader
+ * (`.su-mediator-acts`): field it in one of their encounters
+ * (`/encounters/add`), or design an NPC of their own from it (`/npcs/new`).
+ */
+export type MediatorLinks = { add: BuildLink; design: BuildLink | null }
+
+/** The NPC designer, started from this denizen (`/npcs/new?from=<schema>:<slug>`). */
+function designHref(schemaId: string, item: RefEntity): string {
+  return `${appPath('/npcs/new')}?${new URLSearchParams({ from: `${schemaId}:${getEntitySlug(item)}` })}`
+}
+
+/** The page's Mediator links, or `null` where it is no denizen. */
+export function mediatorLinksFor(schemaId: string, item: RefEntity): MediatorLinks | null {
+  if (!DENIZEN_KINDS.includes(schemaId)) return null
+  const from = new URLSearchParams({ from: `${schemaId}:${getEntitySlug(item)}` })
+  return {
+    add: {
+      href: `${appPath('/encounters/add')}?${from}`,
+      label: referenceCopy('addToAnEncounter'),
+    },
+    // Where the band already carries it (`buildLinkFor`), the foot does not repeat it.
+    design:
+      buildLinkFor(schemaId, item) === null
+        ? { href: designHref(schemaId, item), label: referenceCopy('designFromThis') }
+        : null,
+  }
+}
+
+/**
+ * A pattern page's "Build With This", on every mech pattern. Signed in, its
+ * press builds the Mech as printed and opens its sheet (`build=now`, r6 E6).
+ * Signed out, a `legalStarting` pattern of a Tech 1 chassis opens the guided
+ * wizard at its review, its loadout prefilled
+ * (`/mechs/new?mode=guided&chassis=mule&pattern=hauler&build=now`); any other
+ * opens New Mech on its book patterns with this one picked. A
+ * Bio-Titan's pattern is no mech, so it has none.
  */
 export function patternBuildLinkFor(
   schemaId: string,
@@ -104,13 +149,20 @@ export function patternBuildLinkFor(
   pattern: RefObjectAnyPattern
 ): BuildLink | null {
   if (schemaId !== 'chassis' || !('techLevel' in host) || host.techLevel === undefined) return null
-  if (!isLegalCreationChassis(host.techLevel)) return null
-  if (!('legalStarting' in pattern) || !isLegalStartingPattern(pattern.legalStarting)) return null
+  // `build`: signed in, the press builds the Mech and opens its sheet (r6 E6).
+  const pick = {
+    chassis: getEntitySlug(host),
+    pattern: nameToSlug(pattern.name),
+    build: 'now',
+  }
+  const starting =
+    isLegalCreationChassis(host.techLevel) &&
+    'legalStarting' in pattern &&
+    isLegalStartingPattern(pattern.legalStarting)
   return {
-    href: wizardHref('/mechs/new', {
-      chassis: getEntitySlug(host),
-      pattern: nameToSlug(pattern.name),
-    }),
+    href: starting
+      ? wizardHref('/mechs/new', pick)
+      : `${appPath('/mechs/new')}?${new URLSearchParams(pick)}`,
     label: BUILD_WITH_THIS,
     ariaLabel: `${BUILD_WITH_THIS}: the ${pattern.name} mech`,
   }
@@ -131,9 +183,15 @@ export type GuideExits = {
 
 /** The creation guides, by `guideType`, in the order a new crew walks them. */
 const CREATION_GUIDES = [
-  { guideType: 'character-creation', build: { path: '/pilots/new', label: 'Build a pilot' } },
-  { guideType: 'mech-creation', build: { path: '/mechs/new', label: 'Build a mech' } },
-  { guideType: 'crawler-creation', build: { path: '/crawlers/new', label: 'Build a crawler' } },
+  {
+    guideType: 'character-creation',
+    build: { path: '/pilots/new', label: referenceCopy('buildAPilot') },
+  },
+  { guideType: 'mech-creation', build: { path: '/mechs/new', label: referenceCopy('buildAMech') } },
+  {
+    guideType: 'crawler-creation',
+    build: { path: '/crawlers/new', label: referenceCopy('buildACrawler') },
+  },
 ] as const
 
 /** A creation guide's exits, or `null` for any other page. */
@@ -154,6 +212,6 @@ export function guideExitsFor(schemaId: string, item: RefEntity): GuideExits | n
     next: nextGuide
       ? { href: itemHref('guides', getEntitySlug(nextGuide)), label: nextGuide.name }
       : null,
-    starterSet: { href: STARTER_SET_HREF, label: 'Or play the Starter Set' },
+    starterSet: { href: STARTER_SET_HREF, label: referenceCopy('orPlayTheStarterSet') },
   }
 }

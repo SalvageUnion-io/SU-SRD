@@ -1,7 +1,7 @@
 /**
  * Table mode (play.md §11): the phone's one focused screen. A big roll of the
  * Core Mechanic recorded like every Play roll, the pinned vitals at the Full
- * Size with their − / + (one tap each), the bar's TABLE toggle remembered on
+ * Size with their − / + (one tap each), ⋯'s Table mode row remembered on
  * the device, and the screen held awake while it shows.
  *
  * Uses toBeTruthy() not toBeInTheDocument() (jest-dom's matchers are not on
@@ -10,7 +10,7 @@
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, renderHook, screen } from '@testing-library/react'
-import { PlayTableMode, TableModeToggle } from '../PlayTableMode'
+import { PlayTableMode } from '../PlayTableMode'
 import type { PinnedUnit } from '../playPanes.model'
 import { clearPlayRolls, usePlayRollLog } from '../playRolls.model'
 import { tableUnits } from '../tableMode.model'
@@ -112,13 +112,12 @@ describe('the roll', () => {
   })
 })
 
-describe('the TABLE toggle', () => {
-  test('presses table mode on and off, and the device remembers it', () => {
-    render(<TableModeToggle />)
-    const toggle = screen.getByRole('button', { name: 'Table mode' })
-    expect(toggle.getAttribute('aria-pressed')).toBe('false')
-    fireEvent.click(toggle)
-    expect(toggle.getAttribute('aria-pressed')).toBe('true')
+describe('table mode', () => {
+  test('goes on and off, and the device remembers it', () => {
+    const first = renderHook(() => useTableMode())
+    expect(first.result.current[0]).toBe(false)
+    act(() => first.result.current[1](true))
+    expect(first.result.current[0]).toBe(true)
     expect(localStorage.getItem('su:play-table-mode')).toBe('on')
 
     // A later visit reads it back.

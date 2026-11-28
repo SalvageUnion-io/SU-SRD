@@ -29,24 +29,141 @@ const ldCrumbs = (html: string) =>
 const islands = (html: string, name: string) =>
   html.match(new RegExp(`data-island="${name}"`, 'g'))?.length ?? 0
 
-describe('home: the manual’s Contents page', () => {
+describe('home: the front door, its slideshow alone', () => {
   const html = page('/')
+  const show = html.slice(html.indexOf('su-front__show'), html.indexOf('<footer'))
 
-  it('is titled "The Salvage Union SRD", in the Contents band', () => {
-    expect(h1s(html)).toEqual(['The Salvage Union SRD'])
-    expect(html).toContain('su-chapter-band')
+  it('is titled with the site’s name, on the slideshow’s cut-out', () => {
+    expect(h1s(html)).toEqual(['SalvageUnion.io'])
+    expect(html).toContain('su-front__show-name')
+    expect(html).not.toContain('su-chapter-band')
   })
 
   it('searches from the Union bar, as every page does: one search island, no hero', () => {
     expect(islands(html, 'SearchIsland')).toBe(1)
+    expect(islands(html, 'MobileSearchIsland')).toBe(1)
+    const bar = html.slice(0, html.indexOf('<main'))
+    expect(bar).toContain('data-island="SearchIsland"')
     expect(html).not.toContain('su-hero-search')
   })
 
-  it('quotes the legacy tagline on the band, credited to Stumpy', () => {
-    const band = html.slice(html.indexOf('su-home__band'), html.indexOf('su-home__body'))
-    expect(band).toContain('su-tagline')
-    expect(band).toContain('You’re in The Union, now!')
-    expect(band).toContain('Lester “Stumpy” Owens')
+  it('serves the welcome-back strip its link to the last Game, hidden until the script names one', () => {
+    const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
+    expect(head).toMatch(
+      /<a[^>]*data-last-game[^>]*hidden[^>]*>|<a[^>]*hidden[^>]*data-last-game[^>]*>/
+    )
+  })
+
+  it('carries no area rail: the chapters are the Reference’s', () => {
+    expect(html).not.toContain('su-union-bar__rail"')
+  })
+
+  it('says the tagline in its hand as a slide of its own, not in the head', () => {
+    const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
+    expect(head).not.toContain('su-tagline')
+    expect(show).toMatch(/su-front__show-plate--quote[^"]*"><figure class="su-tagline"/)
+  })
+
+  // The show holds still (r6 G14, `HERO_TURNS_ITSELF` in HomeFront.tsx): the
+  // two ways forward stand under the name, outside the slides, on every slide.
+  it('names the site in the head, its two ways forward under it; the first slide says the pitch (SB-08, r6 G14)', () => {
+    const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
+    expect(head).toContain('su-front__show-name')
+    expect(head).not.toContain('su-front__show-pitch')
+    const first = show.slice(0, show.indexOf('</li>'))
+    expect(first).toContain('su-front__show-copy')
+    expect(first).toContain('su-front__show-pitch')
+    expect(first).not.toContain('su-front__show-act')
+    const fixed = head.slice(head.indexOf('su-front__show-fixed'))
+    expect(fixed).toMatch(/href="\/build\/"[^>]*>(?:<[^>]+>)*Start building</)
+    // Opens the Reference, as its link says, never only the search field below (r5 E12).
+    const lookUp = fixed.match(/<a[^>]*href="\/reference\/"[^>]*>(?:<[^>]+>)*Look something up</)
+    expect(lookUp?.[0]).toBeDefined()
+    expect(lookUp?.[0]).not.toContain('data-search-open')
+  })
+
+  it('gives every slide a way forward: its own, or the two that stand under the name', () => {
+    const slides = show.split('class="su-front__show-slide"').slice(1)
+    expect(slides).toHaveLength(8)
+    expect(show.slice(show.indexOf('su-front__show-fixed'))).toContain('su-front__show-act')
+    const own = slides.filter((slide) => slide.includes('su-front__show-act'))
+    expect(own.length).toBeGreaterThanOrEqual(6)
+  })
+
+  it('serves a signed-in reader the doors to their Training Bay and Games, out of the page until then (MD-28)', () => {
+    const yours = show.slice(show.indexOf('su-front__show-yours'))
+    expect(yours).toMatch(/href="\/build\/"[^>]*>(?:<[^>]+>)*Training Bay</)
+    expect(yours).toMatch(/href="\/games\/"[^>]*>(?:<[^>]+>)*Games</)
+  })
+
+  it('words each action slide by its line alone, no heading over it', () => {
+    expect(show).not.toContain('su-front__show-heading')
+  })
+
+  it('shows the pitch, six action slides each one action to one part of the site, then the tagline', () => {
+    expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(8)
+    // The six; "Start building" stands under the name, outside the slides (r6 G14).
+    // Counted in the slides alone: the strip and the search under them have their own.
+    const slides = show.slice(0, show.indexOf('class="su-front__show-head"'))
+    expect(slides.match(/su-btn--primary/g)).toHaveLength(6)
+    for (const href of ['/reference/', '/build/', '/games/']) {
+      expect(show).toContain(`href="${href}"`)
+    }
+    expect(show).toContain('href="https://discord.com/oauth2/authorize?client_id=')
+  })
+
+  it('names each slide on its button, with no heading of its own: the outline is the one h1', () => {
+    expect(show).not.toMatch(/<h[2-6]/)
+    for (const title of [
+      'Know the rules',
+      'Build your crew',
+      'Play at the table',
+      'Run the Game',
+      'Get the books',
+      'Roll in Discord',
+    ]) {
+      expect(show).toMatch(new RegExp(`su-btn--primary[^>]*>(?:<[^>]+>)*${title}<`))
+    }
+  })
+
+  it('draws each slide’s art as a decorative image (empty alt, so art not yet uploaded draws nothing), the first one first', () => {
+    const arts = show.match(/<img[^>]*su-front__show-art[^>]*>/g) ?? []
+    // Eight slides, seven paintings (the Mediator's waits for its own), none twice.
+    expect(arts).toHaveLength(7)
+    expect(new Set(arts.map((art) => art.match(/src="([^"]+)"/)?.[1])).size).toBe(7)
+    for (const art of arts) {
+      expect(art).toContain('alt=""')
+      expect(art).toMatch(/src="https:\/\/assets\.salvageunion\.io\//)
+      // A phone takes the 880px derivative, never the print-size master.
+      expect(art).toMatch(/\/[a-z-]+-880q80\.webp 880w/)
+    }
+    expect(arts[0]).toMatch(/fetchpriority="high"/i)
+    expect(arts.slice(1).every((art) => /fetchpriority="low"/i.test(art))).toBe(true)
+    // The rest wait for layout, so they never share the first one's bandwidth.
+    expect(arts.slice(1).every((art) => /loading="lazy"/.test(art))).toBe(true)
+    expect(arts[0]).not.toMatch(/loading="lazy"/)
+  })
+
+  it('holds no Contents: the book’s index is the Reference’s home', () => {
+    expect(html).not.toContain('su-home__index')
+    expect(html).not.toContain('id="pilot-bay"')
+  })
+})
+
+describe('the Reference’s home: the manual’s Contents', () => {
+  const html = page('/reference')
+
+  it('is titled Reference', () => {
+    expect(h1s(html)).toEqual(['Reference'])
+  })
+
+  it('searches from the Union bar: one search island, the phone its trigger', () => {
+    expect(islands(html, 'SearchIsland')).toBe(1)
+    expect(islands(html, 'MobileSearchIsland')).toBe(1)
+  })
+
+  it('says the tagline on its band, as every landing page does', () => {
+    expect(html).toMatch(/su-tagline"[^>]*>.*You’re in The Union/s)
   })
 
   it('indexes the book’s five chapters, with counts', () => {
@@ -62,49 +179,88 @@ describe('home: the manual’s Contents page', () => {
     expect(html).toContain('href="/chassis/"')
   })
 
-  it('starts a new player on the shared "Start here" block, each step opening its guide', () => {
-    const startHere = html.slice(html.indexOf('su-home__aside'), html.indexOf('su-home__index'))
-    expect(startHere).toContain('>Start here<')
-    for (const guide of ['create-a-pilot', 'create-a-mech', 'create-a-crawler']) {
-      expect(startHere).toContain(`href="/guides/${guide}/"`)
-    }
-    expect(startHere).not.toContain('Ready to build')
-    expect(startHere).not.toContain('Build a pilot')
-    expect(startHere).not.toContain('target="_blank"')
-  })
-
   it('sets "At the table" as a section of the index', () => {
-    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('su-home__discord-slot'))
+    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('<footer'))
     expect(index).toContain('<span>At the table</span>')
     expect(index).toContain('href="/roll-tables/core-mechanic/"')
     expect(index).not.toContain('On Discord')
-  })
-
-  it('offers the Discord bot as one button, after "Start here" and the index', () => {
-    const aside = html.slice(html.indexOf('su-home__aside'), html.indexOf('<footer'))
-    const discord = aside.slice(aside.indexOf('<a href="https://discord.com/'))
-    expect(aside.indexOf('id="start-here"')).toBeLessThan(aside.indexOf('id="discord-bot"'))
-    expect(discord).toContain('SalvageUnion.io On Discord')
-    expect(discord).toContain('<svg')
-    expect(discord).toContain('href="https://discord.com/oauth2/authorize?client_id=')
   })
 
   it('opens each chapter on its band alone, with no artwork', () => {
     const index = html.slice(html.indexOf('su-home__index'), html.indexOf('<footer'))
     expect(index).not.toContain('<img')
   })
+})
 
-  it('reads title, tagline, "Start here", the index, then Discord (a phone leads with the way in)', () => {
-    const at = (needle: string) => html.indexOf(needle)
-    expect(at('<h1')).toBeGreaterThan(-1)
-    expect(at('<h1')).toBeLessThan(at('su-tagline'))
-    expect(at('su-tagline')).toBeLessThan(at('id="start-here"'))
-    expect(at('id="start-here"')).toBeLessThan(at('id="pilot-bay"'))
-    expect(at('id="pilot-bay"')).toBeLessThan(at('id="discord-bot"'))
+describe('a chapter’s own page: its band, then its every listing', () => {
+  const chapters = [
+    ['/pilots', 'Pilot Bay', '/classes/'],
+    ['/mechs', 'Mech Workshop', '/chassis/'],
+    ['/union-crawler', 'Union Crawler', '/crawlers/'],
+    ['/wasteland', 'Denizens of the Wasteland', '/creatures/'],
+    ['/rules', 'Rules & Reference', '/guides/'],
+  ] as const
+
+  for (const [route, title, listing] of chapters) {
+    it(`${route}/ is titled ${title}, says the tagline and indexes its listings`, () => {
+      const html = page(route)
+      expect(h1s(html)).toEqual([title.replace('&', '&amp;')])
+      expect(html).toContain('su-tagline')
+      expect(html).toContain(`href="${listing}"`)
+      expect(html).toContain('su-contents__chapter')
+    })
+  }
+
+  it('lists each listing’s entries as links to their pages', () => {
+    expect(page('/mechs')).toContain('href="/chassis/mule/"')
+  })
+
+  it('links each listing from its title, with no "All …" row', () => {
+    const html = page('/mechs')
+    expect(html).toMatch(
+      /su-contents__heading"><a href="\/chassis\/" class="su-contents__title-link">Chassis</
+    )
+    expect(html).not.toMatch(/>All [A-Z]/)
+  })
+
+  it('is where the area rail’s chapters land', () => {
+    const html = page('/reference')
+    for (const [route] of chapters) expect(html).toContain(`href="${route}/"`)
+  })
+
+  it('lists the guides and the distances in the book’s order, as their own listings do (r5 E6)', () => {
+    const html = page('/rules')
+    const order = (hrefs: string[]) => hrefs.map((href) => html.indexOf(`href="${href}"`))
+    const ascending = (at: number[]) =>
+      at.every((n, i) => n > 0 && (i === 0 || n > (at[i - 1] ?? 0)))
+    expect(
+      ascending(
+        order(['/guides/safety-protocols/', '/guides/create-a-pilot/', '/guides/setbacks/'])
+      )
+    ).toBe(true)
+    expect(
+      ascending(
+        order(['/distances/close/', '/distances/medium/', '/distances/long/', '/distances/far/'])
+      )
+    ).toBe(true)
   })
 })
 
-describe('a listing (compact cards under a visible heading)', () => {
+describe('a guide reads on in the book’s order (r5 E6)', () => {
+  it('ends with the guide before it and the one after', () => {
+    const html = page('/guides/heat')
+    const row = html.slice(html.indexOf('su-entity-page__neighbour-row'))
+    expect(row).toMatch(/Previous:.*?href="\/guides\/pushing-a-mech\/"/s)
+    expect(row).toMatch(/Next:.*?href="\/guides\/activating-and-shutting-down-a-mech\/"/s)
+  })
+
+  it('the first has no Previous, the last no Next', () => {
+    expect(page('/guides/safety-protocols')).not.toContain('Previous:')
+    expect(page('/guides/setbacks')).not.toMatch(/Next:\u00a0|Next:&nbsp;|Next: /)
+  })
+})
+
+describe('a listing (a Ledger under a visible heading)', () => {
   const html = page('/chassis')
 
   it('has a visible heading — the chapter band — and no count stamp beside it', () => {
@@ -113,23 +269,36 @@ describe('a listing (compact cards under a visible heading)', () => {
     expect(html).not.toMatch(/\d+ Chassis/)
   })
 
+  it('holds a filtered address’s rows from before the first paint, and says what scripts-off loses (r2 H8)', () => {
+    const script = html.indexOf('data-listing-pending')
+    const island = html.indexOf('data-island="SchemaViewerIsland"')
+    // The page's own script, ahead of the rows it hides.
+    expect(script).toBeGreaterThan(-1)
+    expect(script).toBeLessThan(island)
+    expect(html.slice(0, island)).toMatch(/<script>\(function\(\)\{[^<]*"tl"[^<]*<\/script>/)
+    expect(html).toMatch(/<noscript><p class="su-listing__noscript">[^<]*need JavaScript/)
+  })
+
   it('first paints the listing itself, so the mount draws nothing new', () => {
-    // The island's own cards from build-time data, not a stand-in: one tile
-    // per chassis, each linking to its page.
+    // The island's own List from build-time data, not a stand-in: one Ledger,
+    // a line per chassis, each linking to its page.
     expect(html).not.toContain('su-listing__fallback-row')
-    expect(html.match(/class="su-entity-index[ "]/g)?.length).toBeGreaterThan(40)
+    expect(html.match(/su-ledger__table/g)).toHaveLength(1)
+    expect(html.match(/<tr\b/g)?.length).toBeGreaterThan(40)
     expect(html).toContain('href="/chassis/mule/"')
   })
 
-  it('first paints the island’s rail and its one flat Catalog, so the mount moves nothing', () => {
-    // The Catalog has one group, with no heading.
+  it('first paints the island’s rail and its one flat List, so the mount moves nothing', () => {
+    // The List has one group, with no heading.
     expect(html.match(/class="su-listing__group"/g)).toHaveLength(1)
     expect(html).not.toMatch(/class="su-listing__group" aria-label=/)
-    expect(html).toContain('data-view="catalog"')
-    // The rail is the island's, without its actions, above the group. It is
-    // not inert: a press on it wakes the island, which plays the press back.
-    expect(html).toContain('<div class="su-rail">')
-    expect(html.indexOf('su-rail')).toBeLessThan(html.indexOf('su-listing__group'))
+    expect(html).toContain('data-view="list"')
+    // The rail is the island's, without its actions: the view toggle on the
+    // band, the filter bar above the group (L10). It is not inert: a press on
+    // it wakes the island, which plays the press back.
+    expect(html).toContain('<div class="su-rail" data-part="view">')
+    expect(html).toContain('<div class="su-rail" data-part="filters">')
+    expect(html.indexOf('data-part="filters"')).toBeLessThan(html.indexOf('su-listing__group'))
     // The skeleton takes the same group from the island's props.
     const viewer = Object.values(routeIslands('/chassis')).find(
       (island) => island.name === 'SchemaViewerIsland'
@@ -140,6 +309,56 @@ describe('a listing (compact cards under a visible heading)', () => {
   it('trails Reference // Chassis, without the home page’s chapter', () => {
     expect(crumbs(html)).toEqual(['Reference', 'Chassis'])
     expect(ldCrumbs(html)).toEqual(['Reference', 'Chassis'])
+  })
+})
+
+describe('a sparse Page fills its side track (EDL form 5)', () => {
+  it('a trait’s rail wears Used by, its users as Mentions; no Previous or Next', () => {
+    const html = page('/traits/hacking')
+    const rail = html.slice(html.indexOf('su-sparse-rail'), html.indexOf('<footer'))
+    expect(rail).toContain('Used by')
+    // No Previous or Next on a reference entry's Page.
+    expect(html).not.toContain('su-entity-page__neighbour-row')
+    expect(rail).toContain('Hacking Kit')
+    // Every user, each with its kind, under the full count: never "and N more".
+    expect(rail).toContain('22 uses')
+    expect(rail.match(/su-sparse-rail__row"/g)?.length).toBe(22)
+    expect(rail).toContain('>Equipment<')
+    expect(rail).not.toMatch(/and \d+ more/)
+  })
+
+  it('a keyword nothing names draws no empty rail', () => {
+    const html = page('/keywords/corporate-scrip')
+    expect(html).not.toContain('su-sparse-rail')
+    expect(html).not.toContain('>Used by<')
+    expect(html).not.toContain('su-entity-page__neighbour-row')
+  })
+
+  it('an ability keeps its Preceding and Next: cut-outs at the Page’s foot', () => {
+    const html = page('/abilities/bionic-arms')
+    const foot = html.slice(html.indexOf('su-entity__foot'), html.indexOf('<footer'))
+    expect(foot).toContain('su-entity-page__neighbour-row')
+    expect(foot).toMatch(/Preceding:[\s\S]*Bionic Senses[\s\S]*Next:[\s\S]*Bionic Legs/)
+  })
+
+  it('a Page with art and actions has no sparse rail', () => {
+    expect(page('/bio-titans/typhon')).not.toContain('su-sparse-rail')
+  })
+
+  it('a sparse Page’s Rolled on is its rail’s last piece, never a full-width list', () => {
+    const html = page('/factions/wagon-wasters')
+    const rail = html.slice(html.indexOf('su-sparse-rail'), html.indexOf('<footer'))
+    expect(rail).toMatch(/>Rolled on<[\s\S]*href="\/roll-tables\/faction-encounter-table\/"/)
+    expect(html).not.toContain('aria-label="Rolled on"')
+  })
+})
+
+describe('Rolled on stands in the side column, a compact box (r7 review)', () => {
+  it('a chassis’s, under its art: no full-width Ledger', () => {
+    const html = page('/chassis/mule')
+    const side = html.slice(html.indexOf('su-manual__side--after'), html.indexOf('<footer'))
+    expect(side).toMatch(/>Rolled on<[\s\S]*Mech Pattern Names/)
+    expect(html).not.toContain('aria-label="Rolled on"')
   })
 })
 
@@ -163,8 +382,10 @@ describe('an entity page', () => {
     expect(ldCrumbs(html)).toEqual(['Reference', 'Chassis', 'Gopher'])
   })
 
-  it('lists its patterns as link rows, and cites its page on the foot band', () => {
-    expect(html).toContain('su-pattern-rows')
+  it('lists its patterns as one Ledger, each a link, and cites its page on the foot band', () => {
+    expect(html.match(/su-ledger__table/g)).toHaveLength(1)
+    expect(html).toContain('aria-label="Gopher patterns"')
+    expect(html.match(/href="\/chassis\/gopher\/pattern\/[a-z-]+\/"/g)).toHaveLength(5)
     expect(html).toContain('su-chapter-foot')
     expect(html).toContain('p.112')
   })
@@ -183,7 +404,7 @@ describe('a pattern page names and links its base chassis', () => {
     // Nothing but the page's trail sits above the title, on its plate (EDL E20).
     expect(html).not.toContain('su-chapter-band__eyebrow')
     expect(html).toContain(
-      '<div class="su-chapter-band__plate" data-fill-name="" style="background-color:rgb(239, 236, 230);color:rgb(40, 32, 25);display:flex;flex-direction:column;max-width:100%;min-width:0"><div class="su-chapter-band__trail">'
+      '<div class="su-chapter-band__plate" data-fill-name="" style="background-color:var(--cutout-ground, rgb(239, 236, 230));color:rgb(40, 32, 25);display:flex;flex-direction:column;max-width:100%;min-width:0"><div class="su-chapter-band__trail">'
     )
     // The ancestors, each followed by `//`; the title names the page.
     const trail = html.slice(html.indexOf('su-crumbs--band'), html.indexOf('<h1'))
@@ -200,15 +421,14 @@ describe('a pattern page names and links its base chassis', () => {
     expect(html).not.toMatch(/su-stat-plate--label">Pattern</)
   })
 
-  it('leads with the pattern, then the base chassis under its own slab', () => {
+  it("opens with the pattern's own words; the chassis ability is its own section", () => {
     // The body only: the head's meta description quotes the pattern too.
     const body = html.slice(html.indexOf('<h1'))
-    const patternProse = body.indexOf('Buzzards of the wastes')
-    const chassisSlab = body.indexOf('Mazona chassis')
-    const chassisProse = body.indexOf('The Mazona')
-    expect(patternProse).toBeGreaterThan(-1)
-    expect(chassisSlab).toBeGreaterThan(patternProse)
-    expect(chassisProse).toBeGreaterThan(chassisSlab)
+    const opening = body.indexOf('su-entity-page__opening')
+    expect(opening).toBeGreaterThan(-1)
+    expect(body.slice(opening, opening + 600)).toContain('Buzzards of the wastes')
+    const ability = body.indexOf('su-chassis-ability')
+    expect(body.slice(ability, ability + 800)).toContain('The Mazona')
   })
 
   it('serves an interactive pattern its whole card, the chassis linked, with no JS', () => {
@@ -224,15 +444,22 @@ describe('a pattern page names and links its base chassis', () => {
     // The band's mark: a chip of its strip, at the strip's Size (`labelChips`).
     expect(html).toMatch(/data-chip-class="mark"[^>]*>(?:<[^>]*>)*Legal Starting Pattern<\/span>/)
     expect(html).toMatch(
-      /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard"[^>]*>Build With This<\/a>/
+      /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard&amp;build=now"[^>]*>Build With This<\/a>/
     )
   })
 
-  it('stamps nothing and offers no build on a pattern the book does not mark legal', () => {
+  it('a pattern the book does not mark legal wears no stamp, and builds as printed from New Mech', () => {
     const untagged = page('/chassis/jackhammer/pattern/auger')
     expect(untagged).not.toContain('Legal Starting Pattern')
-    expect(untagged).not.toContain('mechs/new')
-    expect(untagged).not.toContain('Build With This')
+    expect(untagged).toContain('Build With This')
+    expect(untagged).toContain('mechs/new?chassis=jackhammer&amp;pattern=auger&amp;build=now')
+    expect(untagged).not.toContain('mode=guided')
+  })
+
+  it('opens on its loadout Ledger, with the slots filled and the Scrap summed', () => {
+    const loadout = page('/chassis/jackhammer/pattern/auger')
+    expect(loadout).toContain('aria-label="Auger loadout"')
+    expect(loadout).toMatch(/Total[\s\S]*?\d+\/\d+[\s\S]*?\d+\/\d+/)
   })
 })
 
@@ -244,6 +471,14 @@ describe('a class page links its abilities', () => {
     expect(links.length).toBeGreaterThan(0)
     expect(links.map(([, href]) => href)).toContain('/abilities/hacking-kit/')
     expect(links.every(([, , attrs]) => !attrs?.includes('target='))).toBe(true)
+  })
+
+  it('each ability on its track opens its full rules and roll table in place (r5 E5)', () => {
+    const opens = html.split('<details class="su-ability-open"').slice(1)
+    expect(opens.length).toBeGreaterThan(2)
+    const dos = opens.find((one) => one.includes('Denial of Service Attack'))
+    // The rules card: its action's roll table is inside the row's own details.
+    expect(dos?.slice(0, dos.indexOf('</details>'))).toContain('su-roll')
   })
 })
 
@@ -337,25 +572,23 @@ describe('every page ends on one footer', () => {
 
   /** The page's foot bands, by their class (the footer has its own). */
   const feet = (html: string) => html.match(/class="su-chapter-foot"/g) ?? []
-  /** Whether the page's band serves the footer its colour (`footerMatchCss`). */
-  const matched = (html: string) => {
-    const key = /data-band="([\w-]+)"/.exec(html)?.[1]
-    return !!key && html.includes(`[data-band='${key}']) .su-chapter-foot{`)
-  }
+  /** Whether the page's band serves the footer a colour: it never does, the foot is ink-deep (K13). */
+  const matched = (html: string) => html.includes(' .su-chapter-foot{')
 
-  // Rulings 2026-10-19: one footer, the citation on one line in it, in the
-  // leading band's colour, no kind, no ink rule on a show page.
+  // One footer, the citation on one line in it, ink-deep (K13), no kind, no
+  // ink rule on a show page.
   for (const [name, path] of book) {
-    it(`${name} cites itself on one line in the one footer, in its band's colour`, () => {
+    it(`${name} cites itself on one line in the one footer`, () => {
       const html = page(path)
       expect(feet(html)).toHaveLength(1)
-      // One line of text; only a printing's bold `//` (CiteLine) breaks it.
+      // One line of text; only a printing's bold `//` (CiteLine) breaks it,
+      // and each printing links its book's page (Source 2).
       expect(html).toMatch(
-        /<p class="su-footer__citation">(?:[^<]|<span style="font-weight:[^"]+">\/\/<\/span>)+<\/p>/
+        /<p class="su-footer__citation">(?:[^<]|<span style="font-weight:[^"]+">\/\/<\/span>|<a [^>]*href="\/sources\/[^"]+"[^>]*>[^<]*<\/a>)+<\/p>/
       )
       expect(html).not.toContain('Also in')
       expect(html).not.toContain('su-footer__kind')
-      expect(matched(html)).toBe(true)
+      expect(matched(html)).toBe(false)
     })
   }
 
@@ -372,10 +605,10 @@ describe('every page ends on one footer', () => {
     })
   }
 
-  // The footer matches the leading band on every page that leads with one.
-  for (const [name, path] of [...listings, ['home', '/']] as const) {
-    it(`${name} wears its leading band on its footer`, () => {
-      expect(matched(page(path))).toBe(true)
+  // The footer is the header's ink on every page, whatever band leads it (K13).
+  for (const [name, path] of [...listings, ['the Reference’s home', '/reference']] as const) {
+    it(`${name} keeps its footer ink-deep`, () => {
+      expect(matched(page(path))).toBe(false)
     })
   }
 })

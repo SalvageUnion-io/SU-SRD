@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { createElement } from 'react'
 
 /**
- * Who may open the Mediator's Play screen (`/play/games/$gameId/mediate`). Signed
+ * Who may open the Mediator's Play screen (`/games/$gameId/mediate`). Signed
  * out, sign in; a
  * member who does not mediate, or a stranger, one line and the way to the
  * Game page; the Mediator, the screen under the Game's name.
@@ -65,7 +65,7 @@ describe('PlayMediatorGate', () => {
     renderAs('live')
     expect(screen.getByText("Only this Game's Mediator runs this screen")).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe(
-      '/play/games/g1'
+      '/games/g1'
     )
   })
 

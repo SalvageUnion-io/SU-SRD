@@ -13,6 +13,16 @@
  * changes with the container, so all of it is here.
  */
 
+/* The frame fills the window and never scrolls it (`useHostHeight`), so it
+   keeps no scrollbar's room (the site's stable gutter): the window's width is
+   then the container's, and the `lg` rung `usePlayWide` reads agrees with the
+   one these queries read. With the gutter, from 1024 to 1038px wide the
+   panes were laid out as a phone's while all of them showed. */
+html:has(.su-play-root) {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
 .su-play-root {
   background: var(--color-wk-bg);
   color: var(--color-ink);
@@ -66,6 +76,14 @@
   padding: var(--space-8);
 }
 
+/* A split pane's first part lists as the pane does (from `lg` it scrolls over the Feed). */
+.su-play-split__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
 .su-play-pane[hidden],
 .su-play-frame__tabs[hidden] {
   display: none;
@@ -80,6 +98,12 @@
 .su-play-frame__tabs {
   grid-area: tabs;
   min-width: 0;
+}
+
+/* A toast stands clear of the tab row, a Compact line under its rule
+   (`--su-toast-bottom` reads `--su-foot-clear`, `atoms-leaves.css`). */
+:root:has(.su-play-frame__tabs:not([hidden])) {
+  --su-foot-clear: calc(var(--size-compact) + var(--bw-chrome));
 }
 
 /*
@@ -141,6 +165,33 @@
     gap: var(--space-16);
     overflow: visible;
     padding: 0;
+  }
+
+  /* A pane split in two (the Mediator's Table): what it lists scrolls over
+     the Feed, which keeps its head in view and scrolls its own lines. */
+  .su-play-pane:has(> .su-play-split__feed) {
+    overflow: hidden;
+  }
+
+  .su-play-split__main {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .su-play-split__feed {
+    display: flex;
+    flex: 1 1 14rem;
+    flex-direction: column;
+    min-height: 14rem;
+  }
+
+  .su-play-split__feed > .su-play-split__lines {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   /* A docked pane sits at its column's foot (the Mediator's Propose). */

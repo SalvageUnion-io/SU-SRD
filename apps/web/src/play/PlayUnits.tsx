@@ -1,3 +1,4 @@
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { crawlerUpkeepCost } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../replica/units'
 /**
@@ -32,14 +33,17 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RangeBand } from 'game-domain/schemas/seat'
 import { RANGE_BANDS } from 'game-domain/schemas/seat'
 import type { CSSProperties, ReactNode } from 'react'
-import { toEntityModel } from 'salvageunion-reference'
+import { lazy, Suspense } from 'react'
+import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { resolveInstalledRef } from 'salvageunion-reference/rules'
+import { heatDangerFrom } from '../components/app'
 import type { TagItem } from '../components/index'
 import {
   Badge,
   Button,
   Chips,
   Entity,
-  heatDangerFrom,
+  Mention,
   relation,
   Segmented,
   SegmentedOption,
@@ -49,18 +53,36 @@ import {
   TitledBox,
   tokens,
 } from '../components/index'
+import { changeUndoToast } from '../lib/changeUndoToast'
 import { resolveClassName } from '../lib/classRef'
+import type { ActivatableEffect } from '../lib/rules/activatableEffects'
 import { activatableEffects } from '../lib/rules/activatableEffects'
 import { runWrite } from '../lib/runWrite'
 import { unitRowModel } from '../lib/units/unitModel'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../replica/provenance'
+import { playDowntimeCopy } from '../messages/play-downtime'
+import { PLAY_TXN, PLAY_UNDO } from '../replica/provenance'
 import type { EntityForType } from '../replica/types'
 import { useUnits } from '../replica/units'
+import { rolledInjury } from './criticalInjury.model'
 import { PlayVital } from './PlayVital'
+import { usePlayRollLog } from './playRolls.model'
+import { reactorStates } from './reactorWrites.model'
+import { poolText } from './scrapPool.model'
 import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.model'
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
+import { headedVital, vitalNow, vitalSettled } from './vitalWrites.model'
+import type { DownResult } from './zeroVital.model'
+import { askPlayTable, useDownResult, zeroUnit, zeroVitalNotice } from './zeroVital.model'
+
+/** What a box says only once it is so (Shut down, an injury to apply): loaded then (r7 B2, B6). */
+const ReactorStates = lazy(() =>
+  import('./PlayUnitStates').then(({ ReactorStates }) => ({ default: ReactorStates }))
+)
+const ApplyInjury = lazy(() =>
+  import('./PlayUnitStates').then(({ ApplyInjury }) => ({ default: ApplyInjury }))
+)
 
 /** The store a box writes through; the app's own unless a test hands one in. */
 type UnitStore = UnitsStore
@@ -92,7 +114,7 @@ function stamp(text: string) {
 }
 
 /**
- * A box's relation chips (chips-and-actions C11, R5): what the unit is built
+ * A box's relation chips (chips-and-actions C11): what the unit is built
  * on or linked to, label first (`CHASSIS | Scrapper`), drawn by `Chips` in
  * the relation lane, never a loose stamp.
  */
@@ -106,10 +128,39 @@ function Relations({ items }: { items: readonly TagItem[] }) {
   )
 }
 
-/** One fire-and-forget vital write, as the sheet sends it. */
+/**
+ * One fire-and-forget vital write, as the sheet sends it: `vital(field, shown,
+ * max, label)` is a gauge's `onChange`, each press a step from where the
+ * vital is heading (`vitalWrites.model`), so quick presses all apply.
+ *
+ * The change says itself with Undo, as the phone's pinned strip does
+ * ("HP 10 → 8 · Undo", `changeUndoToast`; r2 C6), on the vital's one line
+ * (`PlayCockpit`'s key), with the amount entry's note when it was capped.
+ */
 function writer<K extends 'pilot' | 'mech' | 'crawler'>(store: UnitStore, kind: K, id: string) {
-  return (patch: Partial<EntityForType<K>>) =>
-    runWrite(() => store.getState().update(kind, id, patch, PLAY_TXN))
+  const write = (field: string, value: number, meta = PLAY_TXN) =>
+    store.getState().update(kind, id, { [field]: value } as Partial<EntityForType<K>>, meta)
+  return (field: keyof EntityForType<K> & string, shown: number, max: number, label: string) =>
+    (next: number, note?: string) => {
+      const key = `${id}:${field}`
+      // Undo takes back this change alone (r3 B2).
+      const from = vitalNow(key, shown)
+      const to = headedVital(key, shown, next, max)
+      runWrite(() => write(field, to).finally(() => vitalSettled(key)))
+      changeUndoToast({
+        id: `${kind}:${id}:${field}`,
+        label,
+        from,
+        to,
+        ...(note === undefined ? {} : { did: note }),
+        undo: (value) => {
+          runWrite(() => write(field, value, PLAY_UNDO))
+          zeroVitalNotice(zeroUnit(store.getState(), kind, id), field, to, value)
+        },
+      })
+      // At 0 SP or 0 HP: what is due, on the Feed and with its table's button (r4 A5).
+      zeroVitalNotice(zeroUnit(store.getState(), kind, id), field, from, to)
+    }
 }
 
 /** "Sheet", putting the unit’s sheet on the screen (`useOpenSheet`), a chip on the box’s band: Mini, the band's Size (ruleset §4.7). */
@@ -146,21 +197,27 @@ export function PlayPilotUnit({
   store = useUnits,
 }: PlayPilotUnitProps) {
   const [hp, ap] = pilotVitals(pilot, crawler).gauges
-  const write = writer(store, 'pilot', pilot.id)
+  const vital = writer(store, 'pilot', pilot.id)
   const injuries = injuryLines(pilot)
+  // At 0 HP the pilot is Down (r5 A1), with its Critical Injury roll's result once rolled.
+  const down = hp?.value === 0
+  const result = useDownResult(down ? pilot.id : null)
+  // The newest roll a Critical Injury: Apply is offered (r7 B6).
+  const last = usePlayRollLog().at(-1)
+  const injured = last !== undefined && rolledInjury(last) !== null
   return (
     <TitledBox
       as="section"
-      title={pilot.name}
-      label={playCopy('pilot', { name: pilot.name })}
+      title={pilotLabel(pilot)}
+      label={playCopy('pilot', { name: pilotLabel(pilot) })}
       tone="pilot"
       className="su-play-unit"
       reference={!live}
       chips={<Stat label={playCopy('pilot2')} size="mini" />}
       controls={
         <>
-          {stamp(live ? 'Live' : 'Read only')}
-          {onOpenSheet ? <SheetButton name={pilot.name} onOpen={onOpenSheet} /> : null}
+          {stamp(live ? playCopy('live') : playCopy('readOnlyWords'))}
+          {onOpenSheet ? <SheetButton name={pilotLabel(pilot)} onOpen={onOpenSheet} /> : null}
         </>
       }
     >
@@ -170,7 +227,7 @@ export function PlayPilotUnit({
           value={hp.value}
           max={hp.max}
           tone="pilot"
-          onChange={live ? (v) => write({ currentHP: v }) : undefined}
+          onChange={live ? vital('currentHP', hp.value, hp.max, playCopy('hp')) : undefined}
         />
       ) : null}
       {ap ? (
@@ -179,10 +236,11 @@ export function PlayPilotUnit({
           value={ap.value}
           max={ap.max}
           tone="pilot"
-          onChange={live ? (v) => write({ currentAP: v }) : undefined}
+          onChange={live ? vital('currentAP', ap.value, ap.max, playCopy('ap2')) : undefined}
         />
       ) : null}
       <div style={CHIPS}>
+        {down ? <Stat label={playCopy('down')} size="mini" state="critical" /> : null}
         {pilot.classRef ? <Stat label={resolveClassName(pilot.classRef)} size="mini" /> : null}
         <Stat label={playCopy('tp')} value={pilot.trainingPoints ?? 0} size="mini" />
         {injuries.length === 0 ? (
@@ -191,6 +249,12 @@ export function PlayPilotUnit({
           injuries.map((line) => <Stat key={line} label={line} size="mini" state="critical" />)
         )}
       </div>
+      {result === null ? null : <DownResultLine result={result} />}
+      {live && injured ? (
+        <Suspense fallback={null}>
+          <ApplyInjury pilot={pilot} maxHp={hp?.max ?? 0} store={store} />
+        </Suspense>
+      ) : null}
     </TitledBox>
   )
 }
@@ -199,9 +263,9 @@ export function PlayPilotUnit({
 export type MechPlace = 'boarded' | 'parked' | 'downtime'
 
 const MECH_STAMP: Record<MechPlace, string> = {
-  boarded: 'Boarded',
-  parked: 'Parked',
-  downtime: 'Mech Bay',
+  boarded: playCopy('boarded'),
+  parked: playCopy('parked'),
+  downtime: playCopy('mechBay'),
 }
 
 export type PlayMechUnitProps = {
@@ -250,15 +314,25 @@ export function PlayMechUnit({
   store = useUnits,
 }: PlayMechUnitProps) {
   const s = mechStats(mech, pilotAbilities, activeEffects)
-  const write = writer(store, 'mech', mech.id)
+  const vital = writer(store, 'mech', mech.id)
   // What it is built on (C11): the chassis, label first, Peeking and opening it.
   const chassis = s.chassis
     ? relation('chassis', 'Chassis', s.chassis.name, { ref: toEntityModel(s.chassis).ref })
     : null
   const showHeat = place !== 'parked'
+  // At 0 SP the mech is Down (r5 A1), with its Critical Damage roll's result once rolled.
+  const destroyed = mechHasCondition(mech, 'Destroyed')
+  const down = !destroyed && s.sp === 0
+  const result = useDownResult(down ? mech.id : null)
   // What the mech and its pilot can switch on (ADR-029 §4): the table keeps
   // time, so an effect stays on until the player ends it.
-  const effects = place === 'boarded' ? activatableEffects(mech, pilotAbilities) : []
+  // A Pilot ability's is listed once used, in force (r8 A8): unused, it is the Pilot's action.
+  const effects =
+    place === 'boarded'
+      ? activatableEffects(mech, pilotAbilities).filter(
+          (e) => e.source !== 'ability' || activeEffects.includes(e.ref)
+        )
+      : []
   return (
     <TitledBox
       as="section"
@@ -270,8 +344,8 @@ export function PlayMechUnit({
       chips={chassis ? <Relations items={[chassis]} /> : undefined}
       controls={
         <>
-          {stamp(mechHasCondition(mech, 'Destroyed') ? 'Destroyed' : MECH_STAMP[place])}
-          {place === 'boarded' && onOpenSheet ? (
+          {stamp(destroyed ? 'Destroyed' : down ? playCopy('down') : MECH_STAMP[place])}
+          {(place === 'boarded' || place === 'downtime') && onOpenSheet ? (
             <SheetButton name={mech.name} onOpen={onOpenSheet} />
           ) : null}
           {place === 'parked' && onBoard !== undefined ? (
@@ -294,7 +368,7 @@ export function PlayMechUnit({
         max={s.maxSP}
         tone="mech"
         restoresTo={restore.sp}
-        onChange={live ? (v) => write({ currentSP: v }) : undefined}
+        onChange={live ? vital('currentSP', s.sp, s.maxSP, playCopy('sp')) : undefined}
       />
       <PlayVital
         label={playCopy('ep2')}
@@ -302,7 +376,7 @@ export function PlayMechUnit({
         max={s.maxEP}
         tone="mech"
         restoresTo={restore.ep}
-        onChange={live ? (v) => write({ currentEP: v }) : undefined}
+        onChange={live ? vital('currentEP', s.ep, s.maxEP, playCopy('ep2')) : undefined}
       />
       {showHeat ? (
         <PlayVital
@@ -312,8 +386,13 @@ export function PlayMechUnit({
           tone="mech"
           danger={s.maxHeat > 0 ? heatDangerFrom(s.maxHeat) : undefined}
           restoresTo={restore.heat}
-          onChange={live ? (v) => write({ currentHeat: v }) : undefined}
+          onChange={live ? vital('currentHeat', s.heat, s.maxHeat, playCopy('heat')) : undefined}
         />
+      ) : null}
+      {reactorStates(mech.conditions).length > 0 ? (
+        <Suspense fallback={null}>
+          <ReactorStates mech={mech} live={live} store={store} />
+        </Suspense>
       ) : null}
       {effects.length > 0 ? (
         <>
@@ -336,6 +415,9 @@ export function PlayMechUnit({
               )
             })}
           </Segmented>
+          {effects.map((e) => (
+            <EffectLine key={e.ref} effect={e} />
+          ))}
         </>
       ) : null}
       {place === 'boarded' && range ? (
@@ -356,8 +438,40 @@ export function PlayMechUnit({
           </Segmented>
         </div>
       ) : null}
+      {result === null ? null : <DownResultLine result={result} />}
       {place === 'parked' ? <Text variant="note">{playCopy('readOnlyUntilBoarded')}</Text> : null}
     </TitledBox>
+  )
+}
+
+/** A Down unit's Critical result, named once: a press opens its row (r6 A4). */
+function DownResultLine({ result }: { result: DownResult }) {
+  return (
+    <Text variant="note">
+      <Button variant="ghost" size="compact" onClick={() => askPlayTable(result.table)}>
+        {result.text}
+      </Button>
+    </Text>
+  )
+}
+
+/**
+ * What an Effect does, under its toggle (r6 A11): its name Peeking the full
+ * text, what turning it on changes, its cost, and the rule's line.
+ */
+function EffectLine({ effect }: { effect: ActivatableEffect }) {
+  const record =
+    effect.source === 'ability'
+      ? SalvageUnionReference.Abilities.getBySlug(effect.ref)
+      : resolveInstalledRef(effect.ref)
+  const entityRef = record ? toEntityModel(record as never).ref : undefined
+  const facts = [effect.summary, effect.cost].filter((f) => f !== null).join(' · ')
+  return (
+    <Text variant="note">
+      <Mention entityRef={entityRef}>{effect.name}</Mention>
+      {`: ${facts}.`}
+      {effect.rule === null ? null : ` ${effect.rule}`}
+    </Text>
   )
 }
 
@@ -387,7 +501,7 @@ export function PlayCrawlerUnit({
   const sp = hullGauge(crawler)
   const tl = crawler.techLevel
   const chips = bayChips(crawler)
-  const write = writer(store, 'crawler', crawler.id)
+  const vital = writer(store, 'crawler', crawler.id)
   // Solid while it is the Downtime's unit, whoever may write it; dashed for reference otherwise.
   const solid = live || downtime
   return (
@@ -411,13 +525,19 @@ export function PlayCrawlerUnit({
         value={sp.value}
         max={sp.max}
         tone="crawler"
-        onChange={live ? (v) => write({ currentSP: v }) : undefined}
+        onChange={live ? vital('currentSP', sp.value, sp.max, playCopy('sp')) : undefined}
       />
       {downtime ? (
         <div style={CHIPS}>
           <Stat
             label={playCopy('upkeep')}
             value={`${crawlerUpkeepCost(tl, crawler.type)} Scrap · T${tl}`}
+            size="mini"
+          />
+          {/* What pays it, by its name, so Scrap moved in is seen arriving (r8 D2). */}
+          <Stat
+            label={playDowntimeCopy('scrapPool')}
+            value={poolText(crawler.scrapPool, playDowntimeCopy('scrapPoolNone'))}
             size="mini"
           />
         </div>

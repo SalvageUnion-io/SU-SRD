@@ -26,9 +26,9 @@ describe('rowActionCopy', () => {
     const leave = (kind: 'pilot' | 'mech' | 'crawler') =>
       said(ROW_ACTION_COPY.leaveGame({ name: 'X', kind, from: 'Tenacity', to: { kind: 'shelf' } }))
     expect(leave('pilot')).toContain('Their crawler assignment in Tenacity is cleared')
-    expect(leave('pilot')).toContain('the mech they fly there')
+    expect(leave('pilot')).toContain('the Mech they fly there')
     expect(leave('mech')).toContain('Its crawler assignment in Tenacity is cleared')
-    expect(leave('mech')).toContain('the pilot flying it there')
+    expect(leave('mech')).toContain('the Pilot flying it there')
     expect(leave('crawler')).toContain('Everyone in Tenacity assigned to it is unassigned')
     // Game to Game clears what it leaves behind, too.
     expect(
@@ -117,7 +117,7 @@ describe('rowActionCopy', () => {
   })
 
   test('a copy names the build it will make', () => {
-    expect(said(ROW_ACTION_COPY.copyOnShelf('Vex Arlo'))).toContain('“COPY OF Vex Arlo”')
+    expect(said(ROW_ACTION_COPY.copyOnShelf('Vex Arlo'))).toContain('“Vex Arlo”')
   })
 
   test('a move out of a game the reader cannot name still reads as a sentence', () => {
@@ -134,14 +134,28 @@ describe('rowActionCopy', () => {
   test('a pilot is "them"; a mech or a crawler is "it"', () => {
     expect(ROW_ACTION_COPY.unassign('Vex Arlo', 'pilot', true).body[0]).toContain('assign them to')
     expect(ROW_ACTION_COPY.unassign('Iron Mongrel', 'mech', true).body[0]).toContain('assign it to')
-    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'Mara', 'you').body[0]).toContain(
-      'instead of you, who can still read them'
+  })
+
+  // MD3-08: an NPC's delete spoke of crews, browsers and "Offer to the crew".
+  test('deleting an NPC names the encounters it leaves, and nothing of crews or browsers', () => {
+    const alone = ROW_ACTION_COPY.deleteNpc('Warlord Vex', [])
+    expect(alone.title).toBe('Delete Warlord Vex?')
+    expect(alone.tone).toBe('danger')
+    expect(alone.body).toEqual([
+      'This cannot be undone. Warlord Vex will be removed from your Mediator’s Kit.',
+    ])
+    const one = ROW_ACTION_COPY.deleteNpc('Warlord Vex', ['The Relay'])
+    expect(one.body[1]).toBe('Warlord Vex is in The Relay, and will be removed from it.')
+    const two = ROW_ACTION_COPY.deleteNpc('Warlord Vex', ['The Relay', 'The Gap', 'Ambush'])
+    expect(two.body[1]).toBe(
+      'Warlord Vex is in The Relay, The Gap and Ambush, and will be removed from them.'
     )
+    for (const copy of [alone, one, two]) {
+      expect(copy.body.join(' ')).not.toMatch(/crew|browser|for everyone/i)
+    }
   })
 
   test('only the constructive verbs are not danger-toned', () => {
-    expect(ROW_ACTION_COPY.assignSelf('Vex Arlo').tone).toBe('default')
-    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'Mara', null).tone).toBe('default')
     expect(ROW_ACTION_COPY.copyOnShelf('Vex Arlo').tone).toBe('default')
     for (const copy of [
       ROW_ACTION_COPY.unassign('Vex Arlo', 'pilot', true),

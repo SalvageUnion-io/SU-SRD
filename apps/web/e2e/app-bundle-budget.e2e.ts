@@ -64,8 +64,8 @@ test.use({ account: 'anonymous' })
  *   roster                         2,211,380 B   2,440,000 B
  *   wizard                         2,198,339 B   2,390,000 B
  *   sheet                          2,397,687 B   2,590,000 B
- *   /play/pilots/:pilotId          2,515,698 B   2,920,000 B
- *   /play/games/:gameId/mediate    2,541,798 B   2,920,000 B
+ *   /pilots/:id/play               2,515,698 B   2,920,000 B
+ *   /games/:gameId/mediate    2,541,798 B   2,920,000 B
  *
  * The largest chunk measures 511,029 B against the 530 KB tripwire. The
  * ceilings were set on the older build and were not raised with it, so the
@@ -106,8 +106,12 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     const totals = await captureRouteJs(page, '/')
     report('/ (roster)', totals, CEILING)
 
-    // The single-largest-chunk tripwire (~511 KB measured, see the table
-    // above). Turning either splitting mechanism off re-forms a chunk well
+    // The single-largest-chunk tripwire: the chunk the reference islands share
+    // with the app (~529 KB at 4.10.0; ~460 KB once the app-only components
+    // left `components/index.ts` for `components/app.ts`, which no island
+    // imports). A chunk group cannot split that shared chunk
+    // (`astro/build/appGraph.ts`): keep app-only weight out of the islands'
+    // reach (`components/app.ts`, or a lazy import as sonner's). Turning either splitting mechanism off re-forms a chunk well
     // past it (a ~615 KB shared chunk before the `codeSplitting` groups, one
     // ~1.24 MB entry before autoCodeSplitting), so it asserts against the app
     // bundle without classifying chunks by name.
@@ -130,11 +134,11 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
   })
 
   test('the pilot wizard stays under budget', async ({ page }) => {
-    // `?mode=guided` is load-bearing, not decoration: bare `/pilots/new` renders
-    // the CreateModeChooser (two doors), NOT the wizard, so without it this
-    // measures the chooser's chunk and reports it under the wizard's name — a
-    // budget that would sit green while the thing it claims to guard grew
-    // unwatched. `mode=guided` is what mounts PilotWizard (NewEntityScreen.tsx).
+    // `?mode=guided` is load-bearing, not decoration: while the r6 F2 ruling
+    // (`OPENS_ON_FIRST_STEP`) is switched back, bare `/pilots/new` renders the
+    // CreateModeChooser, NOT the wizard, and this would measure the chooser's
+    // chunk under the wizard's name. `mode=guided` always mounts PilotWizard
+    // (NewEntityScreen.tsx).
     const CEILING = 2_390_000
     const totals = await captureRouteJs(page, '/pilots/new?mode=guided')
     report('/pilots/new?mode=guided (wizard)', totals, CEILING)
@@ -159,16 +163,16 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     // imports `PlayCockpit` statically). The byte count is the route's true
     // cost.
     const CEILING = 2_920_000
-    const totals = await captureRouteJs(page, '/play/pilots/budget-probe')
-    report('/play/pilots/:pilotId', totals, CEILING)
+    const totals = await captureRouteJs(page, '/pilots/budget-probe/play')
+    report('/pilots/:id/play', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
 
   test('the Mediator’s Play stays under budget', async ({ page }) => {
     // The same probe through `PlayMediatorGate`'s "Sign in to run your Game".
     const CEILING = 2_920_000
-    const totals = await captureRouteJs(page, '/play/games/budget-probe/mediate')
-    report('/play/games/:gameId/mediate', totals, CEILING)
+    const totals = await captureRouteJs(page, '/games/budget-probe/mediate')
+    report('/games/:gameId/mediate', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
 })

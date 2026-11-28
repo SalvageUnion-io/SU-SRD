@@ -7,7 +7,7 @@
  * (the entity name) — a mismatch here would write an unresolvable `chassisRef`
  * while every surface still rendered as if the swap had worked.
  *
- * Also pins the destructive-flow gate: Apply is inert until a DIFFERENT chassis
+ * Also pins the destructive-flow gate: nothing is written until a DIFFERENT chassis
  * is chosen, and `onConfirm` fires only after the danger dialog is confirmed.
  *
  * Renders against real SalvageUnionReference data (preloaded via bunfig.toml);
@@ -15,9 +15,9 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import { openInSearcher, pickInSearcher } from '../../../components/__tests__/searcherPick'
+import { openInSearcher } from '../../../components/__tests__/searcherPick'
 import { MechChassisPickerModal } from '../MechChassisPickerModal'
 
 /** Two distinct real chassis — the current one and the one we swap to. */
@@ -28,13 +28,18 @@ function twoChassis(): [{ name: string }, { name: string }] {
   return [first, second]
 }
 
-function renderPicker(onConfirm: (ref: string) => void = () => {}) {
+function renderPicker(
+  onConfirm: (ref: string, keep?: boolean) => void = () => {},
+  loadout: { systems: string[]; modules: string[] } = { systems: [], modules: [] },
+  onOpenChange: (open: boolean) => void = () => {}
+) {
   const [current, other] = twoChassis()
   render(
     <MechChassisPickerModal
       open
       currentChassisRef={nameToSlug(current.name)}
-      onOpenChange={() => {}}
+      loadout={loadout}
+      onOpenChange={onOpenChange}
       onConfirm={onConfirm}
     />
   )
@@ -70,48 +75,71 @@ describe('MechChassisPickerModal', () => {
   )
 
   it(
-    'offers no way to clear the chassis, so Apply never writes an EMPTY one',
+    'offers no way to clear the chassis, and no Apply step',
     async () => {
       const seen: string[] = []
       const { current } = renderPicker((ref) => seen.push(ref))
 
       // A mech must always have a chassis: the chosen one's Page offers no
-      // Choose and the rail no Remove — otherwise Apply could write
-      // `chassisRef: ''` and wipe the loadout with it.
+      // Choose and the rail no Remove, so nothing can write `chassisRef: ''`.
       const bar = await openInSearcher(current.name)
       expect(within(bar).queryByRole('button')).toBeNull()
       expect(screen.queryByRole('button', { name: `Remove ${current.name}` })).toBeNull()
       expect(screen.getAllByTestId('rail-entry')).toHaveLength(1)
-
-      const apply = screen.getByRole('button', { name: /apply chassis/i })
-      expect(apply.hasAttribute('disabled')).toBe(true)
-      fireEvent.click(apply)
+      // A picker that holds one thing applies on Choose (r2 G3): no Apply.
+      expect(screen.queryByRole('button', { name: /apply/i })).toBeNull()
       expect(seen).toEqual([])
     },
     RENDER_TIMEOUT_MS
   )
 
   it(
-    'applies only a different chassis, by SLUG, and only after the danger dialog',
+    'Choose applies a different chassis, by SLUG, in one press, and says first what will not fit, which it keeps (r6 E7)',
     async () => {
-      const seen: string[] = []
-      const { other } = renderPicker((ref) => seen.push(ref))
-      const apply = () => screen.getByRole('button', { name: /apply chassis/i })
+      const seen: [string, boolean | undefined][] = []
+      const closed: boolean[] = []
+      // More one-slot systems than any chassis holds: some will not fit.
+      const small = SalvageUnionReference.Systems.all().find((s) => s.slotsRequired === 1)
+      if (!small) throw new Error('no one-slot system')
+      const { other } = renderPicker(
+        (ref, keep) => seen.push([ref, keep]),
+        { systems: new Array<string>(60).fill(nameToSlug(small.name)), modules: [] },
+        (open) => closed.push(open)
+      )
 
-      // Inert until a DIFFERENT chassis is chosen.
-      expect(apply().hasAttribute('disabled')).toBe(true)
-      await pickInSearcher(other.name)
-      expect(apply().hasAttribute('disabled')).toBe(false)
-
-      fireEvent.click(apply())
-      // Apply opens the confirm; it must not have written anything yet.
+      expect(screen.getByText('Your whole loadout comes along to the new chassis.')).toBeDefined()
+      // Reading a chassis writes nothing, and says beside its Choose what will not fit.
+      const bar = await openInSearcher(other.name)
       expect(seen).toEqual([])
+      expect(
+        within(bar).getByText(
+          new RegExp(
+            `Will not fit: ${small.name} ×\\d+\\. Choose keeps them, marked rule breaking\\.`
+          )
+        )
+      ).toBeDefined()
 
-      // ConfirmDialog settles its pending state after the action resolves.
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /^change chassis$/i }))
+      // Choose is the one confirming press: no Apply, no second dialog (the sheet offers Undo).
+      fireEvent.click(within(bar).getByRole('button', { name: 'Choose' }))
+      expect(seen).toEqual([[nameToSlug(other.name), true]])
+      expect(closed).toEqual([false])
+    },
+    RENDER_TIMEOUT_MS
+  )
+
+  it(
+    'beside what will not fit, its second button leaves them off (r6 E7)',
+    async () => {
+      const seen: [string, boolean | undefined][] = []
+      const small = SalvageUnionReference.Systems.all().find((s) => s.slotsRequired === 1)
+      if (!small) throw new Error('no one-slot system')
+      const { other } = renderPicker((ref, keep) => seen.push([ref, keep]), {
+        systems: new Array<string>(60).fill(nameToSlug(small.name)),
+        modules: [],
       })
-      expect(seen).toEqual([nameToSlug(other.name)])
+      await openInSearcher(other.name)
+      fireEvent.click(screen.getByRole('button', { name: 'Leave them off' }))
+      expect(seen).toEqual([[nameToSlug(other.name), false]])
     },
     RENDER_TIMEOUT_MS
   )

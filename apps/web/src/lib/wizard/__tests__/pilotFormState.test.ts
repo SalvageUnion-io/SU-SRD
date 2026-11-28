@@ -6,6 +6,7 @@ import {
   EMPTY_PILOT_FORM_STATE,
   pilotFormToCreateInput,
   pilotFormToUpdatePatch,
+  storedPilotNames,
 } from '../pilotFormState'
 
 describe('pilotFormToUpdatePatch', () => {
@@ -17,6 +18,23 @@ describe('pilotFormToUpdatePatch', () => {
     })
     expect(patch.name).toBe('Mira')
     expect(patch.callsign).toBe('Sparks')
+  })
+
+  it('a blank Name is the Callsign (r7 F7: the Callsign is required)', () => {
+    const patch = pilotFormToUpdatePatch({
+      ...EMPTY_PILOT_FORM_STATE,
+      name: ' ',
+      callsign: ' Sparks ',
+    })
+    expect(patch.name).toBe('Sparks')
+    expect(patch.callsign).toBe('Sparks')
+  })
+
+  it('the ruling switches back: Name required, a blank Callsign is the Name (r6 F5)', () => {
+    expect(storedPilotNames({ name: ' Mira ', callsign: ' ' }, 'name')).toEqual({
+      name: 'Mira',
+      callsign: 'Mira',
+    })
   })
 })
 

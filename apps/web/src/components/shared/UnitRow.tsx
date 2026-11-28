@@ -14,9 +14,11 @@
 import { Unlink } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { iconSize } from '../../design/tokens'
+import { isDown } from '../../lib/units/readings'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 import { unitChipOf, unitRowModel } from '../../lib/units/unitModel'
 import { sharedCopy } from '../../messages/components-shared'
+import { UnitDown } from '../entity/UnitDown'
 import type { EntityFormModel, EntityMode, LinkedUnit, TagItem } from '../index'
 import { Button, Entity, relation, Stat } from '../index'
 
@@ -46,6 +48,11 @@ type UnitRowProps = {
   mode?: EntityMode
   /** The art window (E10): a pilot's photo or class art, a mech's chassis. */
   art?: EntityFormModel['art']
+  /**
+   * Its kind is not said after its name, to screen readers either: the list
+   * holds units of many kinds, and the row's note chip says which (MD-18).
+   */
+  unkinded?: boolean
 }
 
 export function UnitRow({
@@ -63,6 +70,7 @@ export function UnitRow({
   controls,
   mode,
   art,
+  unkinded = false,
 }: UnitRowProps) {
   const all =
     controls || href !== undefined || onUnassign ? (
@@ -105,8 +113,15 @@ export function UnitRow({
     ),
     ...(relations ?? []),
   ]
-  const marks = byChip('mark')
-  const state = byChip('state')
+  // Leaving the kind out takes the Compact's own note with it, so the note
+  // rides the marks lane, where the Compact would have set it.
+  const noteMark = unkinded && note ? [<Stat key="note" label={note} size="mini" />] : []
+  const marks = [...noteMark, ...byChip('mark').map((r) => cell(r))]
+  // A unit at 0 SP or 0 HP says Down, wherever it is listed (r6 C6).
+  const state = [
+    ...byChip('state').map(cell),
+    ...(isDown(readings) ? [<UnitDown key="down" readings={readings} />] : []),
+  ]
   return (
     <Entity
       size="compact"
@@ -120,10 +135,11 @@ export function UnitRow({
         ...(art ? { art } : {}),
       })}
       mode={mode}
-      labels={marks.length > 0 ? [...(labels ? [labels] : []), ...marks.map(cell)] : labels}
+      labels={marks.length > 0 ? [...(labels ? [labels] : []), ...marks] : labels}
+      {...(unkinded ? { omit: ['kind'] } : {})}
       {...(allRelations.length > 0 ? { relations: allRelations } : {})}
       {...(linked?.length ? { linked } : {})}
-      {...(state.length > 0 ? { state: state.map(cell) } : {})}
+      {...(state.length > 0 ? { state } : {})}
       trailing={trailing}
       controls={all}
     />

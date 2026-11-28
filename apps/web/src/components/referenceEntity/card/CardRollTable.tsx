@@ -2,16 +2,19 @@ import { useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../../lib/dice'
+import { compositionsCopy } from '../../../messages/components-compositions'
 import type { Size } from '../../../styles/sizing'
+import { FOCUS_RING } from '../../atoms/interaction'
 import {
   digestColumnsTable,
   digestRollTable,
   withNothingHappens,
 } from '../../compositions/digestRollTable'
-import { RollTableInstrument } from '../../compositions/RollTableInstrument'
+import { RollControl, RollTableInstrument } from '../../compositions/RollTableInstrument'
 import { rollRangeLabel } from '../../compositions/rollTableBands'
 import { toastRoll } from '../../containers/toastRoll'
 import { RollMini } from '../../entity/forms/RollMini'
+import { usePeekAttrs } from '../../entity/peekContext'
 import { TraitProse } from '../../TraitProse'
 
 /** A roll on this table: the die and the row it landed on. */
@@ -21,7 +24,7 @@ export type CardRoll = { roll: number; key: string }
 type ColumnsRoll = { column: string; entry: string; roll: number; value: string }
 
 /**
- * An entity's own ROLL TABLE (EDL E14, R8): the shared `RollTableInstrument`,
+ * An entity's own ROLL TABLE (hard rule R8): the shared `RollTableInstrument`,
  * OPEN on its Page or guide step, flush under the rule above its bar, its
  * bands showing without a click, on the server as in the browser. Its ROLL
  * THE DIE stamp is the one roll control (press it again to reroll).
@@ -42,6 +45,21 @@ type ColumnsRoll = { column: string; entry: string; roll: number; value: string 
  * Mini form's own): its name Peeks the table (`peekAt`, `PeekTable`), its
  * roll in its strip, so the rows never open in the card.
  */
+/** An inline roll's table name: it Peeks the table's rows, as a roll Mini's name tab does. */
+function InlineTableName({ name, peekAt }: { name: string; peekAt: string }) {
+  const peek = usePeekAttrs(undefined, peekAt)
+  const peeks = Object.keys(peek).length > 0
+  return (
+    <span
+      className={peeks ? `su-roll-inline__name ${FOCUS_RING}` : 'su-roll-inline__name'}
+      tabIndex={peeks ? 0 : undefined}
+      {...peek}
+    >
+      {name}
+    </span>
+  )
+}
+
 export function CardRollTable({
   table: bookTable,
   name,
@@ -53,6 +71,7 @@ export function CardRollTable({
   onRollResult,
   peekAt,
   nestedSize = 'mini',
+  inline = false,
 }: {
   table: RefObjectTable
   /** The table's name, for the bar. */
@@ -72,6 +91,11 @@ export function CardRollTable({
   peekAt?: string
   /** Nested: its head's Size, a Mini, or a Compact in a Full host. */
   nestedSize?: 'mini' | 'compact'
+  /**
+   * Inside its action (best, revision 8): the roll alone, a button at the foot
+   * of the action's own body, no ink strip of its own.
+   */
+  inline?: boolean
 }) {
   // A "20"-only table reads with its "1–19: Nothing happens." row.
   const table = withNothingHappens(bookTable)
@@ -122,8 +146,19 @@ export function CardRollTable({
     })
   }
 
-  const stamp = isColumns ? 'Roll the Dice:' : 'Roll the Die:'
+  const stamp = isColumns ? compositionsCopy('rollTheDice') : compositionsCopy('rollTheDie')
   const onRoll = disabled ? undefined : isColumns ? rollColumns : rollBands
+
+  if (inline) {
+    return (
+      <div className="su-roll-inline">
+        {peekAt && <InlineTableName name={name} peekAt={peekAt} />}
+        <RollControl name={name} size="mini" {...(onRoll ? { onRoll } : {})}>
+          {stamp}
+        </RollControl>
+      </div>
+    )
+  }
 
   if (nested) {
     return (

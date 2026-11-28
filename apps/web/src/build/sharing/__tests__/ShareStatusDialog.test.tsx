@@ -12,7 +12,7 @@
  */
 
 import { afterAll, describe, expect, test } from 'bun:test'
-import { act, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import type { SyncState } from '../../../replica/syncContext'
 
@@ -79,5 +79,39 @@ describe('ShareStatusDialog — signed in but not connected', () => {
     })
     expect(screen.getByText(/need a live connection/i)).toBeTruthy()
     expect(screen.queryByText(/sharing needs an account/i)).toBeNull()
+  })
+})
+
+describe('ShareStatusDialog — a pilot’s share is the pilot’s alone (r4 E18)', () => {
+  test('one way to share the crew: no paragraph, no links (r7 G9)', async () => {
+    const { crawlerFixture, mechFixture, softLinkFixture } = await import(
+      '../../../components/__tests__/fixtures'
+    )
+    cleanup()
+    const { useUnits } = await import('../../../replica/units')
+    useUnits.setState({
+      mechs: [mechFixture({ id: 'm1', name: 'Iron Mongrel' })],
+      crawlers: [crawlerFixture({ id: 'c1', name: 'Tenacity' })],
+      softLinks: [
+        softLinkFixture('mech-to-pilot', 'm1', 'pilot-1'),
+        softLinkFixture('pilot-to-crawler', 'pilot-1', 'c1'),
+      ],
+    })
+    await act(async () => {
+      renderDialog()
+    })
+    expect(screen.queryByText(/shared separately/)).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Open Iron Mongrel to share it' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Open Tenacity to share it' })).toBeNull()
+  })
+
+  test('a pilot with neither says nothing of it', async () => {
+    cleanup()
+    const { useUnits } = await import('../../../replica/units')
+    useUnits.setState({ mechs: [], crawlers: [], softLinks: [] })
+    await act(async () => {
+      renderDialog()
+    })
+    expect(screen.queryByRole('region', { name: 'Shared separately' })).toBeNull()
   })
 })

@@ -22,8 +22,31 @@ export type CompactSearchEntry = {
   /**
    * What a search result's Compact draws (entity display language, §7 "Search"):
    * the entity's model, slimmed to the Compact's parts — no prose, no lead (a
-   * result shows none, E11), no stat glossary — so the index stays small and
+   * result shows none, E11; a keyword's or trait's first sentence alone, the
+   * dropdown's line under its name, L5), no stat glossary — so the index stays small and
    * the browser still never loads the corpus.
    */
   model?: EntityFormModel
+  /**
+   * The name as a reader may type it instead (`searchAliases`): a stat's
+   * abbreviation, a table's famous result. Lowered; also in `text`.
+   */
+  aliases?: string[]
+  /**
+   * A PATTERN's row: it has no schema of its own, so `schemaName` is its
+   * host's and these say what it is ("Pattern · Mule": pattern names repeat
+   * between chassis) and where its page is.
+   */
+  pattern?: { href: string; kind: string }
+  /**
+   * The row is a RULE told inside a guide (Training Points), not a pattern:
+   * it carries its own page and kind the same way (`pattern`), and ranks as
+   * the rules' own kinds do.
+   */
+  rule?: true
+  /**
+   * A ROLL TABLE printed inside another entry (an ability's, a System's):
+   * ranked under that owner (`scoreSearchMatch`'s `embedded`).
+   */
+  embedded?: true
 }

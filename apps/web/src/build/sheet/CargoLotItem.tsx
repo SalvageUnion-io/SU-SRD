@@ -1,16 +1,21 @@
 /**
- * CargoLotItem — one lot in The Hold (`StorageManifest`), on either side of the
+ * CargoLotItem — one lot in a hold, on either side of the
  * mech ⇄ crawler boundary, with the cap-checked move affordance both sides
  * share.
  */
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import { lazy, Suspense, useState } from 'react'
 import { Button } from '../../components/index'
 import { loadableQty } from '../../lib/cargo/cargoTransfer'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { CargoLotLine } from './CargoLotLine'
+import { undoToast } from './undoToast.model'
+
+/** How many to take out: fetched when a stack's Unload first asks. */
+const UnloadDialog = lazy(() => import('./UnloadDialog').then((m) => ({ default: m.UnloadDialog })))
 
 export type StorageManifestSide = 'mech' | 'crawler'
 
@@ -38,15 +43,15 @@ function moveAffordance(
   // them whichever sheet they are on.
   let disabledReason: string | null = !linked
     ? side === 'mech'
-      ? 'No crawler assigned — nothing to stow to.'
-      : 'No mech assigned — nothing to load onto.'
+      ? buildSheetCopy('noCrawlerNothingToStow')
+      : buildSheetCopy('noMechNothingToLoad')
     : cargo.crawlerLocked
 
   if (side === 'crawler' && disabledReason === null) {
     // The reducer's own fit math, so the button and the load can't disagree.
     const fitsQty = loadableQty(lot, cargo.usage.free)
     if (fitsQty <= 0) {
-      disabledReason = `"${lot.name}" does not fit — ${cargo.usage.free} slots free.`
+      disabledReason = buildSheetCopy('doesNotFit', { name: lot.name, free: cargo.usage.free })
     }
     const partial = lot.kind === 'bulk' && lot.qty !== undefined && fitsQty < lot.qty
     label = partial && fitsQty > 0 ? `Load ${fitsQty}` : 'Load'
@@ -65,8 +70,9 @@ type CargoLotItemProps = {
   /**
    * Drop the lot out of its container entirely — rendered as 'Unload' on the
    * mech chit, 'Unstow' on the Storage Bay tile. Omitted → no remove button.
+   * A mech's stack asks how many first (r4 E10), and hands the count on.
    */
-  onRemove?: () => void
+  onRemove?: (qty?: number) => void
 }
 
 /**
@@ -78,47 +84,101 @@ type CargoLotItemProps = {
  * The label + disabled reason come from the shared `moveAffordance`.
  */
 export function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLotItemProps) {
-  const { label, disabledReason } = moveAffordance(lot, side, cargo, linked)
-
-  function handleMove() {
-    if (side === 'mech') report(cargo.stow(lot.id))
-    else report(cargo.load(lot.id))
-  }
-
   return (
     <CargoLotLine
       lot={lot}
       actions={
         readOnly ? undefined : (
-          <>
-            <Button
-              variant="pencil"
-              size="mini"
-              disabled={disabledReason !== null}
-              title={disabledReason ?? undefined}
-              aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
-              onClick={handleMove}
-            >
-              {label}
-            </Button>
-            {onRemove && (
-              <Button
-                variant="pencil"
-                size="mini"
-                aria-label={`${side === 'mech' ? 'Unload' : 'Unstow'} ${lot.name}`}
-                title={
-                  side === 'mech'
-                    ? buildSheetCopy('unloadFromTheMechHold', { name: lot.name })
-                    : buildSheetCopy('unstowFromTheStorageBay', { name: lot.name })
-                }
-                onClick={onRemove}
-              >
-                {side === 'mech' ? buildSheetCopy('unload') : buildSheetCopy('unstow')}
-              </Button>
-            )}
-          </>
+          <CargoLotControls
+            lot={lot}
+            side={side}
+            cargo={cargo}
+            linked={linked}
+            {...(onRemove ? { onRemove } : {})}
+          />
         )
       }
     />
+  )
+}
+
+/**
+ * A lot's Edit controls, wherever its line is drawn (its `CargoLotLine`, a
+ * Ledger's row): this side's cap-checked move, and its remove.
+ */
+export function CargoLotControls({
+  lot,
+  side,
+  cargo,
+  linked,
+  onRemove,
+}: Omit<CargoLotItemProps, 'readOnly'>) {
+  const { label, disabledReason } = moveAffordance(lot, side, cargo, linked)
+
+  function handleMove() {
+    if (side === 'crawler') {
+      report(cargo.load(lot.id))
+      return
+    }
+    // A stow lands at once and says so, with the way back (r3 F1): Scrap
+    // stowed twice by mistake was counted twice, and nothing had said it moved.
+    const stowed = cargo.stow(lot.id)
+    report(stowed)
+    void stowed.then((result) => {
+      if (!result.ok || cargo.carrierId === null) return
+      undoToast(
+        buildSheetCopy('stowedName', { name: lot.name }),
+        () => report(cargo.takeBack(lot)),
+        cargo.carrierId
+      )
+    })
+  }
+
+  // Unload on a stack asks how many (r4 E10): the whole lot is one choice.
+  const [asking, setAsking] = useState(false)
+  const stack = side === 'mech' && lot.kind === 'bulk' && (lot.qty ?? 0) > 1
+
+  return (
+    <>
+      <Button
+        variant="pencil"
+        size="mini"
+        disabled={disabledReason !== null}
+        title={disabledReason ?? undefined}
+        aria-label={buildSheetCopy(side === 'mech' ? 'stowName' : 'loadName', { name: lot.name })}
+        onClick={handleMove}
+      >
+        {label}
+      </Button>
+      {onRemove && (
+        <Button
+          variant="pencil"
+          size="mini"
+          aria-label={buildSheetCopy(side === 'mech' ? 'unloadName' : 'unstowName', {
+            name: lot.name,
+          })}
+          title={
+            side === 'mech'
+              ? buildSheetCopy('unloadFromTheMechHold', { name: lot.name })
+              : buildSheetCopy('unstowFromTheStorageBay', { name: lot.name })
+          }
+          onClick={() => (stack ? setAsking(true) : onRemove())}
+        >
+          {side === 'mech' ? buildSheetCopy('unload') : buildSheetCopy('unstow')}
+        </Button>
+      )}
+      {onRemove && stack && asking && (
+        <Suspense fallback={null}>
+          <UnloadDialog
+            lot={lot}
+            onClose={() => setAsking(false)}
+            onUnload={(qty) => {
+              setAsking(false)
+              onRemove(qty)
+            }}
+          />
+        </Suspense>
+      )}
+    </>
   )
 }

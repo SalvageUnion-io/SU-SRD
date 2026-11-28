@@ -1,5 +1,5 @@
 /**
- * THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b, R37): a
+ * THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b): a
  * head's chips sit only beside its name, on the name's
  * line, the last of them (the cost, the last slot) in its bottom-right
  * corner, filling that line leftward. They never make the head taller: what
@@ -78,7 +78,9 @@ const KEPT_CLASSES = new Set(['rank', 'cost', 'state', 'uses', 'menu'])
 /**
  * The flow's items besides the name, in source order: the container's
  * children, read through every box that draws none (`display: contents`: a
- * strip, its class lanes, a cost's edge), skipping what is not drawn.
+ * strip, its class lanes, a cost's edge), skipping what is not drawn and what
+ * CSS lays on a line of its own (`flex-basis: 100%`: a show page's action,
+ * above its title on a phone), which is never beside the name.
  */
 function fillItems(container: HTMLElement, name: Element | null): HTMLElement[] {
   const items: HTMLElement[] = []
@@ -88,6 +90,7 @@ function fillItems(container: HTMLElement, name: Element | null): HTMLElement[] 
       if (isNotChip(child)) continue
       const display = getComputedStyle(child).display
       if (display === 'none') continue
+      if (display !== 'contents' && getComputedStyle(child).flexBasis === '100%') continue
       if (display === 'contents') take(child)
       else items.push(child)
     }
@@ -209,7 +212,7 @@ export function isKept(item: Element, root: Element): boolean {
 }
 
 /**
- * The class that stays ahead of the rest (C2b, R37): the
+ * The class that stays ahead of the rest (C2b): the
  * measures (Slots, SP, HP) keep their place beside the Tech Level while
  * they fit, before the economy and the traits take what room is left. Not
  * kept: a measure that does not fit still leaves, so the head never grows.
@@ -255,7 +258,7 @@ export function overflowPlan(
   for (let i = widths.length - 1; i >= 0; i--) {
     if (kept[i] || first[i]) continue
     const width = widths[i] as number
-    // As many as fit stay (R37): one too wide leaves, and the next one in
+    // As many as fit stay (C2b): one too wide leaves, and the next one in
     // still may stay.
     if (fits(used + gap + width)) used += gap + width
     else out[i] = true
@@ -355,7 +358,7 @@ function planWithRoom(
   // Where even then the name would break inside a word (a crawler's long
   // name in Edit on a phone, beside its Tech Level stepper and type), the
   // name takes the band's width and the rest are the first row, the Tech
-  // Level too (R37); the cost and C8's slots stay.
+  // Level too (C2b); the cost and C8's slots stay.
   const left = widths.reduce((sum, width, i) => (freed.out[i] ? sum : sum + gap + width), 0)
   if (left + shortest <= room - 1) return freed
   const stays = items.map(
@@ -415,14 +418,20 @@ export function fitChipFill(container: HTMLElement): void {
   const widths = items.map((item) => outerWidth(item, room))
   const moreWidth = moreItem ? outerWidth(moreItem, room) : undefined
   // A name that ends in "…" gives way to its chips down to half its line (or
-  // its longest word, if wider): the chips stay beside it and it clips (R3:
+  // its longest word, if wider): the chips stay beside it and it clips (C5:
   // a chip is never cut, only the name flexes); past that they go out.
   const fullName = oneLineWidth(name)
   const nameWidth = ellipsizes(name) ? clippedName(name, fullName, room) : fullName
-  // A head laid by CSS alone (a Page's controls band on a phone, its
-  // controls over its title) sends nothing out; nor does one with nowhere to send it.
-  // Nor does one not laid out (a closed tab): it fits once drawn.
-  const routes = room > 0 && s.flexDirection === 'row-reverse' && (!!row || moreWidth !== undefined)
+  // A head laid by CSS alone (a band whose aside is its controls: an index's
+  // view and filters) sends nothing out; nor does one with nowhere to send
+  // it. Nor does one not laid out (a closed tab): it fits once drawn. A fitted
+  // head runs as a row either way (a show page's chips beside its title run
+  // `row`, ordered by `--su-fill` as `row-reverse` places them).
+  const byCss =
+    s.flexDirection === 'row'
+      ? !!container.closest('[data-aside="controls"]')
+      : s.flexDirection !== 'row-reverse'
+  const routes = room > 0 && !byCss && (!!row || moreWidth !== undefined)
   // What this fit reads: the same again (its own writes resized the name or
   // a line), and nothing changes.
   const at = [room, gap, nameWidth, moreWidth ?? -1, ...widths].map((n) => n.toFixed(2)).join(',')
@@ -453,7 +462,7 @@ export function fitChipFill(container: HTMLElement): void {
   const chipsWidth = shownWidths.reduce((sum, width) => sum + gap + width, 0)
   // The chips beside the one-line name: where even they do not fit, the name
   // wraps in the room they leave, and where its longest word leaves too
-  // little, the corner chip wraps its value in what is left (E18: it wraps,
+  // little, the corner chip wraps its value in what is left (C5: it wraps,
   // never clipped).
   const wraps = shown.length > 0 && fullName + chipsWidth > room - 1
   const corner = shown[shown.length - 1]
@@ -463,7 +472,7 @@ export function fitChipFill(container: HTMLElement): void {
   // Mech | Crawler) cannot, and would be drawn over the name.
   const cornerWraps =
     !!corner && !corner.matches(LIVE_CONTROL) && !corner.querySelector(LIVE_CONTROL)
-  // A name that ends in "…" gives the chips shown all they need (R3: a chip
+  // A name that ends in "…" gives the chips shown all they need (C5: a chip
   // is never cut, only the name flexes): the corner never wraps beside it.
   const clips = nameWidth < fullName || ellipsizes(name)
   const shortest = !wraps

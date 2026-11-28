@@ -5,10 +5,12 @@ import {
   assignmentFor,
   crewAssignmentsOf,
   crewSlotsOf,
+  denizenTemplate,
   isNpcDown,
   npcAsReferenceEntity,
   npcIdentityLine,
   npcKicker,
+  resolveNpcAction,
   slotFromParam,
   slotParam,
   statFillFromReference,
@@ -42,7 +44,7 @@ describe('a reference template fills the stat block, actions as slugs (Q3)', () 
     if (!ref) throw new Error('in npcs.json')
     const fill = statFillFromReference(ref)
     expect(fill.damageType).toBe('SP')
-    expect(fill.traits).toEqual([{ type: 'fast' }])
+    expect(fill.traits).toEqual([{ type: 'Fast' }])
   })
 })
 
@@ -150,5 +152,43 @@ describe('a crawler’s crew slots', () => {
     expect(slotFromParam('type')).toEqual({ kind: 'type' })
     expect(slotFromParam(undefined)).toBeUndefined()
     expect(slotParam({ kind: 'bay', bayRef: 'med-bay' })).toBe('med-bay')
+  })
+})
+
+describe('any Reference denizen is a template (ADR-067 §2)', () => {
+  test('a Bio-Titan fills its Structure Points as SP, its actions as slugs', () => {
+    const scylla = denizenTemplate({ schema: 'bio-titans', slug: 'scylla' })
+    if (scylla === null) throw new Error('Scylla is in the reference')
+    const fill = statFillFromReference(scylla, 'bio-titans')
+    expect(fill.templateRef).toEqual({ schema: 'bio-titans', slug: 'scylla' })
+    expect(fill.damageType).toBe('SP')
+    expect(fill.hitPoints).toBe(scylla.structurePoints ?? -1)
+    expect(fill.actions.length).toBeGreaterThan(0)
+    expect(fill.actions.every((slug) => resolveNpcAction(slug) !== null)).toBe(true)
+    expect(npcKicker(fill)).toBe('From Scylla')
+  })
+
+  test('a creature keeps its Hit Points as HP', () => {
+    const [creature] = SalvageUnionReference.Creatures.all()
+    if (creature === undefined) throw new Error('the reference has creatures')
+    const fill = statFillFromReference(creature, 'creatures')
+    expect(fill.damageType).toBe('HP')
+    expect(fill.hitPoints).toBe(creature.hitPoints)
+  })
+
+  test('crew templates are not denizens', () => {
+    expect(denizenTemplate({ schema: 'crawlers', slug: 'augmented' })).toBeNull()
+  })
+})
+
+describe('an NPC that takes SP reads as Structure Points on its card', () => {
+  test('SP wears the SP stat; HP keeps Hit Points', () => {
+    const base = { name: 'Hull', hitPoints: 12, actions: [], traits: [] }
+    const sp = npcAsReferenceEntity({ ...base, damageType: 'SP' }) as Record<string, unknown>
+    expect(sp.structurePoints).toBe(12)
+    expect(sp.hitPoints).toBeUndefined()
+    const hp = npcAsReferenceEntity({ ...base, damageType: 'HP' }) as Record<string, unknown>
+    expect(hp.hitPoints).toBe(12)
+    expect(hp.structurePoints).toBeUndefined()
   })
 })

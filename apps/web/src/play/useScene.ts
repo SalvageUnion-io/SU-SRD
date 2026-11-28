@@ -5,19 +5,38 @@
  * no Mediator and so no conditions; before the first answer the Scene is clear.
  */
 
+import { sceneConditionsOf } from 'game-domain/rules/sceneConditions'
 import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableRead } from '../replica/useTable'
+import type { OnTable, RollAsk } from '../rooms/game/scene'
 
 export type SceneState = {
   /** In catalogue order, each once. */
   conditions: readonly SceneConditionId[]
   /** Hours passed under them. */
   hours: number
+  /** The pilot the Mediator marked as up now; absent with none. */
+  upNow?: string
+  /** The Group Initiative round and the side acting (r8 A3); absent with none kept. */
+  round?: { n: number; acting: 'pilots' | 'opposition' | null }
+  /** What the Mediator put on the table (ADR-068 §4); absent with nothing. */
+  onTable?: OnTable
+  /** The Mediator is holding the table; absent when not. */
+  hold?: true
+  /** The rolls the Mediator asked of this viewer's seats (all of them, to the Mediator). */
+  asks?: RollAsk[]
 }
 
 export const CLEAR_SCENE: SceneState = { conditions: [], hours: 0 }
+
+/** The conditions that are on, by name in catalogue order ("Radiation Storm, Freezing"); empty with none. */
+export function sceneConditionNames(conditions: readonly string[]): string {
+  return sceneConditionsOf(conditions)
+    .map((condition) => condition.name)
+    .join(', ')
+}
 
 export function useScene(gameId: string | null): SceneState {
   const signedIn = isSignedIn(useSync().status)

@@ -4,27 +4,37 @@
  * Play. User-made and only ever its maker's, so dashed and "Only me".
  *
  * "+ New encounter" makes a blank one and opens it; each item's "⋯" menu has
- * Open, Make a copy and Delete…, the last two through the page's one confirm.
+ * Open, Make a copy and Delete…. A copy only adds, so it runs at once and its
+ * toast opens it (`makeACopy`, as a unit's does); Delete asks through the
+ * page's one confirm.
  */
 
 import type { Encounter } from 'game-domain/schemas/encounter'
 import type { HeaderMenuItem } from '../../components/index'
-import { Button, toast } from '../../components/index'
+import { Button } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
+import { makeACopy } from '../../lib/copiedToast'
+import { namesOn } from '../../lib/copyEntity'
 import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { runWrite } from '../../lib/runWrite'
-import { encounterChips, encounterReading } from '../../lib/shelves/shelfItems'
+import { encounterReading } from '../../lib/shelves/shelfItems'
 import { buildPrepCopy } from '../../messages/build-prep'
 import { useEncounters } from '../../replica/collections'
 import { useSync } from '../../replica/syncContext'
 import { blankEncounter, encounterCopy, encounterHref } from '../prep/encounter.model'
-import { useSheetModeStore } from '../sheet/sheetMode.model'
-import { Shelf } from './Shelf'
-import { ShelfItem } from './ShelfItem'
+import { typeNameOnArrival } from '../sheet/nameOnArrival.model'
+import { ShelfLedger } from './ShelfLedger'
 
-export function EncounterShelf({ confirm }: { confirm: Confirm }) {
+export function EncounterShelf({
+  confirm,
+  games,
+}: {
+  confirm: Confirm
+  /** The viewer's Games, to name the one an encounter is prepared for. */
+  games?: readonly { _id: string; name: string }[] | undefined
+}) {
   const { canWrite } = useSync()
   const go = useGo()
   const hydrated = useHydrateOnMount(() => useEncounters.getState().hydrate())
@@ -40,14 +50,24 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
         {
           id: 'copy',
           label: buildPrepCopy('makeACopy'),
-          onSelect: writable(() =>
-            confirm({
-              ...ROW_ACTION_COPY.copyOnShelf(encounter.name),
-              onConfirm: async () => {
-                const created = await useEncounters.getState().create(encounterCopy(encounter))
-                toast.success(`Made ${created.name}.`)
-              },
-            })
+          onSelect: writable(
+            () =>
+              void makeACopy({
+                name: encounter.name,
+                make: async () => {
+                  const shelf = useEncounters.getState()
+                  const created = await shelf.create(
+                    encounterCopy(encounter, namesOn(shelf.encounters))
+                  )
+                  return {
+                    name: created.name,
+                    href: encounterHref(created.id),
+                    exists: () =>
+                      useEncounters.getState().encounters.some((held) => held.id === created.id),
+                  }
+                },
+                go,
+              })
           ),
         },
       ],
@@ -69,39 +89,40 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
 
   async function newEncounter() {
     const created = await useEncounters.getState().create(blankEncounter())
-    // A blank encounter has nothing to read: it opens in Edit.
-    useSheetModeStore.getState().setEditing(true)
+    // A blank encounter has nothing to read: it opens in Edit, its name selected (r8 C2).
+    typeNameOnArrival(created.id)
     go(encounterHref(created.id))
   }
 
   return (
-    <Shelf
+    <ShelfLedger
       id="shelf-encounters"
       title={buildPrepCopy('encounters')}
-      aside="Yours"
-      note={buildPrepCopy('shelfNote')}
+      tone="adversary"
+      columns={[
+        { key: 'game', label: 'Game', kind: 'text' },
+        { key: 'opp', label: 'Opposition', kind: 'figure' },
+        { key: 'tables', label: 'Tables', kind: 'figure' },
+      ]}
       action={
         canWrite ? (
-          <Button variant="primary" size="compact" onClick={() => runWrite(newEncounter)}>
+          <Button variant="default" size="compact" onClick={() => runWrite(newEncounter)}>
             {buildPrepCopy('addEncounter')}
           </Button>
         ) : undefined
       }
-      isEmpty={hydrated && encounters.length === 0}
-      empty={buildPrepCopy('noEncounters')}
-    >
-      {encounters.map((e) => (
-        <ShelfItem
-          key={e.id}
-          kind="encounter"
-          name={e.name}
-          reading={encounterReading(e)}
-          href={encounterHref(e.id)}
-          userMade
-          chips={encounterChips(e)}
-          menu={menu(e)}
-        />
-      ))}
-    </Shelf>
+      empty={hydrated ? buildPrepCopy('noEncounters') : ''}
+      rows={encounters.map((e) => ({
+        id: e.id,
+        name: e.name,
+        href: encounterHref(e.id),
+        cells: [
+          games?.find((g) => g._id === e.gameId)?.name ?? '',
+          String(encounterReading(e).value),
+          String(e.tables.length || ''),
+        ],
+        menu: menu(e),
+      }))}
+    />
   )
 }

@@ -4,14 +4,15 @@
  *
  * The body owns the identity band (Workshop-Manual layout): `PilotSheet`
  * renders the `SheetHero` band as its first region. This
- * component's remaining job is the condensed strip and the Assigned units
+ * component's remaining job is the condensed strip and the Related units
  * (`assignedUnitsFor`), handed to `PilotSheet` as `linkedUnits`.
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { isPilotDead, pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
-import { Stat } from '../../components/index'
+import { Stat, Text } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { assignedRail } from './assignedRail'
 import { pilotStamp } from './bandStamps.model'
@@ -38,6 +39,7 @@ export function PilotLiveSheet({
   hrefFor,
   withheld,
   patch,
+  liveInRead = false,
 }: PilotLiveSheetProps) {
   // Stat Training follows the pilot's crawler tier (linked crawler, else the
   // manual `crawlerLevel`) — the same level the body sheet derives from.
@@ -55,28 +57,40 @@ export function PilotLiveSheet({
     { key: 'ap', label: buildSheetCopy('ap'), value: ap, max: maxAP },
   ]
 
-  // Assigned units: the mech it flies and the crawler it crews; an empty
+  // Related units: the mech it flies and the crawler it crews; an empty
   // crawler place stands in the hand-set crawler level until one is assigned.
   const rail = assignedRail(
     { kind: 'pilot', entity: pilot },
-    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable },
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead },
     {
       crawler: (
-        <Stat
-          label={buildSheetCopy('mockCrawlerLevel')}
-          value={pilot.crawlerLevel ?? 1}
-          max={6}
-          mode="edit"
-          onChange={(v) => patch({ crawlerLevel: Math.max(1, v) })}
-        />
+        // With no crawler assigned, its Tech Level is set by hand, and says why.
+        <span>
+          <Stat
+            label={buildSheetCopy('crawlerTechLevel')}
+            value={pilot.crawlerLevel ?? 1}
+            max={6}
+            mode="edit"
+            onChange={(v) => patch({ crawlerLevel: Math.max(1, v) })}
+          />
+          <Text variant="hint">{buildSheetCopy('noCrawlerItsTechLevel')}</Text>
+        </span>
       ),
     }
   )
 
+  // The band's title is the callsign; a real name that differs follows it as
+  // plain words.
+  const callsign = pilotCallsign(pilot)
+  const givenName = pilot.name.trim()
+  const realName =
+    givenName !== '' && givenName.toLowerCase() !== callsign.toLowerCase() ? givenName : undefined
+
   return (
     <LiveSheet
       variant="pilot"
-      name={pilot.name}
+      name={callsign}
+      nameAside={realName}
       strip={strip}
       segments={segments}
       band={band}
@@ -85,7 +99,7 @@ export function PilotLiveSheet({
       out={
         isPilotDead(statInput)
           ? {
-              stamp: 'Killed in Action',
+              stamp: buildSheetCopy('killedInAction'),
               note: buildSheetCopy('injuriesHaveReducedThisPilots'),
             }
           : undefined
@@ -96,6 +110,8 @@ export function PilotLiveSheet({
           pilot={pilot}
           store={store}
           readOnly={readOnly}
+          // Read keeps HP, AP and TP live for whoever may write the sheet (R11).
+          live={liveInRead}
           crawlerReadOnly={crawlerReadOnly}
           linkedUnits={rail}
         />

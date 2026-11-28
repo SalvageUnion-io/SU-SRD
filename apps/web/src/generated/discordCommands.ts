@@ -30,7 +30,7 @@ export const DISCORD_COMMANDS: readonly DiscordCommand[] = [
   },
   {
     "name": "lookup",
-    "description": "Look up any Salvage Union entity (equipment, chassis, systems, keywords, …)",
+    "description": "Look up any Salvage Union entity (equipment, chassis, Systems, keywords, …)",
     "options": [
       {
         "name": "entity",
@@ -76,6 +76,12 @@ export const DISCORD_COMMANDS: readonly DiscordCommand[] = [
   {
     "name": "unbind",
     "description": "Stop posting Play’s rolls to this channel",
+    "options": [],
+    "needsAccount": true
+  },
+  {
+    "name": "play",
+    "description": "Open Play, the SalvageUnion.io Activity, here",
     "options": [],
     "needsAccount": true
   },

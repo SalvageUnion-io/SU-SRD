@@ -33,7 +33,7 @@ Canonical URLs always carry a trailing slash.
 
 1. **Astro renders the islands.** `<Island>` leaves a `<template data-island data-island-id>` marker holding its stand-in; `layouts/Page.astro` renders the island there (`components/Islands.astro`, `@astrojs/react`), props serialized on it.
 2. **Swap, unless `hydrate`.** `useGameData`'s server snapshot is `false`, so a game-data island cannot hydrate: it hydrates its stand-in (`ssr`, else nothing) and swaps itself in, carrying typed text and focus (`src/runtime/clientSwap.tsx`). `hydrate` is for an island reading no game data: Astro server-renders it from its props.
-3. **Directives.** `load`, `idle` (2 s `timeout`), `visible` and `only` are Astro's. `interaction` (`client:interaction`) waits for the reader's first reach (or, with `trigger`, one on a matching element) and replays it (`src/runtime/interaction.ts`); `src/runtime/mountNow.ts` says when it cannot wait. `when="signed-in"` is `client:signedIn`: idle, under the account hint, else `data-island-skipped`. React loads only with an island.
+3. **Directives.** `load`, `idle` (2 s `timeout`), `visible`, `only`: Astro's. `interaction` (`client:interaction`) waits for the reader's first reach (with `trigger`, one on a matching element, or any touch) and replays it, a tap as a tap (`src/runtime/interaction.ts`); `src/runtime/mountNow.ts` says when it cannot wait. `when="signed-in"` is `client:signedIn`: idle, under the account hint, else `data-island-skipped`. React loads only with an island.
 4. **Inline scripts are hashed.** Astro inlines its island runtime and directives; the build adds their hashes to the deployed CSP (`build/inlineScripts.ts`).
 5. **Props designed out.** An island whose props would repeat on every page computes them in its own chunk: `MobileNavIsland` takes none; `SchemaViewerIsland` reads its preloaded schema.
 
@@ -45,6 +45,7 @@ Canonical URLs always carry a trailing slash.
 | `MobileSearchIsland` | interaction | **true** | chrome |
 | `MobileNavIsland` | interaction | **true** | chrome; props designed out |
 | `AccountIsland`, `AccountAvatarIsland` | idle | false | chrome, `when="signed-in"`: the shared account menu; Sign in is static markup |
+| `SessionBarIsland` | idle | false | chrome, `when="signed-in"`: "Session live" and its door (`games.liveSessions`) |
 | `SchemaViewerIsland` | interaction | **true** | SEO: the island's own band and listing |
 | `ReferenceEntityIsland` | visible | **true** | the stand-in is the static card itself (`EntityView`); swaps in once its data is loaded |
 | `RollTableIsland` | idle | **true** | `hydrate`: the bands are content |
@@ -53,8 +54,6 @@ Canonical URLs always carry a trailing slash.
 | `ColumnsTableIsland` | idle | **true** | `hydrate`: Callsign, as above |
 | `DidYouMeanIsland` | idle | false | the 404's guesses: the missed path is known only in the browser |
 | `PeekIsland` | interaction | false | every page, no props, `trigger="[data-peek]"` |
-
-The WIKI link is not an island (`src/lib/wikiLink.ts`).
 
 `EntityCardStatic` ships no JS on the static path; `ReferenceEntityIsland` reuses it only for cards `cardNeedsHydration` flags.
 

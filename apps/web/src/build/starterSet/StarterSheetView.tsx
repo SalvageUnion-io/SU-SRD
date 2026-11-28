@@ -16,7 +16,6 @@
 import { isSheetKind } from 'game-domain/entityKinds'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
-import { useConfirm } from '../../components/shared/useConfirm'
 import { STARTER_ROSTERS, starterTemplate } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore.model'
@@ -35,7 +34,6 @@ const STARTER_STORE = makeReadOnlySheetStore({
 const starterHref = (kind: EntityRef['type'], id: string) => `/starter/${kind}/${id}`
 
 export function StarterSheetView({ kind, id }: { kind: string; id: string }) {
-  const { confirm, dialog } = useConfirm()
   const template = isSheetKind(kind) ? starterTemplate(kind, id) : null
 
   if (!isSheetKind(kind) || template === null) {
@@ -49,19 +47,14 @@ export function StarterSheetView({ kind, id }: { kind: string; id: string }) {
   }
 
   return (
-    <>
-      <Sheet
-        kind={kind}
-        id={id}
-        store={STARTER_STORE}
-        hrefFor={starterHref}
-        back={{ href: '/starter', label: buildStarterSetCopy('starterSet2') }}
-        readOnly
-        bandActions={
-          <MakeACopy kind={kind} templateId={id} name={template.name} confirm={confirm} />
-        }
-      />
-      {dialog}
-    </>
+    <Sheet
+      kind={kind}
+      id={id}
+      store={STARTER_STORE}
+      hrefFor={starterHref}
+      back={{ href: '/starter', label: buildStarterSetCopy('starterSet2') }}
+      readOnly
+      bandActions={<MakeACopy kind={kind} templateId={id} name={template.name} />}
+    />
   )
 }

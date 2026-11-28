@@ -34,7 +34,7 @@ function Page({ entityRef, label }: { entityRef: EntityRef; label: string }) {
 
 describe('PeekHost', () => {
   test('keyboard focus shows the Peek, describes the trigger, and Escape hides it', async () => {
-    render(<Page entityRef={refOf('traits', 'burn')} label="Burn" />)
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
     const link = screen.getByRole('link', { name: 'Burn' })
     act(() => link.focus())
     const peek = await screen.findByRole('tooltip')
@@ -50,8 +50,57 @@ describe('PeekHost', () => {
     expect(link.getAttribute('aria-describedby')).toBeNull()
   })
 
+  // r6 G8: the keyboard reads on below the line it Tabs through, so its
+  // Peek stands above; a hover's hangs below as ever.
+  test("keyboard focus's Peek stands above the line, a hover's below", async () => {
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
+    const link = screen.getByRole('link', { name: 'Burn' })
+    act(() => link.focus())
+    const peek = await screen.findByRole('tooltip')
+    await waitFor(() => expect(peek.getAttribute('data-side')).toBe('top'))
+    act(() => {
+      fireEvent.keyDown(link, { key: 'Escape' })
+      link.blur()
+    })
+    await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+    act(() => {
+      fireEvent.pointerOver(link, { pointerType: 'mouse' })
+    })
+    const hovered = await screen.findByRole('tooltip')
+    await waitFor(() => expect(hovered.getAttribute('data-side')).toBe('bottom'))
+  })
+
+  // r6 G7: a list's row prints the stats; its chassis's Peek leads with the ability.
+  test("a chassis Peeked from a list's row leaves the row's stats out", async () => {
+    const mule = SalvageUnionReference.Chassis.getByName('Mule')
+    if (!mule) throw new Error('fixture missing: Mule')
+    render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <table className="su-ledger__table">
+          <tbody>
+            <tr>
+              <th>
+                <Mention entityRef={toEntityModel(mule).ref} goes>
+                  Mule
+                </Mention>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+        <PeekHost />
+      </EntitySurfaceProvider>
+    )
+    act(() => screen.getByRole('link', { name: 'Mule' }).focus())
+    const peek = await screen.findByRole('tooltip')
+    await waitFor(() => expect(peek.textContent).toContain('Integrated Cargo Bay'))
+    expect(peek.textContent).not.toContain('MODS')
+    // A row is no sentence: its Peek stands beside the list where there is
+    // room (here, a box with no width), else under the row, focus's too (RR8-11).
+    expect(peek.getAttribute('data-side')).toBe('right')
+  })
+
   test('focus a pointer press gave does not open it: the press is a click', async () => {
-    render(<Page entityRef={refOf('traits', 'burn')} label="Burn" />)
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
     const link = screen.getByRole('link', { name: 'Burn' })
     act(() => {
       fireEvent.pointerDown(link, { pointerType: 'mouse' })
@@ -61,8 +110,19 @@ describe('PeekHost', () => {
     await expect(screen.findByRole('tooltip', {}, { timeout: 400 })).rejects.toThrow()
   })
 
+  test('focus handed back as Escape closes a dialog does not open it (r8 E10)', async () => {
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
+    const link = screen.getByRole('link', { name: 'Burn' })
+    act(() => {
+      // A dialog the label opened closes on Escape, and hands focus back to it.
+      fireEvent.keyDown(document.body, { key: 'Escape' })
+      link.focus()
+    })
+    await expect(screen.findByRole('tooltip', {}, { timeout: 400 })).rejects.toThrow()
+  })
+
   test('hovering with a mouse shows it after a rest', async () => {
-    render(<Page entityRef={refOf('traits', 'burn')} label="Burn" />)
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
     const link = screen.getByRole('link', { name: 'Burn' })
     act(() => {
       fireEvent.pointerOver(link, { pointerType: 'mouse' })
@@ -70,8 +130,23 @@ describe('PeekHost', () => {
     expect(await screen.findByRole('tooltip')).toBeTruthy()
   })
 
+  test('content scrolled under a resting mouse opens nothing until it moves (RR7-06)', async () => {
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
+    const link = screen.getByRole('link', { name: 'Burn' })
+    act(() => {
+      // The mouse came to rest somewhere; the page then scrolled the link under it.
+      fireEvent.pointerMove(document.body, { pointerType: 'mouse', clientX: 40, clientY: 40 })
+      fireEvent.pointerOver(link, { pointerType: 'mouse', clientX: 40, clientY: 40 })
+    })
+    await expect(screen.findByRole('tooltip', {}, { timeout: 400 })).rejects.toThrow()
+    act(() => {
+      fireEvent.pointerMove(link, { pointerType: 'mouse', clientX: 41, clientY: 40 })
+    })
+    expect(await screen.findByRole('tooltip')).toBeTruthy()
+  })
+
   test('a long press opens it and swallows the click that ends it', async () => {
-    render(<Page entityRef={refOf('traits', 'burn')} label="Burn" />)
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
     const link = screen.getByRole('link', { name: 'Burn' })
     act(() => {
       fireEvent.pointerDown(link, { pointerType: 'touch', clientX: 10, clientY: 10 })
@@ -95,9 +170,11 @@ describe('PeekHost', () => {
     const peek = await screen.findByRole('tooltip')
     await waitFor(() => expect(peek.textContent).toContain('Salvaging Drill'))
     expect(peek.querySelector('[data-peek]')).toBeNull()
-    // Its one link is its name, to its Page, out of the tab order (R33).
-    expect(peek.querySelector('a:not([data-peek-open]), button')).toBeNull()
+    // Its links are its name and, a term's, Open page (E27): both to its
+    // Page, both out of the tab order (E16).
+    expect(peek.querySelector('a:not([data-peek-open], [data-peek-out]), button')).toBeNull()
     expect(peek.querySelector('[data-peek-open]')?.getAttribute('tabindex')).toBe('-1')
+    expect(peek.querySelector('[data-peek-out]')?.getAttribute('tabindex')).toBe('-1')
   })
 
   test('a Mini is a trigger: hovering or focusing it shows its whole card', async () => {

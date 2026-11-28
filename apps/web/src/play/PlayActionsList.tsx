@@ -1,16 +1,20 @@
 /**
- * PlayActionsList — the Actions column outside Downtime (play.md §5): what is on hand ("On hand · In <mech>" or "On foot"),
- * then the collapsed Not on hand group, each line saying what it needs. Every
- * line is a contentful Mini (ruleset §1.3, ADR-051 §6) in the Mini grid
- * (`MiniGrid`), its list marked `data-play-list` for the form gate (R35). The type filter and Find (`PlayActionsTools`) ride
- * the column's "Actions" heading line (pin 5). Every heading here is a Slab,
- * so each line stays level 1 (play.md §12).
+ * PlayActionsList — the Actions column outside Downtime (play.md §5, R65):
+ * what is on hand, grouped by action type under Mini Slabs (Turn, Short,
+ * Long, Reaction, Free, Passive last), the Reactor and Mount closing the
+ * list; then the collapsed Not on hand group, each line saying what it
+ * needs. Every line is a contentful Mini (ruleset §1.3, ADR-051 §6) in the
+ * Mini grid (`MiniGrid`), its list marked `data-play-list` for the form gate
+ * (R35). Under its type's heading a row leaves its type chip out (C10). The
+ * type filter and, from `lg`, Find (`PlayActionsTools`) ride the column's
+ * "Actions" heading line (pin 5). Every heading here is a Slab, so each line
+ * stays level 1 (play.md §12).
  *
  * `PlayAwayGroup` (the collapsed group) and `PlayEntryList` are shared with
  * the Downtime column, where the group is the Field actions.
  */
 
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import {
   Button,
   Callout,
@@ -19,14 +23,22 @@ import {
   SearchField,
   Segmented,
   SegmentedOption,
-  Slab,
   SlabSection,
 } from '../components/index'
 import { playCopy } from '../messages/play'
+import { momentCopy } from '../messages/play-moment'
 import { PlayActionEntry } from './PlayActionEntry'
-import type { ListEntry } from './playActions.model'
-import { TYPE_FILTERS } from './playActions.model'
+import { PlayEndTurnStop } from './PlayEndTurnStop'
+import type { ActionTypeKey, ListEntry } from './playActions.model'
+import { ACTION_TYPE_ORDER, TYPE_FILTERS } from './playActions.model'
 import type { Play } from './situation.model'
+import { useFindKey } from './useFindKey'
+
+/** "?"'s sheet, loaded when first asked for (r6 A13). */
+const PlayKeysSheet = lazy(() =>
+  import('./PlayKeysSheet').then(({ PlayKeysSheet }) => ({ default: PlayKeysSheet }))
+)
+
 import type { PlayActions } from './usePlayActions'
 
 /** A list of entries, one contentful Mini each, in the Mini grid. */
@@ -35,16 +47,25 @@ export function PlayEntryList({
   play,
   actions,
   label,
+  grouped = false,
 }: {
   entries: readonly ListEntry[]
   play: Play
   actions: PlayActions
   label: string
+  /** The list sits under an action type's heading (C10). */
+  grouped?: boolean
 }) {
   return (
     <MiniGrid label={label} play>
       {entries.map((entry) => (
-        <PlayActionEntry key={entry.key} entry={entry} play={play} actions={actions} />
+        <PlayActionEntry
+          key={entry.key}
+          entry={entry}
+          play={play}
+          actions={actions}
+          grouped={grouped}
+        />
       ))}
     </MiniGrid>
   )
@@ -90,7 +111,7 @@ export function PlayOrphanResolve({ actions }: { actions: PlayActions }) {
   if (stale && resolvingUntouched) return null
   return (
     <OrphanNote
-      text={`${entry?.name ?? 'An action'} is not on hand now.`}
+      text={playCopy('isNotOnHandNow', { name: entry?.name ?? playCopy('anAction') })}
       onClear={resolve.onBack}
     />
   )
@@ -109,13 +130,27 @@ function OrphanNote({ text, onClear }: { text: string; onClear: () => void }) {
 }
 
 /**
- * The type filter and Find, for the "Actions" Slab's heading line: they wrap
- * under the heading, and onto two lines, when the column is too narrow for
- * one (`.su-play-act-head`).
+ * The type filter and, from `lg`, Find, for the "Actions" Slab's heading
+ * line: they wrap under the heading when the column is too narrow for one
+ * line (`.su-play-act-head`). Below `lg` the filter leads the pane alone.
+ * The slash key jumps to Find, and "?" lists Play's keys (`useFindKey`).
  */
-export function PlayActionsTools({ actions }: { actions: PlayActions }) {
+export function PlayActionsTools({ actions, find }: { actions: PlayActions; find: boolean }) {
+  // "/" jumps to Find, where there is one (r3 J4).
+  const tools = useRef<HTMLDivElement>(null)
+  // "?" lists the keys (r6 A13): the sheet loads when first asked for.
+  const { keysOpen, closeKeys, said } = useFindKey(tools)
   return (
-    <div className="su-play-act-tools">
+    <div className="su-play-act-tools" ref={tools}>
+      {/* Why a key did nothing, said rather than left silent (r8 A7). */}
+      <span role="status" className="su-sr-only">
+        {said}
+      </span>
+      {keysOpen && (
+        <Suspense fallback={null}>
+          <PlayKeysSheet onClose={closeKeys} />
+        </Suspense>
+      )}
       <Segmented label={playCopy('filterActionsByType')} size="compact">
         {TYPE_FILTERS.map((type) => (
           <SegmentedOption
@@ -127,33 +162,118 @@ export function PlayActionsTools({ actions }: { actions: PlayActions }) {
           </SegmentedOption>
         ))}
       </Segmented>
-      <SearchField
-        aria-label={playCopy('findAnAction')}
-        placeholder={playCopy('find')}
-        value={actions.find}
-        onChange={(event) => actions.setFind(event.target.value)}
-        containerClassName="su-play-act-find"
-      />
+      {find && (
+        <SearchField
+          aria-label={playCopy('findAnAction')}
+          aria-keyshortcuts="/"
+          placeholder={playCopy('find')}
+          value={actions.find}
+          onChange={(event) => actions.setFind(event.target.value)}
+          containerClassName="su-play-act-find"
+        />
+      )}
     </div>
   )
 }
 
-export function PlayActionsList({ play, actions }: { play: Play; actions: PlayActions }) {
-  const where =
-    play.situation === 'boarded' && actions.mech !== null ? `In ${actions.mech.name}` : 'On foot'
+/** A group of what is on hand: an action type's rows, or the controls that close the list. */
+type Group = { key: ActionTypeKey | 'again' | 'controls'; label: string; entries: ListEntry[] }
+
+/**
+ * What is on hand, grouped by when it can be used, in the list's own order
+ * (`ACTION_TYPE_ORDER`); the Reactor and Mount, which are controls, close it.
+ * Empty groups are left out. The action last finished (`again`) heads it,
+ * lifted out of its type's group, while it is on hand.
+ */
+function onHandGroups(onHand: readonly ListEntry[], again: string | null): Group[] {
+  const first = onHand.find((entry) => entry.kind === 'action' && entry.key === again)
+  const groups: Group[] = [
+    {
+      key: 'again',
+      label: momentCopy('again'),
+      entries: first === undefined ? [] : [first],
+    },
+    ...ACTION_TYPE_ORDER.map((type) => ({
+      key: type,
+      label: type,
+      entries: onHand.filter(
+        (entry) => entry.kind === 'action' && entry.type === type && entry !== first
+      ),
+    })),
+    {
+      key: 'controls',
+      label: playCopy('reactorAndMount'),
+      entries: onHand.filter((entry) => entry.kind !== 'action'),
+    },
+  ]
+  return groups.filter((group) => group.entries.length > 0)
+}
+
+export function PlayActionsList({
+  play,
+  actions,
+  head,
+  except = null,
+  again = null,
+}: {
+  play: Play
+  actions: PlayActions
+  /** A group's heading: under the column's "Actions" from `lg`, under the page's below it. */
+  head: 'h2' | 'h3'
+  /** The line that is the Main display's beat (ADR-068), lifted out of the list. */
+  except?: string | null
+  /** The action last finished here: Again, the list's first line (ADR-068). */
+  again?: string | null
+}) {
+  const groups = onHandGroups(
+    actions.onHand.filter((entry) => entry.key !== except),
+    again
+  )
+  // The on-hand list is one Tab stop, the arrows between its actions (r7 B8).
+  const listRef = useRef<HTMLDivElement>(null)
+  const listed = groups.length > 0
+  useEffect(() => {
+    const list = listRef.current
+    if (!listed || list === null) return
+    let stop: (() => void) | null = null
+    let gone = false
+    void import('./actionsRoveDom.model').then(({ roveList }) => {
+      if (!gone) stop = roveList(list)
+    })
+    return () => {
+      gone = true
+      stop?.()
+    }
+  }, [listed])
   return (
     <>
       <PlayOrphanResolve actions={actions} />
-      <Slab label={playCopy('onHand', { where })} />
-      {actions.onHand.length === 0 ? (
+      {groups.length === 0 ? (
         <EmptyState variant="inline" body={playCopy('nothingOnHandMatches')} />
       ) : (
-        <PlayEntryList
-          entries={actions.onHand}
-          play={play}
-          actions={actions}
-          label={playCopy('onHand2')}
-        />
+        <div ref={listRef} className="su-play-timings">
+          {groups.map((group) => (
+            <SlabSection
+              key={group.key}
+              as={head}
+              size="mini"
+              title={group.label}
+              count={group.entries.length}
+            >
+              <PlayEntryList
+                entries={group.entries}
+                play={play}
+                actions={actions}
+                label={group.label}
+                grouped={group.key !== 'controls'}
+              />
+            </SlabSection>
+          ))}
+        </div>
+      )}
+      {/* While it is my turn, End my turn is the next stop after the list (r8 A7). */}
+      {play.target.gameId !== null && (
+        <PlayEndTurnStop gameId={play.target.gameId} pilotId={play.target.pilotId} />
       )}
       <PlayAwayGroup
         title={playCopy('notOnHand')}

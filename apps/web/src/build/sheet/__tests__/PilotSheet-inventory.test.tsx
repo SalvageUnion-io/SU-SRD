@@ -21,8 +21,6 @@ import {
   makeEntityStoreMock,
   makeSingleUnitStore,
 } from '../../../components/__tests__/mockEntityStore'
-import { must } from '../../../components/__tests__/must'
-import { slabChip } from '../../../components/__tests__/slabChip'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { PilotSheet } from '../PilotSheet'
 
@@ -66,7 +64,7 @@ describe('PilotSheet — inventory slot math', () => {
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(must(slabChip('Inventory')).textContent).toBe('Slots6/6')
+    expect(screen.getByRole('img', { name: 'Inventory: 6 of 6 slots filled' })).toBeTruthy()
   })
 
   test('over-capacity totals render honestly (no clamp)', () => {
@@ -80,8 +78,9 @@ describe('PilotSheet — inventory slot math', () => {
     // 1 + 6 + 3 = 10
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(must(slabChip('Inventory')).textContent).toBe('Slots10/6')
-    expect(must(slabChip('Inventory')).classList.contains('su-stat-cell--critical')).toBe(true)
+    expect(
+      screen.getByRole('img', { name: 'Inventory: 10 of 6 slots filled — over capacity' })
+    ).toBeTruthy()
   })
 })
 
@@ -228,20 +227,19 @@ describe('PilotSheet — generic inventory entries', () => {
     )
   })
 
-  test('a generic entry is a Mini: its note, SLOTS and quantity chips, ✕ in its strip (R35)', () => {
+  test('a generic entry is its Ledger row: its quantity, its note, its slots, ✕ at its end (R35)', () => {
     const pilot = makePilot({
       genericInventory: [
         { id: 'gen-ration', name: 'Ration Pack', slotCost: 1, qty: 4, note: 'Galley issue' },
       ],
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
-    expandCards()
     const remove = screen.getByRole('button', { name: 'Remove Ration Pack' })
-    const token = remove.closest('.su-entity-mini')
-    expect(token).not.toBeNull()
-    expect(token?.textContent).toContain('Galley issue')
-    const cells = [...(token?.querySelectorAll('.su-stat-cell') ?? [])].map((c) => c.textContent)
-    expect(cells).toEqual(['Slots4', '×4'])
+    const row = remove.closest('.su-open__row')
+    expect(row).not.toBeNull()
+    expect(row?.querySelector('.su-open__name')?.textContent).toBe('Ration Pack ×4')
+    expect(row?.textContent).toContain('Galley issue')
+    expect(remove.closest('.su-open__controls')).not.toBeNull()
   })
 
   test('removing a generic entry filters it out', async () => {
@@ -284,7 +282,7 @@ describe('PilotSheet — inventory readOnly', () => {
     expect(screen.queryByRole('button', { name: /add scrap/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /add inventory item/i })).toBeNull()
     // The slot math still renders
-    expect(must(slabChip('Inventory')).textContent).toBe('Slots4/6')
+    expect(screen.getByRole('img', { name: 'Inventory: 4 of 6 slots filled' })).toBeTruthy()
   })
 })
 

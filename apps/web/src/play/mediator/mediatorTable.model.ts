@@ -15,6 +15,7 @@
  * not a seat here.
  */
 
+import { mediatorCopy } from '../../messages/play-mediator'
 import type { BoardSources } from '../boardMenu.model'
 import { crewSeatLines, problemsOf } from '../crew.model'
 import type { CrewVitals } from '../useGameFeed'
@@ -32,11 +33,18 @@ type SeatVital = {
 export type MediatorSeat = {
   /** The pilot's link id (`/pilots/<id>`). */
   pilotId: string
-  /** The pilot's row id: what a tap aims Propose at. */
+  /** The pilot's row id. */
   rowId: string
+  /**
+   * What a tap aims Propose at (r5 B7): the Mech of a Pilot boarded in one
+   * (its row id), where the hits land; the Pilot's row id otherwise.
+   */
+  aimId: string
   /** The player's account: whether they are done with the Downtime step. */
   ownerId: string | null
   name: string
+  /** Who plays them, by the name the Game holds (r4 B8); null when the roster has none. */
+  player: string | null
   /** Their player has the Game open. */
   present: boolean
   /** "Boarded · Buzzard", or "On foot". */
@@ -87,6 +95,12 @@ function seatVitals(
 }
 
 /** The table's seats, in the order their players joined, each with every live vital. */
+/** The first problem, and how many more, or null with none. */
+function problemLine(problems: readonly string[]): string | null {
+  if (problems.length === 0) return null
+  return `${problems[0]}${problems.length > 1 ? ` +${problems.length - 1}` : ''}`
+}
+
 /** "HP 8/10" read aloud: "HP 8 of 10". */
 function spoken(text: string): string {
   return text.replace(/(\d+)\/(\d+)/g, '$1 of $2')
@@ -114,18 +128,20 @@ export function mediatorSeats(
     const seat: MediatorSeat = {
       pilotId: line.pilotId,
       rowId: pilot._id,
+      aimId: pilot.boarded && mech !== undefined && mech.ownerId !== null ? mech._id : pilot._id,
       ownerId: pilot.ownerId,
       name: line.name,
+      player: line.player,
       present: line.present,
       mount: line.mount,
       mech: line.unitMech,
       vitals: seatVitals(pilot, mech, line.vital),
       attention: line.attention,
-      // The first problem, and how many more.
-      problem:
-        problems.length === 0
-          ? null
-          : `${problems[0]}${problems.length > 1 ? ` +${problems.length - 1}` : ''}`,
+      // The first problem, and how many more; not the word the head's chip
+      // already says ("Down" is said once, r6 A4).
+      problem: problemLine(
+        problems.filter((p) => !(line.vital.attention && p === line.vital.label))
+      ),
       resolving: line.resolving,
       label: [
         line.name,
@@ -133,7 +149,9 @@ export function mediatorSeats(
         spoken(`HP ${line.hp}`),
         spoken(`AP ${line.ap}`),
         spoken(line.unit.replace(' · ', ', ')),
-        problems.length === 0 ? 'fine' : `needs attention: ${problems.join(', ').toLowerCase()}`,
+        problems.length === 0
+          ? 'fine'
+          : mediatorCopy('needsAttention', { problems: problems.join(', ').toLowerCase() }),
       ].join(', '),
     }
     return [{ seat, joinedAt: joined.get(pilot.ownerId) ?? Number.POSITIVE_INFINITY }]
@@ -194,5 +212,5 @@ export function doneOf(
 
 /** The bar's Downtime option: "Begin Downtime", or running, "Downtime · Step 3". */
 export function downtimeOptionLabel(running: boolean, stepIndex: number | null): string {
-  return running ? `Downtime · Step ${(stepIndex ?? 0) + 1}` : 'Begin Downtime'
+  return running ? `Downtime · Step ${(stepIndex ?? 0) + 1}` : mediatorCopy('beginDowntime')
 }

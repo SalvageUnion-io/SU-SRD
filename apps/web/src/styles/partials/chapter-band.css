@@ -1,0 +1,319 @@
+/*
+ * The package stylesheet: the chapter band.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ══ The chapter band (`components/atoms/ChapterBand.tsx`) ═════════════════
+ *
+ * Layout only — the band's colour, its speckle and the notch's ink on the page
+ * ground are the component's. A phone stacks the aside above the notch and
+ * sets the title at hero; from `sm` they share one row and the title is the
+ * chapter size.
+ */
+/* `layout="bleed"` (the default) fills its container; a band that is a page
+   shell's first child also reaches out to the shell's edges and up to its top,
+   by the shell's own gutters. The gutter properties inherit to every
+   descendant, so this selector, not their presence, is what stops a band
+   deeper in the shell (mid-page, in a column) from bleeding past its box. */
+.su-chapter-band[data-layout='bleed'] {
+  width: 100%;
+}
+
+.su-page-shell > .su-chapter-band[data-layout='bleed']:first-child {
+  margin-inline: calc(-1 * var(--su-page-gutter-inline));
+  margin-top: calc(-1 * var(--su-page-gutter-block));
+  width: calc(100% + 2 * var(--su-page-gutter-inline));
+}
+
+.su-chapter-band__row {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-12);
+  margin-inline: auto;
+  padding: var(--space-32) var(--space-16) 0;
+}
+
+/* A measured band (`measure`) keeps its head on its measure; from 64rem it
+   stands on the page column's edges, so the title plate and the column share
+   one left edge. */
+.su-chapter-band[data-measured]
+:is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
+  max-width: var(--su-band-measure);
+}
+
+@media (width >= 64rem) {
+  .su-chapter-band[data-measured]
+    :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
+    max-width: calc(var(--page-measure) + 2 * var(--su-column-pad));
+  }
+}
+
+.su-chapter-band__title {
+  margin: 0;
+  font-size: var(--text-hero);
+  padding: var(--space-8) var(--space-12) 0;
+}
+
+/* Beside controls, or as the chips' fill name, the title holds its line's
+   left; they keep the right. */
+.su-chapter-band__title[data-beside] {
+  margin: 0 auto 0 0;
+}
+
+.su-chapter-band__aside {
+  align-items: center;
+  padding-bottom: var(--space-12);
+}
+
+/* `lead` (an ability page's level numeral) beside the notch, both on the
+   band's foot; the numeral at the title's size, which changes at `sm`. */
+.su-chapter-band__heading {
+  align-items: flex-end;
+  display: flex;
+  gap: var(--space-12);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.su-chapter-band__heading > :is(.su-chapter-band__title, .su-chapter-band__plate),
+.su-chapter-band[data-aside] .su-chapter-band__heading > .su-chapter-band__title {
+  align-self: flex-end;
+  min-width: 0;
+}
+
+.su-chapter-band__lead {
+  font-size: var(--text-hero);
+}
+
+/* The eyebrow (a breadcrumb) takes the band's top padding, so the title row
+   under it closes up to it. */
+.su-chapter-band__eyebrow {
+  padding: var(--space-24) var(--space-16) 0;
+}
+
+.su-chapter-band__eyebrow + .su-chapter-band__row {
+  padding-top: var(--space-12);
+}
+
+/* The corner (a page's controls) takes the band's top padding, at its right,
+   so the title row under it closes up to it. */
+.su-chapter-band__corner {
+  display: flex;
+  padding: var(--space-12) var(--space-16) 0;
+}
+
+.su-chapter-band__corner + .su-chapter-band__row {
+  padding-top: var(--space-12);
+}
+
+@media (width >= 40rem) {
+  .su-chapter-band__row {
+    align-items: flex-end;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: var(--space-48) var(--space-24) 0;
+  }
+
+  .su-chapter-band__title {
+    font-size: var(--text-chapter);
+    padding: var(--space-12) var(--space-20) 0;
+  }
+
+  .su-chapter-band__lead {
+    font-size: var(--text-chapter);
+  }
+
+  .su-chapter-band__eyebrow {
+    padding: var(--space-32) var(--space-24) 0;
+  }
+
+  .su-chapter-band__eyebrow + .su-chapter-band__row {
+    padding-top: var(--space-12);
+  }
+
+  .su-chapter-band__corner {
+    padding: var(--space-16) var(--space-24) 0;
+  }
+
+  .su-chapter-band__corner + .su-chapter-band__row {
+    padding-top: var(--space-12);
+  }
+}
+
+/* A page-wide band with no `measure` (an app sheet, the Starter Set, a
+   builder) sets its notch, corner and eyebrow on the page's own gutter, so the
+   title's cut-out lines up with the column of content under it, as a measured
+   band's does on the SRD. `.su-page-gutters` is a page that pads its own body
+   by the same gutters without being a `PageShell` (`LiveSheet`). It comes after
+   the band's own padding so it wins at every width. */
+:is(
+  .su-page-shell > .su-chapter-band[data-layout='bleed']:first-child,
+  .su-page-gutters > .su-chapter-band[data-layout='bleed']
+):not([data-measured])
+:is(.su-chapter-band__row, .su-chapter-band__corner, .su-chapter-band__eyebrow) {
+  padding-inline: var(--su-page-gutter-inline);
+}
+
+/* The corner's controls (an app sheet's Read | Edit, "Make a copy", Share,
+   "⋯") sit a row under the Union bar's buttons, so they are those buttons: the
+   bar's control height (the Compact Size), its
+   caps type, and its right edge, the bar row's own padding
+   (12px under 400px, 16px on a phone, 32px from `sm`), so the two right
+   edges line up at every width. It narrows the
+   gutter rule above, so it repeats that rule's selector. */
+.su-chapter-band__corner {
+  --su-band-corner-control: var(--size-compact);
+}
+
+:is(
+    .su-page-shell > .su-chapter-band[data-layout='bleed']:first-child,
+    .su-page-gutters > .su-chapter-band[data-layout='bleed']
+  ):not([data-measured])
+  .su-chapter-band__corner {
+  padding-inline-end: var(--space-16);
+}
+
+@media not (width >= 40rem) {
+  :is(
+      .su-page-shell > .su-chapter-band[data-layout='bleed']:first-child,
+      .su-page-gutters > .su-chapter-band[data-layout='bleed']
+    ):not([data-measured])
+    .su-chapter-band__corner {
+    padding-inline-end: var(--space-12);
+  }
+}
+
+@media (width >= 40rem) {
+  :is(
+      .su-page-shell > .su-chapter-band[data-layout='bleed']:first-child,
+      .su-page-gutters > .su-chapter-band[data-layout='bleed']
+    ):not([data-measured])
+    .su-chapter-band__corner {
+    padding-inline-end: var(--space-32);
+  }
+}
+
+.su-chapter-band__corner .su-page-action {
+  font-size: var(--text-caption);
+  height: var(--su-band-corner-control);
+  letter-spacing: var(--tracking-caps-snug);
+  padding-inline: var(--space-14);
+}
+
+.su-chapter-band__corner .su-btn--icon-only.su-page-action {
+  padding-inline: 0;
+  width: var(--su-band-corner-control);
+}
+
+.su-chapter-band__corner .su-seg[data-size='compact'] {
+  --su-seg-height: var(--su-band-corner-control);
+}
+
+/* `asideAt="notch"` (a show page's stamps and action) and `asideAt="controls"`
+   (a page's controls: an index's search and filters, the Training Bay's and a
+   Game's buttons): the bottom-right fill (`[data-chip-fill]`,
+   `entity-forms.css`; ruleset §4.7). The aside and
+   any strip in it draw no box, so every stamp and control is an item of the
+   title's row: the last (the cost, the action) in the band's bottom-right
+   corner, the earlier ones leftward beside the title, and only what
+   overfills that line rises in lines over it, each filling from the right.
+   The row keeps the band's top room as a floor rather than as padding, so
+   the first lines that rise fill that room before they grow the band.
+   `--su-band-title` is a one-line notch's height (its top
+   padding and 0.92 line), `--su-band-room` the row's usual top padding,
+   `--su-band-mid` the middle of the notch's capitals over the band's foot
+   (its baseline sits 0.076em above the foot, Barlow Semi Condensed's descent
+   less the half-leading of its 0.92 line, its capitals' middle 0.352em above
+   that): the title's line is centred on it (`data-fill-line`). */
+.su-chapter-band__row[data-chip-fill] {
+  --su-band-room: var(--space-32);
+  --su-band-title: calc(var(--space-8) + var(--text-hero) * 0.92);
+  --su-band-mid: calc(var(--text-hero) * 0.428);
+  /* Under `wrap-reverse` the cross axis runs up: `flex-start` is the foot.
+     The fill's own flow, over the row's column (phone) and row (`sm`). */
+  align-content: flex-start;
+  align-items: flex-start;
+  column-gap: var(--space-8);
+  flex-direction: row-reverse;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-start;
+  row-gap: 0;
+  min-height: calc(var(--su-band-room) + var(--su-band-title));
+  padding-top: var(--space-12);
+}
+
+.su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] {
+  column-gap: var(--space-12);
+}
+
+.su-chapter-band__eyebrow + .su-chapter-band__row[data-chip-fill],
+.su-chapter-band__corner + .su-chapter-band__row[data-chip-fill] {
+  --su-band-room: var(--space-12);
+}
+
+.su-chapter-band__row[data-chip-fill] > [data-fill-name] {
+  align-self: flex-start;
+}
+
+/* (A listing's rail steps aside on its band too: `pages.css`.) */
+.su-chapter-band__row[data-chip-fill] .su-chapter-band__aside,
+.su-chapter-band__row[data-chip-fill] .su-chapter-band__aside > .su-entity-stamps {
+  display: contents;
+}
+
+/* Each item its line's own height, the lines a chip's gap apart; on the
+   title's line, centred on the notch's capitals, never closer to the band's
+   foot than 8px (on a phone the capitals' centre would put it there). */
+.su-chapter-band__row[data-chip-fill] [data-fill-item] {
+  margin-block: var(--space-4);
+}
+
+/* The cost box is its chips' height on the band (R12), never stretched to a
+   line: Compact, as the band's chips are (`reference-card.css`).
+   (The fill's item is the edge on an ink ground, the box itself on a colour.) */
+.su-chapter-band__row[data-chip-fill] :is(.su-cost-edge, .su-cost)[data-fill-item] {
+  align-self: flex-start;
+  box-sizing: border-box;
+  height: var(--size-compact);
+}
+
+.su-chapter-band__row[data-chip-fill] .su-cost-edge[data-fill-item] > .su-cost {
+  height: 100%;
+}
+
+@media not (width >= 40rem) {
+  .su-chapter-band[data-aside='notch']
+    .su-chapter-band__row[data-chip-fill]
+    [data-fill-item][data-fill-line] {
+    margin-bottom: var(--space-4);
+  }
+}
+
+/* On a phone a show page's title, stamps and Build With This share one
+   line where they can (Mazona: "chips and build with this
+   should be able to fit into the header here"): the stamps a chip's gap
+   apart (4px, as every strip's), the plate's sides 8px (at the file's end,
+   after the trail's own padding). */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__row[data-chip-fill] {
+    column-gap: var(--space-4);
+  }
+}
+
+/* A phone's page controls (Full, 44px) stand on the band's foot, its room
+   under them; from `sm` every item takes the chips' room
+   (`chapter-band-controls.css`). */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] [data-fill-item] {
+    margin-block: 0 var(--space-12);
+  }
+}
+
+@media (width >= 40rem) {
+  .su-chapter-band__row[data-chip-fill] {
+    --su-band-room: var(--space-48);
+    --su-band-title: calc(var(--space-12) + var(--text-chapter) * 0.92);
+    --su-band-mid: calc(var(--text-chapter) * 0.428);
+  }
+}

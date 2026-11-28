@@ -1,23 +1,27 @@
 /**
  * CreateModeChooser — the "which door?" screen every /new opens on.
  *
- * Two doors under the page's ChapterBand, each the house `TitledBox` with its
- * one act: GUIDED (primary — the existing step wizard), headed in the kind's
- * tone, and BLANK (the escape hatch — an empty sheet, no steps, no limits),
- * headed in ink. Solid, both: neither is user-made (ruleset §3.9). For mechs a
- * third door joins the Blank family: Instantiate from Pattern, which links to
- * the existing /patterns/ flow.
+ * Doors under the page's ChapterBand, each the house `TitledBox` headed h2:
+ * GUIDED (primary — the existing step wizard), headed in the kind's tone, and
+ * BLANK (the escape hatch — an empty sheet, no steps, no limits), headed in
+ * ink. A mech's FROM A PATTERN follows them (r5 D5, over r4 E23): the book's
+ * patterns, opening on the starting-level chassis, then your saved ones, each
+ * with its Build With This. Signed out it says up front that building from a
+ * pattern needs a sign-in, before any press runs into it.
+ * A mech built for a pilot (`?pilot=`) says so above the doors.
  *
  * The title is the ChapterBand every page wears.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { Button, ChapterBand, capsLabel, TitledBox, tokens } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import { Button, ChapterBand, Slab, Text, TitledBox, tokens } from '../../components/index'
+import { clearWizardDraft, readWizardDraft, wizardDraftKey } from '../../lib/wizard/wizardDraft'
+import { useSync } from '../../replica/syncContext'
+import { BookPatternBuild } from '../mech/Pattern/BookPatternBuild'
+import { PatternList } from '../mech/Pattern/PatternList'
 import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
-import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
 
 type CreateModeChooserProps = {
@@ -26,8 +30,18 @@ type CreateModeChooserProps = {
   onGuided: () => void
   /** Chosen the Blank door — navigate to ?mode=blank. */
   onBlank: () => void
+  /** A mech built From a pattern: its id. */
+  onBuilt: (id: string) => void
+  /** A mech built for a pilot: that pilot's name. */
+  forPilot?: string | undefined
+  /** A pilot made for a mech: that mech's name. */
+  forMech?: string | undefined
+  /** A crawler made from a pilot's or mech's "+ Create": the line saying who is assigned to it. */
+  forCrew?: string | undefined
   /** The Game the build was started for (`?game=<id>`): its chip on the band. */
   gameId?: string | undefined
+  /** A Reference pattern page's Build With This: the book pattern to open on, as slugs. */
+  book?: { chassis?: string | undefined; pattern?: string | undefined } | undefined
 }
 
 const KIND_LABEL: Record<SheetKind, string> = {
@@ -36,54 +50,87 @@ const KIND_LABEL: Record<SheetKind, string> = {
   crawler: 'Crawler',
 }
 
+/**
+ * FROM A PATTERN: the book's patterns, opening on the starting-level chassis,
+ * then your saved ones, each with its Build With This. The chooser's third
+ * door, and the whole of `PatternStart` (r6 F2).
+ */
+export function PatternDoor({
+  book,
+  onBuilt,
+  gameId,
+}: Pick<CreateModeChooserProps, 'book' | 'onBuilt' | 'gameId'>) {
+  const signedOut = useSync().status === 'signedOut'
+  return (
+    <TitledBox title={buildWizardCopy('fromAPattern')} titleAs="h2" tone="mech">
+      <p style={doorText}>{buildWizardCopy('aPatternIsYourPlan')}</p>
+      {signedOut && <Text variant="note">{buildWizardCopy('patternNeedsSignIn')}</Text>}
+      <BookPatternBuild
+        chassis={book?.chassis}
+        pattern={book?.pattern}
+        onBuilt={onBuilt}
+        gameId={gameId}
+      />
+      {/* A section head is the one Slab (R53). */}
+      <Slab as="h3" label={buildWizardCopy('yourPatterns')} />
+      <PatternList onInstantiated={onBuilt} gameId={gameId} />
+    </TitledBox>
+  )
+}
+
 /** Guided-door copy + Core Book citation per kind. */
 const GUIDED_COPY: Record<SheetKind, { body: string; cite: string }> = {
   pilot: {
     body: buildWizardCopy('stepThroughThePilotBay'),
-    cite: 'The Pilot Bay begins on p. 18.',
+    cite: buildWizardCopy('citePilotBay'),
   },
   mech: {
     body: buildWizardCopy('stepThroughTheMechBay'),
-    cite: 'The Mech Bay begins on p. 94.',
+    cite: buildWizardCopy('citeMechBay'),
   },
   crawler: {
     body: buildWizardCopy('stepThroughCrawlerCreationOne'),
-    cite: 'Union Crawlers begin on p. 212.',
+    cite: buildWizardCopy('citeUnionCrawlers'),
   },
 }
 
-const screenStyle = { minHeight: '100dvh' } satisfies CSSProperties
+const screenStyle = {} satisfies CSSProperties
 
 /** A door's copy: body text, then its page citation in bold. */
 const doorText = { margin: 0 } satisfies CSSProperties
 const doorCite = { fontWeight: tokens.weight.bold, margin: 0 } satisfies CSSProperties
 /** A door's act, at its own width under the copy. */
 const doorAct = { alignSelf: 'flex-start' } satisfies CSSProperties
+const doorActs = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
 /** Its padding grows at `sm` (`.su-wiz-chooser-body`). */
-const bodyStyle = { marginInline: 'auto', maxWidth: '56rem', width: '100%' } satisfies CSSProperties
+const MEASURE = '56rem'
+const bodyStyle = { marginInline: 'auto', maxWidth: MEASURE, width: '100%' } satisfies CSSProperties
+/** The pattern door: its own row, under Guided and Blank. */
+const patternDoor = { flexBasis: '100%' } satisfies CSSProperties
+/** The pilot line, above the doors. */
+const pilotNote = { marginBottom: tokens.space[12] } satisfies CSSProperties
 
-/** Its fill dims on hover, so the background is `.su-wiz-chooser-pattern`'s. */
-const patternLinkStyle = {
-  borderRadius: tokens.radius.badge,
-  color: tokens.color.paper,
-  display: 'block',
-  lineHeight: 1.625,
-  marginInline: 'auto',
-  marginTop: tokens.space[24],
-  maxWidth: '92%',
-  padding: `${tokens.space[8]} ${tokens.space[16]}`,
-  textAlign: 'center',
-  textDecorationLine: 'none',
-  width: 'fit-content',
-} satisfies CSSProperties satisfies CSSProperties
-const patternLinkCaps = capsLabel({ size: 'badge' })
-
-const patternAccentStyle = { color: tokens.color.pilot } satisfies CSSProperties
-
-export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateModeChooserProps) {
+export function CreateModeChooser({
+  kind,
+  onGuided,
+  onBlank,
+  onBuilt,
+  gameId,
+  forPilot,
+  forMech,
+  forCrew,
+  book,
+}: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]
   const guided = GUIDED_COPY[kind]
+  // Read as the chooser draws: the draft is the browser's.
+  const hasDraft = readWizardDraft(wizardDraftKey(kind)) !== null
+  const patterns = kind === 'mech' && (
+    <div style={patternDoor}>
+      <PatternDoor book={book} onBuilt={onBuilt} gameId={gameId} />
+    </div>
+  )
 
   return (
     <section
@@ -96,6 +143,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
           started for, as the wizard's own band shows it. */}
       <ChapterBand
         tone={kind}
+        measure={MEASURE}
         asideAt="notch"
         aside={gameId === undefined ? undefined : <WizardGameChip gameId={gameId} />}
       >
@@ -103,38 +151,53 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
       </ChapterBand>
 
       <div className="su-wiz-chooser-body" style={bodyStyle}>
-        {/* The two doors. */}
+        {forPilot !== undefined && (
+          <Text variant="note" style={pilotNote}>
+            {buildWizardCopy('forPilot', { name: forPilot })}
+          </Text>
+        )}
+        {forMech !== undefined && (
+          <Text variant="note" style={pilotNote}>
+            {buildWizardCopy('forMech', { name: forMech })}
+          </Text>
+        )}
+        {forCrew !== undefined && (
+          <Text variant="note" style={pilotNote}>
+            {forCrew}
+          </Text>
+        )}
         <div className="su-wiz-chooser-doors">
-          <TitledBox title={buildWizardCopy('guided')} tone={kind}>
+          <TitledBox title={buildWizardCopy('guided')} titleAs="h2" tone={kind}>
             <p style={doorText}>{guided.body}</p>
             <p style={doorCite}>{guided.cite}</p>
-            <Button variant="primary" style={doorAct} onClick={onGuided}>
-              {buildWizardCopy('startGuided')}
-            </Button>
+            {/* A draft left mid-build is said here: resume it, or start again. */}
+            <div style={doorActs}>
+              <Button variant="primary" onClick={onGuided}>
+                {hasDraft ? buildWizardCopy('resumeYourDraft') : buildWizardCopy('startGuided')}
+              </Button>
+              {hasDraft && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    clearWizardDraft(wizardDraftKey(kind))
+                    onGuided()
+                  }}
+                >
+                  {buildWizardCopy('startOver')}
+                </Button>
+              )}
+            </div>
           </TitledBox>
 
-          <TitledBox title={buildWizardCopy('blank2')}>
+          <TitledBox title={buildWizardCopy('blank2')} titleAs="h2">
             <p style={doorText}>{buildWizardCopy('anEmptySheetNoSteps2')}</p>
             <p style={doorCite}>{buildWizardCopy('forVeteransImportsAndHomebrew')}</p>
             <Button variant="ghost" style={doorAct} onClick={onBlank}>
               {buildWizardCopy('startBlank')}
             </Button>
           </TitledBox>
+          {patterns}
         </div>
-
-        {/* Mech only: the third Blank-family door — Instantiate from Pattern,
-            a link to the /patterns/ flow. */}
-        {kind === 'mech' && (
-          <AppLink
-            href="/patterns/"
-            className={cn('su-wiz-chooser-pattern', patternLinkCaps)}
-            style={patternLinkStyle}
-          >
-            A third door in the Blank family —{' '}
-            <span style={patternAccentStyle}>{buildWizardCopy('instantiateFromPattern')}</span> ·
-            stamp a saved pattern, then edit freely
-          </AppLink>
-        )}
       </div>
     </section>
   )

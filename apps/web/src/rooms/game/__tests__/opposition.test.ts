@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { AT, MEDIATOR, ORGANIZER, PLAYER, table } from './harness'
+import { runAct } from '../acts'
+import { AT, bodies, MEDIATOR, ORGANIZER, PLAYER, table } from './harness'
 
 const encounter = {
   id: 'e1',
@@ -68,6 +69,105 @@ describe('running an encounter', () => {
   })
 })
 
+// r8 B8 (MD8-09): the Run dialog's default is the first encounter not yet run here.
+describe('the encounters run at this table (r8 B8)', () => {
+  test('each run is kept, once, for the Mediator alone', () => {
+    const { room } = table()
+    expect(room.opposition.ran(MEDIATOR)).toEqual([])
+    room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT)
+    room.opposition.endEncounter(MEDIATOR)
+    room.opposition.runEncounter(MEDIATOR, { ...encounter, id: 'e2' }, { clear: false }, AT + 1)
+    room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT + 2)
+    expect(room.opposition.ran(MEDIATOR)).toEqual(['e1', 'e2'])
+    expect(room.opposition.ran(PLAYER)).toEqual([])
+    expect(room.opposition.mediatorRecords(MEDIATOR)[0]?.body.ran).toEqual(['e1', 'e2'])
+  })
+})
+
+// r7 C6 (MD7-03): running an encounter starts the session unless the Run dialog says not to.
+describe('running an encounter and the group session (r7 C6)', () => {
+  const run = (startSession?: boolean) => {
+    const { room } = table()
+    const c = { room, actor: MEDIATOR, gameId: 'g1', at: AT }
+    const answer = runAct(c, 'mediator.runEncounter', {
+      encounter,
+      clear: false,
+      ...(startSession === undefined ? {} : { startSession }),
+    })
+    if (!answer.ok) throw new Error(answer.refusal)
+    return room.session.session(PLAYER).live
+  }
+
+  test('as given, the first run starts the group session', () => {
+    expect(run()).toBe(true)
+  })
+
+  test('a test run that says not to starts none', () => {
+    expect(run(false)).toBe(false)
+  })
+})
+
+// MD6-01: the hand-over dialog says the new Mediator starts with empty notes.
+describe('handing the table over mid-encounter (r6 B1)', () => {
+  test('the running encounter goes across without its private notes', () => {
+    const { room } = table()
+    room.opposition.runEncounter(
+      MEDIATOR,
+      { ...encounter, briefing: 'Dust on the ridge.' },
+      { clear: false },
+      AT
+    )
+    const c = { room, actor: ORGANIZER, gameId: 'g1', at: AT + 5 }
+    expect(runAct(c, 'setMediator', { userId: PLAYER, mediator: true }).ok).toBe(true)
+    expect(runAct(c, 'setMediator', { userId: MEDIATOR, mediator: false }).ok).toBe(true)
+    const running = room.opposition.running(PLAYER)
+    expect(running?.name).toBe('Ambush at the Gap')
+    expect(running?.notes).toBe('')
+    // The briefing is the table's to hear, and the fight stays on the field.
+    expect(running?.briefing).toBe('Dust on the ridge.')
+    expect(room.opposition.tray(PLAYER).map((n) => n.name)).toEqual(['Raider'])
+  })
+
+  test('appointing someone who already mediates keeps the notes', () => {
+    const { room } = table()
+    room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT)
+    const c = { room, actor: ORGANIZER, gameId: 'g1', at: AT + 5 }
+    expect(runAct(c, 'setMediator', { userId: MEDIATOR, mediator: true }).ok).toBe(true)
+    expect(room.opposition.running(MEDIATOR)?.notes).toBe('They come from the ridge.')
+  })
+})
+
+// MD6-06: three Raiders run together were never a group, so its Morale prompt never came.
+describe('units fielded in one go (r6 B5)', () => {
+  test('two or more of one kind in no group form one group', () => {
+    const { room } = table()
+    const raiders = {
+      ...encounter,
+      opposition: ['o1', 'o2', 'o3'].map((id) => ({ ...encounter.opposition[0], id })),
+    }
+    room.opposition.runEncounter(MEDIATOR, raiders, { clear: false }, AT)
+    const groups = room.opposition
+      .tray(MEDIATOR)
+      .map((n) => (n.group as { id: string; name: string } | undefined) ?? null)
+    expect(groups.every((g) => g !== null && g.id === groups[0]?.id)).toBe(true)
+    expect(groups[0]?.name).toBe('Raider')
+  })
+})
+
+describe('the order it was prepped in (MD3-05)', () => {
+  test('an encounter arrives in its own order, however its ids sort', () => {
+    const { room } = table()
+    const names = Array.from({ length: 12 }, (_, i) => `Unit ${String.fromCharCode(76 - i)}`)
+    const prepped = {
+      ...encounter,
+      opposition: names.map((name, i) => ({ ...encounter.opposition[0], id: `o${i}`, name })),
+    }
+    room.opposition.runEncounter(MEDIATOR, prepped, { clear: false }, AT)
+    expect(room.opposition.tray(MEDIATOR).map((n) => n.name)).toEqual(names)
+    expect(room.opposition.trayRecords(MEDIATOR).map((r) => r.body.name)).toEqual(names)
+  })
+})
+
 describe('waves and groups', () => {
   const grouped = {
     ...encounter,
@@ -91,8 +191,9 @@ describe('waves and groups', () => {
     expect(room.opposition.running(MEDIATOR)?.held).toHaveLength(1)
     expect(room.opposition.bringInWave(MEDIATOR, 2, AT)).toEqual({ added: 1 })
     expect(room.opposition.running(MEDIATOR)?.held).toBeUndefined()
+    // Copies fielded together are numbered from 1 (r4 D5); a later wave counts on.
     expect(room.opposition.tray(MEDIATOR).map((n) => n.name)).toEqual([
-      'Raider',
+      'Raider 1',
       'Raider 2',
       'Raider 3',
     ])
@@ -109,6 +210,23 @@ describe('waves and groups', () => {
     expect(room.opposition.tray(MEDIATOR).map((n) => n.lastMediatorRoll)).toEqual([undefined, roll])
   })
 
+  test('a unit keeps the Uses it spent and its Titanic Actions this round (r8 B3)', () => {
+    const { room } = table()
+    const id = room.opposition.addNpc(MEDIATOR, { name: 'Scylla', currentHp: 39, maxHp: 39 }, AT)
+    room.opposition.updateNpc(MEDIATOR, id, { usesSpent: { plating: 1 } }, AT)
+    room.opposition.updateNpc(MEDIATOR, id, { usesSpent: { other: 2 } }, AT)
+    room.opposition.updateNpc(MEDIATOR, id, { titanicSpent: { round: 2, spent: 1 } }, AT)
+    const [scylla] = room.opposition.tray(MEDIATOR)
+    expect(scylla?.usesSpent).toEqual({ plating: 1, other: 2 })
+    expect(scylla?.titanicSpent).toEqual({ round: 2, spent: 1 })
+    expect(() =>
+      room.opposition.updateNpc(MEDIATOR, id, { usesSpent: { plating: -1 } }, AT)
+    ).toThrow()
+    expect(() =>
+      room.opposition.updateNpc(MEDIATOR, id, { titanicSpent: { spent: 1 } }, AT)
+    ).toThrow()
+  })
+
   test('a wreck is salvaged once, and only once it is down', () => {
     const { room } = table()
     const id = room.opposition.addNpc(MEDIATOR, { name: 'Raider', currentHp: 2, maxHp: 4 }, AT)
@@ -121,15 +239,115 @@ describe('waves and groups', () => {
     )
   })
 
+  test('a wreck keeps its Mech Salvage roll until it is salvaged (r5 B1)', () => {
+    const { room } = table()
+    const id = room.opposition.addNpc(MEDIATOR, { name: 'Scrapper', currentHp: 2, maxHp: 4 }, AT)
+    const rolled = { roll: 6, rolledAt: new Date(AT).toISOString() }
+    expect(() => room.opposition.updateNpc(MEDIATOR, id, { salvageRoll: rolled }, AT)).toThrow(
+      'downed wreck'
+    )
+    room.opposition.updateNpc(MEDIATOR, id, { currentHp: 0, salvageRoll: rolled }, AT)
+    expect(room.opposition.tray(MEDIATOR)[0]?.salvageRoll).toEqual(rolled)
+    // Rolled again, the new roll replaces the old.
+    room.opposition.updateNpc(MEDIATOR, id, { salvageRoll: { ...rolled, roll: 12 } }, AT)
+    expect(room.opposition.tray(MEDIATOR)[0]?.salvageRoll).toEqual({ ...rolled, roll: 12 })
+    expect(() =>
+      room.opposition.updateNpc(MEDIATOR, id, { salvageRoll: { roll: 21, rolledAt: 'x' } }, AT)
+    ).toThrow()
+    room.opposition.updateNpc(MEDIATOR, id, { salvaged: true }, AT)
+    expect(() => room.opposition.updateNpc(MEDIATOR, id, { salvageRoll: rolled }, AT)).toThrow(
+      'already salvaged'
+    )
+  })
+
   test('only the Mediator is served the running encounter, which marks them as mediating', () => {
     const { room } = table()
     expect(room.opposition.mediatorRecords(PLAYER)).toEqual([])
     expect(room.opposition.mediatorRecords(MEDIATOR)).toEqual([
-      { appId: 'mediator', body: { running: null }, updatedAt: 0 },
+      { appId: 'mediator', body: { running: null, initiative: null }, updatedAt: 0 },
     ])
     room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT)
     expect(room.opposition.mediatorRecords(MEDIATOR)[0]?.body.running?.name).toBe(
       'Ambush at the Gap'
     )
+  })
+})
+
+describe('clearing the field (MD-19)', () => {
+  test('Clear the field empties the tray in one act, the Mediator’s alone', () => {
+    const { room } = table()
+    room.opposition.addNpc(MEDIATOR, { name: 'Raider' }, AT)
+    room.opposition.addNpc(MEDIATOR, { name: 'Raider 2' }, AT)
+    expect(() => room.opposition.clearTray(PLAYER)).toThrow('Only the Mediator')
+    expect(room.opposition.clearTray(MEDIATOR)).toEqual({ removed: 2 })
+    expect(room.opposition.tray(MEDIATOR)).toEqual([])
+  })
+
+  test('ending an encounter may clear the field with it; by default it stays', () => {
+    const { room } = table()
+    room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT)
+    room.opposition.endEncounter(MEDIATOR)
+    expect(room.opposition.tray(MEDIATOR)).toHaveLength(1)
+    room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT)
+    room.opposition.endEncounter(MEDIATOR, { clear: true })
+    expect(room.opposition.running(MEDIATOR)).toBeNull()
+    expect(room.opposition.tray(MEDIATOR)).toEqual([])
+  })
+})
+
+// MD6-04: Mediate had no Group Initiative: no sides, no round, no record of who had acted.
+describe('the Group Initiative tracker (r6 B4)', () => {
+  test('is the Mediator’s to keep and end, and on their record', () => {
+    const { room } = table()
+    expect(room.opposition.initiative(MEDIATOR)).toBeNull()
+    room.opposition.setInitiative(MEDIATOR, { round: 2, side: 'pilots', acted: ['n1'] }, AT)
+    expect(room.opposition.initiative(MEDIATOR)).toEqual({
+      round: 2,
+      side: 'pilots',
+      acted: ['n1'],
+    })
+    expect(room.opposition.mediatorRecords(MEDIATOR)[0]?.body.initiative?.round).toBe(2)
+    // The crew do not read the Mediator's screen, and may not move it.
+    expect(room.opposition.initiative(PLAYER)).toBeNull()
+    expect(() => room.opposition.setInitiative(PLAYER, { round: 1, acted: [] }, AT)).toThrow()
+    expect(() => room.opposition.setInitiative(MEDIATOR, { round: 0, acted: [] }, AT)).toThrow()
+    room.opposition.setInitiative(MEDIATOR, null, AT + 1)
+    expect(room.opposition.initiative(MEDIATOR)).toBeNull()
+    // Ended, it still reads newer.
+    expect(room.opposition.mediatorRecords(MEDIATOR)[0]?.updatedAt).toBe(AT + 1)
+    // A tracker is no roll and no event.
+    expect(room.log.rolls(MEDIATOR)).toEqual([])
+  })
+
+  test('a pilot’s mark fills when their turn ends or is given to another', () => {
+    const { room } = table()
+    room.units.create(PLAYER, { id: 'p1', kind: 'pilot', body: bodies.pilot('p1'), at: AT })
+    const med = { room, actor: MEDIATOR, gameId: 'g1', at: AT + 1 }
+    const player = { ...med, actor: PLAYER }
+    // With no tracker kept, a turn's end keeps none.
+    expect(runAct(med, 'scenes.setUpNow', { pilotId: 'p1' }).ok).toBe(true)
+    expect(runAct(player, 'scenes.endTurn', undefined).ok).toBe(true)
+    expect(room.opposition.initiative(MEDIATOR)).toBeNull()
+
+    expect(runAct(med, 'mediator.setInitiative', { initiative: { round: 1, acted: [] } }).ok).toBe(
+      true
+    )
+    expect(runAct(med, 'scenes.setUpNow', { pilotId: 'p1' }).ok).toBe(true)
+    expect(runAct(player, 'scenes.endTurn', undefined).ok).toBe(true)
+    expect(room.opposition.initiative(MEDIATOR)?.acted).toEqual(['p1'])
+
+    runAct(med, 'mediator.setInitiative', { initiative: { round: 2, acted: [] } })
+    runAct(med, 'scenes.setUpNow', { pilotId: 'p1' })
+    runAct(med, 'scenes.setUpNow', { pilotId: 'p2' })
+    expect(room.opposition.initiative(MEDIATOR)?.acted).toEqual(['p1'])
+  })
+
+  test('the table getting up ends it', () => {
+    const { room } = table()
+    const med = { room, actor: MEDIATOR, gameId: 'g1', at: AT + 1 }
+    runAct(med, 'session.start', undefined)
+    runAct(med, 'mediator.setInitiative', { initiative: { round: 1, acted: [] } })
+    expect(runAct(med, 'session.end', undefined).ok).toBe(true)
+    expect(room.opposition.initiative(MEDIATOR)).toBeNull()
   })
 })

@@ -8,11 +8,11 @@ import type { ReactNode } from 'react'
  * What these pin, per session state:
  *
  * - **Signed in, Connected** — the trigger is a menu button carrying the
- *   player's display name and avatar circle; its menu holds Settings (to
- *   `/settings`) and Sign out, then About, Changelog and Suggest or report. The Games menu is the Union
- *   bar's nav control (`HeaderGames`), not part of the account slot.
- * - **Signed in, offline** — the identity stays and Sign out still works, but
- *   there is no Games menu: a Disconnected player cannot list their Games.
+ *   player's display name and avatar circle; its menu holds the player's own
+ *   places (Your Games, Training Bay), then Settings (to `/settings`) and
+ *   Sign out, then About, Changelog and Suggest or report. The slot itself
+ *   carries no Games button: Play is a tab of the bar (ADR-066).
+ * - **Signed in, offline** — the identity stays and Sign out still works.
  * - **Signed out** — "Sign in with Discord" takes the slot, on desktop and in
  *   the mobile drawer; the mobile header row stays empty.
  */
@@ -33,7 +33,7 @@ const signOut = mock(async () => undefined)
 // module is mocked through `also` rather than `authReact` so the two actions
 // are spies this file can read. `also` resolves from `serverMock.ts`.
 const serverMocks = await installServerMocks({
-  router: true,
+  router: 'probed',
   authReact: { useSession: () => ({ isAuthenticated: authed, isLoading: false }) },
   also: {
     '../../lib/auth/session': () => ({ signIn, signOut }),
@@ -41,9 +41,7 @@ const serverMocks = await installServerMocks({
   },
 })
 
-const { HeaderActions, HeaderDrawerAccount, HeaderGames, HeaderMobileActions } = await import(
-  '../HeaderAccount'
-)
+const { HeaderActions, HeaderDrawerAccount, HeaderMobileActions } = await import('../HeaderAccount')
 const { SyncProvider } = await import('../../../replica/SyncProvider')
 const { resetSync } = await import('../../../replica/sync')
 
@@ -99,7 +97,7 @@ describe('signed in and connected', () => {
     expect(trigger.textContent).toContain('BE')
   })
 
-  test('its menu holds Settings and Sign out, then About, Changelog and Suggest or report', async () => {
+  test('its menu holds Your Games and Training Bay, Settings and Sign out, then the site’s pages', async () => {
     serve(QUERIES)
     wrap(<HeaderActions />)
 
@@ -108,7 +106,27 @@ describe('signed in and connected', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map((item) => item.textContent)
-    ).toEqual(['Settings', 'Sign out', 'About', 'Changelog', 'Suggest or report'])
+    ).toEqual([
+      'Your Games',
+      'Training Bay',
+      'Settings',
+      'Sign out',
+      'About',
+      'Changelog',
+      'Suggest or report',
+    ])
+  })
+
+  test('Your Games and Training Bay route in the app', async () => {
+    serve(QUERIES)
+    wrap(<HeaderActions />)
+    for (const name of ['Your Games', 'Training Bay']) {
+      const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))
+      await act(async () => {
+        fireEvent.click(within(menu).getByRole('menuitem', { name }))
+      })
+    }
+    expect(serverMocks.navigations).toEqual([{ to: '/games' }, { to: '/' }])
   })
 
   test('Settings goes to /settings', async () => {
@@ -123,7 +141,7 @@ describe('signed in and connected', () => {
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
-  test('Sign out signs out', async () => {
+  test('Sign out signs out, and goes home', async () => {
     serve(QUERIES)
     wrap(<HeaderActions />)
 
@@ -132,24 +150,14 @@ describe('signed in and connected', () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Sign out' }))
     })
     expect(signOut).toHaveBeenCalledTimes(1)
+    expect(serverMocks.navigations).toEqual([{ to: '/' }])
   })
 
-  test('the Games menu is a nav control, not part of the account slot', () => {
+  test('the account slot carries no Games control: Games is a tab', () => {
     serve(QUERIES)
     wrap(<HeaderActions />)
-
     expect(screen.getByRole('button', { name: 'Account menu for Beefcake' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Games' })).toBeNull()
-    // The old sub-header's plain buttons are gone from this slot.
-    expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull()
-    expect(screen.queryByRole('link', { name: 'Account' })).toBeNull()
-  })
-
-  test('the nav Games control is a menu button', () => {
-    serve(QUERIES)
-    wrap(<HeaderGames />)
-
-    expect(screen.getByRole('button', { name: 'Games' }).getAttribute('aria-haspopup')).toBe('menu')
   })
 
   test('mobile: the header row shows the avatar alone, still naming the account', () => {
@@ -160,31 +168,10 @@ describe('signed in and connected', () => {
     expect(trigger.textContent).not.toContain('Beefcake')
   })
 
-  test('mobile: in Play the drawer lists the Games rather than offering sign-in', () => {
+  test('mobile: the drawer has nothing to add, signed in', () => {
     serve(QUERIES)
-    wrap(<HeaderDrawerAccount close={() => {}} pathname="/play/" />)
-
-    expect(screen.getByRole('navigation', { name: 'Games' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /sign in/i })).toBeNull()
-  })
-
-  test('mobile: in Build the drawer has no Games, which left Build', () => {
-    serve(QUERIES)
-    const { container } = wrap(<HeaderDrawerAccount close={() => {}} pathname="/" />)
+    const { container } = wrap(<HeaderDrawerAccount />)
     expect(container.innerHTML).toBe('')
-  })
-
-  test('the nav Games control is current on the hub and a Game’s routes, nowhere else', () => {
-    serve(QUERIES)
-    const current = (pathname: string) => {
-      const { unmount } = wrap(<HeaderGames pathname={pathname} />)
-      const here = screen.getByRole('button', { name: 'Games' }).getAttribute('aria-current')
-      unmount()
-      return here
-    }
-    expect(current('/play/')).toBe('page')
-    expect(current('/play/games/g1')).toBe('page')
-    expect(current('/')).toBeNull()
   })
 
   test('before the profile arrives it reads "Account" rather than guessing a name', () => {
@@ -198,17 +185,11 @@ describe('signed in and connected', () => {
 })
 
 describe('signed in but offline', () => {
-  test('keeps the identity and a working Sign out, with no Games menu', async () => {
+  test('keeps the identity and a working Sign out', async () => {
     setOnline(false)
     serve(QUERIES)
-    wrap(
-      <>
-        <HeaderGames />
-        <HeaderActions />
-      </>
-    )
+    wrap(<HeaderActions />)
 
-    expect(screen.queryByRole('button', { name: 'Games' })).toBeNull()
     const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Sign out' }))
@@ -219,7 +200,7 @@ describe('signed in but offline', () => {
   test('the drawer has nothing to add', () => {
     setOnline(false)
     serve(QUERIES)
-    const { container } = wrap(<HeaderDrawerAccount close={() => {}} />)
+    const { container } = wrap(<HeaderDrawerAccount />)
     expect(container.innerHTML).toBe('')
   })
 })
@@ -236,6 +217,20 @@ describe('signed out', () => {
     expect(signIn).toHaveBeenCalledTimes(1)
   })
 
+  test('the header’s Sign in comes back to the page it was pressed on, a shared sheet among them (r3 E3)', () => {
+    authed = false
+    setQueryAnswers({})
+    const before = window.location.href
+    window.location.href = 'http://localhost/build/p/mech/tow-rig-abc123?from=link'
+    try {
+      wrap(<HeaderActions />)
+      fireEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
+      expect(signIn.mock.calls.at(-1)).toEqual(['/p/mech/tow-rig-abc123?from=link'])
+    } finally {
+      window.location.href = before
+    }
+  })
+
   test('mobile: the header row stays empty and the drawer offers sign-in', () => {
     authed = false
     setQueryAnswers({})
@@ -243,7 +238,7 @@ describe('signed out', () => {
     expect(row.container.innerHTML).toBe('')
     row.unmount()
 
-    wrap(<HeaderDrawerAccount close={() => {}} />)
+    wrap(<HeaderDrawerAccount />)
     expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
   })
 })

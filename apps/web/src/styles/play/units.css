@@ -19,3 +19,24 @@
   min-width: 0;
   padding: 0;
 }
+
+.su-play-pins {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* A mech's Shut down and Vulnerable, under the five (r7 B2). */
+.su-play-pins__states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+/* The amount form, in the open rows' place: the same quiet card. */
+.su-play-pins__amount {
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  border-radius: var(--radius-card);
+  padding: var(--space-6) var(--space-8);
+}

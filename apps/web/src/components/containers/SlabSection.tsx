@@ -31,13 +31,15 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { Children } from 'react'
-import { color, duration, ease, iconSize } from '../../design/tokens'
+import { Children, useContext } from 'react'
+import { color, ease, iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
+import { containersCopy } from '../../messages/components-containers'
 import { Button } from '../atoms/Button'
 import type { SlabCount } from '../atoms/Slab'
 import { Slab } from '../atoms/Slab'
+import { RowDress } from '../entity/rowDress'
 
 type SlabSectionProps = {
   /** The section's name: the Slab's solid stamp. */
@@ -60,6 +62,8 @@ type SlabSectionProps = {
   foldLabel?: string
   /** On a Page: head and body are level-1 blocks, 12px apart (R17). */
   page?: boolean
+  /** What this section heads are rows (`RowDress`), as on a Page. */
+  rows?: boolean
   /** `mini`: inside a contentful Mini, its head and fold at the Mini Size (18px), 6px over the body. */
   size?: 'mini'
   /** The section's name when it has no `id` to be labelled by. */
@@ -70,6 +74,8 @@ type SlabSectionProps = {
   /** The body's layout: its own gap between what it holds. */
   bodyClassName?: string
   bodyStyle?: CSSProperties
+  /** The body scrolls its own lines, so the keyboard reaches it (WCAG 2.1.1). */
+  bodyScrolls?: boolean
   children?: ReactNode
 }
 
@@ -86,7 +92,7 @@ const FOLD_BUTTON_MINI = {
 const CHEVRON = {
   transitionProperty: 'transform, translate, scale, rotate',
   transitionTimingFunction: ease,
-  transitionDuration: duration.base,
+  transitionDuration: 'var(--dur-base)',
 } satisfies CSSProperties
 
 const CHEVRON_SHUT = { ...CHEVRON, rotate: '-90deg' } satisfies CSSProperties
@@ -102,14 +108,17 @@ export function SlabSection({
   fold,
   foldLabel,
   page = false,
+  rows = false,
   size,
   'aria-label': ariaLabel,
   className,
   style,
   bodyClassName,
   bodyStyle,
+  bodyScrolls = false,
   children,
 }: SlabSectionProps) {
+  const inherited = useContext(RowDress)
   const disclosure = useDisclosure(fold !== 'closed')
   const open = fold === undefined || disclosure.open
   const name = foldLabel ?? (typeof title === 'string' ? title : '')
@@ -121,7 +130,10 @@ export function SlabSection({
       variant="ghost"
       size={size === 'mini' ? 'mini' : 'iconOnly'}
       {...disclosure.toggleProps}
-      aria-label={`${disclosure.open ? 'Collapse' : 'Expand'} ${name}`.trim()}
+      aria-label={(disclosure.open
+        ? containersCopy('collapse', { name })
+        : containersCopy('expand', { name })
+      ).trim()}
       style={size === 'mini' ? FOLD_BUTTON_MINI : FOLD_BUTTON}
     >
       <ChevronDown
@@ -172,9 +184,15 @@ export function SlabSection({
           id={fold ? disclosure.panelId : undefined}
           hidden={!open}
           className={cn('su-slab-section__body', bodyClassName)}
-          style={bodyStyle}
+          // A region that scrolls must be reachable by keyboard (WCAG 2.1.1)
+          tabIndex={bodyScrolls ? 0 : undefined}
+          // A shut body wears no style object: its `display` would beat `hidden`.
+          style={open ? bodyStyle : undefined}
+          // On a Page what a strip heads are rows,
+          // never a second cut-out (`RowDress`).
+          data-rows={page || rows ? '' : undefined}
         >
-          {children}
+          <RowDress.Provider value={page || rows || inherited}>{children}</RowDress.Provider>
         </div>
       )}
     </section>

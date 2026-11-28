@@ -4,10 +4,15 @@ import { borderWidth, color, font, fontSize, space, weight } from '../../design/
 import { cn } from '../../lib/cn'
 import type { ChipSet } from '../entity'
 import { Chips } from '../entity'
+import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { POSTER_STAMP } from './posterStamp'
+import { useSlabLook } from './slabLook'
 import type { SlabCount } from './slabSummary'
 import { slabSummary, summaryFacts } from './slabSummary'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 export type { SlabCount } from './slabSummary'
 
@@ -179,7 +184,10 @@ const RULE = {
   minWidth: space[12],
 } satisfies CSSProperties
 
-/** Its actions wrap onto lines of their own before the row runs off a phone. */
+/**
+ * Its actions wrap onto lines of their own before the row runs off a phone;
+ * the lines they wrap into are filled (`.su-slab__actions`, `containers.css`).
+ */
 const ACTIONS = {
   alignItems: 'center',
   display: 'flex',
@@ -211,10 +219,54 @@ export function Slab({
   countAt = 'end',
   size,
 }: SlabProps) {
+  const surface = useSlabLook()
+  const look = surface === 'auto' ? (size === 'mini' ? 'stamp' : 'rule') : surface
   const countByLabel = countAt === 'label'
   const Label = as ?? 'span'
   const countInkStyle = countInk === 'inherit' ? COUNT_INHERIT : COUNT
   const counts = slabCounts(count)
+  // The label-on-rule head. The name in condensed caps
+  // over a 2px ink rule, a value count as plain tabular numerals (`7/7 SLOTS`)
+  // rather than a chip, its controls on the label's line.
+  if (look === 'rule') {
+    const tally = counts ? (
+      <span className="su-rule-head__tallies">
+        {counts.map((entry) => (
+          <span
+            key={String(entry.label)}
+            className={cn('su-rule-head__tally', CAPS)}
+            data-state={entry.state === 'critical' ? 'critical' : undefined}
+            title={entry.title}
+          >
+            <b>{entry.value}</b>
+            {entry.max !== undefined && <i>/{entry.max}</i>}
+            <small>{entry.label}</small>
+            {entry.note != null && <small>{entry.note}</small>}
+          </span>
+        ))}
+      </span>
+    ) : (
+      count != null && <span className={cn('su-rule-head__note', CAPS)}>{count as ReactNode}</span>
+    )
+    return (
+      <div
+        className={cn('su-rule-head', size === 'mini' && 'su-rule-head--sub', className)}
+        data-slab=""
+        data-look="rule"
+      >
+        <Label
+          id={id}
+          ref={ref}
+          tabIndex={tabIndex}
+          className={cn('su-rule-head__label', CAPS, tabIndex !== undefined && FOCUS_RING)}
+        >
+          {label}
+        </Label>
+        {tally}
+        {actions && <div className="su-slab__actions su-rule-head__actions">{actions}</div>}
+      </div>
+    )
+  }
   // The summary (C10): at most two counts, drawn by `Chips` as measures; a
   // count's note ("as printed") follows the strip as muted text.
   const chips = counts && slabSummary(counts)
@@ -262,7 +314,11 @@ export function Slab({
       {/* A div, not a span: actions carry block-level content (the Ko-fi widget
           renders a div), and a div inside a span is invalid HTML. Both are flex
           items of the same row, so nothing moves. */}
-      {actions && <div style={ACTIONS}>{actions}</div>}
+      {actions && (
+        <div className="su-slab__actions" style={ACTIONS}>
+          {actions}
+        </div>
+      )}
     </div>
   )
 }

@@ -31,7 +31,7 @@ import type { ChapterTone } from '../components/index'
 import { Badge, Button, capsLabel, Speckle, tokens } from '../components/index'
 import { cn } from '../lib/cn'
 import type { PlayReadOnly } from './play.model'
-import { liveLabel, phaseBand } from './play.model'
+import { liveLabel, pausedBand, phaseBand } from './play.model'
 
 /**
  * The band: its controls on a line, the title's cut-out flush with its foot
@@ -71,6 +71,30 @@ const TITLE = {
 const TITLE_CAPS = capsLabel({ size: 'readout' })
 
 /**
+ * The phone's title, "Moth · Ines Park": the callsign is never cut (r5 B13),
+ * only what follows it gives way. A flex line whose callsign never shrinks
+ * and whose rest can shrink to nothing, so the title's least width is the
+ * callsign's.
+ */
+const LINE_TITLE = {
+  display: 'flex',
+  minWidth: 'min-content',
+} satisfies CSSProperties
+const KEEPS = { flexShrink: 0 } satisfies CSSProperties
+const GIVES_WAY = {
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+/** A title split where it gives way: before its first " · ", and the rest. */
+function callsignFirst(title: string): [string, string] | null {
+  const at = title.indexOf(' · ')
+  return at <= 0 ? null : [title.slice(0, at), title.slice(at)]
+}
+
+/**
  * A bar stamp (role, ONLINE, read-only): the ink plate, never rust (ruleset
  * §3.1). Its height is the line's (`.su-play-bar__stamp`, `play/bar.css`).
  */
@@ -104,6 +128,10 @@ export type PlayBarProps = {
   of?: number | null
   /** A stamp after the title naming the viewer's role: "Mediator". */
   stamp?: string
+  /** The Scene conditions that are on, as one stamp ("Scene · Radiation Storm"); absent with none. */
+  scene?: string | undefined
+  /** The fight as a player reads it, "Round 2 · Pilots to act · Razor is up" (r8 A3); absent with none. */
+  turn?: string | null
   /** A phone's bar, kept to one line: the ONLINE stamp says its count alone (`liveLabel`). */
   short?: boolean
   /**
@@ -113,6 +141,8 @@ export type PlayBarProps = {
   readOnly?: PlayReadOnly | null
   /** The Situation switch: On foot / Boarded / Downtime (from `lg`; below it, pinned under the bar). */
   situation?: ReactNode
+  /** A mark that jumps somewhere off screen ("New in the Feed", r4 B7), before the Stop Sign. */
+  mark?: ReactNode
   /** The Stop Sign's button (`StopSignButton`), in a Game. */
   stop?: ReactNode
   /** The Discord channel button: where this screen's rolls post. */
@@ -121,25 +151,98 @@ export type PlayBarProps = {
   menu?: ReactNode
   /** The phase's band (`PHASE_TONE`); the Cantina's pink by default. */
   tone?: ChapterTone
+  /** The Stop Sign is up: the band wears the stop colour, whatever the phase. */
+  paused?: boolean
+  /**
+   * A phone's band. One crumb line on the band (the
+   * Game · the phase), then the controls' line with `title` (who
+   * is playing: "Bonesaw in Mazona") on its cut-out. The ONLINE stamp and the
+   * Situation switch are not drawn: the foot and ⋯ hold them.
+   */
+  line?: { game: string | null; phase: string }
 }
 
 export function PlayBar({
   title,
-  backHref = '/play/',
+  backHref = '/games/',
   backLabel = 'Play',
   live,
   here = null,
   of = null,
   stamp,
+  scene,
+  turn = null,
   short = false,
   readOnly = null,
   situation,
+  mark,
   stop,
   channel,
   menu,
   tone = 'play',
+  paused = false,
+  line,
 }: PlayBarProps) {
-  const band = phaseBand(tone)
+  const band = paused ? pausedBand() : phaseBand(tone)
+  // The phone's one-line band, the title kept on its cut-out.
+  if (line) {
+    const lineTitle = callsignFirst(title)
+    return (
+      <header
+        data-ground={band.ground}
+        className="su-play-bar su-play-bar--line su-play-band"
+        style={{ ...BAR, ...band.style }}
+      >
+        <Speckle grain="ink" />
+        <p className="su-play-bar__crumb">
+          {line.game !== null && <span className="su-play-bar__crumb-game">{line.game}</span>}
+          <span>
+            {line.game !== null && ' · '}
+            {line.phase}
+            {turn !== null && ` · ${turn}`}
+          </span>
+        </p>
+        <Button
+          href={backHref}
+          back
+          surface="instrument"
+          variant="ghost"
+          size="compact"
+          style={BACK}
+        >
+          {backLabel}
+        </Button>
+        {lineTitle === null ? (
+          <h1 className={cn(NOTCH, TITLE_CAPS)} style={TITLE}>
+            {title}
+          </h1>
+        ) : (
+          <h1 className={cn(NOTCH, TITLE_CAPS)} style={{ ...TITLE, ...LINE_TITLE }}>
+            <span style={KEEPS}>{lineTitle[0]}</span>
+            <span style={GIVES_WAY}>{lineTitle[1]}</span>
+          </h1>
+        )}
+        {readOnly !== null && (
+          <Badge
+            shape="stamp"
+            size="compact"
+            surface="inverse"
+            className={STAMP}
+            style={ONLINE}
+            role="status"
+            title={readOnly.says}
+          >
+            {readOnly.stamp}
+          </Badge>
+        )}
+        <span style={SPACER} />
+        {mark}
+        {stop}
+        {channel}
+        {menu}
+      </header>
+    )
+  }
   return (
     <header
       data-ground={band.ground}
@@ -178,7 +281,19 @@ export function PlayBar({
         )
       )}
       {situation && <div style={SLOT}>{situation}</div>}
+      {turn !== null && (
+        <Badge shape="stamp" size="compact" className={STAMP} style={ONLINE} role="status">
+          {turn}
+        </Badge>
+      )}
+      {/* A condition left on is never unseen (r4 A11). */}
+      {scene && (
+        <Badge shape="stamp" size="compact" surface="inverse" className={STAMP} style={ONLINE}>
+          {scene}
+        </Badge>
+      )}
       <span style={SPACER} />
+      {mark}
       {stop}
       {channel}
       {menu}

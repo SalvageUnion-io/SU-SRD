@@ -94,7 +94,7 @@ describe('SIGNED_OUT_VIEW_SCRIPT', () => {
     '/build/constructor',
     '/buildx/mechs/new',
     '/mechs/new',
-    '/play/',
+    '/games/',
     '/',
   ]
 

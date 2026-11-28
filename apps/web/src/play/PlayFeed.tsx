@@ -7,24 +7,40 @@
  * A proposal answers inline: Accept writes it (`ops.accept`, the owner's
  * own write) and Decline records the answer (`ops.decline`); Decline is
  * a peer of Accept, as on the Game page's inbox (`ProposalInbox`). An accepted
- * one lands on the Feed as an applied change.
+ * one lands on the Feed as the table's line for it, "You accepted: …".
  *
  * Each of my rolls says what became of its Discord post (§9): Posting…,
  * Posted, a Post button for one the toggle kept private (the per-roll
  * override), or Not posted with the reason and Try again. Never silent.
+ * One made offline says Not sent yet, with Try again, until it is sent (r5 A6).
+ *
+ * A Mediator's Opposition roll reaches the players without its names (ADR-051
+ * §9b), and a private one not at all: its line here says which and offers
+ * Reveal, which shows the table the whole line (`changeLog.reveal`).
+ *
+ * An action's use and cost read inside its roll's line (r5 A9): the use
+ * first, in bold, then the roll, then what it spent. My own lines carry
+ * their time, as the table's do.
+ *
+ * Solo, the last visit's lines follow this one's under "Last time", read from
+ * the units' Change Logs (r7 A8).
+ *
+ * A roll's `[[Trait]]` reads as the trait's word, a Mention with its Peek (r8 B2).
  *
  * Feed lines are level 1 (play.md §12): plain text and buttons inside, no
  * frame inside a frame.
  */
 
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, FeedLine, FeedList, FieldError, tokens } from '../components/index'
+import { FeedLine, FeedList, FeedTime, FieldError } from '../components/app'
+import { Button, tokens } from '../components/index'
+import { TraitProse } from '../components/TraitProse'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
 import { useTableAct } from '../replica/useTable'
-import type { FeedEntry } from './feed.model'
+import type { FeedEntry, Kept } from './feed.model'
 import type { PlayRoll } from './playRolls.model'
-import { recordPlayChange } from './playRolls.model'
+import { acceptedUndo } from './proposalAnswer.model'
 import type { PlayPostState } from './usePlayChannel'
 
 const HEAD = { display: 'block', fontWeight: tokens.weight.bold } satisfies CSSProperties
@@ -32,6 +48,33 @@ const HEAD = { display: 'block', fontWeight: tokens.weight.bold } satisfies CSSP
 const REASON = { display: 'block', color: tokens.color.wkMuted } satisfies CSSProperties
 
 const ACTIONS = { display: 'flex', gap: tokens.space[6] } satisfies CSSProperties
+
+/** What an action spent, under its line (r5 A9). */
+const DETAIL = { display: 'block' } satisfies CSSProperties
+
+/** An action's use and cost around its line (r5 A9), each its own line, the roll's too. */
+function Grouped({ entry, children }: { entry: FeedEntry; children: React.ReactNode }) {
+  if (entry.lead === undefined && !entry.detail?.length) return children
+  return (
+    <>
+      {entry.lead !== undefined && <span style={HEAD}>{entry.lead}</span>}
+      <span style={DETAIL}>{children}</span>
+      {entry.detail?.map((line) => (
+        <span key={line} style={DETAIL}>
+          {line}
+        </span>
+      ))}
+    </>
+  )
+}
+
+/** A veiled roll's own row under its line: what the players miss, and Reveal. */
+const VEIL = {
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: tokens.space[6],
+} satisfies CSSProperties
 
 const STATE = {
   color: tokens.color.ink75, // design-tokens-ignore(muted-note): a post's status word
@@ -56,19 +99,44 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
   const apply = useTableAct('ops.accept', gameId)
   const decline = useTableAct('ops.decline', gameId)
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
-    failure: 'Your answer did not land. Try again.',
+    failure: playCopy('answerDidNotLand'),
     toastId: 'play-proposal-answer',
   })
+  const reveal = useTableAct('changeLog.reveal', gameId)
+  const revealing = useServerAction((rollId: string) => reveal({ rollId }), {
+    failure: playCopy('revealDidNotLand'),
+    toastId: 'play-roll-reveal',
+  })
+  /** What a kept roll's line says the players miss, and the control that shows it to the table. */
+  const veil = (rollId: string | undefined, text: string, kept: Kept | undefined) =>
+    rollId === undefined ? null : (
+      <span style={VEIL}>
+        <span style={STATE}>
+          {kept === 'roll' ? playCopy('onlyMediatorSees') : playCopy('namesHidden')}
+        </span>
+        <Button
+          variant="default"
+          size="mini"
+          disabled={!canWrite}
+          aria-label={playCopy('revealWhat', { text })}
+          onClick={() => void revealing.run(rollId)}
+        >
+          {playCopy('reveal')}
+        </Button>
+      </span>
+    )
 
-  if (entries.length === 0) {
-    return <EmptyState variant="inline" body={playCopy('rollsAndChangesLandHere')} />
-  }
+  // An empty feed says nothing (no explainer line).
+  if (entries.length === 0) return null
 
   const accept = (entry: Extract<FeedEntry, { kind: 'proposal' }>) => {
     void reply
       .run(() => apply({ opId: entry.proposalId }))
       .then((result) => {
-        if (result.ok) recordPlayChange(`Applied · ${entry.change}`)
+        if (!result.ok) return
+        // The table's own line says it ("You accepted: …"), once (r3 A5).
+        // Theirs to undo, as any change of a live number is (r2 C6).
+        acceptedUndo(entry.proposal)
       })
   }
 
@@ -113,10 +181,21 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
               <FeedLine
                 key={entry.key}
                 end={
-                  <PostState post={post} roll={entry.roll} postNow={postNow} canWrite={canWrite} />
+                  <span style={ACTIONS}>
+                    <PostState
+                      post={post}
+                      roll={entry.roll}
+                      postNow={postNow}
+                      canWrite={canWrite}
+                    />
+                    <FeedTime ts={entry.ts} format="clock" />
+                  </span>
                 }
               >
-                {entry.text}
+                <Grouped entry={entry}>
+                  <TraitProse text={entry.text} />
+                </Grouped>
+                {veil(entry.reveal, entry.text, entry.kept)}
                 {post?.kind === 'failed' && (
                   <FieldError>
                     {playCopy('notPostedToDiscord', { message: post.message })}
@@ -126,7 +205,22 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
             )
           }
           default:
-            return <FeedLine key={entry.key}>{entry.text}</FeedLine>
+            // The table's log reads with its times (a session's record); solo,
+            // the last visit's lines follow under "Last time" (r7 A8).
+            return (
+              <FeedLine
+                key={entry.key}
+                head={entry.kind === 'last' && entry.first ? playCopy('lastTime') : undefined}
+                end={
+                  <FeedTime ts={entry.ts} format={entry.kind === 'last' ? 'datetime' : 'clock'} />
+                }
+              >
+                <Grouped entry={entry}>
+                  <TraitProse text={entry.text} />
+                </Grouped>
+                {entry.kind === 'roll' && veil(entry.reveal, entry.text, entry.kept)}
+              </FeedLine>
+            )
         }
       })}
     </FeedList>
@@ -153,7 +247,25 @@ function PostState({
     )
   }
   if (post.kind === 'posted') return <span style={STATE}>{playCopy('posted')}</span>
-  const label = 'Try again'
+  const label = playCopy('tryAgain')
+  if (post.kind === 'held') {
+    return (
+      <span style={ACTIONS}>
+        <span role="status" style={STATE}>
+          {playCopy('notSentYet')}
+        </span>
+        <Button
+          variant="default"
+          size="mini"
+          disabled={!canWrite}
+          aria-label={playCopy('sendHeld', { label: roll.label })}
+          onClick={() => postNow(roll)}
+        >
+          {label}
+        </Button>
+      </span>
+    )
+  }
   return (
     <Button
       variant="default"

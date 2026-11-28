@@ -1,4 +1,3 @@
-/* biome-ignore-all lint/complexity/noImportantStyles: print stylesheet — every override must beat package rules and inline styles at print time, and the pip re-assertions must beat this file's own universal `*` !important reset */
 /**
  * print.css — the app's @media print rules, over the shared `data-print`
  * vocabulary and chrome rule in `base.css`.
@@ -6,6 +5,15 @@
  * Do not add a print block to `app.css`: a second `@media print` block can
  * contradict this one (a bare `button` selector there would cancel the escape
  * hatch below).
+ *
+ * No `!important` (ruleset §4.10). A rule that must beat a class carries
+ * `:not(#\#)`, an id's weight that matches every element. The paper's paint
+ * (white ground, black ink, black edges, a pip's fill) must also beat a style
+ * object's inline colour, which no selector can: so it is a paused animation
+ * (`su-print-*`, below). An animation's values sit above every normal
+ * declaration, inline ones too, in the cascade's own order of origins; its
+ * keyframes hold one value from start to end, so a reduced-motion user's
+ * instant run lands on the same paint.
  *
  * A4 is the default page size. US Letter is available by choosing a US Letter
  * destination in the browser's print dialog (the browser scales automatically;
@@ -42,16 +50,48 @@
   /* -------------------------------------------------------------------------
    * Reset backgrounds to white / ink-safe.
    *
-   * This universal reset covers `body { background }` and
-   * `* { print-color-adjust: exact }`.
+   * This universal reset covers `body { background }` and a style object's
+   * paint (the header says why it is an animation); the edged and pip rules
+   * below swap in their own paint.
    * ------------------------------------------------------------------------- */
-  *,
-  *::before,
-  *::after {
-    background-color: #fff !important;
-    color: #000 !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
+  @keyframes su-print-paper {
+    /* design-tokens-ignore(loading-mark): paused paper paint, no motion */
+    from,
+    to {
+      background-color: #fff;
+      color: #000;
+      box-shadow: none;
+      text-shadow: none;
+    }
+  }
+
+  @keyframes su-print-edged {
+    /* design-tokens-ignore(loading-mark): paused paper paint, no motion */
+    from,
+    to {
+      background-color: #fff;
+      color: #000;
+      box-shadow: none;
+      text-shadow: none;
+      border-color: #000;
+    }
+  }
+
+  @keyframes su-print-pip-on {
+    /* design-tokens-ignore(loading-mark): paused paper paint, no motion */
+    from,
+    to {
+      background-color: #000;
+      color: #000;
+      box-shadow: none;
+      border-color: #000;
+    }
+  }
+
+  :not(#\#),
+  :not(#\#)::before,
+  :not(#\#)::after {
+    animation: su-print-paper var(--dur-loop) var(--ease) both paused;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -104,7 +144,11 @@
    * hard rule R7). */
   .su-stat-plate,
   [data-handback],
-  .su-eyebrow {
+  .su-eyebrow,
+  .su-rule-head__label,
+  .su-pilot-trees .su-poster-stamp,
+  .su-open__meta,
+  .su-tl {
     font-size: revert-layer;
     margin-bottom: revert-layer;
   }
@@ -115,23 +159,55 @@
    * App chrome and interactive-only surfaces have no meaning on paper. The
    * `:not([data-print='keep'])` on buttons is the escape hatch: a control that
    * carries printed STATE (a ticked box, a filled pip button) opts back in.
+   * A link drawn as a button (`Button` with `href`: Related units' "+ Create")
+   * is a control too, so it goes with them (r5 C17).
    * A chip that Peeks its entry (`.su-chip-link`, a button: `CLASS | Engineer`)
-   * is read content, so it prints as its words.
+   * and a name that does (`.su-inline-ref`: a table's ability or equipment
+   * name, a linked word in an entry's text) are read content, so each prints
+   * as its words; so is a number set by pressing it (`NumeralField`: the
+   * masthead's TP, r8 F2).
    * ------------------------------------------------------------------------- */
-  header,
-  [role='dialog'],
-  [data-sonner-toaster],
-  button:not([data-print='keep'], .su-chip-link) {
-    display: none !important;
+  header:not(#\#),
+  [role='dialog']:not(#\#),
+  [data-sonner-toaster]:not(#\#),
+  button:not([data-print='keep'], .su-chip-link, .su-inline-ref, .su-numeral-field__button):not(
+    #\#
+  ),
+  a.su-btn:not([data-print='keep']):not(#\#) {
+    display: none;
+  }
+
+  /* -------------------------------------------------------------------------
+   * A wizard's Review on paper (r3 E1): the build, from the top of the first
+   * sheet. On screen the shell is a flex column a viewport tall with its
+   * action bar pinned; paginated, that left the step a page down and the
+   * site's footer across it. On paper every level is a plain block, the step
+   * may break where a page ends, and the action bar is not drawn.
+   * ------------------------------------------------------------------------- */
+  .su-wiz-shell:not(#\#),
+  .su-wiz-body:not(#\#),
+  .su-wiz-main:not(#\#),
+  .su-wiz-step-frame:not(#\#) {
+    display: block;
+    padding: 0;
+  }
+
+  .su-wiz-footer:not(#\#) {
+    display: none;
+  }
+
+  .su-wiz-step-frame article:not(#\#) {
+    break-inside: auto;
+    page-break-inside: auto;
   }
 
   /* -------------------------------------------------------------------------
    * Container overrides — full-width, no padding
    * ------------------------------------------------------------------------- */
-  main {
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
+  main:not(#\#) {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
   }
 
   a {
@@ -167,6 +243,56 @@
     break-before: auto;
   }
 
+  /* A sheet starts on page one (r5 C17). Its body is one section taller than
+     a page, so "avoid" pushed all of it past a page holding the title alone:
+     the body breaks between its parts, the title stays with the masthead,
+     and a ledger's row, its rules line and the hold's "free" stay with the
+     row above them. */
+  .su-sheet-live-body > section:not(#\#) {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  /* The dash's columns stack as plain blocks: a grid or flex column split
+     across pages drew the side column over the loadout. */
+  .su-sheet-live-body > section:not(#\#),
+  .su-dash:not(#\#),
+  .su-dash__col:not(#\#) {
+    display: block;
+  }
+
+  .su-dash__col:not(#\#) > * + * {
+    margin-top: 12pt;
+  }
+
+  /* A column's section and an ability tree may run on to the next page,
+     an open ability's rules too: kept whole, the abilities left page one
+     half blank and the Pilot sheet took three pages (r8 F2). */
+  .su-dash__col:not(#\#) > .su-sheet-section,
+  .su-pilot-trees:not(#\#) .su-sheet-section,
+  .su-ability-track__tier:not(#\#) {
+    break-inside: auto;
+  }
+
+  .su-chapter-band:not(#\#) {
+    break-after: avoid;
+  }
+
+  .su-dash-top:not(#\#),
+  .su-open__row:not(#\#) {
+    break-inside: avoid;
+  }
+
+  /* A long rules line (a roll table) may run on to the next page. */
+  .su-open__detail:not(#\#) {
+    break-inside: auto;
+  }
+
+  .su-open__detail:not(#\#),
+  .su-dash-slots:not(#\#) {
+    break-before: avoid;
+  }
+
   dl {
     page-break-inside: avoid;
     break-inside: avoid;
@@ -177,62 +303,80 @@
     break-inside: avoid;
   }
 
-  img {
+  img:not(#\#) {
     page-break-inside: avoid;
     break-inside: avoid;
-    max-width: 100% !important;
+    max-width: 100%;
+  }
+
+  /* -------------------------------------------------------------------------
+   * Names and labels whole on paper (r4 E9): nothing can be hovered or
+   * opened there, so a Mini's name wraps under its chips rather than end in
+   * "…", and a masthead label ("HP Hit Points") keeps its full line height.
+   * ------------------------------------------------------------------------- */
+  .su-strip__label:not(#\#) > small,
+  .su-strip__label:not(#\#) > .su-chip-link > small {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .su-strip__label:not(#\#) {
+    flex-wrap: wrap;
+    line-height: 1.3;
+    white-space: normal;
   }
 
   /* -------------------------------------------------------------------------
    * Border adjustments for ink-friendliness
    * ------------------------------------------------------------------------- */
-  /* An inline border is matched by its style attribute: a stylesheet
-   * `!important` still beats a plain inline declaration. The parts named here
+  /* An inline border is matched by its style attribute. The parts named here
    * draw their border in a src/components class, so they are named outright:
    * an entity form's by `data-handback`. */
-  [style*='border'],
-  [data-handback],
-  .su-stat-cell {
-    border-color: #000 !important;
+  [style*='border']:not(#\#),
+  [data-handback]:not(#\#),
+  .su-stat-cell:not(#\#) {
+    animation-name: su-print-edged;
   }
 
   /* Stat blocks in MechSheet (grid of SP/EP/Heat etc.) */
-  dl > div {
-    border: 1px solid #000 !important;
-    padding: 3pt 6pt !important;
+  dl > div:not(#\#) {
+    border: 1px solid #000;
+    padding: 3pt 6pt;
   }
 
   /* -------------------------------------------------------------------------
-   * Stat pips (src/components Stat + VitalGauge) — keep trackable boxes on paper.
+   * Stat pips (src/components Stat + VitalGauge) and the masthead's meter
+   * segments (`Strip`) — keep trackable boxes on paper.
    *
-   * The global `*` reset above forces every background to white, which would
+   * The universal reset above forces every background to white, which would
    * erase a filled pip's fill and make it indistinguishable from an empty one.
-   * Re-assert an ink-black fill on filled pips (`data-pip="on"`) and force
-   * exact colour rendering so the fill survives the print pipeline.
-   * Empty pips (`data-pip="off"`) stay white with a black border.
+   * Re-assert an ink-black fill on filled pips (`data-pip="on"`, a lit
+   * segment) and force exact colour rendering so the fill survives the print
+   * pipeline. Empty ones stay white with a black border.
    * ------------------------------------------------------------------------- */
-  [data-pip] {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    border-color: #000 !important;
+  [data-pip]:not(#\#),
+  .su-strip__seg:not(#\#) {
+    animation-name: su-print-edged;
   }
 
-  [data-pip='on'] {
-    background-color: #000 !important;
-  }
-
-  [data-pip='off'] {
-    background-color: #fff !important;
+  [data-pip='on']:not(#\#),
+  .su-strip__seg[data-state='on']:not(#\#),
+  .su-strip__seg[data-state='danger']:not(#\#) {
+    animation-name: su-print-pip-on;
   }
 
   /* -------------------------------------------------------------------------
-   * Links — print the URL after the text (informational)
-   * Exclude nav links (already hidden).
+   * Links — print the URL after the text (informational), where it is an
+   * address a reader could type: a link out of the site. A link within the
+   * site reads as its words (a bare `/classes/engineer/` is no address on
+   * paper). Nav links are already hidden.
    * ------------------------------------------------------------------------- */
-  a[href]:not([href^='#'])::after {
+  a[href^='http']:not(#\#)::after {
     content: ' (' attr(href) ')';
     font-size: 9pt;
-    color: #444 !important;
+    color: #444;
     word-break: break-all;
   }
 }

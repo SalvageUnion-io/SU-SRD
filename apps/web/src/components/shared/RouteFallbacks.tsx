@@ -28,7 +28,6 @@ const SHELL = {
   backgroundColor: color.wkBg,
   display: 'flex',
   justifyContent: 'center',
-  minHeight: '100dvh',
   padding: space[24],
 } satisfies CSSProperties
 
@@ -108,12 +107,12 @@ export function RouteNotFound() {
 }
 
 /**
- * A route's wait (chrome.md K6): `Pending`'s line, centred in the page shell.
+ * A route's wait (chrome K6): `Pending`'s line, centred in the page shell.
  * The router's default pending component (no subject: "Loading the page…"),
  * and the app's wait on the reference data (`GameDataReady`) and on a Play
  * gate's session or Game.
  */
-export function RoutePending({ label = 'the page' }: { label?: string }) {
+export function RoutePending({ label = sharedCopy('thePage') }: { label?: string }) {
   return (
     <FullPageShell aria-busy="true">
       <Pending label={label} />

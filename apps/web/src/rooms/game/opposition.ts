@@ -1,8 +1,17 @@
-import { runningFrom, splitWaves, trayNpcsFor, waveOf } from 'game-domain/games/encounters'
+import {
+  preppedOrder,
+  runningFrom,
+  splitWaves,
+  trayNpcsFor,
+  waveOf,
+} from 'game-domain/games/encounters'
 import type { RunningEncounter } from 'game-domain/schemas/encounter'
 import { EncounterSchema, RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { EncounterNpcSchema, MediatorRollResultSchema } from 'game-domain/schemas/encounterNpc'
-import { isDown } from '../../lib/rules/opposition'
+import { z } from 'salvageunion-reference/zod'
+import type { Initiative } from '../../lib/rules/initiative'
+import { InitiativeSchema, withActed } from '../../lib/rules/initiative'
+import { groupedInOneGo, isDown } from '../../lib/rules/opposition'
 import { RoomRefusal } from '../refusal'
 import type { GameStore } from './store'
 import { fromJson } from './store'
@@ -19,7 +28,14 @@ import { fromJson } from './store'
  * Rows written before the full instance carry only a name, and an update
  * re-parses them, so the whole record is not demanded.
  */
+/** The encounters run here (`ran`), by id: the newest this many are kept. */
+const RAN_KEPT = 200
+const RAN = z.array(z.string())
+
 const TrayBodySchema = EncounterNpcSchema.partial().extend({ name: EncounterNpcSchema.shape.name })
+
+/** A wreck's kept Mech Salvage roll, as the record holds it. */
+const SalvageRollSchema = EncounterNpcSchema.shape.salvageRoll.unwrap()
 
 /** The fields a fight changes on a tray NPC. */
 export type TrayPatch = {
@@ -29,6 +45,8 @@ export type TrayPatch = {
   lastMediatorRoll?: unknown
   /** Claim a downed wreck's salvage: refused once claimed, or while it still stands. */
   salvaged?: true
+  /** A downed Mech's Mech Salvage roll, kept until it is salvaged (r5 B1). */
+  salvageRoll?: unknown
   important?: boolean
   /** The chassis's EP and Heat Capacity, frozen when it is marked important. */
   maxEp?: number
@@ -36,7 +54,17 @@ export type TrayPatch = {
   currentEp?: number
   currentHeat?: number
   lastImportantRoll?: unknown
+  /** Uses spent, by action id: merged into what the unit has spent (r8 B3). */
+  usesSpent?: Record<string, number>
+  /** Titanic Actions spent this round (r8 B3). */
+  titanicSpent?: unknown
 }
+
+/** A unit's spent Uses, as the record holds them. */
+const UsesSpentSchema = EncounterNpcSchema.shape.usesSpent.unwrap()
+
+/** A Bio-Titan's spent Titanic Actions, as the record holds them. */
+const TitanicSpentSchema = EncounterNpcSchema.shape.titanicSpent.unwrap()
 
 export class GameOpposition {
   constructor(
@@ -48,7 +76,7 @@ export class GameOpposition {
     const member = this.store.member(actor)
     if (member === null || !member.mediator) return []
     return this.store
-      .rows('select body from tray order by added_at, id')
+      .rows('select body from tray order by added_at, rowid')
       .map((row) => fromJson<Record<string, unknown>>(row.body))
   }
 
@@ -59,7 +87,7 @@ export class GameOpposition {
     const member = this.store.member(actor)
     if (member === null || !member.mediator) return []
     return this.store
-      .rows('select id, body, updated_at from tray order by added_at, id')
+      .rows('select id, body, updated_at from tray order by added_at, rowid')
       .map((row) => ({
         appId: String(row.id),
         body: fromJson<Record<string, unknown>>(row.body),
@@ -123,8 +151,23 @@ export class GameOpposition {
         }
         next.salvaged = true
       }
+      if (patch.salvageRoll !== undefined) {
+        if (body.salvaged === true) throw new RoomRefusal('That wreck is already salvaged')
+        if (!trayNpcDown(next)) throw new RoomRefusal('Only a downed wreck can be salvaged')
+        next.salvageRoll = SalvageRollSchema.parse(patch.salvageRoll)
+      }
       if (patch.lastImportantRoll !== undefined) {
         next.lastImportantRoll = MediatorRollResultSchema.parse(patch.lastImportantRoll)
+      }
+      if (patch.usesSpent !== undefined) {
+        const kept = UsesSpentSchema.safeParse(body.usesSpent)
+        next.usesSpent = {
+          ...(kept.success ? kept.data : {}),
+          ...UsesSpentSchema.parse(patch.usesSpent),
+        }
+      }
+      if (patch.titanicSpent !== undefined) {
+        next.titanicSpent = TitanicSpentSchema.parse(patch.titanicSpent)
       }
       this.write(npcId, next, at)
     })
@@ -157,13 +200,85 @@ export class GameOpposition {
    * The socket's one `mediator` record, for the Mediator only: the encounter
    * being run, or null. A reader without it does not mediate here.
    */
-  mediatorRecords(
-    actor: string
-  ): { appId: string; body: { running: RunningEncounter | null }; updatedAt: number }[] {
+  mediatorRecords(actor: string): {
+    appId: string
+    body: { running: RunningEncounter | null; initiative: Initiative | null; ran?: string[] }
+    updatedAt: number
+  }[] {
     if (!this.mediates(actor)) return []
     const running = this.running(actor)
-    const updatedAt = running === null ? 0 : Date.parse(running.startedAt)
-    return [{ appId: 'mediator', body: { running }, updatedAt }]
+    const kept = this.initiativeRow()
+    const ran = this.ranRow()
+    const updatedAt = Math.max(
+      running === null ? 0 : Date.parse(running.startedAt),
+      kept?.at ?? 0,
+      ran?.at ?? 0
+    )
+    const body = { running, initiative: kept?.initiative ?? null }
+    return [
+      {
+        appId: 'mediator',
+        body: ran === null || ran.ids.length === 0 ? body : { ...body, ran: ran.ids },
+        updatedAt,
+      },
+    ]
+  }
+
+  /**
+   * The encounters run at this table, by id, first run first (r8 B8): the
+   * Run dialog offers the first one not yet run. The Mediator's alone.
+   */
+  ran(actor: string): string[] {
+    if (!this.mediates(actor)) return []
+    return this.ranRow()?.ids ?? []
+  }
+
+  /** The Group Initiative tracker (r6 B4), for the Mediator; null when none is kept. */
+  initiative(actor: string): Initiative | null {
+    if (!this.mediates(actor)) return null
+    return this.initiativeRow()?.initiative ?? null
+  }
+
+  /**
+   * Keep the tracker as the Mediator moved it, or end it with null: a tracker
+   * only, which refuses no turn (ARCHITECTURE.md#combat). One `change_log`
+   * row (field `initiative`), kept when ended so the record reads newer.
+   */
+  setInitiative(actor: string, initiative: unknown, at: number): void {
+    this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      this.putInitiative(initiative === null ? null : InitiativeSchema.parse(initiative), at)
+    })
+  }
+
+  /**
+   * A pilot's turn ended (they ended it, or the turn was given to another):
+   * their mark fills, while a tracker is kept. Nothing else moves.
+   */
+  markActed(pilotId: string, at: number): void {
+    const kept = this.initiativeRow()?.initiative ?? null
+    if (kept === null || kept.acted.includes(pilotId)) return
+    this.putInitiative(withActed(kept, pilotId, true), at)
+  }
+
+  /** The table got up, or Downtime began: no action scene, so no tracker. */
+  endInitiative(at: number): void {
+    if ((this.initiativeRow()?.initiative ?? null) === null) return
+    this.putInitiative(null, at)
+  }
+
+  /**
+   * The table changed hands to `to` (r6 B1): the running encounter goes
+   * across without its notes, which are the old Mediator's ("Only you") and
+   * stay on their own encounter in Prep. Its name, briefing, tables and
+   * waves are the table's, so they stay. Called after `to` is appointed;
+   * nothing changes when they already mediated.
+   */
+  handOver(to: string, wasMediator: boolean): void {
+    if (wasMediator || !this.mediates(to)) return
+    const running = this.running(to)
+    if (running === null || running.notes === '') return
+    this.putRunning({ ...running, notes: '' })
   }
 
   /** The encounter being run, or null. */
@@ -182,7 +297,8 @@ export class GameOpposition {
    * account room's shelf) and copied, never moved. `clear` empties the tray
    * first: their choice, made in a dialog that names what it removes
    * (ADR-007). `waves` fields only the first wave, each opponent with its
-   * group; the rest wait on the running encounter for `bringInWave`.
+   * group; the rest wait on the running encounter for `bringInWave`. Two or
+   * more of one kind in no group form one (`groupedInOneGo`, r6 B5).
    */
   runEncounter(
     actor: string,
@@ -196,11 +312,15 @@ export class GameOpposition {
       if (options.clear) this.store.rows('delete from tray')
       const now = new Date(at).toISOString()
       const waves = options.waves === true ? splitWaves(parsed) : null
-      const fielded = waves
-        ? trayNpcsFor(waves.first, this.names(), now, parsed.groups ?? [])
-        : trayNpcsFor(parsed.opposition, this.names(), now)
+      const fielded = groupedInOneGo(
+        waves
+          ? trayNpcsFor(waves.first, this.names(), now, parsed.groups ?? [])
+          : trayNpcsFor(preppedOrder(parsed), this.names(), now),
+        this.newId
+      )
       for (const npc of fielded) this.insert(TrayBodySchema.parse(npc), at)
       this.putRunning(runningFrom(parsed, now, waves ? { held: waves.held } : undefined))
+      this.keepRan(parsed.id, at)
       return { added: fielded.length }
     })
   }
@@ -228,11 +348,26 @@ export class GameOpposition {
     })
   }
 
-  /** Stop running it: its notes leave Play, and what it fielded stays on the tray. */
-  endEncounter(actor: string): void {
+  /**
+   * Stop running it: its notes leave Play, and what it fielded stays on the
+   * tray unless the Mediator chose to clear the field with it (`clear`, their
+   * choice in a dialog that counts what goes, ADR-007).
+   */
+  endEncounter(actor: string, options: { clear?: boolean } = {}): void {
     this.store.sql.transaction(() => {
       this.store.requireMediator(actor)
       this.store.rows('delete from running_encounter')
+      if (options.clear === true) this.store.rows('delete from tray')
+    })
+  }
+
+  /** Clear the field: every NPC leaves the tray at once. The running encounter stays. */
+  clearTray(actor: string): { removed: number } {
+    return this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      const removed = this.store.rows('select id from tray').length
+      this.store.rows('delete from tray')
+      return { removed }
     })
   }
 
@@ -242,6 +377,49 @@ export class GameOpposition {
       .rows('select body from tray')
       .map((row) => fromJson<{ name?: unknown }>(row.body).name)
       .map((name) => (typeof name === 'string' ? name : ''))
+  }
+
+  private initiativeRow(): { initiative: Initiative | null; at: number } | null {
+    const row = this.store.rows("select after, ts from change_log where field = 'initiative'")[0]
+    if (row === undefined) return null
+    const kept = InitiativeSchema.nullable().safeParse(fromJson<unknown>(row.after))
+    return { initiative: kept.success ? kept.data : null, at: Number(row.ts) }
+  }
+
+  private putInitiative(initiative: Initiative | null, at: number): void {
+    this.store.rows("delete from change_log where field = 'initiative'")
+    this.store.rows(
+      'insert into change_log (id, field, after, source, actor_id, ts) values (?, ?, ?, ?, ?, ?)',
+      'initiative',
+      'initiative',
+      JSON.stringify(initiative),
+      'mediator-initiative',
+      null,
+      at
+    )
+  }
+
+  private ranRow(): { ids: string[]; at: number } | null {
+    const row = this.store.rows("select after, ts from change_log where field = 'ran'")[0]
+    if (row === undefined) return null
+    const kept = RAN.safeParse(fromJson<unknown>(row.after))
+    return { ids: kept.success ? kept.data : [], at: Number(row.ts) }
+  }
+
+  /** One `change_log` row (field `ran`), as `initiative` is: each id once, the newest kept. */
+  private keepRan(encounterId: string, at: number): void {
+    const ids = this.ranRow()?.ids ?? []
+    if (ids.includes(encounterId)) return
+    this.store.rows("delete from change_log where field = 'ran'")
+    this.store.rows(
+      'insert into change_log (id, field, after, source, actor_id, ts) values (?, ?, ?, ?, ?, ?)',
+      'ran',
+      'ran',
+      JSON.stringify([...ids, encounterId].slice(-RAN_KEPT)),
+      'mediator-ran',
+      null,
+      at
+    )
   }
 
   private putRunning(running: RunningEncounter): void {

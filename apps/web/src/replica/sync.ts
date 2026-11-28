@@ -19,6 +19,8 @@
  * Pure: `SyncProvider` feeds it the inputs and publishes the answer.
  */
 
+import { sharedCopy } from '../messages/components-shared'
+
 export const SYNC_STATUSES = ['signedOut', 'syncing', 'live', 'offline'] as const
 export type SyncStatus = (typeof SYNC_STATUSES)[number]
 
@@ -51,6 +53,8 @@ export function isSignedIn(status: SyncStatus): boolean {
 
 let current: SyncStatus = 'signedOut'
 let outdated = false
+/** A signed-out Play trial is open (`play/trial/`): its writes go to the tab's own room. */
+let trial = false
 const listeners = new Set<() => void>()
 
 /** `SyncProvider`'s one write: the status, and whether this build is outdated. */
@@ -59,6 +63,14 @@ export function setSyncStatus(next: SyncStatus, nextOutdated = false): void {
   current = next
   outdated = nextOutdated
   for (const listener of [...listeners]) listener()
+}
+
+/**
+ * Open or close the tab's Play trial (r6 F1): signed out, its writes go to the
+ * stand-in room `play/trial/trialRoom.model.ts` holds, kept in memory and sent nowhere.
+ */
+export function setTrialWrites(on: boolean): void {
+  trial = on
 }
 
 /** The status as last published. */
@@ -78,6 +90,7 @@ export function subscribeSync(listener: () => void): () => void {
 export function resetSync(next: SyncStatus = 'signedOut'): void {
   current = next
   outdated = false
+  trial = false
 }
 
 // ── Refusing a write ─────────────────────────────────────────────────────
@@ -90,11 +103,11 @@ export function resetSync(next: SyncStatus = 'signedOut'): void {
 export type BlockedWriteReason = 'offline' | 'settling' | 'signedOut' | 'outdated'
 
 const BLOCKED_WRITE_COPY: Record<BlockedWriteReason, string> = {
-  settling: 'Still signing in — that change was not saved. Try again in a moment.',
+  settling: sharedCopy('writeBlockedSettling'),
   // The act, not the condition: the bar's sync status says why.
-  offline: 'That change was not saved: your Games are read-only for now.',
-  signedOut: 'Sign in to build and edit — nothing is saved without an account.',
-  outdated: 'The app has been updated — that change was not saved. Reloading onto the new version.',
+  offline: sharedCopy('writeBlockedOffline'),
+  signedOut: sharedCopy('writeBlockedSignedOut'),
+  outdated: sharedCopy('writeBlockedOutdated'),
 }
 
 const REASON_OF: Record<Exclude<SyncStatus, 'live'>, BlockedWriteReason> = {
@@ -133,13 +146,14 @@ export class StaleWriteRefused extends Error {
 
 /** Throw unless a write can go up now (`live`); the reason says why not. */
 export function requireWritable(): void {
+  if (trial && current === 'signedOut') return
   if (current !== 'live') throw new WritesBlockedOffline(REASON_OF[current])
   if (outdated) throw new WritesBlockedOffline('outdated')
 }
 
 /** Whether a write goes up now. */
 export function writable(): boolean {
-  return current === 'live' && !outdated
+  return (current === 'live' || (trial && current === 'signedOut')) && !outdated
 }
 
 /**

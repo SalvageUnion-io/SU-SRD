@@ -108,11 +108,27 @@ function opened(): PlayTarget | null {
   return line ? (JSON.parse(line.replace('Cockpit for ', '')) as PlayTarget) : null
 }
 
+describe('the signed-out trial (r6 F1)', () => {
+  test('a book pilot opens in Play signed out, solo, and asks the server nothing', async () => {
+    setQueryAnswers({})
+    await renderGate('starter-pilot-bonesaw', 'signedOut')
+    await screen.findByText(/^Cockpit for /)
+    expect(opened()).toEqual({
+      pilotId: 'starter-pilot-bonesaw',
+      gameId: null,
+      gameName: null,
+      mediator: false,
+    })
+    expect(queryCalls()).toHaveLength(0)
+  })
+})
+
 describe('refusals', () => {
   test('an anonymous session is asked to sign in, and asks the server nothing', async () => {
     setQueryAnswers({})
     await renderGate('play-rook', 'signedOut')
-    expect(heading('Sign in to play')).toBeTruthy()
+    // The trial's module loads first, to tell a book pilot from any other (r6 F1).
+    expect(await screen.findByRole('heading', { name: 'Sign in to play' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     expect(queryCalls()).toHaveLength(0)
     expect(opened()).toBeNull()
@@ -122,7 +138,9 @@ describe('refusals', () => {
     setQueryAnswers({ 'games.get': null })
     await renderGate('play-rook')
     expect(heading(/not in this Pilot's Game/)).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
+    expect(screen.getByRole('link', { name: 'Back to Training Bay' }).getAttribute('href')).toBe(
+      '/'
+    )
     expect(opened()).toBeNull()
   })
 
@@ -130,6 +148,35 @@ describe('refusals', () => {
     setQueryAnswers({})
     await renderGate('play-nobody')
     expect(heading('Pilot not found')).toBeTruthy()
+  })
+
+  // r8 C6 (LG8-12): removed while at the table, the page says so, under the site's header.
+  test('a pregen taken away by a removal says you were removed, and leads to Games', async () => {
+    setQueryAnswers({ 'games.get': GAME })
+    const store = useUnits.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'play-pregen', name: 'Sam', gameId: GAME_ID }))
+    const { pageShowsBar } = await import('../../shell/unionSlots')
+    await renderGate('play-pregen')
+    expect(opened()?.pilotId).toBe('play-pregen')
+    expect(pageShowsBar.get()).toBe(false)
+    await act(async () => {
+      await store.forget('pilot', 'play-pregen')
+    })
+    expect(heading('You were removed from Tenacity')).toBeTruthy()
+    expect(screen.queryByText('Pilot not found')).toBeNull()
+    expect(screen.getByRole('link', { name: /Games/ }).getAttribute('href')).toBe('/games/')
+    expect(pageShowsBar.get()).toBe(true)
+  })
+
+  test('a removal that leaves your own Pilot in the Game says so too', async () => {
+    setQueryAnswers({ 'games.get': GAME })
+    const view = await renderGate('play-rook')
+    expect(opened()?.pilotId).toBe('play-rook')
+    setQueryAnswers({ 'games.get': null })
+    await act(async () => {
+      view.rerender(gate('play-rook', 'live'))
+    })
+    expect(heading('You were removed from Tenacity')).toBeTruthy()
   })
 
   test('the session still settling waits', async () => {
@@ -197,7 +244,7 @@ describe('old mech-keyed URLs', () => {
     setQueryAnswers({ 'games.get': GAME })
     await renderGate('play-mech')
     expect(serverMocks.navigations).toEqual([
-      { to: '/play/pilots/$pilotId', params: { pilotId: 'play-rook' }, replace: true },
+      { to: '/pilots/$id/play', params: { id: 'play-rook' }, replace: true },
     ])
     expect(opened()?.pilotId).toBe('play-rook')
   })

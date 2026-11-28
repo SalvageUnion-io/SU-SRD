@@ -1,5 +1,12 @@
 import { buildMech, buildPilot } from './_helpers'
-import { axeViolations, board, expectNoPageScroll, openPlay, playDoor, situation } from './_play'
+import {
+  axeViolations,
+  board,
+  expectNoPageScroll,
+  openPlay,
+  pilotPlayPath,
+  situation,
+} from './_play'
 import { expect, test } from './fixtures'
 
 /**
@@ -19,10 +26,11 @@ import { expect, test } from './fixtures'
 test('solo: On foot, Boarded and Downtime fit and pass axe', { tag: '@pr' }, async ({ page }) => {
   test.setTimeout(10 * 60_000)
   const a11y: string[] = []
-  await buildPilot(page, 'Rook Hale', 'Rook')
+  await buildPilot(page, 'Rook', 'Rook Hale')
   await buildMech(page, 'Ironclad')
 
-  await openPlay(page, await playDoor(page, 'Play Rook Hale solo'))
+  // A pilot in no Game plays from its own Play mode (ADR-066).
+  await openPlay(page, await pilotPlayPath(page, 'Rook Hale'))
   const bar = page.locator('.su-play-root header')
   await expect(bar.getByRole('heading', { name: /Rook Hale/ })).toBeVisible()
 
@@ -36,7 +44,6 @@ test('solo: On foot, Boarded and Downtime fit and pass axe', { tag: '@pr' }, asy
 
   // --- Boarded ---
   await board(page, 'Ironclad')
-  await expect(page.getByText('On hand · In Ironclad')).toBeVisible({ timeout: 15_000 })
   await expectNoPageScroll(page, 'solo, Boarded')
   a11y.push(...(await axeViolations(page, 'solo, Boarded')))
 

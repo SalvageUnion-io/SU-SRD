@@ -5,7 +5,7 @@
  * both show none).
  */
 import { describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { ListingRail, TOOLBAR_MIN_ENTRIES } from '../ListingRail'
 
 const facets = (count: number) => ({
@@ -29,5 +29,47 @@ describe('ListingRail toolbar', () => {
     expect(screen.getByRole('searchbox', { name: 'Filter items by name' })).toBeTruthy()
     expect(screen.getByRole('combobox', { name: 'Source', hidden: true })).toBeTruthy()
     expect(screen.getByRole('group', { name: 'Tech Level', hidden: true })).toBeTruthy()
+  })
+
+  test('a name filtered counts on Filters, which the name filter folds behind on a phone (r8 G4)', () => {
+    render(
+      <ListingRail
+        facets={facets(TOOLBAR_MIN_ENTRIES + 1)}
+        filters={{ techLevels: new Set(), source: '', tree: '', name: 'laser' }}
+      />
+    )
+    expect(screen.getByRole('button', { name: /Filters/ }).textContent).toContain('1')
+  })
+
+  test('the Tech Level strip wraps: a phone’s Filters panel is never wider than the page', () => {
+    render(<ListingRail facets={facets(TOOLBAR_MIN_ENTRIES + 1)} />)
+    const strip = screen.getByRole('group', { name: 'Tech Level', hidden: true })
+    expect(strip.hasAttribute('data-wrap')).toBe(true)
+  })
+
+  test('the placeholder counts what the other filters leave, not the whole listing (RR6-17)', () => {
+    render(<ListingRail facets={{ ...facets(51), shown: 12 }} />)
+    expect(screen.getByRole('searchbox').getAttribute('placeholder')).toBe('Filter 12 by name')
+  })
+
+  test('Enter in the name filter takes focus to the results (RR6-14)', () => {
+    let reached = 0
+    const actions = {
+      setName: () => {},
+      toggleTechLevel: () => {},
+      clearTechLevels: () => {},
+      setSource: () => {},
+      setTree: () => {},
+      setTrait: () => {},
+      setRange: () => {},
+      setAction: () => {},
+      setWeapons: () => {},
+      setView: () => {},
+      toggleFacets: () => {},
+      focusResults: () => reached++,
+    }
+    render(<ListingRail facets={facets(TOOLBAR_MIN_ENTRIES + 1)} actions={actions} />)
+    fireEvent.keyDown(screen.getByRole('searchbox'), { key: 'Enter' })
+    expect(reached).toBe(1)
   })
 })

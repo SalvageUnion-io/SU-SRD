@@ -17,7 +17,7 @@
  * or a Shut down is an applied change on the Feed (`recordPlayChange`).
  *
  * A Mini one a line in the list (ruleset §1.3; `playLineModel`, the Reactor
- * being no reference entity), its controls in its chip group (R6); the table
+ * being no reference entity), its controls in its chip group (C8); the table
  * and the result are its contentful body, plain content (N3, play.md §12).
  * Not on hand, it is its head alone, the need its chip.
  */
@@ -27,7 +27,7 @@ import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   canPush,
   overloadTableName,
@@ -51,7 +51,13 @@ import { PlayRollInstrument } from './PlayRollInstrument'
 import type { PlayStore } from './play.model'
 import { playLineModel } from './playLine.model'
 import { recordPlayChange } from './playRolls.model'
-import { confirmMeltdown, hurtPilot, pushMech } from './reactorWrites.model'
+import {
+  confirmMeltdown,
+  hurtPilot,
+  noteShutdown,
+  powerBackOn,
+  pushMech,
+} from './reactorWrites.model'
 import type { PlayActions } from './usePlayActions'
 
 /** What the last roll or act came to; `overloadRoll` marks the table. */
@@ -100,6 +106,15 @@ export function PlayReactorRow({
   const pushLocked = !canPush(heat, cap, pushHeat)
   const away = need !== null
   const off = !canWrite || away
+  // At its Heat Capacity the rules call for a Heat Check (Core Book p.234):
+  // the row says so over its roll (r6 A6), as the Actions' head does.
+  const due = !away && cap > 0 && heat >= cap
+  // What the roll came to stays on screen, a phone's Act tab too (r6 A6).
+  const noteRef = useRef<HTMLParagraphElement>(null)
+  const logText = log?.text
+  useEffect(() => {
+    if (logText !== undefined) noteRef.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [logText])
 
   async function doPush() {
     setPushing(false)
@@ -119,7 +134,7 @@ export function PlayReactorRow({
 
   async function doHeatCheck() {
     let said: string | undefined
-    const roll = await rollFor(overloadTableTitle, 'Heat Check', {
+    const roll = await rollFor(overloadTableTitle, playCopy('heatCheck'), {
       plainD20s: 1,
       outcome: () => said,
     })
@@ -140,6 +155,7 @@ export function PlayReactorRow({
       () => {
         setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
         hurtPilot(store, { pilot, crawler }, effect)
+        if (effect.shutdown) noteShutdown(mech.name)
       }
     )
   }
@@ -160,9 +176,11 @@ export function PlayReactorRow({
 
   function doShutdown() {
     const shutting = !mechHasCondition(fresh(), 'Shutdown')
+    // Back on is the unit card's Power back on, one way (r7 B2).
+    if (!shutting) return powerBackOn(store, fresh())
     runWrite(
       () => store.update('mech', mech.id, shutdownTogglePatch(fresh().conditions), PLAY_TXN),
-      () => recordPlayChange(`${shutting ? 'Shut down' : 'Restart'} · ${mech.name}`)
+      () => noteShutdown(mech.name)
     )
   }
 
@@ -200,13 +218,18 @@ export function PlayReactorRow({
         {playCopy('vent')}
       </Button>
       <Toggle size="mini" onClick={doShutdown} disabled={off} pressed={shutDown}>
-        {shutDown ? playCopy('restart') : playCopy('shutDown')}
+        {shutDown ? playCopy('powerBackOn') : playCopy('shutDown')}
       </Toggle>
     </>
   )
 
   return (
-    <li className="su-play-act" data-away={away || undefined} data-action-key="reactor">
+    <li
+      className="su-play-act"
+      data-away={away || undefined}
+      data-action-key="reactor"
+      data-heat-due={due || undefined}
+    >
       <Entity
         size="mini"
         context="play"
@@ -222,14 +245,20 @@ export function PlayReactorRow({
                 text: false,
                 children: (
                   <div className="su-play-resolve">
+                    {due && (
+                      <p className="su-play-resolve__note" role="status">
+                        {playCopy('heatCheckDue', { heat, cap })}
+                      </p>
+                    )}
                     <PlayRollInstrument
                       table={overloadTableTitle}
                       roll={log?.overloadRoll ?? null}
-                      stamp={pushing ? 'Push:' : 'Heat Check:'}
+                      stamp={playCopy(pushing ? 'pushStamp' : 'heatCheckStamp')}
+                      pressAs={pushing ? 'push' : 'heat'}
                       onRoll={off ? undefined : () => void (pushing ? doPush() : doHeatCheck())}
                     />
                     {log ? (
-                      <p className="su-play-resolve__note" aria-live="polite">
+                      <p ref={noteRef} className="su-play-resolve__note" aria-live="polite">
                         {log.text}
                       </p>
                     ) : null}

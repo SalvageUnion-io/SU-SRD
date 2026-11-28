@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Wreck } from 'game-domain/rules/wreck'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -71,15 +71,25 @@ describe('wreckOf', () => {
 })
 
 describe('the Salvage control', () => {
-  function renderSalvage(die: number, settled: Parameters<PlayMediator['salvageWreck']>[1][]) {
-    const npc = downedHauler()
+  type Haul = Parameters<PlayMediator['salvageWreck']>[1]
+  const kept: number[] = []
+  function renderSalvage(
+    die: number,
+    settled: Haul[],
+    over: { hasCrawler?: boolean; salvageRoll?: number | null } = {}
+  ) {
+    const npc = { ...downedHauler(), salvageRoll: over.salvageRoll ?? null }
     const wreck = wreckOf(npc) as Wreck
     render(
       <PlayWreckSalvage
         npc={npc}
         wreck={wreck}
         canWrite
-        hasCrawler
+        hasCrawler={over.hasCrawler ?? true}
+        mechs={[{ id: 'm1', label: "Pickle's Mule" }]}
+        onRoll={async (_npc, roll) => {
+          kept.push(roll)
+        }}
         onSettle={async (_npc, haul) => {
           settled.push(haul)
         }}
@@ -87,11 +97,15 @@ describe('the Salvage control', () => {
       />
     )
   }
+  const onCrawler = (haul: Haul | undefined) => {
+    if (typeof haul !== 'function') throw new Error('expected a crawler haul')
+    return haul(crawler)
+  }
 
   const crawler = { scrapPool: {}, cargoLots: [] } as unknown as Crawler
 
-  test('an 11–19 offers the Chassis or one part, and takes the pick to the hold', async () => {
-    const settled: Parameters<PlayMediator['salvageWreck']>[1][] = []
+  test('an 11–19 offers the Chassis or one part, and offers the pick to the crew', async () => {
+    const settled: Haul[] = []
     renderSalvage(15, settled)
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll the die on Mech Salvage' }))
@@ -103,15 +117,24 @@ describe('the Salvage control', () => {
       .getAllByRole('button', { pressed: false })
       .filter((b) => b.textContent?.includes(' · T'))
     expect(others.every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
+    // The crew picks a wreck's part (r7 D8): the Mediator's pick goes to the table.
     await act(async () => {
-      fireEvent.click(screen.getByText('Take to the crawler'))
+      fireEvent.click(screen.getByText('Offer to the crew'))
     })
     expect(settled).toHaveLength(1)
-    expect(settled[0]?.(crawler)?.cargoLots?.[0]).toMatchObject({ name: 'Mule (Damaged)' })
+    const haul = settled[0]
+    if (haul === undefined || typeof haul === 'function') throw new Error('expected an offer')
+    expect(haul.mechId).toBeNull()
+    expect(haul.lots[0]).toMatchObject({ name: 'Mule (Damaged)' })
+    expect(haul.offer?.band).toBe('meat')
+    const chassisKey = haul.offer?.parts.find((p) => p.kind === 'chassis')?.key
+    expect(haul.offer?.picked).toEqual(chassisKey === undefined ? [] : [chassisKey])
+    expect(chassisKey).toBeDefined()
+    expect(haul.offer?.parts.length).toBeGreaterThan(1)
   })
 
   test('a 1 takes nothing, and settles the wreck', async () => {
-    const settled: Parameters<PlayMediator['salvageWreck']>[1][] = []
+    const settled: Haul[] = []
     renderSalvage(1, settled)
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll the die on Mech Salvage' }))
@@ -119,11 +142,11 @@ describe('the Salvage control', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('Nothing to take: settle it'))
     })
-    expect(settled[0]?.(crawler)).toBeNull()
+    expect(onCrawler(settled[0])).toBeNull()
   })
 
   test('a 2–5 pays half the Chassis in Scrap to the pool', async () => {
-    const settled: Parameters<PlayMediator['salvageWreck']>[1][] = []
+    const settled: Haul[] = []
     renderSalvage(3, settled)
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll the die on Mech Salvage' }))
@@ -131,7 +154,44 @@ describe('the Salvage control', () => {
     await act(async () => {
       fireEvent.click(screen.getByText(/^Take \d+ Tech 1 Scrap to the crawler$/))
     })
-    expect(settled[0]?.(crawler)?.scrapPool?.tl1).toBeGreaterThan(0)
+    expect(onCrawler(settled[0])?.scrapPool?.tl1).toBeGreaterThan(0)
+  })
+
+  test('the roll is kept with the wreck; rolling again asks first (r5 B1)', async () => {
+    kept.length = 0
+    renderSalvage(15, [], { salvageRoll: 6 })
+    // A kept 6 reads as rolled: no Roll the die, its picks offered.
+    expect(screen.queryByRole('button', { name: 'Roll the die on Mech Salvage' })).toBeNull()
+    expect(
+      screen.getByText('Pick what to take, Damaged. Everything else is destroyed.')
+    ).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Roll again' }))
+    expect(kept).toEqual([])
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('This wreck rolled 6')
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Roll again' }))
+    })
+    expect(kept).toEqual([15])
+  })
+
+  test('a pick can go to a crew Mech’s hold, and with no crawler the Mechs are offered (r5 B2)', async () => {
+    const settled: Haul[] = []
+    renderSalvage(15, settled, { hasCrawler: false })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Roll the die on Mech Salvage' }))
+    })
+    expect(screen.getByText('This Game has no crawler: give it to a Mech’s cargo.')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /^Mule · T1/ }))
+    await act(async () => {
+      fireEvent.click(screen.getByText("Take to Pickle's Mule"))
+    })
+    const haul = settled[0]
+    if (haul === undefined || typeof haul === 'function') throw new Error('expected a Mech haul')
+    expect(haul.mechId).toBe('m1')
+    expect(haul.lots[0]).toMatchObject({ name: 'Mule (Damaged)' })
+    // Its holder may change the pick too (r7 D8).
+    expect(haul.offer?.band).toBe('meat')
   })
 
   test('once salvaged, nothing is left to take', () => {
@@ -142,9 +202,48 @@ describe('the Salvage control', () => {
         wreck={wreckOf(npc) as Wreck}
         canWrite
         hasCrawler
+        onRoll={async () => undefined}
         onSettle={async () => undefined}
       />
     )
     expect(screen.getByText('Salvaged: nothing is left to take.')).toBeTruthy()
+  })
+})
+
+describe('a downed Bio-Titan (r8 B7)', () => {
+  function downedScylla() {
+    const titan = SalvageUnionReference.BioTitans.getByName('Scylla')
+    if (titan === undefined) throw new Error('no Scylla')
+    return readTrayNpc({
+      _id: 's1',
+      body: { ...newTrayNpc('bio-titans', titan, [], NOW), currentHp: 0 },
+    })
+  }
+
+  test('leaves Bio-Salvage equal to its SP, into the crawler’s pool (Core Book p.275)', async () => {
+    const npc = downedScylla()
+    const wreck = wreckOf(npc)
+    expect(wreck).toEqual({ kind: 'bio', bioSalvage: 39 })
+    const settled: unknown[] = []
+    render(
+      <PlayWreckSalvage
+        npc={npc}
+        wreck={wreck as Wreck}
+        canWrite
+        hasCrawler
+        onRoll={async () => undefined}
+        onSettle={async (_npc, haul) => {
+          settled.push(haul)
+        }}
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Take 39 Bio-Salvage to the crawler' }))
+    })
+    const haul = settled[0]
+    if (typeof haul !== 'function') throw new Error('expected a crawler haul')
+    expect(haul({ scrapPool: { bio: 2 }, cargoLots: [] } as unknown as Crawler)).toEqual({
+      scrapPool: { bio: 41 },
+    })
   })
 })

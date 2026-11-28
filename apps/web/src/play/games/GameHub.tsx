@@ -1,5 +1,5 @@
 /**
- * GameHub — a Game's own page in Play, `/play/games/$gameId` (ADR-052 §5).
+ * GameHub — a Game's own page in Play, `/games/$gameId` (ADR-052 §5).
  *
  * One place per table, in the Manage context (ruleset §1.9): paper under the
  * `play` band, level 0, Slab sections, Compacts that link. It lists a Game the
@@ -8,16 +8,18 @@
  *
  *  0. **The band** (`GameBand`): the Game's name on Play's band, and the ways
  *     into the Cockpit: the Mediator's **Mediate** (after a YOU MEDIATE stamp)
- *     opens Play's Mediator screen (`/play/games/$gameId/mediate`); **Play**
+ *     opens Play's Mediator screen (`/games/$gameId/mediate`); **Play**
  *     (`LaunchPlay`) asks which pilot and opens Play for it, for a player and
  *     for a Mediator who also plays one here.
  *  1. A main column of sections. **Every member:** the Crew (`GameRoster`):
  *     one list, the crawler first, each pilot's seat (its HP, its mech) on
  *     its row, the head counting them; it links out to Build for anything
  *     about building (ADR-052 §3: Play only plays). Then the proposals
- *     awaiting their answer. **The Mediator:** Proposals you sent.
+ *     awaiting their answer. **The Mediator:** Proposals you sent, then
+ *     Your prep (`MediatorPrep`): what the Training Bay keeps ready, and the
+ *     way there.
  *     Downtime runs in the Cockpit, not here. **The Organiser:** the
- *     Invite link (copy and reset, chips on its head). **Every member**
+ *     Invite link (on show, with copy, share and reset). **Every member**
  *     again: Safety (`GameSafety`: the Stop Sign, whose banner heads the
  *     page while it is up).
  *  2. A small sidebar: The Game (`TheGame`), the table's people as small
@@ -34,37 +36,35 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import type { CSSProperties } from 'react'
-import { useState } from 'react'
-import {
-  Button,
-  Callout,
-  PageShell,
-  Pending,
-  SlabSection,
-  Text,
-  tokens,
-} from '../../components/index'
+import { useEffect, useState } from 'react'
+import { PageShell } from '../../components/app'
+import { Button, Callout, Pending, SlabSection, Text } from '../../components/index'
+import { writeLastGame } from '../../lib/accountHint'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { areaTitle } from '../../lib/pageTitle'
+import { localStore } from '../../lib/safeLocalStorage'
 import { useTabTitle } from '../../lib/useTabTitle'
 import { playGamesCopy } from '../../messages/play-games'
 import { routesCopy } from '../../messages/routes'
 import type { GameCallResult } from '../../replica/roomCalls'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
-import { StopSignBanner } from '../StopSign'
 import { useGameSession } from '../useGameSession'
+import { sceneConditionNames, useScene } from '../useScene'
 import { useStopSign } from '../useStopSign'
-import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
+import { InviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
+import { FormerNotes } from './FormerNotes'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
-import { GAME_BODY, HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
+import { HUB_ACTIONS, HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
+import { LastSession } from './LastSession'
 import { LaunchPlay } from './LaunchPlay'
+import { MediatorPrep } from './MediatorPrep'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
 import { TheGame } from './TheGame'
+import { useNextSession } from './useNextSession'
 
 type Game = NonNullable<GameCallResult<'games.get'>>
 
@@ -72,14 +72,10 @@ type GameHubProps = {
   gameId: string
 }
 
-const PENDING = { marginTop: tokens.space[24] } satisfies CSSProperties
-
-const NOT_IN_NOTE = { marginTop: tokens.space[24] } satisfies CSSProperties
-
-const STOP_BANNER = { marginTop: tokens.space[24] } satisfies CSSProperties
+/** The Stop Sign's banner leads the page: the sections start a block's gap under it. */
 
 /** Play's hub, where your Games are listed. */
-const PLAY_HUB = '/play/'
+const PLAY_HUB = '/games/'
 
 /**
  * A Game the viewer is not in: they left, it ended, or an old link points at
@@ -89,16 +85,14 @@ const PLAY_HUB = '/play/'
  */
 function NotInGame() {
   return (
-    <div style={NOT_IN_NOTE}>
-      <Callout role="note">
-        <Text>{playGamesCopy('youAreNotInThis')}</Text>
-        <div>
-          <Button href={PLAY_HUB} back size="compact">
-            {playGamesCopy('play')}
-          </Button>
-        </div>
-      </Callout>
-    </div>
+    <Callout role="note">
+      <Text>{playGamesCopy('youAreNotInThis')}</Text>
+      <div>
+        <Button href={PLAY_HUB} back size="compact">
+          {playGamesCopy('play')}
+        </Button>
+      </div>
+    </Callout>
   )
 }
 
@@ -111,45 +105,59 @@ function GameSections({ game }: { game: Game }) {
   const router = useRouter({ warn: false })
   const viewerId = useViewerId()
   const sign = useStopSign(gameId)
+  const plans = useNextSession(game)
 
   return (
+    // Its crew is one manifest (`GameRoster`).
     <>
-      {sign?.shown && (
-        <div style={STOP_BANNER}>
-          <StopSignBanner sign={sign} />
-        </div>
-      )}
       <div style={HUB_COLUMNS}>
         <div style={HUB_MAIN}>
-          <GameRoster gameId={gameId} gameName={game.name} />
+          {/* The crew manifest leads the
+              page — what the table is made of — and everything that runs the
+              table (its people, the prep, the invite, safety) is the column
+              beside it. */}
+          {/* An ended session's recap leads the page until the next one starts (r6 C1). */}
+          <LastSession gameId={gameId} place="lead" plans={plans} />
+          <GameRoster
+            gameId={gameId}
+            gameName={game.name}
+            pregens={game.organizer ? game.templateUnitIds : undefined}
+          />
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
-          {/* The invite URL is administrative, so only the Organizer sees it
-              (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
-          {game.organizer && (
-            <SlabSection
-              as="h2"
-              id="invite-link-heading"
-              title={playGamesCopy('inviteLink')}
-              actions={
-                <>
-                  <CopyInviteLink gameId={gameId} />
-                  <ResetInviteLink gameId={gameId} />
-                </>
-              }
-            />
-          )}
-          <GameSafety sign={sign} />
+          {/* The table's record, outside Play: nothing until the Game has been played. */}
+          <LastSession gameId={gameId} place="after" />
         </div>
         <aside aria-labelledby="the-game-heading" style={HUB_SIDEBAR}>
           <TheGame
             gameId={gameId}
             viewerId={viewerId}
             organizer={game.organizer}
+            game={game}
             onDelete={() => setConfirmingDelete(true)}
+            onLeft={() => {
+              if (router) void router.navigate({ to: '/games' })
+            }}
           />
+          {/* The table runner's door to this Game's Prep (ADR-067 §3). */}
+          {game.tableRunner && <MediatorPrep gameId={gameId} />}
+          {/* A former Mediator's own notes, read-only; nothing for anyone who wrote none. */}
+          {!game.tableRunner && <FormerNotes gameId={gameId} />}
+          {/* The invite URL is administrative, so only the Organizer sees it
+              (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
+          {game.organizer && (
+            // Its buttons are wider than the strip's room beside the title in
+            // this column, so they are the section's body, under its title.
+            <SlabSection as="h2" id="invite-link-heading" title={playGamesCopy('inviteLink')}>
+              <div style={HUB_ACTIONS}>
+                <InviteLink gameId={gameId} />
+              </div>
+            </SlabSection>
+          )}
+          {/* Safety runs last, so the two columns end together. */}
+          <GameSafety sign={sign} />
         </aside>
       </div>
 
@@ -160,7 +168,7 @@ function GameSections({ game }: { game: Game }) {
         // otherwise show "You are not in this game" — true, and read as an
         // error by someone who just deleted it.
         onDeleted={() => {
-          if (router) void router.navigate({ to: '/play' })
+          if (router) void router.navigate({ to: '/games' })
           else window.location.assign(PLAY_HUB)
         }}
       />
@@ -173,7 +181,13 @@ export function GameHub({ gameId }: GameHubProps) {
   // loading" from "not a member" without fetching every table you are in.
   const game = useGamesQuery('games.get', { gameId: gameId })
   const session = useGameSession(gameId)
+  const scene = useScene(gameId)
   useTabTitle(game ? areaTitle(PRODUCT.play, `${game.name} · ${routesCopy('game')}`) : null)
+  // The home's welcome-back strip names the Game last opened (`accountHint`).
+  const gameName = game?.name
+  useEffect(() => {
+    if (gameName) writeLastGame({ id: gameId, name: gameName }, localStore())
+  }, [gameId, gameName])
 
   return (
     <PageShell
@@ -184,24 +198,25 @@ export function GameHub({ gameId }: GameHubProps) {
           gameId={gameId}
           name={game ? game.name : 'Game'}
           mediator={game?.mediator}
+          organizer={game?.organizer === true}
           actions={
             game ? (
               <LaunchPlay
                 gameId={gameId}
                 onlyWithPilots={game.mediator}
                 live={session?.live === true}
+                // A player's door is Play; the Mediator's is Mediate.
+                door={!game.mediator}
               />
             ) : undefined
           }
           session={session}
+          scene={sceneConditionNames(scene.conditions)}
         />
       }
-      bodyStyle={GAME_BODY}
     >
       {game === undefined ? (
-        <div style={PENDING}>
-          <Pending label={playGamesCopy('thisGame')} />
-        </div>
+        <Pending label={playGamesCopy('thisGame')} />
       ) : game === null ? (
         <NotInGame />
       ) : (

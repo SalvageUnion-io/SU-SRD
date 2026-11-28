@@ -88,8 +88,9 @@ describe('an account room', () => {
 
   test('is its player’s from the start, so a Game can hand them a unit before they open it', () => {
     const room = new AccountRoom(roomState([], 'd-rook') as never, {} as never)
-    expect(() => room.fileTray('disband-tray:g1', [{ id: 'n1', name: 'Raider' }], 1)).not.toThrow()
-    expect(room.unitsFor('d-rook')).toEqual([])
+    const body = pilotFixture({ id: 'p1', name: 'Pilot', callsign: 'p1', classRef: 'salvager' })
+    expect(() => room.accept(parcel('d-rook', 'pilot', 'p1', body), 'd-rook', 1)).not.toThrow()
+    expect(room.unitsFor('d-rook').map((unit) => unit.id)).toEqual(['p1'])
   })
 
   test('opens a socket for its player only', async () => {
@@ -99,7 +100,7 @@ describe('an account room', () => {
     expect((await shelf().fetch(new Request('https://x/'))).status).toBe(400)
   })
 
-  test('its player’s batch is acked and heard as applied; a tray filed sends the Shelf', () => {
+  test('its player’s batch is acked and heard as applied; a unit handed over sends the Shelf', () => {
     const rook = sock('d-rook')
     const room = shelf(rook)
     const op = { id: 'op-1', unitId: 'p1', baseSeq: 0, at: 0, kind: 'manual', source: 'live-sheet' }
@@ -109,14 +110,15 @@ describe('an account room', () => {
     )
     expect(received(rook).map((m) => m.type)).toEqual(['applied', 'ack'])
     rook.sent.length = 0
-    room.fileTray('disband-tray:g1', [{ id: 'n1', name: 'Raider' }], 5)
+    const mech = mechFixture({ id: 'm1', name: 'Rig' })
+    room.accept(parcel('d-rook', 'mech', 'm1', mech), 'd-rook', 5)
     expect(received(rook)).toEqual([
       expect.objectContaining({
         type: 'snapshot',
-        units: [expect.objectContaining({ appId: 'p1', gameId: null, headSeq: 1 })],
-        records: expect.objectContaining({
-          npcTray: [{ appId: 'n1', body: { id: 'n1', name: 'Raider' }, updatedAt: 5 }],
-        }),
+        units: [
+          expect.objectContaining({ appId: 'p1', gameId: null, headSeq: 1 }),
+          expect.objectContaining({ appId: 'm1', gameId: null }),
+        ],
       }),
     ])
   })

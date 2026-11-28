@@ -54,9 +54,9 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   await expect(page.getByTestId('equipment-count')).toContainText('2/2')
   await clickNext(page)
 
-  // Step 3: identity — name + callsign both required before Next opens.
+  // Step 3: identity — only the callsign is required; a blank name is the callsign (r7 F7).
   await page.getByLabel(/^Name/).fill('Mira Voss')
-  await page.getByLabel(/Callsign/).fill('Sparks')
+  await page.getByRole('textbox', { name: 'Callsign' }).fill('Sparks')
 
   // Steps 5-8 (Background / Motto / Keepsake / Appearance) are optional prose.
   // Walk to the Create CTA rather than counting them, so inserting or removing
@@ -70,10 +70,10 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   await expect(page.getByText(/Sparks/).first()).toBeVisible()
   await createPilot.click()
 
-  // After submission we land on the roster.
-  await page.waitForURL(/\/$/, { timeout: 15_000 })
+  // After submission the new pilot's sheet opens.
+  await page.waitForURL(/\/build\/pilots\/(?!new)/, { timeout: 15_000 })
   await waitForReady(page)
-  await expect(page.getByText('Mira Voss').first()).toBeVisible({
+  await expect(page.getByText('Sparks').first()).toBeVisible({
     timeout: 15_000,
   })
 
@@ -82,7 +82,8 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // The live sheet is the Free Edit surface (ADR-021): you edit in place
   // rather than replaying Guided Creation. What matters is that an ability
   // beyond the creation budget can be added, and that it persists.
-  await openSheetFor(page, 'Mira Voss')
+  // The Training Bay lists the pilot by its callsign (r8 F1).
+  await openSheetFor(page, 'Sparks')
 
   // The Abilities section's Manage Abilities opens the one shared picker.
   // 'Talk Shop' is Mechanical Knowledge level 2, so creation never offers it —

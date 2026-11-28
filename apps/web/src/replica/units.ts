@@ -117,6 +117,11 @@ export type UnitsApi = {
   /** Deletes on the server, then here; a unit's links go with it. */
   delete: (type: EntityType, id: string) => Promise<void>
   /**
+   * Send a just-deleted row back whole, under its own id (r5 D9's Undo), then
+   * hold it. Its links are drawn again by the caller.
+   */
+  restore: <T extends UnitType>(type: T, record: EntityForType<T>) => Promise<EntityForType<T>>
+  /**
    * Moves value between units (scrap, cargo stow and load) as ONE batch of
    * ops, all or none at both ends.
    */
@@ -196,10 +201,48 @@ function opOf(
     patch: changed,
     ...(unset.length === 0 ? {} : { unset }),
   }
+  madeHere.add(op.id)
   // Under the rooms every container change is a handoff between rooms (`sendOp`).
   if (!('gameId' in patch)) return { op }
   delete changed.gameId
   return { op, move: (patch as { gameId?: string | null }).gameId ?? null }
+}
+
+/** The ops this tab made, by id: what its sheets' Ctrl+Z may take back (r5 C2). */
+const madeHere = new Set<string>()
+
+/** Whether this tab made the op (a Change Log change's id). */
+export const madeInThisTab = (opId: string): boolean => madeHere.has(opId)
+
+/** Each unit's last write, settled or not: the next one to it waits behind this. */
+const writing = new Map<string, Promise<unknown>>()
+
+/**
+ * Run `write` once every earlier write to the units in `ids` has settled, so
+ * it reads the copy they left and makes its op against the head they moved
+ * (ADR-063): two quick presses of one stepper are two ops in order, never the
+ * second refused as a conflict with the player's own first. A write that
+ * failed holds nobody up.
+ */
+function inTurn<R>(ids: readonly string[], write: () => Promise<R>): Promise<R> {
+  const earlier = ids.flatMap((id) => writing.get(id) ?? [])
+  if (earlier.length === 0) return track(ids, write())
+  return track(
+    ids,
+    Promise.allSettled(earlier).then(() => write())
+  )
+}
+
+function track<R>(ids: readonly string[], run: Promise<R>): Promise<R> {
+  const settled = run.then(
+    () => undefined,
+    () => undefined
+  )
+  for (const id of ids) writing.set(id, settled)
+  void settled.then(() => {
+    for (const id of ids) if (writing.get(id) === settled) writing.delete(id)
+  })
+  return run
 }
 
 /**
@@ -247,6 +290,133 @@ async function createSoftLink(input: CreateInput<'softLink'>): Promise<SoftLink>
   return hold('softLink', record)
 }
 
+/** One update, made against the copy held when its turn comes (`inTurn`). */
+async function updateNow<T extends EntityType>(
+  type: T,
+  id: string,
+  patch: Partial<EntityForType<T>>,
+  meta: ChangeMeta
+): Promise<EntityForType<T>> {
+  const before = units.get(type, id)
+  // Offline, an edit to the player's own sheet waits in the outbox (ADR-063).
+  if (before === null || !queues(type, patch)) requireWritable()
+
+  // Merge and validate, send, then hold: a refused edit leaves the held
+  // record exactly as it was.
+  const updated = prepareUpdate(kindOf(type), before, id, patch)
+  if (type === 'softLink') {
+    await sendLink('upsert', updated as unknown as SoftLink)
+  } else if (before !== null) {
+    const { op, move } = opOf(type, id, before, updated, patch, meta)
+    await sendOp(type, (updated as ContainerFields).gameId ?? null, op, move)
+  }
+  holdApplied(type, updated, undefined)
+
+  // A move takes along only the links whose other end is already where it
+  // is going (ADR-037); the server pruned the rest in the same send.
+  if (type !== 'softLink' && before !== null) {
+    const moved = updated as ContainerFields
+    if (!sameContainer(containerOf(before as ContainerFields), containerOf(moved))) {
+      const broken = linksClearedByMove(
+        getView(),
+        { type: type as UnitType, id },
+        containerOf(moved)
+      )
+      dropAll(broken.map((l) => ({ table: 'softLink' as const, id: l.id })))
+    }
+  }
+  return updated
+}
+
+/** One transfer, made against the copies held when its turn comes (`inTurn`). */
+async function transferNow(ops: { updates?: TransferUpdate[] }, meta: ChangeMeta): Promise<void> {
+  const updates = ops.updates ?? []
+  if (updates.length === 0) return
+
+  // Refused before anything is read: a transfer moves value BETWEEN units,
+  // so a write that could not go up would fork the balance between two.
+  requireWritable()
+
+  // Validate everything before changing anything: a Zod failure on any
+  // patch aborts the whole transfer.
+  const prepared = updates.map((u) => {
+    const before = units.get(u.type, u.id)
+    return {
+      ...u,
+      before,
+      record: prepareUpdate(
+        kindOf(u.type) as RecordKind<{ id: string }>,
+        before as { id: string } | null,
+        u.id,
+        u.patch
+      ),
+    }
+  })
+
+  // Send the whole transfer as ONE batch, all or none in the room: a stow
+  // that landed on the mech and was refused on the crawler would lose the
+  // lot.
+  const sent = prepared.map((pu) => ({
+    unit: pu.type,
+    gameId: (pu.record as ContainerFields).gameId ?? null,
+    ...opOf(pu.type, pu.id, pu.before as object, pu.record, pu.patch, meta),
+  }))
+  await sendTransfer(sent)
+
+  // Hold it as one change, each half knowing the others (`transferPartsOf`).
+  holdAll(prepared.map((pu) => ({ table: pu.type, row: pu.record })))
+  const parts: TransferPart[] = sent.map(({ unit, op }, at) => ({
+    type: unit,
+    id: op.unitId,
+    opId: op.id,
+    fields: [...Object.keys(op.patch), ...(op.unset ?? [])].map((field) => ({
+      field,
+      before: (prepared[at]?.before as Record<string, unknown> | null)?.[field],
+      after: (op.patch as Record<string, unknown>)[field],
+    })),
+  }))
+  for (const part of parts) {
+    madeTogether.set(
+      part.opId,
+      parts.filter((other) => other !== part && other.fields.length > 0)
+    )
+  }
+}
+
+/** One other unit's half of a transfer this tab made: what its Undo takes back too. */
+export type TransferPart = {
+  type: UnitType
+  id: string
+  opId: string
+  fields: { field: string; before: unknown; after: unknown }[]
+}
+
+const madeTogether = new Map<string, TransferPart[]>()
+
+/**
+ * The other halves of the transfer this tab made as op `opId` (r7 D6): a
+ * craft's Scrap with its item, so the sheet's Undo of one takes back both.
+ */
+export const transferPartsOf = (opId: string): readonly TransferPart[] =>
+  madeTogether.get(opId) ?? []
+
+/** Who hears each write to a unit as it starts: its id. */
+const writeWatchers = new Set<(id: string) => void>()
+
+/**
+ * Hear every write to a unit as it starts (`update`, `delete`), by the unit's
+ * id: a notice that stands "until the next change to that sheet" leaves on it
+ * (`undoToast`). Answers the way to stop hearing.
+ */
+export function onUnitWrite(watch: (id: string) => void): () => void {
+  writeWatchers.add(watch)
+  return () => writeWatchers.delete(watch)
+}
+
+function wrote(id: string): void {
+  for (const watch of writeWatchers) watch(id)
+}
+
 export const units: UnitsApi = {
   hydrate: (type) => untilArrived(type).then(() => markArrived([type])),
 
@@ -269,6 +439,12 @@ export const units: UnitsApi = {
     return holdApplied(type, record, await sendCreate(type, record))
   },
 
+  async restore(type, record) {
+    requireWritable()
+    const parsed = kindOf(type).schema.parse(record)
+    return holdApplied(type, parsed, await sendCreate(type, parsed))
+  },
+
   async adopt(type, record) {
     return hold(type, kindOf(type).schema.parse(record) as never) as never
   },
@@ -283,74 +459,13 @@ export const units: UnitsApi = {
     patch: Partial<EntityForType<T>>,
     meta: ChangeMeta
   ) {
-    const before = units.get(type, id)
-    // Offline, an edit to the player's own sheet waits in the outbox (ADR-063).
-    if (before === null || !queues(type, patch)) requireWritable()
-
-    // Merge and validate, send, then hold: a refused edit leaves the held
-    // record exactly as it was.
-    const updated = prepareUpdate(kindOf(type), before, id, patch)
-    if (type === 'softLink') {
-      await sendLink('upsert', updated as unknown as SoftLink)
-    } else if (before !== null) {
-      const { op, move } = opOf(type, id, before, updated, patch, meta)
-      await sendOp(type, (updated as ContainerFields).gameId ?? null, op, move)
-    }
-    holdApplied(type, updated, undefined)
-
-    // A move takes along only the links whose other end is already where it
-    // is going (ADR-037); the server pruned the rest in the same send.
-    if (type !== 'softLink' && before !== null) {
-      const moved = updated as ContainerFields
-      if (!sameContainer(containerOf(before as ContainerFields), containerOf(moved))) {
-        const broken = linksClearedByMove(
-          getView(),
-          { type: type as UnitType, id },
-          containerOf(moved)
-        )
-        dropAll(broken.map((l) => ({ table: 'softLink' as const, id: l.id })))
-      }
-    }
-    return updated
+    wrote(id)
+    return inTurn([id], () => updateNow(type, id, patch, meta))
   },
 
   async transfer(ops, meta) {
-    const updates = ops.updates ?? []
-    if (updates.length === 0) return
-
-    // Refused before anything is read: a transfer moves value BETWEEN units,
-    // so a write that could not go up would fork the balance between two.
-    requireWritable()
-
-    // Validate everything before changing anything: a Zod failure on any
-    // patch aborts the whole transfer.
-    const prepared = updates.map((u) => {
-      const before = units.get(u.type, u.id)
-      return {
-        ...u,
-        before,
-        record: prepareUpdate(
-          kindOf(u.type) as RecordKind<{ id: string }>,
-          before as { id: string } | null,
-          u.id,
-          u.patch
-        ),
-      }
-    })
-
-    // Send the whole transfer as ONE batch, all or none in the room: a stow
-    // that landed on the mech and was refused on the crawler would lose the
-    // lot.
-    await sendTransfer(
-      prepared.map((pu) => ({
-        unit: pu.type,
-        gameId: (pu.record as ContainerFields).gameId ?? null,
-        ...opOf(pu.type, pu.id, pu.before as object, pu.record, pu.patch, meta),
-      }))
-    )
-
-    // Hold it as one change.
-    holdAll(prepared.map((pu) => ({ table: pu.type, row: pu.record })))
+    const ids = (ops.updates ?? []).map((u) => u.id)
+    return inTurn(ids, () => transferNow(ops, meta))
   },
 
   async updateCrawlerBay(crawlerId, bayRef, patch, index, meta) {
@@ -374,6 +489,7 @@ export const units: UnitsApi = {
 
   async delete(type, id) {
     requireWritable()
+    wrote(id)
     // Read before sending: a link is addressed by its endpoints, and once the
     // row is gone there is nothing left to name it by.
     if (type === 'softLink') {

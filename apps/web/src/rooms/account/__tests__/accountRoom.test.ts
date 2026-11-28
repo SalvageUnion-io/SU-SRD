@@ -2,7 +2,16 @@ import { describe, expect, test } from 'bun:test'
 import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import { bunSql } from '../../__tests__/bunSql'
-import { AT, bodies, op, PLAYER, STRANGER, stubApplyOp, table } from '../../game/__tests__/harness'
+import {
+  AT,
+  bodies,
+  op,
+  PLAYER,
+  parcel,
+  STRANGER,
+  stubApplyOp,
+  table,
+} from '../../game/__tests__/harness'
 import type { GameRoomLogic } from '../../game/gameRoomLogic'
 import type { UnitHome } from '../../handoff'
 import { handOff } from '../../handoff'
@@ -251,14 +260,59 @@ describe('moving between the Shelf and a Game', () => {
   })
 })
 
-describe('a disbanded Game’s Opposition', () => {
-  test('files in the tray once per lease', () => {
+describe('a unit handed to the Shelf', () => {
+  test('is refused when it is somebody else’s build, or is already here', () => {
     const { room } = shelf()
-    const npc = { id: 'n1', name: 'Raider' }
-    room.transit.fileTray('disband-tray:g1', [npc], AT)
-    room.transit.fileTray('disband-tray:g1', [{ id: 'n2' }], AT)
-    expect(room.shelf.records(PLAYER, 'npcTray')).toEqual([{ appId: 'n1', body: npc }])
-    expect(() => room.transit.fileTray('other', [{ name: 'no id' }], AT)).toThrow(/carries its id/)
+    expect(() =>
+      room.transit.accept(parcel(STRANGER, 'pilot', 'p9', bodies.pilot('p9')), PLAYER, AT)
+    ).toThrow('You can only move your own build')
+    expect(() =>
+      room.transit.accept(parcel(PLAYER, 'pilot', 'p1', bodies.pilot('p1')), PLAYER, AT)
+    ).toThrow('That is already in your Training Bay')
+    expect(
+      room.shelf
+        .list(PLAYER)
+        .map((u) => u.id)
+        .sort()
+    ).toEqual(['m1', 'p1'])
+  })
+
+  test('a pilot comes home assigned to the mech that is here, and sits where the Game left them', () => {
+    const { room, sql } = shelf()
+    const home = {
+      ...parcel(PLAYER, 'pilot', 'p2', bodies.pilot('p2')),
+      links: [
+        // Its mech is on the Shelf: the assignment comes with it.
+        {
+          type: 'mech-to-pilot' as const,
+          from: { type: 'mech' as const, id: 'm1' },
+          to: { type: 'pilot' as const, id: 'p2' },
+        },
+        // The other end stayed in the Game: nothing to draw.
+        {
+          type: 'mech-to-pilot' as const,
+          from: { type: 'mech' as const, id: 'm-elsewhere' },
+          to: { type: 'pilot' as const, id: 'p2' },
+        },
+      ],
+      seat: {
+        mount: { kind: 'boarded' as const, mechId: 'm1' },
+        range: 'Close',
+        activeEffects: ['smoke'],
+        ejected: false,
+      },
+    }
+    room.transit.accept(home, PLAYER, AT)
+    expect(
+      room.shelf
+        .links(PLAYER)
+        .filter((l) => l.to.id === 'p2')
+        .map((l) => l.from.id)
+    ).toEqual(['m1'])
+    expect(seatOf(sql, 'p2')).toEqual({ mount: { kind: 'boarded', mechId: 'm1' }, range: 'Close' })
+    // The same lease again changes nothing.
+    room.transit.accept(home, PLAYER, AT + 1)
+    expect(room.shelf.list(PLAYER).filter((u) => u.id === 'p2')).toHaveLength(1)
   })
 })
 
@@ -361,6 +415,21 @@ describe('the solo table’s seats and Downtime', () => {
     const next = { ...processed, id: downtimeClaimOpId(String(AT + 1), 'nanites') }
     expect(room.solo.claim(PLAYER, 'p1', 'nanites', next)).toBe(true)
     expect(room.solo.claim(PLAYER, 'p1', 'nanites', next)).toBe(false)
+  })
+
+  // r6 D1 (LG6-12): solo, the player's own press moves their Scrap into their crawler.
+  test('a solo Tally Salvage moves the pilot’s carried Scrap into the crawler once', () => {
+    const { room } = shelf()
+    room.shelf.create(PLAYER, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
+    room.shelf.submit(PLAYER, [
+      op('p1', { genericInventory: [{ id: 'a', name: 'Tech 1 Scrap', slotCost: 3, qty: 4 }] }),
+    ])
+    room.solo.beginDowntime(PLAYER, 'p1', AT)
+    const args = { pilotId: 'p1', mechId: null, crawlerId: 'c1' }
+    expect(room.solo.moveScrap(PLAYER, args, AT)).toEqual({ 1: 4 })
+    expect(room.shelf.store.unit('c1')?.body).toMatchObject({ scrapPool: { tl1: 4 } })
+    expect(room.solo.moveScrap(PLAYER, args, AT)).toBeNull()
+    expect(room.solo.soloSeats(PLAYER)[0]?.downtime?.doneSteps).toEqual([0])
   })
 })
 

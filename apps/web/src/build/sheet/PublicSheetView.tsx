@@ -20,14 +20,18 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import { isSheetKind } from 'game-domain/entityKinds'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
+import { PRODUCT } from 'game-domain/product'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import { parseMechPattern } from 'game-domain/schemas/pattern'
 import { segmentNames, shareSegment } from 'game-domain/shareAddress'
 import { useEffect } from 'react'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useMe } from '../../lib/account/accountApi'
+import { areaTitle } from '../../lib/pageTitle'
 import type { PublicPatternPage } from '../../lib/sharing/reads'
 import { usePatternSharing, usePublicPattern, usePublicSheet } from '../../lib/sharing/reads'
+import { useTabTitle } from '../../lib/useTabTitle'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
 import { useViewerId } from '../../replica/roomCalls'
@@ -51,8 +55,12 @@ type OnAddress = (segment: string) => void
 type QueryProps = { appId: string; onAddress?: OnAddress | undefined }
 
 /** The name a body carries, for the readable half of its address. */
+/** Its name, a pilot's callsign (r8 F1): the tab and the share link say it as the owner's sheet does. */
 function nameOf(body: unknown): string | undefined {
-  const name = (body as { name?: unknown } | null)?.name
+  const named = body as { name?: unknown; callsign?: unknown } | null
+  if (named !== null && typeof named === 'object' && 'callsign' in named)
+    return pilotLabelOf(named) ?? undefined
+  const name = named?.name
   return typeof name === 'string' ? name : undefined
 }
 
@@ -75,6 +83,9 @@ function useCanonicalAddress(
 function PublicSheetQuery({ kind, appId, onAddress }: QueryProps & { kind: SheetKind }) {
   const result = usePublicSheet(kind, appId)
   useCanonicalAddress(appId, result, onAddress)
+  // The tab is named after the sheet, as a shared pattern's is (r3 L6).
+  const name = result ? nameOf(result.body) : undefined
+  useTabTitle(name ? areaTitle(PRODUCT.build, name) : null)
 
   // `undefined` is "still loading"; `null` is a real "no such public
   // sheet". Collapsing them would flash the not-found page on every load.
@@ -130,6 +141,9 @@ function PublicPatternQuery({ appId, onAddress }: QueryProps) {
 function PublicNpcQuery({ appId, onAddress }: QueryProps) {
   const result = usePublicSheet('npc', appId)
   useCanonicalAddress(appId, result, onAddress)
+  // Named after the NPC, as a shared sheet is (r5 B14).
+  const name = result ? nameOf(result.body) : undefined
+  useTabTitle(name ? areaTitle(PRODUCT.build, name) : null)
   if (result === undefined) return <SheetSkeleton />
   if (result === null) return <NotAvailable what="NPC" />
 

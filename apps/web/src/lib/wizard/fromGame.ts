@@ -15,6 +15,20 @@ export function parseGameParam(value: unknown): string | undefined {
   return typeof value === 'string' && GAME_ID.test(value) ? value : undefined
 }
 
+/**
+ * New Mech for a Pilot who has no working Mech (r5 B17): the Pilot and their
+ * Game carried, as the Training Bay's "+ Add a Mech" carries the Pilot; from
+ * Play (`back=play`) finishing returns to the Pilot's Play screen.
+ */
+export function newMechForPilotHref(pilotId: string, gameId: string | null, fromPlay = false) {
+  const search = new URLSearchParams({
+    ...(gameId === null ? {} : { game: gameId }),
+    pilot: pilotId,
+    ...(fromPlay ? { back: 'play' } : {}),
+  })
+  return `/mechs/new?${search}`
+}
+
 /** A `/…/new` link that starts the wizard for `gameId`'s Game. */
 export function newInGameHref(
   path: '/pilots/new' | '/mechs/new' | '/crawlers/new',

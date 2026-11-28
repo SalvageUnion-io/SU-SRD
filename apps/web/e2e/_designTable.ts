@@ -117,7 +117,7 @@ export const designRoutes: readonly DesignRoute[] = [
   { family: 'wizard-crawler', path: at('/crawlers/new?mode=guided'), widths: BOTH },
   // Manage: the Training Bay, the Play hub, a Game's page, the invite screen.
   { family: 'training-bay', path: at('/'), widths: BOTH },
-  { family: 'play-hub', path: at('/play/'), widths: BOTH },
+  { family: 'play-hub', path: at('/games/'), widths: BOTH },
   { family: 'game-page', path: ':game', widths: BOTH },
   { family: 'invite', path: ':invite', widths: BOTH },
   { family: 'starter-set', path: at('/starter'), widths: BOTH },
@@ -134,12 +134,11 @@ export const designRoutes: readonly DesignRoute[] = [
  *
  * - `contentful-mini`: a contentful Mini (N3) of each kind a sheet or a Page
  *   draws: a crawler's type ability, bays and crew, a pilot's abilities and
- *   equipment, a mech's chassis ability, systems and modules, a pattern's
- *   loadout, a class's ability track (`token-cutout.e2e.ts`).
- * - `header-mini`: a header-only Mini: a pattern's loadout, a bio-titan's
- *   part, a crawler sheet's crew (`token-cutout.e2e.ts`).
- * - `stat-column`: a `StatColumn` grid: two chassis and a pattern (`CardPage`'s
- *   column) (`stat-fill.e2e.ts`). The mech sheet has none: TL and SV ride its band.
+ *   equipment, a mech's chassis ability, systems and modules, a class's
+ *   ability track, a bio-titan's parts, an NPC's actions (`token-cutout.e2e.ts`).
+ *   A chassis's patterns and a pattern's loadout are Ledger rows, no Mini.
+ * - `header-mini`: a header-only Mini: a pattern's loadout where it draws them
+ *   (Drontek's) (`token-cutout.e2e.ts`).
  * - `search`: a search field on its own line: an SRD listing's rail
  *   (`search-width.e2e.ts`).
  * - `rhythm`: a Page of each length and layout: short and long SRD Pages, a
@@ -148,19 +147,22 @@ export const designRoutes: readonly DesignRoute[] = [
  *   outside `designRoutes` since a field's label is the Eyebrow over its
  *   control (R16) (`design-walk.e2e.ts`'s value cells).
  * - `ability-trees`: ability trees on their tracks: a Core class's page, a
- *   Hybrid Class's, the abilities index's Tree, and every Starter pilot's sheet,
- *   each class's trees (`ability-trees.e2e.ts`).
+ *   Hybrid Class's and the abilities index's Tree (`ability-trees.e2e.ts`). A
+ *   Starter pilot's sheet reads as its dashboard, its trees as ledgers, no
+ *   track (`PilotDash`): those are `dash-trees`.
+ * - `dash-trees`: every Starter pilot's dashboard, its class's trees as ledgers
+ *   (`ability-trees.e2e.ts`).
  * - `linked-head`: a contentful card met inside another, whose name links to
  *   its Page: a drone's and a vehicle's systems (`link-heads.e2e.ts`).
  */
 export type CorpusTrait =
   | 'contentful-mini'
   | 'header-mini'
-  | 'stat-column'
   | 'search'
   | 'rhythm'
   | 'seam'
   | 'ability-trees'
+  | 'dash-trees'
   | 'linked-head'
 
 /** One signed-out page of the reference corpus: its family, its path, what it is picked for. */
@@ -168,6 +170,8 @@ export type CorpusPage = {
   family: DesignFamily
   path: string
   traits?: readonly CorpusTrait[]
+  /** Where its traits hold, when not at both widths. */
+  traitWidths?: readonly DesignWidth[]
 }
 
 const STARTER_SHEETS = [
@@ -189,14 +193,14 @@ const STARTER_SHEETS = [
 
 /** Traits a Starter Set sheet carries, by sheet; the rest carry none. */
 const STARTER_TRAITS: Partial<Record<(typeof STARTER_SHEETS)[number], readonly CorpusTrait[]>> = {
-  'pilot/starter-pilot-bonesaw': ['contentful-mini', 'ability-trees'],
-  'pilot/starter-pilot-driftwood': ['ability-trees'],
-  'pilot/starter-pilot-hotdog': ['ability-trees'],
-  'pilot/starter-pilot-judge': ['ability-trees'],
-  'pilot/starter-pilot-pickle': ['ability-trees'],
-  'pilot/starter-pilot-razor': ['ability-trees'],
+  'pilot/starter-pilot-bonesaw': ['contentful-mini', 'dash-trees'],
+  'pilot/starter-pilot-driftwood': ['dash-trees'],
+  'pilot/starter-pilot-hotdog': ['dash-trees'],
+  'pilot/starter-pilot-judge': ['dash-trees'],
+  'pilot/starter-pilot-pickle': ['dash-trees'],
+  'pilot/starter-pilot-razor': ['dash-trees'],
   'mech/starter-mech-mule': ['contentful-mini'],
-  'crawler/starter-crawler-tenacity': ['contentful-mini', 'header-mini'],
+  'crawler/starter-crawler-tenacity': ['contentful-mini'],
 }
 
 const page = (path: string, ...traits: CorpusTrait[]): CorpusPage => ({
@@ -224,14 +228,16 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   index('/chassis/', 'search'),
   index('/systems/', 'search'),
   index('/modules/'),
-  index('/abilities/', 'search', 'ability-trees'),
+  index('/abilities/', 'search'),
+  // The index opens on its List; its Tree is a view of it.
+  index('/abilities/?view=tree', 'ability-trees'),
   index('/creatures/'),
-  page('/chassis/mazona/', 'stat-column', 'rhythm'),
-  page('/chassis/mazona/pattern/buzzard/', 'stat-column', 'rhythm'),
-  page('/chassis/big-brother/', 'stat-column', 'rhythm'),
+  page('/chassis/mazona/', 'rhythm'),
+  page('/chassis/mazona/pattern/buzzard/', 'rhythm'),
+  page('/chassis/big-brother/', 'rhythm'),
   page('/chassis/big-brother/pattern/drontek/', 'header-mini'),
-  page('/chassis/mule/', 'contentful-mini'),
-  page('/chassis/mule/pattern/crusher/', 'contentful-mini'),
+  page('/chassis/mule/'),
+  page('/chassis/mule/pattern/crusher/'),
   page('/systems/salvaging-drill/', 'rhythm'),
   page('/systems/50-cal-machine-gun/'),
   page('/modules/survey-scanner/'),
@@ -239,8 +245,8 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   page('/classes/hacker/', 'contentful-mini', 'rhythm', 'ability-trees'),
   page('/classes/engineer/'),
   page('/classes/fabricator/', 'ability-trees'),
-  page('/bio-titans/tyrant/', 'rhythm', 'header-mini'),
-  page('/npcs/saboteur/', 'rhythm'),
+  page('/bio-titans/tyrant/', 'rhythm', 'contentful-mini'),
+  page('/npcs/saboteur/', 'rhythm', 'contentful-mini'),
   page('/drones/pest-drone/', 'rhythm', 'linked-head'),
   page('/vehicles/fighting-box-wheel/', 'linked-head'),
   page('/crawler-bays/armoury/', 'rhythm'),
@@ -255,21 +261,23 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
     (sheet): CorpusPage => ({
       family: 'starter-set',
       path: at(`/starter/${sheet}`),
-      ...(STARTER_TRAITS[sheet] ? { traits: STARTER_TRAITS[sheet] } : {}),
+      // A phone's sheet keeps its lists as Ledgers under tabs (L9): no Mini, no track.
+      ...(STARTER_TRAITS[sheet] ? { traits: STARTER_TRAITS[sheet], traitWidths: ['page'] } : {}),
     })
   ),
-  { family: 'play-hub', path: at('/play/') },
+  { family: 'play-hub', path: at('/games/') },
 ]
 
 /**
  * The corpus as routes a walk opens (`walkDesignRoutes`): every page, or those
- * with `trait`, held at `page` and `phone` unless the walk names its widths.
+ * with `trait`, held at `page` and `phone` unless the page (`traitWidths`) or
+ * the walk names its widths.
  */
 export function corpusRoutes(trait?: CorpusTrait): DesignRoute[] {
   return REFERENCE_CORPUS.filter((p) => !trait || p.traits?.includes(trait)).map((p) => ({
     family: p.family,
     path: p.path,
-    widths: BOTH,
+    widths: trait && p.traitWidths ? p.traitWidths : BOTH,
   }))
 }
 

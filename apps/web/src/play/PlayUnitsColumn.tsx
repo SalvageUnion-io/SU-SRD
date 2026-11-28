@@ -20,7 +20,8 @@
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
-import { EmptyState, MiniGrid, Slab } from '../components/index'
+import { pilotLabel } from 'game-domain/pilotLabel'
+import { CloseButton, EmptyState, MiniGrid, Slab } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayCompanions } from './PlayCompanions'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from './PlayUnits'
@@ -28,7 +29,13 @@ import type { PlayColumnProps } from './situation.model'
 import { useOpenSheet } from './useOpenSheet'
 import { usePlayUnits } from './usePlayUnits'
 
-export function PlayUnitsColumn({ play }: PlayColumnProps) {
+export function PlayUnitsColumn({
+  play,
+  onClose,
+}: PlayColumnProps & {
+  /** Below `lg` the pane has no tab of its own: its × goes back to Act. */
+  onClose?: () => void
+}) {
   const units = usePlayUnits(play)
   const setSheet = useOpenSheet()
   const { pilot, seat } = play
@@ -37,20 +44,25 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
 
   return (
     <>
-      <Slab as="h2" label={playCopy('units')} />
+      <Slab
+        as="h2"
+        label={playCopy('units')}
+        flush
+        actions={onClose && <CloseButton label={playCopy('closeUnits')} onClick={onClose} />}
+      />
       {pilot ? (
         <PlayPilotUnit
           pilot={pilot}
           crawler={crawler}
           live={units.live.pilot}
-          onOpenSheet={() => setSheet({ kind: 'pilot', id: pilot.id, name: pilot.name })}
+          onOpenSheet={() => setSheet({ kind: 'pilot', id: pilot.id, name: pilotLabel(pilot) })}
         />
       ) : (
         <EmptyState variant="inline" body={playCopy('thePilotIsOnIts')} />
       )}
       {pilot ? (
         <PlayCompanions
-          host={{ kind: 'pilot', id: pilot.id, name: pilot.name }}
+          host={{ kind: 'pilot', id: pilot.id, name: pilotLabel(pilot) }}
           partners={pilot.partners}
           crawlerTechLevel={resolveEffectiveCrawlerLevel(pilot, crawler)}
         />
@@ -98,7 +110,8 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
           live={units.live.crawler}
           downtime={play.situation === 'downtime'}
           onOpenSheet={
-            units.live.crawler && crawler
+            // In Downtime the crawler's sheet is on hand whoever writes it (r5 A14).
+            (units.live.crawler || (play.situation === 'downtime' && units.crawler.held)) && crawler
               ? () => setSheet({ kind: 'crawler', id: crawler.id, name: crawler.name })
               : undefined
           }

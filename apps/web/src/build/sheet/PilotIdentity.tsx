@@ -30,20 +30,23 @@
 
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Badge, Button, Field, Toggle, tokens } from '../../components/index'
 import { resolveClassName } from '../../lib/classRef'
 import { classChangePatch } from '../../lib/rules/classPath'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { selectableClasses } from '../wizard/classOptions.model'
 import { PhotoBeside } from './PhotoBeside'
-import { HeroMore } from './SheetHero'
 import { SheetPickerModal } from './SheetPickerModal'
 import type { SheetPatch } from './sheetViewProps.model'
 import { UsedPip } from './UsedPip'
 
 export type UsedTraitKey = 'background' | 'motto' | 'keepsake'
+
+/** The Class picker's body, a chunk of its own: fetched when Change Class first opens. */
+const ClassPathPicker = lazy(() =>
+  import('../pilot/ClassPathPicker').then((m) => ({ default: m.ClassPathPicker }))
+)
 
 const USED_CHIP = { gap: tokens.space[6] } satisfies CSSProperties
 
@@ -62,7 +65,7 @@ const FIELD_GRID = {
   rowGap: tokens.space[12],
 } satisfies CSSProperties
 
-const ONE_COLUMN = { gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' } satisfies CSSProperties
+const ONE_COLUMN = { gridTemplateColumns: 'minmax(0, 1fr)' } satisfies CSSProperties
 
 const FIELD_COLUMN = {
   display: 'flex',
@@ -71,10 +74,11 @@ const FIELD_COLUMN = {
   minWidth: 0,
 } satisfies CSSProperties
 
-/** The traits' row; its columns are `.su-sheet-pilot-traits`. */
+/** The traits' row; each trait's share of it is `.su-sheet-pilot-traits`. */
 const TRAITS_ROW = {
   columnGap: tokens.space[16],
-  display: 'grid',
+  display: 'flex',
+  flexWrap: 'wrap',
   minWidth: 0,
   rowGap: tokens.space[12],
 } satisfies CSSProperties
@@ -121,11 +125,12 @@ const PICKER_ACTIONS = {
 /**
  * A trait's once-per-Downtime flag: Mark used, a quiet `Toggle` led by the
  * used pip (the pip is the box; no dashed plate around it), while editable (live play, not gated behind the section edit), at
- * the Mini Size beside the field's label; its words stay "Used", its press
- * and pip carry the state, and its name says the act. Read-only, a static "Used" stamp shows only when set (an
+ * the Mini Size beside the field's label; it reads "Use" while free and
+ * "Used" once used (r6 E20: a free one is an act, not a state), its pip
+ * carries the state too, and its name says the act. Read-only, a static "Used" stamp shows only when set (an
  * unset one would be a control that isn't).
  */
-function UsedChip({
+export function UsedChip({
   label,
   used,
   onToggle,
@@ -139,7 +144,7 @@ function UsedChip({
     return (
       <Badge shape="chip" style={USED_CHIP}>
         <UsedPip used />
-        Used
+        {buildSheetCopy('used')}
       </Badge>
     )
   }
@@ -154,7 +159,7 @@ function UsedChip({
         used ? buildSheetCopy('resetUsed', { label }) : buildSheetCopy('markUsed', { label })
       }
     >
-      {buildSheetCopy('used')}
+      {used ? buildSheetCopy('used') : buildSheetCopy('use')}
     </Toggle>
   )
 }
@@ -175,9 +180,17 @@ type PilotIdentityPanelProps = {
   patch?: SheetPatch
   /** The pilot's picture (`EntityPhoto`), beside the field grid; the prose runs under both. */
   photo?: ReactNode
+  /** A phone's About tab runs the Bio under the photo, the card's width. */
+  proseUnder?: boolean
 }
 
-export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotIdentityPanelProps) {
+export function PilotIdentityPanel({
+  pilot,
+  onToggleUsed,
+  patch,
+  photo,
+  proseUnder = false,
+}: PilotIdentityPanelProps) {
   const [classPickerOpen, setClassPickerOpen] = useState(false)
   // Class picker holds a pending selection until confirmed (destructive-ish:
   // it re-homes the pilot's class; abilities are intentionally kept).
@@ -267,9 +280,9 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
           short lines, so the prose stays beside the photo. */}
       <PhotoBeside
         photo={photo}
-        belowBeside={!canEdit}
+        belowBeside={!canEdit && !proseUnder}
         below={
-          <HeroMore>
+          <>
             {/* Appearance spans the card: it is prose, and a half-width column
                 wrapped it into a narrow ribbon beside the single-line fields. */}
             <Field
@@ -291,7 +304,7 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
                 className="su-sheet-pilot-fill"
               />
             </div>
-          </HeroMore>
+          </>
         }
       >
         {/* Poster field grid — left / right columns; single column on mobile in
@@ -339,36 +352,33 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
           )}
           {/* With nothing beside them (Read, most often), the three short
               traits share one row, so the card spends no height on their gaps;
-              the Bio runs under. On a phone they follow the Vitals (HeroMore,
-              §1.10). */}
-          <HeroMore>
-            <div
-              className={leftColumn ? undefined : 'su-sheet-pilot-traits'}
-              style={leftColumn ? FIELD_COLUMN : TRAITS_ROW}
-            >
-              <Field
-                label={buildSheetCopy('motto')}
-                value={pilot.motto}
-                multiline
-                onSave={canEdit ? saveText('motto') : undefined}
-                labelAction={usedChip('motto', 'motto')}
-              />
-              <Field
-                label={buildSheetCopy('keepsake')}
-                value={pilot.keepsake}
-                multiline
-                onSave={canEdit ? saveText('keepsake') : undefined}
-                labelAction={usedChip('keepsake', 'keepsake')}
-              />
-              <Field
-                label={buildSheetCopy('background')}
-                value={pilot.background}
-                multiline
-                onSave={canEdit ? saveText('background') : undefined}
-                labelAction={usedChip('background', 'background')}
-              />
-            </div>
-          </HeroMore>
+              the Bio runs under. */}
+          <div
+            className={leftColumn ? undefined : 'su-sheet-pilot-traits'}
+            style={leftColumn ? FIELD_COLUMN : TRAITS_ROW}
+          >
+            <Field
+              label={buildSheetCopy('motto')}
+              value={pilot.motto}
+              multiline
+              onSave={canEdit ? saveText('motto') : undefined}
+              labelAction={usedChip('motto', 'motto')}
+            />
+            <Field
+              label={buildSheetCopy('keepsake')}
+              value={pilot.keepsake}
+              multiline
+              onSave={canEdit ? saveText('keepsake') : undefined}
+              labelAction={usedChip('keepsake', 'keepsake')}
+            />
+            <Field
+              label={buildSheetCopy('background')}
+              value={pilot.background}
+              multiline
+              onSave={canEdit ? saveText('background') : undefined}
+              labelAction={usedChip('background', 'background')}
+            />
+          </div>
         </div>
       </PhotoBeside>
 
@@ -385,27 +395,30 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
         onClose={() => setClassPickerOpen(false)}
         title={buildSheetCopy('changeClass')}
       >
-        <ClassPathPicker
-          allClasses={allClasses}
-          currentClassRef={pilot.classRef}
-          pendingClassRef={pendingClass}
-          onSelect={setPendingClass}
-          answeredOrigin={answeredOrigin}
-          onAnswerOrigin={setAnsweredOrigin}
-        />
-        <div style={PICKER_ACTIONS}>
-          <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
-            {buildSheetCopy('cancel')}
-          </Button>
-          <Button
-            variant="primary"
-            size="compact"
-            disabled={!pendingClass || pendingClass === pilot.classRef}
-            onClick={confirmClass}
-          >
-            {buildSheetCopy('changeClass')}
-          </Button>
-        </div>
+        <Suspense fallback={null}>
+          <ClassPathPicker
+            allClasses={allClasses}
+            currentClassRef={pilot.classRef}
+            pendingClassRef={pendingClass}
+            abilities={pilot.abilities}
+            onSelect={setPendingClass}
+            answeredOrigin={answeredOrigin}
+            onAnswerOrigin={setAnsweredOrigin}
+          />
+          <div style={PICKER_ACTIONS}>
+            <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
+              {buildSheetCopy('cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              size="compact"
+              disabled={!pendingClass || pendingClass === pilot.classRef}
+              onClick={confirmClass}
+            >
+              {buildSheetCopy('changeClass')}
+            </Button>
+          </div>
+        </Suspense>
       </SheetPickerModal>
     </div>
   )

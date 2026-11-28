@@ -8,6 +8,7 @@
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
+import type { ComponentProps } from 'react'
 import { useState } from 'react'
 import type { rollForTable } from '../../components/index'
 import type { BoardOption } from '../boardMenu.model'
@@ -47,6 +48,8 @@ type HarnessProps = {
   /** The Game's Scene conditions; clear by default. */
   scene?: SceneState
   writes: Write[]
+  /** What the table shares: the seats and the crew's names (the Table's Moment). */
+  table?: ComponentProps<typeof PlayActionsColumn>['table']
 }
 
 /** The viewer, as `account.me` answers in a Game. */
@@ -164,10 +167,23 @@ export function useHarnessPlay({
         }
         return true
       },
+      // Solo, Restore's healing run again (r5 A12): once per step.
+      healAgain: solo
+        ? async (i, patch) => {
+            record('downtime.healAgain', { stepIndex: i, patch })
+            return true
+          }
+        : null,
       // The Upkeep or Nanites op on the crawler (`downtime.claim`).
       claim: async (claim, crawlerId, patch) => {
         record('downtime.claim', { claim, crawlerId, patch })
         return claim === 'upkeep' ? payUpkeep() : true
+      },
+      // Tally Salvage's move into the crawler (`downtime.moveScrap`, r6 D1); it takes the step.
+      moveScrap: async (move) => {
+        record('downtime.moveScrap', move)
+        setDoneSteps((d) => (d.includes(stepIndex) ? d : [...d, stepIndex]))
+        return true
       },
     },
     canWrite,
@@ -176,7 +192,15 @@ export function useHarnessPlay({
   return play
 }
 
-export function Harness({ store, rollFor = rollFourteen, ...props }: HarnessProps) {
+export function Harness({ store, rollFor = rollFourteen, table, ...props }: HarnessProps) {
   const play = useHarnessPlay(props)
-  return <PlayActionsColumn target={play.target} play={play} store={store} rollFor={rollFor} />
+  return (
+    <PlayActionsColumn
+      target={play.target}
+      play={play}
+      store={store}
+      rollFor={rollFor}
+      table={table}
+    />
+  )
 }

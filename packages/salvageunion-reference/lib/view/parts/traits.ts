@@ -48,7 +48,7 @@ export type FacetCell = {
   short?: string
   /** A fact's part of the stat order (`StatGroup`): an action's, unless it says. */
   group?: StatGroup
-  /** A fact's value in short form, for compact cells (`rangeCodes`). */
+  /** A fact's value in short form, for compact cells (`rangeBands`). */
   shortValue?: string
   /** A named rule's glossary lookup. */
   mention?: { schemaName: 'traits' | 'keywords'; name: string }
@@ -74,14 +74,6 @@ export function formatCost(cost: string | number, currency: string | number | un
   return `${displayCost} ${currency ?? 'AP'}`
 }
 
-/** The book's range codes (Salvage Union 2.0a p.23: "C: Close // M: Medium // L: Long // F: Far"). */
-const RANGE_CODES: Partial<Record<string, string>> = {
-  Close: 'C',
-  Medium: 'M',
-  Long: 'L',
-  Far: 'F',
-}
-
 /**
  * A measured keyword's chip label, the one an action's own facet wears
  * (`DMG`, `RNG`): a datavalue's `Damage | 6 SP` reads as every attack does,
@@ -92,9 +84,13 @@ export const MEASURED_KEYWORD_SHORT: Readonly<Record<string, string>> = {
   Range: 'RNG',
 }
 
-/** Range bands as their codes, for compact cells: ["Close", "Medium"] is "C/M". */
-function rangeCodes(range: readonly string[]): string {
-  return range.map((band) => RANGE_CODES[band] ?? band).join('/')
+/**
+ * Range bands as a compact cell writes them: spelled out, never the book's
+ * codes, so a newcomer never learns that C means Close (RR6-09): ["Close",
+ * "Medium"] is "Close/Medium".
+ */
+function rangeBands(range: readonly string[]): string {
+  return range.join('/')
 }
 
 /** Traits → cells: "Explosive (1)" is name Explosive, value 1. */
@@ -142,7 +138,7 @@ export function actionFacets(action: ActionFacets, mechActionType?: string): Fac
       label: 'Range',
       short: 'RNG',
       value: action.range.join(' / '),
-      shortValue: rangeCodes(action.range),
+      shortValue: rangeBands(action.range),
       kind: 'fact',
     })
   }

@@ -9,13 +9,26 @@
  *    switch), and the tabs along the foot at thumb height, in the order the
  *    screen gives them. Closed panes stay mounted, `hidden`, so a
  *    half-typed Find, an open filter or a resolve in hand survives a switch.
- *    Table mode's `focus` takes the panes' place, the panes kept under it;
+ *    A toast stands above the tab row, one at a time (`holdPlayToasts`, r6
+ *    A3), never over the bar, the table's strip or the first action; a
+ *    search that holds them at the top puts them under the head
+ *    (`useToastsUnderHead`). Table mode's `focus` takes the panes' place, the panes kept under it;
  *    a `sheet` (play.md §18) takes the open pane's, the tabs kept under it.
  *  - **From `lg`**: the same panes as three columns, start | centre | end
  *    (the player's Units | Actions | Crew, Tables and Feed; the Mediator's
- *    table | Opposition | Tables, Feed and Propose), then the foot. The end
+ *    table | Opposition | Rolls, Rules and Propose), then the foot. The end
  *    column stacks its panes in one scroller; a `dock` pane sits at its foot.
  *    A `sheet` stands in the centre column, its panes kept mounted under it.
+ *
+ * Under the bar stands the table's strip (r6 A1, `tableStripSlot.model.ts`): the
+ * root's `TableNotices` draws a Game's notices there at one height, so a
+ * notice arriving or leaving never moves the panes.
+ *
+ * A screen with a long way to its panes gives `jumps` (r4 D6, the Mediator's):
+ * skip links ahead of the bar, off screen until focused, each opening its
+ * pane (its tab below `lg`) and moving focus into it, onto its `first` where
+ * it names one (a heading takes focus by script; r6 B11: Mediate's are four,
+ * whatever the fight, and Opposition's units are its own heading's list).
  *
  * The arrangement is CSS (`styles/play/frame.css`); `wide` (`usePlayWide`,
  * the same rung) decides only what a reader is told, so crossing it re-lays
@@ -44,10 +57,20 @@
 
 import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
-import { useEffect, useId, useRef, useState } from 'react'
-import { EntitySurfaceProvider, Tab, TabList, Tabs, tokens } from '../components/index'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { SkipLink, Tab, TabList, Tabs } from '../components/app'
+import {
+  capsLabel,
+  cn,
+  EntitySurfaceProvider,
+  holdPlayToasts,
+  SlabLookProvider,
+  tokens,
+} from '../components/index'
 import { playCopy } from '../messages/play'
 import type { PaneSpec, PlayColumn } from './playPanes.model'
+import { NOTICES_RESIZED } from './tableNotices.model'
+import { setTableStripSlot } from './tableStripSlot.model'
 
 /**
  * Play's brand-colour grounds wear the speckle as the sheet's do (ruleset
@@ -56,6 +79,9 @@ import type { PaneSpec, PlayColumn } from './playPanes.model'
  * head, a unit box's band) carries it.
  */
 const SPECKLED = { texture: true } as const
+
+/** Off screen until focused (`foundation.css`), as the shell's own skip link. */
+const SKIP_LINK = cn('su-skip-link', capsLabel())
 
 /** The Tabs root: the frame's grid fills it. */
 const ROOT = { height: '100%' } satisfies CSSProperties
@@ -68,11 +94,11 @@ const TAB_LIST = {
 } satisfies CSSProperties
 
 /**
- * A tab: an equal share of the row, its label whole (EDL E18, hard rule
- * R29). A label too long for its share widens its tab (no `minWidth: 0`) or
+ * A tab: an equal share of the row, its label whole (C5, hard rule
+ * K10). A label too long for its share widens its tab (no `minWidth: 0`) or
  * wraps between its words, never "…". The Compact Size, the Size of the
  * Play bar's buttons and the pinned switch that share the screen with it
- * (R41).
+ * (§4.7).
  */
 const TAB = {
   border: 0,
@@ -108,6 +134,13 @@ type PlayFrameProps<Value extends string> = {
   sheet?: ReactNode
   /** The foot (`PlayFoot`), from `lg`. */
   foot: ReactNode
+  /**
+   * The screen's first Tab stop (WCAG 2.4.1, r4 A3): a skip link that opens
+   * `pane` and puts the keyboard on its first `first`, else on the pane.
+   */
+  skip?: { pane: Value; label: string; first: string }
+  /** Skip links ahead of the bar: each opens its pane and moves focus into it. */
+  jumps?: readonly { pane: Value; label: string; first?: string }[]
 }
 
 export function PlayFrame<Value extends string>({
@@ -122,16 +155,43 @@ export function PlayFrame<Value extends string>({
   focus,
   sheet,
   foot,
+  skip,
+  jumps,
 }: PlayFrameProps<Value>) {
   const id = useId()
+  // A skip link was pressed: focus its pane once it is showing.
+  const [jump, setJump] = useState<{ pane: Value; first?: string | undefined } | null>(null)
   const hostRef = useRef<HTMLElement>(null)
   const hostH = useHostHeight(hostRef)
+  // One toast at a time, never over the strip or the first action (r6 A3):
+  // bottom left from `lg`, above the tab row below it (`--su-foot-clear`).
+  useEffect(() => holdPlayToasts(), [])
+  useToastsUnderHead(hostRef, !wide)
   const focused = !wide && focus !== undefined && focus !== null
   const sheetOn = !focused && sheet !== undefined && sheet !== null
   const tabbed = tabs ? tabs.flatMap((value) => panes.filter((p) => p.value === value)) : panes
   const open = panes.some((p) => p.value === tab) ? tab : tabbed[0]?.value
   const tabId = (value: string) => `${id}-tab-${value}`
   const paneId = (value: string) => `${id}-pane-${value}`
+  // A hidden pane forgets where it was scrolled; each tab keeps its own (r6 A10).
+  const scrolled = useRef(new Map<string, number>())
+  useLayoutEffect(() => {
+    if (wide || focused || sheetOn || open === undefined) return
+    const shown = document.getElementById(`${id}-pane-${open}`)
+    const top = scrolled.current.get(open)
+    if (shown !== null && top !== undefined) shown.scrollTop = top
+  }, [open, wide, focused, sheetOn, id])
+  useEffect(() => {
+    if (jump === null) return
+    const pane = document.getElementById(`${id}-pane-${jump.pane}`)
+    const first = jump.first ? pane?.querySelector<HTMLElement>(jump.first) : null
+    // A heading named as `first` takes focus by script alone (r6 B11).
+    if (first && first.tabIndex < 0 && !first.hasAttribute('tabindex')) {
+      first.setAttribute('tabindex', '-1')
+    }
+    ;(first ?? pane)?.focus()
+    setJump(null)
+  }, [jump, id])
 
   const pane = (p: PlayPane<Value>, region: string | null) => (
     // From `lg` a start or centre pane is its column's named region; below
@@ -146,58 +206,161 @@ export function PlayFrame<Value extends string>({
       role={wide ? undefined : 'tabpanel'}
       aria-label={wide ? (region ?? undefined) : undefined}
       aria-labelledby={wide ? undefined : tabId(p.value)}
+      // A skip link's target: focusable by script alone.
+      tabIndex={skip?.pane === p.value || jumps?.some((j) => j.pane === p.value) ? -1 : undefined}
+      onScroll={(event) => {
+        if (!event.currentTarget.hidden)
+          scrolled.current.set(p.value, event.currentTarget.scrollTop)
+      }}
     >
       {p.node}
     </section>
   )
   const inColumn = (column: PlayColumn) => panes.filter((p) => p.column === column)
+  // The skip link opens its pane first; the focus follows once it is shown.
+  const [skipped, setSkipped] = useState(0)
+  const skipTo = skip ? `${id}-pane-${skip.pane}` : null
+  const skipFirst = skip?.first
+  useEffect(() => {
+    if (skipped === 0 || skipTo === null) return
+    const target = document.getElementById(skipTo)
+    const first = skipFirst ? target?.querySelector<HTMLElement>(skipFirst) : null
+    ;(first ?? target)?.focus()
+  }, [skipped, skipTo, skipFirst])
 
   return (
-    <EntitySurfaceProvider value={SPECKLED}>
-      <main ref={hostRef} className="su-play-root" style={{ height: hostH }}>
-        <Tabs value={open ?? tab} onValueChange={onTab} style={ROOT}>
-          <div className="su-play-frame">
-            <div className="su-play-frame__bar">{bar}</div>
-            {!wide && pinned ? <div className="su-play-frame__pinned">{pinned}</div> : null}
-            {focused ? <div className="su-play-pane su-play-frame__focus">{focus}</div> : null}
-            {inColumn('start').map((p) => pane(p, labels[0]))}
-            {inColumn('centre').map((p) => pane(p, labels[1]))}
-            {sheetOn ? (
-              <section
-                className="su-play-pane su-play-sheet"
-                data-column="centre"
-                aria-label={playCopy('sheet')}
-              >
-                {sheet}
-              </section>
-            ) : null}
-            <section className="su-play-frame__end" aria-label={wide ? labels[2] : undefined}>
-              {inColumn('end').map((p) => pane(p, null))}
-            </section>
-            {wide ? (
-              <div className="su-play-frame__foot">{foot}</div>
-            ) : (
-              <div className="su-play-frame__tabs" hidden={focused}>
-                <TabList label={playCopy('play')} style={TAB_LIST}>
-                  {tabbed.map((p) => (
-                    <Tab
-                      key={p.value}
-                      value={p.value}
-                      id={tabId(p.value)}
-                      controls={paneId(p.value)}
-                      style={TAB}
-                    >
-                      {p.label}
-                    </Tab>
-                  ))}
-                </TabList>
+    // Play keeps the section stamp it was approved with.
+    <SlabLookProvider value="stamp">
+      <EntitySurfaceProvider value={SPECKLED}>
+        <main ref={hostRef} className="su-play-root" style={{ height: hostH }}>
+          {skip && (
+            <a
+              href={`#${paneId(skip.pane)}`}
+              className={SKIP_LINK}
+              onClick={(event) => {
+                event.preventDefault()
+                onTab(skip.pane)
+                setSkipped((n) => n + 1)
+              }}
+            >
+              {skip.label}
+            </a>
+          )}
+          <Tabs value={open ?? tab} onValueChange={onTab} style={ROOT}>
+            <div className="su-play-frame">
+              <div className="su-play-frame__bar">
+                {jumps && jumps.length > 0 ? (
+                  <nav aria-label={playCopy('jumpTo')}>
+                    {jumps.map((j) => (
+                      <SkipLink
+                        key={j.label}
+                        // A jump with an id of its own points there (r7 C8: Feed is not the Table).
+                        to={
+                          /^#[\w-]+$/.test(j.first ?? '')
+                            ? (j.first ?? '').slice(1)
+                            : paneId(j.pane)
+                        }
+                        onFollow={() => {
+                          onTab(j.pane)
+                          setJump({ pane: j.pane, first: j.first })
+                        }}
+                      >
+                        {playCopy('skipTo', { name: j.label })}
+                      </SkipLink>
+                    ))}
+                  </nav>
+                ) : null}
+                {bar}
+                {/* The table's strip, drawn here by the root's notices (r6 A1). */}
+                <div className="su-play-frame__strip" ref={setTableStripSlot} />
               </div>
-            )}
-          </div>
-        </Tabs>
-      </main>
-    </EntitySurfaceProvider>
+              {!wide && pinned ? <div className="su-play-frame__pinned">{pinned}</div> : null}
+              {focused ? <div className="su-play-pane su-play-frame__focus">{focus}</div> : null}
+              {inColumn('start').map((p) => pane(p, labels[0]))}
+              {inColumn('centre').map((p) => pane(p, labels[1]))}
+              {sheetOn ? (
+                <section
+                  className="su-play-pane su-play-sheet"
+                  data-column="centre"
+                  aria-label={playCopy('sheet')}
+                >
+                  {sheet}
+                </section>
+              ) : null}
+              <section className="su-play-frame__end" aria-label={wide ? labels[2] : undefined}>
+                {inColumn('end').map((p) => pane(p, null))}
+              </section>
+              {wide ? (
+                <div className="su-play-frame__foot">{foot}</div>
+              ) : (
+                <div className="su-play-frame__tabs" hidden={focused}>
+                  <TabList label={playCopy('play')} style={TAB_LIST}>
+                    {tabbed.map((p) => (
+                      <Tab
+                        key={p.value}
+                        value={p.value}
+                        id={tabId(p.value)}
+                        controls={paneId(p.value)}
+                        style={TAB}
+                      >
+                        {p.label}
+                        {/* A pending item marks its tab. */}
+                        {p.dot ? (
+                          <span
+                            className="su-play-tab-dot"
+                            role="img"
+                            aria-label={playCopy('somethingIsWaiting')}
+                          />
+                        ) : null}
+                      </Tab>
+                    ))}
+                  </TabList>
+                </div>
+              )}
+            </div>
+          </Tabs>
+        </main>
+      </EntitySurfaceProvider>
+    </SlabLookProvider>
   )
+}
+
+/** Where a held toast starts, on the document: the foot of the frame's head (`atoms-leaves.css`). */
+const HEAD_BOTTOM = '--su-toast-head'
+
+/** The frame's head rows, either of which ends it. */
+const HEAD_ROWS = ['.su-play-frame__bar', '.su-play-frame__pinned'].join()
+
+/**
+ * Publishes where the frame's head ends (the pinned row, else the bar) while
+ * `on`, so a toast held at the top stands under it: never over ‹ Sheet, Stop
+ * or a pinned vital's − / + (r3 H2).
+ */
+function useToastsUnderHead(hostRef: { current: HTMLElement | null }, on: boolean): void {
+  useEffect(() => {
+    const host = hostRef.current
+    if (!on || !host) return
+    const root = document.documentElement
+    const publish = () => {
+      const head =
+        host.querySelector('.su-play-frame__pinned') ?? host.querySelector('.su-play-frame__bar')
+      if (head === null) return
+      root.style.setProperty(HEAD_BOTTOM, `${Math.max(0, head.getBoundingClientRect().bottom)}px`)
+    }
+    publish()
+    window.addEventListener('resize', publish)
+    window.addEventListener(NOTICES_RESIZED, publish)
+    // The bar's line wrapping, the pinned row arriving or leaving (table mode).
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
+    ro?.observe(host)
+    for (const part of host.querySelectorAll(HEAD_ROWS)) ro?.observe(part)
+    return () => {
+      window.removeEventListener('resize', publish)
+      window.removeEventListener(NOTICES_RESIZED, publish)
+      ro?.disconnect()
+      root.style.removeProperty(HEAD_BOTTOM)
+    }
+  })
 }
 
 /**
@@ -221,10 +384,14 @@ function useHostHeight(hostRef: { current: HTMLElement | null }): number | undef
     // The window's resize catches its height; the observer, what moves the
     // host's top (a banner arriving). Absent in some test environments.
     window.addEventListener('resize', compute)
+    // The table's notices above the host: one leaving shrinks nothing the
+    // observer watches (the body keeps the window's height), so they say so.
+    window.addEventListener(NOTICES_RESIZED, compute)
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(compute)
     ro?.observe(document.body)
     return () => {
       window.removeEventListener('resize', compute)
+      window.removeEventListener(NOTICES_RESIZED, compute)
       ro?.disconnect()
     }
   }, [hostRef])

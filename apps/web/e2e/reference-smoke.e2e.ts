@@ -1,5 +1,5 @@
 import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
-import { escapeRegExp, pageOverflow } from './_helpers'
+import { pageOverflow } from './_helpers'
 import { expect, test } from './fixtures'
 
 test.use({ account: 'anonymous' })
@@ -41,10 +41,10 @@ test('chassis schema index renders entities', { tag: '@pr' }, async ({ page }) =
   await page.goto('/chassis/')
   await expect(page).toHaveTitle(/Chassis/i)
 
-  // Entities render (after the island hydrates + game data loads) as links to
-  // their individual item pages.
+  // Entities render as the List's lines (one Ledger), each name a link to its
+  // own item page.
   await expect(
-    page.locator('a[aria-label][href^="/chassis/"]:not([href="/chassis/"])').first()
+    page.locator('.su-ledger__name a[href^="/chassis/"]:not([href="/chassis/"])').first()
   ).toBeVisible({
     timeout: 30_000,
   })
@@ -65,10 +65,41 @@ test('a chassis entity page renders its card', { tag: '@pr' }, async ({ page }) 
   })
 })
 
-// (d) The home page is the manual's Contents page.
-test('the home page indexes the book’s chapters', { tag: '@pr' }, async ({ page }) => {
+// (d) The home page is the site's front door: its name, then one action to
+// each part of the site, each named for its slide. The manual's Contents is
+// the Reference's home (`/reference/`), every chapter under its own heading.
+test('the home page opens every way in; the Reference indexes the book’s chapters', {
+  tag: '@pr',
+}, async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1, name: 'The Salvage Union SRD' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'SalvageUnion.io' })).toBeVisible()
+  const show = page.getByRole('region', { name: 'SalvageUnion.io' })
+  for (const [name, href] of [
+    ['Know the rules', '/reference/'],
+    ['Build your crew', '/build/'],
+    ['Play at the table', '/games/'],
+  ] as const) {
+    await expect(show.getByRole('link', { name, includeHidden: true })).toHaveAttribute(
+      'href',
+      href
+    )
+  }
+  await expect(show.getByRole('link', { name: 'Get the books', includeHidden: true })).toHaveCount(
+    1
+  )
+  await expect(
+    show.getByRole('link', { name: 'Roll in Discord', includeHidden: true })
+  ).toHaveCount(1)
+  // The show holds still (r6 G14): the two ways forward stand in view on
+  // load, outside the slides; Next turns it by hand to the first action.
+  await expect(show.getByRole('link', { name: 'Start building' })).toBeVisible()
+  await expect(show.getByRole('link', { name: 'Look something up' })).toBeVisible()
+  await show.getByRole('button', { name: 'Next slide' }).click()
+  await expect(show.getByRole('link', { name: 'Know the rules' })).toBeVisible()
+  expect((await pageOverflow(page)).across).toBeLessThanOrEqual(0)
+
+  await page.goto('/reference/')
+  await expect(page.getByRole('heading', { level: 1, name: 'Reference' })).toBeVisible()
   for (const chapter of [
     'Pilot Bay',
     'Mech Workshop',
@@ -76,20 +107,15 @@ test('the home page indexes the book’s chapters', { tag: '@pr' }, async ({ pag
     'Denizens of the Wasteland',
     'Rules & Reference',
   ]) {
-    // The heading reads "<chapter> <count>".
-    await expect(
-      page.getByRole('heading', {
-        level: 2,
-        name: new RegExp(`^${escapeRegExp(chapter)}`),
-      })
-    ).toBeVisible()
+    // The heading is the chapter's name alone: no count.
+    await expect(page.getByRole('heading', { level: 2, name: chapter, exact: true })).toBeVisible()
   }
-  await expect(page.getByRole('heading', { name: 'Start here' })).toBeVisible()
+  expect((await pageOverflow(page)).across).toBeLessThanOrEqual(0)
 })
 
-// (e) A chassis page at a phone's width and a desktop's: its
-// stats lead the body, inline, clear of the title (the phone bug was a stat
-// strip over it), beside the art from `sm`, and nothing scrolls sideways.
+// (e) A chassis page at a phone's width and a desktop's: its stat column
+// leads the body, clear of the title (the phone bug was a stat strip over
+// it), beside the side column's art from `lg`, and nothing scrolls sideways.
 for (const width of [375, 1440]) {
   test(`an entity page at ${width}px keeps its stats clear of its title`, { tag: '@pr' }, async ({
     page,
@@ -108,26 +134,28 @@ for (const width of [375, 1440]) {
     }
     expect((await pageOverflow(page)).across).toBeLessThanOrEqual(0)
     if (width === 1440) {
-      // The line-art hero on the left, the stats on the right.
-      const art = await page.locator('.su-entity-page__art').first().boundingBox()
+      // The stats at the left, the line-art hero in the side column at the right.
+      const art = await page.locator('.su-manual__art').first().boundingBox()
       expect(art).toBeTruthy()
-      if (art && statsBox) expect(art.x).toBeLessThan(statsBox.x)
+      if (art && statsBox) expect(statsBox.x).toBeLessThan(art.x)
     }
   })
 }
 
-// A listing tile names its entity: the name never loses a character to the cells.
+// A listing line names its entity: the name never loses a character to the cells.
 for (const width of [375, 1440]) {
-  test(`a chassis listing tile at ${width}px shows its name in full`, { tag: '@pr' }, async ({
+  test(`a chassis listing line at ${width}px shows its name in full`, { tag: '@pr' }, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/chassis/')
-    const row = page.locator('a[aria-label="Scrapper"][href*="/chassis/"]')
-    await expect(row).toBeVisible({ timeout: 30_000 })
-    const name = row.getByText('Scrapper', { exact: true })
+    const name = page.locator('.su-ledger__name', {
+      has: page.getByRole('link', { name: 'Scrapper', exact: true }),
+    })
+    await expect(name).toBeVisible({ timeout: 30_000 })
     const fits = await name.evaluate((el) => el.scrollWidth <= el.clientWidth)
     expect(fits).toBe(true)
+    expect((await pageOverflow(page)).across).toBeLessThanOrEqual(0)
   })
 }
 
@@ -135,15 +163,15 @@ for (const width of [375, 1440]) {
 // Hacker): every compact card holds its parts — the name ends in "…" inside it, and
 // its chips and cells stay inside instead of being pushed past its edge. A
 // systems CompactIndex's frame; an ability Compact's head, on the Tree.
-for (const [schema, part] of [
-  ['systems', '.su-listing__tiles a[aria-label] .su-entity-index__frame'],
-  ['abilities', '.su-listing__cards a[aria-label] [data-fill]'],
+for (const [schema, view, part] of [
+  ['systems', 'catalog', '.su-listing__tiles a[aria-label] .su-entity-index__frame'],
+  ['abilities', 'tree', '.su-listing a[aria-label] [data-fill]'],
 ] as const) {
   test(`every ${schema} listing card at 375px keeps its parts inside it`, { tag: '@pr' }, async ({
     page,
   }) => {
     await page.setViewportSize({ width: 375, height: 900 })
-    await page.goto(`/${schema}/`)
+    await page.goto(`/${schema}/?view=${view}`)
     const headers = page.locator(part)
     await expect(headers.first()).toBeVisible({ timeout: 30_000 })
     const broken = await headers.evaluateAll((rows) =>
@@ -167,13 +195,13 @@ for (const [schema, part] of [
 
 // (f) A roll table rolling on its own page: `roll-instrument.e2e.ts`.
 
-// (g) Every listing is the Catalog at every width: one flat grid of CompactIndexes, no
-// group headings, its List one press away (E2), each art box 3:4 before its image loads
-// (on a phone, at 40rem and below, a 2:1 band).
+// (g) Every listing's Catalog at every width: one flat grid of CompactIndexes, no
+// group headings, its List one press away (E2), each art box one height (24rem) whatever
+// its tile's width before its image loads (on a phone, at 40rem and below, a 2:1 band).
 for (const width of [1440, 390]) {
   test(`the /chassis/ Catalog is one flat grid at ${width}px`, { tag: '@pr' }, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
-    await page.goto('/chassis/')
+    await page.goto('/chassis/?view=catalog')
     const tile = page.locator('.su-listing__tiles a.su-entity-index').first()
     await expect(tile).toBeVisible({ timeout: 30_000 })
     await expect(page.locator('.su-listing__group')).toHaveCount(1)
@@ -184,20 +212,23 @@ for (const width of [1440, 390]) {
     await expect(art).toBeVisible()
     const box = await art.boundingBox()
     expect(box).not.toBeNull()
-    const ratio = width > 640 ? 3 / 4 : 2 / 1
-    if (box) expect(Math.abs(box.width / box.height - ratio)).toBeLessThan(0.02)
+    if (box && width > 640) expect(box.height).toBeCloseTo(384, 0)
+    else if (box) expect(Math.abs(box.width / box.height - 2 / 1)).toBeLessThan(0.02)
   })
 }
 
-// (h) The abilities open on their Tree (each tree on its track), one column;
-// their Catalog is one flat grid of CompactIndexes, under no tree heading.
-test('the abilities open on their Tree and offer a flat Catalog', { tag: '@pr' }, async ({
-  page,
-}) => {
+// (h) The abilities open on their List, as every listing does, and offer
+// their Tree (each tree on its track) and a flat Catalog under no tree heading.
+test('the abilities open on their List and offer a Tree and a flat Catalog', {
+  tag: '@pr',
+}, async ({ page }) => {
   await page.setViewportSize(DESIGN_VIEWPORTS.page)
   await page.goto('/abilities/')
-  const tree = page.getByRole('button', { name: 'Tree' })
-  await expect(tree).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 })
+  const list = page.getByRole('button', { name: 'List' })
+  await expect(list).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 })
+  await expect(page.locator('.su-listing .su-ledger__table')).toHaveCount(1)
+  // Exact: the List's head stamps sort, and one sorts by Tree.
+  await page.getByRole('button', { name: 'Tree', exact: true }).click()
   await expect(page.locator('.su-ability-track').first()).toBeVisible()
   await page.getByRole('button', { name: 'Catalog' }).click()
   await expect(page.locator('.su-ability-track')).toHaveCount(0)

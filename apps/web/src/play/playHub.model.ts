@@ -4,7 +4,7 @@
  * opens the Game's page in Play; its chips are your role, how many are here,
  * the Downtime state and its Discord channel; its body is the crew as
  * header-only Minis; its doors are the ways into play: the group session
- * (Start group session, then Mediate) and Play or Join as <pilot>.
+ * (Start group session, then Mediate) and Play <pilot>.
  */
 
 import { cockpitPath, mediatePath, sheetPath } from 'game-domain/entityKinds'
@@ -14,6 +14,9 @@ import type { PairSide } from '../lib/units/crewPair'
 import { crewPair, gauge, pool } from '../lib/units/crewPair'
 import { techLevelReading, VITAL } from '../lib/units/readings'
 import { playCopy } from '../messages/play'
+import { pilotMechs } from './games/crewMechs.model'
+import { gamePrepPath } from './games/prep/gamePrep.model'
+import { sessionDoor, sessionDoorAs } from './sessionDoor.model'
 import type { CrewVitals } from './useGameFeed'
 
 /** A label-first chip on a Game's Compact: `Mediator`, `3 here`, `DOWNTIME | Step 4`. */
@@ -39,8 +42,14 @@ export function gameChips(args: {
   downtime: { running: boolean; stepIndex: number | null } | undefined
   /** The bound channel as `#salvage-run`; null or absent with none. */
   channel?: string | null
+  /** Proposals still open: the viewer's to answer and the ones they sent (r7 C11). */
+  pending?: number
+  /** When the table last played, as it reads (`2 days ago`); null or absent when it never has. */
+  played?: string | null
+  /** The next plan (`sessionPlans`); null or absent with none. */
+  next?: string | null
 }): HubChip[] {
-  const { mediator, live = false, here, downtime, channel } = args
+  const { mediator, live = false, here, downtime, channel, pending = 0, played, next } = args
   return [
     { key: 'role', label: mediator ? 'Mediator' : 'Player' },
     ...(live ? [{ key: 'session', label: playCopy('sessionLive') }] : []),
@@ -54,14 +63,27 @@ export function gameChips(args: {
           },
         ]
       : []),
+    ...(pending > 0
+      ? [
+          {
+            key: 'pending',
+            label: playCopy('proposals'),
+            value: playCopy('nPending', { n: pending }),
+          },
+        ]
+      : []),
+    ...(played ? [{ key: 'played', label: playCopy('lastPlayed'), value: played }] : []),
+    ...(next ? [{ key: 'next', label: playCopy('nextPlan'), value: next }] : []),
     ...(channel ? [{ key: 'channel', label: channel }] : []),
   ]
 }
 
 /**
- * A Game's doors, in order: the table runner's first (Start group session
- * until one is live, then Mediate; Mediate while the session is unknown), then one for each pilot of yours in it
- * (Join as <pilot> while a session is live, else Play <pilot>), so a Mediator
+ * A Game's doors, in order: the Mediator's first (Start group session until
+ * one is live, never while the session is unknown; then Mediate and Prep,
+ * always, so looking at the table announces nothing: MD4-13), then one for each pilot of yours in it
+ * (Join session while one is live, else Open table: `sessionDoor`; with
+ * several pilots each door adds its callsign), so a Mediator
  * who also plays and a player with two pilots reach every one of them. None
  * when you neither mediate nor have a pilot there (its page is where you add one).
  */
@@ -71,10 +93,19 @@ export function gameDoors(
   /** A group session is live; null while unknown (loading, or no connection), read as not live but with no Start. */
   live: boolean | null = null
 ): GameDoor[] {
+  // The quiet ways in: neither starts a session.
+  const quiet: GameDoor[] = [
+    { label: 'Mediate', href: mediatePath(game._id), ariaLabel: `Mediate ${game.name}` },
+    {
+      label: playCopy('prep'),
+      href: gamePrepPath(game._id),
+      ariaLabel: playCopy('prepOf', { game: game.name }),
+    },
+  ]
   const runner: GameDoor[] = !game.mediator
     ? []
     : live !== false
-      ? [{ label: 'Mediate', href: mediatePath(game._id), ariaLabel: `Mediate ${game.name}` }]
+      ? quiet
       : [
           {
             // Short on the hub's head, so the Game's name keeps its room (C2b); the
@@ -84,22 +115,20 @@ export function gameDoors(
             ariaLabel: playCopy('startGroupSessionOf', { game: game.name }),
             start: true,
           },
+          ...quiet,
         ]
   return [
     ...runner,
-    ...pilots.map((pilot) =>
-      live
-        ? {
-            label: playCopy('joinAs', { name: pilot.name }),
-            href: cockpitPath(pilot.id),
-            ariaLabel: playCopy('joinSessionAs', { game: game.name, name: pilot.name }),
-          }
-        : {
-            label: `Play ${pilot.name}`,
-            href: cockpitPath(pilot.id),
-            ariaLabel: `Play ${pilot.name} in ${game.name}`,
-          }
-    ),
+    // The seat's door has the Game's two names, as on its page (glossary §9,
+    // r3 H3); two pilots' doors are told apart by callsign.
+    ...pilots.map((pilot) => ({
+      label:
+        pilots.length === 1
+          ? sessionDoor(live === true)
+          : `${sessionDoor(live === true)} · ${pilot.name}`,
+      href: cockpitPath(pilot.id),
+      ariaLabel: sessionDoorAs(live === true, pilot.name, game.name),
+    })),
   ]
 }
 
@@ -145,15 +174,16 @@ const bodyText = (body: unknown, key: string): string | null => {
   return typeof value === 'string' && value !== '' ? value : null
 }
 
+/** One line of a Game's crew: whose it is, and whether a pilot leads it (aboard or on foot). */
+export type CrewEntry = { ownerId: string | null; pilot: boolean; unit: LinkedUnit }
+
 /**
  * The pilots and mechs of a Game as linked Minis with their chips, each pilot
  * paired with its mech (`crewPair`: the mech while the pilot is aboard, else
  * the pilot), then the mechs no pilot is assigned; each with whose it is, so
  * a member's card can list its own.
  */
-export function pairedCrew(
-  sources: Pick<CrewSources, 'pilots' | 'mechs'>
-): { ownerId: string | null; unit: LinkedUnit }[] {
+export function pairedCrew(sources: Pick<CrewSources, 'pilots' | 'mechs'>): CrewEntry[] {
   const mechs = new Map(sources.mechs.map((m) => [m.linkId ?? m._id, m]))
   const mechSide = (m: CrewSources['mechs'][number]): PairSide => ({
     id: m._id,
@@ -166,13 +196,25 @@ export function pairedCrew(
       ...gauge(VITAL.heat, m.currentHeat, m.maxHeat),
     ],
   })
-  const out: { ownerId: string | null; unit: LinkedUnit }[] = []
+  const out: CrewEntry[] = []
   const placed = new Set<string>()
+  // A Mech is listed once, under one Pilot (r8 C5, `pilotMechs`).
+  const listed = pilotMechs(
+    sources.pilots.map((p) => ({
+      id: p._id,
+      ownerId: p.ownerId,
+      boarded: p.boarded,
+      mechId: p.mechId,
+    })),
+    (id) => mechs.get(id)?.ownerId
+  )
   for (const p of sources.pilots) {
-    const mech = p.mechId === null ? undefined : mechs.get(p.mechId)
-    if (mech !== undefined && p.mechId !== null) placed.add(p.mechId)
+    const mechId = listed.get(p._id) ?? null
+    const mech = mechId === null ? undefined : mechs.get(mechId)
+    if (mech !== undefined && mechId !== null) placed.add(mechId)
     out.push({
       ownerId: p.ownerId,
+      pilot: true,
       unit: crewPair({
         pilot: {
           id: p._id,
@@ -193,6 +235,7 @@ export function pairedCrew(
     const side = mechSide(m)
     out.push({
       ownerId: m.ownerId,
+      pilot: false,
       unit: { key: `mech:${m._id}`, kind: 'mech', ...side },
     })
   }
@@ -202,14 +245,31 @@ export function pairedCrew(
 /**
  * A Game's crew on its card, read-only, each a header-only Mini with its
  * chips that opens its sheet in Build (Play lists the crew, Build keeps it):
- * the crawler (the primary first), then the pilots and mechs (`pairedCrew`).
+ * the viewer's own pilots first, each marked Yours (r7 C11), then the crawler
+ * (the primary first), then everyone else's pilots and mechs (`pairedCrew`).
+ * Spares nobody holds (a template's unassigned pregens) are the Mediator's to
+ * hand out, so a plain player's card leaves them out (r8 C8, LG8-19).
  */
-export function gameCrew(sources: CrewSources): LinkedUnit[] {
+export function gameCrew(
+  sources: CrewSources,
+  viewerId: string | null = null,
+  /** The viewer runs this table: its unassigned spares are listed. */
+  runsTable = true
+): LinkedUnit[] {
   const crawlers = [...sources.crawlers].sort(
     (a, b) =>
       Number(b._id === sources.primaryCrawlerId) - Number(a._id === sources.primaryCrawlerId)
   )
+  const crew = pairedCrew(sources).filter((p) => runsTable || p.ownerId !== null)
+  const isMine = (p: CrewEntry) => viewerId !== null && p.pilot && p.ownerId === viewerId
+  const mine = crew.filter(isMine).map(
+    ({ unit }): LinkedUnit => ({
+      ...unit,
+      relations: [...(unit.relations ?? []), { key: 'yours', name: playCopy('yours') }],
+    })
+  )
   return [
+    ...mine,
     ...crawlers.map(
       (c): LinkedUnit => ({
         key: `crawler:${c._id}`,
@@ -221,6 +281,6 @@ export function gameCrew(sources: CrewSources): LinkedUnit[] {
         ),
       })
     ),
-    ...pairedCrew(sources).map((p) => p.unit),
+    ...crew.filter((p) => !isMine(p)).map((p) => p.unit),
   ]
 }

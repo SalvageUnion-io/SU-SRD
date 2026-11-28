@@ -17,27 +17,40 @@
  * corpus to the browser.
  */
 
-import type { RefEntity } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
   extractContentText,
   getEntitySlug,
+  getPatterns,
   isSchemaName,
+  nameToSlug,
   patternSearchText,
+  rulesSearchText,
+  searchAliases,
+  searchSquashedName,
   toEntityModel,
 } from 'salvageunion-reference'
 // `extractContentText` and `isSchemaName` are the package's own primitives —
 // this module is Node-only and already loads the ORM, so importing them costs
 // nothing and keeps the index's field extraction byte-identical to the
 // ORM-backed `search()` it mirrors.
+import { TRAINING_POINTS } from '../components/entity'
 import type { EntityFormModel } from '../components/index'
+import { libCopy } from '../messages/lib'
+import { buildChapters } from './chapters'
+import { itemHref, patternHref } from './entityHref'
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
+import { listingEntries } from './listingEntries'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 const TEXT_FIELDS = ['description', 'effect', 'goals', 'assets', 'weaknesses'] as const
 
+/** A search result's kind for a pattern, which has no schema to name it. */
+const PATTERN_KIND = 'Pattern'
+
 /** The Compact's parts of an entity's model, for a search result (no lead, no hints). */
-function rowModel(entity: RefEntity): EntityFormModel {
-  const m = toEntityModel(entity)
+function rowModel(entity: RefEntity, pattern?: RefObjectAnyPattern): EntityFormModel {
+  const m = toEntityModel(entity, undefined, pattern ? { pattern } : undefined)
   return {
     ref: m.ref,
     title: m.title,
@@ -54,8 +67,97 @@ function rowModel(entity: RefEntity): EntityFormModel {
   }
 }
 
+/** The rules terms a search result defines in a line (RR6-04): a keyword's, a trait's, a range band's (RR7-03). */
+const DEFINED: ReadonlySet<string> = new Set(['keywords', 'traits', 'distances'])
+
+/** The first sentence of a rules term's lead: the dropdown's one line under its name. */
+function definitionOf(entity: RefEntity): string | undefined {
+  const lead = toEntityModel(entity).lead
+  return lead?.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? lead ?? undefined
+}
+
+/** A search result's kind for a rule told inside a guide. */
+const RULE_KIND = 'Rule'
+
+/**
+ * Rules the dataset gives no entry of their own, each found by its name and
+ * opened where the book tells it: a guide's step. In the app's own words (a
+ * stat term's, `statTerms`), so no book text is added to the index.
+ */
+const RULE_ROWS: readonly { name: string; text: string; guide: string; step: string }[] = [
+  {
+    name: TRAINING_POINTS.name,
+    text: TRAINING_POINTS.text,
+    guide: 'Crawler Downtime',
+    step: 'Train your Pilot',
+  },
+]
+
+/** `RULE_ROWS` as index rows: the rule's name, opening its guide at the step that tells it. */
+function ruleEntries(): CompactSearchEntry[] {
+  const schema = getEntitySchemas().find((candidate) => candidate.id === 'guides')
+  return RULE_ROWS.flatMap((rule) => {
+    const guide = SalvageUnionReference.Guides.getByName(rule.guide)
+    const step = guide?.steps?.find((candidate) => candidate.name === rule.step)
+    if (!schema || !guide || !step) return []
+    const nameText = rule.name.toLowerCase()
+    const aliases = searchAliases(nameText)
+    return [
+      {
+        id: `${guide.id}:rule:${nameToSlug(rule.name)}`,
+        name: rule.name,
+        slug: nameToSlug(rule.name),
+        schemaName: 'guides' as const,
+        schemaTitle: schema.title,
+        text: [rule.name, rule.text, ...aliases].join(' ').toLowerCase(),
+        model: { ...rowModel(guide), title: rule.name },
+        ...(aliases.length > 0 ? { aliases: [...aliases] } : {}),
+        pattern: {
+          // The step's anchor on its guide's page (`guideAnchors`: its name as a slug).
+          href: `${itemHref('guides', getEntitySlug(guide))}#${nameToSlug(step.name)}`,
+          kind: `${RULE_KIND} · ${guide.name}`,
+        },
+        rule: true,
+      },
+    ]
+  })
+}
+
+/** A search result's kind for one of the Reference's chapters (its sections: Pilot Bay, Mech Workshop…). */
+const SECTION_KIND = libCopy('referenceSection')
+
+/**
+ * The Reference's chapters as rows of their own, each opening its page
+ * (`/pilots/`): "pilot bay" names both a Crawler Bay and the section that
+ * holds Classes, Abilities and Equipment (RR7-16), and both are offered.
+ */
+function sectionEntries(): CompactSearchEntry[] {
+  return buildChapters().flatMap((chapter) => {
+    const first = chapter.rows[0]?.schemaId
+    if (!first || !isSchemaName(first)) return []
+    const schema = getEntitySchemas().find((candidate) => candidate.id === first)
+    return [
+      {
+        id: `section:${chapter.id}`,
+        name: chapter.title,
+        slug: chapter.id,
+        schemaName: first,
+        schemaTitle: schema?.title ?? first,
+        text: [chapter.title, ...chapter.rows.map((row) => row.label)].join(' ').toLowerCase(),
+        pattern: { href: chapter.href, kind: SECTION_KIND },
+      },
+    ]
+  })
+}
+
 export function buildSearchIndexEntries(): CompactSearchEntry[] {
-  const entries: CompactSearchEntry[] = []
+  // The rules' own rows lead: on equal terms a rule's name is found before the guide that tells it.
+  const entries: CompactSearchEntry[] = ruleEntries()
+  // The roll tables another record prints as its own: ranked under that owner.
+  // What the Roll Tables listing leaves out (`listingEntries`).
+  const tables = SalvageUnionReference.RollTables.all()
+  const topLevel = new Set(listingEntries('roll-tables', tables).map((table) => table.name))
+  const embedded = new Set(tables.filter((t) => !topLevel.has(t.name)).map((t) => t.name))
 
   for (const schema of getEntitySchemas()) {
     // Runtime-validated narrowing (string catalog id → schema name) instead
@@ -89,9 +191,19 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
         }
       }
 
+      // A guide's steps and a roll table's results are its rules too.
+      const rulesText = rulesSearchText(entity)
+      if (rulesText) parts.push(rulesText)
+
       // A pattern is found through its host ("Hill Worm" finds Typhon).
       const patternText = patternSearchText(entity)
       if (patternText) parts.push(patternText)
+
+      // The name as it may be typed instead: without its punctuation
+      // ("biotitan"), or by an alias ("sp").
+      const nameText = entity.name.toLowerCase()
+      const aliases = searchAliases(nameText)
+      parts.push(searchSquashedName(nameText), ...aliases)
 
       entries.push({
         id: entity.id,
@@ -100,10 +212,42 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
         schemaName: schema.id,
         schemaTitle: schema.title,
         text: parts.join(' ').toLowerCase(),
-        model: rowModel(entity),
+        model: DEFINED.has(schema.id)
+          ? { ...rowModel(entity), lead: definitionOf(entity) }
+          : rowModel(entity),
+        ...(aliases.length > 0 ? { aliases: [...aliases] } : {}),
+        ...(schema.id === 'roll-tables' && embedded.has(entity.name) ? { embedded: true } : {}),
       })
+
+      // And by its own name, as a row of its own that opens its own page
+      // ("Stefanus" opens the pattern, not its chassis).
+      for (const pattern of getPatterns(entity as RefMetaEntity) ?? []) {
+        const slug = nameToSlug(pattern.name)
+        entries.push({
+          id: `${entity.id}:pattern:${slug}`,
+          name: pattern.name,
+          slug,
+          schemaName: schema.id,
+          schemaTitle: schema.title,
+          text: [
+            pattern.name,
+            searchSquashedName(pattern.name.toLowerCase()),
+            PATTERN_KIND,
+            extractContentText(pattern.content ?? []),
+          ]
+            .join(' ')
+            .toLowerCase(),
+          model: rowModel(entity, pattern),
+          pattern: {
+            href: patternHref(schema.id, getEntitySlug(entity), slug),
+            kind: `${PATTERN_KIND} · ${entity.name}`,
+          },
+        })
+      }
     }
   }
 
+  // After the entries: on equal terms a rule's own page leads its section.
+  entries.push(...sectionEntries())
   return entries
 }

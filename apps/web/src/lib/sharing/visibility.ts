@@ -9,7 +9,11 @@
  *  - **A sheet** (pilot, mech, crawler, NPC) lives in one container
  *    (ADR-030 §2). In a Game, its crew can see it because it is there; on the
  *    shelf, only its owner can. So the crew answer follows the container, and
- *    the one switch is "Public" (`publicSheet.setPublic`).
+ *    the one switch is "Public" (`publicSheet.setPublic`). An NPC is the
+ *    exception: in a Game it is its Mediator's alone until it is put on the
+ *    field (`rooms/game/readers.ts`), so its answer there is Only the
+ *    Mediator, as the Mediator's Kit lists it; one that crews the Union
+ *    Crawler is the crew's like any sheet.
  *  - **A pattern** never moves into a Game, so its crew answer is its own
  *    choice of Game (`shelf.setPatternVisibility`).
  *
@@ -17,6 +21,8 @@
  * connected settings (`ShareSettings.tsx`) decide which write each one makes.
  */
 import type { PublicKind } from 'game-domain/entityKinds'
+import { CREDIT_EVERY_PUBLIC_PATTERN } from '../../build/rulings.model'
+import { libSharingCopy } from '../../messages/lib-sharing'
 import type { PatternVisibility } from '../patterns/patterns'
 
 /** The kinds of player thing a player can share. */
@@ -35,9 +41,10 @@ export type VisibilityChoice = {
 }
 
 const LABEL: Record<Visibility, string> = {
-  private: 'Only me',
-  game: 'My Game’s crew',
-  link: 'Public',
+  private: libSharingCopy('onlyMe'),
+  game: libSharingCopy('myGamesCrew'),
+  // One word for public, in Share and on the shelves (r6 E11).
+  link: libSharingCopy('publicLink'),
 }
 
 /**
@@ -48,43 +55,73 @@ const LABEL: Record<Visibility, string> = {
 export function sheetChoices(args: {
   inGame: boolean
   gameName: string | null
+  /** An NPC in a Game that crews no crawler: its Mediator's alone (`mediatorOnly`). */
+  mediatorOnly?: boolean
 }): VisibilityChoice[] {
   const { inGame } = args
-  const game = args.gameName ?? 'its Game'
+  const game = args.gameName ?? libSharingCopy('itsGame')
+  if (inGame && args.mediatorOnly === true) {
+    return [
+      {
+        value: 'private',
+        label: libSharingCopy('onlyTheMediator'),
+        description: libSharingCopy('npcMediatorOnly', { game }),
+        disabled: false,
+      },
+      {
+        value: 'game',
+        label: LABEL.game,
+        description: libSharingCopy('npcCrewLater'),
+        disabled: true,
+      },
+      {
+        value: 'link',
+        label: LABEL.link,
+        description: libSharingCopy('sheetLink'),
+        disabled: false,
+      },
+    ]
+  }
   return [
     {
       value: 'private',
       label: LABEL.private,
       description: inGame
-        ? `It is in ${game}, so its crew can see it. Move it to your Training Bay to keep it to yourself.`
-        : 'Kept in your Training Bay. Nobody else can open it.',
+        ? libSharingCopy('sheetPrivateInGame', { game })
+        : libSharingCopy('sheetPrivateOnShelf'),
       disabled: inGame,
     },
     {
       value: 'game',
       label: LABEL.game,
       description: inGame
-        ? `Everyone in ${game} can see it, because it is there.`
-        : 'Move it into a Game to share it with that Game’s crew.',
+        ? libSharingCopy('sheetGameInGame', { game })
+        : libSharingCopy('sheetGameOnShelf'),
       disabled: !inGame,
     },
     {
       value: 'link',
       label: LABEL.link,
-      description:
-        'One live, read-only page anyone can open with no account. It follows every edit, and everything on it goes too, bio and appearance text included.',
+      description: libSharingCopy('sheetLink'),
       disabled: false,
     },
   ]
 }
 
-/** A pattern's answers. `gameName` is the Game "My Game's crew" would share it with. */
-export function patternChoices(args: { gameName: string | null }): VisibilityChoice[] {
+/**
+ * A pattern's answers. `gameName` is the Game "My Game's crew" would share it
+ * with; `maker` the viewer's display name, null with none set (undefined: not
+ * known yet), so Public says the name it will credit (r8 E12).
+ */
+export function patternChoices(args: {
+  gameName: string | null
+  maker?: string | null | undefined
+}): VisibilityChoice[] {
   return [
     {
       value: 'private',
       label: LABEL.private,
-      description: 'Kept in your Training Bay. Build mechs from it any time.',
+      description: libSharingCopy('patternPrivate'),
       disabled: false,
     },
     {
@@ -92,21 +129,40 @@ export function patternChoices(args: { gameName: string | null }): VisibilityCho
       label: LABEL.game,
       description:
         args.gameName === null
-          ? 'Join or start a Game to share with its crew.'
-          : `Everyone in ${args.gameName} can see it and build from it.`,
+          ? libSharingCopy('patternNoGame')
+          : libSharingCopy('patternGame', { game: args.gameName }),
       disabled: args.gameName === null,
     },
     {
       value: 'link',
       label: LABEL.link,
-      description: 'A public pattern page, like a reference page, that anyone can read and copy.',
+      // Public credits its maker by display name (r6 E11, `CREDIT_EVERY_PUBLIC_PATTERN`).
+      description: !CREDIT_EVERY_PUBLIC_PATTERN
+        ? libSharingCopy('patternLink')
+        : args.maker === null
+          ? libSharingCopy('patternLinkNoName')
+          : args.maker === undefined
+            ? libSharingCopy('patternLinkCredited')
+            : libSharingCopy('patternLinkCreditedAs', { name: args.maker }),
       disabled: false,
     },
   ]
 }
 
 /** A sheet's current answer: public by link, else whoever its container lets in. */
-export function sheetVisibility(args: { isPublic: boolean; inGame: boolean }): Visibility {
+export function sheetVisibility(args: {
+  isPublic: boolean
+  inGame: boolean
+  mediatorOnly?: boolean
+}): Visibility {
   if (args.isPublic) return 'link'
-  return args.inGame ? 'game' : 'private'
+  return args.inGame && args.mediatorOnly !== true ? 'game' : 'private'
+}
+
+/**
+ * Whether a sheet in a Game is withheld from its crew: an NPC that crews no
+ * crawler (`rooms/game/readers.ts`). Pilots, mechs and crawlers never are.
+ */
+export function mediatorOnly(kind: ShareKind, inGame: boolean, crews: boolean): boolean {
+  return kind === 'npc' && inGame && !crews
 }

@@ -1,0 +1,30 @@
+/**
+ * A Game's page — /games/:gameId (ADR-052 §5)
+ *
+ * The Game's management page in Play: its roster, crew and seats, proposals,
+ * the invite link, the Mediator and the Game's settings (`GamePage`). Separate
+ * from the Mediator's live Cockpit (`/games/:gameId/mediate`); both Cockpits link
+ * here from their ⋯. Who may see it is `games.get`'s question, asked live in
+ * the component: a Game you are not in reads as an explanation.
+ */
+
+import { createFileRoute } from '@tanstack/react-router'
+import { PRODUCT } from 'game-domain/product'
+import { ActivityHome } from '../../activity/ActivityHome'
+import { useActivity } from '../../activity/activityStore'
+import { areaTitle } from '../../lib/pageTitle'
+import { routesCopy } from '../../messages/routes'
+import { GamePage } from '../../play/games/GamePage'
+
+export const Route = createFileRoute('/games/$gameId')({
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, routesCopy('game')) }] }),
+  component: GamePageRoute,
+})
+
+function GamePageRoute() {
+  const { gameId } = Route.useParams()
+  const activity = useActivity()
+  // In the Discord Activity: the Game's line and its door; managing it is the web's.
+  if (activity !== null) return <ActivityHome only={gameId} />
+  return <GamePage gameId={gameId} />
+}

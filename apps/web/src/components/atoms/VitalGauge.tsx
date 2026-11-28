@@ -11,6 +11,7 @@ import { POSTER_STAMP } from './posterStamp'
 import { StepButton } from './SmallButtons'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
+import { VitalGaugeValue } from './VitalGaugeValue'
 import {
   C_HEAD,
   C_LABEL,
@@ -40,7 +41,9 @@ import {
   ROOT,
   SLASH,
   STAMP,
+  STEP_END,
   STEP_FULL,
+  STEPPERS_END,
   STEPPERS_FULL,
   SUB_LABEL,
 } from './vitalGaugeFull'
@@ -120,9 +123,12 @@ export type VitalGaugeProps = {
    * each one step, clamped to 0…max — the pair an editable `Stat` draws. On
    * the compact rung after the track, at the line's Compact Size (44px on
    * touch); on the `full` rung under the track, sharing its width at the Full
-   * Size (Play's table mode). The sheet passes none: its track is the control.
+   * Size (Play's table mode), or, as `'end'`, a pair of Compact squares at
+   * the track's end (a Live Sheet's vitals, which step in Read: R11).
    */
-  steppers?: boolean
+  steppers?: boolean | 'end'
+  /** The compact value as a button (`VitalGaugeValue`): the caller asks for an amount. */
+  onValuePress?: (() => void) | undefined
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
   readOnly?: boolean
   /** First 0-based segment index that reads as danger (status-bad) when lit. */
@@ -180,6 +186,7 @@ export function VitalGauge({
   onRevertOverride,
   provenance,
   steppers = false,
+  onValuePress,
   readOnly,
   danger,
   size = 'full',
@@ -236,10 +243,11 @@ export function VitalGauge({
   const segCount = Math.max(max, shown)
   const dangerFrom = danger ?? Number.POSITIVE_INFINITY
 
-  const summary = `${label} ${shown} of ${max}${isOver ? ' — over capacity' : ''}`
+  const plain = `${label} ${shown} of ${max}`
+  const summary = isOver ? atomsCopy('overCapacity', { summary: plain }) : plain
   // The slider's spoken value: the summary, plus the redline once a lit
   // segment sits past it (the same test that paints that segment danger).
-  const valueText = `${summary}${shown > dangerFrom ? ', over redline' : ''}`
+  const valueText = shown > dangerFrom ? atomsCopy('overRedline', { summary }) : summary
 
   const setValue = (next: number) => {
     if (!editable) return
@@ -353,14 +361,13 @@ export function VitalGauge({
           <span className={capsLabel({ size: 'badge' })} style={{ ...C_LABEL, color: color.ink }}>
             {label}
           </span>
-          <span
-            style={{
-              ...C_VALUE,
-              color: isOver ? color.statusBad : color.ink,
-            }}
+          <VitalGaugeValue
+            style={{ ...C_VALUE, color: isOver ? color.statusBad : color.ink }}
+            name={atomsCopy('changeByAmount', { label, value: shown, max })}
+            onPress={editable ? onValuePress : undefined}
           >
             {shown}/{max}
-          </span>
+          </VitalGaugeValue>
         </div>
         {/*
          * Pips follow the §4.5 row split (`statBlockRowStarts`: at most six a
@@ -541,7 +548,7 @@ export function VitalGauge({
         </div>
       )}
 
-      {stepper && <Steppers {...stepper} rung="full" />}
+      {stepper && <Steppers {...stepper} rung={steppers === 'end' ? 'end' : 'full'} />}
 
       {/* No Current / Max caption, in Read or Edit: the numeral already says
           current / max, and Edit looks like Read. An
@@ -555,17 +562,20 @@ export function VitalGauge({
   )
 }
 
-/** The − / + pair, one step each, clamped to 0…max: the compact rung's or the full one's. */
+const STEP_STYLE = { compact: STEP, full: STEP_FULL, end: STEP_END } as const
+const STEPPERS_STYLE = { compact: STEPPERS, full: STEPPERS_FULL, end: STEPPERS_END } as const
+
+/** The − / + pair, one step each, clamped to 0…max: the compact rung's, the full one's, or the sheet's. */
 function Steppers(p: {
   label: string
   shown: number
   max: number
   set: (v: number) => void
-  rung: 'compact' | 'full'
+  rung: 'compact' | 'full' | 'end'
 }) {
-  const step = p.rung === 'full' ? STEP_FULL : STEP
+  const step = STEP_STYLE[p.rung]
   return (
-    <span style={p.rung === 'full' ? STEPPERS_FULL : STEPPERS}>
+    <span style={STEPPERS_STYLE[p.rung]}>
       <StepButton
         aria-label={atomsCopy('decrease2', { label: p.label })}
         disabled={p.shown <= 0}

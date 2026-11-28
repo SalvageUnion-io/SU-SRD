@@ -78,6 +78,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     foldedAction,
     assetUrl,
     assetSrcSet,
+    assetBare,
     sectionAs,
     afterExtraContent,
     selections,
@@ -119,7 +120,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         table={entityTable}
         name={tableName}
         size={size}
-        disabled={!!isDown}
+        disabled={!!isDown || !!hide?.roll}
         nested={!onPage}
         peekAt={onPage ? undefined : tablePeekAddress(tableSource)}
         tone={tone.bgColor}
@@ -175,6 +176,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         compact={compact}
         aside={asideLead}
         hero={onPage}
+        bare={assetBare}
       />
     ) : undefined
 

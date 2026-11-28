@@ -3,23 +3,22 @@
  *
  * Headed by its chapter's band, or its own (`listingBandFillFor`: the systems'
  * and modules' TL blue) (the schema's plural name notched in, the
- * listing's search and filters on it), then the listing: the Catalog, one flat grid of CompactIndexes with no group headings, at
- * every width (`lib/listingView.ts`). The abilities open on their Tree
- * instead, each tree under its heading on its track, with Catalog | Tree in
- * the rail. Its footer wears the same chapter's band (the leading band's rule), as an entity page
- * does.
+ * listing's search and filters on it), then the listing: its List, the Ledger,
+ * a line an entity (`IndexLedger`), at every width, with List | Catalog in the
+ * rail (`lib/listingView.ts`); the abilities offer their Tree between the two.
+ * Its footer wears the same chapter's band (the leading band's rule), as an
+ * entity page does.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
  * `astro/DESIGN.md`), and what it server-renders is its own listing
  * (`SchemaViewerListing`) from build-time data, rail inert. The island loads
  * its data before its first render, so that commit draws the same listing
- * over the server's: the cards paint once, at first paint, rather than as
- * named rows replaced by cards when the data arrives. Mounting is still
+ * over the server's: the listing paints once, at first paint, rather than as
+ * placeholders replaced when the data arrives. Mounting is still
  * `createRoot`, so no hydration mismatch is possible.
  */
 
-import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
-import { getAssetUrl } from 'salvageunion-reference'
+import type { EnhancedSchemaMetadata, RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import type { ListingBand } from '../../../components/islands/ListingFrame'
 import { SchemaViewerListing } from '../../../components/islands/SchemaViewerIsland'
 import { chapterForSchema, listingBandFillFor } from '../../../lib/chapters'
@@ -27,12 +26,17 @@ import { PUBLISHER, SITE_URL, SRD_CRUMB, WEBSITE } from '../../../lib/constants'
 import { schemaHref } from '../../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
 import { listingEntries } from '../../../lib/listingEntries'
+import { listingFieldFacets } from '../../../lib/listingFacets'
 import type { ListingGroup, ListingShape } from '../../../lib/listingGroups'
-import { catalogGroupBy, defaultGroups, groupEntities } from '../../../lib/listingGroups'
-import { CATALOG_LISTINGS, defaultListingView } from '../../../lib/listingView'
+import { catalogGroupBy, groupEntities } from '../../../lib/listingGroups'
+import { listingPendingScript } from '../../../lib/listingPending'
+import { listingTraits } from '../../../lib/listingTraits'
+import { CATALOG_LISTINGS } from '../../../lib/listingView'
 import { pageTitle } from '../../../lib/pageTitle'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
+import { artUrlFor } from '../../../lib/sourceCovers'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
+import { pagesCopy } from '../../../messages/reference-pages'
 import { Island } from '../../../runtime/Island'
 import type { PageModule, PageResult, RouteContext } from '../../types'
 
@@ -52,30 +56,30 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const pluralName = schema.displayNamePlural || schemaName
   const chapter = chapterForSchema(schemaId)
   const canonicalUrl = `${SITE_URL}${schemaHref(schemaId)}`
-  const description = `Browse all ${pluralName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`
+  const description = pagesCopy('browseAll', { pluralName })
 
   // Pre-compute filter facets at build time. A `CATALOG_LISTINGS` schema is a
   // handful of tiles, so it has no TL facet.
   const techLevels = CATALOG_LISTINGS.has(schemaId) ? [] : getUniqueTechLevels(data)
   const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
   const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
+  // The weapons' and gear's traits: "which systems are Hot" is a filter.
+  const traits = listingTraits(data)
+  // Range, Action and Weapons only, from the columns the Systems List prints.
+  const fields = listingFieldFacets(schemaId, data)
   const preloadSchemas = getSchemaPreloadList(schemaId)
   // Art-less tiles take the Catalog's wider columns.
-  const hasArt = data.some((item) => !!getAssetUrl(item))
-  // The island's default view and its groups (the Catalog has one), so its
-  // skeleton sets the headings the grid mounts under.
-  const view = defaultListingView(schemaId)
-  const groups: ListingGroup[] =
-    view === 'tree'
-      ? defaultGroups(data, trees, techLevels, schemaId)
-      : groupEntities(data, catalogGroupBy(schemaId))
+  const hasArt = data.some((item) => !!artUrlFor(item as RefMetaEntity))
+  // The List's groups (one, but for the classes' Core and Hybrid), so the
+  // island's skeleton sets a Ledger where each will mount.
+  const groups: ListingGroup[] = groupEntities(data, catalogGroupBy(schemaId))
   // The band is the island's, so its search and filters can sit on it.
   const band: ListingBand = {
     title: pluralName,
     tone: chapter.tone,
     fill: listingBandFillFor(schemaId),
     trail: [
-      { name: SRD_CRUMB.name, url: '/' },
+      { name: SRD_CRUMB.name, url: '/reference/' },
       { name: pluralName, url: schemaHref(schemaId) },
     ],
   }
@@ -95,7 +99,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         name: schemaName,
         description,
         url: canonicalUrl,
-        keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName],
+        keywords: [
+          pagesCopy('salvageUnion'),
+          'TTRPG',
+          'SRD',
+          pagesCopy('systemReferenceDocument'),
+          schemaName,
+        ],
         isPartOf: WEBSITE,
         mainEntity: {
           '@type': 'ItemList',
@@ -107,6 +117,16 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     },
     children: (
       <div className="su-listing-shell">
+        {/* A filtered or sorted address: the served rows, the whole list, stay
+            out of sight from before the first paint (`listingPending`). */}
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: the page's own script, built from constants
+          dangerouslySetInnerHTML={{ __html: listingPendingScript() }}
+        />
+        {/* With scripts off nothing filters: the list says so, once. */}
+        <noscript>
+          <p className="su-listing__noscript">{pagesCopy('listingNeedsScripts')}</p>
+        </noscript>
         {/* The island draws the chapter band (the plural name in the notch,
             the rail as its controls) and the listing under it. */}
         <Island
@@ -119,6 +139,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             techLevels,
             sources,
             trees,
+            traits,
+            fields,
             preloadSchemas,
             hasArt,
             shape,
@@ -131,6 +153,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             techLevels={techLevels}
             sources={sources}
             trees={trees}
+            traits={traits}
+            fields={fields}
             hasArt={hasArt}
             entryIds={entryIds}
           />

@@ -42,11 +42,58 @@ export type ChangeMeta = {
  */
 export const PLAY_TXN: ChangeMeta = { kind: 'transaction', source: 'play' }
 
+/**
+ * A Play toast's Undo writing a number back (r3 B2): the same transaction,
+ * with a source the table's events read to mark the line as taken back
+ * (`rooms/game/eventLines.ts`'s `UNDO_SOURCE`).
+ */
+export const PLAY_UNDO: ChangeMeta = { kind: 'transaction', source: 'play-undo' }
+
+/**
+ * A Play transaction that names what it was for, so the Change Log can say
+ * what spent the points ("From Play · Squeeze It In", r3 B4). The name rides
+ * after the surface in `source` (`play:<name>`): the op's shape is unchanged,
+ * and a reader that wants only the surface takes what is before the colon.
+ */
+export function playTxn(did: string): ChangeMeta {
+  return { kind: 'transaction', source: `${PLAY_TXN.source}:${did}` }
+}
+
+/** A Downtime step or claim: Guided Play's, said apart in the Change Log (r3 B4). */
+export const DOWNTIME_TXN: ChangeMeta = { kind: 'transaction', source: 'downtime' }
+
 /** Guided Creation — an enforced creation-time transaction. */
 export const WIZARD_TXN: ChangeMeta = { kind: 'transaction', source: 'wizard' }
 
 /** Free Edit — a direct hand edit of entity state. */
 export const LIVE_SHEET_MANUAL: ChangeMeta = { kind: 'manual', source: 'live-sheet' }
+
+/**
+ * A Live Sheet edit made for something the sheet names, so the Change Log
+ * says what spent the points ("For Zoom Optics", r5 C9): `live-sheet:<name>`,
+ * as `playTxn` names Play's.
+ */
+export function liveSheetFor(did: string): ChangeMeta {
+  return { kind: 'manual', source: `${LIVE_SHEET_MANUAL.source}:${did}` }
+}
+
+/**
+ * A sheet's Undo taking one change back (r4 E2, E3), from the Change Log's
+ * button, Ctrl+Z or "Undo last change": a hand edit whose `source` names the
+ * change it reverses (`live-sheet-undo:<change id>`), so the log can say that
+ * change is taken back and offer it no second time. `sheetRedo` is that
+ * Undo's own Undo: the change stands again.
+ */
+export const SHEET_UNDO_SOURCE = 'live-sheet-undo'
+export const SHEET_REDO_SOURCE = 'live-sheet-redo'
+
+export function sheetUndo(changeId: string): ChangeMeta {
+  return { kind: 'manual', source: `${SHEET_UNDO_SOURCE}:${changeId}` }
+}
+
+export function sheetRedo(changeId: string): ChangeMeta {
+  return { kind: 'manual', source: `${SHEET_REDO_SOURCE}:${changeId}` }
+}
 
 /** Free Edit — pinning or reverting a quantitative cap (ADR-022 stat override). */
 export const LIVE_SHEET_OVERRIDE: ChangeMeta = { kind: 'override', source: 'live-sheet' }

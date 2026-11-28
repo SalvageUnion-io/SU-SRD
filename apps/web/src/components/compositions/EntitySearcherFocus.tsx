@@ -8,8 +8,9 @@
  * Removing is the sidebar's.
  */
 
-import type { CSSProperties, Ref } from 'react'
+import type { CSSProperties, ReactNode, Ref } from 'react'
 import { borderWidth, color, fontSize, space } from '../../design/tokens'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { BackLabel } from '../atoms/BackLabel'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
@@ -17,13 +18,16 @@ import { ChapterBandTrail } from '../atoms/ChapterBandTrail'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { EntityDetailPage } from '../referenceEntity/EntityDetailDialog'
-import type { PoolEntity } from './entitySearcherTypes'
+import { BudgetChips } from './EntitySearcherBudget'
+import type { BudgetConfig, PickCost, PoolEntity } from './entitySearcherTypes'
 
 /**
  * The action bar reads the focused entity's state: a stamp saying how many
  * are chosen, then what can be done next. Toggle offers ADD until it is
  * chosen; count offers ADD ANOTHER; single offers CHOOSE until it is the one
- * chosen. ADD names the sheet it lands on (`railName`).
+ * chosen. ADD names the sheet it lands on (`railName`). Where adding has a
+ * cost the paying act is the bold button, never the free ADD, and what the
+ * book asks first that is unmet is said above them (`PickCost.unmet`).
  */
 export function FocusPane({
   entity,
@@ -32,9 +36,13 @@ export function FocusPane({
   chosenLabel,
   railName,
   listName,
+  cost,
   hide,
   showChassisAbility,
   onAdd,
+  extra,
+  budgets,
+  userMade,
   onBack,
   backRef,
 }: {
@@ -46,16 +54,40 @@ export function FocusPane({
   railName?: string
   /** The list the back bar returns to (the picker's title); "List" when it has none. */
   listName?: string
+  /** What adding it costs, where the sheet can pay it as it adds. */
+  cost?: PickCost
   hide: ReferenceEntityCardHideConfig
   showChassisAbility?: boolean
   onAdd: () => void
+  /** A choice that goes with adding (which pattern), beside the button. */
+  extra?: ReactNode
+  /**
+   * The picker's budgets, where the Page has taken the list's place (narrow):
+   * the rail that reads them is out of sight, and this is where the choice is
+   * weighed (slots left against this entry's).
+   */
+  budgets?: BudgetConfig[] | undefined
+  /** The player's own entity: the Page credits no book. */
+  userMade?: boolean
   /** Narrow only: back to the list. */
   onBack?: () => void
   backRef?: Ref<HTMLButtonElement>
 }) {
   const chosen = count > 0
   const addLabel =
-    mode === 'single' ? 'Choose' : chosen ? 'Add another' : railName ? `Add to ${railName}` : 'Add'
+    mode === 'single'
+      ? compositionsCopy('choose')
+      : cost?.breaks && !chosen
+        ? // Said before the press, never only in the toast after it (r4 E12).
+          compositionsCopy('addAnywayRuleBreaking')
+        : cost && !chosen
+          ? // Paying is the add; the free one is Free Edit's override (r6 E19).
+            compositionsCopy('addWithoutSpending')
+          : chosen
+            ? compositionsCopy('addAnother')
+            : railName
+              ? compositionsCopy('addTo', { name: railName })
+              : compositionsCopy('add')
   const canAdd = mode === 'count' || !chosen
 
   return (
@@ -75,13 +107,16 @@ export function FocusPane({
             entity={entity}
             title={entity.name}
             titleAs="h2"
-            matchBar={false}
             titleSize={fontSize.hero}
+            // The player's own: credited to them, with no page to cite or link (MD2-09).
+            credit={userMade ? compositionsCopy('yourDesign') : undefined}
           >
             <ReferenceEntityCard
               data={entity}
               presentation="page"
-              hide={hide}
+              // Its actions are what it is: a design has no Reference page to read them on.
+              hide={userMade ? { ...hide, actions: false } : hide}
+              userMade={userMade}
               showChassisAbility={showChassisAbility}
             />
           </EntityDetailPage>
@@ -94,13 +129,40 @@ export function FocusPane({
         className="su-searcher__actions"
         style={ACTION_BAR_STYLE}
       >
+        {budgets && <BudgetChips budgets={budgets} />}
+        {canAdd && cost?.unmet && cost.unmet.length > 0 && (
+          <ul aria-label={compositionsCopy('theBookAsksFirst')} style={UNMET_STYLE}>
+            {cost.unmet.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        )}
         {chosen && (
           <Badge shape="stamp">{mode === 'count' ? `${count} ${chosenLabel}` : chosenLabel}</Badge>
         )}
+        {canAdd && cost && <Badge shape="stamp">{cost.label}</Badge>}
         <span style={GROW_STYLE} />
-        {canAdd && (
+        {extra}
+        {/* With a price, the one add is the one the rules pay for (r6 E19);
+            adding free is a small override beside it, never a second equal button. */}
+        {canAdd && cost && (
+          <Button
+            variant="ghost"
+            size="mini"
+            title={compositionsCopy('freeEditOverride')}
+            onClick={onAdd}
+          >
+            {addLabel}
+          </Button>
+        )}
+        {canAdd && !cost && (
           <Button variant="primary" size="compact" onClick={onAdd}>
             {addLabel}
+          </Button>
+        )}
+        {canAdd && cost && (
+          <Button variant="primary" size="compact" disabled={!cost.canPay} onClick={cost.onPay}>
+            {cost.payLabel}
           </Button>
         )}
       </div>
@@ -126,3 +188,13 @@ const ACTION_BAR_STYLE = {
 } satisfies CSSProperties
 
 const GROW_STYLE = { flex: '1 1 auto' } satisfies CSSProperties
+
+/** The unmet requirements: a full row of the bar, above its buttons. */
+const UNMET_STYLE = {
+  flex: '1 0 100%',
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
+  fontSize: fontSize.caption,
+  color: color.ink,
+} satisfies CSSProperties

@@ -20,18 +20,15 @@ const STAT_ROW = {
  * Every pilot starts with 10 HP, 5 AP, and 6 Inventory Slots; the values are
  * fixed by the rules, so there is nothing to choose and no step. Renders the
  * sheets' StatBlock lozenges so the wizard previews exactly what the live
- * sheet will show.
+ * sheet will show: HP and AP full, the Inventory at the slots the picks so
+ * far fill (`inventoryUsed`), as the sheet counts what is carried.
  */
-export function StatsStep() {
+export function StatsStep({ inventoryUsed = 0 }: { inventoryUsed?: number }) {
   return (
     <div style={STAT_ROW}>
       <Stat label={pilotCopy('hp')} value={PILOT_BASE_HP} max={PILOT_BASE_HP} />
       <Stat label={pilotCopy('ap')} value={PILOT_BASE_AP} max={PILOT_BASE_AP} />
-      <Stat
-        label={pilotCopy('inv')}
-        value={PILOT_BASE_INVENTORY_SLOTS}
-        max={PILOT_BASE_INVENTORY_SLOTS}
-      />
+      <Stat label={pilotCopy('inv')} value={inventoryUsed} max={PILOT_BASE_INVENTORY_SLOTS} />
     </div>
   )
 }

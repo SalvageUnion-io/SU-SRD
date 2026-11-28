@@ -71,7 +71,7 @@ describe('toEntityModel', () => {
     expect(model.bookStats).toEqual([])
   })
 
-  test("a range carries the book's codes for compact cells, the full bands as its value", () => {
+  test('a range is spelled out in compact cells too, never C/M (RR6-09)', () => {
     const action = need(
       SalvageUnionReference.Actions.all().find((a) => (a.range?.length ?? 0) > 1),
       'action with two range bands'
@@ -82,7 +82,7 @@ describe('toEntityModel', () => {
     )
     const bands = need(action.range, 'range bands')
     expect(range.value).toBe(bands.join(' / '))
-    expect(range.shortValue).toBe(bands.map((band) => band.charAt(0)).join('/'))
+    expect(range.shortValue).toBe(bands.join('/'))
   })
 
   test('a split action type keeps both halves, Mech and Pilot', () => {
@@ -199,9 +199,14 @@ describe('entityTone', () => {
   })
 
   test('gear rides the tech-level ramp, Bio and Nanite included', () => {
-    expect(entityTone('equipment', as({ ...base, techLevel: 3 }))).toBe('tl-3')
+    expect(entityTone('drones', as({ ...base, techLevel: 3 }))).toBe('tl-3')
     expect(entityTone('equipment', as({ ...base, techLevel: 'B' }))).toBe('tl-b')
     expect(entityTone('drones', as({ ...base, techLevel: 'N' }))).toBe('tl-n')
+  })
+
+  test('pilot equipment wears the pilot orange, never TL blue (ruleset §3.8)', () => {
+    expect(entityTone('equipment', as({ ...base, techLevel: 1 }))).toBe('pilot')
+    expect(entityTone('equipment', as({ ...base, techLevel: 6 }))).toBe('pilot')
   })
 
   test('systems and modules wear their tech level, as the book heads them (pp. 162–164, 188–190)', () => {

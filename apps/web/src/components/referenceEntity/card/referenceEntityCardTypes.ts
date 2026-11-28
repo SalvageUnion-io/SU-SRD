@@ -166,6 +166,10 @@ export type ReferenceEntityCardProps = {
   statsOverride?: StatItem[]
   subtitleExtra?: ReactNode
   afterExtraContent?: ReactNode
+  /** On a Page, its first block, before the art in the markup and at every width (a class's On this page). */
+  leadExtraContent?: ReactNode
+  /** On a Page, what stands in the side track under the art (a class's Advancement). */
+  asideExtraContent?: ReactNode
   /** ASIDE LEAD — opt in when this card's `afterExtraContent` is a SECTION of
    * its own (the class pages' ability trees) rather than trailing body content.
    * The artwork and flavour prose become a centred lead row and the trailing
@@ -206,9 +210,22 @@ export type ReferenceEntityCardHideConfig = {
    * bubble into the card's own handler.
    */
   rollTable?: boolean
+  /**
+   * Keep the roll table but not its Roll: a card opened inside a static page
+   * (a class page's ability rules), where a Roll would ship the whole page
+   * card's island (`cardNeedsHydration`). Its table is still read, and Peeked.
+   */
+  roll?: boolean
   damagedEffect?: boolean
   choices?: boolean
   content?: boolean
+  /**
+   * Suppress the lead (the entity's one-line hint as the body's first
+   * paragraph): a picker's card beside its list, whose line has said it.
+   */
+  lead?: boolean
+  /** Suppress the flavour prose, where a card is read for its rules alone (a builder's pick). */
+  flavor?: boolean
   /** Suppress the entity's artwork (a preview that has none to show). */
   image?: boolean
   /**
@@ -219,6 +236,11 @@ export type ReferenceEntityCardHideConfig = {
   axisMarkers?: boolean
   /** Suppress the nested groups (its drones, their Systems and Modules, a bay's When Damaged). */
   nested?: boolean
+  /**
+   * Suppress the head (its tier, name and chips): a card opened under the row
+   * that already heads it (a class page's ability rules, r8 G5).
+   */
+  head?: boolean
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

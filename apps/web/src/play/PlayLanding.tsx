@@ -1,88 +1,98 @@
 /**
- * PlayLanding — the Play hub (`/play/`, ADR-052 §4): your Games, and one tap
+ * PlayLanding — the Games hub (`/games/`, ADR-066): your Games, and one tap
  * from each into play. Play only plays (ADR-052 §3): nothing here makes or
  * keeps a unit; each unit
  * opens its sheet in Build. A Manage page (ruleset §1.9): paper under the
  * `play` band, on the page measure every hub takes.
  *
- *  - **The band**: Play's name under `PRODUCT.playDescriptor`, with the
+ *  - **The band**: the Games' name with the
  *    legacy tagline quoted beside it, as Build's front door and the SRD's
  *    home wear theirs, so the three areas' homes open on the same band.
  *  - **Your Games** (`games.listMine`), the page: one contentful Compact per
  *    Game, the whole Compact opening the Game's page in Play
- *    (`/play/games/$gameId`). Its chips are your role, how many are here now
+ *    (`/games/$gameId`). Its chips are your role, how many are here now
  *    (the Game's room, `useGamePresence`, play.md §7), the Downtime state
- *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
- *    body the crew as header-only Minis (`useGameListing`, `gameCrew`);
+ *    (`downtime.state`), where the campaign is (proposals open, last played,
+ *    the next plan: `useCampaign`, r7 C11) and its Discord channel
+ *    (`channelBindings.mine`); its body the crew as header-only Minis
+ *    (`useGameListing`, `gameCrew`), your own pilot first, marked Yours;
  *    its doors, last in the chip group: where you mediate it, Start group
  *    session (`useGameSession`) until one is live, then Mediate; then Play
- *    <pilot> (Join as <pilot> while a session is live) for each pilot of
+ *    <pilot> for each pilot of
  *    yours in it (`playHub.model.ts`). Session live is a chip too. At its rule's end, as each
  *    Training Bay shelf ends on its "+ New…": **+ New Game**
  *    (`NewGameControl`, from a name or a template) and **Join with a link**
  *    (paste an invite link, or its token, to open the invite screen).
- *  - **Play solo**, under the Games: each pilot you own that is in no Game,
- *    with its mech or "No Mech", and Play solo.
  *
- * Signed out there is nothing to play, so it asks you to sign in. The store
+ *  - **Your Pilots** (`YourPilots`): every pilot of yours with its Play door,
+ *    in a Game or not, so the header's Play always has something to play; a
+ *    pilot in no Game plays solo. Every Training Bay pilot line carries the
+ *    same door (ADR-066).
+ *
+ * Signed out there is nothing to play, so it is Play's front door
+ * (`PlayFrontDoor`): the pitch and its sign-in, what happens at the table,
+ * and the Starter Set's crew. The store
  * holds only your own pilots, so every pilot it lists is yours to play.
  * Disconnected, your pilots still list from the store; the Game list, New
  * Game and Join wait for the connection.
  */
 
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
-import { cockpitPath, gamePath, invitePath, sheetPath } from 'game-domain/entityKinds'
+import { gamePath, invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties, FormEvent } from 'react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { assetUrl } from 'salvageunion-reference'
 import { NewGameControl } from '../build/games/NewGameControl'
+import { FrontDoor } from '../build/roster/FrontDoor'
 import { Shelf } from '../build/shelves/Shelf'
+import { Shelves } from '../build/shelves/Shelves'
+import { ShelvesPart } from '../build/shelves/shelvesPart.model'
+import { FieldError, PageShell, StartHere } from '../components/app'
 import type { StartHereStep } from '../components/index'
 import {
-  Badge,
+  assetSrcSetFor,
   Button,
   ChapterBand,
-  capsLabel,
   Entity,
-  FieldError,
   Input,
   ModalShell,
-  PageShell,
   Pending,
-  StartHere,
+  SlabSection,
   Stat,
+  Text,
   tokens,
 } from '../components/index'
 import { RoutePending } from '../components/shared/RouteFallbacks'
-import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
-import {
-  useCrawlers,
-  useHydrateEntities,
-  useMechs,
-  usePilots,
-  useSoftLinkList,
-} from '../lib/entities'
+import { signIn } from '../lib/auth/session'
+import { cn } from '../lib/cn'
+import { useOwnUnits } from '../lib/entities'
+import { formatAgo, todayDay } from '../lib/formatDate'
 import { gameRowModel } from '../lib/games/containerRow.model'
+import { MEDIATORS_KIT_ANCHOR } from '../lib/games/gameRoster'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
-import { crewPair } from '../lib/units/crewPair'
 import { playCopy } from '../messages/play'
+import { playGamesCopy } from '../messages/play-games'
+import { useEncounters } from '../replica/collections'
 import { useGameListing } from '../replica/gameListing'
 import type { GameCallResult } from '../replica/roomCalls'
-import { useGamesQuery } from '../replica/roomCalls'
+import { useGamesQuery, useViewerId } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
 import { useTableRead } from '../replica/useTable'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
 import { hereCount } from './crew.model'
-import { PlayRefusal } from './PlayRefusal'
-import type { SoloPilot } from './play.model'
-import { gamePilots, soloPilots } from './play.model'
+import { lastSession } from './games/lastSession.model'
+import { sessionPlans } from './games/useNextSession'
+import { gamePilots } from './play.model'
 import { gameChips, gameCrew, gameDoors } from './playHub.model'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
+import { YourPilots } from './YourPilots'
 
 type GameSummary = GameCallResult<'games.listMine'>[number]
 
@@ -93,9 +103,6 @@ const BODY = {
   flexDirection: 'column',
   gap: tokens.space[32],
 } satisfies CSSProperties
-
-/** The kicker: brand caps, the eyebrow's tracking. */
-const KICKER_CAPS = capsLabel({ size: 'caption', tracking: 'eyebrow' })
 
 /** The Your Games shelf's controls, at its rule's end. */
 const CONTROLS = {
@@ -113,6 +120,8 @@ const JOIN = {
   margin: 0,
   padding: tokens.space[20],
 } satisfies CSSProperties
+
+const JOIN_TEXT = { margin: 0 } satisfies CSSProperties
 
 const JOIN_ROW = {
   alignItems: 'flex-start',
@@ -157,19 +166,81 @@ const AT_THE_TABLE: readonly StartHereStep[] = [
   },
 ]
 
+/** A tile's art from R2, by its object key. */
+function tileArt(key: string, alt: string) {
+  const url = assetUrl(key)
+  const srcSet = assetSrcSetFor(url)
+  return srcSet ? { url, srcSet, alt } : { url, alt }
+}
+
+/** Each "At the table" tile's art, in the tiles' order. */
+/** Where the sub-nav's "Join with a link" points, as a route in the app. */
+const JOIN_ROUTE = '/games/#join'
+
+const AT_THE_TABLE_ART = [
+  tileArt('classes/scout.webp', playCopy('artScout')),
+  tileArt('chassis/mazona.webp', playCopy('artMazona')),
+  tileArt('bio-titans/scylla.webp', playCopy('artScylla')),
+]
+
+/**
+ * Play signed out: its front door (`FrontDoor`), its steps "At the table",
+ * with art.
+ */
+function PlayFrontDoor() {
+  // Signed out there is no Join dialog to open: the sub-nav's "Join with a
+  // link" opens a short panel that says what an invite link is and that
+  // joining needs a sign-in, before anything leaves the site (r5 B20). Its
+  // Sign in comes back to `/games/#join`, where the dialog opens itself
+  // (r3 E3, MD-03). Heard before the router, which would only scroll to the
+  // card that wears the id.
+  const [joining, setJoining] = useState(false)
+  useEffect(() => {
+    const pressed = (event: MouseEvent) => {
+      const link = event.target instanceof Element ? event.target.closest('a[href$="#join"]') : null
+      if (link === null) return
+      event.preventDefault()
+      event.stopPropagation()
+      setJoining(true)
+    }
+    document.addEventListener('click', pressed, true)
+    return () => document.removeEventListener('click', pressed, true)
+  }, [])
+  const steps = AT_THE_TABLE.map((step, index) => ({ ...step, art: AT_THE_TABLE_ART[index] }))
+  return (
+    <>
+      <ModalShell open={joining} onOpenChange={setJoining} title={playCopy('joinWithALink')}>
+        <div style={JOIN}>
+          <p style={JOIN_TEXT}>{playCopy('joinSignedOut')}</p>
+          <div style={JOIN_ROW}>
+            <Button variant="primary" size="compact" onClick={() => signIn(JOIN_ROUTE)}>
+              {playCopy('joinSignIn')}
+            </Button>
+          </div>
+        </div>
+      </ModalShell>
+      <FrontDoor
+        area="play"
+        steps={
+          <StartHere
+            id="play-at-the-table"
+            title={playCopy('atTheTable')}
+            steps={steps}
+            numbered={false}
+            // Where Play's sub-nav lands signed out (`AREA_NAV.play`): sharing a
+            // table is how you join one, and Mediate is what the Kit is for.
+            anchors={{ table: 'join', mediate: MEDIATORS_KIT_ANCHOR }}
+          />
+        }
+      />
+    </>
+  )
+}
+
 export function PlayLanding() {
   const { status } = useSync()
-  if (status === 'signedOut') {
-    return (
-      <PlayRefusal
-        title={playCopy('signInToPlay')}
-        body={playCopy('playRunsYourPilotsSolo2')}
-        signInTo="/play/"
-      >
-        <StartHere id="play-at-the-table" title={playCopy('atTheTable')} steps={AT_THE_TABLE} />
-      </PlayRefusal>
-    )
-  }
+  // Signed out, the hub is Play's front door, in the home's dress.
+  if (status === 'signedOut') return <PlayFrontDoor />
   if (status === 'syncing') return <RoutePending label={playCopy('yourSession')} />
   if (status === 'live') return <ConnectedPlayLanding />
   return <PlayLandingView games={undefined} channels={undefined} />
@@ -191,9 +262,17 @@ type PlayLandingViewProps = {
 }
 
 function PlayLandingView({ games, channels, connected = false }: PlayLandingViewProps) {
-  useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'])
-  const pilots = usePilots()
-  const solo = soloPilots(pilots, useMechs(), useCrawlers(), useSoftLinkList())
+  // Your own: the replica also holds every crewmate's pilot, for Play (LG-01).
+  const pilots = useOwnUnits('pilot')
+  // The Kit is a Mediator's (r8 C8, LG8-19): shown to whoever runs a table,
+  // and to anyone whose Kit already holds something, so nothing made is out of reach.
+  const npcs = useOwnUnits('npc')
+  const encounters = useEncounters((s) => s.encounters)
+  const showsKit =
+    connected &&
+    ((games ?? []).some((g) => g.mediator || g.tableRunner) ||
+      npcs.length > 0 ||
+      encounters.length > 0)
   const channelOf = new Map(
     (channels?.games ?? []).map((g) => [g.gameId, channelTag(g.binding)] as const)
   )
@@ -202,13 +281,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
     <PageShell
       measure={PAGE_MEASURE}
       band={
-        <ChapterBand
-          tone="play"
-          measure={PAGE_MEASURE}
-          eyebrow={<span className={KICKER_CAPS}>{PRODUCT.playDescriptor}</span>}
-          asideAt="notch"
-          aside={<Tagline />}
-        >
+        <ChapterBand tone="play" measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
           {PRODUCT.play}
         </ChapterBand>
       }
@@ -228,11 +301,11 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
           isEmpty={games === undefined || games.length === 0}
           empty={
             games !== undefined ? (
-              'You’re in no Games yet. Start one with + New Game, or join one with its invite link.'
+              playCopy('noGamesYet')
             ) : connected ? (
               <Pending as="span" label={playCopy('yourGames2')} />
             ) : (
-              'Your Games list once the connection returns.'
+              playCopy('gamesListOffline')
             )
           }
         >
@@ -240,72 +313,43 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             <PlayGameItem
               key={game._id}
               game={game}
-              pilots={gamePilots(pilots, game._id)}
+              // The seat's door is told apart by callsign when there are several (`gameDoors`).
+              pilots={gamePilots(pilots, game._id).map((p) => ({
+                id: p.id,
+                name: pilotCallsign(p),
+              }))}
               channel={channelOf.get(game._id) ?? null}
             />
           ))}
         </Shelf>
-        <Shelf
-          title={playCopy('playSolo')}
-          id="play-solo"
-          isEmpty={solo.length === 0}
-          empty={playCopy('everyPilotOfYoursIs')}
-        >
-          {solo.map((pilot) => (
-            <li key={pilot.pilotId} style={ITEM}>
-              <SoloPilotRow pilot={pilot} />
-            </li>
-          ))}
-        </Shelf>
+        {/* What the header's Play can always play: your pilots, solo or in a Game. */}
+        <YourPilots games={games} />
+        {/* The Mediator's Kit lives with the tables
+            it is for. */}
+        {/* A plain player's Kit is its one line, the sub-nav's target (r8 C8). */}
+        {connected && !showsKit && (
+          <SlabSection id={MEDIATORS_KIT_ANCHOR} as="h2" title={playCopy('mediatorsKit')}>
+            <Text variant="hint">{playGamesCopy('kitIsTheMediators')}</Text>
+          </SlabSection>
+        )}
+        {showsKit && (
+          // A band with its title's cut-out, as Your Games wears.
+          <SlabSection
+            id={MEDIATORS_KIT_ANCHOR}
+            as="h2"
+            title={playCopy('mediatorsKit')}
+            className="su-mediator-kit-section"
+            // The Kit's two lists, each under its own tab, side by side: the
+            // section names the pair, never one list alone (Ledger law).
+            bodyClassName={cn('su-shelf-ledgers', 'su-mediator-kit')}
+          >
+            <ShelvesPart.Provider value="kit">
+              <Shelves />
+            </ShelvesPart.Provider>
+          </SlabSection>
+        )}
       </div>
     </PageShell>
-  )
-}
-
-/**
- * A shelf pilot under Play solo, by the pair rule (`crewPair`): not aboard,
- * it is the pilot, its HP and AP, with a MECH chip naming its mech; with
- * none, the stamp says so.
- */
-function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
-  const pair = crewPair({
-    pilot: { id: pilot.pilotId, name: pilot.name, readings: pilot.readings },
-    mech:
-      pilot.mechName === null
-        ? null
-        : {
-            id: pilot.mechId ?? pilot.mechName,
-            name: pilot.mechName,
-            href: pilot.mechId === null ? undefined : sheetPath('mech', pilot.mechId),
-          },
-    boarded: false,
-  })
-  return (
-    <UnitRow
-      kind={pair.kind}
-      name={pair.name}
-      readings={pair.readings}
-      {...(pair.relations
-        ? { relations: [...pair.relations] }
-        : {
-            labels: (
-              <Badge shape="stamp" size="compact" surface="inverse">
-                {playCopy('noMech')}
-              </Badge>
-            ),
-          })}
-      controls={
-        <Button
-          href={cockpitPath(pilot.pilotId)}
-          aria-label={playCopy('playSolo2', { name: pilot.name })}
-          // A door, so never a stamp's ink block (ruleset §3.13): the paper plate.
-          variant="default"
-          size="mini"
-        >
-          {playCopy('playSolo')}
-        </Button>
-      }
-    />
   )
 }
 
@@ -320,6 +364,29 @@ function JoinGame() {
   const [open, setOpen] = useState(false)
   const [pasted, setPasted] = useState('')
   const [wrong, setWrong] = useState(false)
+  // A paste on arrival lands in the only field, never on Close (MD3-04).
+  const linkField = useRef<HTMLInputElement | null>(null)
+  // The sub-nav's "Join with a link" (`/games/#join`) lands here and opens it.
+  // A router link changes the hash with no `hashchange`, and a second press
+  // changes nothing at all, so the press itself is heard too (MD-03).
+  useEffect(() => {
+    const arrive = () => {
+      if (window.location.hash === '#join') setOpen(true)
+    }
+    const pressed = (event: MouseEvent) => {
+      const link = event.target instanceof Element ? event.target.closest('a[href$="#join"]') : null
+      if (link !== null) setOpen(true)
+    }
+    arrive()
+    window.addEventListener('hashchange', arrive)
+    window.addEventListener('popstate', arrive)
+    document.addEventListener('click', pressed)
+    return () => {
+      window.removeEventListener('hashchange', arrive)
+      window.removeEventListener('popstate', arrive)
+      document.removeEventListener('click', pressed)
+    }
+  }, [])
 
   function join(event: FormEvent) {
     event.preventDefault()
@@ -334,14 +401,20 @@ function JoinGame() {
 
   return (
     <>
-      <Button variant="default" size="compact" onClick={() => setOpen(true)}>
+      <Button id="join" variant="default" size="compact" onClick={() => setOpen(true)}>
         {playCopy('joinWithALink')}
       </Button>
-      <ModalShell open={open} onOpenChange={setOpen} title={playCopy('joinAGame')}>
+      <ModalShell
+        open={open}
+        onOpenChange={setOpen}
+        title={playCopy('joinAGame')}
+        initialFocus={linkField}
+      >
         <form style={JOIN} onSubmit={join} aria-label={playCopy('joinAGame')}>
           <div style={JOIN_ROW}>
             <div style={JOIN_FIELD}>
               <Input
+                ref={linkField}
                 aria-label={playCopy('inviteLink')}
                 placeholder={playCopy('pasteAnInviteLink')}
                 value={pasted}
@@ -364,12 +437,39 @@ function JoinGame() {
 }
 
 /**
+ * Where a Game's campaign is (r7 C11, MD7-17): the proposals still open (the
+ * viewer's to answer and the ones they sent), when the table last played
+ * (`lastSession`) and the next plan (`sessionPlans`; the plan is the table
+ * runner's alone).
+ */
+function useCampaign(game: GameSummary) {
+  const gameId = game._id
+  const events = useTableRead('changeLog.events', { gameId })
+  const waiting = useTableRead('ops.pending', { gameId })
+  const sent = useTableRead('ops.sent', { gameId })
+  const plan = useGamesQuery('plan.get', game.tableRunner ? { gameId } : 'skip')
+  const record = events === undefined ? null : lastSession(events)
+  const endedAt = record?.endedAt ?? null
+  const plans = sessionPlans(
+    plan?.sessions ?? [],
+    game.sessionDays ?? [],
+    todayDay(),
+    endedAt === null ? null : todayDay(new Date(endedAt))
+  )
+  return {
+    pending: (waiting?.length ?? 0) + (sent ?? []).filter((p) => p.state === 'proposed').length,
+    played: endedAt === null ? null : formatAgo(endedAt, Date.now()),
+    next: plans.next,
+  }
+}
+
+/**
  * One of your Games, as a contentful Compact: the whole Compact opens the
  * Game's page; its chips say your role, how many are here, the Downtime state
  * and its channel; its body is the crew, each unit opening its sheet; its
  * doors, last in the chip group, go into play.
  */
-function PlayGameItem({
+export function PlayGameItem({
   game,
   pilots,
   channel,
@@ -386,17 +486,23 @@ function PlayGameItem({
   const here = hereCount(vitals?.pilots, presence)
   const session = useGameSession(gameId)
   const go = useGo()
+  const viewerId = useViewerId()
   const live = session?.live === true
-  const chips = gameChips({ mediator: game.mediator, live, here, downtime, channel })
+  const campaign = useCampaign(game)
+  const chips = gameChips({ mediator: game.mediator, live, here, downtime, channel, ...campaign })
   const doors = gameDoors(game, pilots, session === null ? null : live)
   const crew =
     listing && vitals
-      ? gameCrew({
-          crawlers: listing.crawlers,
-          primaryCrawlerId: listing.primaryCrawlerId,
-          pilots: vitals.pilots,
-          mechs: vitals.mechs,
-        })
+      ? gameCrew(
+          {
+            crawlers: listing.crawlers,
+            primaryCrawlerId: listing.primaryCrawlerId,
+            pilots: vitals.pilots,
+            mechs: vitals.mechs,
+          },
+          viewerId,
+          game.mediator || game.tableRunner
+        )
       : []
   return (
     <li className="su-hub-game" style={ITEM}>
@@ -414,17 +520,20 @@ function PlayGameItem({
         {...(crew.length > 0 ? { linked: crew } : {})}
         trailing={
           doors.length > 0
-            ? // A chip's height (C8), and a door's look, never a stamp's ink
-              // block (ruleset §3.13): Play is the paper plate, Start session
-              // the outline beside it, both ink on the Game's pink (R44).
-              doors.map((door) =>
+            ? // A chip's height (C8). The first is your role's door, so rust
+              // (ruleset §1.9, §3.13: Mediate where you mediate, else Play);
+              // any other is the paper plate beside it. Each is marked a
+              // role's door, the one act whose look the viewer's role picks
+              // (§3.14): a pilot's own line below says Play in rust.
+              doors.map((door, index) =>
                 door.start ? (
                   // Start the session, then open the Mediator's screen.
                   <Button
-                    key={door.href}
+                    key={door.ariaLabel}
                     aria-label={door.ariaLabel}
-                    variant="ghost"
+                    variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
+                    data-role-door=""
                     disabled={session === null || !session.canWrite || session.pending}
                     onClick={() => {
                       void session?.start().then((started) => {
@@ -436,11 +545,12 @@ function PlayGameItem({
                   </Button>
                 ) : (
                   <Button
-                    key={door.href}
+                    key={door.ariaLabel}
                     href={door.href}
                     aria-label={door.ariaLabel}
-                    variant="default"
+                    variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
+                    data-role-door=""
                   >
                     {door.label}
                   </Button>

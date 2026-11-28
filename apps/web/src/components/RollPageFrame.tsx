@@ -29,8 +29,9 @@ export function RollPageFrame({ density, description, children }: RollPageFrameP
         </p>
       ))}
       {children}
-      <p className="su-roll-page__credit">
-        Dice rolling powered by{' '}
+      {/* The dice's credit is the screen's: paper rolls nothing (RR6-08). */}
+      <p className="su-roll-page__credit" data-print="hide">
+        {componentsCopy('diceRollingPoweredBy')}{' '}
         <InlineRef href="https://randsum.dev" target="_blank" rel="noopener noreferrer">
           {componentsCopy('randsumDev')}
         </InlineRef>

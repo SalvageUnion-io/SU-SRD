@@ -7,6 +7,7 @@ import { EntityCardStatic } from '../EntityCardStatic'
 import { GameDataGate } from '../GameDataGate'
 import type { NameRefIndex, PageRefIndex } from '../index'
 import { ToasterMount } from '../index'
+import type { SideLinkList } from '../SideLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {
@@ -21,6 +22,8 @@ type ReferenceEntityIslandProps = {
   pageRefs?: PageRefIndex
   /** The names its prose uses, built at build time, to link them. */
   nameRefs?: NameRefIndex
+  /** The tables it is rolled on, built at build time, under the art. */
+  sideLinks?: SideLinkList
 }
 
 export function ReferenceEntityIsland({
@@ -29,6 +32,7 @@ export function ReferenceEntityIsland({
   preloadSchemas,
   pageRefs,
   nameRefs,
+  sideLinks,
 }: ReferenceEntityIslandProps) {
   // The server draws this same card as the island's stand-in (`EntityView`),
   // and the island swaps in over it only once its data is loaded (`prepare`,
@@ -37,7 +41,13 @@ export function ReferenceEntityIsland({
     <IslandErrorBoundary>
       <GameDataGate schemas={preloadSchemas} fallback={null}>
         <Suspense fallback={null}>
-          <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} nameRefs={nameRefs} />
+          <EntityCardStatic
+            item={item}
+            pattern={pattern}
+            pageRefs={pageRefs}
+            nameRefs={nameRefs}
+            sideLinks={sideLinks}
+          />
           {/* Where a roll on the card's tables lands (`toastRoll`): the
               page's one toaster. */}
           <ToasterMount />

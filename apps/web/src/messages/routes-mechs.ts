@@ -5,5 +5,5 @@ import { messages } from './define'
 export const mechsCopy = messages({
   mechPatterns: 'Mech Patterns',
   aPatternKeepsAChassis:
-    'A pattern keeps a chassis and its loadout. A mech built from one starts fresh.',
+    'A pattern keeps a chassis and its loadout. A Mech built from one starts fresh.',
 })

@@ -4,24 +4,24 @@
  * Rendered through the real card with real SRD data:
  * - no frame, seam, header or footer: the page's chapter band carries the
  *   title, so the card prints no heading of its own;
- * - the line art is the hero; the stats are the book's, in its order and its
- *   words (`resolveEntityPageMeta`), and ride the band, never the body;
- * - a chassis ability is a framed card with no "Chassis Ability" stamp;
- * - the page's section bands are h2s and the cards nested under them title
- *   themselves h3 (`nestedTitleLevel`), a Bio-Titan pattern's "Pattern
- *   Actions" among them; a card no band holds (the chassis ability, a page's
- *   drone) keeps a span, so the outline never skips a level;
- * - a basic chassis's patterns are full-width link rows with a "Show all"
- *   link for a phone;
- * - what the page's bands say comes from the card's own helpers
- *   (`resolveEntityPageMeta`).
+ * - every entity's Page is the manual's (`.su-manual`): its stats lead the
+ *   body as the stat column, all of them, in the book's order and its words
+ *   (`pageStatLine`); the line art is the hero of the side column;
+ * - a chassis ability and an entity's actions stand under their section's
+ *   h2, each a contentful Mini (its rules text alone), never a heading;
+ * - a host's patterns are one Ledger, a line each, each a link to its Page;
+ * - a pattern's and a guide's Page keep the art-led layout: a pattern's
+ *   stats ride its band (`resolveEntityPageMeta`), the cards nested under a
+ *   section band title themselves h3 (`nestedTitleLevel`), a Bio-Titan
+ *   pattern's "Pattern Actions" among them, so the outline never skips a
+ *   level.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { EntityRef } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../../../entity/EntitySurface'
-import { pageBodyStats, resolveEntityPageMeta } from '../entityPage'
+import { pageBodyStats, pageStatLine, resolveEntityPageMeta } from '../entityPage'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const need = <T,>(value: T | undefined, label: string): T => {
@@ -50,17 +50,24 @@ const BOOK_EIGHT = [
 ]
 
 describe('resolveEntityPageMeta — what the page’s bands say', () => {
-  test('a chassis’s stats read the manual’s eight, in the stat order: its TL and SV on the band, the rest in the body', () => {
-    expect(resolveEntityPageMeta(gopher()).stats.map((s) => s.label)).toEqual(
-      BOOK_EIGHT.slice(0, 2)
-    )
+  test('a chassis’s stats read the manual’s eight, in the stat order, all in its Page’s body: its band has none', () => {
+    expect(resolveEntityPageMeta(gopher()).stats).toEqual([])
+    const line = pageStatLine(gopher())
+    expect(line.map((s) => s.label)).toEqual(BOOK_EIGHT)
+    expect(line[2]?.value).toBe(String(gopher().structurePoints))
+  })
+
+  test('a pattern’s page is its chassis’s: no stat on the band, the eight in the body', () => {
+    const pattern = need(gopher().patterns?.[0], 'gopher pattern')
+    expect(resolveEntityPageMeta(gopher(), pattern).stats).toEqual([])
+    expect(pageStatLine(gopher()).map((s) => s.label)).toEqual(BOOK_EIGHT)
     const stats = pageBodyStats(gopher())
     expect(stats.map((s) => s.label)).toEqual(BOOK_EIGHT.slice(2))
     expect(stats[0]?.value).toBe(String(gopher().structurePoints))
   })
 
   test('stats drop what the entity does not carry, and the TL when it has none', () => {
-    const labels = resolveEntityPageMeta(juryRig()).stats.map((s) => s.label)
+    const labels = pageStatLine(juryRig()).map((s) => s.label)
     expect(labels).not.toContain('Tech Level')
     expect(labels).not.toContain('Structure Points')
   })
@@ -69,8 +76,16 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     const meta = resolveEntityPageMeta(gopher())
     expect(meta.typeLabel).toBe('Chassis')
     expect(meta.techLevel).toBe('2')
-    expect(meta.printings[0]).toEqual({ book: 'Workshop Manual', page: gopher().page })
-    expect(meta.printings[1]).toEqual({ book: 'Salvage Union Starter Set (PC)', page: 26 })
+    expect(meta.printings[0]).toEqual({
+      book: 'Workshop Manual',
+      page: gopher().page,
+      source: 'Salvage Union Workshop Manual',
+    })
+    expect(meta.printings[1]).toEqual({
+      book: 'Starter Set (PC)',
+      page: 26,
+      source: 'Salvage Union Starter Set',
+    })
   })
 
   test('an ability: its tree in its kind, its tier numeral, and its action type and cost on the band', () => {
@@ -101,16 +116,18 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     expect(meta).not.toHaveProperty('cost')
   })
 
-  test('a lettered Tech Level is spelled out on the band', () => {
-    const tl = (entity: Parameters<typeof resolveEntityPageMeta>[0]) =>
-      resolveEntityPageMeta(entity).stats.find((s) => s.key === 'tech-level')?.value
+  test('a lettered Tech Level is a letter in a chassis’s stat column, spelled out on an item’s band', () => {
     const chassis = need(SalvageUnionReference.Chassis.getByName('Stormterror'), 'Stormterror')
-    expect(tl(chassis)).toBe('Bio-Chassis')
-    const bioSystem = SalvageUnionReference.Systems.all().find((s) => s.techLevel === 'B')
-    if (bioSystem) expect(tl(bioSystem)).toBe('Bio-Tech')
+    const pattern = need(chassis.patterns?.[0], 'stormterror pattern')
+    const tl = (stats: { key: string; value: string | number }[]) =>
+      stats.find((s) => s.key === 'tech-level')?.value
+    expect(tl(resolveEntityPageMeta(chassis, pattern).stats)).toBeUndefined()
+    // The numeral's frame holds a letter, not a word.
+    expect(tl(pageStatLine(chassis))).toBe('B')
     const nanite = SalvageUnionReference.Systems.all().find((s) => s.techLevel === 'N')
-    if (nanite) expect(tl(nanite)).toBe('Nanite')
-    expect(tl(gopher())).toBe('2')
+    if (nanite) expect(tl(resolveEntityPageMeta(nanite).stats)).toBe('Nanite')
+    const bioTech = SalvageUnionReference.Systems.all().find((s) => s.techLevel === 'B')
+    if (bioTech) expect(tl(resolveEntityPageMeta(bioTech).stats)).toBe('Bio-Tech')
   })
 
   test('a pattern is a "Pattern" to screen readers', () => {
@@ -125,13 +142,18 @@ describe('the card as a page', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     // The page body is the whole render: no card frame around it.
     expect(container.firstElementChild?.classList.contains('su-entity-page')).toBe(true)
+    expect(container.firstElementChild?.classList.contains('su-manual')).toBe(true)
     expect(container.querySelector('h1')).toBeNull()
-    // The only header fills are the framed chassis ability's and the pattern
-    // cards' heads, never the entity's own.
+    expect(container.querySelector('.su-ec-frame')).toBeNull()
+    // No head is filled in the entity's own tone but its patterns' Ledger's.
     for (const fill of container.querySelectorAll('[data-fill]')) {
-      expect(fill.closest('.su-entity-page__lead, .su-pattern-rows')).not.toBeNull()
+      expect(fill.closest('.su-ledger')).not.toBeNull()
     }
-    expect(container.textContent).not.toContain('Workshop Manual')
+    // The book is cited once, on the patterns' Ledger: the Page's own
+    // citation is its foot band's, outside the card.
+    const outside = container.cloneNode(true) as HTMLElement
+    for (const ledger of outside.querySelectorAll('.su-ledger')) ledger.remove()
+    expect(outside.textContent).not.toContain('Workshop Manual')
   })
 
   test('a suggested pick says so in a stamp under the band, after any extra line', () => {
@@ -154,29 +176,41 @@ describe('the card as a page', () => {
     expect(container.querySelector('.su-entity-page__tags')).toBeNull()
   })
 
-  test('the line art is the hero, beside the right column', () => {
+  test('the line art is the hero, at the head of the side column', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
-    expect(container.querySelector('.su-entity-page__main--art')).not.toBeNull()
-    expect(container.querySelector('.su-entity-page__art img')).not.toBeNull()
+    const side = container.querySelector('.su-manual > .su-manual__side')
+    expect(side?.firstElementChild?.classList.contains('su-manual__art')).toBe(true)
+    expect(side?.querySelector('.su-manual__art img')).not.toBeNull()
   })
 
-  test('a chassis’s stats lead the body, inline, in the book’s words, in the stat order, less its TL and SV', () => {
+  test('a chassis’s stats lead the body as the stat column, in the book’s words, in the stat order', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
-    const column = container.querySelector('.su-entity-page__side > .su-entity-page__stats ul')
+    const column = container.querySelector('.su-manual__main > ul.su-manual__stats')
     expect(column?.getAttribute('aria-label')).toBe('Gopher stats')
-    const labels = [...(column?.querySelectorAll('.su-stat-plate--label') ?? [])].map(
-      (plate) => plate.textContent
+    const labels = [...(column?.querySelectorAll('.su-stat-label--long') ?? [])].map(
+      (label) => label.textContent
     )
-    expect(labels).toEqual(BOOK_EIGHT.slice(2))
-    // Paired two a row: SP | EP, SYS | MODS, Heat | Cargo, none spanning.
-    expect(column?.querySelector('.su-stat-column__cell--lone')).toBeNull()
+    expect(labels).toEqual(BOOK_EIGHT)
+    // The stat column leads the main track; the chassis ability follows it (RR6-06).
+    expect(column?.previousElementSibling).toBeNull()
+    expect(column?.nextElementSibling?.classList.contains('su-manual__ability')).toBe(true)
   })
 
-  test('the chassis ability is a framed card atop the right column, with no "Chassis Ability" stamp', () => {
+  test('the chassis ability follows the stats in the main column, its name the h2 and "Chassis Ability" beside it: its rules text, never a heading', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
-    const lead = container.querySelector('.su-entity-page__lead')
-    expect(lead).not.toBeNull()
-    expect(lead?.textContent).not.toContain('Chassis Ability')
+    const section = need(
+      screen
+        .getByRole('heading', { name: 'Integrated Expanded Transport Hold', level: 2 })
+        .closest('section') ?? undefined,
+      'the chassis ability section'
+    )
+    expect(section.querySelector('.su-slab-section__head')?.textContent).toContain(
+      'Chassis Ability'
+    )
+    expect(section.closest('.su-manual__main')).not.toBeNull()
+    expect(section.querySelector('.su-row-rules')?.textContent).toContain('Cargo Capacity')
+    expect(section.querySelectorAll('h3, h4, h5, h6')).toHaveLength(0)
+    expect(container.querySelector('.su-ec-frame')).toBeNull()
   })
 
   test('page prose carries no leaf size class, so it reads at the page’s 18px', () => {
@@ -187,18 +221,7 @@ describe('the card as a page', () => {
     expect(prose?.querySelector('[data-prose="flavor"], .font-medium')).not.toBeNull()
   })
 
-  test('the chassis ability reads at 14px, not the compact 12px', () => {
-    const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
-    const lead = container.querySelector('.su-entity-page__lead')
-    // Content sets its reading size inline (`fontSize.body`, 14px).
-    const sizes = [...(lead?.querySelectorAll<HTMLElement>('[style]') ?? [])].map(
-      (el) => el.style.fontSize
-    )
-    expect(sizes).toContain('0.875rem')
-    expect(sizes).not.toContain('0.75rem')
-  })
-
-  test('a pattern page lists its loadout after its chassis ability, as contentful Minis in a grid', () => {
+  test('a pattern page lists its loadout after its opening, as open Ledger rows', () => {
     const chassis = gopher()
     const pattern = need(
       chassis.patterns?.find((p) => (p.systems?.length ?? 0) > 0),
@@ -209,30 +232,39 @@ describe('the card as a page', () => {
     )
     const loadout = container.querySelector('.su-entity-page__loadout')
     expect(loadout).not.toBeNull()
-    // pattern → chassis ability → Systems → Modules: after the chassis ability,
-    // never in the opening above the chassis's prose.
-    const following = (before: Element | null) =>
-      !!before &&
-      !!loadout &&
-      !!(before.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING)
-    expect(following(container.querySelector('.su-entity-page__lead'))).toBe(true)
-    expect(container.querySelector('.su-entity-page__opening .su-entity-mini')).toBeNull()
-    // One contentful Mini per installed part (multiples repeat), each in its
-    // group's masonry grid under its Slab, never a
-    // framed card or a Compact.
-    const parts = (pattern.systems ?? [])
-      .concat(pattern.modules ?? [])
-      .reduce((sum, part) => sum + (part.count ?? 1), 0)
-    const tokens = [
-      ...(loadout?.querySelectorAll('ul.su-mini-grid > li > .su-entity-mini[data-contentful]') ??
-        []),
-    ]
-    expect(tokens).toHaveLength(parts)
+    // pattern → its opening → Systems → Modules, never in the opening itself.
+    const opening = container.querySelector('.su-entity-page__opening')
+    expect(
+      !!opening &&
+        !!loadout &&
+        !!(opening.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
+    expect(opening?.querySelector('.su-entity-mini')).toBeNull()
+    // A row a part in its group's open Ledger (L1), never a framed card or a Compact.
+    const rows = loadout?.querySelectorAll('table.su-open tr.su-open__row') ?? []
+    expect(rows.length).toBeGreaterThanOrEqual((pattern.systems?.length ?? 0) > 0 ? 1 : 0)
     expect(loadout?.querySelector('.su-entity-compact')).toBeNull()
     expect(loadout?.querySelector('.su-ec-frame')).toBeNull()
   })
 
-  test('patterns are full-width link rows, with a phone’s "Show all" link', () => {
+  test('a part fitted twice is one loadout line with its count (RR-15)', () => {
+    const atlas = need(SalvageUnionReference.Chassis.getByName('Atlas'), 'atlas')
+    const pattern = need(
+      atlas.patterns?.find((p) => p.name === 'Throne'),
+      'throne'
+    )
+    const { container } = render(
+      <ReferenceEntityCard data={atlas} pattern={pattern} presentation="page" />
+    )
+    const names = [
+      ...container.querySelectorAll('.su-entity-page__loadout tr.su-open__row .su-open__name'),
+    ].map((node) => node.textContent ?? '')
+    const flamethrowers = names.filter((name) => name.includes('FM-3 Flamethrower'))
+    expect(flamethrowers).toHaveLength(1)
+    expect(flamethrowers[0]).toContain('×2')
+  })
+
+  test('patterns are one Ledger, a line each: its name the link, its loadout said whole', () => {
     const chassis = gopher()
     const count = chassis.patterns?.length ?? 0
     render(
@@ -240,43 +272,62 @@ describe('the card as a page', () => {
         <ReferenceEntityCard data={chassis} presentation="page" />
       </EntitySurfaceProvider>
     )
-    const rows = screen.getAllByRole('link', { name: /Gopher pattern$/ })
+    const ledger = screen.getByRole('table', { name: 'Gopher patterns' })
+    const rows = [...ledger.querySelectorAll('tbody tr')]
     expect(rows).toHaveLength(count)
-    expect(screen.getByRole('link', { name: `Show all ${count} patterns` })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Patterns', level: 2 })).toBeTruthy()
+    expect(ledger.querySelectorAll('tbody a[href="/pattern/"]')).toHaveLength(count)
+    expect(rows[0]?.textContent).toContain(chassis.patterns?.[0]?.systems?.[0]?.name ?? '')
+    expect(screen.queryByRole('link', { name: /show all/i })).toBeNull()
   })
 
-  test('a pattern row lists each drone under its own name, its systems then modules under it, two-up and unheaded', () => {
+  test('a pattern’s line counts a multiple and names each drone as the pattern does', () => {
     const chassis = need(SalvageUnionReference.Chassis.getByName('Big Brother'), 'big brother')
     render(<ReferenceEntityCard data={chassis} presentation="page" />)
-    const drones = screen.getByRole('list', { name: 'DronTek Drones installed' })
-    const shield = screen.getByRole('list', { name: 'Shield Drone loadout' })
-    // Right under the drone's Mini, in the drone's own item.
-    expect(shield.parentElement?.parentElement).toBe(drones)
-    expect(shield.parentElement?.textContent).toContain('Shield Drone')
-    expect(shield.classList.contains('su-entity-mini-list--two-up')).toBe(true)
-    expect([...shield.querySelectorAll(':scope > li')].map((li) => li.textContent ?? '')).toEqual([
-      expect.stringContaining('Refractive Shield Projector'),
-      expect.stringContaining('Electro-Magnetic Shield Projector'),
-      expect.stringContaining('Energy Cell'),
-    ])
-    // No Systems / Modules Slab of its own: the item is the Mini, then its parts.
-    expect(shield.parentElement?.children).toHaveLength(2)
-    expect(shield.parentElement?.textContent).not.toMatch(/Systems|Modules/)
+    const line = screen.getByRole('table', { name: 'Big Brother patterns' }).textContent ?? ''
+    expect(line).toContain('Shield Drone')
+    expect(line).toContain('Minelayer Drone')
+    const multiple = SalvageUnionReference.Chassis.all()
+      .flatMap((c) => (c.patterns ?? []).map((p) => ({ c, p })))
+      .find(({ p }) => p.systems?.some((s) => (s.count ?? 1) > 1))
+    const { c, p } = need(multiple, 'a pattern with a counted system')
+    const part = need(
+      p.systems?.find((s) => (s.count ?? 1) > 1),
+      'counted system'
+    )
+    render(<ReferenceEntityCard data={c} presentation="page" />)
+    expect(screen.getByRole('table', { name: `${c.name} patterns` }).textContent).toContain(
+      `${part.name} ×${part.count}`
+    )
   })
 
   test('an entity with no art reads as one column', () => {
     const { container } = render(<ReferenceEntityCard data={juryRig()} presentation="page" />)
     expect(container.querySelector('.su-entity-page')).not.toBeNull()
-    expect(container.querySelector('.su-entity-page__main--art')).toBeNull()
-    expect(container.querySelector('.su-entity-page__art')).toBeNull()
+    expect(container.querySelector('.su-manual__art')).toBeNull()
   })
 
-  test('cards nested in a page title themselves h3, under the section band’s h2', () => {
+  test('an entity’s actions stand under the "Actions" h2, each a Mini with its rules text', () => {
     const scylla = need(SalvageUnionReference.BioTitans.getByName('Scylla'), 'scylla')
     render(<ReferenceEntityCard data={scylla} presentation="page" />)
-    expect(screen.getByRole('heading', { name: 'Actions', level: 2 })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Tail Sweep (Action)', level: 3 })).toBeTruthy()
+    const section = need(
+      screen.getByRole('heading', { name: 'Actions', level: 2 }).closest('section') ?? undefined,
+      'the actions section'
+    )
+    const names = [...section.querySelectorAll('.su-entity-mini[data-contentful]')].map(
+      (mini) => mini.querySelector('.su-entity-mini__name')?.textContent
+    )
+    expect(names).toContain('Tail Sweep (Action)')
+    expect(section.querySelectorAll('h3, h4, h5, h6')).toHaveLength(0)
+  })
+
+  test('a denizen the table fights says so, for a phone’s actions-first read; a chassis does not (r2 H5)', () => {
+    const scylla = need(SalvageUnionReference.BioTitans.getByName('Scylla'), 'scylla')
+    const titan = render(<ReferenceEntityCard data={scylla} presentation="page" />)
+    expect(titan.container.querySelector('.su-manual.su-manual--fought')).not.toBeNull()
+    titan.unmount()
+    const chassis = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
+    expect(chassis.container.querySelector('.su-manual')).not.toBeNull()
+    expect(chassis.container.querySelector('.su-manual--fought')).toBeNull()
   })
 
   test('a bay’s crew NPC on its Page is drawn open, never a Mini (N8)', () => {
@@ -328,12 +379,6 @@ describe('the card as a page', () => {
     )
     expect(slab.closest('.su-box')).toBeNull()
     expect(slab.nextElementSibling?.textContent).toContain(bay.damagedEffect ?? '')
-  })
-
-  test('the chassis ability and its seal stay spans: no band holds them', () => {
-    const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
-    const lead = need(container.querySelector('.su-entity-page__lead') ?? undefined, 'lead')
-    expect(lead.querySelectorAll('h1, h2, h3, h4, h5, h6')).toHaveLength(0)
   })
 
   // The reference page's h1 is its ChapterBand, outside the card: from there the
@@ -480,16 +525,26 @@ describe('nested cards read at one body size, their host’s', () => {
 })
 
 describe("an ability's Page: Preceding and Next on one row", () => {
-  test('both sections share one row, Next marked to sit at its end', () => {
+  test('in the app (a Page that opens Pages) both cut-outs share one row, Next at its end', () => {
     const arms = need(SalvageUnionReference.Abilities.getByName('Bionic Arms'), 'bionic arms')
-    const { container } = render(<ReferenceEntityCard data={arms} presentation="page" />)
+    const { container } = render(
+      <EntitySurfaceProvider value={{ openPage: () => {} }}>
+        <ReferenceEntityCard data={arms} presentation="page" />
+      </EntitySurfaceProvider>
+    )
     const row = container.querySelector('.su-entity-page__neighbour-row')
     const sections = [...(row?.children ?? [])]
     expect(sections.map((s) => s.querySelector('.su-slab-section__head')?.textContent)).toEqual([
-      'Preceding',
-      'Next',
+      'Preceding:\u00a0Bionic Senses',
+      'Next:\u00a0Bionic Legs',
     ])
     expect(sections[1]?.classList.contains('su-entity-page__section--end')).toBe(true)
     expect(sections[0]?.classList.contains('su-entity-page__section--end')).toBe(false)
+  })
+
+  test('on the SRD the card draws none: the Page frame draws them at its foot', () => {
+    const arms = need(SalvageUnionReference.Abilities.getByName('Bionic Arms'), 'bionic arms')
+    const { container } = render(<ReferenceEntityCard data={arms} presentation="page" />)
+    expect(container.querySelector('.su-entity-page__neighbour-row')).toBeNull()
   })
 })

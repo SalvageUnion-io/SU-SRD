@@ -1,25 +1,45 @@
 import type { SheetKind } from 'game-domain/entityKinds'
-import { Check } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
+import { ConfirmDialog, NextLabel, TrackStep } from '../../components/app'
 import {
   Badge,
   Box,
   Button,
   ChapterBand,
-  ConfirmDialog,
   capsLabel,
   HeaderMenu,
-  NextLabel,
-  Stat,
-  slotPips,
-  TrackStep,
   tokens,
 } from '../../components/index'
+import type { KeepAsFileActs } from './KeepAsFile'
+import { KeepAsFile } from './KeepAsFile'
+import { SaveSignInDialog } from './SaveSignInDialog'
+import { SignedInBack } from './SignedInBack'
+import { WIZ_NEXT_ID } from './SkipToNext'
 import { WizardGameChip } from './WizardGameChip'
+import { WizStartLines } from './WizStarts'
+import { promptShows, scrollToAsked, useInView } from './wizPrompt.model'
+import {
+  ctaLockedStyle,
+  ctaStyle,
+  keepRowStyle,
+  pillNavStyle,
+  pillStyle,
+  pillTrackersStyle,
+  promptStyle,
+  STEP_BODY,
+  stepHeadStyle,
+  stepNoteStyle,
+  stepNumberStyle,
+  stepTitleCaps,
+  stepTitleStyle,
+} from './wizShellStyles.model'
+import { useWizTaught, WizTaughtContext } from './wizTaught.model'
 import '../../styles/build/wizard.css'
 import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import { useStepFocus } from './useStepFocus'
 
 /**
  * Sheet tone context — picks the `.su-sheet--{kind}` poster theming. The NPC
@@ -46,32 +66,30 @@ type WizShellProps = {
   steps: readonly string[]
   /** Index of the active step. */
   active: number
+  /** The furthest step reached (a reload or a step back keeps it): a way there. */
+  reached?: number
   /** When provided, completed stepper entries navigate back. */
   onStepClick?: (index: number) => void
+  /** Passed steps still empty: the rail leaves them open and unticked (r8 E10). */
+  unfilled?: readonly number[]
   /** Step heading — the page's h1 over the step's content, read as 'Step n of N · {title}'. */
   title: string
   /** Main pane content (detail card, pick grid, form, review). */
   children: ReactNode
   /**
-   * Black tracker tabs hosted in the action pill — live budget/count chrome.
-   * Pass `WizTracker` elements.
+   * The step's budgets in the action bar, live. Pass `WizTracker` elements; one
+   * a phone keeps, the rest in `.su-wiz-pill-wide` (from sm).
    */
   trackers?: ReactNode
   /**
-   * One-line step status shown inside the sticky action pill, beside the
-   * buttons — the single home for budget-cap notices like 'Max Abilities
-   * selected (3 / 3)'.
+   * Why Next is locked, in one line under the step's content: the step it
+   * locks says so, and the action bar stays its budgets and its buttons.
    */
   footerNote?: ReactNode
   /**
-   * Escape hatch shown inside the action pill: a link/button to abandon the
-   * guided guardrails and finish the build off-rules on the Free-Edit Live
-   * Sheet (ADR-021). Rendered subordinate to the CTA; omit to hide.
-   */
-  escapeAction?: ReactNode
-  /**
-   * The same escape as a row of the phone's ⋯ menu, where the action bar is
-   * one line (Back, ⋯, the CTA) and has no room for `escapeAction`'s button.
+   * The way out of the guided rules: finish the build off-rules on the
+   * Free-Edit Live Sheet (ADR-021). A row of the bar's ⋯ menu at every width,
+   * shown while a gate is locked; omit to hide.
    */
   onEscape?: (() => void) | undefined
   onBack?: () => void
@@ -83,38 +101,41 @@ type WizShellProps = {
   confirmCancel?: boolean
   /** Advances to the next step, or submits on the last step. */
   onNext: () => void
+  /**
+   * A saved unit's redesign (`useWizardFlow`'s `existing`): every step's
+   * action is the save, and Next steps on beside Back (a phone shows
+   * its chevron alone).
+   */
+  saveNow?: (() => void) | undefined
   nextDisabled?: boolean
   /** Disables all footer actions while a submit is in flight. */
   busy?: boolean
   /** Final-step CTA label, e.g. 'Create Pilot ✦' / 'Save Pilot'. */
   submitLabel: string
+  /** Saving signed out: the sign-in ask over the kept draft (`useWizardFlow`). */
+  signIn?: { open: boolean; onClose: () => void }
+  /** A line under the step's title: signed out, step 1 says saving needs a sign-in. */
+  tryNote?: string | undefined
+  /** Back from Save's sign-in on the last step: the bar says the Save is still to press (r5 C14). */
+  signedInBack?: boolean
+  /** Signed out on the last step: the build kept as a file or on paper (`KeepAsFile`). */
+  keepAsFile?: KeepAsFileActs | undefined
+  /**
+   * Said on the action bar, above the Next: something the step offers out of
+   * sight (`Or start from a Pattern`), and the element a press scrolls to.
+   * Without it the bar says a locked Next's reason (`footerNote`).
+   */
+  prompt?: { text: string; targetId: string } | undefined
+  /**
+   * Where the thing a locked Next waits for is (the First Ability table), so
+   * the reason's press lands on it, not on the reason at the step's foot.
+   */
+  noteTargetId?: string | undefined
+  /** A field the step opens on instead of its heading: its one ask (the NPC's name, r6 B3). */
+  focusId?: string | undefined
 }
 
-/**
- * A wizard budget in the action pill (`SCRAP | 20/20`): the `Stat` cell, its
- * value read against its cap. `pips` leads the reading with one pip a slot
- * (`slotPips`). Its value is the caller's: the tracker does no budget math.
- */
-export function WizTracker({
-  label,
-  value,
-  max,
-  pips = false,
-  testId,
-}: {
-  label: string
-  value: number
-  max: number
-  pips?: boolean
-  /** The reading's test hook. */
-  testId?: string
-}) {
-  return (
-    <span data-testid={testId}>
-      <Stat label={label} value={pips ? `${slotPips(value, max)}${value}` : value} max={max} />
-    </span>
-  )
-}
+const STEP_NOTE_ID = 'wiz-step-note'
 
 /** Its vertical margin opens at lg, and a disabled tab ignores the pointer
  *  (`.su-wiz-rail-step`). */
@@ -230,72 +251,9 @@ function RailStep({
   )
 }
 
-/** Its direction, alignment, gap and padding change at sm (`.su-wiz-pill`). */
-const pillStyle = {
-  backgroundColor: tokens.color.ink,
-  display: 'flex',
-  pointerEvents: 'auto',
-} satisfies CSSProperties satisfies CSSProperties
-
-/** Centred on a phone, start-aligned from sm (`.su-wiz-pill-start`). */
-const pillTrackersStyle = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-} satisfies CSSProperties satisfies CSSProperties
-
-/** Centred on a phone, left-aligned from sm (`.su-wiz-pill-note`). */
-const pillNoteStyle = {
-  color: tokens.color.pilot,
-  fontSize: tokens.fontSize.chip,
-  lineHeight: 'calc(1 / 0.75)',
-  margin: 0,
-  paddingInline: tokens.space[8],
-} satisfies CSSProperties satisfies CSSProperties
-const pillNoteCaps = capsLabel({ weight: 'semibold', tracking: 'caps' })
-
-/** Hidden on a phone, where the escape is a row of the ⋯ menu (`.su-wiz-pill-escape`). */
-const pillEscapeStyle = { paddingInline: tokens.space[8] } satisfies CSSProperties
-
 /** The phone's step line over the notch track: `STEP 2 OF 9 · CLASS & ABILITY`. */
 const railLineStyle = { color: tokens.color.ink, margin: 0 } satisfies CSSProperties
 const railLineCaps = capsLabel({ size: 'caption', tracking: 'snug' })
-
-/** A row on a phone, `display: contents` from sm (`.su-wiz-pill-nav`). */
-const pillNavStyle = {
-  alignItems: 'center',
-  gap: tokens.space[8],
-  justifyContent: 'flex-end',
-} satisfies CSSProperties satisfies CSSProperties
-
-/** Full width on a phone, its own width from sm (`.su-wiz-pill-cta`). */
-const ctaStyle = { borderRadius: tokens.radius.card } satisfies CSSProperties
-
-/** Locked: hollow, at full opacity though disabled. */
-const ctaLockedStyle = {
-  ...ctaStyle,
-  backgroundColor: 'transparent',
-  borderColor: tokens.color.paper60,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.pill,
-  boxShadow: 'none',
-  color: tokens.color.paper60,
-  fontWeight: tokens.weight.normal,
-  opacity: 1,
-} satisfies CSSProperties
-
-const shellStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  minHeight: '100dvh',
-} satisfies CSSProperties
-
-/** Under a page's own band: the shell's column, as tall as its content. */
-const shellUnderBandStyle = { display: 'flex', flexDirection: 'column' } satisfies CSSProperties
-
-/** A column on a phone, a row from lg (`.su-wiz-body`). */
-const bodyStyle = { display: 'flex', flex: '1 1 0%' } satisfies CSSProperties
 
 /** Shown from lg (`.su-wiz-rail-pipe`). */
 const pipeStyle = {
@@ -333,62 +291,48 @@ const arrowheadStyle = {
   width: 0,
 } satisfies CSSProperties
 
-/** Its padding grows at lg (`.su-wiz-main`). */
-const mainStyle = {
-  display: 'flex',
-  flex: '1 1 0%',
-  flexDirection: 'column',
-  minWidth: 0,
-} satisfies CSSProperties satisfies CSSProperties
-
-const fillStyle = { flex: '1 1 0%', minHeight: 0 } satisfies CSSProperties
-
-/** The step's frame: it reserves scroll room under the pinned footer, which overlaps it. */
-const stepFrameStyle = {
-  ...fillStyle,
-  paddingBottom: '6rem', // design-tokens-ignore(raw-spacing): a fit, the pinned footer's room, not spacing
-} satisfies CSSProperties
-
-/** The step's head: its number stamp and its title on one line, over the frame. */
-const stepHeadStyle = {
-  alignItems: 'baseline',
-  display: 'flex',
-  gap: tokens.space[8],
-  marginBottom: tokens.space[12],
-} satisfies CSSProperties
-
-/** The step's number: the ink Stamp (ruleset §5.1), at the title's size. */
-const stepNumberStyle = {
-  flex: 'none',
-  fontSize: tokens.fontSize.title,
-  fontWeight: tokens.weight.extrabold,
-  lineHeight: 1.05,
-  padding: `${tokens.space[4]} ${tokens.space[8]} ${tokens.space[2]}`,
-} satisfies CSSProperties
-
-/** The title, in `.su-entity-compact__title`'s face. */
-const stepTitleStyle = {
-  fontWeight: tokens.weight.extrabold,
-  lineHeight: 1.05,
-  color: tokens.color.ink,
-  margin: 0,
-  minWidth: 0,
-  overflowWrap: 'break-word',
-} satisfies CSSProperties
-const stepTitleCaps = capsLabel({ size: 'title', weight: 'inherit' })
-
-/** The step's paper body, a plain block (not the box's flex column): 20px in. */
-const stepBodyStyle = { padding: tokens.space[20] } satisfies CSSProperties
-
-const footerPillStyle = {
-  bottom: tokens.space[16],
-  display: 'flex',
-  justifyContent: 'flex-end',
-  marginTop: tokens.space[24],
-  pointerEvents: 'none',
-  position: 'sticky',
-  zIndex: tokens.layer.sticky,
-} satisfies CSSProperties
+/**
+ * The wizard's stepper rail: the manual's connector pipe down a 196px column
+ * from lg (a thick ink pipe, arrow-capped, behind the step tabs), a row of
+ * number tabs above the pane under it (labels from md), and on a phone one
+ * step line over a track of notches. A step already passed goes back to it.
+ */
+function WizRail({
+  steps,
+  active,
+  reached,
+  onStepClick,
+  unfilled = [],
+}: Pick<WizShellProps, 'steps' | 'active' | 'onStepClick' | 'unfilled'> & { reached: number }) {
+  return (
+    <aside className="su-wiz-rail" data-print="hide">
+      {/* A phone's rail is one line and a track of notches; the h1 reads
+          the same count to a screen reader. */}
+      <p aria-hidden="true" className={cn('su-wiz-rail-line', railLineCaps)} style={railLineStyle}>
+        {buildWizardCopy('stepOf', { value: active + 1, count: steps.length })} {steps[active]}
+      </p>
+      <nav aria-label={buildWizardCopy('steps')} className="su-wiz-rail-nav">
+        {/* The pipe — thick, runs behind the tabs (lg only). */}
+        <span aria-hidden="true" className="su-wiz-rail-pipe" style={pipeStyle} />
+        {steps.map((label, i) => (
+          <RailStep
+            key={label}
+            label={label}
+            index={i}
+            active={i === active}
+            done={i < active && !unfilled.includes(i)}
+            clickable={!!onStepClick && i !== active && i <= reached}
+            onClick={onStepClick ? () => onStepClick(i) : undefined}
+          />
+        ))}
+        {/* Black stub at the pipe's end with a chunky white arrowhead. */}
+        <span aria-hidden="true" className="su-wiz-rail-stub" style={pipeStubStyle}>
+          <span style={arrowheadStyle} />
+        </span>
+      </nav>
+    </aside>
+  )
+}
 
 /**
  * Shared wizard skeleton, a poster sibling: the `.su-sheet--{kind}` tone context
@@ -396,8 +340,8 @@ const footerPillStyle = {
  * connector-pipe stepper rail (196px) and a flex-1 main pane holding the
  * step: its number stamp and h1 title over an untitled frame of its content
  * (ruleset N6: a container that holds entities is untitled, so the entities
- * in the step are the titled things), with a floating ink action pill (ghost
- * Back/Cancel + primary CTA + tracker tabs + gate text).
+ * in the step are the titled things), and the ink action bar on its reserved
+ * strip at the foot (the budgets, ghost Back and Cancel, the rust Next).
  * The shell is layout-only — all wizard state lives in the caller.
  *
  * Under lg the panes stack full-width with a horizontal tab rail (labels
@@ -410,27 +354,55 @@ export function WizShell({
   band = true,
   steps,
   active,
+  reached = active,
   onStepClick,
+  unfilled,
   title,
   children,
   trackers,
   footerNote,
-  escapeAction,
   onEscape,
   onBack,
   onCancel,
   onNext,
+  saveNow,
   nextDisabled = false,
   busy = false,
   submitLabel,
   confirmCancel = false,
+  signIn,
+  tryNote,
+  signedInBack = false,
+  keepAsFile,
+  prompt,
+  noteTargetId,
+  focusId,
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
+  const headingRef = useStepFocus(active, focusId)
   const isLast = active >= steps.length - 1
-  const ctaLabel = isLast ? submitLabel : <NextLabel to={steps[active + 1]} size="full" />
+  // From sm the Next names its step in words ("Next: Systems & modules").
+  // A redesign saves from any step; its Next is a ghost beside Back.
+  const savesHere = saveNow !== undefined && !isLast
+  const nextLabel = (
+    <NextLabel to={steps[active + 1]} size="full" wordClassName="su-wiz-pill-next" />
+  )
+  const ctaLabel =
+    isLast || savesHere
+      ? submitLabel
+      : // One "Next:", read at every width and seen from sm (`wizard.css`): a
+        // second, hidden copy beside it was read out twice by a text reader.
+        nextLabel
   const askCancel = () => (confirmCancel ? setConfirmingCancel(true) : onCancel())
-  // The ink action pill: trackers + gate note + escape + nav buttons + CTA.
-  // It declares its ink ground (chrome K1), so its ghost buttons read paper.
+  // The prompt's line: gone once pressed, and while its target is on screen.
+  const promptTargetId = prompt?.targetId ?? noteTargetId ?? STEP_NOTE_ID
+  const promptKey = `${active}:${prompt?.text ?? footerNote ?? ''}`
+  const [used, setUsed] = useState<string | null>(null)
+  const inView = useInView(prompt || footerNote ? promptTargetId : undefined)
+
+  // The ink action bar: its trackers, ghost Back and Cancel, and the one rust
+  // Next, so nothing in it outgrows the Next. It declares its ink ground
+  // (chrome K1), so its ghost buttons read paper.
   const actionPill = (
     <div className="su-wiz-pill" data-ground="ink" style={pillStyle}>
       {trackers && (
@@ -438,22 +410,34 @@ export function WizShell({
           {trackers}
         </div>
       )}
-      {footerNote && (
-        <p role="status" className={cn('su-wiz-pill-note', pillNoteCaps)} style={pillNoteStyle}>
-          {footerNote}
-        </p>
-      )}
-      {escapeAction && (
-        <div className="su-wiz-pill-escape" style={pillEscapeStyle}>
-          {escapeAction}
-        </div>
-      )}
-      {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. Back and
-          Cancel take the CTA's Full Size: one Size per line (§4.7). */}
+      {/* Back and Cancel take the CTA's Full Size: one Size per line (§4.7).
+          On a phone Cancel is the ⋯ menu's row. */}
       <div className="su-wiz-pill-nav" style={pillNavStyle}>
         {onBack && (
-          <Button variant="ghost" size="full" onClick={onBack} disabled={busy}>
+          <Button
+            variant="ghost"
+            size="full"
+            className="su-wiz-pill-back"
+            onClick={onBack}
+            disabled={busy}
+          >
             {buildWizardCopy('back')}
+          </Button>
+        )}
+        {savesHere && (
+          <Button
+            variant="ghost"
+            size="full"
+            className="su-wiz-pill-step"
+            onClick={onNext}
+            disabled={nextDisabled || busy}
+          >
+            {/* A phone shows its chevron and reads its name (`wizard.css`). */}
+            <NextLabel
+              to={<span className="su-wiz-pill-step-name">{steps[active + 1]}</span>}
+              size="full"
+              wordClassName="su-wiz-pill-next"
+            />
           </Button>
         )}
         <Button
@@ -465,9 +449,10 @@ export function WizShell({
         >
           {buildWizardCopy('cancel')}
         </Button>
-        {/* A phone's bar is one line (hard rule R44: nothing scrolls sideways):
-            Cancel and the escape are the ⋯ menu's rows there. */}
-        <span className="su-wiz-pill-more">
+        {/* On a phone (hard rule R44: nothing scrolls sideways) Back stays on
+            the bar and Cancel and the escape are the ⋯ menu's rows. From sm
+            the menu shows only while it holds the escape. */}
+        <span className={cn('su-wiz-pill-more', onEscape && 'su-wiz-pill-more--escape')}>
           <HeaderMenu
             variant="overflow"
             size="full"
@@ -493,14 +478,14 @@ export function WizShell({
           onConfirm={onCancel}
         />
       </div>
-      {/* Locked CTA: hollow, dimmed weight —
-          the blocking reason lives in the footerNote text. */}
+      {/* Locked CTA: hollow, dimmed weight; the reason is on the step. */}
       <Button
         variant="primary"
         size="full"
+        id={WIZ_NEXT_ID}
         className="su-wiz-pill-cta"
         style={nextDisabled && !busy ? ctaLockedStyle : ctaStyle}
-        onClick={onNext}
+        onClick={savesHere ? saveNow : onNext}
         disabled={nextDisabled || busy}
       >
         {busy ? buildWizardCopy('saving') : ctaLabel}
@@ -508,8 +493,11 @@ export function WizShell({
     </div>
   )
 
+  // After a first finished build the long rule boxes fold to a line (r7 F10).
+  const taught = useWizTaught()
+
   return (
-    <div className={`su-sheet--${kind}`} style={band ? shellStyle : shellUnderBandStyle}>
+    <div className={`su-wiz-shell su-sheet--${kind}`}>
       {/* The page title as every other page sets it. A paragraph: the step's
           title is the page's h1. */}
       {band && (
@@ -523,73 +511,85 @@ export function WizShell({
         </ChapterBand>
       )}
 
-      <div className="su-wiz-body" style={bodyStyle}>
-        {/* (a) 196px connector-pipe stepper rail: a thick ink
-            pipe with an arrow-capped end runs behind the step tabs on lg;
-            mobile keeps the horizontal wrap without the pipe. */}
-        <aside className="su-wiz-rail">
-          {/* A phone's rail is one line and a track of notches; the h1 reads
-              the same count to a screen reader. */}
-          <p
-            aria-hidden="true"
-            className={cn('su-wiz-rail-line', railLineCaps)}
-            style={railLineStyle}
-          >
-            {buildWizardCopy('stepOf', { value: active + 1, count: steps.length })} {steps[active]}
-          </p>
-          <nav aria-label={buildWizardCopy('steps')} className="su-wiz-rail-nav">
-            {/* The pipe — thick, runs behind the tabs (lg only). */}
-            <span aria-hidden="true" className="su-wiz-rail-pipe" style={pipeStyle} />
-            {steps.map((label, i) => (
-              <RailStep
-                key={label}
-                label={label}
-                index={i}
-                active={i === active}
-                done={i < active}
-                clickable={!!onStepClick && !busy && i < active}
-                onClick={onStepClick ? () => onStepClick(i) : undefined}
-              />
-            ))}
-            {/* Black stub at the pipe's end with a chunky white arrowhead. */}
-            <span aria-hidden="true" className="su-wiz-rail-stub" style={pipeStubStyle}>
-              <span style={arrowheadStyle} />
-            </span>
-          </nav>
-        </aside>
+      <div className="su-wiz-body">
+        <WizRail
+          steps={steps}
+          active={active}
+          reached={reached}
+          onStepClick={onStepClick && !busy ? onStepClick : undefined}
+          unfilled={unfilled}
+        />
 
         {/* (b) flex-1 main pane — always owns the step heading. A plain
             block: the route wraps the wizard in the page's one <main>. */}
-        <div className="su-wiz-main" style={mainStyle}>
+        <div className="su-wiz-main">
           {/* The step (N6): its number stamp and h1 over an untitled frame,
               with no band, so the entities in it are the titled things. */}
-          <div className="su-wiz-step-frame" style={stepFrameStyle}>
+          <div className="su-wiz-step-frame">
             <article>
               <div style={stepHeadStyle}>
                 <Badge shape="stamp" size="full" aria-hidden="true" style={stepNumberStyle}>
                   {active + 1}
                 </Badge>
-                <h1 className={stepTitleCaps} style={stepTitleStyle}>
+                <h1 ref={headingRef} tabIndex={-1} className={stepTitleCaps} style={stepTitleStyle}>
                   <span className="su-sr-only">
                     {buildWizardCopy('stepOf', { value: active + 1, count: steps.length })}{' '}
                   </span>
                   {title}
                 </h1>
               </div>
+              <WizStartLines active={active} tryNote={tryNote} redesign={saveNow !== undefined} />
               <Box body="flush">
-                <div style={stepBodyStyle}>{children}</div>
+                <div className={STEP_BODY}>
+                  {/* Before the build, so it is seen with Create and before
+                      the sign-in ask (r3 E2). Chrome: paper leaves it out. */}
+                  {keepAsFile && (
+                    <div data-print="hide" style={keepRowStyle}>
+                      <KeepAsFile {...keepAsFile} />
+                    </div>
+                  )}
+                  <WizTaughtContext.Provider value={taught}>{children}</WizTaughtContext.Provider>
+                  {footerNote && (
+                    <p id={STEP_NOTE_ID} role="status" style={stepNoteStyle}>
+                      {footerNote}
+                    </p>
+                  )}
+                </div>
               </Box>
             </article>
           </div>
 
-          {/* Footer — floats sticky at the bottom-right of the viewport as the
-              content scrolls, so confirm/nav stays reachable without a
-              full-width bar eating vertical space. The footer itself is
-              click-through (`pointer-events: none`); only the ink action pill
-              is interactive. Below the sm endpoint the pill is one line: Back,
-              the ⋯ menu (Cancel, the escape) and the CTA filling the rest,
-              under the step's budgets and gate text when it has them. */}
-          <footer style={footerPillStyle}>{actionPill}</footer>
+          {/* The action bar: a reserved strip pinned to the viewport's foot
+              (never a card floating over the step), so Back and Next stay in
+              reach as the step scrolls. On a phone it is one line: one
+              budget, the ⋯ menu and the Next filling the rest. */}
+          <footer className="su-wiz-footer" data-print="hide">
+            {/* What the step still asks for, or offers further down, said
+                where the Next is: a press scrolls to it. */}
+            {(prompt ?? footerNote) && promptShows({ key: promptKey, used, inView }) && (
+              <Button
+                variant="ghost"
+                size="compact"
+                style={promptStyle}
+                onClick={() => {
+                  const target = document.getElementById(promptTargetId)
+                  if (target) scrollToAsked(target)
+                  setUsed(promptKey)
+                }}
+              >
+                {prompt?.text ??
+                  buildWizardCopy('nextReason', {
+                    reason: String(footerNote).replace(/ to continue$/, ''),
+                  })}
+                <ChevronDown aria-hidden="true" size={tokens.iconSize.mini} />
+              </Button>
+            )}
+            {signedInBack && isLast && <SignedInBack submitLabel={submitLabel} />}
+            {actionPill}
+          </footer>
+          {signIn && (
+            <SaveSignInDialog open={signIn.open} onClose={signIn.onClose} keep={keepAsFile} />
+          )}
         </div>
       </div>
     </div>

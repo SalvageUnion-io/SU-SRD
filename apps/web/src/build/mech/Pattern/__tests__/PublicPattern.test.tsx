@@ -4,9 +4,9 @@
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { acceptingRooms, roomActs } from '../../../../../test/roomsStub'
-import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
+import { FIXTURE_NOW, mechFixture } from '../../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../../components/__tests__/serverMock'
 import { answerRoutes, withWorkerRoutes } from '../../../../lib/sharing/__tests__/workerRoutes'
 import { sharedPaths } from '../../../../lib/sharing/paths'
@@ -117,7 +117,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
       'Rig first, rivet later.'
     )
     expect(usePageCredit.getState().credit).toBe('Homebrew // Made by alxjrvs')
-    expect(screen.getByText('3 mechs built from it')).toBeTruthy()
+    expect(screen.getByText('3 Mechs built from it')).toBeTruthy()
   })
 
   test('the foot forgets the credit once the page is gone', () => {
@@ -127,11 +127,26 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     expect(usePageCredit.getState().credit).toBeUndefined()
   })
 
+  test('signed out, its one action says signing in is how you build from it, and comes back to this page (r3 E3)', () => {
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    const before = window.location.href
+    window.location.href = 'http://localhost/build/p/pattern/tow-rig-pat'
+    serverMocks.signIns.length = 0
+    try {
+      renderAs(SIGNED_OUT)
+      fireEvent.click(screen.getByRole('button', { name: 'Sign in to build with this' }))
+      expect(serverMocks.signIns).toEqual([['/p/pattern/tow-rig-pat']])
+    } finally {
+      window.location.href = before
+    }
+  })
+
   test('the chassis and the loadout come from the reference', () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(SIGNED_OUT)
 
-    expect(screen.getAllByText('Scrapper chassis').length).toBeGreaterThan(0)
+    // The band's relation chip names the chassis: `PATTERN OF | Scrapper`.
+    expect(screen.getAllByText('Scrapper').length).toBeGreaterThan(0)
     for (const part of ['Rigging Arm', 'Transport Hold', 'Comms Module']) {
       expect(screen.getAllByText(part).length).toBeGreaterThan(0)
     }
@@ -143,6 +158,29 @@ describe('a shared pattern reads like the book and says a player made it', () =>
 
     const hrefs = [...container.querySelectorAll('a[href]')].map((a) => a.getAttribute('href'))
     expect(hrefs.filter((href) => href?.startsWith('/chassis/'))).toEqual([])
+  })
+
+  test('its trail matches the top nav: Training Bay // Patterns, for a reader too (r7 G7)', () => {
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    const { container } = renderAs(SIGNED_OUT)
+
+    const trail = container.querySelector('.su-crumbs--band')
+    const links = [...(trail?.querySelectorAll('a[href]') ?? [])].map((a) => [
+      a.textContent,
+      a.getAttribute('href'),
+    ])
+    expect(links).toEqual([
+      ['Training Bay', '/'],
+      ['Patterns', '/patterns'],
+    ])
+  })
+
+  test('a public pattern names its maker in its band: MADE BY | their display name (r6 E11)', () => {
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    const { container } = renderAs(SIGNED_OUT)
+    const band = container.querySelector('.su-entity-stamps')
+    expect(band?.textContent).toContain('Made by')
+    expect(band?.textContent).toContain('alxjrvs')
   })
 
   test('signed out, it offers sign-in rather than a build that would be refused', () => {
@@ -160,19 +198,200 @@ describe('a shared pattern reads like the book and says a player made it', () =>
   })
 })
 
+/** Pick one of the maker's edits from the page's ⋯ menu (r5 D7). */
+async function fromMenu(item: string) {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+  })
+  await act(async () => {
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: item }))
+  })
+}
+
 describe('signed in', () => {
+  test('its maker’s own page leads back to Training Bay // Patterns, and private it credits no one in its band (r6 E11)', () => {
+    answerRoutes({
+      [STATUS]: NOT_LISTED,
+      [PAGE]: answer({ mine: true, visibility: 'private' }),
+    })
+    usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
+    const { container } = renderAs(CONNECTED)
+    const trail = container.querySelector('.su-crumbs--band')
+    expect(
+      [...(trail?.querySelectorAll('a[href]') ?? [])].map((a) => [
+        a.textContent,
+        a.getAttribute('href'),
+      ])
+    ).toEqual([
+      ['Training Bay', '/'],
+      ['Patterns', '/patterns'],
+    ])
+    expect(container.querySelector('.su-entity-stamps')?.textContent).not.toContain('Made by')
+  })
+
+  test('its maker renames it on its page, and the tab is named for it (U11)', async () => {
+    answerRoutes({
+      [STATUS]: NOT_LISTED,
+      [PAGE]: answer({ mine: true, visibility: 'private' }),
+    })
+    usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
+    renderAs(CONNECTED)
+    expect(document.title).toContain('Tow Rig')
+    // Share and Build With This stay out; the edits fold into ⋯ (r5 D7).
+    expect(screen.queryByRole('button', { name: 'Edit Systems' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    })
+    const menu = screen.getByRole('menu')
+    expect(within(menu).getByRole('menuitem', { name: 'Edit Systems' })).toBeTruthy()
+    expect(within(menu).getByRole('menuitem', { name: 'Edit Modules' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(within(menu).getByRole('menuitem', { name: 'Rename' }))
+    })
+    const field = await screen.findByRole('textbox', { name: 'Pattern name' })
+    fireEvent.change(field, { target: { value: 'Tow Rig Mk II' } })
+    await act(async () => {
+      fireEvent.click(
+        within(field.closest('[role="dialog"]') as HTMLElement).getByRole('button', {
+          name: 'Rename',
+        })
+      )
+    })
+    await settle(() => usePatterns.getState().mechPatterns[0]?.name === 'Tow Rig Mk II')
+    expect(usePatterns.getState().mechPatterns[0]?.name).toBe('Tow Rig Mk II')
+  })
+
+  test('its maker edits its description on its page (r4 E13)', async () => {
+    answerRoutes({
+      [STATUS]: NOT_LISTED,
+      [PAGE]: answer({ mine: true, visibility: 'private' }),
+    })
+    usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
+    renderAs(CONNECTED)
+    await fromMenu('Edit description')
+    const field = (await screen.findByRole('textbox', {
+      name: 'Pattern description',
+    })) as HTMLTextAreaElement
+    expect(field.value).toBe('Rig first, rivet later.')
+    fireEvent.change(field, { target: { value: 'Tow, then weld.' } })
+    await act(async () => {
+      fireEvent.click(
+        within(field.closest('[role="dialog"]') as HTMLElement).getByRole('button', {
+          name: 'Save',
+        })
+      )
+    })
+    await settle(() => usePatterns.getState().mechPatterns[0]?.notes === 'Tow, then weld.')
+    expect(usePatterns.getState().mechPatterns[0]?.notes).toBe('Tow, then weld.')
+  })
+
+  test('its maker deletes it from its page: it asks nothing, leaves for Patterns, and is deleted once its Undo is gone (r6 E3)', async () => {
+    answerRoutes({
+      [STATUS]: NOT_LISTED,
+      [PAGE]: answer({ mine: true, visibility: 'private' }),
+    })
+    usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
+    renderAs(CONNECTED)
+    await fromMenu('Delete')
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    await settle(() => serverMocks.navigations.length > 0)
+    expect(JSON.stringify(serverMocks.navigations)).toContain('/patterns')
+    // Held under its notice: leaving the page writes it.
+    expect(usePatterns.getState().mechPatterns).toHaveLength(1)
+    await act(async () => {
+      window.dispatchEvent(new Event('pagehide'))
+    })
+    await settle(() => usePatterns.getState().mechPatterns.length === 0)
+    expect(usePatterns.getState().mechPatterns).toHaveLength(0)
+  })
+
+  test('a reader who did not make it gets no edit', () => {
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    renderAs(CONNECTED)
+    expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Rename' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Edit description' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Edit Systems' })).toBeNull()
+  })
+
   test('Build With This makes a fresh mech that records its source, and opens it', async () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(CONNECTED)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /^Build With This: a mech from / }))
+      fireEvent.click(screen.getByRole('button', { name: /^Build With This: a Mech from / }))
     })
+    // One press builds, as wherever a pattern is built from (r4 E23).
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     await settle(() => serverMocks.navigations.length > 0)
 
     const [mech] = useUnits.getState().mechs
-    expect(mech).toMatchObject({ name: 'Tow Rig', sourcePattern: 'pat-tow-rig', cargoLots: [] })
+    expect(mech).toMatchObject({ name: 'Tow Rig 1', sourcePattern: 'pat-tow-rig', cargoLots: [] })
     expect(serverMocks.navigations).toEqual([{ to: '/mechs/$id', params: { id: mech?.id } }])
+  })
+
+  test('it lists the Mechs built from it, Up to date or Behind, and brings all up to date with Undo (r7 G2)', async () => {
+    const built = { chassisRef: 'scrapper', sourcePattern: 'pat-tow-rig' }
+    useUnits.setState({
+      mechs: [
+        mechFixture({
+          id: 'm-same',
+          name: 'Tow Rig 1',
+          ...built,
+          systems: body.systems,
+          modules: body.modules,
+        }),
+        mechFixture({
+          id: 'm-behind',
+          name: 'Tow Rig 2',
+          ...built,
+          systems: ['rigging-arm'],
+          modules: ['comms-module'],
+        }),
+      ],
+    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    renderAs(CONNECTED)
+
+    const list = await screen.findByRole('table', { name: 'Your Mechs built from it' })
+    const same = within(list).getByRole('link', { name: 'Tow Rig 1' }).closest('tr')
+    const behind = within(list).getByRole('link', { name: 'Tow Rig 2' }).closest('tr')
+    expect(same?.textContent).toContain('Up to date')
+    expect(behind?.textContent).toContain('Behind')
+
+    // It shows what it will change before it writes.
+    fireEvent.click(screen.getByRole('button', { name: 'Bring all up to date' }))
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('Tow Rig 2: Tow Rig has 1 System this Mech lacks')
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Bring all up to date' }))
+    })
+    await settle(
+      () => useUnits.getState().mechs.find((m) => m.id === 'm-behind')?.systems.length === 2
+    )
+    expect(useUnits.getState().mechs.find((m) => m.id === 'm-behind')?.systems).toEqual(
+      body.systems
+    )
+    // Its notice says what it did, and its Undo puts the old loadout back.
+    const { toast } = await import('../../../../components/index')
+    const line = toast
+      .getToasts()
+      .find((t) => 'title' in t && t.title === 'Tow Rig 2 now matches Tow Rig.') as
+      | { action?: { onClick: (event: never) => void } }
+      | undefined
+    expect(line?.action).toBeDefined()
+    await act(async () => {
+      line?.action?.onClick(undefined as never)
+    })
+    await settle(
+      () => useUnits.getState().mechs.find((m) => m.id === 'm-behind')?.systems.length === 1
+    )
+    expect(useUnits.getState().mechs.find((m) => m.id === 'm-behind')?.systems).toEqual([
+      'rigging-arm',
+    ])
+    toast.dismiss()
   })
 
   test('Copy to my shelf saves it under a new id', async () => {

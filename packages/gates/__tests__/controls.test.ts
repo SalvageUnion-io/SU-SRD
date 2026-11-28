@@ -14,8 +14,8 @@ import { glyphFindings } from '../rules/copyTerms'
 import { loneSignFindings } from '../rules/loneSign'
 
 /**
- * The `controls` rule set (hard rules R23, R29) and the copy set's `glyph`
- * rule (R23), against fixtures: what counts as a lucide glyph, what names its
+ * The `controls` rule set (chrome K11, K10) and the copy set's `glyph`
+ * rule (K11), against fixtures: what counts as a lucide glyph, what names its
  * Size, and which characters stand in for an icon.
  */
 
@@ -98,6 +98,14 @@ describe('copy glyph', () => {
       .join('\n')
       .replaceAll('@{', '$' + '{')
     expect(lines(glyphFindings('a.tsx', source))).toEqual([1, 2, 3, 4, 5])
+  })
+  test('a sort mark drawn as a character is banned; one in a comment is not', () => {
+    const source = [
+      "export const A = () => <b>{sorted ? <Mark /> : '↕'}</b>",
+      'export const B = () => <i>↕</i>',
+      '// a comment may say ↕',
+    ].join('\n')
+    expect(lines(glyphFindings('a.tsx', source))).toEqual([1, 2])
   })
   test('imports, console and bookQuote calls are no copy; a template chunk is', () => {
     const source = [

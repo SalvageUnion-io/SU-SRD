@@ -10,10 +10,15 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import type { Npc } from 'game-domain/schemas/npc'
 import { useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SheetPickerModal } from '../../../build/sheet/SheetPickerModal'
-import { pickInSearcher, searcherMini } from '../../../components/__tests__/searcherPick'
+import {
+  openInSearcher,
+  pickInSearcher,
+  searcherMini,
+} from '../../../components/__tests__/searcherPick'
 import type { TrayWrites } from '../OppositionPicker'
 import { OppositionDialogs, OppositionPicker } from '../OppositionPicker'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from '../opposition.model'
@@ -33,14 +38,23 @@ function trayWrites(refuse: ReadonlySet<keyof TrayWrites> = new Set()): TrayWrit
     }
   return {
     add: record('add'),
+    addBuilt: record('addBuilt'),
     setHp: record('setHp'),
+    salvageRoll: record('salvageRoll'),
     morale: record('morale'),
     groupRoll: record('groupRoll'),
     setImportant: record('setImportant'),
     setReactor: record('setReactor'),
+    setUses: record('setUses'),
+    setTitanic: record('setTitanic'),
     critical: record('critical'),
     heatCheck: record('heatCheck'),
     remove: record('remove'),
+    clear: record('clear'),
+    clearDowned: async () => {
+      await record('clearDowned')()
+      return { removed: 0, undo: async () => undefined }
+    },
     rename: record('rename'),
     field: async (...args: unknown[]) => {
       await record('field')(...args)
@@ -118,6 +132,8 @@ function Harness({
         <OppositionPicker
           npcs={npcs}
           saved={savedPatterns}
+          yours={[KESSLER]}
+          onAddBuilt={(npc, name) => void writes.addBuilt(npc, name)}
           onAdd={(schema, entity, draw) =>
             void writes.add(schema, entity, draw).catch((err) => failures.push(err))
           }
@@ -134,6 +150,19 @@ function Harness({
       />
     </>
   )
+}
+
+/** One of the Mediator's own designed NPCs. */
+const KESSLER: Npc = {
+  id: 'npc-1',
+  schemaVersion: 1,
+  name: 'Sergeant Kessler',
+  hitPoints: 9,
+  damageType: 'HP',
+  actions: ['rifle'],
+  traits: [],
+  createdAt: ROLLED_AT,
+  updatedAt: ROLLED_AT,
 }
 
 async function renderTab(
@@ -217,7 +246,7 @@ describe('+ From the reference', () => {
   test('opens on NPCs, adds the one picked, and counts what is already on the field', async () => {
     await renderTab([fallenRaider])
     const picker = await openPicker()
-    expect((picker.getByLabelText('Draw from') as HTMLSelectElement).value).toBe('npcs')
+    expect(picker.getByRole('button', { name: 'NPCs' }).getAttribute('aria-pressed')).toBe('true')
     // The Raider already on the field is marked chosen in the list.
     const raider = searcherMini('Raider', dialog())?.closest('.su-searcher__item')
     expect(raider?.hasAttribute('data-selected')).toBe(true)
@@ -230,12 +259,23 @@ describe('+ From the reference', () => {
     expect(entity.name).toBe('Trooper')
   })
 
-  test('Draw from switches the schema it searches', async () => {
+  test('a search that finds nothing in this kind moves to the first kind that finds it (r6 E8)', async () => {
     await renderTab([])
     const picker = await openPicker()
+    const search = screen.getByRole('textbox', { name: 'Search' })
     await act(async () => {
-      fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'creatures' } })
+      fireEvent.change(search, { target: { value: 'mule' } })
     })
+    // No NPC is a Mule; two Mechs are (LG6-22).
+    expect(picker.getByRole('button', { name: 'Mechs 2' }).getAttribute('aria-pressed')).toBe(
+      'true'
+    )
+  })
+
+  test('the kinds sit above the search; a kind switches what it searches', async () => {
+    await renderTab([])
+    const picker = await openPicker()
+    await click(picker.getByRole('button', { name: 'Creatures' }))
     expect(searcherMini('Trooper', dialog())).toBeNull()
     await add('Wasteland Bear')
     const [schema, entity] = (calls[0]?.args ?? []) as [EncounterRefSchema, RefEntity]
@@ -243,10 +283,45 @@ describe('+ From the reference', () => {
     expect(entity.name).toBe('Wasteland Bear')
   })
 
-  test('a name typed under Draw from goes with the next add, then clears', async () => {
+  test('one search carries across the kinds, each saying how many it finds (MD-05)', async () => {
     await renderTab([])
     const picker = await openPicker()
-    const name = picker.getByLabelText('Name (optional)') as HTMLInputElement
+    await act(async () => {
+      fireEvent.change(picker.getByLabelText('Search'), { target: { value: 'Wasteland Bear' } })
+    })
+    expect(picker.getByRole('button', { name: /^Creatures [1-9]/ })).toBeTruthy()
+    await click(picker.getByRole('button', { name: /^Creatures/ }))
+    // The search is still there on the kind it moved to.
+    expect((picker.getByLabelText('Search') as HTMLInputElement).value).toBe('Wasteland Bear')
+    expect(searcherMini('Wasteland Bear', dialog())).not.toBeNull()
+  })
+
+  test('On the field names each unit as it fights, not by its book name (r5 B11)', async () => {
+    await renderTab([{ ...fallenRaider, name: 'Lookout' }])
+    await openPicker()
+    const rail = within(dialog()).getAllByTestId('rail-entry')
+    expect(rail[0]?.textContent).toContain('Lookout')
+  })
+
+  test('On the field counts every kind, not only the one showing (MD-22)', async () => {
+    await renderTab([rifleSquad, fallenRaider])
+    await openPicker()
+    expect(within(dialog()).getAllByTestId('rail-entry')).toHaveLength(2)
+  })
+
+  test("Yours offers the Mediator's own designed NPCs (MD-07)", async () => {
+    await renderTab([])
+    const picker = await openPicker()
+    await click(picker.getByRole('button', { name: 'Yours' }))
+    await add('Sergeant Kessler')
+    expect(calls).toEqual([{ name: 'addBuilt', args: [KESSLER, ''] }])
+  })
+
+  test('a name typed beside Add goes with that add, then clears (r5 B11)', async () => {
+    await renderTab([])
+    await openPicker()
+    const bar = await openInSearcher('Trooper', dialog())
+    const name = within(bar).getByLabelText('Name (optional)') as HTMLInputElement
     await act(async () => {
       fireEvent.change(name, { target: { value: 'Red Leader' } })
     })
@@ -258,10 +333,7 @@ describe('+ From the reference', () => {
     expect(calls[1]?.args[2]).toEqual({})
   })
 
-  // The Mechs pool is every chassis card at full size: switching to it alone
-  // renders for ~2.3s (measured), so one test walks every pattern path and
-  // carries a longer timeout.
-  test('Mechs asks which pattern before adding, saved ones too; Cancel adds nothing, No pattern the bare chassis', async () => {
+  test('a mech is added in one step, its pattern chosen beside Add, saved ones too (MD-06)', async () => {
     const redLeader: SavedPattern = {
       id: 'p1',
       name: 'Red Leader',
@@ -278,35 +350,28 @@ describe('+ From the reference', () => {
     }
     await renderTab([], { savedPatterns: [redLeader, onAnother] })
     const picker = await openPicker()
-    await act(async () => {
-      fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'chassis' } })
-    })
+    await click(picker.getByRole('button', { name: 'Mechs' }))
     await act(async () => {
       fireEvent.change(picker.getByLabelText('Search'), { target: { value: 'Mule' } })
     })
-    const addMule = () => add('Mule')
     const choose = async (value: string) => {
       await act(async () => {
         fireEvent.change(picker.getByLabelText('Mule pattern'), { target: { value } })
       })
     }
 
-    await addMule()
-    // Nothing is added until the pattern is chosen; the first is preselected.
-    expect(calls).toHaveLength(0)
-    expect((picker.getByLabelText('Mule pattern') as HTMLSelectElement).value).toBe('book:hauler')
-    await click(picker.getByRole('button', { name: 'Cancel' }))
-    expect(picker.queryByLabelText('Mule pattern')).toBeNull()
-    expect(calls).toHaveLength(0)
+    // One press adds it as the pattern showing: the first is preselected.
+    await add('Mule')
+    expect(calls).toHaveLength(1)
+    expect((calls[0]?.args[2] as TrayDraw | undefined)?.pattern?.name).toBe('Hauler')
 
-    await addMule()
     // Saved patterns built on this chassis are offered by maker; others are not.
     const options = [...(picker.getByLabelText('Mule pattern') as HTMLSelectElement).options]
-    expect(options.map((o) => o.text)).toContain('Red Leader · Player')
+    expect(options.map((o) => o.text)).toContain('Mule · Red Leader · Player')
     expect(options.map((o) => o.text)).not.toContain('Elsewhere · Player')
     await choose('book:crusher')
-    await click(picker.getByRole('button', { name: 'Add to the field' }))
-    const [schema, entity, draw] = (calls[0]?.args ?? []) as [
+    await add('Mule')
+    const [schema, entity, draw] = (calls[1]?.args ?? []) as [
       EncounterRefSchema,
       RefEntity,
       TrayDraw,
@@ -314,17 +379,14 @@ describe('+ From the reference', () => {
     expect(schema).toBe('chassis')
     expect(entity.name).toBe('Mule')
     expect(draw.pattern?.name).toBe('Crusher')
-    expect(picker.queryByLabelText('Mule pattern')).toBeNull()
 
-    await addMule()
     await choose('saved:p1')
-    await click(picker.getByRole('button', { name: 'Add to the field' }))
-    expect(calls[1]?.args[2]).toEqual({ saved: redLeader })
+    await add('Mule')
+    expect(calls[2]?.args[2]).toEqual({ saved: redLeader })
 
-    await addMule()
     await choose('')
-    await click(picker.getByRole('button', { name: 'Add to the field' }))
-    expect(calls[2]?.args[2]).toEqual({})
+    await add('Mule')
+    expect(calls[3]?.args[2]).toEqual({})
   }, 20_000)
 
   test('a refused add goes to onFailure', async () => {
@@ -339,5 +401,24 @@ describe('+ From the reference', () => {
     const picker = await openPicker()
     await click(picker.getByRole('button', { name: 'Close' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+})
+
+describe('the preview says what a denizen can do (r4 D4)', () => {
+  test('an NPC’s Page lists its weapon, as its Reference page does', async () => {
+    await renderTab([])
+    await click(screen.getByRole('button', { name: '+ Add' }))
+    await openInSearcher('Raider')
+    const page = within(screen.getByRole('article', { name: 'Raider' }))
+    expect(page.getAllByText('Improvised Firearm').length).toBeGreaterThan(0)
+  })
+
+  test('a Squad’s Page lists its weapon too', async () => {
+    await renderTab([])
+    await click(screen.getByRole('button', { name: '+ Add' }))
+    await click(screen.getByRole('button', { name: 'Squads' }))
+    await openInSearcher('Rifle Squad')
+    const page = within(screen.getByRole('article', { name: 'Rifle Squad' }))
+    expect(page.getAllByText(/Rifle/).length).toBeGreaterThan(1)
   })
 })

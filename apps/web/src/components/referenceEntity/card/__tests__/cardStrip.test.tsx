@@ -1,6 +1,6 @@
 /**
  * A card's controls, condition and seal live in its head (`chips-and-actions.md`
- * C8, hard rule R6, ruleset §7.2): the condition and a count's stepper in the
+ * C8, ruleset §7.2): the condition and a count's stepper in the
  * chip group's state slot, every other control its last slot, the select seal
  * on the band's right. Nothing rides the frame, and nothing sits under the
  * strip or in the body.

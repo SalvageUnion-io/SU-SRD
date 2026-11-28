@@ -2,7 +2,6 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ratchetCounts } from '../lib/ruleEngine'
 import { blankScriptComments, enclosingObject, parseCss } from '../lib/styleSource'
 import {
   ALERT_ATOMS,
@@ -13,6 +12,7 @@ import {
   scanChromeSources,
 } from '../rules/chromeTokens'
 import { ENTITY_FRAME_STYLE_FILES } from '../rules/entityFrames'
+import { SLIDESHOW } from '../rules/slideshow'
 import { Exited, trapExit } from './trapExit'
 
 /**
@@ -28,7 +28,6 @@ describe('chrome tokens rule set', () => {
   test('every rule is zero, the entity-frame-ink rule (R38) too', () => {
     expect(chromeTokens.id).toBe('chrome-tokens')
     expect(chromeTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
-    expect(ratchetCounts(chromeTokens, {})).toEqual({})
   })
 })
 
@@ -81,6 +80,44 @@ describe('parseCss', () => {
       'const c = `/* kept */`',
       '               ',
     ])
+  })
+})
+
+describe('chrome-tokens/item-grid', () => {
+  test('a CSS grid of repeated equal tracks fails, in CSS and a style object (R68)', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '.a { grid-template-columns: repeat(3, minmax(0, 1fr)); }',
+        '.b { grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); }',
+        '.c { grid-template-columns: 1fr auto; }',
+        '.d { grid-template-columns: repeat(1, 1fr); }',
+      ].join('\n')
+    )
+    expect(lines(css, 'item-grid')).toEqual([1, 2])
+    const tsx = scan(
+      'apps/web/src/X.tsx',
+      "const A = { gridTemplateColumns: 'repeat(2, 1fr)' }\nconst B = { gridTemplateColumns: '1fr auto' }"
+    )
+    expect(lines(tsx, 'item-grid')).toEqual([1])
+  })
+
+  test('the one item grid, a gauge and a named matrix pass', () => {
+    const home = scan(
+      'apps/web/src/styles/partials/foundation.css',
+      '.su-x { grid-template-columns: repeat(2, 1fr); }'
+    )
+    expect(home['item-grid']).toEqual([])
+    const gauge = scan(
+      'apps/web/src/components/atoms/VitalGauge.tsx',
+      "const PIPS = { gridTemplateColumns: 'repeat(6, 1fr)' }"
+    )
+    expect(gauge['item-grid']).toEqual([])
+    const named = scan(
+      'apps/web/src/styles/x.css',
+      '.t { grid-template-columns: repeat(10, 1fr); } /* design-tokens-ignore(item-grid): ten steps */'
+    )
+    expect(named['item-grid']).toEqual([])
   })
 })
 
@@ -287,6 +324,31 @@ describe('motion: chrome-tokens/raw-duration, raw-easing, motion-loop', () => {
     }
   })
 
+  test('slide-turn: the slideshow is the one other loop, a slide out of turn hidden', () => {
+    const show = (zero: string, end: string) =>
+      scan(
+        SLIDESHOW.file,
+        [
+          `${SLIDESHOW.keyframes} {`,
+          `  0% { opacity: 0; visibility: ${zero}; }`,
+          '  5% { opacity: 1; visibility: visible; }',
+          `  15%, 100% { opacity: 0; visibility: ${end}; }`,
+          '}',
+        ].join('\n')
+      )
+    const good = show('hidden', 'hidden')
+    expect(good['loading-mark']).toEqual([])
+    expect(good['slide-turn']).toEqual([])
+    expect(lines(show('visible', 'hidden'), 'slide-turn')).toEqual([1])
+    expect(lines(show('hidden', 'visible'), 'slide-turn')).toEqual([1])
+    // Its name in another file is a loop of its own.
+    const elsewhere = scan(
+      'apps/web/src/styles/x.css',
+      `${SLIDESHOW.keyframes} { to { opacity: 0; } }`
+    )
+    expect(lines(elsewhere, 'loading-mark')).toEqual([1])
+  })
+
   test('theme.css, the definitions and the reduced-motion backstop, is exempt', () => {
     const css = scan(
       'apps/web/src/styles/theme.css',
@@ -390,9 +452,9 @@ describe('chrome-tokens/muted-note', () => {
 })
 
 describe('chrome-tokens/raw-breakpoint', () => {
-  test('the gate’s ladder is design/tokens.ts’s `breakpoint`', () => {
+  test('the gate’s ladder is design/breakpoint.ts’s `breakpoint`', () => {
     const tokens = readFileSync(
-      join(import.meta.dir, '../../../apps/web/src/design/tokens.ts'),
+      join(import.meta.dir, '../../../apps/web/src/design/breakpoint.ts'),
       'utf8'
     )
     const block = tokens.match(/export const breakpoint = \{([^}]*)\}/)?.[1] ?? ''

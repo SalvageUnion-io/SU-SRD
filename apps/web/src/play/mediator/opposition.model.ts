@@ -6,9 +6,11 @@
  * Pure apart from the reference lookups.
  */
 
-import { instanceName } from 'game-domain/games/encounters'
+import { instanceName, numberFirst } from 'game-domain/games/encounters'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import { ENCOUNTER_REF_SCHEMAS } from 'game-domain/schemas/encounterNpc'
+import type { Npc, NpcTemplateKind } from 'game-domain/schemas/npc'
+import { NPC_TEMPLATE_KINDS } from 'game-domain/schemas/npc'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
   findEntityBySlug,
@@ -17,6 +19,7 @@ import {
   nameToSlug,
   resolveFormerSlug,
 } from 'salvageunion-reference'
+import { npcAsReferenceEntity } from '../../lib/npcs/npcModel'
 import { asReferencePattern } from '../../lib/patterns/patterns'
 import type { ImportantRoll, ImportantTrack, MoraleRoll } from '../../lib/rules/opposition'
 import { importantTrackOf, isDown, isImportantRoll, trackOf } from '../../lib/rules/opposition'
@@ -55,6 +58,8 @@ export type TrayNpc = {
   down: boolean
   /** Its wreck has been salvaged or scrapped: nothing is left to take. */
   salvaged: boolean
+  /** Its wreck's Mech Salvage roll, kept until it is salvaged (r5 B1); null before one. */
+  salvageRoll: number | null
   lastRoll: MoraleRoll | null
   /** What marking it important adds; null when it cannot be (a Bio-Titan, Meld). */
   track: ImportantTrack | null
@@ -69,6 +74,14 @@ export type TrayNpc = {
   /** The schema it came from, for the picker's counts. */
   refSchema: EncounterRefSchema | null
   refSlug: string | null
+  /** The Mediator's own designed NPC it was drawn from (ADR-067 §1), by id. */
+  builtFrom: string | null
+  /** The kind of denizen that design was built from, where it was not a plain NPC. */
+  builtKind: NpcTemplateKind | null
+  /** The Uses its limited actions have spent, by action id (r8 B3). */
+  usesSpent: Record<string, number>
+  /** The Titanic Actions it spent, and in which round (r8 B3); null before any. */
+  titanicSpent: { round: number; spent: number } | null
 }
 
 const isRefSchema = (value: unknown): value is EncounterRefSchema =>
@@ -77,6 +90,12 @@ const isRefSchema = (value: unknown): value is EncounterRefSchema =>
 const num = (value: unknown, fallback: number): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback
 
+/** A kept Mech Salvage die, 1–20, or null. */
+function readSalvageRoll(value: unknown): number | null {
+  const roll = (value as { roll?: unknown } | null)?.roll
+  return typeof roll === 'number' && Number.isInteger(roll) && roll >= 1 && roll <= 20 ? roll : null
+}
+
 /** Read a `mediator.npcs` row without trusting its body's shape. */
 export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
   const body = (row.body ?? {}) as Record<string, unknown>
@@ -84,7 +103,24 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
   const refSlug = typeof body.refSlug === 'string' ? body.refSlug : null
   const live = refSchema && refSlug ? findEntityBySlug(refSchema, refSlug) : null
   const former = !live && refSchema && refSlug ? resolveFormerSlug(refSchema, refSlug) : null
-  const entity = live ?? former?.host ?? null
+  const maxHp = num(body.maxHp, 0)
+  const statKind = body.statKind === 'sp' ? 'sp' : 'hp'
+  const name = typeof body.name === 'string' ? body.name : 'Unnamed'
+  const built = readBuilt(body.built)
+  // One of the Mediator's own: its snapshot reads as an `npcs` entity, so its
+  // card and its actions draw as a book NPC's do.
+  const own = built
+    ? (npcAsReferenceEntity({
+        id: built.npcId,
+        name: built.name,
+        hitPoints: maxHp,
+        damageType: statKind === 'sp' ? 'SP' : 'HP',
+        actions: built.actions,
+        traits: built.traits,
+        ...(built.bioSalvageValue === undefined ? {} : { bioSalvageValue: built.bioSalvageValue }),
+      }) as RefEntity)
+    : null
+  const entity = own ?? live ?? former?.host ?? null
   const saved = readUserPattern(body.userPattern)
   const picked = !live
     ? null
@@ -93,17 +129,15 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
       : typeof body.refPattern === 'string'
         ? patternBySlug(live, body.refPattern)
         : null
-  const maxHp = num(body.maxHp, 0)
   const currentHp = num(body.currentHp, maxHp)
   const roll = body.lastMediatorRoll as MoraleRoll | undefined
-  const statKind = body.statKind === 'sp' ? 'sp' : 'hp'
   const track = importantTrackOf(refSchema, entity, statKind, picked)
   const important = body.important === true && track !== null
   const maxEp = num(body.maxEp, track?.reactor?.maxEp ?? 0)
   const heatCap = num(body.heatCap, track?.reactor?.heatCap ?? 0)
   return {
     id: row._id,
-    name: typeof body.name === 'string' ? body.name : 'Unnamed',
+    name,
     entity,
     pattern: picked ?? former?.pattern ?? null,
     currentHp,
@@ -111,6 +145,7 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     statKind,
     down: isDown(currentHp, maxHp),
     salvaged: body.salvaged === true,
+    salvageRoll: readSalvageRoll(body.salvageRoll),
     lastRoll: roll && typeof roll.roll === 'number' ? roll : null,
     track,
     important,
@@ -123,6 +158,59 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     group: readGroup(body.group),
     refSchema,
     refSlug,
+    builtFrom: built?.npcId ?? null,
+    builtKind: built?.kind ?? null,
+    usesSpent: readCounts(body.usesSpent),
+    titanicSpent: readTitanic(body.titanicSpent),
+  }
+}
+
+function readCounts(value: unknown): Record<string, number> {
+  if (typeof value !== 'object' || value === null) return {}
+  return Object.fromEntries(
+    Object.entries(value).filter((e): e is [string, number] => typeof e[1] === 'number')
+  )
+}
+
+function readTitanic(value: unknown): TrayNpc['titanicSpent'] {
+  const { round, spent } = (value ?? {}) as { round?: unknown; spent?: unknown }
+  return typeof round === 'number' && typeof spent === 'number' ? { round, spent } : null
+}
+
+function readBuilt(value: unknown): NonNullable<EncounterNpc['built']> | null {
+  if (typeof value !== 'object' || value === null) return null
+  const { npcId, name, actions, traits, kind, bioSalvageValue } = value as Record<string, unknown>
+  if (typeof npcId !== 'string' || !Array.isArray(actions) || !Array.isArray(traits)) return null
+  return {
+    npcId,
+    name: typeof name === 'string' && name !== '' ? name : 'NPC',
+    actions: actions.filter((a): a is string => typeof a === 'string'),
+    traits: traits as NonNullable<EncounterNpc['built']>['traits'],
+    ...(isTemplateKind(kind) ? { kind } : {}),
+    ...(typeof bioSalvageValue === 'number' ? { bioSalvageValue } : {}),
+  }
+}
+
+const isTemplateKind = (value: unknown): value is NpcTemplateKind =>
+  typeof value === 'string' && (NPC_TEMPLATE_KINDS as readonly string[]).includes(value)
+
+/**
+ * A designed NPC's stat block as a fight keeps it (`built`): its name, actions
+ * and traits, the kind of denizen it was built from where that is not a plain
+ * NPC, and its Bio-Salvage Value.
+ */
+export function builtSnapshot(
+  npc: Pick<Npc, 'id' | 'name' | 'actions' | 'traits'> &
+    Partial<Pick<Npc, 'templateRef' | 'bioSalvageValue'>>
+): NonNullable<EncounterNpc['built']> {
+  const kind = npc.templateRef?.schema
+  return {
+    npcId: npc.id,
+    name: npc.name,
+    actions: [...npc.actions],
+    traits: [...npc.traits],
+    ...(isTemplateKind(kind) && kind !== 'npcs' ? { kind } : {}),
+    ...(npc.bioSalvageValue === undefined ? {} : { bioSalvageValue: npc.bioSalvageValue }),
   }
 }
 
@@ -237,10 +325,17 @@ export function slugOf(entity: { name: string }): string {
  */
 export type TrayDraw = { pattern?: RefObjectAnyPattern; saved?: SavedPattern; name?: string }
 
+/** A chassis drawn as a named pattern, as the picker and the field list it: "Bobcat · Mr Miner". */
+export function patternLabel(chassis: string, pattern: string): string {
+  return `${chassis} · ${pattern}`
+}
+
 /**
  * A new tray instance of a reference entity, at full HP or SP. Drawn as one of
  * its patterns, book or saved (whose loadout it copies), it is named for the
- * pattern and keeps the host's stats; a
+ * pattern and keeps the host's stats; a chassis's says the chassis first
+ * ("Bobcat · Mr Miner", `patternLabel`, r4 D5), so the field names the Mech
+ * the Mediator picked; a
  * name the Mediator typed wins over both, numbered like any other when the
  * tray already has it. `mediator.addNpc` mints its id and parses it.
  */
@@ -252,7 +347,9 @@ export function newTrayNpc(
   { pattern, saved, name: custom }: TrayDraw = {}
 ): Omit<EncounterNpc, 'id' | 'gameId'> {
   const hostName = 'name' in entity && typeof entity.name === 'string' ? entity.name : 'NPC'
-  const name = saved?.name ?? pattern?.name ?? hostName
+  const drawn = saved?.name ?? pattern?.name
+  const name =
+    drawn === undefined ? hostName : schema === 'chassis' ? patternLabel(hostName, drawn) : drawn
   const given = custom?.trim() ?? ''
   const { maxHp, statKind } = trackOf(
     entity,
@@ -283,4 +380,48 @@ export function newTrayNpc(
     createdAt: now,
     updatedAt: now,
   }
+}
+
+/**
+ * A new tray instance of one of the Mediator's own designed NPCs (ADR-067
+ * §1), at full HP or SP: a snapshot of its stat block, so editing the design
+ * later never changes a fight under way.
+ */
+export function newBuiltTrayNpc(
+  npc: Pick<Npc, 'id' | 'name' | 'hitPoints' | 'damageType' | 'actions' | 'traits'> &
+    Partial<Pick<Npc, 'templateRef' | 'bioSalvageValue'>>,
+  taken: readonly string[],
+  now: string,
+  custom = ''
+): Omit<EncounterNpc, 'id' | 'gameId'> {
+  const given = custom.trim()
+  return {
+    schemaVersion: 1,
+    refSchema: 'npcs',
+    refSlug: '',
+    built: builtSnapshot(npc),
+    name: instanceName(given === '' ? npc.name : given, taken),
+    currentHp: npc.hitPoints,
+    maxHp: npc.hitPoints,
+    statKind: npc.damageType === 'SP' ? 'sp' : 'hp',
+    conditions: [],
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+
+/**
+ * The unit on the field a new one numbers (r4 D5): with "Raider 2" added, the
+ * one still called "Raider" is to read "Raider 1". Null when there is none.
+ */
+export function firstToNumber<T extends { id: string; name: string }>(
+  tray: readonly T[],
+  added: string
+): { npc: T; name: string } | null {
+  const numbered = numberFirst(tray, added)
+  for (const [i, npc] of tray.entries()) {
+    const name = numbered[i]?.name
+    if (name !== undefined && name !== npc.name) return { npc, name }
+  }
+  return null
 }

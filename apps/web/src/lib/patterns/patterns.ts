@@ -13,11 +13,15 @@ import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { RefChassis, RefEntity, RefObjectPattern } from 'salvageunion-reference'
 import {
   computeMechCapacity,
+  isLegalCreationChassis,
+  MECH_CREATION_SCRAP_CAP,
   resolveChassisRef,
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../replica/types'
+import { mechScrap } from '../rules/mechScrap'
+import { mechRuleBreaks } from '../rules/ruleBreaks'
 
 /** What `patternStore.create` takes: the id and timestamp are minted on create. */
 type PatternInput = Omit<MechPattern, 'id' | 'createdAt'>
@@ -60,14 +64,29 @@ export function patternCopy(pattern: MechPattern): PatternInput {
 }
 
 /**
+ * A Mech built from a pattern gets its own name (r7 G5): the pattern's,
+ * numbered from 1 past the names `taken` in the bay ("Longhaul 1",
+ * "Longhaul 2"), never the bare pattern name, so a Mech and its pattern
+ * never read alike. The sheet opens with it selected for typing.
+ */
+export function patternMechName(name: string, taken: readonly string[] = []): string {
+  let n = 1
+  while (taken.includes(`${name} ${n}`)) n += 1
+  return `${name} ${n}`
+}
+
+/**
  * A fresh mech built from a pattern: the chassis and loadout, SP, EP and Heat
  * unset (full and empty by the pool rules), an empty hold — and the pattern it came from
- * (`sourcePattern`). Its name is the pattern's: a mech's name IS its pattern's.
+ * (`sourcePattern`). Its name is the pattern's, numbered (`patternMechName`).
  */
-export function mechFromPattern(pattern: MechPattern): CreateInput<'mech'> {
+export function mechFromPattern(
+  pattern: MechPattern,
+  taken: readonly string[] = []
+): CreateInput<'mech'> {
   return {
     schemaVersion: 1,
-    name: pattern.name,
+    name: patternMechName(pattern.name, taken),
     chassisRef: pattern.chassisRef,
     systems: [...pattern.systems],
     modules: [...pattern.modules],
@@ -75,6 +94,22 @@ export function mechFromPattern(pattern: MechPattern): CreateInput<'mech'> {
     conditions: [],
     sourcePattern: pattern.id,
   }
+}
+
+/**
+ * Whether a build is past what a new mech starts with (Mech Workshop
+ * pp.94–95): a part above Tech 1, more Scrap than the starting 20, or more
+ * slots than its chassis has. A confirm warns only then.
+ */
+export function pastStartingRules(
+  unit: Pick<MechPattern, 'chassisRef' | 'systems' | 'modules'>
+): boolean {
+  const scrap = mechScrap(unit)
+  return (
+    scrap.total > MECH_CREATION_SCRAP_CAP ||
+    scrap.byTechLevel.some((level) => !isLegalCreationChassis(level.techLevel)) ||
+    mechRuleBreaks(unit).length > 0
+  )
 }
 
 /** The pattern's loadout as reference entities, in its stored order. */
@@ -115,6 +150,24 @@ export function asReferencePattern(
     systems: systems.map((s) => ({ name: s.name })),
     modules: modules.map((m) => ({ name: m.name })),
   }
+}
+
+/**
+ * A saved pattern's loadout as the book lists one: a line a part, its copies
+ * counted ("Mini Mortar ×2"), for the loadout Ledger and its totals.
+ */
+export function countedLoadout(pattern: Pick<MechPattern, 'name' | 'systems' | 'modules'>): {
+  name: string
+  systems: { name: string; count: number }[]
+  modules: { name: string; count: number }[]
+} {
+  const counted = (parts: readonly RefEntity[]) => {
+    const lines = new Map<string, number>()
+    for (const part of parts) lines.set(part.name, (lines.get(part.name) ?? 0) + 1)
+    return [...lines].map(([name, count]) => ({ name, count }))
+  }
+  const { systems, modules } = patternLoadout(pattern)
+  return { name: pattern.name, systems: counted(systems), modules: counted(modules) }
 }
 
 /** The chassis a pattern is built on, or null for a slug the reference lacks. */

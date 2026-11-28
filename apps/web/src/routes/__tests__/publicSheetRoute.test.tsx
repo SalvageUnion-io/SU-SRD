@@ -5,7 +5,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { PublicSheetView } from '../../build/sheet/PublicSheetView'
-import { npcFixture } from '../../components/__tests__/fixtures'
+import { mechFixture, npcFixture } from '../../components/__tests__/fixtures'
 import { answerRoutes, routeAsks, withWorkerRoutes } from '../../lib/sharing/__tests__/workerRoutes'
 import { sharedPaths } from '../../lib/sharing/paths'
 
@@ -17,6 +17,22 @@ describe('the public sheet route', () => {
     render(<PublicSheetView kind="pilot" appId="anything" />)
     // `getByText` throws when absent, so this asserts presence twice over.
     expect(screen.getByText(/isn['’]t available/i)).toBeTruthy()
+  })
+
+  test('a shared mech names its tab (r3 L6)', () => {
+    answerRoutes({
+      [sharedPaths.sheet('mech', 'mech-1')]: {
+        kind: 'mech',
+        appId: 'mech-1',
+        body: mechFixture({ id: 'mech-1', name: 'Stefanus' }),
+        madeBy: 'Rosa',
+        links: [],
+        linked: [],
+        withheld: [],
+      },
+    })
+    render(<PublicSheetView kind="mech" appId="mech-1" />)
+    expect(document.title).toBe('Stefanus · Training Bay · SalvageUnion.io')
   })
 
   test('a built NPC shared by link is its own read-only page, credited to its maker', () => {
@@ -35,6 +51,8 @@ describe('the public sheet route', () => {
     expect(screen.getAllByText('Old Mags').length).toBeGreaterThan(0)
     expect(screen.getByText('Rosa')).toBeTruthy() // MADE BY | Rosa, on the band
     expect(screen.getByText(/a shared NPC, read-only/i)).toBeTruthy()
+    // The tab is the NPC's name, not "Shared sheet" (r5 B14).
+    expect(document.title).toBe('Old Mags · Training Bay · SalvageUnion.io')
     // Read-only: no Share, no Delete.
     expect(screen.queryByRole('button', { name: /share old mags/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /delete old mags/i })).toBeNull()

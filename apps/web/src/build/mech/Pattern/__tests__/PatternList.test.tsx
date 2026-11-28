@@ -70,7 +70,20 @@ describe('PatternList', () => {
     expect(container.querySelector('.su-entity-compact__frame[data-user-made]')).not.toBeNull()
     expect(screen.getByText('Made by alxjrvs')).toBeTruthy()
     expect(screen.queryByText(/Chassis: scrapper/)).toBeNull()
-    expect(screen.getByRole('button', { name: /^Build With This: a mech from / })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Build With This: a Mech from / })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Instantiate/ })).toBeNull()
+  })
+
+  test('signed out with none: it says sign in to keep patterns, and offers the way in (r2 D2)', () => {
+    setQueryAnswers({})
+    usePatterns.setState({ mechPatterns: [], hydrated: true })
+    render(
+      <SyncContext.Provider value={{ status: 'signedOut', canWrite: false, outdated: false }}>
+        <PatternList onInstantiated={() => {}} />
+      </SyncContext.Provider>
+    )
+    expect(screen.getByText(/^Sign in to keep patterns\./)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
+    expect(screen.queryByText(/Use “Save as pattern”/)).toBeNull()
   })
 })

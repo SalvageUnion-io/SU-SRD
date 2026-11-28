@@ -16,7 +16,7 @@ const LABEL = cn('su-roll__label', capsLabel())
 const TAG = cn('su-roll__tag', capsLabel({ weight: 'inherit' }))
 
 /**
- * RollTableInstrument — THE roll table, wherever one is drawn (EDL E14,
+ * RollTableInstrument — THE roll table, wherever one is drawn (hard rule R8,
  * ruleset §2 "RollTable banded d20"): an entity card's own table, a guide
  * step's, and the SRD's roll-table page all draw this, so they cannot drift.
  * The book prints one table, however it is reached (pp. 88, 232).
@@ -86,6 +86,8 @@ export type RollTableInstrumentProps = {
   tone?: string
   /** The roll's words: "Roll the Die:", or "Roll the Dice:" for two dice. */
   stamp?: string
+  /** Why there is no roll to make here now: the roll is its Button, off, saying so. */
+  off?: string | undefined
   /**
    * Roll the table: makes the roll control a button. Absent where the table
    * only reads (a static page, a damaged host, a surface with no rolls).
@@ -123,7 +125,8 @@ export function RollTableInstrument({
   table,
   size,
   tone,
-  stamp = 'Roll the Die:',
+  stamp = compositionsCopy('rollTheDie'),
+  off,
   onRoll,
   title,
   hint,
@@ -160,7 +163,7 @@ export function RollTableInstrument({
       }
     : undefined
   const roll = (
-    <RollControl name={name} onRoll={rollAndReveal}>
+    <RollControl name={name} onRoll={rollAndReveal} off={off}>
       {stamp}
     </RollControl>
   )
@@ -247,14 +250,30 @@ export function RollControl({
   onRoll,
   children,
   size = 'compact',
+  off,
 }: {
   name: string
   onRoll?: () => void
+  /** Why nothing rolls now: the Button stands disabled, never a stamp that looks pressable. */
+  off?: string | undefined
   children: string
   /** `mini` inside a Mini's strip (C1a), at the Mini's height. */
   size?: 'compact' | 'mini'
 }) {
   const live = useLive()
+  if (off !== undefined && live) {
+    return (
+      <Button
+        size={size}
+        className={size === 'mini' ? 'su-roll__roll' : 'su-roll__roll su-roll__control'}
+        disabled
+        title={off}
+        aria-label={rollLabel(children, name)}
+      >
+        {children.replace(/:\s*$/, '')}
+      </Button>
+    )
+  }
   if (!onRoll || !live) {
     // A Roll waiting on the script says so (`data-roll-pending`), so a page
     // whose only control it is still ships its island (`cardNeedsHydration`).

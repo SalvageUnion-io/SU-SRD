@@ -1,8 +1,9 @@
 import type { CSSProperties } from 'react'
-import { Field, tokens } from '../../components/index'
+import { tokens } from '../../components/index'
 import { RollTableButton } from './RollTableButton'
 import type { MechRollField, RollTableDeps } from './rollTableHelpers.model'
 import { MECH_ROLL_TABLE_NAMES } from './rollTableHelpers.model'
+import { WizTextField } from './WizTextField'
 import { stepColumnStyle } from './wizardStyles.model'
 
 const noteStyle = {
@@ -19,18 +20,19 @@ type MechFlavorStepProps = {
   value: string
   onChange: (value: string) => void
   placeholder?: string
-  /** Appearance uses the multiline IdentityField; the rest a single line. */
+  /** Appearance is a multiline field; the rest a single line. */
   multiline?: boolean
   /** Optional helper line under the field (e.g. the name-IS-pattern note). */
   note?: string
+  /** Enter in the field: the step's own act (r8 E8). */
+  onEnter?: (() => void) | undefined
   /** Injectable roll deps for testing. */
   _deps?: RollTableDeps
 }
 
 /**
  * Featherweight mech flavor step (Mech Workshop steps 6–8: Quirk, Appearance,
- * Pattern Name): the sheets' IdentityField (the wizard previews exactly the
- * live sheet's identity idiom) plus a
+ * Pattern Name): a live text field (`WizTextField`, saved as typed) plus a
  * d20 roll-table assist. The roll result writes into the field and stays
  * editable — roll is an assist, never a commitment.
  */
@@ -42,16 +44,18 @@ export function MechFlavorStep({
   placeholder,
   multiline = false,
   note,
+  onEnter,
   _deps,
 }: MechFlavorStepProps) {
   return (
     <div className="su-wiz-stack su-wiz-stack--12" style={stepColumnStyle}>
-      <Field
+      <WizTextField
         label={label}
         value={value}
-        onSave={onChange}
+        onChange={onChange}
         multiline={multiline}
         placeholder={placeholder}
+        onEnter={onEnter}
         labelAction={
           <RollTableButton table={MECH_ROLL_TABLE_NAMES[field]} onRoll={onChange} _deps={_deps} />
         }

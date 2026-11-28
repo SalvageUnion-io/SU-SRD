@@ -22,7 +22,7 @@ const drill = () => {
   return entity
 }
 const burn = (): EntityRef => {
-  const trait = SalvageUnionReference.Traits.getByName('burn')
+  const trait = SalvageUnionReference.Traits.getByName('Burn')
   if (!trait) throw new Error('Burn fixture missing')
   return toEntityModel(trait).ref
 }
@@ -77,6 +77,27 @@ describe('Peek size', () => {
     expect(container.querySelectorAll('.su-entity-compact__title[title]').length).toBe(1)
   })
 
+  test("an ability's row Peeks the ability: its full text and its roll table, never its row again (r4 F4)", async () => {
+    const ability = SalvageUnionReference.getByNameIn('abilities', 'System and Software Hacker')
+    if (!ability) throw new Error('ability fixture missing')
+    render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <Entity size="compact" entity={ability} mode={{ kind: 'link' }} lead peek />
+        <PeekHost />
+      </EntitySurfaceProvider>
+    )
+    const trigger = screen.getByRole('link', { name: 'System and Software Hacker' })
+    expect(trigger.getAttribute(PEEK_SIZE_ATTRIBUTE)).toBe('mini')
+    act(() => trigger.focus())
+    const peek = await screen.findByRole('tooltip')
+    await waitFor(() => expect(peek.querySelector('.su-ec-frame')).not.toBeNull())
+    // The rule itself, which the row's one-line summary leaves out.
+    expect(peek.textContent).toContain('Choose a target System or Module in Range.')
+    // And its roll table, rows open, with nothing to press (E16).
+    expect(peek.textContent).toContain('11–19')
+    expect(peek.querySelector('button, input')).toBeNull()
+  })
+
   test('a Mini Peeks as a Mini', () => {
     const entity = drill()
     const { container } = render(
@@ -97,12 +118,16 @@ describe('Peek size', () => {
           <ReferenceEntityCard data={entity} size={size} />
         </EntitySurfaceProvider>
       )
-      const sizesOf = (selector: string) =>
-        [...container.querySelectorAll(`${selector}[data-peek]`)].map((el) =>
-          el.getAttribute(PEEK_SIZE_ATTRIBUTE)
-        )
+      const sizesOf = (selector: string, nested?: boolean) =>
+        [...container.querySelectorAll(`${selector}[data-peek]`)]
+          .filter((el) => nested === undefined || !!el.closest('.su-entity-mini') === nested)
+          .map((el) => el.getAttribute(PEEK_SIZE_ATTRIBUTE))
       // The drill's trait Tags, and its actions as nested Minis.
-      const sizes = { tags: sizesOf('.su-chip-link'), minis: sizesOf('.su-entity-mini__head') }
+      const sizes = {
+        tags: sizesOf('.su-chip-link', false),
+        nested: sizesOf('.su-chip-link', true),
+        minis: sizesOf('.su-entity-mini__head'),
+      }
       unmount()
       return sizes
     }
@@ -111,6 +136,8 @@ describe('Peek size', () => {
     for (const size of full.tags) expect(size).toBeNull()
     expect(full.minis.length).toBeGreaterThan(0)
     for (const size of full.minis) expect(size).toBe('mini')
+    // A nested Mini's own chips (a head that opens nothing links them, E27).
+    for (const size of full.nested) expect(size).toBe('mini')
     const compact = peeksIn('compact').tags
     expect(compact.length).toBeGreaterThan(0)
     for (const size of compact) expect(size).toBe('mini')

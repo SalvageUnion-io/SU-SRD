@@ -2,10 +2,15 @@ import { describe, expect, test } from 'bun:test'
 import {
   ACCOUNT_HINT_KEY,
   clearAccountHint,
+  LAST_GAME_KEY,
+  lastGameAmong,
   readAccountHint,
+  readLastGame,
   STORED_SESSION_KEY,
   writeAccountHint,
+  writeLastGame,
 } from '../../lib/accountHint'
+import { markLastGame } from '../../lib/accountState'
 import { SESSION_KEY } from '../../lib/auth/storedSession'
 
 /** A `Storage` over a Map, so each test starts from nothing. */
@@ -76,5 +81,57 @@ describe('account hint', () => {
     expect(readAccountHint(null)).toBeNull()
     expect(() => writeAccountHint({ name: 'x', avatarUrl: null }, null)).not.toThrow()
     expect(() => clearAccountHint(null)).not.toThrow()
+  })
+
+  test('the last Game opened reads back while a session is stored, and goes with the hint (r2 H6)', () => {
+    const storage = memoryStorage(SESSION)
+    expect(readLastGame(storage)).toBeNull()
+    writeLastGame({ id: 'g1', name: 'Rust Run' }, storage)
+    expect(readLastGame(storage)).toEqual({ id: 'g1', name: 'Rust Run' })
+    // A session that ended anywhere: no Game is named.
+    expect(
+      readLastGame(memoryStorage({ [LAST_GAME_KEY]: '{"id":"g1","name":"Rust Run"}' }))
+    ).toBeNull()
+    expect(readLastGame(memoryStorage({ ...SESSION, [LAST_GAME_KEY]: '{"id":"g1"}' }))).toBeNull()
+    expect(readLastGame(memoryStorage({ ...SESSION, [LAST_GAME_KEY]: 'not json' }))).toBeNull()
+    clearAccountHint(storage)
+    expect(readLastGame(storage)).toBeNull()
+    expect(readLastGame(null)).toBeNull()
+    expect(() => writeLastGame({ id: 'g1', name: 'x' }, null)).not.toThrow()
+  })
+
+  test('the home’s strip names the last Game and links to it; with none the link stays out', () => {
+    document.body.innerHTML = '<a data-last-game href="/build/games/" hidden></a>'
+    const link = document.querySelector('a') as HTMLAnchorElement
+    markLastGame(document, null, (id) => `/build/games/${id}`)
+    expect(link.hidden).toBe(true)
+    markLastGame(document, { id: 'g1', name: 'Rust Run' }, (id) => `/build/games/${id}`)
+    expect(link.hidden).toBe(false)
+    expect(link.textContent).toBe('Rust Run')
+    expect(link.getAttribute('href')).toBe('/build/games/g1')
+    document.body.replaceChildren()
+  })
+})
+
+describe('the Game the home names (r3 I4)', () => {
+  const games = [
+    { id: 'g1', name: 'Rust Belt' },
+    { id: 'g2', name: 'Deep Salvage' },
+  ]
+
+  test('a device that has opened none names the account’s first Game', () => {
+    expect(lastGameAmong(null, games)).toEqual({ id: 'g1', name: 'Rust Belt' })
+  })
+
+  test('the one last opened here stays, under its current name', () => {
+    expect(lastGameAmong({ id: 'g2', name: 'Old name' }, games)).toEqual({
+      id: 'g2',
+      name: 'Deep Salvage',
+    })
+  })
+
+  test('a Game the account has left gives way to one it is in; with none, nothing is named', () => {
+    expect(lastGameAmong({ id: 'gone', name: 'Gone' }, games)?.id).toBe('g1')
+    expect(lastGameAmong(null, [])).toBeNull()
   })
 })

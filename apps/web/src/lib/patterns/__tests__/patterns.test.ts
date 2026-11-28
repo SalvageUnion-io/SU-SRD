@@ -62,7 +62,7 @@ describe('building a mech from a pattern', () => {
   test('starts fresh — SP, EP and Heat unset, an empty hold — and records its source', () => {
     const input = mechFromPattern(towRig)
     expect(input).toMatchObject({
-      name: 'Tow Rig',
+      name: 'Tow Rig 1',
       chassisRef: 'scrapper',
       systems: ['rigging-arm', 'transport-hold'],
       modules: ['comms-module'],

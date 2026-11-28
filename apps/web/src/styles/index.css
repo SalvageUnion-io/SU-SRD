@@ -20,7 +20,7 @@
  * imports this file into `su-base`, and every part imported here lands in
  * that layer with it (ADR-046). At one class each, source order decides, so
  * the order below is load-bearing: a class laid over another component's
- * classes is imported after them, and `card-chrome.css` comes last. A new
+ * classes is imported after them, and the Ledger's strips come last. A new
  * rule goes in the part its component's group names; a new part is added
  * here, in order. Tests read the parts joined by
  * `__tests__/packageStylesheet.ts`, never one file.
@@ -32,17 +32,31 @@
 @import './partials/entity-art.css';
 @import './partials/controls.css';
 @import './partials/shell.css';
+@import './partials/page-shell.css';
+@import './partials/chapter-band.css';
+@import './partials/chapter-band-controls.css';
+@import './partials/chapter-foot.css';
 @import './partials/entity-page.css';
 @import './partials/guides.css';
+@import './partials/guides-patterns.css';
 @import './partials/inline-ref.css';
 @import './partials/atoms.css';
 @import './partials/atoms-fields.css';
 @import './partials/atoms-badges.css';
 @import './partials/atoms-leaves.css';
+@import './partials/phone-vitals.css';
 @import './partials/containers.css';
 @import './partials/roll-table.css';
+@import './partials/roll-table-columns.css';
 @import './partials/compositions.css';
 @import './partials/choices-patterns.css';
 @import './partials/reference-card.css';
 @import './partials/footer.css';
 @import './partials/card-chrome.css';
+@import './partials/manual-page.css';
+@import './partials/front.css';
+@import './partials/ledger.css';
+@import './partials/rule-head.css';
+@import './partials/open-ledger.css';
+@import './partials/open-ledger-strip.css';
+@import './partials/ledger-strip.css';

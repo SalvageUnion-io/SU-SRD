@@ -21,6 +21,7 @@
  */
 
 import type { RosterLine } from 'game-domain/rules/encounterRoster'
+import type { ReactNode } from 'react'
 import type { OverloadTable } from 'salvageunion-reference/rules'
 import { overloadTableOf, resolveChassisRef } from 'salvageunion-reference/rules'
 import { SlabSection } from '../components/index'
@@ -58,6 +59,7 @@ export function PlayTablesSection({
   prepared,
   mechTables,
   onField,
+  actions,
 }: SideSectionProps & {
   downtime: boolean
   solo: boolean
@@ -65,14 +67,17 @@ export function PlayTablesSection({
   mechTables?: OverloadTable
   /** The Mediator's: field a rolled encounter row on the Opposition. */
   onField?: ((lines: readonly RosterLine[]) => Promise<number>) | undefined
+  /** The head's own control: the Mediator's Private rolls switch. */
+  actions?: ReactNode
 }) {
   return (
-    <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('tables')}>
+    <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('rolls')} actions={actions}>
       <PlayTables
         downtime={downtime}
         mechTables={mechTables}
         solo={solo}
         binding={side.binding}
+        channel={side.channel}
         prepared={prepared}
         onField={onField}
       />
@@ -85,9 +90,21 @@ export function PlayFeedSection({
   side,
   idPrefix,
   canWrite,
-}: SideSectionProps & { canWrite: boolean }) {
+  own = false,
+}: SideSectionProps & {
+  canWrite: boolean
+  /** The Feed scrolls its own lines under its head (`.su-play-split__feed`), from `lg`. */
+  own?: boolean
+}) {
   return (
-    <SlabSection as="h2" id={`${idPrefix}-feed`} title={playCopy('feed')}>
+    <SlabSection
+      as="h2"
+      id={`${idPrefix}-feed`}
+      title={playCopy('feed')}
+      className={own ? 'su-play-split__feed' : undefined}
+      bodyClassName={own ? 'su-play-split__lines' : undefined}
+      bodyScrolls={own}
+    >
       <PlayFeed
         gameId={side.gameId}
         entries={side.entries}
@@ -100,7 +117,16 @@ export function PlayFeedSection({
 }
 
 /** The player's Tables and Feed sections: the Tables pane. */
-export function PlayerTablesAndFeed({ target, play, side }: PlayColumnProps & { side: SideFeed }) {
+export function PlayerTablesAndFeed({
+  target,
+  play,
+  side,
+  feed = true,
+}: PlayColumnProps & {
+  side: SideFeed
+  /** False from `lg`, where the Feed sits under the Units so both side columns end together. */
+  feed?: boolean
+}) {
   return (
     <>
       <PlayTablesSection
@@ -114,7 +140,7 @@ export function PlayerTablesAndFeed({ target, play, side }: PlayColumnProps & { 
         }
         solo={target.gameId === null}
       />
-      <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />
+      {feed && <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />}
     </>
   )
 }

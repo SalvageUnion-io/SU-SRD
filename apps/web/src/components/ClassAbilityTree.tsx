@@ -1,5 +1,6 @@
+import { ChevronDown } from 'lucide-react'
 import { useMemo } from 'react'
-import type { RefClass } from 'salvageunion-reference'
+import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
 import { cn } from '../lib/cn'
 import { itemHref } from '../lib/entityHref'
@@ -8,11 +9,31 @@ import type { AbilityTreeGroup, BranchTree, ClassPath, ClassPlan } from '../lib/
 import { resolveClassPlan } from '../lib/rules/classPaths'
 import { componentsCopy } from '../messages/components'
 import { capsLabel } from './atoms/capsLabel'
+import { FOCUS_RING } from './atoms/interaction'
+import {
+  ABILITIES_ID,
+  classContentsEntries,
+  pathAnchor,
+  REQUIRED_ID,
+  TRAINING_ID,
+} from './classContents.model'
 import { Box } from './containers/Box'
+import { TermChip, TRAINING_POINTS } from './entity'
+import { RowDress } from './entity/rowDress'
 import type { TreeTrack } from './index'
-import { Chips, Head, Slab, SlabSection, Stat, TitledBox } from './index'
+import {
+  Chips,
+  Head,
+  ReferenceEntityCard,
+  Slab,
+  SlabSection,
+  Stat,
+  TitledBox,
+  tokens,
+} from './index'
 import { MentionProse } from './MentionProse'
 import { ReferenceAbilityTrack } from './ReferenceAbilityTrack'
+import { treeAnchor } from './referenceEntity/card/abilityTreeRelations'
 
 const TREES_LABEL = cn('su-class-brief__trees-label', capsLabel({ tracking: 'snug' }))
 
@@ -25,8 +46,43 @@ const GAINING_ABILITIES_PAGE = 23
 
 const classHref = (c: RefClass) => itemHref('classes', getEntitySlug(c))
 
-/** What a tree's slab notes: "Tree" for a sequence, "Choose 1" for a Legendary tree. */
-const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : 'Tree')
+const RULES_LABEL = cn('su-ability-open__label', capsLabel({ tracking: 'snug' }))
+
+/**
+ * The rules card under an Ability lists no head and no lead: the row above it
+ * has said them (r8 G5), on screen and in print.
+ */
+// No Roll: the class page stays a document, its card no island (`cardNeedsHydration`).
+const RULES_HIDE = { head: true, lead: true, roll: true } as const
+
+/**
+ * An Ability's full rules, opening in place under its row (r5 E5), as nested
+ * entities open inside their parent elsewhere: its card, contentful, its
+ * action's text and roll table, so a class page reads whole without a trip to
+ * each ability's page. A `<details>`: it opens with no script, on a page
+ * served without React. It is R43's one fold on a reference page
+ * (`_pageWhole.ts`): shut, its tab rides the Compact's lead line, so the
+ * tiers keep their gap.
+ */
+function AbilityRules({ ability }: { ability: RefAbility }) {
+  return (
+    <details className="su-ability-open">
+      <summary className={cn('su-ability-open__summary', FOCUS_RING)}>
+        <ChevronDown aria-hidden="true" size={tokens.iconSize.mini} />
+        <span className={RULES_LABEL}>{componentsCopy('abilityRules')}</span>
+        <span className="su-sr-only">: {ability.name}</span>
+      </summary>
+      <div className="su-ability-open__body">
+        <ReferenceEntityCard data={ability} size="mini" hide={RULES_HIDE} />
+      </div>
+    </details>
+  )
+}
+
+const abilityRules = (ability: RefAbility) => <AbilityRules ability={ability} />
+
+/** What a tree's slab notes: nothing for a sequence (MOCK, best revision 6: the head is the tree's name), "Choose 1" for a Legendary tree. */
+const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : undefined)
 
 /**
  * A tree on its track, under a slab naming it (and, for a branch, its owner).
@@ -43,11 +99,19 @@ function TreeSection({
   track,
   note,
   size = 'compact',
-}: AbilityTreeGroup & { track: TreeTrack; note?: string; size?: 'compact' | 'mini' }) {
+  anchored = size === 'compact',
+}: AbilityTreeGroup & {
+  track: TreeTrack
+  note?: string
+  size?: 'compact' | 'mini'
+  /** Its heading is where an ability's TREE chip lands (`treeAnchor`): once a page. */
+  anchored?: boolean
+}) {
   return (
     <SlabSection
       as="h2"
       title={tree}
+      {...(anchored ? { id: treeAnchor(tree) } : {})}
       count={note ?? noteFor(track)}
       page
       size="mini"
@@ -58,7 +122,7 @@ function TreeSection({
         abilities={abilities}
         track={track}
         size={size}
-        {...(size === 'compact' ? { titleAs: 'h3' as const } : {})}
+        {...(size === 'compact' ? { titleAs: 'h3' as const, rules: abilityRules } : {})}
       />
     </SlabSection>
   )
@@ -145,7 +209,7 @@ function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
     trees.push(`, ${branch.tree}`)
     if (branch.owner) trees.push(' (', classMention(branch.owner), ')')
   }
-  trees.push(': take Abilities from any of these.')
+  trees.push(componentsCopy('takeAbilitiesFromAnyOfThese'))
   return trees
 }
 
@@ -160,7 +224,7 @@ function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
  */
 function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
   return (
-    <aside className="su-class-brief" aria-label={componentsCopy('training')}>
+    <aside id={TRAINING_ID} className="su-class-brief" aria-label={componentsCopy('training')}>
       {/* The limit rides the slab's own row, centred on its label and rule. */}
       <Slab
         label={componentsCopy('training')}
@@ -169,32 +233,38 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
         actions={
           <Stat
             label={componentsCopy('abilities')}
-            value={`Up to ${plan.classEntity.maxAbilities}`}
+            value={componentsCopy('upTo', { count: plan.classEntity.maxAbilities })}
             size="compact"
           />
         }
       />
-      <ul className="su-class-brief__cards">
-        {briefCards(plan).map((card) => (
-          <li key={card.label} className="su-class-brief__card">
-            <TitledBox
-              title={card.label}
-              paint={tierPaint(card.tier)}
-              chips={
-                card.cost && (
-                  <Chips
-                    size="mini"
-                    chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
-                  />
-                )
-              }
-            >
-              <p className="su-class-brief__body">
-                <MentionProse parts={card.value} />
-              </p>
-            </TitledBox>
-          </li>
-        ))}
+      {/* Under the Training strip the tiers are rows, never a second cut-out. */}
+      <ul className="su-class-brief__cards" data-rows="">
+        <RowDress.Provider value>
+          {briefCards(plan).map((card) => (
+            <li key={card.label} className="su-class-brief__card">
+              <TitledBox
+                title={card.label}
+                paint={tierPaint(card.tier)}
+                chips={
+                  card.cost && (
+                    // TP has no glossary entry: its box opens what it means (E27).
+                    <TermChip term={TRAINING_POINTS} value={String(card.cost)}>
+                      <Chips
+                        size="mini"
+                        chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
+                      />
+                    </TermChip>
+                  )
+                }
+              >
+                <p className="su-class-brief__body">
+                  <MentionProse parts={card.value} />
+                </p>
+              </TitledBox>
+            </li>
+          ))}
+        </RowDress.Provider>
       </ul>
       {plan.kind === 'hybrid' && (
         <p className="su-class-brief__trees">
@@ -254,7 +324,12 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
   const kind = hybrid ? 'Hybrid' : 'Legendary'
   const note = hybrid
     ? toEntityModel(hybrid).lead
-    : `Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${name} Ability.`
+    : componentsCopy('stayThenOne', {
+        article: articleFor(classEntity.name),
+        className: classEntity.name,
+        tree: path.advanced.tree,
+        name,
+      })
   // A Hybrid Class's path wears its rust, the class's own its orange.
   const track: TreeTrack = hybrid ? 'hybrid' : 'core'
   const paint = tierPaint(track)
@@ -265,7 +340,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
       chips={
         // The kind and whose it is are marks; what it opens from, its relation (C2).
         // The paths are one list of Compacts (Compact frames, one width): its lines
-        // share every class's lane (C6, R2).
+        // share every class's lane (C6).
         <Chips
           size="mini"
           chips={{ durations: [], facts: [], tags: [] }}
@@ -281,9 +356,13 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
     />
   )
   return (
-    <li className="su-class-path" data-kind={kind.toLowerCase()}>
+    <li
+      className="su-class-path"
+      data-kind={kind.toLowerCase()}
+      {...(hybrid ? { id: pathAnchor(hybrid.name) } : {})}
+    >
       {/* The Compact's frame (`Box`, standing in `CompactFrame`) under the Compact's
-          `Head`: drawn through the forms (EDL E15), never a frame of its own.
+          `Head`: drawn through the forms (hard rule R7), never a frame of its own.
           Flush, so the foot's rule spans the frame. */}
       <Box
         body="flush"
@@ -302,8 +381,16 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
         <div className="su-class-path__body">
           {note && <p className="su-class-path__note">{note}</p>}
           <div className="su-class-path__trees" data-entity-fit="">
-            <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} size="mini" />
-            {path.legendary && <TreeSection {...path.legendary} track="legendary" size="mini" />}
+            {/* The class's own path holds its trees once: a TREE chip lands there. */}
+            <TreeSection
+              {...path.advanced}
+              track={hybrid ? 'hybrid' : 'advanced'}
+              size="mini"
+              anchored={!hybrid}
+            />
+            {path.legendary && (
+              <TreeSection {...path.legendary} track="legendary" size="mini" anchored={!hybrid} />
+            )}
           </div>
         </div>
         {/* The foot shares the head's colour, its citation on a paper cut-out,
@@ -318,6 +405,60 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
   )
 }
 
+/**
+ * ON THIS PAGE: a class Page's sections as their own line of links
+ * (`classContentsEntries`), the Page's first block. A class reads as one long
+ * column on a phone, so the line stands over the art, where that scroll
+ * starts. From `lg` the band's menu holds them instead (`PageContentsMenu`),
+ * with the floating button once the band is gone (`PageJump`).
+ */
+export function ClassContents({ classEntity }: ClassAbilityTreeProps) {
+  const entries = useMemo(() => classContentsEntries(classEntity), [classEntity])
+  if (entries.length === 0) return null
+  return (
+    <nav
+      className="su-class-contents"
+      aria-label={componentsCopy('onThisPage')}
+      data-page-contents=""
+    >
+      <Slab label={componentsCopy('onThisPage')} flush />
+      <ul className="su-class-contents__list">
+        {entries.map((entry) => (
+          <li key={entry.href}>
+            <a className={cn('su-class-contents__link', FOCUS_RING)} href={`#${entry.href}`}>
+              {entry.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+/**
+ * How many of a class's Core trees stand in the main track. A class with no
+ * Advancement (the Salvager: twelve Core trees, no path) has nothing for the
+ * side track under its art, so its later trees flow there instead, a pair at
+ * a time: the main track keeps the first half, rounded up to a whole pair.
+ */
+function mainCoreCount(plan: Extract<ClassPlan, { kind: 'core' }>): number {
+  const count = plan.coreTrees.length
+  if (plan.paths.length > 0 || count < 4) return count
+  return Math.ceil(count / 4) * 2
+}
+
+function coreTreesSection(trees: Extract<ClassPlan, { kind: 'core' }>['coreTrees']) {
+  return (
+    <SlabSection title={componentsCopy('coreTrees')} page>
+      <div className="su-class-path__trees su-class-path__trees--pair" data-entity-fit="">
+        {trees.map((group) => (
+          <TreeSection key={group.tree} {...group} track="core" />
+        ))}
+      </div>
+    </SlabSection>
+  )
+}
+
 export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
   const plan = useMemo(() => resolveClassPlan(classEntity), [classEntity])
   if (plan.kind === 'none') return null
@@ -327,7 +468,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     return (
       <div className="su-ability-tree">
         <ClassBrief plan={plan} />
-        <SlabSection title={componentsCopy('abilities')} page>
+        <SlabSection id={ABILITIES_ID} title={componentsCopy('abilities')} page>
           <div className="su-class-path__trees" data-entity-fit="">
             <TreeSection {...path.advanced} track="hybrid" />
             {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
@@ -338,37 +479,47 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     )
   }
 
-  // The Core trees two across, on
-  // the path cards' shared rows; then every path the class
-  // advances along, its own (Legendary) first, then each Hybrid Class, all
-  // the same card with their trees side by side.
+  // The Core trees two across, on the path cards' shared rows. The paths the
+  // class advances along are `ClassAdvancement`'s, which a Page stands in its
+  // side track, under the art.
   return (
     <div className="su-ability-tree">
       <ClassBrief plan={plan} />
-      {plan.coreTrees.length > 0 && (
-        <SlabSection title={componentsCopy('coreTrees')} page>
-          <div className="su-class-path__trees su-class-path__trees--pair" data-entity-fit="">
-            {plan.coreTrees.map((group) => (
-              <TreeSection key={group.tree} {...group} track="core" />
+      {plan.coreTrees.length > 0 && coreTreesSection(plan.coreTrees.slice(0, mainCoreCount(plan)))}
+    </div>
+  )
+}
+
+/**
+ * Every path a (base) class advances along, its own (Legendary) first, then
+ * each Hybrid Class, all the same card with their trees side by side. A
+ * Hybrid Class's page has none: its trees are `ClassAbilityTree`'s.
+ */
+export function ClassAdvancement({ classEntity }: ClassAbilityTreeProps) {
+  const plan = useMemo(() => resolveClassPlan(classEntity), [classEntity])
+  if (plan.kind !== 'core') return null
+  // No path: the Core trees the main track leaves (`mainCoreCount`).
+  const rest = plan.coreTrees.slice(mainCoreCount(plan))
+  if (plan.paths.length === 0) {
+    return rest.length > 0 ? (
+      <div className="su-ability-tree su-ability-tree--more">{coreTreesSection(rest)}</div>
+    ) : null
+  }
+  return (
+    <div className="su-ability-tree">
+      <SlabSection title={componentsCopy('advancement')} page>
+        <ul className="su-class-paths">
+          {[...plan.paths]
+            .sort((a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid)))
+            .map((path) => (
+              <PathCard
+                key={path.hybrid?.id ?? path.advanced.tree}
+                path={path}
+                classEntity={classEntity}
+              />
             ))}
-          </div>
-        </SlabSection>
-      )}
-      {plan.paths.length > 0 && (
-        <SlabSection title={componentsCopy('advancement')} page>
-          <ul className="su-class-paths">
-            {[...plan.paths]
-              .sort((a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid)))
-              .map((path) => (
-                <PathCard
-                  key={path.hybrid?.id ?? path.advanced.tree}
-                  path={path}
-                  classEntity={classEntity}
-                />
-              ))}
-          </ul>
-        </SlabSection>
-      )}
+        </ul>
+      </SlabSection>
     </div>
   )
 }
@@ -381,7 +532,7 @@ function BranchTrees({ branches }: { branches: BranchTree[] }) {
   const groups = branches.flatMap(({ group, owner }) => (group ? [{ group, owner }] : []))
   if (groups.length === 0) return null
   return (
-    <SlabSection title={componentsCopy('requiredTrees')} page>
+    <SlabSection id={REQUIRED_ID} title={componentsCopy('requiredTrees')} page>
       <div className="su-ability-tree__row" data-entity-fit="">
         {groups.map(({ group, owner }) => (
           <TreeSection key={group.tree} {...group} track="core" note={owner?.name} />

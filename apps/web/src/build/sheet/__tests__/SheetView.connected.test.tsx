@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { createElement } from 'react'
 
@@ -39,7 +39,13 @@ const navigations: unknown[] = []
 // Module scope, before the imports below (see `serverMock.ts`). The router is
 // replaced with one whose `navigate` records, so the canonical-id redirect can
 // be observed without mounting a RouterProvider.
+/** Every Games write the view made, by name, with its args. */
+const calls: { name: string; args: unknown }[] = []
+
 const serverMocks = await installServerMocks({
+  call: (name, args) => {
+    calls.push({ name, args })
+  },
   also: {
     '@tanstack/react-router': () => ({
       Link: ({ children, to, ...rest }: { children: ReactNode; to: string }) =>
@@ -71,6 +77,7 @@ beforeEach(async () => {
   await hydrateStores()
   serve(GAME, { members: MEMBERS })
   navigations.length = 0
+  calls.length = 0
   useSheetModeStore.setState({ editing: false })
 })
 
@@ -200,6 +207,41 @@ describe("a crewmate's sheet", () => {
   })
 })
 
+describe('an unassigned pre-gen’s sheet (r6 C8)', () => {
+  test('its banner carries Assign to me, which assigns at once', async () => {
+    const PRE_GEN = pilotFixture({ id: 'p-free', name: 'Pickle', gameId: GAME })
+    setQueryAnswers({
+      'entities.locate': { id: PRE_GEN.id, gameId: GAME, mayEdit: false },
+      'games.get': runsTable(false),
+      'games.listing': listing({
+        pilots: [{ _id: 'row-free', appId: PRE_GEN.id, ownerId: null, body: PRE_GEN }],
+      }),
+      'account.me': ME,
+    })
+    await view('pilot', PRE_GEN.id)
+    const banner = screen.getByRole('note', { name: 'Read-only crew sheet' })
+    const take = within(banner).getByRole('button', { name: 'Assign to me: Pickle' })
+    expect(take.textContent).toBe('Assign to me')
+    await act(async () => {
+      fireEvent.click(take)
+    })
+    expect(calls).toEqual([
+      { name: 'ownership.assign', args: { gameId: GAME, entityId: 'row-free' } },
+    ])
+  })
+
+  test("a crewmate's sheet offers no Assign to me", async () => {
+    setQueryAnswers({
+      'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games.get': runsTable(false),
+      'games.listing': listing(),
+      'account.me': ME,
+    })
+    await view('pilot', THEIR_PILOT.id)
+    expect(screen.queryByRole('button', { name: /^Assign to me/ })).toBeNull()
+  })
+})
+
 describe('your own sheet', () => {
   test('opens in Read from the local store, with Edit one press away', async () => {
     useUnits.setState({ pilots: [MY_PILOT] })
@@ -214,7 +256,7 @@ describe('your own sheet', () => {
     expect(screen.queryByRole('note', { name: 'Read-only crew sheet' })).toBeNull()
     expect(screen.getByRole('button', { name: /^Share this pilot$/ })).toBeTruthy()
     // Print reads: no pencil until Edit is pressed.
-    const read = screen.getByRole('button', { name: 'Read' })
+    const read = screen.getByRole('button', { name: 'Sheet' })
     expect(read.getAttribute('aria-pressed')).toBe('true')
     expect(screen.queryByRole('button', { name: /^Manage abilities$/i })).toBeNull()
 
@@ -385,7 +427,7 @@ describe("your own mech's hold, against the Game's crawler", () => {
 })
 
 describe('the tab title', () => {
-  test('names your entity and follows a rename', async () => {
+  test('names your entity and follows a rename; a pilot in a Game is titled with the Game (glossary §9)', async () => {
     useUnits.setState({ pilots: [MY_PILOT] })
     setQueryAnswers({
       'entities.locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
@@ -394,12 +436,23 @@ describe('the tab title', () => {
       'account.me': ME,
     })
     await view('pilot', MY_PILOT.id)
-    expect(document.title).toBe('Roach-Boy · Training Bay · SalvageUnion.io')
+    expect(document.title).toBe('Roach-Boy · Tenacity · SalvageUnion.io')
 
     await act(async () => {
-      useUnits.setState({ pilots: [{ ...MY_PILOT, name: 'Roach-Man' }] })
+      useUnits.setState({ pilots: [{ ...MY_PILOT, callsign: 'Roach-Man' }] })
     })
-    expect(document.title).toBe('Roach-Man · Training Bay · SalvageUnion.io')
+    // By its callsign, as everywhere a pilot is named (r8 F1).
+    expect(document.title).toBe('Roach-Man · Tenacity · SalvageUnion.io')
+  })
+
+  test('a pilot in no Game is the Training Bay’s', async () => {
+    useUnits.setState({ pilots: [{ ...MY_PILOT, gameId: null }] })
+    setQueryAnswers({
+      'entities.locate': { id: MY_PILOT.id, gameId: null, mayEdit: true },
+      'account.me': ME,
+    })
+    await view('pilot', MY_PILOT.id)
+    expect(document.title).toBe('Roach-Boy · Training Bay · SalvageUnion.io')
   })
 
   test("a crewmate's sheet, not held here, keeps the generic title", async () => {
@@ -410,7 +463,7 @@ describe('the tab title', () => {
       'account.me': ME,
     })
     await view('pilot', THEIR_PILOT.id)
-    expect(document.title).toBe('Sheet · Training Bay · SalvageUnion.io')
+    expect(document.title).toBe('Sheet · Tenacity · SalvageUnion.io')
   })
 })
 

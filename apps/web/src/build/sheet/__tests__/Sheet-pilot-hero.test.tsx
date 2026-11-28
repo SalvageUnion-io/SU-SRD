@@ -1,8 +1,8 @@
 /**
  * Pilot hero on the LiveSheet shell
  *
- * Replaces the old PilotSheet-editable body-stat tests: HP/AP/TP now live as
- * hero StatBlock trackers wired straight to the entity store.
+ * HP/AP/TP live on the dashboard's masthead (`Strip`), wired straight to the
+ * entity store, in Edit as in Read.
  *
  * Asserts that:
  *   1. HP/AP steppers persist currentHP/currentAP via store.update.
@@ -71,19 +71,20 @@ function renderHero(pilot: Pilot, updateSpy?: ReturnType<typeof mock>, readOnly 
 describe('Pilot hero — HP/AP trackers', () => {
   test('HP tracker shows current of derived max (base 10)', () => {
     renderHero(makePilot({ currentHP: 7 }))
-    expect(screen.getByRole('group', { name: 'HP 7 of 10' })).toBeTruthy()
+    const hp = screen.getByRole('slider', { name: 'Hit Points' })
+    expect(hp.getAttribute('aria-valuetext')).toBe('Hit Points 7 of 10')
   })
 
   test('clicking the top-lit HP segment persists the decremented currentHP', async () => {
-    // HP/AP are VitalGauges (poster §gauge): clicking the top-lit segment
-    // (index 6) steps HP 7 → 6 (pipClickValue click-to-set). The segments are
-    // pointer-only; the track is the one `slider` tab stop that takes the click.
+    // Clicking the top-lit segment (index 6) steps HP 7 → 6 (pipClickValue
+    // click-to-set). The segments are pointer-only; the meter is the one
+    // `slider` tab stop that takes the click.
     const pilot = makePilot({ currentHP: 7 })
     const updateSpy = mock(async () => pilot)
     renderHero(pilot, updateSpy)
 
     await act(async () => {
-      const hp = screen.getByRole('slider', { name: 'HP' })
+      const hp = screen.getByRole('slider', { name: 'Hit Points' })
       fireEvent.click(must(hp.querySelector('[data-pip-index="6"]')))
     })
 
@@ -97,7 +98,7 @@ describe('Pilot hero — HP/AP trackers', () => {
 
     await act(async () => {
       // The last segment (index 4) fills to currentAP 5 (max).
-      const ap = screen.getByRole('slider', { name: 'AP' })
+      const ap = screen.getByRole('slider', { name: 'Ability Points' })
       fireEvent.click(must(ap.querySelector('[data-pip-index="4"]')))
     })
 
@@ -115,7 +116,8 @@ describe('Pilot hero — HP/AP trackers', () => {
       })
     )
     // current clamps to the derived max for display
-    expect(screen.getByRole('group', { name: 'HP 7 of 7' })).toBeTruthy()
+    const hp = screen.getByRole('slider', { name: 'Hit Points' })
+    expect(hp.getAttribute('aria-valuetext')).toBe('Hit Points 7 of 7')
   })
 })
 
@@ -126,9 +128,10 @@ describe('Pilot hero — HP/AP trackers', () => {
 describe('Pilot hero — TP tracker', () => {
   test('TP renders without a max (unbounded counter)', () => {
     renderHero(makePilot({ trainingPoints: 2 }))
-    // A label-first chip, `TRAINING POINTS | 2`, with no `/max`.
-    const label = screen.getByText('Training Points')
-    expect(label.closest('.su-stat-cell')?.textContent).toBe('Training Points2')
+    // A counter: its numeral, no `/max` and no meter.
+    const cell = must(document.querySelector('.su-strip__cell[data-vital="tp"]'))
+    expect(cell.querySelector('.su-strip__num')?.textContent).toBe('2')
+    expect(cell.querySelector('[role="slider"]')).toBeNull()
   })
 
   test('increasing TP persists trainingPoints', async () => {
@@ -271,8 +274,15 @@ describe('Pilot hero — readOnly identity', () => {
 
   test('a callsign that differs from the name still prints', () => {
     renderHero(makePilot({ name: 'Yara Voss', callsign: 'Ghost' }), undefined, true)
-    expect(screen.getByText('Callsign')).toBeTruthy()
-    expect(screen.getByText('Ghost')).toBeTruthy()
+    // The band's title is the callsign; the real name follows it.
+    const band = must(
+      screen.getByRole('heading', { level: 1 }).closest<HTMLElement>('.su-chapter-band')
+    )
+    expect(within(band).getByRole('heading', { level: 1 }).textContent).toContain('Ghost')
+    // One heading, its two names apart to the ear as to the eye (r6 E20).
+    expect(
+      within(band).getByRole('heading', { level: 1, name: 'Ghost · Yara Voss (Pilot)' })
+    ).toBeTruthy()
   })
 
   test('a callsign that is the name is the band’s title alone', () => {

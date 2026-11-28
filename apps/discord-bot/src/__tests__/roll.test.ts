@@ -8,7 +8,9 @@
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import { buildRollMessage, buildSeeTableMessage, rollCommand } from '../commands/roll'
+import { setSiteClient } from '../commands/siteReply'
 import type { ContainerData } from '../container'
+import { createSiteClient } from '../play/client'
 import { cardText } from './cardText'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
@@ -151,5 +153,51 @@ describe('buildSeeTableMessage', () => {
     expect(buildSeeTableMessage('nonsense')).toEqual({
       error: 'That button is no longer readable.',
     })
+  })
+})
+
+describe('a public roll is offered to its Game’s Feed (logRoll)', () => {
+  const logged: unknown[] = []
+  const watch = () =>
+    setSiteClient({
+      ...createSiteClient(undefined),
+      logRoll: (args) => {
+        logged.push(args)
+        return Promise.resolve({ kind: 'ok', value: { ok: true, logged: true } })
+      },
+    })
+
+  test('a public roll names its channel, table, die and outcome', async () => {
+    logged.length = 0
+    const restore = watch()
+    const { interaction } = fakeExecute({
+      strings: { table: 'Core Mechanic' },
+      userId: 'd-rosa',
+      channelId: 'c-1',
+    })
+    await rollCommand.execute(interaction)
+    restore()
+    expect(logged).toHaveLength(1)
+    expect(logged[0]).toMatchObject({
+      discordId: 'd-rosa',
+      channelId: 'c-1',
+      tableName: 'Core Mechanic',
+    })
+    const sent = logged[0] as { rolls: number[]; outcome: string }
+    expect(sent.rolls).toHaveLength(1)
+    expect(sent.outcome.length).toBeGreaterThan(0)
+  })
+
+  test('a private roll is never offered', async () => {
+    logged.length = 0
+    const restore = watch()
+    const { interaction } = fakeExecute({
+      strings: { table: 'Core Mechanic' },
+      booleans: { private: true },
+      channelId: 'c-1',
+    })
+    await rollCommand.execute(interaction)
+    restore()
+    expect(logged).toHaveLength(0)
   })
 })

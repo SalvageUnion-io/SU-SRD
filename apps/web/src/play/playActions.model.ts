@@ -16,7 +16,7 @@
 
 import type { RangeBand } from 'game-domain/schemas/seat'
 import type { RefMetaAction } from 'salvageunion-reference'
-import type { PlayAction } from '../lib/rules/actionPatches'
+import type { PlayAction } from '../lib/rules/actionList'
 import { actionInRange, actionReachable, economyUnderScene } from '../lib/rules/actionPatches'
 import { playCopy } from '../messages/play'
 import type { Situation } from './situation.model'
@@ -32,8 +32,8 @@ export type ActionTypeKey =
   | 'Passive'
   | 'Other'
 
-/** The list's order: Turn, Short, Long, Reaction, Free, Downtime, then the rest. */
-const ACTION_TYPE_ORDER: readonly ActionTypeKey[] = [
+/** The list's order, and its groups': Turn, Short, Long, Reaction, Free, Downtime, then the rest. */
+export const ACTION_TYPE_ORDER: readonly ActionTypeKey[] = [
   'Turn',
   'Short',
   'Long',
@@ -60,19 +60,22 @@ export type Need = 'boarded' | 'downtime' | 'afterDowntime'
 
 /** Why an action is not on hand, as its row says it. */
 export const NEED_TEXT: Record<Need, string> = {
-  boarded: 'needs Boarded',
-  downtime: 'needs Downtime',
-  afterDowntime: 'after Downtime',
+  boarded: playCopy('needsBoarded'),
+  downtime: playCopy('needsDowntime'),
+  afterDowntime: playCopy('afterDowntime'),
 }
 
 /** The Downtime actions the guide names that are not an action of a unit. */
 export type DowntimeActionId = 'train' | 'craftTrade' | 'rumours'
 
 const DOWNTIME_ACTIONS: readonly { id: DowntimeActionId; name: string }[] = [
-  { id: 'train', name: 'Train your Pilot' },
+  { id: 'train', name: playCopy('trainYourPilot') },
   { id: 'craftTrade', name: 'Craft · Trade' },
-  { id: 'rumours', name: 'Gather Cantina Rumours' },
+  { id: 'rumours', name: playCopy('gatherCantinaRumours') },
 ]
+
+/** Whose action a row is. A companion's waits on what its host's would. */
+export type ActionSource = 'pilot' | 'mech' | 'companion'
 
 /** One line of the list. */
 export type ListEntry =
@@ -81,7 +84,7 @@ export type ListEntry =
       key: string
       name: string
       type: ActionTypeKey
-      source: 'pilot' | 'mech'
+      source: ActionSource
       action: PlayAction
       need: Need | null
     }
@@ -97,7 +100,7 @@ export type ListEntry =
 
 /** What a unit's action needs in this Situation; null when it is on hand. */
 export function needFor(
-  source: 'pilot' | 'mech',
+  source: ActionSource,
   type: ActionTypeKey,
   situation: Situation
 ): Need | null {
@@ -115,6 +118,13 @@ export type ActionListInput = {
   mechActions: readonly PlayAction[]
   /** Whether there is a mech whose Reactor the list offers. */
   hasMech: boolean
+  /**
+   * The companions' actions (`buildCompanionActions`), the pilot's
+   * companions' then the mech's drones'. A companion acts on its own
+   * turn, so a pilot's is on hand on foot and Boarded; a mech's drone waits
+   * on Boarded with its mech.
+   */
+  companionActions?: readonly PlayAction[]
 }
 
 /** Where a type sorts in the list (Turn first); the Mediator's NPC actions sort the same. */
@@ -132,12 +142,14 @@ export function buildActionList({
   pilotActions,
   mechActions,
   hasMech,
+  companionActions = [],
 }: ActionListInput): ListEntry[] {
   const units: ListEntry[] = [
     ...mechActions.map((action) => unitEntry(action, 'mech', situation)),
     ...pilotActions.map((action) => unitEntry(action, 'pilot', situation)),
+    ...companionActions.map((action) => unitEntry(action, 'companion', situation)),
   ]
-  const sorted = units
+  const sorted = sayWhose(units)
     .map((entry, i) => ({ entry, i }))
     .sort((a, b) => rankOf(a.entry) - rankOf(b.entry) || a.i - b.i)
     .map(({ entry }) => entry)
@@ -157,8 +169,10 @@ export function buildActionList({
   return [...sorted, ...controls, ...downtime]
 }
 
-function unitEntry(action: PlayAction, source: 'pilot' | 'mech', situation: Situation): ListEntry {
+function unitEntry(action: PlayAction, source: ActionSource, situation: Situation): ListEntry {
   const type = actionTypeOf(action.action)
+  // A mech's drone is reached from its mech; a pilot's companion from the pilot.
+  const reach = source === 'companion' ? (action.companion?.host.kind ?? 'pilot') : source
   return {
     kind: 'action',
     key: action.key,
@@ -166,8 +180,31 @@ function unitEntry(action: PlayAction, source: 'pilot' | 'mech', situation: Situ
     type,
     source,
     action,
-    need: needFor(source, type, situation),
+    need: needFor(reach, type, situation),
   }
+}
+
+/**
+ * A Mech's action and a Pilot's that share a name each say whose they are
+ * ("System Repair · Mech", "System Repair · Pilot", r7 B5); any other name
+ * stays bare.
+ */
+function sayWhose(entries: ListEntry[]): ListEntry[] {
+  const sources = new Map<string, Set<ActionSource>>()
+  for (const entry of entries) {
+    if (entry.kind !== 'action') continue
+    sources.set(entry.name, (sources.get(entry.name) ?? new Set()).add(entry.source))
+  }
+  return entries.map((entry) => {
+    if (entry.kind !== 'action' || entry.source === 'companion') return entry
+    const whose = sources.get(entry.name)
+    if (!(whose?.has('mech') && whose.has('pilot'))) return entry
+    const name =
+      entry.source === 'mech'
+        ? playCopy('actionOfMech', { name: entry.name })
+        : playCopy('actionOfPilot', { name: entry.name })
+    return { ...entry, name }
+  })
 }
 
 function rankOf(entry: ListEntry): number {
@@ -176,8 +213,8 @@ function rankOf(entry: ListEntry): number {
 
 /** Words a control row answers to in Find, besides its name. */
 const CONTROL_WORDS: Record<'reactor' | 'mount', string> = {
-  reactor: 'Push Heat Check Vent Shutdown Shut down',
-  mount: 'Board Dismount Eject',
+  reactor: playCopy('findWordsReactor'),
+  mount: playCopy('findWordsMount'),
 }
 
 /**
@@ -196,7 +233,7 @@ export function filterEntries(
     if (query === '') return true
     const words =
       entry.kind === 'action'
-        ? `${entry.name} ${entry.action.ownerName}`
+        ? `${entry.name} ${entry.action.ownerName} ${entry.action.companion?.name ?? ''} ${entry.action.variantOf ?? ''}`
         : entry.kind === 'downtime'
           ? entry.name
           : `${entry.name} ${CONTROL_WORDS[entry.kind]}`
@@ -228,10 +265,11 @@ export function lockReason(
   heat: { current: number; cap: number; scale?: number },
   closeOnly = false
 ): string | null {
-  if (action.condition === 'destroyed') return 'Destroyed'
-  if (!actionInRange(action.action, range)) return `Out of Range at ${range}`
+  if (action.condition === 'destroyed') return playCopy('destroyed')
+  if (!actionInRange(action.action, range)) return playCopy('outOfRangeAt', { range })
   const scaled = { ...action, economy: economyUnderScene(action.economy, heat.scale ?? 1) }
-  if (!actionReachable(scaled, range, heat.current, heat.cap)) return 'Over the Heat Capacity'
+  if (!actionReachable(scaled, range, heat.current, heat.cap))
+    return playCopy('overTheHeatCapacity')
   // A ranged action needs a target it can see: at Close, or with no range declared, it has one.
   if (closeOnly && range !== 'Close' && (action.action.range?.length ?? 0) > 0) {
     return playCopy('lowVisibilityCloseOnly')

@@ -238,7 +238,7 @@ describe('SalvageUnionReference.findAllIn', () => {
     const energySystems = SalvageUnionReference.findAllIn('systems', (s) => {
       const resolvedActions = extractActions(s)
       return (
-        resolvedActions?.[0]?.traits?.some((t: { type: string }) => t.type === 'energy') ?? false
+        resolvedActions?.[0]?.traits?.some((t: { type: string }) => t.type === 'Energy') ?? false
       )
     })
     expect(energySystems.length).toBeGreaterThan(0)
@@ -246,7 +246,7 @@ describe('SalvageUnionReference.findAllIn', () => {
       energySystems.every((s) => {
         const resolvedActions = extractActions(s)
         return (
-          resolvedActions?.[0]?.traits?.some((t: { type: string }) => t.type === 'energy') ?? false
+          resolvedActions?.[0]?.traits?.some((t: { type: string }) => t.type === 'Energy') ?? false
         )
       })
     ).toBe(true)

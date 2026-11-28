@@ -1,5 +1,6 @@
 import type { EntityKind } from 'game-domain/entityKinds'
 import type { LinkShape } from 'game-domain/links/linkRules'
+import { memberName } from 'game-domain/memberName'
 import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { GameStore, UnitRow } from './game/store'
 import { fromJson } from './game/store'
@@ -62,6 +63,8 @@ export type PublishedRoster = {
   gameId: string
   game: {
     name: string
+    /** What the Game says of itself on its invite (ADR-067 §3). */
+    description?: string | null
     mediatedBy: string | null
     members: { discordId: string; mediator: boolean; organizer: boolean }[]
     invite: string | null
@@ -151,7 +154,12 @@ export function gamePublished(store: GameStore, gameId: string): Published {
       gameId,
       game: {
         name: game.name,
-        mediatedBy: mediator === undefined ? null : (mediator.displayName ?? 'the Mediator'),
+        description: game.description,
+        // A Mediator with no name goes by their joining order, as the Members list names them (r6 C11).
+        mediatedBy:
+          mediator === undefined
+            ? null
+            : memberName(mediator.displayName, members.indexOf(mediator)),
         members: members.map((m) => ({
           discordId: m.userId,
           mediator: m.mediator,

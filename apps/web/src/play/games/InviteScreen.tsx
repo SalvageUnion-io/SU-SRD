@@ -3,16 +3,8 @@ import { invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { SignInControl } from '../../build/account/SignInControl'
-import {
-  Button,
-  Callout,
-  ChapterBand,
-  FieldError,
-  PageShell,
-  Text,
-  TitledBox,
-  tokens,
-} from '../../components/index'
+import { FieldError, PageShell } from '../../components/app'
+import { Button, Callout, ChapterBand, Text, TitledBox, tokens } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { InvitePreviewAnswer } from '../../lib/linkPreview/previewSummary'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
@@ -20,6 +12,8 @@ import { useInvitePreview } from '../../lib/sharing/reads'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
+import { TableNameField } from './TableNameField'
+import { useTableName } from './useTableName'
 
 /**
  * `/play/invite/$token` — a Game's invite URL, in Play (ADR-052 §4): Play's band
@@ -39,7 +33,7 @@ import { useSync } from '../../replica/syncContext'
  * arrival: the press that started the sign-in was the decision, so asking for a
  * second press would only be asking twice. A visitor who arrives already signed
  * in presses Join once. Either way, joining opens the Game's own page in Play
- * (`/play/games/$gameId`).
+ * (`/games/$gameId`).
  *
  * The token lives in the URL rather than in `sessionStorage`, so it survives the
  * OAuth round trip and still works when pasted into a different browser.
@@ -54,7 +48,8 @@ const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } sati
 /** The invite's words, a step up from the body's. */
 const WORDS = { fontSize: 'var(--text-readout)' } satisfies CSSProperties
 
-const HINT = { ...WORDS, textAlign: 'left' } satisfies CSSProperties
+/** The Game's own description, a paragraph under the invitation. */
+const DESCRIPTION = { display: 'block', marginTop: tokens.space[8] } satisfies CSSProperties
 
 /**
  * The page column: an invitation is a short read, so it does not span the
@@ -71,29 +66,28 @@ const COLUMN = {
 } satisfies CSSProperties
 
 /** How invites work, for a dead link and for a typed code from before links. */
-const HOW_INVITES_WORK =
-  'A Game is joined from the invite link its Organiser sends you. Open the link and sign in to join; there is no code to type.'
+const HOW_INVITES_WORK = playGamesCopy('howInvitesWork')
 
-const DEAD_HEADLINE = 'That invite link does not work.'
+const DEAD_HEADLINE = playGamesCopy('inviteLinkDoesNotWork')
 
-const DEAD_ASK =
-  'It may have been reset, or not copied whole. Ask whoever invited you for the current link.'
+const DEAD_ASK = playGamesCopy('inviteLinkAskAgain')
 
-const BACK = { href: '/play/', label: playGamesCopy('play') }
+const BACK = { href: '/games/', label: playGamesCopy('play') }
 
 /**
- * A dead link's ways on: back to Play's hub, as a button-shaped link with a
- * full touch target and, signed out, a sign-in beside it. That sign-in is a way
- * on, not a prompt: the page has already said the link is dead, and signing in
- * lands on your Games rather than pretending it could still join.
+ * A dead link's ways on: back to Play's hub, the page's one rust act with a
+ * full touch target and, signed out, a sign-in beside it, outlined and second
+ * (r8 C7, LG8-21). That sign-in is a way on, not a prompt: the page has
+ * already said the link is dead, and signing in lands on your Games rather
+ * than pretending it could still join.
  */
 function Back({ signIn = false }: { signIn?: boolean }) {
   return (
     <div style={ACTIONS}>
-      <Button href={BACK.href} back size="full">
+      <Button href={BACK.href} back variant="primary" size="full">
         {BACK.label}
       </Button>
-      {signIn && <SignInControl redirectTo={BACK.href} />}
+      {signIn && <SignInControl redirectTo={BACK.href} size="full" variant="default" />}
     </div>
   )
 }
@@ -111,10 +105,10 @@ function DeadLink({
 }) {
   return (
     <TitledBox title={headline}>
-      <Text variant="hint" style={HINT}>
+      <Text variant="hint" style={WORDS}>
         {ask}
       </Text>
-      <Text variant="hint" style={HINT}>
+      <Text variant="hint" style={WORDS}>
         {HOW_INVITES_WORK}
       </Text>
       <Back signIn={signIn} />
@@ -129,8 +123,11 @@ function DeadLink({
 function InviteWords({ preview }: { preview: InvitePreviewAnswer }) {
   return (
     <Text style={WORDS}>
-      You're invited to <strong>{preview.gameName}</strong>
-      {preview.mediatedBy ? `, mediated by ${preview.mediatedBy}` : ''}.
+      {playGamesCopy('youreInvitedTo')}
+      <strong>{preview.gameName}</strong>
+      {preview.mediatedBy ? playGamesCopy('mediatedBy', { name: preview.mediatedBy }) : ''}.
+      {/* What the Game says of itself (ADR-067 §3), in its Organiser's words. */}
+      {preview.description ? <span style={DESCRIPTION}>{preview.description}</span> : null}
     </Text>
   )
 }
@@ -145,28 +142,33 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   const preview = useInvitePreview(token)
   const redeem = useGamesCall('invites.redeem')
   const navigate = useNavigate()
+  // How the table will call them, asked here once and filled in (r7 C1).
+  const name = useTableName()
 
   const join = useServerAction(() => redeem({ code: token }), {
-    failure: 'That invite could not be used. Try again.',
+    failure: playGamesCopy('inviteNotUsed'),
   })
   // The arrival join runs once, whatever the live preview does after it.
   const arrived = useRef(false)
 
   const accept = async () => {
+    await name.keep()
     const result = await join.run()
     if (!result.ok) return
     // Joined (or already in it): open the Game's own page, in Play.
-    void navigate({ to: '/play/games/$gameId', params: { gameId: result.value.gameId } })
+    void navigate({ to: '/games/$gameId', params: { gameId: result.value.gameId } })
   }
 
   const live = preview != null
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `accept` is rebuilt every render; the ref makes this a one-shot keyed on the preview landing
+  // Back from signing in, the press was the decision: join at once, under the
+  // account's name, unless it has none yet, when the field asks first.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `accept` is rebuilt every render; the ref makes this a one-shot keyed on the preview and the name landing
   useEffect(() => {
-    if (!joinOnArrival || !live || arrived.current) return
+    if (!joinOnArrival || !live || !name.loaded || arrived.current) return
     arrived.current = true
-    void accept()
-  }, [joinOnArrival, live])
+    if (name.known) void accept()
+  }, [joinOnArrival, live, name.loaded])
 
   if (preview === undefined) return <Text>{playGamesCopy('checkingThatInvite')}</Text>
 
@@ -175,9 +177,10 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   return (
     <TitledBox title={playGamesCopy('youHaveBeenInvited')}>
       <InviteWords preview={preview} />
-      <Text variant="hint" style={HINT}>
+      <Text variant="hint" style={WORDS}>
         {playGamesCopy('everyoneAtATableCan')}
       </Text>
+      <TableNameField name={name} onEnter={() => void (join.pending || accept())} />
       <div style={ACTIONS}>
         <Button variant="primary" size="full" disabled={join.pending} onClick={() => void accept()}>
           {playGamesCopy('joinThisGame')}
@@ -202,7 +205,7 @@ function SignedOutInvite({ token }: { token: string }) {
   return (
     <TitledBox title={playGamesCopy('youHaveBeenInvited')}>
       <InviteWords preview={preview} />
-      <Text variant="hint" style={HINT}>
+      <Text variant="hint" style={WORDS}>
         {playGamesCopy('signInToJoinYour')}
       </Text>
       <div>

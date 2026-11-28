@@ -9,11 +9,12 @@ import { Stat } from '../../atoms/Stat'
 import type { ChipClass, ChipSet } from './chipSet'
 import { CHIP_CLASSES, costCell, RANK_KEY } from './chipSet'
 import { Facts } from './Facts'
-import { Tags } from './Tags'
+import { actionTypeRef, costRef } from './factRefs'
+import { ChipLink, Tags } from './Tags'
 import type { TagItem } from './tagItems'
 
 /**
- * CHIPS — every chip strip (`chips-and-actions.md` C2a): a Mini's, a Compact's
+ * CHIPS — every chip strip (C2): a Mini's, a Compact's
  * or a contentful's head, a Page's band, an index Compact's, a TitledBox's or Slab's summary.
  * ONE group (E17), in THE class order (C2): the host's marks (a note,
  * HOMEBREW, Suggested), the rank (`TL | 2`), the measures in the stat order
@@ -30,7 +31,7 @@ import type { TagItem } from './tagItems'
  * neighbours, groups included. A lane carries how many
  * chips follow it (`--su-lane-end`), so a strip that fills from its
  * bottom-right corner orders its chips from the end (`--su-fill`). The group
- * wraps; it never clips a chip (E18).
+ * wraps; it never clips a chip (C5).
  *
  * One look on every band: an action's chips on the ink banner are the same
  * plates, size and cost box as an entity's on its tone band. There (the
@@ -87,17 +88,31 @@ export function Chips({
   const own: Record<ChipClass, { nodes: ReactNode[]; count: number }> = {
     mark: { nodes: [], count: 0 },
     rank: {
-      nodes: rank.length ? [<Facts key="rank" cells={rank} size={size} />] : [],
+      nodes: rank.length ? [<Facts key="rank" cells={rank} size={size} linkable={linkable} />] : [],
       count: rank.length,
     },
     measure: {
-      nodes: measure.length ? [<Facts key="measure" cells={measure} size={size} />] : [],
+      nodes: measure.length
+        ? [<Facts key="measure" cells={measure} size={size} linkable={linkable} />]
+        : [],
       count: measure.length,
     },
     economy: {
       nodes: [
-        ...chips.durations.map((duration) => <Stat key={duration} label={duration} size={size} />),
-        ...(action.length ? [<Facts key="action" cells={action} size={size} />] : []),
+        ...chips.durations.map((duration) => {
+          const cell = <Stat key={duration} label={duration} size={size} />
+          const ref = linkable ? actionTypeRef(duration) : undefined
+          return ref ? (
+            <ChipLink key={duration} tag={{ key: duration, name: duration, ref }} linkable>
+              {cell}
+            </ChipLink>
+          ) : (
+            cell
+          )
+        }),
+        ...(action.length
+          ? [<Facts key="action" cells={action} size={size} linkable={linkable} />]
+          : []),
       ],
       count: chips.durations.length + action.length,
     },
@@ -107,7 +122,9 @@ export function Chips({
       count: chips.relations?.length ?? 0,
     },
     cost: {
-      nodes: chips.cost ? [<CostBox key="cost" cost={chips.cost} size={size} />] : [],
+      nodes: chips.cost
+        ? [<CostBox key="cost" cost={chips.cost} size={size} linkable={linkable} />]
+        : [],
       count: chips.cost ? 1 : 0,
     },
     state: { nodes: [], count: 0 },
@@ -174,15 +191,24 @@ function laneEnd(after: readonly number[]): CSSVarStyle {
 /**
  * A read cost ("2 EP") as the book prints it, the one chip that leads with its value: the ink pointy box
  * (`ActivationCost`), with a paper edge on an ink ground. Every form's read cost is this box,
- * last among its chips.
+ * last among its chips. Where chips link, it opens what it is paid in (`4 AP`,
+ * Ability Points) as every other stat chip opens its rule (E27).
  */
-function CostBox({ cost, size }: { cost: string; size: Size }) {
+function CostBox({ cost, size, linkable }: { cost: string; size: Size; linkable: boolean }) {
   const cell = costCell(cost)
-  return (
+  const box = (
     <ActivationCost
       cost={cell.value ?? cell.label}
       currency={cell.value ? cell.label : ''}
       size={size}
     />
+  )
+  const ref = linkable && cell.value ? costRef(cell.label) : undefined
+  return ref ? (
+    <ChipLink tag={{ key: 'cost', name: ref.name, param: cell.value, ref }} linkable>
+      {box}
+    </ChipLink>
+  ) : (
+    box
   )
 }

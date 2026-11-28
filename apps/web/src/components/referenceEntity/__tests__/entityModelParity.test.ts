@@ -101,19 +101,20 @@ function spelled(value: string, model: EntityModel): string {
   return model.ref.schemaName === 'chassis' ? 'Bio-Chassis' : 'Bio-Tech'
 }
 
-function pageMetaOf(model: EntityModel, relations: EntityRelation[] = []) {
-  // The band carries every chip: stats, action type, facts, traits and cost.
+function pageMetaOf(
+  model: EntityModel,
+  relations: EntityRelation[] = [],
+  _options: { pattern?: boolean } = {}
+) {
+  // The band carries the chips: action type, facts, traits and cost.
   const cost = model.cost ? costCell(model.cost) : undefined
   return {
     // The kind: the title's screen-reader text (never on a foot, E9).
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
-    // The band's stats: every book stat but a chassis's, which lead its body
-    // (all but its Tech Level and Salvage Value, which ride the band).
-    stats: (model.ref.schemaName === 'chassis'
-      ? model.bookStats.filter((fact) => fact.group === 'provenance')
-      : model.bookStats
-    ).map((fact) => ({
+    // A chassis's stats (its patterns' too) are tiles in its Page's body, so
+    // its band has none; every other Page's ride its band.
+    stats: (model.ref.schemaName === 'chassis' ? [] : model.bookStats).map((fact) => ({
       key: fact.key,
       label: fact.label,
       shortLabel: fact.short,
@@ -368,7 +369,7 @@ describe('toEntityModel parity, every chassis pattern', () => {
       const model = toEntityModel(chassis, undefined, { pattern })
       agree(id, [model.parent?.label, model.parent?.ref.id], ['Pattern of', chassis.id])
       agree(id, model.title, pattern.name)
-      agree(id, pageMetaOf(model), resolveEntityPageMeta(chassis, pattern))
+      agree(id, pageMetaOf(model, [], { pattern: true }), resolveEntityPageMeta(chassis, pattern))
       agree(
         id,
         model.children.map((g) => [g.label, g.items.map((i) => i.name)]),

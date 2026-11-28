@@ -1,0 +1,259 @@
+// A listing's List: one Ledger, its entities a line each, their stats in
+// §2.6 order in fixed columns.
+import type { ReactNode } from 'react'
+import { Fragment, useMemo, useState } from 'react'
+import type { EntityRef, RefEntity, RefMetaEntity } from 'salvageunion-reference'
+import { toEntityModel } from 'salvageunion-reference'
+import { islandsCopy } from '../../messages/components-islands'
+import { Stat } from '../atoms/Stat'
+import { paintFor } from '../entity'
+import { useEntitySurface } from '../entity/entitySurfaceContext'
+import { Mention } from '../entity/forms/Mention'
+import type { LedgerRow, LedgerSort } from '../entity/Ledger'
+import { Ledger } from '../entity/Ledger'
+import { Button, Select } from '../index'
+import type { IndexTerm } from './indexColumns.model'
+import {
+  DENSE_COLUMNS,
+  indexColumns,
+  PHONE_COLUMNS,
+  phoneColumnKeys,
+  pickable,
+  SORT_TECH_LEVEL,
+  sortModels,
+  withPhoneColumns,
+} from './indexColumns.model'
+
+/**
+ * A cell of names (a chassis's abilities, a part's traits), each one its
+ * entry's Peek (r6 G2, G7): hover, or a phone's tap, reads it where the row
+ * stands. Never a Tab stop of its own: the row's name is the keyboard's.
+ */
+function TermCell({ terms, text }: { terms: readonly IndexTerm[]; text: string }) {
+  return (
+    <span title={text}>
+      {terms.map((term, at) => (
+        <Fragment key={term.label}>
+          {at > 0 && ', '}
+          <Mention entityRef={term.ref} repeat>
+            {term.label}
+          </Mention>
+        </Fragment>
+      ))}
+    </span>
+  )
+}
+
+/** An index row as the Ledger draws it: its name, its Tech Level stamp, its cells. */
+function ledgerRow(row: {
+  id: string
+  name: string
+  entityRef: EntityRef
+  techLevel: string
+  cells: ReactNode[]
+}): LedgerRow {
+  return {
+    id: row.id,
+    name: row.name,
+    entityRef: row.entityRef,
+    stamp: row.techLevel ? (
+      <Stat label={islandsCopy('tl')} value={row.techLevel} size="mini" />
+    ) : undefined,
+    cells: row.cells,
+  }
+}
+
+type IndexLedgerProps = {
+  schemaId: string
+  /** The listing's plural name: the name column's label. */
+  noun: string
+  /** The list is named by the page's own header: its cut-out reads `Name`. */
+  plain?: boolean
+  items: readonly RefEntity[]
+  /**
+   * Every entry of the listing, of which `items` are what its filters leave:
+   * they choose the columns and set their widths, so a filter never moves a
+   * column (chrome K17). Left out, `items` do.
+   */
+  all?: readonly RefEntity[]
+  /**
+   * The listing's sort, where it keeps one (in the URL, `useListingFilters`):
+   * `sort`, what a pressed column asks, and the way back to the book's order.
+   * Without it the Ledger keeps its own.
+   */
+  order?: {
+    sort: LedgerSort | undefined
+    sortBy: (key: string, highFirst?: boolean) => void
+    clear: () => void
+  }
+  /** The items come A to Z, not in the book's order (a tree listing's List): the way back says so. */
+  byName?: boolean
+  /**
+   * The columns a phone's row shows, where the reader chose them, and the
+   * choice. With it the List offers its Columns control on a phone (RR-06).
+   */
+  phone?: { columns: readonly string[]; setColumns: (keys: readonly string[]) => void }
+  /** Once sorted, the way back to the book's order above the list (the first of a listing's lists). */
+  orderNote?: boolean
+}
+
+export function IndexLedger({
+  schemaId,
+  noun,
+  plain = false,
+  items,
+  all = items,
+  order,
+  phone,
+  orderNote = false,
+  byName = false,
+}: IndexLedgerProps) {
+  const surface = useEntitySurface()
+  // The listing's own order (the book's) until the reader sorts.
+  const [ownSort, setOwnSort] = useState<LedgerSort | undefined>(undefined)
+  const sort = order ? order.sort : ownSort
+  const allModels = useMemo(
+    () => all.map((item) => ({ item, model: toEntityModel(item as RefMetaEntity) })),
+    [all]
+  )
+  const models = useMemo(() => {
+    const byId = new Map(allModels.map((entry) => [entry.item.id, entry]))
+    return items.map(
+      (item) => byId.get(item.id) ?? { item, model: toEntityModel(item as RefMetaEntity) }
+    )
+  }, [items, allModels])
+  const found = useMemo(() => indexColumns(schemaId, allModels), [schemaId, allModels])
+  // A phone's two columns: the reader's, else the kind's own (its vitals).
+  const columns = useMemo(
+    () => withPhoneColumns(found, phoneColumnKeys(found, phone?.columns ?? [], Boolean(phone))),
+    [found, phone]
+  )
+  const buildRows = useMemo(
+    () => (entries: typeof models) =>
+      entries.map(({ item, model }) => {
+        // A tech-level listing's rows are named by their level: no stamp.
+        const techLevel =
+          model.techLevel != null && !/tech-levels$/.test(schemaId) ? String(model.techLevel) : ''
+        return {
+          id: item.id,
+          name: item.name,
+          entityRef: model.ref,
+          techLevel,
+          tone: model.tone,
+          cells: columns.map((column) => {
+            const text = column.value(item, model)
+            const terms = text && column.terms?.(item, model)
+            return terms && terms.length > 0 ? (
+              <TermCell key={column.key} terms={terms} text={text} />
+            ) : (
+              text
+            )
+          }),
+        }
+      }),
+    [columns, schemaId]
+  )
+  const built = useMemo(() => buildRows(models), [buildRows, models])
+  // The rows the filters hide: they size the columns, drawn in no line.
+  const hidden = useMemo(() => {
+    if (all === items) return []
+    const shownIds = new Set(items.map((item) => item.id))
+    return buildRows(allModels.filter(({ item }) => !shownIds.has(item.id)))
+  }, [all, items, allModels, buildRows])
+  const rows = useMemo(() => {
+    if (!sort) return built
+    const rowOf = new Map(built.map((row) => [row.id, row]))
+    return sortModels(models, columns, schemaId, sort).flatMap(({ item }) => {
+      const row = rowOf.get(item.id)
+      return row ? [row] : []
+    })
+  }, [built, models, columns, schemaId, sort])
+  // MOCK (best, revision 8): no count on the tab and no books on a foot cut-out.
+  const first = built[0]
+  if (!first) return null
+  const hasTechLevels = built.some((row) => row.techLevel) || hidden.some((row) => row.techLevel)
+  // Words sort by spelling, measures by size.
+  const measures = (key: string | undefined) =>
+    key === SORT_TECH_LEVEL ||
+    columns.find((column) => column.key === key)?.kind === 'figure' ||
+    ['range', 'damage'].includes(key ?? '')
+  // A measure's first press is highest first: the biggest is nearly always the question.
+  const sortBy = (key: string) =>
+    order
+      ? order.sortBy(key, measures(key))
+      : setOwnSort((now) => ({
+          key,
+          descending: now?.key === key ? !now.descending : measures(key),
+        }))
+  const shown = pickable(columns)
+  const onPhone = shown.filter((column) => column.phone).map((column) => column.key)
+  /** Slot `slot` of the phone's row shows `key`; the other slot keeps its own, or swaps. */
+  const pickColumn = (slot: number, key: string) => {
+    const next = [...onPhone]
+    const other = next.indexOf(key)
+    if (other !== -1 && other !== slot) next[other] = next[slot] ?? ''
+    next[slot] = key
+    phone?.setColumns(next.filter(Boolean).slice(0, PHONE_COLUMNS))
+  }
+  return (
+    <>
+      {/* No caption says the order: the sorted column's head marks it
+          (`aria-sort`). Once sorted, the way back stands above the list, in a
+          line always drawn at its height, so a sort moves nothing (K17). */}
+      {orderNote && (
+        <p className="su-listing__order">
+          {sort && order && (
+            <Button variant="ghost" size="compact" onClick={order.clear}>
+              {islandsCopy(byName ? 'backToAzOrder' : 'backToBookOrder')}
+            </Button>
+          )}
+        </p>
+      )}
+      {phone && shown.length > PHONE_COLUMNS && (
+        <fieldset className="su-listing__columns">
+          <legend>{islandsCopy('columns')}</legend>
+          {Array.from({ length: PHONE_COLUMNS }, (_, slot) => (
+            <Select
+              // biome-ignore lint/suspicious/noArrayIndexKey: the row's two fixed slots
+              key={slot}
+              chevron
+              aria-label={islandsCopy('columnSlot', { slot: slot + 1 })}
+              value={onPhone[slot] ?? ''}
+              onChange={(e) => pickColumn(slot, e.target.value)}
+            >
+              {shown.map((column) => (
+                <option key={column.key} value={column.key}>
+                  {column.title ?? column.label}
+                </option>
+              ))}
+            </Select>
+          ))}
+        </fieldset>
+      )}
+      {/* The list is a section of its own: the note and the phone's column
+          picks over it are the listing's tools, never controls beside it (C8). */}
+      <section>
+        <Ledger
+          label={noun}
+          paint={paintFor(first.tone, { texture: surface.texture })}
+          nameLabel={plain ? islandsCopy('name') : noun}
+          columns={columns}
+          rows={rows.map(ledgerRow)}
+          sizer={hidden.map(ledgerRow)}
+          sort={sort}
+          onSort={sortBy}
+          {...(hasTechLevels
+            ? {
+                rank: {
+                  key: SORT_TECH_LEVEL,
+                  label: islandsCopy('tl'),
+                  title: islandsCopy('techLevel'),
+                },
+              }
+            : {})}
+          dense={shown.length >= DENSE_COLUMNS}
+        />
+      </section>
+    </>
+  )
+}

@@ -8,7 +8,7 @@
  * Cancel writes nothing, and a failed save keeps the dialog open saying so.
  */
 
-import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useState } from 'react'
 import { acceptingRooms, roomAnswer } from '../../../../../test/roomsStub'
@@ -20,10 +20,12 @@ import { withSignedInBackend } from '../../../../replica/__tests__/signedInBacke
 const serverMocks = await installServerMocks()
 afterAll(() => serverMocks.restore())
 
+const { ToasterMount, toast } = await import('../../../../components/index')
 const { resetStores } = await import('../../../../replica/__tests__/resetStores')
 const { usePatterns } = await import('../../../../replica/collections')
 const { SavePatternButton } = await import('../SavePatternButton')
 const { SavePatternDialog } = await import('../SavePatternDialog')
+const { patternToReplace } = await import('../buildConfirm.model')
 
 withSignedInBackend()
 
@@ -43,13 +45,7 @@ function renderButton() {
         <button type="button" onClick={() => setOpen(true)}>
           Save as pattern
         </button>
-        <SavePatternDialog
-          source={SOURCE}
-          open={isOpen}
-          onOpenChange={setOpen}
-          onSaved={onSaved}
-          stay
-        />
+        <SavePatternDialog source={SOURCE} open={isOpen} onOpenChange={setOpen} onSaved={onSaved} />
       </>
     )
   }
@@ -74,10 +70,20 @@ async function typeName(value: string) {
 beforeEach(async () => {
   acceptingRooms()
   resetStores()
+  toast.dismiss()
+  serverMocks.navigations.length = 0
   await usePatterns.getState().hydrate()
 })
 
 describe('SavePatternDialog', () => {
+  test('the summary and Save sit above the loadout rules cards (r3 L5)', async () => {
+    renderButton()
+    await open()
+    const save = screen.getByRole('button', { name: 'Save pattern' })
+    const part = screen.getAllByText('Red Laser')[0] as HTMLElement
+    expect(save.compareDocumentPosition(part) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   test('opens on the mech’s name, and Save stores the build as a pattern', async () => {
     const onSaved = renderButton()
     await open()
@@ -116,6 +122,147 @@ describe('SavePatternDialog', () => {
     })
     await waitFor(() => expect(usePatterns.getState().mechPatterns).toHaveLength(1))
     expect(usePatterns.getState().mechPatterns[0]?.notes).toBe('Rig first, rivet later.')
+  })
+
+  test('a name a pattern already has is asked about once, then saved as a second (r4 E13)', async () => {
+    await usePatterns
+      .getState()
+      .create({ schemaVersion: 1, name: 'Iron Jaw', chassisRef: 'mule', systems: [], modules: [] })
+    renderButton()
+    await open()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
+    })
+    expect(
+      screen.getByText(/You already have a pattern named “Iron Jaw”\..*save a second/)
+    ).toBeTruthy()
+    expect(usePatterns.getState().mechPatterns).toHaveLength(1)
+    // A changed name withdraws the ask; back on the taken one, it is asked again.
+    await typeName('Iron Jaw Mk II')
+    expect(screen.queryByText(/save a second pattern/i)).toBeNull()
+    await typeName('iron jaw ')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save a second' }))
+    })
+    await waitFor(() => expect(usePatterns.getState().mechPatterns).toHaveLength(2))
+  })
+
+  test('a taken name offers Replace: the pattern keeps its id and description, and Undo puts it back (r5 D1)', async () => {
+    render(<ToasterMount />)
+    const held = await usePatterns.getState().create({
+      schemaVersion: 1,
+      name: 'Iron Jaw',
+      chassisRef: 'mule',
+      systems: [],
+      modules: [],
+      notes: 'The first cut.',
+    })
+    renderButton()
+    await open()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Replace Iron Jaw' }))
+    })
+    await waitFor(() =>
+      expect(usePatterns.getState().mechPatterns[0]?.systems).toEqual(['red-laser'])
+    )
+    expect(usePatterns.getState().mechPatterns).toHaveLength(1)
+    expect(usePatterns.getState().mechPatterns[0]).toMatchObject({
+      id: held.id,
+      notes: 'The first cut.',
+      modules: ['comms-module'],
+    })
+    expect(await screen.findByText('Replaced pattern Iron Jaw.')).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    })
+    await waitFor(() => expect(usePatterns.getState().mechPatterns[0]?.systems).toEqual([]))
+  })
+
+  test('Replace says how many other Mechs use it, and brings them up to date in one press (r8 E2)', async () => {
+    const { mechFixture } = await import('../../../../components/__tests__/fixtures')
+    const { useUnits } = await import('../../../../replica/units')
+    render(<ToasterMount />)
+    const held = await usePatterns.getState().create({
+      schemaVersion: 1,
+      name: 'Iron Jaw',
+      chassisRef: 'mule',
+      systems: [],
+      modules: [],
+    })
+    await useUnits.getState().adopt(
+      'mech',
+      mechFixture({
+        id: 'other-1',
+        name: 'Iron Jaw 2',
+        chassisRef: 'mule',
+        systems: [],
+        modules: [],
+        sourcePattern: held.id,
+      })
+    )
+    renderButton()
+    await open()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Replace Iron Jaw' }))
+    })
+    expect(
+      await screen.findByText('Replaced pattern Iron Jaw. 1 other Mech uses this pattern.')
+    ).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Bring them up to date' }))
+    })
+    await waitFor(() =>
+      expect(useUnits.getState().get('mech', 'other-1')?.systems).toEqual(['red-laser'])
+    )
+  })
+
+  test('two patterns of the name: Replace is offered only for the one the mech was built from (r5 D1)', async () => {
+    const make = () =>
+      usePatterns.getState().create({
+        schemaVersion: 1,
+        name: 'Iron Jaw',
+        chassisRef: 'mule',
+        systems: [],
+        modules: [],
+      })
+    await make()
+    const second = await make()
+    expect(patternToReplace('iron jaw', usePatterns.getState().mechPatterns, undefined)).toBe(
+      undefined
+    )
+    expect(patternToReplace(' Iron Jaw', usePatterns.getState().mechPatterns, second.id)?.id).toBe(
+      second.id
+    )
+  })
+
+  test('saving stays where it was asked, and its notice opens the pattern (r4 E19)', async () => {
+    render(<ToasterMount />)
+    renderButton()
+    await open()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
+    })
+    await waitFor(() => expect(usePatterns.getState().mechPatterns).toHaveLength(1))
+    expect(serverMocks.navigations).toHaveLength(0)
+    expect(await screen.findByText('Saved pattern Iron Jaw.')).toBeTruthy()
+    const went: string[] = []
+    const assign = spyOn(window.location, 'assign').mockImplementation((to: string | URL) => {
+      went.push(String(to))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Open the pattern' }))
+    })
+    assign.mockRestore()
+    expect(went).toEqual([`/p/pattern/${usePatterns.getState().mechPatterns[0]?.id}`])
   })
 
   test('Enter saves too', async () => {
@@ -174,7 +321,7 @@ describe('SavePatternDialog', () => {
 
 describe('SavePatternButton', () => {
   test('the builder opens the same dialog, and stays put once it lands', async () => {
-    render(<SavePatternButton source={SOURCE} />)
+    render(<SavePatternButton source={SOURCE} askSignIn={undefined} />)
     await open()
     expect(nameField().value).toBe('Iron Jaw')
     await act(async () => {
@@ -182,5 +329,13 @@ describe('SavePatternButton', () => {
     })
     await waitFor(() => expect(usePatterns.getState().mechPatterns).toHaveLength(1))
     expect(serverMocks.navigations).toHaveLength(0)
+  })
+
+  test('signed out it asks for the sign-in at once, before any typing (r4 E15)', async () => {
+    const askSignIn = mock(() => {})
+    render(<SavePatternButton source={SOURCE} askSignIn={askSignIn} />)
+    await open()
+    expect(askSignIn).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('textbox', { name: 'Pattern name' })).toBeNull()
   })
 })

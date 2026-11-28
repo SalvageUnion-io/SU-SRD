@@ -1,5 +1,5 @@
 /**
- * assignedUnitsFor — one Assigned units list for every kind: owner chips
+ * assignedUnitsFor — one Related units list for every kind: owner chips
  * wherever a Game names the holder, Unassign only on a link this sheet holds,
  * a docked mech read with its own pilot's piloting context.
  */
@@ -63,11 +63,43 @@ describe('assignedUnitsFor', () => {
   test("+ Create makes the unit in the sheet's own Game, so it can be assigned there", () => {
     const inGame = build({ kind: 'pilot', entity: { ...pilot, gameId: 'g1' } }, {})
     expect(inGame.slots.map((s) => s.createHref)).toEqual([
-      '/mechs/new?game=g1',
-      '/crawlers/new?game=g1',
+      `/mechs/new?game=g1&pilot=${pilot.id}`,
+      // The crawler names the pilot it was made from: it takes them and their mech (r4 E19).
+      `/crawlers/new?game=g1&pilot=${pilot.id}`,
     ])
     const onShelf = build({ kind: 'crawler', entity: { ...crawler, gameId: null } }, {})
     expect(onShelf.slots.map((s) => s.createHref)).toEqual(['/mechs/new', '/pilots/new'])
+  })
+
+  // SB-02: the mech made from a pilot's "No Mech" place is that pilot's.
+  test('+ Create beside a pilot’s No Mech builds the mech for that pilot', () => {
+    const onShelf = build({ kind: 'pilot', entity: { ...pilot, gameId: null } }, {})
+    expect(onShelf.slots.find((s) => s.kind === 'mech')?.createHref).toBe(
+      `/mechs/new?pilot=${pilot.id}`
+    )
+    // The other way round: a mech's "No Pilot" place makes its pilot.
+    const onMech = build({ kind: 'mech', entity: { ...mech, gameId: null } }, {})
+    expect(onMech.slots.find((s) => s.kind === 'pilot')?.createHref).toBe(
+      `/pilots/new?mech=${mech.id}`
+    )
+    // A crawler's Mech Bay names no pilot.
+    const bay = build({ kind: 'crawler', entity: { ...crawler, gameId: null } }, {})
+    expect(bay.slots.find((s) => s.kind === 'mech')?.createHref).toBe('/mechs/new')
+  })
+
+  test('a pilot whose Mech is Destroyed is offered Build a new Mech, for that pilot in their Game (r5 B17)', () => {
+    const wreck = { ...mech, conditions: ['Destroyed'], gameId: 'g1' }
+    const lost = build({ kind: 'pilot', entity: { ...pilot, gameId: 'g1' } }, { mech: wreck })
+    const slot = lost.slots.find((s) => s.key === 'mech-lost')
+    expect(slot?.createHref).toBe(`/mechs/new?game=g1&pilot=${pilot.id}`)
+    expect(slot?.createLabel).toBe('Build a new Mech')
+    expect(slot?.placeholder).toBe('No working Mech')
+    expect(slot?.writerOnly).toBe(true)
+    // The Mech itself still stands on the list.
+    expect(lost.units.map((u) => u.name)).toContain('Scrapper')
+    // A working Mech offers nothing of the kind.
+    const working = build({ kind: 'pilot', entity: pilot }, { mech })
+    expect(working.slots.find((s) => s.key === 'mech-lost')).toBeUndefined()
   })
 
   test('a pilot and a mech sheet wear owner chips, as a crawler sheet does', () => {
@@ -133,7 +165,7 @@ describe('assignedUnitsFor', () => {
       {},
       { withheld: [{ key: 'w', kind: 'pilot' }] }
     )
-    expect(withheld.units).toEqual([{ key: 'pilot', kind: 'pilot', name: 'Not shared' }])
+    expect(withheld.units).toEqual([{ key: 'pilot', kind: 'pilot', name: 'Pilot · not shared' }])
     expect(withheld.slots.map((s) => s.kind)).toEqual(['crawler'])
   })
 
@@ -145,7 +177,7 @@ describe('assignedUnitsFor', () => {
     )
     expect(units.map((u) => [u.kind, u.name])).toEqual([
       ['mech', 'Scrapper'],
-      ['mech', 'Not shared'],
+      ['mech', 'Mech · not shared'],
       ['pilot', 'Bonesaw'],
     ])
     expect(units[0]?.change).toBeUndefined()

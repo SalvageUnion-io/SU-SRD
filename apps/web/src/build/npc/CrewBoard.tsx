@@ -29,13 +29,13 @@ import { NpcSchema } from 'game-domain/schemas/npc'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
+import { FieldError, Grid } from '../../components/app'
 import {
   Badge,
   Button,
   EmptyState,
   Entity,
   Field,
-  FieldError,
   Input,
   ModalShell,
   Select,
@@ -87,8 +87,7 @@ import { CAPS, CAPS_LABEL, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from
 const WIDE_QUERY = tokens.widthAtLeast('md')
 
 /** The Game rule, said where an assignment would be made (D7). */
-const GAME_RULE =
-  'In a Game, only the Mediator assigns crawler crew, because the crawler is theirs. Players design an NPC in their Training Bay and offer it by moving it into the Game.'
+const GAME_RULE = npcCopy('gameRule')
 
 /** The phone modal's body: the gutter and rhythm the wide column gets from the page. */
 const MODAL_BODY = {
@@ -136,7 +135,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
 
   if (crawler === undefined) {
     return (
-      <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
+      <Grid min="26rem" gap={32} style={COLUMNS}>
         <SlabSection as="h2" id="crew-pick" title={npcCopy('whichCrawler')} bodyStyle={COLUMN}>
           {crawlerId !== undefined ? (
             <EmptyState variant="quiet" body={npcCopy('thatCrawlerIsNotOne')} />
@@ -159,7 +158,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
             </Field>
           )}
         </SlabSection>
-      </div>
+      </Grid>
     )
   }
 
@@ -251,12 +250,11 @@ function CrewSlots({
     )
 
   return (
-    <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
+    <Grid min="26rem" gap={32} style={COLUMNS}>
       <SlabSection as="h2" id="crew-slots" title={npcCopy('crewSlots')} bodyStyle={COLUMN}>
         <p style={HINT}>
           {typeName ? npcCopy('oneSlotForTheCrawler') : npcCopy('oneSlotPerBay')}
-          An empty slot uses the book’s crew line; assigning a designed NPC replaces it, and
-          unassigning brings the book’s line back.
+          {npcCopy('anEmptySlotUses')}
         </p>
         {!writer && <p style={NOTE}>{npcCopy('onlyTheMediatorAssignsCrawler')}</p>}
         <ul style={LIST} aria-label={npcCopy('crewSlots2', { name: crawler.name })}>
@@ -290,7 +288,7 @@ function CrewSlots({
           <div style={MODAL_BODY}>{panel(true)}</div>
         </ModalShell>
       )}
-    </div>
+    </Grid>
   )
 }
 
@@ -321,7 +319,7 @@ function SlotRow({
   const npc = assignment?.npc ?? null
   const designing = !assignment && current && allowed
   const name = assignment
-    ? (npc?.name ?? 'Assigned NPC unavailable')
+    ? (npc?.name ?? npcCopy('assignedNpcUnavailable'))
     : designing
       ? slot.position
       : (slot.bookName ?? slot.position)
@@ -414,12 +412,12 @@ function SlotPanel({
   const [invalid, setInvalid] = useState<string | null>(null)
   const save = useServerAction(
     () => useUnits.getState().create('npc', crewDraftToCreateInput(slot, draft, gameId)),
-    { failure: 'The NPC could not be saved. Try again.' }
+    { failure: npcCopy('npcNotSaved') }
   )
   // Said by the caller as a toast: a failed assignment after a save that
   // landed has to say the NPC was saved.
   const assign = useServerAction((npcId: string) => assignCrew(npcId, crawler.id, slot.slot), {
-    failure: `That NPC could not be assigned to the ${slot.name}. Try again.`,
+    failure: npcCopy('npcNotAssignedTo', { slot: slot.name }),
   })
   const busy = save.pending || assign.pending
   const error = invalid ?? save.error
@@ -430,7 +428,7 @@ function SlotPanel({
 
   if (assignment) {
     const npc = assignment.npc
-    const name = npc?.name ?? 'the assigned NPC'
+    const name = npc?.name ?? npcCopy('theAssignedNpc')
     const unassign = () => unassignCrew(assignment.link.id, slot.name, onDone)
     const unassignLabel = `Unassign ${name} from ${slot.name}`
     return (
@@ -462,11 +460,12 @@ function SlotPanel({
   }
 
   const view = crewDraftView(slot, draft)
+  const kicker = npcCopy('crawlerCrewKicker', { slot: slot.name })
 
   async function saveAndAssign() {
     const gate = npcNameGate(draft.Name ?? '')
     if (!gate.ok) {
-      setInvalid(gate.reason ?? 'Give the NPC a name.')
+      setInvalid(gate.reason ?? npcCopy('giveTheNpcAName'))
       return
     }
     setInvalid(null)
@@ -501,7 +500,7 @@ function SlotPanel({
           {slot.bookName
             ? npcCopy('the', { bookName: slot.bookName, position: slot.position })
             : npcCopy('the2', { position: slot.position })}{' '}
-          holds this slot from the book&rsquo;s crew line ({slot.hitPoints} Hit Points).
+          {npcCopy('holdsThisSlot', { hitPoints: slot.hitPoints })}
         </p>
         <p style={NOTE}>{GAME_RULE}</p>
       </>
@@ -566,7 +565,7 @@ function SlotPanel({
       </p>
 
       <section aria-label={npcCopy('preview')} style={COLUMN}>
-        <NpcCard npc={view} madeBy={madeBy} size="compact" kicker={`Crawler crew · ${slot.name}`} />
+        <NpcCard npc={view} madeBy={madeBy} size="compact" kicker={kicker} />
       </section>
 
       {error && <FieldError>{error}</FieldError>}

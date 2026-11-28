@@ -27,22 +27,20 @@ import { publicPath } from 'game-domain/entityKinds'
 import { Copy } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import {
-  Button,
-  CopiedIcon,
-  CopiedStatus,
-  Field,
-  FieldError,
-  Select,
-  Stack,
-  Switch,
-  tokens,
-  useCopied,
-} from '../../components/index'
+import { CopiedIcon, CopiedStatus, FieldError, Switch, useCopied } from '../../components/app'
+import { Button, Field, Select, Stack, tokens } from '../../components/index'
+import { useMe } from '../../lib/account/accountApi'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { useSoftLinkList } from '../../lib/entities'
+import { crewLinkOf } from '../../lib/npcs/npcModel'
 import { usePatternSharing, useSharingAct, useSheetIsPublic } from '../../lib/sharing/reads'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
-import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
+import {
+  mediatorOnly,
+  patternChoices,
+  sheetChoices,
+  sheetVisibility,
+} from '../../lib/sharing/visibility'
 import { appUrl } from '../../lib/site'
 import { buildSharingCopy } from '../../messages/build-sharing'
 import { useGamesQuery } from '../../replica/roomCalls'
@@ -94,7 +92,7 @@ const QR_SIDE = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 const QR_NOTE = { ...MUTED_CAPTION, margin: 0 } satisfies CSSProperties
 
 /** What a defect says; a refusal says the server's own words. */
-const SHARE_FAILURE = { failure: 'That could not be saved. Try again.' }
+const SHARE_FAILURE = { failure: buildSharingCopy('shareNotSaved') }
 
 export function ShareSettings(props: ShareSettingsProps) {
   return props.kind === 'pattern' ? (
@@ -131,13 +129,19 @@ function SheetShareSettings({
   const inGame = typeof gameId === 'string'
   const gameName = games?.find((g) => g._id === gameId)?.name ?? null
   // `undefined` is still loading; `null` is a real "not published".
-  const value = published === undefined ? null : sheetVisibility({ isPublic: published, inGame })
+  // An NPC in a Game is its Mediator's alone, unless it crews the crawler (MD4-02).
+  const softLinks = useSoftLinkList()
+  const withheld = mediatorOnly(kind, inGame, crewLinkOf(softLinks, appId) !== undefined)
+  const value =
+    published === undefined
+      ? null
+      : sheetVisibility({ isPublic: published, inGame, mediatorOnly: withheld })
 
   return (
     <Stack gap={12}>
       <WhoCanSee
         name={`share-${kind}-${appId}`}
-        choices={sheetChoices({ inGame, gameName })}
+        choices={sheetChoices({ inGame, gameName, mediatorOnly: withheld })}
         value={busy && asked !== null ? asked : value}
         onChange={(next) => {
           setAsked(next)
@@ -167,6 +171,9 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
   }>('shelf.setPatternVisibility', null)
   const sharing = usePatternSharing()
   const games = useGamesQuery('games.listMine', {})
+  // The name Public credits, said before it is chosen (r8 E12).
+  const me = useMe()
+  const maker = me === undefined ? undefined : (me?.displayName ?? null)
   const [pickedGame, setPickedGame] = useState<string | null>(null)
   const share = useServerAction(
     (next: Visibility, nextGame: string | null) =>
@@ -193,7 +200,7 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
     <Stack gap={12}>
       <WhoCanSee
         name={`share-pattern-${appId}`}
-        choices={patternChoices({ gameName: gameChoices.length > 0 ? gameName : null })}
+        choices={patternChoices({ gameName: gameChoices.length > 0 ? gameName : null, maker })}
         value={value}
         onChange={(next) => choose(next)}
         disabled={busy}
@@ -277,7 +284,7 @@ function ShareLink({
       setError(null)
       flash()
     } catch {
-      setError('Could not copy. Select the link and copy it manually.')
+      setError(buildSharingCopy('couldNotCopy'))
     }
   }
 
@@ -306,6 +313,7 @@ function ShareLink({
               <CopiedIcon
                 copied={copied}
                 size="compact"
+                word
                 icon={<Copy aria-hidden="true" size={tokens.iconSize.compact} />}
               />
             </Button>

@@ -12,12 +12,15 @@
  */
 
 import { afterAll, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { createElement } from 'react'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 
 const h = createElement
+
+/** What the `?pilot=` flow assigned: `mech id → pilot id`. */
+const assignedPairs: string[] = []
 
 type Props = Record<string, unknown>
 
@@ -39,7 +42,7 @@ function wizardStub(name: string, preselect: (p: Props) => string) {
       h('p', null, `${name} game: ${named(p.gameId)}`),
       call(`${name}: cancel`, p.onCancel as () => void),
       call(`${name}: off rules`, p.onOffRules as () => void),
-      call(`${name}: complete`, p.onComplete as () => void)
+      call(`${name}: complete`, () => (p.onComplete as (id: string) => void)('new-id'))
     )
 }
 
@@ -84,6 +87,7 @@ const serverMocks = await installServerMocks({
             null,
             `view ${named(p.view)}, crawler ${named(p.crawlerId)}, slot ${named(p.slot)}`
           ),
+          h('p', null, `designing for ${named(p.gameId)}`),
           call('Any NPC', () => (p.onViewChange as (v: string) => void)('any')),
           call('Crew view', () => (p.onViewChange as (v: string) => void)('crew')),
           call('Pick a crew slot', () =>
@@ -96,6 +100,11 @@ const serverMocks = await installServerMocks({
           call('Cancel design', p.onCancel as () => void)
         ),
     }),
+    '../../lib/links/assignLink': () => ({
+      assignLink: async (from: { id: string }, to: { id: string }) => {
+        assignedPairs.push(`${from.id} → ${to.id}`)
+      },
+    }),
     '../../build/sheet/SheetView': () => ({
       SheetView: (p: Props) => h('p', null, `Live sheet: ${String(p.kind)} ${String(p.id)}`),
     }),
@@ -104,6 +113,9 @@ const serverMocks = await installServerMocks({
     }),
     '../../play/PlayGate': () => ({
       PlayGate: (p: Props) => h('p', null, `Play gate for ${String(p.id)}`),
+    }),
+    '../../activity/ActivityHome': () => ({
+      ActivityHome: (p: Props) => h('p', null, `Activity home ${String(p.only ?? 'all')}`),
     }),
     '../../play/games/GamePage': () => ({
       GamePage: (p: Props) => h('p', null, `Game page for ${String(p.gameId)}`),
@@ -117,6 +129,7 @@ afterAll(() => serverMocks.restore())
 
 const { createMemoryHistory, createRouter, RouterProvider } = await import('@tanstack/react-router')
 const { routeTree } = await import('../../routeTree.gen')
+const { activityStore } = await import('../../activity/activityStore')
 
 type AppRouter = ReturnType<typeof createRouter>
 
@@ -177,6 +190,33 @@ describe('/mechs/new', () => {
     expect(at(router).pathname).toBe('/mechs/new-id')
     expect(await screen.findByText('Live sheet: mech new-id')).toBeTruthy()
   })
+
+  test('built for a pilot: lands in its Game, is assigned to it, and opens the pilot', async () => {
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const { useUnits } = await import('../../replica/units')
+    await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1', name: 'Nia', gameId: 'g1' }))
+    const router = await mountAt('/mechs/new?pilot=p1')
+    expect(await screen.findByText('blank lands in g1')).toBeTruthy()
+    assignedPairs.length = 0
+    await press('Created')
+    expect(assignedPairs).toEqual(['new-id → p1'])
+    expect(at(router).pathname).toBe('/pilots/p1')
+  })
+
+  test('a lost Mech replaced from Play: assigned to the pilot, and back at the table (r5 B17)', async () => {
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const { useUnits } = await import('../../replica/units')
+    const { newMechForPilotHref } = await import('../../lib/wizard/fromGame')
+    await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1', name: 'Nia', gameId: 'g1' }))
+    const href = newMechForPilotHref('p1', 'g1', true)
+    expect(href).toBe('/mechs/new?game=g1&pilot=p1&back=play')
+    const router = await mountAt(href)
+    expect(await screen.findByText('blank lands in g1')).toBeTruthy()
+    assignedPairs.length = 0
+    await press('Created')
+    expect(assignedPairs).toEqual(['new-id → p1'])
+    expect(at(router).pathname).toBe('/pilots/p1/play')
+  })
 })
 
 describe('/pilots/new', () => {
@@ -196,6 +236,20 @@ describe('/pilots/new', () => {
     await mountAt('/pilots/new?mode=guided&class=astronaut')
     expect(await screen.findByText('Pilot wizard preselect: none')).toBeTruthy()
   })
+
+  // SB-02, the other way round: a mech's "No Pilot" + Create.
+  test('built for a mech: lands in its Game, is assigned to it, and opens the mech', async () => {
+    const { mechFixture } = await import('../../components/__tests__/fixtures')
+    const { useUnits } = await import('../../replica/units')
+    await useUnits.getState().adopt('mech', mechFixture({ id: 'm1', name: 'Rig', gameId: 'g1' }))
+    const router = await mountAt('/pilots/new?mode=guided&mech=m1')
+    expect(await screen.findByText('blank lands in g1')).toBeTruthy()
+    expect(screen.getByText('Pilot wizard game: g1')).toBeTruthy()
+    assignedPairs.length = 0
+    await press('Pilot wizard: complete')
+    expect(assignedPairs).toEqual(['m1 → new-id'])
+    expect(at(router).pathname).toBe('/mechs/m1')
+  })
 })
 
 describe('/crawlers/new', () => {
@@ -211,11 +265,54 @@ describe('/crawlers/new', () => {
     expect(at(router).pathname).toBe('/crawlers/new-id')
   })
 
-  test('the builder finishing goes back to the Training Bay', async () => {
+  test('made from a pilot’s + Create: the pilot and their mech are assigned, and the pilot opens (r4 E19)', async () => {
+    const { mechFixture, pilotFixture, softLinkFixture } = await import(
+      '../../components/__tests__/fixtures'
+    )
+    const { useUnits } = await import('../../replica/units')
+    const store = useUnits.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'p1', name: 'Nia', gameId: null }))
+    await store.adopt('mech', mechFixture({ id: 'm1', name: 'Rig', gameId: null }))
+    await store.adopt('softLink', softLinkFixture('mech-to-pilot', 'm1', 'p1'))
+    const router = await mountAt('/crawlers/new?mode=guided&pilot=p1')
+    assignedPairs.length = 0
+    await press('Crawler builder: complete')
+    expect(assignedPairs).toEqual(['p1 → new-id', 'm1 → new-id'])
+    expect(at(router).pathname).toBe('/pilots/p1')
+  })
+
+  test('made from a solo Downtime: the pilot and their mech are crew, and Downtime opens again (r5 A13)', async () => {
+    const { mechFixture, pilotFixture, softLinkFixture } = await import(
+      '../../components/__tests__/fixtures'
+    )
+    const { useUnits } = await import('../../replica/units')
+    const store = useUnits.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'p3', name: 'Tessa', gameId: null }))
+    await store.adopt('mech', mechFixture({ id: 'm3', name: 'Old Dobbin', gameId: null }))
+    await store.adopt('softLink', softLinkFixture('mech-to-pilot', 'm3', 'p3'))
+    const router = await mountAt('/crawlers/new?mode=guided&pilot=p3&back=play')
+    assignedPairs.length = 0
+    await press('Crawler builder: complete')
+    expect(assignedPairs).toEqual(['p3 → new-id', 'm3 → new-id'])
+    expect(at(router).pathname).toBe('/pilots/p3/play')
+  })
+
+  test('made from a mech’s + Create: the mech is assigned, and the mech opens (r4 E19)', async () => {
+    const { mechFixture } = await import('../../components/__tests__/fixtures')
+    const { useUnits } = await import('../../replica/units')
+    await useUnits.getState().adopt('mech', mechFixture({ id: 'm2', name: 'Lone', gameId: null }))
+    const router = await mountAt('/crawlers/new?mode=guided&mech=m2')
+    assignedPairs.length = 0
+    await press('Crawler builder: complete')
+    expect(assignedPairs).toEqual(['m2 → new-id'])
+    expect(at(router).pathname).toBe('/mechs/m2')
+  })
+
+  test('the builder finishing opens the new sheet', async () => {
     const router = await mountAt('/crawlers/new?mode=guided&type=no-such-type')
     expect(await screen.findByText('Crawler builder preselect: none')).toBeTruthy()
     await press('Crawler builder: complete')
-    expect(at(router).pathname).toBe('/')
+    expect(at(router).pathname).toBe('/crawlers/new-id')
   })
 })
 
@@ -250,6 +347,16 @@ describe('/npcs/new', () => {
     expect(at(router).pathname).toBe('/')
   })
 
+  test('from a Game’s Prep the designer is given that Game, and cancel goes back there', async () => {
+    const router = await mountAt('/npcs/new?game=g1')
+    expect(await screen.findByText('designing for g1')).toBeTruthy()
+    await press('Crew view')
+    expect(at(router).search).toEqual({ view: 'crew', game: 'g1' })
+    await press('Any NPC')
+    await press('Cancel design')
+    expect(at(router).pathname).toBe('/games/g1/prep')
+  })
+
   test('the screen around the designer can also open a created NPC', async () => {
     const router = await mountAt('/npcs/new')
     expect(await screen.findByText('npc screen, mode guided')).toBeTruthy()
@@ -272,17 +379,34 @@ describe('a sheet route', () => {
   })
 })
 
-describe('/play/pilots/$pilotId', () => {
+describe('/pilots/$id_/play', () => {
   test("hands the pilot's id to the gate", async () => {
-    await mountAt('/play/pilots/p1')
+    await mountAt('/pilots/p1/play')
     expect(await screen.findByText('Play gate for p1')).toBeTruthy()
   })
 })
 
-describe('/play/games/$gameId', () => {
+describe('/games/$gameId', () => {
   test("hands the Game's id to its page", async () => {
-    await mountAt('/play/games/g1')
+    await mountAt('/games/g1')
     expect(await screen.findByText('Game page for g1')).toBeTruthy()
+  })
+})
+
+describe('/games/ and a Game in the Discord Activity', () => {
+  const me = { id: '1', name: 'Rae', avatarUrl: 'a' }
+  test("the Activity's home and the Game's line in place of the hub and the Game's page", async () => {
+    activityStore.start({ me, people: [me], layout: 'focused', openOutside: () => {} })
+    try {
+      await mountAt('/games/')
+      expect(await screen.findByText('Activity home all')).toBeTruthy()
+      cleanup()
+      await mountAt('/games/g1')
+      expect(await screen.findByText('Activity home g1')).toBeTruthy()
+      cleanup()
+    } finally {
+      activityStore.stop()
+    }
   })
 })
 
@@ -297,7 +421,7 @@ describe('a wizard started from a Game’s page (`?game=`, ADR-052 §3)', () => 
       expect(await screen.findByText(`${name} game: g1`)).toBeTruthy()
       expect(screen.getByText('blank lands in g1')).toBeTruthy()
       await press(`${name}: complete`)
-      expect(at(router).pathname).toBe('/play/games/g1')
+      expect(at(router).pathname).toBe('/games/g1')
     })
   }
 
@@ -308,7 +432,7 @@ describe('a wizard started from a Game’s page (`?game=`, ADR-052 §3)', () => 
     await press('Pilot wizard: off rules')
     expect(at(router).search).toEqual({ game: 'g1', mode: 'blank' })
     await press('Pilot wizard: cancel')
-    expect(at(router).pathname).toBe('/play/games/g1')
+    expect(at(router).pathname).toBe('/games/g1')
   })
 
   test('a game param that is not an id is dropped', async () => {
@@ -317,9 +441,9 @@ describe('a wizard started from a Game’s page (`?game=`, ADR-052 §3)', () => 
   })
 })
 
-describe('/play/games/$gameId/mediate', () => {
+describe('/games/$gameId/mediate', () => {
   test("hands the Game's id to the Mediator's gate", async () => {
-    await mountAt('/play/games/g1/mediate')
+    await mountAt('/games/g1/mediate')
     expect(await screen.findByText('Mediate gate for g1')).toBeTruthy()
   })
 })

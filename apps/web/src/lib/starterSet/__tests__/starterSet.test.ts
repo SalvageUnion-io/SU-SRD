@@ -51,7 +51,7 @@ import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { units, useUnits } from '../../../replica/units'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
 import { seedDefaultCrawlerBays } from '../../wizard/crawlerFormState'
-import { copyStarter, copyStarterCrew } from '../copyStarter'
+import { copyStarter, copyStarterCrew, copyStarterPilot, starterMechOf } from '../copyStarter'
 
 // Copying is a write, and building needs an account: these run signed in.
 withSignedInBackend()
@@ -304,6 +304,37 @@ describe('Starter Set — copying a template', () => {
   test('copies nothing that is not in the Starter Set', async () => {
     await expect(copyStarter('pilot', 'not-a-template', SHELF)).rejects.toThrow(/no book crew/)
     expect(useUnits.getState().list('pilot')).toHaveLength(0)
+  })
+})
+
+describe('copyStarterPilot — a pilot with the mech their book gives them', () => {
+  beforeEach(resetStores)
+  afterEach(resetStores)
+
+  test('the pair lands together, the mech already assigned', async () => {
+    expect(starterMechOf('starter-pilot-bonesaw')?.name).toBe('Scrapper')
+    const made = await copyStarterPilot('starter-pilot-bonesaw', { kind: 'game', gameId: 'g1' })
+    const state = useUnits.getState()
+    expect(state.list('pilot').map((p) => [p.id, p.gameId])).toEqual([[made.id, 'g1']])
+    expect(state.list('mech').map((m) => [m.id, m.name, m.gameId])).toEqual([
+      [made.mech?.id as string, 'Scrapper', 'g1'],
+    ])
+    expect(state.softLinks.map((l) => [l.type, l.from.id, l.to.id])).toEqual([
+      ['mech-to-pilot', made.mech?.id as string, made.id],
+    ])
+  })
+
+  test('a mech that is refused takes the pilot back with it', async () => {
+    const real = units.create
+    units.create = ((type, data) =>
+      type === 'mech' ? Promise.reject(new Error('refused')) : real(type, data)) as typeof real
+    try {
+      await expect(copyStarterPilot('starter-pilot-bonesaw', SHELF)).rejects.toThrow('refused')
+    } finally {
+      units.create = real
+    }
+    expect(useUnits.getState().list('pilot')).toHaveLength(0)
+    expect(useUnits.getState().list('mech')).toHaveLength(0)
   })
 })
 

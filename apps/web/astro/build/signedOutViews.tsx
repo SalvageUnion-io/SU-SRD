@@ -20,7 +20,7 @@ import {
   SIGNED_OUT_VIEW_ATTRIBUTE,
   SIGNED_OUT_VIEWS,
 } from '../../src/build/account/signedOutView.model'
-import { FrontDoor } from '../../src/build/roster/FrontDoor'
+import { BuildFrontDoor } from '../../src/build/roster/FrontDoor'
 import { SignInGate } from '../../src/build/wizard/NewEntityScreen'
 import type { EntityLinkComponent } from '../../src/components/entity/entitySurfaceContext'
 import type { EntitySurfaceValue } from '../../src/components/index'
@@ -39,10 +39,7 @@ const SURFACE: Partial<EntitySurfaceValue> = { linkAs: StaticAppLink, appliesRul
 
 /** Each signed-out view's screen, as its route draws it. */
 const VIEWS: Record<SignedOutViewRoute, ReactNode> = {
-  '/': <FrontDoor />,
-  '/pilots/new': <SignInGate kind="pilot" />,
-  '/mechs/new': <SignInGate kind="mech" />,
-  '/crawlers/new': <SignInGate kind="crawler" />,
+  '/': <BuildFrontDoor />,
   '/npcs/new': <SignInGate kind="npc" />,
 }
 

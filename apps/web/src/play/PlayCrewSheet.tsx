@@ -37,6 +37,9 @@ export function PlayCrewSheet({ gameId, pilotId, name, onClose }: PlayCrewSheetP
         if (!open) onClose()
       }}
       title={playCopy('readOnly', { name })}
+      // The page width: a sheet lays itself out by the window's width, so in a
+      // narrower dialog its vitals and its tables' last columns ran into each other.
+      width="page"
     >
       {pilotId !== null && <CrewSheetBody gameId={gameId} pilotId={pilotId} />}
     </ModalShell>
@@ -53,7 +56,10 @@ function CrewSheetBody({ gameId, pilotId }: { gameId: string; pilotId: string })
   return (
     <>
       <Callout>{playCopy('youAreReadingACrewmates')}</Callout>
-      <Sheet kind="pilot" id={pilotId} store={store} readOnly />
+      {/* Laid out for the dialog, not the window (`styles/play/sheet.css`). */}
+      <div className="su-play-sheet">
+        <Sheet kind="pilot" id={pilotId} store={store} readOnly />
+      </div>
     </>
   )
 }

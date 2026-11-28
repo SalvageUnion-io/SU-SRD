@@ -13,13 +13,25 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { READ_ONLY_BANNER } from './readOnlyBanner.model'
 
 const WHY: Record<EntityKind, string> = {
-  pilot: 'You are reading a crewmate’s sheet. Only whoever holds it can make changes.',
-  mech: 'You are reading a crewmate’s sheet. Only whoever holds it can make changes.',
-  crawler: 'This is the crew’s crawler. Only the Mediator changes it; ask at the table.',
-  npc: 'You are reading a crewmate’s NPC. Only whoever made it can change it.',
+  pilot: buildSheetCopy('whyCrewmateSheet'),
+  mech: buildSheetCopy('whyCrewmateSheet'),
+  crawler: buildSheetCopy('whyCrewCrawler'),
+  npc: buildSheetCopy('whyCrewmateNpc'),
 }
 
-export function CrewSheetBanner({ kind, children }: { kind: EntityKind; children: ReactNode }) {
+export function CrewSheetBanner({
+  kind,
+  unassigned = false,
+  assign,
+  children,
+}: {
+  kind: EntityKind
+  /** A pilot or mech assigned to nobody: no crewmate holds it (MD-23). */
+  unassigned?: boolean
+  /** An unassigned one's Assign to me, in the banner that says so (r6 C8). */
+  assign?: ReactNode
+  children: ReactNode
+}) {
   return (
     <div className="su-page-gutters">
       <div
@@ -29,7 +41,8 @@ export function CrewSheetBanner({ kind, children }: { kind: EntityKind; children
         className="su-sheet-gutter"
         style={READ_ONLY_BANNER}
       >
-        {WHY[kind]}
+        {unassigned ? buildSheetCopy('readOnlyUnassignedSheet') : WHY[kind]}
+        {unassigned && assign ? <> {assign}</> : null}
       </div>
       {children}
     </div>

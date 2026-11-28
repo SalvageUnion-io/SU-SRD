@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
- * `/play/invite/$token` — a Game's invite URL, in Play (ADR-052 §4).
+ * `/games/invite/$token` — a Game's invite URL, in Play (ADR-052 §4).
  *
  * This is the one URL in the app a stranger can be handed, so the failure modes
  * worth defending are about people who are not signed in and links that are no
@@ -18,6 +18,11 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
  */
 
 import { installServerMocks } from '../../../components/__tests__/serverMock'
+import {
+  accountAnswers,
+  accountApiStub,
+  accountWrites,
+} from '../../../lib/account/__tests__/accountApiStub'
 import { answerRoutes, withWorkerRoutes } from '../../../lib/sharing/__tests__/workerRoutes'
 import { sharedPaths } from '../../../lib/sharing/paths'
 import { RoomDeclined } from '../../../replica/roomSocket'
@@ -42,6 +47,7 @@ const serverMocks = await installServerMocks({
     if (redeemError !== null) throw redeemError
     return redeemResult
   },
+  also: { '../../lib/account/accountApi': accountApiStub },
 })
 
 const navigations = serverMocks.navigations
@@ -66,14 +72,16 @@ function preview(over: Record<string, unknown> = {}) {
 }
 
 /** What joining opens: the Game's own page, in Play. */
-const THE_GAME = { to: '/play/games/$gameId', params: { gameId: 'g1' } }
+const THE_GAME = { to: '/games/$gameId', params: { gameId: 'g1' } }
 
-function renderJoin(value: unknown, joinOnArrival = false) {
+function renderJoin(value: unknown, joinOnArrival = false, displayName: string | null = 'Sam') {
+  accountAnswers.me = { displayName }
   answerPreview(value)
   navigations.length = 0
   mutationCalls.length = 0
   redeemError = null
   isAuthenticated = true
+  accountWrites.length = 0
   return render(
     <SyncProvider>
       <InviteScreen token={TOKEN} joinOnArrival={joinOnArrival} />
@@ -106,6 +114,23 @@ describe('a live invite', () => {
     expect(mutationCalls).toEqual(['invites.redeem'])
   })
 
+  // r7 C1 (MD7-01, LG7-01): asked once, here, and filled in.
+  test('the Display name is filled in from the account, and a changed one is kept', async () => {
+    renderJoin(preview())
+    const field = screen.getByLabelText('Display name') as HTMLInputElement
+    expect(field.value).toBe('Sam')
+    fireEvent.change(field, { target: { value: 'Ana' } })
+    fireEvent.click(screen.getByText('Join this Game'))
+    await waitFor(() => expect(navigations).toEqual([THE_GAME]))
+    expect(accountWrites).toEqual([{ name: 'updateProfile', args: { displayName: 'Ana' } }])
+  })
+
+  test('back from signing in with no name yet, it asks before joining', () => {
+    renderJoin(preview(), true, null)
+    expect(mutationCalls).toHaveLength(0)
+    expect((screen.getByLabelText('Display name') as HTMLInputElement).value).toBe('')
+  })
+
   test('arriving to join a dead link spends nothing', () => {
     renderJoin(null, true)
     expect(mutationCalls).toHaveLength(0)
@@ -123,18 +148,18 @@ describe('a live invite', () => {
 describe('a link that is no good', () => {
   test('an unknown link says so, explains invite links and offers no sign-in', () => {
     renderJoin(null)
-    expect(screen.getByText(/does not work/i)).toBeTruthy()
+    expect(screen.getByText(/has expired/i)).toBeTruthy()
     expect(screen.getByText(/may have been reset/i)).toBeTruthy()
     // An old typed code from `/join/…` lands here too: say how joining works now.
     expect(screen.getByText(/there is no code to type/i)).toBeTruthy()
     expect(screen.queryByText('Join this Game')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
+    expect(screen.getByRole('link', { name: 'Back to Games' }).getAttribute('href')).toBe('/games/')
   })
 
   test('still checking is not the same as invalid', () => {
     renderJoin(undefined)
     expect(screen.getByText(/Checking that invite/i)).toBeTruthy()
-    expect(screen.queryByText(/does not work/i)).toBeNull()
+    expect(screen.queryByText(/has expired/i)).toBeNull()
   })
 })
 
@@ -168,11 +193,16 @@ describe('a visitor who is not signed in', () => {
       </SyncProvider>
     )
 
-    expect(screen.getByText(/does not work/i)).toBeTruthy()
+    expect(screen.getByText(/has expired/i)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Sign in to join' })).toBeNull()
     // Its ways on: back to your shelves, and — signed out — a plain sign-in.
-    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
-    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Back to Games' }).getAttribute('href')).toBe('/games/')
+    // r8 C7 (LG8-21): Games leads; sign-in, which cannot fix the link, is second and outlined.
+    const games = screen.getByRole('link', { name: 'Back to Games' })
+    const signIn = screen.getByRole('button', { name: 'Sign in with Discord' })
+    expect(games.className).toContain('su-btn--primary')
+    expect(signIn.className).not.toContain('su-btn--primary')
+    expect(games.compareDocumentPosition(signIn) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     isAuthenticated = true
   })
 })

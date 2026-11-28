@@ -1,6 +1,6 @@
 /**
  * SheetItemLine — an item's controls in its Mini's chip group (C8, hard
- * rules R6 and R11): the condition is the tri-state `StatusBadge`, Uses the
+ * rules C8 and R11): the condition is the tri-state `StatusBadge`, Uses the
  * horizontal `Stat` in edit mode, then the actions and the one ✕, each in
  * the Mini's `[data-chip-group]`, whose name is then the link.
  */

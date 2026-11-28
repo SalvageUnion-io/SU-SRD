@@ -1,13 +1,15 @@
 /**
  * PlayGate — who may open Play for a pilot, decided live: the body of
- * `/play/pilots/$pilotId`.
+ * `/pilots/$id/play`.
  *
- * Play opens for any pilot of yours, in a Game or solo. The store holds only
- * your own pilots (a crewmate's never reaches this browser), so a pilot the
- * store has is one you may play; the server refuses every write you may not
- * make, whatever this shows. Every other case is refused:
+ * Play opens for any pilot of yours, in a Game or solo. The replica also holds
+ * your Games' other pilots; one assigned to a crewmate or to nobody opens
+ * read-only and says whose it is (`pilotHolder`, `usePlaySituation`), and the
+ * server refuses every write you may not make, whatever this shows. Every
+ * other case is refused:
  *
- *  - an anonymous session: sign in first (nothing is played signed out);
+ *  - an anonymous session: sign in first, but for a book crew's pilot, which
+ *    plays a round held in the tab (`trial/PlayTrial`, r6 F1; `TRIAL_PLAY`);
  *  - a pilot this browser does not hold: not found;
  *  - a pilot in a Game the viewer is not a member of (or a Game that is gone,
  *    which `games.get` deliberately does not tell apart).
@@ -23,36 +25,59 @@
  * Disconnected is not a refusal: when the Game's answer has not arrived and
  * cannot until the connection is back, it opens on the local pilot, read-only.
  *
- * A mech-keyed URL (`/play/<mech id>`, where the Worker 301s `/dashboard/<mech id>`)
+ * A mech-keyed URL (`/pilots/<mech id>/play`, where the Worker 301s `/dashboard/<mech id>`)
  * resolves through the mech's `mech-to-pilot` link and is replaced with the
  * pilot's URL.
  */
 
 import { useNavigate } from '@tanstack/react-router'
 import { containerOf } from 'game-domain/container'
-import { cockpitPath } from 'game-domain/entityKinds'
-import { useEffect } from 'react'
+import { cockpitPath, sheetPath } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
+import { PRODUCT } from 'game-domain/product'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
+import { playGamesCopy } from '../messages/play-games'
 import { useGamesQuery } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
 import { PlayCockpit } from './PlayCockpit'
 import { PlayRefusal } from './PlayRefusal'
 
-const TO_PLAY = { href: '/play/', label: playCopy('play') }
+/**
+ * The signed-out trial of a book pilot (r6 F1): the owner's ruling, on. False
+ * keeps Play behind sign-in for every pilot.
+ */
+const TRIAL_PLAY = true
+
+/** Loaded on a signed-out Play alone: it carries the book crews. */
+const PlayTrial = lazy(() => import('./trial/PlayTrial').then((m) => ({ default: m.PlayTrial })))
+
+/** On to Games, where a removed player's other tables are (r8 C6). */
+const TO_GAMES = { href: '/games/', label: PRODUCT.play }
+
+/** Back to the Training Bay, where every pilot of yours is (ADR-066). */
+const TO_TRAINING_BAY = { href: '/', label: PRODUCT.build }
 
 export function PlayGate({ id }: { id: string }) {
   const { status } = useSync()
 
   // Checked before any Games read: signed out, there is nothing to read.
   if (status === 'signedOut') {
-    return (
+    const refusal = (
       <PlayRefusal
+        area="build"
         title={playCopy('signInToPlay')}
         body={playCopy('playRunsYourPilotsSolo2')}
         signInTo={cockpitPath(id)}
       />
+    )
+    if (!TRIAL_PLAY) return refusal
+    return (
+      <Suspense fallback={<RoutePending label={playCopy('yourSession')} />}>
+        <PlayTrial id={id} refusal={refusal} />
+      </Suspense>
     )
   }
   if (status === 'syncing') return <RoutePending label={playCopy('yourSession')} />
@@ -77,16 +102,33 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
   const container = pilot === null ? null : containerOf(pilot)
   const gameId = container?.kind === 'game' ? container.gameId : null
   const game = useGamesQuery('games.get', gameId === null ? 'skip' : { gameId })
+  // The Game this screen was playing in: removed from it mid-session, the
+  // pilot (a pregen) or the Game's answer goes, and the screen says why (r8 C6).
+  const playing = useRef<{ id: string; game: string } | null>(null)
+  if (pilot !== null && game) playing.current = { id, game: game.name }
+  const removedFrom = playing.current?.id === id ? playing.current.game : null
 
   useEffect(() => {
     if (flownBy !== null) {
-      void navigate({ to: '/play/pilots/$pilotId', params: { pilotId: flownBy }, replace: true })
+      void navigate({ to: '/pilots/$id/play', params: { id: flownBy }, replace: true })
     }
   }, [flownBy, navigate])
+
+  if (removedFrom !== null && (pilot === null || game === null)) {
+    return (
+      <PlayRefusal
+        area="play"
+        title={playGamesCopy('removedFromGame', { game: removedFrom })}
+        body={playGamesCopy('removedFromGameBody')}
+        link={TO_GAMES}
+      />
+    )
+  }
 
   if (pilot === null) {
     return (
       <PlayRefusal
+        area="build"
         title={
           mech === null ? playCopy('pilotNotFound') : playCopy('hasNoPilot', { name: mech.name })
         }
@@ -95,7 +137,10 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
             ? playCopy('itMayHaveBeenDeleted')
             : playCopy('playRunsAPilotAssign', { name: mech.name })
         }
-        link={TO_PLAY}
+        // A mech with no pilot: back to its page, where Related units lives.
+        link={
+          mech === null ? TO_TRAINING_BAY : { href: sheetPath('mech', mech.id), label: mech.name }
+        }
       />
     )
   }
@@ -117,9 +162,10 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
   if (game === null) {
     return (
       <PlayRefusal
+        area="build"
         title={playCopy('youreNotInThisPilots')}
-        body={playCopy('playOpensForMembersOf', { name: pilot.name })}
-        link={TO_PLAY}
+        body={playCopy('playOpensForMembersOf', { name: pilotLabel(pilot) })}
+        link={TO_TRAINING_BAY}
       />
     )
   }

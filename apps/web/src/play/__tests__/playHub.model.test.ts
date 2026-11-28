@@ -42,50 +42,65 @@ describe('its chips', () => {
 describe('its doors', () => {
   const MEDIATE = {
     label: 'Mediate',
-    href: '/play/games/g1/mediate',
+    href: '/games/g1/mediate',
     ariaLabel: 'Mediate The Rust Belt Run',
   }
   const BONESAW = {
-    label: 'Play Bonesaw',
-    href: '/play/pilots/p1',
-    ariaLabel: 'Play Bonesaw in The Rust Belt Run',
+    label: 'Open table',
+    href: '/pilots/p1/play',
+    ariaLabel: 'Open table as Bonesaw in The Rust Belt Run',
+  }
+
+  const PREP = {
+    label: 'Prep',
+    href: '/games/g1/prep',
+    ariaLabel: 'Prep for The Rust Belt Run',
   }
 
   const START = {
     label: 'Start session',
-    href: '/play/games/g1/mediate',
-    ariaLabel: 'Start a group session of The Rust Belt Run',
+    href: '/games/g1/mediate',
+    ariaLabel: 'Start session of The Rust Belt Run',
     start: true,
   }
 
   test('a Mediator who also plays gets their door, then their pilot', () => {
+    // MD4-13: Start session was the only way in, and it told the whole table.
     expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }], false)).toEqual([
       START,
+      MEDIATE,
+      PREP,
       BONESAW,
     ])
     // Before the room answers, Mediate: never a Start that cannot be pressed.
     expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }])).toEqual([
       MEDIATE,
+      PREP,
       BONESAW,
     ])
   })
 
-  test('a Mediator with no pilot there gets their door alone', () => {
-    expect(gameDoors({ ...GAME, mediator: true }, [], true)).toEqual([MEDIATE])
+  test('a Mediator with no pilot there gets their doors alone', () => {
+    expect(gameDoors({ ...GAME, mediator: true }, [], true)).toEqual([MEDIATE, PREP])
   })
 
-  test('a player gets a door for every pilot of theirs', () => {
+  test('a player is offered neither Mediate nor Prep', () => {
+    const labels = gameDoors(GAME, [{ id: 'p1', name: 'Bonesaw' }], false).map((d) => d.label)
+    expect(labels).toEqual(['Open table'])
+  })
+
+  test('a player gets a door for every pilot of theirs, told apart by callsign', () => {
     expect(
       gameDoors(GAME, [
         { id: 'p1', name: 'Bonesaw' },
         { id: 'p2', name: 'Driftwood' },
       ])
     ).toEqual([
-      BONESAW,
+      { ...BONESAW, label: 'Open table · Bonesaw' },
       {
-        label: 'Play Driftwood',
-        href: '/play/pilots/p2',
-        ariaLabel: 'Play Driftwood in The Rust Belt Run',
+        label: 'Open table · Driftwood',
+        href: '/pilots/p2/play',
+        ariaLabel: 'Open table as Driftwood in The Rust Belt Run',
       },
     ])
   })
@@ -94,13 +109,14 @@ describe('its doors', () => {
     expect(gameDoors(GAME, [])).toEqual([])
   })
 
-  test('once a session is live: Mediate, and each pilot joins it', () => {
+  test('once a session is live: Mediate, and the seat’s door reads Join session (r3 H3)', () => {
     expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }], true)).toEqual([
       MEDIATE,
+      PREP,
       {
-        label: 'Join as Bonesaw',
-        href: '/play/pilots/p1',
-        ariaLabel: 'Join the session in The Rust Belt Run as Bonesaw',
+        label: 'Join session',
+        href: '/pilots/p1/play',
+        ariaLabel: 'Join session as Bonesaw in The Rust Belt Run',
       },
     ])
   })
@@ -154,7 +170,8 @@ describe('its crew', () => {
     expect(crew.map((u) => [u.kind, u.name])).toEqual([
       ['crawler', 'Big Sal'],
       ['crawler', 'Second Wind'],
-      ['mech', 'Spectrum'],
+      // Boarded: the mech's Mini, still under the pilot's name.
+      ['mech', 'Rook'],
       ['pilot', 'Vesper'],
       ['mech', 'Thresher'],
     ])
@@ -163,8 +180,68 @@ describe('its crew', () => {
       { label: 'EP', value: '5/5' },
       { label: 'Heat', value: '0/9' },
     ])
-    expect(crew[2]?.relations?.[0]?.param).toBe('Rook')
+    expect(crew[2]?.relations?.[0]?.param).toBe('Spectrum')
     expect(crew[3]?.href).toBe('/pilots/a-p2')
+  })
+
+  test('the viewer’s own pilot first, marked Yours (r7 C11)', () => {
+    const crew = gameCrew(
+      {
+        crawlers: [crawler('c1', 'Big Sal')],
+        primaryCrawlerId: 'c1',
+        pilots: [
+          pilot({ ownerId: 'u2', name: 'Vesper', _id: 'p2', linkId: 'a-p2' }),
+          pilot({ boarded: true, mechId: 'a-m1' }),
+        ],
+        mechs: [mech({}), mech({ _id: 'm2', linkId: 'a-m2', ownerId: 'u1', name: 'Thresher' })],
+      },
+      'u1'
+    )
+    expect(crew.map((u) => [u.kind, u.name])).toEqual([
+      ['mech', 'Rook'],
+      ['crawler', 'Big Sal'],
+      ['pilot', 'Vesper'],
+      // A spare mech of theirs is no pilot: it keeps its place.
+      ['mech', 'Thresher'],
+    ])
+    expect(crew[0]?.relations?.map((r) => r.name)).toEqual(['Mech', 'Yours'])
+    expect(crew.slice(1).some((u) => u.relations?.some((r) => r.key === 'yours'))).toBe(false)
+  })
+
+  // r8 C5 (LG8-09): a pregen's spare, taken and boarded by another player, shows once, under them.
+  test('a Mech taken from a pregen is listed under its new Pilot only', () => {
+    const crew = pairedCrew({
+      pilots: [
+        pilot({ _id: 'hotdog', linkId: 'a-hotdog', ownerId: null, name: 'Hotdog', mechId: 'a-m1' }),
+        pilot({
+          _id: 'p2',
+          linkId: 'a-p2',
+          ownerId: 'u2',
+          name: 'Magpie',
+          boarded: true,
+          mechId: 'a-m1',
+        }),
+      ],
+      mechs: [mech({ ownerId: 'u2', name: 'Mazona' })],
+    })
+    expect(crew.map((c) => [c.unit.kind, c.unit.name])).toEqual([
+      ['pilot', 'Hotdog'],
+      ['mech', 'Magpie'],
+    ])
+    // Hotdog is on foot with no Mech: Mazona is Magpie's alone.
+    expect(crew[0]?.unit.relations ?? []).toEqual([])
+  })
+
+  // r8 C8 (LG8-19): unassigned spares are the Mediator's to hand out.
+  test('a plain player’s card leaves out the spares nobody holds', () => {
+    const sources = {
+      crawlers: [],
+      primaryCrawlerId: null,
+      pilots: [pilot({}), pilot({ _id: 'p9', linkId: 'a-p9', ownerId: null, name: 'Spare' })],
+      mechs: [mech({ _id: 'm9', linkId: 'a-m9', ownerId: null, name: 'Loose' })],
+    }
+    expect(gameCrew(sources, 'u1', false).map((u) => u.name)).toEqual(['Rook'])
+    expect(gameCrew(sources, 'u1', true).map((u) => u.name)).toEqual(['Rook', 'Spare', 'Loose'])
   })
 
   test('a member’s own: each unit carries whose it is', () => {
@@ -176,6 +253,34 @@ describe('its crew', () => {
       ['u1', 'Rook'],
       ['u2', 'Kite'],
     ])
+  })
+})
+
+describe('where the campaign is (r7 C11)', () => {
+  test('proposals open, last played and the next plan, before the channel', () => {
+    expect(
+      gameChips({
+        mediator: false,
+        here: 0,
+        downtime: undefined,
+        channel: '#salvage-run',
+        pending: 2,
+        played: '3 days ago',
+        next: 'Sat 28 Nov',
+      })
+    ).toEqual([
+      { key: 'role', label: 'Player' },
+      { key: 'pending', label: 'Proposals', value: '2 pending' },
+      { key: 'played', label: 'Last played', value: '3 days ago' },
+      { key: 'next', label: 'Next', value: 'Sat 28 Nov' },
+      { key: 'channel', label: '#salvage-run' },
+    ])
+  })
+
+  test('none of them when nothing is open, played or planned', () => {
+    expect(
+      gameChips({ mediator: true, here: 0, downtime: undefined, pending: 0, played: null })
+    ).toEqual([{ key: 'role', label: 'Mediator' }])
   })
 })
 

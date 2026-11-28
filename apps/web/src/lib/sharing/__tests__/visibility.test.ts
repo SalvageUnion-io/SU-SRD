@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { patternChoices, sheetChoices, sheetVisibility } from '../visibility'
+import { mediatorOnly, patternChoices, sheetChoices, sheetVisibility } from '../visibility'
 
 /**
  * Who can see it: one question, the same three answers and the same words for
@@ -12,7 +12,7 @@ const open = (choices: { value: string; disabled: boolean }[]) =>
 
 describe('the same three answers for every kind', () => {
   test('a sheet (pilot, mech, crawler, NPC) and a pattern ask in the same words', () => {
-    const words = ['Only me', 'My Game’s crew', 'Public']
+    const words = ['Only me', 'My Game’s crew', 'Public (anyone with the link)']
     expect(labels(sheetChoices({ inGame: false, gameName: null }))).toEqual(words)
     expect(labels(patternChoices({ gameName: 'Dustbowl Run' }))).toEqual(words)
   })
@@ -39,9 +39,51 @@ describe('a sheet', () => {
   })
 })
 
+// MD4-02: the dialog said the Game's crew can see a Mediator's NPC; the room serves them nothing of it.
+describe('an NPC in a Game', () => {
+  test('is withheld from the crew unless it crews the crawler; no other kind ever is', () => {
+    expect(mediatorOnly('npc', true, false)).toBe(true)
+    expect(mediatorOnly('npc', true, true)).toBe(false)
+    expect(mediatorOnly('npc', false, false)).toBe(false)
+    for (const kind of ['pilot', 'mech', 'crawler'] as const) {
+      expect(mediatorOnly(kind, true, false)).toBe(false)
+    }
+  })
+
+  test('says only the Mediator can see it, on the field too, and when the crew would (r5 B12)', () => {
+    const choices = sheetChoices({ inGame: true, gameName: 'Rust Coast', mediatorOnly: true })
+    expect(labels(choices)).toEqual([
+      'Only the Mediator',
+      'My Game’s crew',
+      'Public (anyone with the link)',
+    ])
+    expect(open(choices)).toEqual(['private', 'link'])
+    expect(choices[0]?.description).toBe(
+      'It is in Rust Coast. Only its Mediator can see it, on the field too: players never see the Opposition.'
+    )
+    expect(choices[1]?.description).toBe('The crew sees an NPC once it crews the Game’s crawler.')
+    expect(choices.map((c) => c.description).join(' ')).not.toMatch(
+      /crew can see it|Everyone in Rust Coast/
+    )
+    expect(sheetVisibility({ isPublic: false, inGame: true, mediatorOnly: true })).toBe('private')
+    expect(sheetVisibility({ isPublic: true, inGame: true, mediatorOnly: true })).toBe('link')
+  })
+})
+
 describe('a pattern', () => {
   test('takes all three answers, the crew one only with a Game to name', () => {
     expect(open(patternChoices({ gameName: 'Dustbowl Run' }))).toEqual(['private', 'game', 'link'])
     expect(open(patternChoices({ gameName: null }))).toEqual(['private', 'link'])
+  })
+})
+
+describe('Public names the maker it will credit (r8 E12)', () => {
+  const publicLine = (maker: string | null | undefined) =>
+    patternChoices({ gameName: null, maker }).find((c) => c.value === 'link')?.description ?? ''
+
+  test('by their display name, or says there is none to credit yet', () => {
+    expect(publicLine('Beefcake')).toContain('made by Beefcake')
+    expect(publicLine(null)).toContain('set one in Settings')
+    expect(publicLine(undefined)).toContain('by your display name')
   })
 })

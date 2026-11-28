@@ -19,6 +19,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Npc } from 'game-domain/schemas/npc'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import { libSchemasCopy } from '../../messages/lib-schemas'
 import { isRecord } from '../isRecord'
 
 /** A parsed frozen entity, or the reason it could not be parsed. */
@@ -40,36 +41,39 @@ export type FrozenParse =
  */
 export function parseFrozenEntity(kind: unknown, entity: unknown): FrozenParse {
   if (!isRecord(entity) || Array.isArray(entity)) {
-    return { ok: false, reason: 'Entity data is missing or invalid.' }
+    return { ok: false, reason: libSchemasCopy('entityDataMissing') }
   }
 
   if (kind === 'pilot') {
     const parsed = parseUnit('pilot', entity)
     return parsed.success
       ? { ok: true, kind: 'pilot', entity: parsed.data }
-      : { ok: false, reason: `Invalid pilot data: ${parsed.error.message}` }
+      : { ok: false, reason: libSchemasCopy('invalidPilotData', { message: parsed.error.message }) }
   }
 
   if (kind === 'mech') {
     const parsed = parseUnit('mech', entity)
     return parsed.success
       ? { ok: true, kind: 'mech', entity: parsed.data }
-      : { ok: false, reason: `Invalid mech data: ${parsed.error.message}` }
+      : { ok: false, reason: libSchemasCopy('invalidMechData', { message: parsed.error.message }) }
   }
 
   if (kind === 'crawler') {
     const parsed = parseUnit('crawler', entity)
     return parsed.success
       ? { ok: true, kind: 'crawler', entity: parsed.data }
-      : { ok: false, reason: `Invalid crawler data: ${parsed.error.message}` }
+      : {
+          ok: false,
+          reason: libSchemasCopy('invalidCrawlerData', { message: parsed.error.message }),
+        }
   }
 
   if (kind === 'npc') {
     const parsed = NpcSchema.safeParse(entity)
     return parsed.success
       ? { ok: true, kind: 'npc', entity: parsed.data }
-      : { ok: false, reason: `Invalid NPC data: ${parsed.error.message}` }
+      : { ok: false, reason: libSchemasCopy('invalidNpcData', { message: parsed.error.message }) }
   }
 
-  return { ok: false, reason: `Unknown entity kind: ${String(kind)}` }
+  return { ok: false, reason: libSchemasCopy('unknownEntityKind', { kind: String(kind) }) }
 }

@@ -1,14 +1,15 @@
 /**
  * NpcPickRows — the NPC designer's Actions & traits step, one line a pick
  * (D6): the action's or trait's header-only Compact, opening its full rules, with
- * its Carry toggle the Compact's last chip (C8, hard rule R6).
+ * its Carry toggle the Compact's last chip (C8).
  */
 
 import { Check } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { displayTitle, SalvageUnionReference } from 'salvageunion-reference'
-import { Entity, Toggle, tokens, useDetailModal } from '../../components/index'
+import { useDetailModal } from '../../components/app'
+import { Entity, Toggle, tokens } from '../../components/index'
 import { npcActionName, resolveNpcAction } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import { npcCopy } from '../../messages/build-npc'
@@ -24,7 +25,7 @@ const GROW = { flex: 1, minWidth: 0 } satisfies CSSProperties
 
 /**
  * One header-only card that opens the full rules (D6), its Carry toggle the
- * Compact's last chip (C8, hard rule R6); a name the reference lacks has its
+ * Compact's last chip (C8); a name the reference lacks has its
  * toggle beside it.
  */
 function PickRow({
@@ -42,7 +43,7 @@ function PickRow({
   const carry = (
     <Toggle size="mini" pressed={carried} aria-label={label} onClick={() => onToggle(!carried)}>
       {carried && <Check size={tokens.iconSize.mini} aria-hidden="true" />}
-      Carry
+      {npcCopy('carryToggle')}
     </Toggle>
   )
   return (
@@ -109,7 +110,11 @@ export function TraitPick({
 }) {
   const trait = readReference(
     'AnyNpcDesigner.trait',
-    () => SalvageUnionReference.Traits.getByName(type) ?? null,
+    // An NPC saved before the glossaries opened on a capital stores "fast".
+    () =>
+      SalvageUnionReference.Traits.getByName(type) ??
+      SalvageUnionReference.Traits.getByName(type.charAt(0).toUpperCase() + type.slice(1)) ??
+      null,
     null
   )
   const detail = useDetailModal(trait ?? undefined)

@@ -21,6 +21,6 @@ describe('the product name outside TypeScript', () => {
   })
 
   test("the shell's description names both areas as PRODUCT spells them", () => {
-    expect(html).toContain(`in the ${PRODUCT.build} and play them in ${PRODUCT.play}`)
+    expect(html).toContain(`in the ${PRODUCT.build} and play them in your ${PRODUCT.play}`)
   })
 })

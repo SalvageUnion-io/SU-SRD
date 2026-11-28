@@ -68,9 +68,17 @@ describe('each state', () => {
     expect(boardable(o)).toBe(true)
   })
 
+  test('one of yours another of your pilots flies boards, and says whose', () => {
+    const mechs = [row('thresher', ME), row('mazona', ME)]
+    const links = [...crew, ...onHen('thresher', 'mazona'), link('mech-to-pilot', 'mazona', 'vex')]
+    const o = option(menuFor(mechs, { links }), 'mazona')
+    expect(o).toMatchObject({ state: 'yours', note: 'Vex’s Mech' })
+    expect(boardable(o)).toBe(true)
+  })
+
   test("another player's mech is disabled", () => {
     const o = option(menuFor([row('thresher', ME), row('hauler', VEX_OWNER)]), 'hauler')
-    expect(o).toMatchObject({ state: 'others', note: 'Another player’s mech' })
+    expect(o).toMatchObject({ state: 'others', note: 'Another player’s Mech' })
     expect(boardable(o)).toBe(false)
   })
 

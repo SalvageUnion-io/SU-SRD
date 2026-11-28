@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { EXEMPTIONS } from '../rules/copyExemptions'
 import {
   BANNED,
   CAPITALISED_SHARE,
@@ -21,7 +22,7 @@ import {
 } from '../rules/copyTerms'
 
 /**
- * `tools/check-rule-sets.ts` (the `copy` check) ratchets lower-case game terms and banned spellings in
+ * `tools/check-rule-sets.ts` (the `copy` check) refuses lower-case game terms and banned spellings in
  * shipped copy. These pin what the extractor reads as copy, how the term list
  * is weighed from the dataset, and what each rule flags, against fixtures.
  */
@@ -142,6 +143,15 @@ describe('lintCopy', () => {
       '"Hit points": say Hit Points',
       '"mech": say Mech',
     ])
+  })
+
+  test('leaves the genre\'s name alone, and only that: "mech TTRPG", "mech tabletop RPG"', () => {
+    const r = lintCopy(
+      at('the best post-apocalyptic mech TTRPG, a mech tabletop RPG; scrap the mech'),
+      ['mech'],
+      []
+    )
+    expect(r['lowercase-term']?.map((f) => f.detail)).toEqual(['"mech": say Mech'])
   })
 
   test('bans TL in prose and Heat Cap anywhere, a bare label included', () => {
@@ -282,6 +292,12 @@ describe('lintCopy', () => {
 })
 
 describe('the rule set', () => {
+  test('a one-word area name is a common noun too: its casing is not policed', () => {
+    expect(productBans({ build: 'Training Bay', play: 'Games' }).map((b) => b.say)).toEqual([
+      'Training Bay',
+    ])
+  })
+
   test('reads the area names from game-domain, not a copy of them', () => {
     const root = fixture({
       [PRODUCT_FILE]: "export const PRODUCT = { build: 'Some Bay', play: 'The Hall' } as const",
@@ -305,5 +321,25 @@ describe('the rule set', () => {
       // product.ts is shipped copy too
       '3 copy strings in 2 files, 1 terms from keywords.json'
     )
+  })
+
+  test('an exempt file keeps its lower-case terms; every exemption names a real file and says why', () => {
+    const [first] = EXEMPTIONS
+    if (!first) throw new Error('no exemption to test')
+    const root = fixture({
+      [`${DATA_DIR}/keywords.json`]: JSON.stringify([{ name: 'mech' }]),
+      [`${DATA_DIR}/chassis.json`]: JSON.stringify([{ text: 'The Mech '.repeat(MIN_USES) }]),
+      [PRODUCT_FILE]: "export const PRODUCT = { build: 'Training Bay', play: 'The Cantina' }",
+      [first.file]: "export const quoted = 'a merc mech pilot'",
+      'apps/web/src/routes/A.tsx': 'export const A = () => <p>Build a mech</p>',
+    })
+    expect(copyTerms.scan(root)['lowercase-term']?.map((f) => f.file)).toEqual([
+      'apps/web/src/routes/A.tsx',
+    ])
+    for (const e of EXEMPTIONS) {
+      expect(existsSync(join(import.meta.dir, '../../..', e.file))).toBe(true)
+      expect(e.rules).toEqual(['lowercase-term'])
+      expect(e.reason.length).toBeGreaterThan(40)
+    }
   })
 })

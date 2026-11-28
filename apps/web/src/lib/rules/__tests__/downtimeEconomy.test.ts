@@ -14,7 +14,9 @@ import {
   areaSalvageToMech,
   areaSalvageToPilot,
   depositScrapDeposits,
+  wreckHaulLots,
   wreckSalvageOutcome,
+  wreckScrapLot,
   wreckScrapOutcome,
 } from '../downtimeEconomy'
 
@@ -103,6 +105,17 @@ describe('mech salvage of a wreck (F2)', () => {
   test('a 20 takes the Chassis, a System and a Module', () => {
     const { patch } = wreckSalvageOutcome(crawler(), parts, 'lions', ['c', 's', 'm'])
     expect(patch?.cargoLots).toHaveLength(3)
+  })
+
+  test('for a Mech’s hold, picks are Damaged lots and a 2–5’s Scrap is a lot (r5 B2)', () => {
+    expect(wreckHaulLots(parts, 'meat', ['c']).lots[0]).toMatchObject({
+      name: 'Mule (Damaged)',
+      units: 7,
+    })
+    expect(wreckHaulLots(parts, 'nuts', []).lots[0]).toMatchObject({ cat: 'SCRAP', tl: 1, qty: 3 })
+    expect(wreckHaulLots(parts, 'bits', ['c'])).toEqual({ lots: [], taken: [] })
+    expect(wreckScrapLot({ techLevel: 2, salvageValue: 4 })).toMatchObject({ tl: 2, qty: 4 })
+    expect(wreckScrapLot({ techLevel: 2, salvageValue: 0 })).toBeNull()
   })
 
   test('a downed Vehicle scraps for its Salvage Value at its Tech Level', () => {

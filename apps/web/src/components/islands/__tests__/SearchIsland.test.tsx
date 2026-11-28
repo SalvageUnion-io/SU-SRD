@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, jest, mock, spyOn, test } from
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import { buildSearchIndexEntries } from '../../../lib/searchIndexBuild'
+import { searchNames } from '../../../lib/searchNames'
 import { resetSearchIndexForTests } from '../../../lib/useSearchIndex'
 import type { EntitySurfaceValue } from '../../index'
 import { EntitySurfaceProvider } from '../../index'
@@ -43,10 +44,11 @@ describe('SearchIsland', () => {
     // `Object.assign` carries the real `fetch.preconnect` so the mock satisfies
     // Bun's `typeof fetch` structurally — no forced cast.
     const mockFetch: typeof fetch = Object.assign(
-      async () =>
-        new Response(JSON.stringify(index), {
-          headers: { 'Content-Type': 'application/json' },
-        }),
+      async (url: string | URL | Request) =>
+        new Response(
+          JSON.stringify(String(url).endsWith('/search-names.json') ? searchNames(index) : index),
+          { headers: { 'Content-Type': 'application/json' } }
+        ),
       { preconnect: fetch.preconnect }
     )
     fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(mockFetch)
@@ -57,6 +59,41 @@ describe('SearchIsland', () => {
     fetchSpy?.mockRestore()
     resetSearchIndexForTests()
     jest.useRealTimers()
+  })
+
+  test('on a slow line the names answer at once, the whole index after (r8 G1)', async () => {
+    let resolveIndex!: (res: Response) => void
+    fetchSpy?.mockRestore()
+    const slow: typeof fetch = Object.assign(
+      (url: string | URL | Request) =>
+        String(url).endsWith('/search-names.json')
+          ? Promise.resolve(new Response(JSON.stringify(searchNames(index))))
+          : new Promise<Response>((res) => (resolveIndex = res)),
+      { preconnect: fetch.preconnect }
+    )
+    fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(slow)
+    render(<SearchIsland />)
+    const input = screen.getByRole('combobox')
+    await act(async () => {
+      fireEvent.focus(input)
+    })
+    await typeAndSettle(input, 'mule')
+    // The name, before the index: a plain line to its page.
+    const early = screen.getAllByRole('option')
+    expect(early[0]?.textContent).toContain('Mule')
+    expect(early[0]?.getAttribute('href')).toBe('/chassis/mule/')
+    // A query no name holds waits on the index, never "No results".
+    await typeAndSettle(input, 'zzqxjv')
+    expect(screen.getByRole('listbox').textContent).toContain('Searching…')
+
+    await act(async () => {
+      resolveIndex(new Response(JSON.stringify(index)))
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_MS)
+    })
+    // The whole index has answered: now it says what it found.
+    expect(screen.getByRole('listbox').textContent).not.toContain('Searching…')
   })
 
   test('renders an sr-only aria-live region', () => {
@@ -103,7 +140,85 @@ describe('SearchIsland', () => {
     expect(listbox.textContent).toContain('No results found')
   })
 
-  test('Enter with no arrow selection opens the first result', async () => {
+  test('an empty result with nothing close links on to the listings and the rules (r3 D1)', async () => {
+    render(<SearchIsland />)
+    await typeAndSettle(screen.getByRole('combobox'), 'zzzzxxxxxnonsense99999')
+    const listbox = screen.getByRole('listbox')
+    const links = [...listbox.querySelectorAll('a')].map((a) => a.getAttribute('href'))
+    expect(links).toEqual(['/reference/', '/rules/'])
+    expect(listbox.textContent).not.toContain('Did you mean')
+  })
+
+  test('an empty result one slip from something offers it; pressing it searches (r3 D1)', async () => {
+    render(<SearchIsland />)
+    const input = screen.getByRole('combobox') as HTMLInputElement
+    // "damge" is in no name beside "railgun", so nothing matches as typed.
+    await typeAndSettle(input, 'railgun damge')
+    const listbox = screen.getByRole('listbox')
+    expect(listbox.textContent).toContain('No results found.')
+    const offer = screen.getByRole('button', { name: 'railgun damage' })
+    expect(listbox.textContent).toContain('Did you mean')
+    await act(async () => {
+      fireEvent.click(offer)
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_MS)
+    })
+    expect(input.value).toBe('railgun damage')
+    expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
+  })
+
+  test('a kind’s name one slip away still finds the kind (r3 D1)', async () => {
+    render(<SearchIsland />)
+    await typeAndSettle(screen.getByRole('combobox'), 'chasis')
+    const [first] = screen.getAllByRole('option')
+    expect(first?.textContent).toContain('Chassis')
+    expect(first?.getAttribute('href')).toBe('/chassis/')
+  })
+
+  test('a pattern is a result of its own, opening its own page (PT-26)', async () => {
+    const navigate = mock(() => {})
+    render(<SearchIsland navigate={navigate} />)
+    const input = screen.getByRole('combobox')
+
+    await typeAndSettle(input, 'ironmonger')
+
+    const first = screen.getAllByRole('option')[0]
+    // No anchor: the page opens at its top (r8 G3).
+    expect(first?.getAttribute('href')).toBe('/chassis/magpie/pattern/ironmonger/')
+    expect(screen.getByRole('listbox').textContent).toContain('Pattern · Magpie')
+    // The option is named with its kind, as the row reads (r2 G7).
+    expect(first?.getAttribute('aria-label')).toMatch(/^Ironmonger, Pattern · Magpie$/i)
+    // Highlighted, the row opens its own page.
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'ArrowDown' })
+    })
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Enter' })
+    })
+    expect(navigate).toHaveBeenCalledWith('/chassis/magpie/pattern/ironmonger/')
+    // Its content takes the focus there (`markAtContent`).
+    expect(sessionStorage.getItem('su-at-content')).toBe('/chassis/magpie/pattern/ironmonger/')
+    sessionStorage.clear()
+  })
+
+  test('a question, a word form and a stat abbreviation find their rule (RR-04)', async () => {
+    render(<SearchIsland />)
+    const input = screen.getByRole('combobox')
+    const firstHref = () => screen.getAllByRole('option')[0]?.getAttribute('href')
+
+    await typeAndSettle(input, 'how does salvaging work')
+    expect(firstHref()).toBe('/guides/salvaging/')
+    await typeAndSettle(input, 'overheating')
+    expect(firstHref()).toBe('/traits/overheat/')
+    await typeAndSettle(input, 'sp')
+    expect(firstHref()).toBe('/keywords/structure-points/')
+    await typeAndSettle(input, 'biotitan')
+    // The kind's own listing first, then the keyword.
+    expect(firstHref()).toBe('/bio-titans/')
+  })
+
+  test('Enter with no arrow selection opens the page of every result (r5 E3)', async () => {
     const navigate = mock(() => {})
     render(<SearchIsland navigate={navigate} />)
     const input = screen.getByRole('combobox')
@@ -117,10 +232,9 @@ describe('SearchIsland', () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
 
-    // There is no results page: the dropdown is the search, so Enter with no
-    // highlighted row opens its first row.
+    // With no row highlighted, Enter opens the results page for the query.
     expect(navigate).toHaveBeenCalledTimes(1)
-    expect(navigate).toHaveBeenCalledWith(options[0]?.getAttribute('href'))
+    expect(navigate).toHaveBeenCalledWith('/search/?q=chassis')
   })
 
   test('Enter with arrow selection navigates to the selected result', async () => {
@@ -196,7 +310,7 @@ describe('SearchIsland', () => {
       await act(async () => {
         jest.advanceTimersByTime(DEBOUNCE_MS)
       })
-      expect(screen.getByRole('listbox').textContent).toContain('Loading search index')
+      expect(screen.getByRole('listbox').textContent).toContain('Searching…')
       expect(screen.queryAllByRole('option').length).toBe(0)
 
       // Data lands → the [ready] effect re-runs the pending query with real data.
@@ -218,7 +332,10 @@ describe('SearchIsland', () => {
     // 'c' prefix-matches many category names
     await typeAndSettle(input, 'c')
 
-    const options = screen.getAllByRole('option')
+    // Ten rows, then "See all N results" (r8 G2).
+    const options = screen
+      .getAllByRole('option')
+      .filter((o) => !o.textContent?.startsWith('See all'))
     expect(options.length).toBeLessThanOrEqual(10)
 
     // Count category rows (schema: 'Category')
@@ -226,7 +343,7 @@ describe('SearchIsland', () => {
     expect(categoryRows.length).toBeLessThanOrEqual(3)
   })
 
-  test('Escape closes the dropdown and lets go of focus; focusing again reopens it', async () => {
+  test('Escape ends the lookup: the list closes, the field empties and keeps the focus (RR7-08)', async () => {
     render(<SearchIsland navigate={mock(() => {})} />)
     const input = screen.getByRole('combobox')
     await act(async () => {
@@ -240,12 +357,57 @@ describe('SearchIsland', () => {
     })
     expect(screen.queryByRole('listbox')).toBeNull()
     expect(input.getAttribute('aria-expanded')).toBe('false')
-    expect(document.activeElement).not.toBe(input)
+    expect(document.activeElement).toBe(input)
+    // The next lookup starts clean (RR-20): nothing to delete first.
+    expect((input as HTMLInputElement).value).toBe('')
 
     await act(async () => {
       fireEvent.focus(input)
     })
-    expect(screen.getByRole('listbox')).toBeTruthy()
+    expect(screen.queryByRole('listbox')).toBeNull()
+  })
+
+  test('Escape after the shortcut leaves the focus in the field, to type again (RR7-08)', async () => {
+    render(
+      <div>
+        <a href="/chassis/mule/">Mule</a>
+        <SearchIsland navigate={mock(() => {})} />
+      </div>
+    )
+    const link = screen.getByRole('link', { name: 'Mule' })
+    const input = screen.getByRole('combobox')
+    await act(async () => {
+      link.focus()
+      fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
+    })
+    expect(document.activeElement).toBe(input)
+    await typeAndSettle(input, 'chassis')
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Escape' })
+    })
+    expect(screen.queryByRole('listbox')).toBeNull()
+    expect(document.activeElement).toBe(input)
+  })
+
+  test('"/" outside a field focuses the search; inside one it is typed', async () => {
+    render(
+      <div>
+        <SearchIsland navigate={mock(() => {})} />
+        <textarea aria-label="notes" />
+      </div>
+    )
+    const input = screen.getByRole('combobox')
+    const notes = screen.getByLabelText('notes')
+    await act(async () => {
+      notes.focus()
+      fireEvent.keyDown(notes, { key: '/' })
+    })
+    expect(document.activeElement).toBe(notes)
+    await act(async () => {
+      notes.blur()
+      fireEvent.keyDown(document.body, { key: '/' })
+    })
+    expect(document.activeElement).toBe(input)
   })
 
   test('a click outside closes the dropdown; a click inside keeps it open', async () => {
@@ -302,20 +464,31 @@ describe('SearchIsland', () => {
     expect(document.activeElement).not.toBe(input)
   })
 
-  test('without a navigate prop, Enter sends the window to the first result', async () => {
+  test('without a navigate prop, Enter sends the window to the results page', async () => {
     const assign = spyOn(window.location, 'assign').mockImplementation(() => {})
     try {
       render(<SearchIsland />)
       const input = screen.getByRole('combobox')
-      await typeAndSettle(input, 'mule')
-      const [first] = screen.getAllByRole('option')
+      await typeAndSettle(input, 'laser')
       await act(async () => {
         fireEvent.keyDown(input, { key: 'Enter' })
       })
-      expect(assign).toHaveBeenCalledWith(first?.getAttribute('href'))
+      expect(assign).toHaveBeenCalledWith('/search/?q=laser')
     } finally {
       assign.mockRestore()
     }
+  })
+
+  test('one result listed: Enter opens it, not the page of every result (r8 G2)', async () => {
+    const navigate = mock((_url: string) => {})
+    render(<SearchIsland navigate={navigate} />)
+    const input = screen.getByRole('combobox')
+    await typeAndSettle(input, 'mule')
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Enter' })
+    })
+    expect(navigate).toHaveBeenCalledTimes(1)
+    expect(navigate.mock.calls[0]?.[0]).toMatch(/^\/chassis\/mule\//)
   })
 
   test('inside a host that routes entity links, every result stays a same-tab page link', async () => {
@@ -338,9 +511,13 @@ describe('SearchIsland', () => {
     )
     await typeAndSettle(screen.getByRole('combobox'), 'mule')
 
+    // Every result, and "See all", a same-tab link to the page of every result (r8 G2).
     const options = screen.getAllByRole('option')
     expect(options.length).toBeGreaterThan(0)
-    for (const option of options) {
+    const all = options.find((option) => option.textContent?.startsWith('See all'))
+    expect(all?.getAttribute('href')).toBe('/search/?q=mule')
+    expect(all?.hasAttribute('data-router')).toBe(false)
+    for (const option of options.filter((o) => o !== all)) {
       expect(option.tagName).toBe('A')
       expect(option.hasAttribute('data-router')).toBe(false)
       expect(option.hasAttribute('target')).toBe(false)
@@ -348,9 +525,9 @@ describe('SearchIsland', () => {
     }
   })
 
-  describe("the bar on the home page, the home page's only search", () => {
-    test("opens on the address's query, where the retired search page lands", async () => {
-      window.location.href = 'http://localhost/?q=mule'
+  describe('the bar on the Reference page, where a search by address lands', () => {
+    test("opens on the address's query, where a search by address lands", async () => {
+      window.location.href = 'http://localhost/reference/?q=mule'
       try {
         render(<SearchIsland />)
         const input = screen.getByRole('combobox')
@@ -358,6 +535,28 @@ describe('SearchIsland', () => {
           jest.advanceTimersByTime(DEBOUNCE_MS)
         })
         expect((input as HTMLInputElement).value).toBe('mule')
+        expect(input.getAttribute('aria-expanded')).toBe('true')
+      } finally {
+        window.location.href = 'http://localhost/'
+      }
+    })
+
+    test('the results page keeps the query in the bar, its list shut until the field is reached (RR6-02)', async () => {
+      window.location.href = 'http://localhost/search/?q=railgun%20damage'
+      try {
+        render(<SearchIsland />)
+        const input = screen.getByRole('combobox')
+        await act(async () => {
+          jest.advanceTimersByTime(DEBOUNCE_MS)
+        })
+        expect((input as HTMLInputElement).value).toBe('railgun damage')
+        expect(input.getAttribute('aria-expanded')).toBe('false')
+        expect(document.activeElement).not.toBe(input)
+        // Its count is the page's to say, never a second one from the bar (RR8-15).
+        expect(document.querySelector('[aria-live]')?.textContent).toBe('')
+        await act(async () => {
+          input.focus()
+        })
         expect(input.getAttribute('aria-expanded')).toBe('true')
       } finally {
         window.location.href = 'http://localhost/'
@@ -379,21 +578,32 @@ describe('SearchIsland', () => {
   })
 
   describe('the hero variant', () => {
-    test('submitting the form opens the first result for the trimmed term', async () => {
+    test('submitting the form opens the results page for the trimmed term (r5 E3)', async () => {
       const navigate = mock(() => {})
       render(<SearchIsland variant="hero" navigate={navigate} />)
       const input = screen.getByRole('combobox')
       expect(input.getAttribute('name')).toBe('q')
       await typeAndSettle(input, '  mule  ')
-      const [first] = screen.getAllByRole('option')
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: 'Search' }))
       })
-      expect(navigate).toHaveBeenCalledWith(first?.getAttribute('href'))
+      expect(navigate).toHaveBeenCalledWith('/search/?q=mule')
     })
 
-    test("opens on the address's query, where the retired search page lands", async () => {
-      window.location.href = 'http://localhost/?q=mule'
+    test('submitting a search that found nothing stays, with the field focused (r5 E3)', async () => {
+      const navigate = mock(() => {})
+      render(<SearchIsland variant="hero" navigate={navigate} />)
+      const input = screen.getByRole('combobox')
+      await typeAndSettle(input, 'zzqxjv')
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+      })
+      expect(navigate).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(input)
+    })
+
+    test("opens on the address's query, where a search by address lands", async () => {
+      window.location.href = 'http://localhost/reference/?q=mule'
       try {
         render(<SearchIsland variant="hero" />)
         const input = screen.getByRole('combobox')

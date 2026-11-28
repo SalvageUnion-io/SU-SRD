@@ -16,6 +16,7 @@ import type { ChipContext, RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { readPackageStylesheet } from '../../../styles/__tests__/packageStylesheet'
 import { Entity } from '../Entity'
+import { EntitySurfaceProvider } from '../EntitySurface'
 import { InsidePeekContext } from '../peekContext'
 
 const get = (schema: string, name: string) => {
@@ -249,7 +250,7 @@ describe('the contentful Mini (N3)', () => {
       Array.from(chips?.querySelectorAll(':scope > .su-chip-lane > *') ?? []).map((chip) =>
         (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
       )
-    ).toEqual(['Reaction', 'RNGC', 'Shield', '2 EP'])
+    ).toEqual(['Reaction', 'RNGClose', 'Shield', '2 EP'])
     // Header-only keeps its budget: the range and traits are the Compact's.
     expect(chipsOf('actions', 'Electro-Magnetic Shield Projector', 'play')).toEqual([
       'Reaction',
@@ -257,7 +258,35 @@ describe('the contentful Mini (N3)', () => {
     ])
   })
 
-  test('the head stays one row (E18): its name keeps the ellipsis and the chips their whole budget', () => {
+  test('a head that opens nothing links its chips to their entries (E27); a head that links does not', () => {
+    const hrefFor = (ref: { schemaName: string; slug: string }) => `/${ref.schemaName}/${ref.slug}/`
+    const read = render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <Entity size="mini" context="play" entity={shield()} body={{}} />
+      </EntitySurfaceProvider>
+    )
+    const tags = Array.from(read.container.querySelectorAll('.su-entity-mini__head a[data-tag]'))
+    expect(tags.map((chip) => chip.textContent)).toContain('Reaction')
+    const tag = tags.find((chip) => chip.textContent === 'Shield')
+    expect(tag?.getAttribute('href')).toBe('/traits/shield/')
+    expect(tag?.getAttribute('data-peek')).toMatch(/^traits:/)
+    read.unmount()
+    // The whole head is the link: nothing inside it is one.
+    const linked = render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <Entity
+          size="mini"
+          context="play"
+          entity={shield()}
+          body={{}}
+          mode={{ kind: 'link', href: '/somewhere/' }}
+        />
+      </EntitySurfaceProvider>
+    )
+    expect(linked.container.querySelector('.su-entity-mini__head a')).toBeNull()
+  })
+
+  test('the head stays one row (C5): its name keeps the ellipsis and the chips their whole budget', () => {
     const { container } = render(
       <Entity size="mini" context="loadout" entity={shield()} body={{}} />
     )

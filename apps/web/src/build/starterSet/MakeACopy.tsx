@@ -1,8 +1,7 @@
 /**
- * "Make a copy" — the Starter Set sheet's one action:
- * copy this build onto the player's shelf, to edit and play. The template is
- * untouched (`copyStarter`). Copying into a Game is the Starter Set page's
- * "Copy to…", which lists the destinations.
+ * "Make a copy" — the Starter Set sheet's one action: copy this build, to edit
+ * and play. Signed in it is the page's own control at the sheet's size
+ * (`CopyStarterMenu`): it copies at once with Undo, a pilot with their mech. The template is untouched (`copyStarter`).
  *
  * Signed out, the same button signs in first and comes back to this sheet: a
  * copy is a build of your own, and builds live in an account (ADR-034 as
@@ -13,67 +12,49 @@
  * (ruleset §4.6).
  */
 
-import { SHELF } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
-import { Button, toast } from '../../components/index'
-import type { Confirm } from '../../components/shared/useConfirm'
-import { copyStarter } from '../../lib/starterSet/copyStarter'
-import {
-  rosterOf,
-  STARTER_SET_PUBLISHER,
-  starterRoster,
-} from '../../lib/starterSet/starterTemplates'
+import { cockpitPath } from 'game-domain/entityKinds'
+import { Button } from '../../components/index'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { playTrialCopy } from '../../messages/play-trial'
 import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
+import { CopyStarterMenu } from './CopyStarterMenu'
 
 type MakeACopyProps = {
   kind: SheetKind
   templateId: string
   name: string
-  /** Opens the confirm. Owned by an ancestor that outlives the control. */
-  confirm: Confirm
 }
 
-export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
+export function MakeACopy({ kind, templateId, name }: MakeACopyProps) {
   const { status } = useSync()
 
   if (status === 'signedOut') {
     return (
-      <SignInControl
-        label={buildStarterSetCopy('signInToMakeA')}
-        redirectTo={`/starter/${kind}/${templateId}`}
-        size="full"
-        className="su-page-action"
-      />
+      <>
+        {/* A book pilot plays a round signed out, saved nowhere (r6 F1, `PlayTrial`). */}
+        {kind === 'pilot' && (
+          <Button href={cockpitPath(templateId)} size="full" className="su-page-action">
+            {playTrialCopy('tryARound')}
+          </Button>
+        )}
+        <SignInControl
+          label={buildStarterSetCopy('signInToMakeA')}
+          redirectTo={`/starter/${kind}/${templateId}`}
+          size="full"
+          className="su-page-action"
+        />
+      </>
     )
   }
-  if (status !== 'live') return null
-
   return (
-    <Button
-      variant="primary"
+    <CopyStarterMenu
+      kind={kind}
+      templateId={templateId}
+      name={name}
       size="full"
       className="su-page-action"
-      onClick={() =>
-        confirm({
-          title: buildStarterSetCopy('makeACopyOf', { name }),
-          body: [
-            `This puts a copy of ${name} in your Training Bay, a build of your own to edit and play.`,
-            `The ${(rosterOf(templateId) ?? starterRoster('starter-set')).name}'s ${name} stays as ${STARTER_SET_PUBLISHER} published it.`,
-          ],
-          confirmLabel: buildStarterSetCopy('makeACopy'),
-          pendingLabel: buildStarterSetCopy('copying'),
-          tone: 'default',
-          failure: `${name} could not be copied. Try again.`,
-          onConfirm: async () => {
-            await copyStarter(kind, templateId, SHELF)
-            toast.success(buildStarterSetCopy('copiedToYourTrainingBay', { name }))
-          },
-        })
-      }
-    >
-      {buildStarterSetCopy('makeACopy')}
-    </Button>
+    />
   )
 }

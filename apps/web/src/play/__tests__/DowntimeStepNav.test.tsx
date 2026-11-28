@@ -4,7 +4,7 @@ import { DowntimeStepNav } from '../DowntimeStepNav'
 
 /**
  * The Downtime bar, drawn once for the player's step box and the Mediator's
- * (hard rule R23): Back is `BackLabel`, Next is `NextLabel` ("Next: Step 3"),
+ * (chrome K11): Back is `BackLabel`, Next is `NextLabel` ("Next: Step 3"),
  * and the last step's way on is End Downtime.
  */
 
@@ -19,6 +19,24 @@ describe('DowntimeStepNav', () => {
     )
     expect(names()).toEqual(['Next: Step 3'])
     fireEvent.click(screen.getByRole('button', { name: 'Next: Step 3' }))
+    expect(onAdvance).toHaveBeenCalledTimes(1)
+  })
+
+  // r7 D1: solo, a step with something to apply goes on by applying it.
+  test('a way on that does more says so in place of Next', () => {
+    const onAdvance = mock(() => {})
+    render(
+      <DowntimeStepNav
+        step={2}
+        count={10}
+        off={false}
+        onEnd={() => {}}
+        onAdvance={onAdvance}
+        forward="Apply and go on"
+      />
+    )
+    expect(names()).toEqual(['Apply and go on'])
+    fireEvent.click(screen.getByRole('button', { name: 'Apply and go on' }))
     expect(onAdvance).toHaveBeenCalledTimes(1)
   })
 

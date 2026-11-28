@@ -8,15 +8,17 @@
  * a refused Push says so once and shows nothing it did not do.
  */
 
-import { withCondition } from 'game-domain/mechConditions'
+import { hasCondition, withCondition } from 'game-domain/mechConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { HeatCheckEffect, Roll } from 'salvageunion-reference/rules'
 import { mechPush, pilotOverloadPatch } from '../lib/rules/actionPatches'
 import { runWrite } from '../lib/runWrite'
+import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
 import type { PlayStore } from './play.model'
+import { recordPlayChange } from './playRolls.model'
 
 type Store = Pick<PlayStore, 'get' | 'update'>
 
@@ -56,10 +58,48 @@ export function pushMech(
     () => store.update('mech', mech.id, pushed.patch, PLAY_TXN),
     () => {
       hurtPilot(store, { pilot, crawler }, pushed.effect)
+      if (pushed.effect.shutdown) noteShutdown(mech.name)
       onApplied(pushed)
     }
   )
   return pushed
+}
+
+/** A mech's power, as its unit card and the phone's vitals say it (r7 B2). */
+export type ReactorState = 'shutdown' | 'vulnerable'
+
+/** The chips a mech's conditions put on its card: Shut down, then Vulnerable. */
+export function reactorStates(conditions: readonly string[]): ReactorState[] {
+  return [
+    ...(hasCondition(conditions, 'Shutdown') ? (['shutdown'] as const) : []),
+    ...(hasCondition(conditions, 'Vulnerable') ? (['vulnerable'] as const) : []),
+  ]
+}
+
+/** Each state's chip. */
+export const REACTOR_STATE_TEXT: Record<ReactorState, string> = {
+  shutdown: playCopy('shutDown'),
+  vulnerable: playCopy('vulnerable'),
+}
+
+/** The Feed's line, when a Heat Check shut the mech down: its time is when (r7 B2). */
+export function noteShutdown(mechName: string): void {
+  recordPlayChange(`${playCopy('shutDown')} · ${mechName}`)
+}
+
+/**
+ * Power the mech back on (Core Book p.235: it re-activates at the end of the
+ * next turn): Shutdown and the Vulnerable it brought go, and the Feed says so.
+ */
+export function powerBackOn(store: Store, mech: Pick<Mech, 'id' | 'name' | 'conditions'>): void {
+  runWrite(
+    () => {
+      const conditions = store.get('mech', mech.id)?.conditions ?? mech.conditions
+      const off = withCondition(withCondition(conditions, 'Shutdown', false), 'Vulnerable', false)
+      return store.update('mech', mech.id, { conditions: off }, PLAY_TXN)
+    },
+    () => recordPlayChange(`${playCopy('powerBackOn')} · ${mech.name}`)
+  )
 }
 
 /** The player's half of a Meltdown: mark the mech Destroyed (ADR-007). */

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { BOT_RELAY_POST_ROLL_PATH, relayUrl } from 'game-domain/botWire'
 import { applyOp } from 'game-domain/ops/applyOp'
+import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { bunSql } from '../../../rooms/__tests__/bunSql'
 import type { GameActName } from '../../../rooms/game/acts'
 import { runAct } from '../../../rooms/game/acts'
@@ -48,9 +49,9 @@ function world(over: Partial<CallDeps> = {}) {
         runAct({ room: logic, actor, gameId, at: Date.now() }, name, args),
       republish: () => publisher.republish(),
       // The room's own disband also delivers each unit home; here it only ends the Game.
-      disband: async (actor: string) => {
+      disband: async (actor: string, opts?: { dropTemplateUnits?: boolean }) => {
         try {
-          logic.roster.disband(actor, Date.now())
+          logic.roster.disband(actor, Date.now(), opts)
           return { ok: true, value: null }
         } catch (error) {
           if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }
@@ -103,6 +104,35 @@ function world(over: Partial<CallDeps> = {}) {
 }
 
 describe('the Games calls', () => {
+  test('games.liveSessions names the caller’s Games with a session running, and no others (r2 I1)', async () => {
+    const { call, game } = world()
+    const quiet = (await call('games.create', { name: 'Quiet' })) as string
+    const live = (await call('games.create', { name: 'Rust Choir' })) as string
+    expect(await call('games.liveSessions', {})).toEqual([])
+    await game(live).act(ORG.discordId, 'session.start', {} as never)
+    expect(await call('games.liveSessions', {})).toEqual([
+      { gameId: live, name: 'Rust Choir', startedAt: expect.any(Number) },
+    ])
+    // Somebody who is in neither Game hears of none.
+    expect(await call('games.liveSessions', {}, PLAYER)).toEqual([])
+    // Whose door it is (r3 H3): a player's one pilot there is their seat; a Mediator's is Mediate.
+    const code = (await call('invites.link', { gameId: live })) as string
+    await call('invites.redeem', { code }, PLAYER)
+    await game(live).act(PLAYER.discordId, 'createUnit', {
+      id: 'p1',
+      kind: 'pilot',
+      body: pilotFixture({ id: 'p1', name: 'Brick' }),
+    } as never)
+    expect(await call('games.liveSessions', {}, PLAYER)).toEqual([
+      { gameId: live, name: 'Rust Choir', startedAt: expect.any(Number), pilotId: 'p1' },
+    ])
+    await call('games.setMediator', { gameId: live, userId: ORG.discordId, mediator: true })
+    expect(await call('games.liveSessions', {})).toEqual([
+      { gameId: live, name: 'Rust Choir', startedAt: expect.any(Number), mediator: true },
+    ])
+    expect(quiet).not.toBe(live)
+  })
+
   test('a new Game is listed, its invite joins a player, and its roster names them', async () => {
     const { call, deps, game } = world()
     const gameId = (await call('games.create', { name: ' Tenacity ' })) as string
@@ -128,6 +158,67 @@ describe('the Games calls', () => {
     expect(await call('games.get', { gameId }, PLAYER)).toMatchObject({ mediator: true })
     const reset = await gameCall('invites.reset', { gameId }, PLAYER, deps)
     expect(reset).toEqual({ ok: false, refusal: 'Only the Organiser can do that' })
+  })
+
+  test('the Organiser renames and describes a Game; its invite then says so (MD-12)', async () => {
+    const { call, deps } = world()
+    const gameId = (await call('games.create', { name: 'Tenacity' })) as string
+    const code = (await call('invites.link', { gameId })) as string
+    await call('invites.redeem', { code }, PLAYER)
+    await call('games.update', { gameId, name: 'Rust Coast', description: 'A long haul north.' })
+    expect(await call('games.get', { gameId }, PLAYER)).toMatchObject({
+      name: 'Rust Coast',
+      description: 'A long haul north.',
+    })
+    expect(await invitePreview(deps.db, code)).toEqual({
+      gameName: 'Rust Coast',
+      mediatedBy: null,
+      description: 'A long haul north.',
+    })
+    expect(await gameCall('games.update', { gameId, name: 'Mine' }, PLAYER, deps)).toEqual({
+      ok: false,
+      refusal: 'Only the Organiser can do that',
+    })
+  })
+
+  test('the plan is kept for the table runner and refused to a player (MD-14)', async () => {
+    const { call, deps } = world()
+    const gameId = (await call('games.create', { name: 'Tenacity' })) as string
+    const code = (await call('invites.link', { gameId })) as string
+    await call('invites.redeem', { code }, PLAYER)
+    const plan = {
+      schemaVersion: 1,
+      notes: 'Glass Wastes',
+      sessions: [{ id: 's1', date: '2026-12-01', note: 'Ambush' }],
+    }
+    await call('plan.set', { gameId, plan })
+    expect(await call('plan.get', { gameId })).toEqual(plan)
+    expect((await gameCall('plan.get', { gameId }, PLAYER, deps))?.ok).toBe(false)
+    // A member who never ran the table has no notes of their own to read back (MD4-17).
+    expect(await gameCall('plan.mine', { gameId }, PLAYER, deps)).toEqual({ ok: true, value: null })
+    expect(await call('plan.mine', { gameId })).toEqual({
+      notes: 'Glass Wastes',
+      sessions: [{ date: '2026-12-01', note: 'Ambush' }],
+    })
+    // What is not a plan is refused before it reaches the room.
+    expect(await gameCall('plan.set', { gameId, plan: { notes: 1 } }, ORG, deps)).toEqual({
+      ok: false,
+      refusal: 'Not what that call takes',
+    })
+  })
+
+  test('a creator who said they will be the Mediator is, as the Game starts', async () => {
+    const { call } = world()
+    const mine = (await call('games.create', { name: 'Tenacity', mediator: true })) as string
+    expect(await call('games.get', { gameId: mine })).toMatchObject({
+      organizer: true,
+      mediator: true,
+    })
+    const theirs = (await call('games.create', { name: 'Eldridge', mediator: false })) as string
+    expect(await call('games.get', { gameId: theirs })).toMatchObject({
+      organizer: true,
+      mediator: false,
+    })
   })
 
   test('a roster’s names are read from each account, never from the Game', async () => {
@@ -355,7 +446,9 @@ describe('where a unit is, and a move between rooms', () => {
 describe("Discord's channels", () => {
   const bind = (w: ReturnType<typeof world>, channelId: string, gameId: string | null) =>
     w.db.sqlite
-      .query('insert into channel_bindings values (?1, ?2, ?3, ?4, 5)')
+      .query(
+        'insert into channel_bindings (channel_id, game_id, bound_by, channel_name, bound_at) values (?1, ?2, ?3, ?4, 5)'
+      )
       .run(channelId, gameId, 'd-org', `#${channelId}`)
   const roll = { tableName: 'Core Mechanic', rolls: [17] }
 

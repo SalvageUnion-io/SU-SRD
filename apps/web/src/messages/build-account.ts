@@ -48,17 +48,19 @@ export const buildAccountCopy = messages({
   yourDiscordName: 'Your Discord name',
   saving: 'Saving…',
   save: 'Save',
+  saved: 'Saved',
   yourData: 'Your data',
   everythingYouOwnCrewmatesCharacters:
     "Everything you own. Crewmates' characters and shared crawlers are theirs.",
   downloadMyData: 'Download my data',
   deleteAccount: 'Delete account',
+  // One list, said by the section and its dialog alike (r5 C13).
   deletesYourPilotsAndMechs:
-    'Deletes your pilots and mechs. Games you are in survive: their crawler stays, and one you organise passes to its longest-standing member. This cannot be undone.',
+    'Deletes your Pilots, Mechs, Crawlers and NPCs, your patterns and Homebrew, and the sheets you shared. Games you are in survive: their crawler stays, and one you organise passes to its longest-standing member. This cannot be undone.',
   deleteMyAccount: 'Delete my account',
   deleteYourAccount: 'Delete your account?',
   everythingYouOwnIsDeleted:
-    'Everything you own is deleted for good. The Games you are in carry on without you. This cannot be undone.',
+    'Deleted for good: your Pilots, Mechs, Crawlers and NPCs, your patterns and Homebrew, and the sheets you shared. The Games you are in carry on without you. This cannot be undone.',
   permanentlyDelete: 'Permanently delete',
   deleting: 'Deleting…',
   yourAccountIsUnreachableRight:
@@ -68,5 +70,10 @@ export const buildAccountCopy = messages({
   settings: 'Settings',
   signOut: 'Sign out',
   buildAndRunYourSalvage:
-    'Build and run your Salvage Union crew — pilots, mechs and Union Crawlers. Everything you build is kept in your account, saved as you go, and ready to share with a Game, so building needs you signed in.',
+    'Build and run your Salvage Union crew — Pilots, Mechs and Union Crawlers. Everything you build is kept in your account, saved as you go, and ready to share with a Game, so building needs you signed in.',
+  buildYourNpcs:
+    'Design NPCs and the encounters you run them in. Signed in, they are kept in your Mediator’s Kit, saved as you go and ready to bring into a Game, so designing needs you signed in.',
+  displayNameNotSaved: 'Your display name could not be saved. Try again.',
+  accountNotDeleted: 'Your account could not be deleted. Try again.',
+  signInWithDiscord: 'Sign in with Discord',
 })

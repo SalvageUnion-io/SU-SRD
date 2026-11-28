@@ -44,6 +44,7 @@ import {
   NUMERIC_TECH_LEVELS,
   nextTierUpgradeCost,
 } from 'salvageunion-reference/rules'
+import { libRulesCopy } from '../../messages/lib-rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
 
 // ---------------------------------------------------------------------------
@@ -144,6 +145,20 @@ export type UpkeepPayment = {
   upgradeCredit: number
   /** What the pool could not cover (0 = paid in full); advisory. */
   short: number
+}
+
+/**
+ * The Upkeep a crawler owes each Downtime, with its working where its type
+ * takes some off (Engineering, p.216): `{ owed: 3, base: 5, less: 2 }`. The
+ * sheet's tile and Pay Upkeep both read `owed`, so they agree (r4 A8).
+ */
+export function upkeepOwed(
+  crawlerTl: number,
+  typeRef?: string
+): { owed: number; base: number; less: number } {
+  const base = crawlerUpkeepCost(crawlerTl)
+  const owed = crawlerUpkeepCost(crawlerTl, typeRef)
+  return { owed, base, less: base - owed }
 }
 
 /** How much scrap the pool is short of this Downtime's Upkeep (0 = covered). */
@@ -376,11 +391,11 @@ export type TradingAvailability =
 
 /** Display text per band — mirrors the SRD Trading Bay Table (p.223). */
 export const TRADING_AVAILABILITY_LABEL: Record<TradingAvailability, string> = {
-  chassis: 'An Intact Mech Chassis is available for trade.',
-  'system-and-module': 'An Intact System and an Intact Module are available for trade.',
-  system: 'An Intact System is available for trade.',
-  module: 'An Intact Module is available for trade.',
-  nothing: 'Nothing is available for trade during this Downtime.',
+  chassis: libRulesCopy('tradeChassis'),
+  'system-and-module': libRulesCopy('tradeSystemAndModule'),
+  system: libRulesCopy('tradeSystem'),
+  module: libRulesCopy('tradeModule'),
+  nothing: libRulesCopy('tradeNothing'),
 }
 
 /** Maps a Trading Bay Table d20 roll to its availability band (p.223). */

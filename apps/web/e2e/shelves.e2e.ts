@@ -13,7 +13,7 @@ import { expect, test } from './fixtures'
  */
 
 test('move a unit into a Game and back: it never leaves the Training Bay', async ({ page }) => {
-  await buildPilot(page, 'Shelf Runner', 'Runner')
+  await buildPilot(page, 'Runner', 'Shelf Runner')
 
   // A Game to move it into, started on the Play hub.
   const gameId = await createGame(page, 'Dustbowl Run')
@@ -26,14 +26,10 @@ test('move a unit into a Game and back: it never leaves the Training Bay', async
 
   // In: one pick, no confirm (nothing is linked to it).
   await moveToGame(page, 'Shelf Runner', 'Dustbowl Run')
-  // Its Game is a relation chip opening the Game's page in Play. A Training
-  // Bay row is header-only, so a chip that does not fit beside the name goes
-  // into its +MORE (chip law, C5): the chip is there, maybe not drawn.
-  const chip = pilots.locator('[data-chip-class="relation"] a[data-tag]', {
-    hasText: 'Dustbowl Run',
-  })
+  // Its Game is its line's Game column, a link to the Game's page in Play.
+  const chip = pilots.getByRole('link', { name: 'Dustbowl Run', exact: true })
   await expect(chip).toBeAttached({ timeout: 15_000 })
-  await expect(chip).toHaveAttribute('href', new RegExp(`/play/games/${gameId}$`))
+  await expect(chip).toHaveAttribute('href', new RegExp(`/games/${gameId}$`))
 
   // Still in the Training Bay, its Game its tag: there is no Showing filter (C13).
   await expect(pilots.getByText('Shelf Runner')).toBeVisible()
@@ -48,16 +44,17 @@ test('move a unit into a Game and back: it never leaves the Training Bay', async
 test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {
   await openTrainingBay(page)
 
-  // The Starter Set is folded under its Slab until its fold opens it.
-  await page.getByRole('button', { name: 'Expand Starter Set' }).click()
+  // The Starter crews are folded under their Slab until its fold opens it (r6 E12).
+  await page.getByRole('button', { name: 'Expand Starter crews' }).click()
   await page
+    .getByRole('region', { name: 'Starter crews' })
     .getByRole('region', { name: 'Starter Set' })
-    .getByRole('link', { name: 'Read Bonesaw' })
+    .getByRole('link', { name: 'Bonesaw', exact: true })
     .click()
   await page.waitForURL(/\/starter\/pilot\//, { timeout: 15_000 })
+  // One press copies, with Undo in its notice (r5 B18), and lands on the copy.
   await page.getByRole('button', { name: 'Make a copy' }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
-  await expect(page.getByRole('alertdialog')).toHaveCount(0, { timeout: 15_000 })
+  await page.waitForURL(/\/pilots\//, { timeout: 15_000 })
 
   await openTrainingBay(page)
   const pilots = shelf(page)
@@ -65,7 +62,7 @@ test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {
 })
 
 test('export the shelf, and import it back', async ({ page }) => {
-  await buildPilot(page, 'Backed Up', 'Bak')
+  await buildPilot(page, 'Bak', 'Backed Up')
   await openTrainingBay(page)
   const pilots = shelf(page)
   await expect(pilots.getByText('Backed Up')).toBeVisible({ timeout: 15_000 })
@@ -100,8 +97,8 @@ test('export the shelf, and import it back', async ({ page }) => {
  * asserted to contain it). Confirming removes the item; cancelling keeps it.
  */
 test('delete a pilot from the Training Bay, and cancel a delete', async ({ page }) => {
-  await buildPilot(page, 'Delete Me', 'TBD')
-  await buildPilot(page, 'Keep Me', 'OK')
+  await buildPilot(page, 'TBD', 'Delete Me')
+  await buildPilot(page, 'OK', 'Keep Me')
   await openTrainingBay(page)
   const pilots = shelf(page)
   // The account's rows arrive from the rooms after the game data is ready.
@@ -111,7 +108,8 @@ test('delete a pilot from the Training Bay, and cancel a delete', async ({ page 
 
   const confirm = page.getByRole('alertdialog')
   await fromShelfMenu(page, 'Delete Me', 'Delete…')
-  await expect(confirm).toContainText('Delete Delete Me?')
+  // The confirm names the pilot as its line does, by its callsign (r8 F1).
+  await expect(confirm).toContainText('Delete Me?')
   await confirm.getByRole('button', { name: /^Delete$/ }).click()
   await expect(pilots.getByText('Delete Me')).toHaveCount(0, { timeout: 10_000 })
 

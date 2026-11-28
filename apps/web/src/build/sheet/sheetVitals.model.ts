@@ -8,16 +8,25 @@
  */
 
 import { STAT_LABELS } from 'salvageunion-reference'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 export const SHEET_VITALS = {
   hp: STAT_LABELS.hitPoints,
-  ap: { label: 'Ability Points', short: 'AP' },
+  ap: { label: buildSheetCopy('abilityPoints'), short: 'AP' },
   sp: STAT_LABELS.structurePoints,
   ep: STAT_LABELS.energyPoints,
   heat: STAT_LABELS.heatCapacity,
 } as const satisfies Record<string, { label: string; short: string }>
 
 export type SheetVital = keyof typeof SHEET_VITALS
+
+/**
+ * What a vital's controls are named ("Increase Heat", r8 E10): its full words,
+ * but Heat's is Heat, for its − / + move the Heat and never the Capacity, the
+ * limit the gauge reads beside it.
+ */
+export const vitalName = (vital: SheetVital): string =>
+  vital === 'heat' ? SHEET_VITALS.heat.short : SHEET_VITALS[vital].label
 
 /** A vital's gauge words: the stamp (`SP`) and its caption (`Structure Points`). */
 export function vitalWords(vital: SheetVital): { label: string; subLabel: string } {

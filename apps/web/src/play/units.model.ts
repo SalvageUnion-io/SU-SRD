@@ -106,11 +106,24 @@ export function bayChips(crawler: Crawler): BayChip[] {
 /**
  * The pilot's other mechs, as the hangar lists them: those Board offers that
  * are the pilot's own (in a Game, a crewmate's mech or an unassigned spare is
- * the Board menu's, not this hangar's), less the one the column already shows.
+ * the Board menu's, not this hangar's; so is a mech another of your pilots is
+ * assigned), less the one the column already shows.
  */
 export function hangarMechs(options: readonly BoardOption[], shownId: string | null) {
   return options.filter(
     (option) =>
-      option.mechId !== shownId && (option.state === 'yours' || option.state === 'destroyed')
+      option.mechId !== shownId &&
+      option.flownByOther !== true &&
+      (option.state === 'yours' || option.state === 'destroyed')
   )
+}
+
+/**
+ * Solo, where a Downtime line that needs a Union Crawler sends the player to
+ * make one: the pilot carried, so the crawler takes them and their mech as
+ * crew, and finishing comes back to this Downtime (`?back=play`, r5 A13).
+ */
+export function makeCrawlerHref(pilotId: string | null): string {
+  if (pilotId === null) return '/crawlers/new'
+  return `/crawlers/new?pilot=${encodeURIComponent(pilotId)}&back=play`
 }

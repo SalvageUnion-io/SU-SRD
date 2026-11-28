@@ -3,15 +3,15 @@
 import { messages } from './define'
 
 export const buildStarterSetCopy = messages({
-  copyTo: 'Copy {name} to {label}?',
   makeACopy: 'Make a copy',
+  makeACopyOfName: 'Make a copy of {name}',
   copying: 'Copying…',
   copiedTo: 'Copied {name} to {label}.',
-  copyTo2: 'Copy {name} to…',
+  copyUndone: '{name}: the copy is deleted again.',
+  undo: 'Undo',
+  pilotAndMech: '{name} and {mech}',
+  yourTrainingBay: 'your Training Bay',
   signInToMakeA: 'Sign in to make a copy',
-  makeACopyOf: 'Make a copy of {name}?',
-  copiedToYourTrainingBay: 'Copied {name} to your Training Bay.',
-  crewKind: '{crew} {lowerCase}',
   starterSet2: 'Starter Set',
   copyOneIntoYourTraining:
     'Copy one, or the whole crew, into your Training Bay or into one of your Games to play it.',
@@ -30,10 +30,43 @@ export const buildStarterSetCopy = messages({
   theStarterSetStaysAs:
     'The {crew} stays as {publisher} published it. Don’t want a copy later? Delete it like any other build.',
   quickstartCrew: 'Quickstart crew',
-  noCrawlerSheet: 'The Quickstart prints no sheet for Crawler #279.',
   quickstartCrewIntro:
     'The six premade Pilots and Mechs of the {book}, one for each Core Class, all of Crawler #279. Read-only reference: open any sheet to read it.',
   copyTheCrew: 'Copy the crew',
   theCrewCouldNotBe: 'The crew could not be copied. Try again.',
   copiedBuildsTo: 'Copied {builds} builds to {label}.',
+  tl: 'TL',
+  techLevel: 'Tech Level',
+  thePreGeneratedCrewOf: 'The pre-generated crew of',
+  byPublisher: ', by {publisher}.',
+  // The paired crew manifest.
+  hp: 'HP',
+  ap: 'AP',
+  sp: 'SP',
+  ep: 'EP',
+  heat: 'Heat',
+  mech: 'Mech',
+  type: 'Type',
+  bays: 'Bays',
+  pilotsAndTheirMechs: 'Pilots & their Mechs',
+  unionCrawler: 'Union Crawler',
+  mechsWithNoPilot: 'Mechs with no Pilot',
+  // The page's side track: from a premade crew to the table.
+  fromCrewToTable: 'From crew to table',
+  stepRead: 'Open any sheet above and read it.',
+  stepSignIn: 'Sign in with Discord.',
+  stepCopy: 'Copy one Pilot, or the whole crew, into your Training Bay.',
+  stepGame: 'Start a Game in Your Games and share its invite link.',
+  stepPlay: 'Seat your Pilots and open their Play screen at the table.',
+  yourGames: 'Your Games',
+  signIn: 'Sign in',
+  theBook: 'The book',
+  theBookBody:
+    '{adventure} is the Starter Set’s campaign: maps, NPCs, monsters and a Mediator’s advice for this crew.',
+  readAboutTheBook: 'Read about the book',
+  staysAsPublished:
+    "The {roster}'s {name} stays as {publisher} published it. Don't want the copy later? Delete it like any other build.",
+  notCopied: '{name} could not be copied. Try again.',
+  thePreGeneratedCrewOwnedBy:
+    'The pre-generated crew of {adventure}, owned by {publisher}. Read-only reference: open any sheet to read it.',
 })

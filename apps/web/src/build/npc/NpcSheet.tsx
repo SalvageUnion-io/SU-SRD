@@ -2,7 +2,7 @@
  * NpcSheet — a built NPC's own page, `/npcs/:id` (ADR-044;
  * `docs/architecture/npc-builder.md` §4.2), on the shell every Live Sheet
  * shares (hard rule R11): `LiveSheet`'s chapter band, Read | Edit and the
- * corner actions (Share, then Move and Delete under "⋯"), a `SheetHero`
+ * corner actions (Share, then Move, Make a copy and Delete under "⋯"), a `SheetHero`
  * opening, its actions under a Slab.
  *
  * - The band names it once (the sheet's one h1), hatched as a full user-made
@@ -16,7 +16,10 @@
  * - Down at 0 HP is the one unit-out treatment.
  *
  * Read is the printed sheet: an empty line is left out and nothing writes;
- * Edit gives the fields, the HP track and the photo control back. A crewmate's
+ * Edit gives the fields, the HP track and the photo control back, and its
+ * stats and actions (`NpcSheetDesign`, r6 B12): one Edit edits everything.
+ * "⋯" holds "Redesign from a template", the designer on this NPC
+ * (`NpcRedesignPage`). A crewmate's
  * NPC, read live from the Game's listing, and a shared one at `/p/npc/:id`
  * render read-only with no toggle, and say why.
  */
@@ -24,7 +27,7 @@
 import type { Npc } from 'game-domain/schemas/npc'
 import type { CrewSlot } from 'game-domain/schemas/softLink'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
 import {
   ActionMinis,
@@ -32,31 +35,42 @@ import {
   InlineRef,
   SlabSection,
   Tags,
+  toast,
   tokens,
   traitTags,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
+import { copyBeside, namesOn } from '../../lib/copyEntity'
+import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import {
   isNpcDown,
+  isRedesignable,
   npcAsReferenceEntity,
   npcCurrentHP,
+  npcDesignHref,
   resolveNpcAction,
   slotPhrase,
 } from '../../lib/npcs/npcModel'
 import { npcTemplateArt } from '../../lib/photos/defaultArt'
 import { runWrite } from '../../lib/runWrite'
 import { npcCopy } from '../../messages/build-npc'
+import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
+import { useEncounters } from '../../replica/collections'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import { isSignedIn } from '../../replica/sync'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
+import { encountersFielding } from '../prep/encounter.model'
+import { useEncounterGame } from '../prep/useEncounterGame'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import { npcStamp } from '../sheet/bandStamps.model'
 import { LiveSheet } from '../sheet/LiveSheet'
 import { NpcLines } from '../sheet/NpcLines'
 import { PhotoBeside } from '../sheet/PhotoBeside'
+import { usePrinting } from '../sheet/printing.model'
 import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
 import { SheetColumns } from '../sheet/SheetColumns'
 import { SheetHero } from '../sheet/SheetHero'
@@ -64,6 +78,12 @@ import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetVitalGauge } from '../sheet/SheetVitalGauge'
 import { useSheetMode } from '../sheet/sheetMode.model'
 import { NOTE } from './npcStyles.model'
+import { deleteNpcDesign } from './redesign.model'
+
+// Edit's stat block: only an Edit press loads the designer's fields.
+const NpcSheetDesign = lazy(() =>
+  import('./NpcSheetDesign').then((m) => ({ default: m.NpcSheetDesign }))
+)
 
 /** Where the NPC crews, when it does. */
 export type NpcCrewing = {
@@ -84,6 +104,8 @@ type NpcSheetProps = {
   confirm?: Confirm
   /** After the delete lands — where to go is the route's call. */
   onDeleted?: () => void
+  /** Open a copy this page just made (its toast's "Open the copy"). */
+  onOpenCopy?: (npcId: string) => void
   /**
    * Why a read-only page cannot be changed, as a note atop it (a shared NPC);
    * a crewmate's reads it on the crew sheet's banner instead (`CrewSheetBanner`).
@@ -106,6 +128,9 @@ const SHEET = {
   gap: tokens.space[24],
 } satisfies CSSProperties
 
+/** How long the copy's toast stays: long enough to reach for "Open the copy". */
+const COPY_TOAST_MS = 20_000
+
 const ACTIONS = {
   alignItems: 'center',
   display: 'flex',
@@ -119,6 +144,7 @@ export function NpcSheet({
   crewing,
   confirm,
   onDeleted,
+  onOpenCopy,
   readOnlyNote,
 }: NpcSheetProps) {
   const [shareOpen, setShareOpen] = useState(false)
@@ -128,33 +154,74 @@ export function NpcSheet({
   // As on every sheet (`Sheet.tsx`): Read until Edit is pressed, and nothing
   // writes while the server of record cannot be reached.
   const writesBlocked = !canWrite && status !== 'syncing'
-  const editing = sheetMode === null || sheetMode.editing
+  // Paper is always the Read view (r4 E9).
+  const printing = usePrinting()
+  const editing = !printing && (sheetMode === null || sheetMode.editing)
   const editable = !readOnlyProp && !writesBlocked && editing
 
   function patch(fields: Partial<Npc>) {
     runWrite(() => useUnits.getState().update('npc', npc.id, fields, LIVE_SHEET_MANUAL))
   }
 
-  function remove() {
+  /** Make a copy: a new, separate NPC (glossary 5), in the Game this one is in (MD3-12). */
+  function copy() {
+    runWrite(async () => {
+      const taken = namesOn(useUnits.getState().list('npc'))
+      const created = await useUnits
+        .getState()
+        .create('npc', copyBeside(npc, npc.name, taken) as never)
+      toast.success(npcCopy('madeACopy', { name: npc.name }), {
+        // With the way to the copy it stays as a toast with an action does (K5).
+        ...(onOpenCopy
+          ? { action: { label: npcCopy('openTheCopy'), onClick: () => onOpenCopy(created.id) } }
+          : { duration: COPY_TOAST_MS }),
+      })
+    })
+  }
+
+  /** Delete asks once, naming the encounters the NPC leaves with it (MD3-08). */
+  async function remove() {
+    // A list that will not load names none; the delete still clears what it finds.
+    await useEncounters
+      .getState()
+      .hydrate()
+      .catch(() => undefined)
+    const fielding = encountersFielding(useEncounters.getState().encounters, npc.id)
+    const asked = ROW_ACTION_COPY.deleteNpc(
+      npc.name,
+      fielding.map((encounter) => encounter.name)
+    )
     confirm?.({
-      title: npcCopy('delete', { name: npc.name }),
-      body: [
-        `This cannot be undone. ${npc.name} will be permanently removed${crewing ? `, and ${slotPhrase(crewing.slot)} on ${crewing.crawlerName} goes back to the book's crew line` : ''}.`,
-      ],
-      confirmLabel: npcCopy('delete2'),
-      pendingLabel: npcCopy('deleting'),
-      tone: 'danger',
-      failure: `${npc.name} could not be deleted. Try again.`,
+      ...asked,
+      body: crewing
+        ? [
+            npcCopy('deleteBodyCrewing', {
+              name: npc.name,
+              slot: slotPhrase(crewing.slot),
+              crawler: crewing.crawlerName,
+            }),
+            ...asked.body.slice(1),
+          ]
+        : asked.body,
       onConfirm: async () => {
-        await useUnits.getState().delete('npc', npc.id)
+        await deleteNpcDesign(npc.id)
         onDeleted?.()
       },
     })
   }
 
+  // The Game it is kept in, when the viewer runs it: the band's chip, and the
+  // way back is that Game's Prep (as an encounter's sheet, MD2-14).
+  const inGame = useEncounterGame(npc, isSignedIn(status) && !readOnlyProp)
   const modeToggle =
     sheetMode !== null && !readOnlyProp && !writesBlocked ? (
-      <SheetModeToggle mode={sheetMode} kind="NPC" />
+      <>
+        {/* The way back to where it is kept: its Game's Prep, else the Kit (ADR-067 §5). */}
+        <Button href={inGame?.href ?? KIT_PATH} back variant="ink" size="compact">
+          {inGame ? npcCopy('gamePrep') : npcCopy('mediatorsKit')}
+        </Button>
+        <SheetModeToggle mode={sheetMode} kind="NPC" />
+      </>
     ) : undefined
 
   // The corner (as on every sheet): Share inline, the admin moves under "⋯".
@@ -177,9 +244,29 @@ export function NpcSheet({
             entity={npc}
             confirm={confirm}
           />
+          {/* A new template on this NPC (MD2-03), in Sheet view too: a fresh copy
+              opens there (MD3-06). Its stats and actions are Edit's (r6 B12). */}
+          {!writesBlocked && isRedesignable(npc) && (
+            <Button
+              variant="ghost"
+              href={npcDesignHref(npc.id)}
+              aria-label={npcCopy('editDesignOf', { name: npc.name })}
+            >
+              {npcCopy('editDesign')}
+            </Button>
+          )}
+          {!writesBlocked && (
+            <Button
+              variant="ghost"
+              onClick={copy}
+              aria-label={npcCopy('makeACopyOf', { name: npc.name })}
+            >
+              {npcCopy('makeACopy')}
+            </Button>
+          )}
           <Button
             variant="ghost"
-            onClick={remove}
+            onClick={() => void remove()}
             aria-label={npcCopy('delete3', { name: npc.name })}
           >
             {npcCopy('delete2')}
@@ -201,7 +288,7 @@ export function NpcSheet({
       <LiveSheet
         variant="npc"
         name={npc.name}
-        band={{ actions: modeToggle }}
+        band={{ actions: modeToggle, game: inGame }}
         actions={actions}
         kindDetail={npcStamp(npc.templateRef)}
         userMade={{ madeBy }}
@@ -275,11 +362,11 @@ export function NpcSheet({
                         {traits.length > 0 && <Tags tags={traits} linkable />}
                         {crewing && (
                           <p style={NOTE}>
-                            Crews {slotPhrase(crewing.slot)} on{' '}
+                            {npcCopy('crewsSlotOn', { slot: slotPhrase(crewing.slot) })}{' '}
                             <InlineRef href={`/crawlers/${crewing.crawlerId}`}>
                               {crewing.crawlerName}
                             </InlineRef>
-                            . Whoever runs that crawler assigns and unassigns its crew.
+                            {npcCopy('whoeverRunsThatCrawler')}
                           </p>
                         )}
                       </div>
@@ -288,7 +375,8 @@ export function NpcSheet({
                   vitals={
                     npc.hitPoints > 0 ? (
                       <SheetVitalGauge
-                        vital="hp"
+                        // One built from a mech-scale denizen takes Structure Points (MD2-05).
+                        vital={npc.damageType === 'SP' ? 'sp' : 'hp'}
                         value={hp}
                         max={npc.hitPoints}
                         onChange={editable ? (next) => patch({ currentHP: next }) : undefined}
@@ -299,16 +387,22 @@ export function NpcSheet({
                 />
               }
             >
-              {npcActions.length > 0 && (
-                <SlabSection fold="open" title={npcCopy('actions')} count={npcActions.length}>
-                  <ActionMinis
-                    actions={npcActions}
-                    size="compact"
-                    hostName={npc.name}
-                    chassisName={undefined}
-                    grid
-                  />
-                </SlabSection>
+              {editable && isRedesignable(npc) ? (
+                <Suspense fallback={null}>
+                  <NpcSheetDesign key={npc.id} npc={npc} />
+                </Suspense>
+              ) : (
+                npcActions.length > 0 && (
+                  <SlabSection fold="open" title={npcCopy('actions')} count={npcActions.length}>
+                    <ActionMinis
+                      actions={npcActions}
+                      size="compact"
+                      hostName={npc.name}
+                      chassisName={undefined}
+                      grid
+                    />
+                  </SlabSection>
+                )
               )}
             </SheetColumns>
           </section>

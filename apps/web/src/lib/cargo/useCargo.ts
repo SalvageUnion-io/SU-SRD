@@ -15,6 +15,7 @@ import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import { mechMaxCargo } from 'salvageunion-reference/rules'
+import { libCargoCopy } from '../../messages/lib-cargo'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { ChangeMeta } from '../../replica/units'
 import { useUnits } from '../../replica/units'
@@ -25,7 +26,7 @@ import type {
   CargoTransferResult,
   CargoUsage,
 } from './cargoTransfer'
-import { cargoTransfer, carrierCargoUsage, scrapPoolBucket } from './cargoTransfer'
+import { cargoTransfer, carrierCargoUsage, scrapPoolBucket, unstowAction } from './cargoTransfer'
 
 type UseCargoOptions = {
   /** The mech side of the boundary (null/undefined when no mech is docked). */
@@ -64,7 +65,7 @@ type UseCargoOptions = {
  * (`assertMayEditCrawler`); saying so on the control beats a refusal toast after
  * the press.
  */
-export const CRAWLER_KEPT_BY_MEDIATOR = 'The Mediator keeps the crawler. Ask at the table.'
+export const CRAWLER_KEPT_BY_MEDIATOR = libCargoCopy('mediatorKeepsTheCrawler')
 
 export type UseCargoResult = {
   state: CargoBoundaryState
@@ -79,18 +80,25 @@ export type UseCargoResult = {
   poolBucket: (tl: number) => number
   /** Mech → crawler, whole lot. SCRAP lots deposit the TL pool bucket. */
   stow: (lotId: string) => Promise<CargoTransferResult>
+  /**
+   * Undo a stow (r3 F1): the lot back out of the bay, or its Scrap back out of
+   * its pool bucket, reduced against both sides as they now stand.
+   */
+  takeBack: (lot: CargoLot) => Promise<CargoTransferResult>
+  /** The mech whose hold this is, or null: the sheet a stow's Undo belongs to. */
+  carrierId: string | null
   /** Crawler → mech, cap-checked; bulk lots split and mint a new lot. */
   load: (lotId: string, qty?: number) => Promise<CargoTransferResult>
   /** Pool → mech as a bulk SCRAP lot (merges into a same-TL lot). */
   withdrawScrap: (tl: number, qty: number) => Promise<CargoTransferResult>
   /** Add a lot directly to the mech hold. Needs a mech, NOT a crawler. */
   addMechLot: (lot: CargoLot) => Promise<CargoTransferResult>
-  /** Discard a lot from the mech hold. Needs a mech, NOT a crawler. */
-  removeMechLot: (lotId: string) => Promise<CargoTransferResult>
+  /** Discard a lot from the mech hold, or `qty` of a stack. Needs a mech, NOT a crawler. */
+  removeMechLot: (lotId: string, qty?: number) => Promise<CargoTransferResult>
   /** Add a lot directly to the crawler Storage Bay. Needs a crawler, NOT a mech. */
   addCrawlerLot: (lot: CargoLot) => Promise<CargoTransferResult>
   /** Discard a lot from the crawler Storage Bay. Needs a crawler, NOT a mech. */
-  removeCrawlerLot: (lotId: string) => Promise<CargoTransferResult>
+  removeCrawlerLot: (lotId: string, qty?: number) => Promise<CargoTransferResult>
 }
 
 /**
@@ -110,7 +118,7 @@ async function commitUpdates(
   } catch (error) {
     return {
       ok: false,
-      reason: failureMessage(error, 'That change could not be saved. Try again.'),
+      reason: failureMessage(error, libCargoCopy('changeNotSaved')),
     }
   }
 }
@@ -134,22 +142,39 @@ export function useCargo({
     scrapPool: crawler?.scrapPool ?? {},
   }
 
-  async function dispatch(action: CargoTransferAction): Promise<CargoTransferResult> {
-    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+  /** Both sides as the store holds them now, not as this render saw them. */
+  function freshState(): CargoBoundaryState {
+    const freshMech = (mech && storeState.get('mech', mech.id)) ?? mech
+    const freshCrawler = (crawler && storeState.get('crawler', crawler.id)) ?? crawler
+    return {
+      carrierLots: freshMech?.cargoLots ?? [],
+      carrierCargoCap: freshMech
+        ? mechMaxCargo(freshMech, undefined, { abilities: pilotAbilities })
+        : 0,
+      depotLots: freshCrawler?.cargoLots ?? [],
+      scrapPool: freshCrawler?.scrapPool ?? {},
+    }
+  }
+
+  async function dispatch(
+    action: CargoTransferAction,
+    from: CargoBoundaryState = state
+  ): Promise<CargoTransferResult> {
+    if (readOnly) return { ok: false, reason: libCargoCopy('sheetIsReadOnly') }
     if (!mech)
       return {
         ok: false,
-        reason: 'No mech is assigned — nothing to transfer to or from.',
+        reason: libCargoCopy('noMechToTransfer'),
       }
     if (!crawler) {
       return {
         ok: false,
-        reason: 'No crawler is assigned — nothing to transfer to or from.',
+        reason: libCargoCopy('noCrawlerToTransfer'),
       }
     }
     if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
 
-    const result = cargoTransfer(state, action)
+    const result = cargoTransfer(from, action)
     if (!result.ok) return result
 
     // Both sides of the boundary commit together, in one server mutation, so a
@@ -174,9 +199,9 @@ export function useCargo({
   // add/discard require only a docked mech — no crawler boundary. Persists the
   // mech side alone.
   async function dispatchMechLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
-    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (readOnly) return { ok: false, reason: libCargoCopy('sheetIsReadOnly') }
     if (!mech) {
-      return { ok: false, reason: 'No mech is assigned — nothing to store cargo in.' }
+      return { ok: false, reason: libCargoCopy('noMechToStoreCargoIn') }
     }
 
     // Reduce against a FRESH read, not the render-time `state` snapshot. These
@@ -212,25 +237,23 @@ export function useCargo({
 
   // Crawler-bay-local edits: the Storage Bay is its own container, so add/discard
   // require only a linked crawler — no docked mech. Persists the crawler side
-  // alone, and only `cargoLots` (these actions never touch the scrap pool).
+  // alone: its lots, and the pool, which Scrap added here goes into (r5 B3).
   async function dispatchCrawlerLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
-    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (readOnly) return { ok: false, reason: libCargoCopy('sheetIsReadOnly') }
     if (!crawler) {
-      return { ok: false, reason: 'No crawler is assigned — nothing to store cargo in.' }
+      return { ok: false, reason: libCargoCopy('noCrawlerToStoreCargoIn') }
     }
     if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
 
     // Fresh read before reducing — see `dispatchMechLocal`. The Storage Bay's
     // per-lot Unstow has the same double-click hazard.
     const freshCrawler = storeState.get('crawler', crawler.id) ?? crawler
-    const result = cargoTransfer(
-      {
-        ...state,
-        depotLots: freshCrawler.cargoLots ?? [],
-        scrapPool: freshCrawler.scrapPool ?? {},
-      },
-      action
-    )
+    const from = {
+      ...state,
+      depotLots: freshCrawler.cargoLots ?? [],
+      scrapPool: freshCrawler.scrapPool ?? {},
+    }
+    const result = cargoTransfer(from, action)
     if (!result.ok) return result
 
     if (!result.changed.depot) return result
@@ -239,7 +262,14 @@ export function useCargo({
         storeState.transfer(
           {
             updates: [
-              { type: 'crawler', id: crawler.id, patch: { cargoLots: result.state.depotLots } },
+              {
+                type: 'crawler',
+                id: crawler.id,
+                patch:
+                  result.state.scrapPool === from.scrapPool
+                    ? { cargoLots: result.state.depotLots }
+                    : { cargoLots: result.state.depotLots, scrapPool: result.state.scrapPool },
+              },
             ],
           },
           meta
@@ -254,11 +284,15 @@ export function useCargo({
     usage: carrierCargoUsage(state.carrierLots, state.carrierCargoCap),
     poolBucket: (tl) => scrapPoolBucket(state.scrapPool, tl),
     stow: (lotId) => dispatch({ type: 'stow', lotId }),
+    // Pressed from a toast, after the stow re-rendered nothing it holds: a fresh read.
+    takeBack: (lot) => dispatch(unstowAction(lot), freshState()),
+    carrierId: mech?.id ?? null,
     load: (lotId, qty) => dispatch({ type: 'load', lotId, qty }),
     withdrawScrap: (tl, qty) => dispatch({ type: 'withdraw-scrap', tl, qty }),
     addMechLot: (lot) => dispatchMechLocal({ type: 'add-carrier-lot', lot }),
-    removeMechLot: (lotId) => dispatchMechLocal({ type: 'remove-carrier-lot', lotId }),
+    removeMechLot: (lotId, qty) => dispatchMechLocal({ type: 'remove-carrier-lot', lotId, qty }),
     addCrawlerLot: (lot) => dispatchCrawlerLocal({ type: 'add-depot-lot', lot }),
-    removeCrawlerLot: (lotId) => dispatchCrawlerLocal({ type: 'remove-depot-lot', lotId }),
+    removeCrawlerLot: (lotId, qty) =>
+      dispatchCrawlerLocal({ type: 'remove-depot-lot', lotId, qty }),
   }
 }

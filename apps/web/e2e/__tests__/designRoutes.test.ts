@@ -85,7 +85,7 @@ describe('REFERENCE_CORPUS', () => {
     for (const path of paths) expect(path.startsWith('/')).toBe(true)
   })
 
-  test.each(['contentful-mini', 'stat-column', 'search', 'rhythm', 'seam'] as CorpusTrait[])(
+  test.each(['contentful-mini', 'search', 'rhythm', 'seam'] as CorpusTrait[])(
     'some page is picked for %s',
     (trait) => {
       expect(corpusRoutes(trait).length).toBeGreaterThan(0)

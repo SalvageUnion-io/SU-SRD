@@ -68,9 +68,9 @@ describe('Sheet — one unit, no links', () => {
     if (ref) expect(screen.getAllByText(ref).length).toBeGreaterThan(0)
   })
 
-  test('a mech with no pilot offers its Assign control (R5), not a role stamp', () => {
+  test('a mech with no pilot offers its Assign control (C11), not a role stamp', () => {
     renderSheet('mech')
-    expect(screen.getByRole('button', { name: 'Assign pilot to mech' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Assign Pilot to Mech' })).toBeTruthy()
     expect(screen.queryByText(/Yara Voss/)).toBeNull()
   })
 
@@ -96,7 +96,7 @@ describe('Sheet — one unit, no links', () => {
 // ---------------------------------------------------------------------------
 
 describe('Sheet — a mech band', () => {
-  test("its chassis's Tech Level and Salvage Value ride the band (C10)", () => {
+  test("its chassis's Tech Level rides the band; its Scrap is the Cost tiles' alone (C10, r7 G7)", () => {
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum' }
     render(
       <Sheet
@@ -108,18 +108,19 @@ describe('Sheet — a mech band', () => {
     )
     const band = screen.getByRole('heading', { level: 1 }).closest('.su-chapter-band__row')
     expect(within(band as HTMLElement).getByText('TL')).toBeTruthy()
-    expect(within(band as HTMLElement).getByText('SV')).toBeTruthy()
+    expect(within(band as HTMLElement).queryByText('Scrap')).toBeNull()
+    expect(within(band as HTMLElement).queryByText('SV')).toBeNull()
   })
 })
 
 describe('Sheet — wired (mech WITH pilot link)', () => {
   test('renders both units, and no Assign pilot control', () => {
     renderSheet('mech', { others: [fakePilot], links: [mechToPilot] })
-    // Pilot name — PilotSheet h2 also includes callsign, use partial match
-    expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
+    // The pilot, by its callsign on the mech's Related units (r8 F1).
+    expect(screen.getAllByText(/Ghost/).length).toBeGreaterThan(0)
     // Mech name — in the hero chip and condensed strip
     expect(screen.getAllByText('Iron Fist').length).toBeGreaterThan(0)
-    expect(screen.queryByRole('button', { name: 'Assign pilot to mech' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Assign Pilot to Mech' })).toBeNull()
   })
 })
 
@@ -140,7 +141,7 @@ describe('Sheet — mech RailEmpty on the pilot sheet', () => {
     ],
   ] as const)('with %s, Assign mech shows: %p', (_case, others, links, shown) => {
     renderSheet('pilot', { others: [...others], links: [...links] })
-    const assign = screen.queryByRole('button', { name: 'Assign mech to pilot' })
+    const assign = screen.queryByRole('button', { name: 'Assign Mech to Pilot' })
     expect(assign !== null).toBe(shown)
   })
 })

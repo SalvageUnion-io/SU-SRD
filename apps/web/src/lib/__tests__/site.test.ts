@@ -59,8 +59,6 @@ describe('appUrl', () => {
   })
 
   test('a Play route is at its own path, outside the base', () => {
-    expect(appUrl('/play/games/g1', 'https://salvageunion.io/')).toBe(
-      'https://salvageunion.io/play/games/g1'
-    )
+    expect(appUrl('/games/g1', 'https://salvageunion.io/')).toBe('https://salvageunion.io/games/g1')
   })
 })

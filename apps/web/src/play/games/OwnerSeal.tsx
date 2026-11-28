@@ -1,23 +1,11 @@
-import type { CSSProperties } from 'react'
-import { ChipButton, Stat, tokens } from '../../components/index'
+import { Button, Stat } from '../../components/index'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
 import { playGamesCopy } from '../../messages/play-games'
 
 /**
- * The pressable seal is a `ChipButton`: a 24px target (WCAG 2.5.8) around the
- * chip drawn at its siblings' height. Its
- * cursor, lift and fade change on hover or when disabled, so they are
- * `.su-owner-seal__assign`'s (styles/controls.css).
- */
-const ASSIGN = {
-  transitionDuration: tokens.duration.base,
-  transitionProperty: 'transform, translate, scale, rotate',
-  transitionTimingFunction: tokens.ease,
-} satisfies CSSProperties
-
-/**
  * The ownership seal: one stamp right of the row's name saying who holds
- * this character — `UNASSIGNED`, `YOU`, or a crewmate's name.
+ * this character — `UNASSIGNED`, `YOU`, or a crewmate's name; a free one the
+ * viewer may take is the **Assign to me** button instead (glossary §6, r3 L3).
  *
  * ## One mark, three states
  *
@@ -29,11 +17,13 @@ const ASSIGN = {
  * the first of the Compact's chips, wrapping and centring with them, under the
  * same rules.
  *
- * ## Why UNASSIGNED is the pressable one
+ * ## Why a free one is a button
  *
- * An unassigned pre-gen is an *offer*, so the thing that announces it is also
- * the thing you press. The other two states are statements of fact with nothing
- * to do — pressing "MARA" should not do anything, and it does not.
+ * An unassigned pre-gen is an *offer*, so what stands in the seal's place is
+ * the act itself, a Mini `Button` in the glossary's words: a tag drawn like
+ * the status chips beside it was not read as something to press (LG3-06). The
+ * other states are statements of fact with nothing to do — pressing "MARA"
+ * should not do anything, and it does not.
  *
  * It opens a confirm rather than assigning outright: taking a character is a
  * commitment at the table, and the modal is where the surface says what happens
@@ -41,11 +31,14 @@ const ASSIGN = {
  */
 export function OwnerSeal({
   owner,
+  name,
   assignable,
   disabled,
   onAssign,
 }: {
   owner: OwnerChip
+  /** Whose seal: the button's accessible name says which one it takes. */
+  name?: string
   assignable: boolean
   disabled: boolean
   onAssign: () => void
@@ -59,14 +52,13 @@ export function OwnerSeal({
   }
 
   return (
-    <ChipButton
+    <Button
+      size="mini"
       onClick={onAssign}
       disabled={disabled}
-      aria-label={playGamesCopy('assignThisToYou', { label: owner.label })}
-      className="su-owner-seal__assign"
-      style={ASSIGN}
+      aria-label={name === undefined ? undefined : playGamesCopy('assignToMeNamed', { name })}
     >
-      {stamp}
-    </ChipButton>
+      {playGamesCopy('assignToMe')}
+    </Button>
   )
 }

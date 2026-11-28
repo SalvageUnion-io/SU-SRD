@@ -2,7 +2,6 @@ import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
 import {
   borderWidth,
   color,
-  duration,
   ease,
   font,
   fontSize,
@@ -56,14 +55,18 @@ const TRACK = {
   flexShrink: 0,
   height: TRACK_H,
   padding: space[2],
-  transition: `background-color ${duration.fast} ${ease}`,
+  transitionDuration: 'var(--dur-fast)',
+  transitionProperty: 'background-color',
+  transitionTimingFunction: ease,
   width: TRACK_W,
 } satisfies CSSProperties
 
 const BLOCK_STYLE = {
   borderRadius: radius.pip,
   height: BLOCK,
-  transition: `transform ${duration.fast} ${ease}, background-color ${duration.fast} ${ease}`,
+  transitionDuration: 'var(--dur-fast)',
+  transitionProperty: 'transform,background-color',
+  transitionTimingFunction: ease,
   width: BLOCK,
 } satisfies CSSProperties
 

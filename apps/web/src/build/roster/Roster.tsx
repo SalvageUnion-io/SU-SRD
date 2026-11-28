@@ -18,7 +18,7 @@ import { RoutePending } from '../../components/shared/RouteFallbacks'
 import { sharedCopy } from '../../messages/components-shared'
 import { useSync } from '../../replica/syncContext'
 import { showsSignedOutView } from '../account/signedOutView.model'
-import { FrontDoor } from './FrontDoor'
+import { BuildFrontDoor } from './FrontDoor'
 
 /** Signed in only, so the front door's first load leaves the Shelves' code for later. */
 const Shelves = lazy(() => import('../shelves/Shelves').then((m) => ({ default: m.Shelves })))
@@ -30,7 +30,7 @@ export function Roster() {
   // every build lives in an account (ADR-034 as amended). The front door says
   // what the app is, offers the sign-in, and opens the Starter Set, which reading
   // needs no account for.
-  if (showsSignedOutView(status)) return <FrontDoor />
+  if (showsSignedOutView(status)) return <BuildFrontDoor />
   return (
     <GameDataGate fallback={<RoutePending label={sharedCopy('referenceData')} />}>
       <Suspense fallback={<RoutePending />}>

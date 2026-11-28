@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import { at } from './_base'
 import { expectCorpusClean } from './_designRoutes'
-import { board, openPlay, PHONE, pilotPlayPath, WIDE } from './_play'
+import { actionsOnHand, board, moreMenu, openPlay, PHONE, pilotPlayPath, WIDE } from './_play'
 import {
   describeMismatch,
   findSiblingHeights,
@@ -52,21 +52,17 @@ test.describe('signed out', { tag: '@pr' }, () => {
   })
 
   /**
-   * The Union bar in each of the app's modes (ruleset §3.11, §4.7): Reference |
-   * Build | Play stays one switch at one Size, beside the mode's own nav, and
-   * every control on the bar shares the switch's height. The bar's tabs are
-   * links the page scan does not count as controls, so the bar is held whole
-   * here, and each route is checked to wear its mode and show its nav: Build's
-   * on the front door and Patterns, Play's on the hub.
+   * The Union bar in each of the app's areas (ruleset §3.11, §4.7): Reference |
+   * Training Bay | Games stays one switch at one Size, with no second nav
+   * (ADR-066), and every control on the bar shares the switch's height. The
+   * bar's tabs are links the page scan does not count as controls, so the bar
+   * is held whole here, and each route is checked to wear its area: the
+   * Training Bay on its front door and Patterns, Games on the hub.
    */
   const BAR_ROUTES = [
-    { path: at('/'), mode: 'build', nav: ['Training Bay', 'Patterns', 'Starter Set'] },
-    {
-      path: at('/patterns/'),
-      mode: 'build',
-      nav: ['Training Bay', 'Patterns', 'Starter Set'],
-    },
-    { path: at('/play/'), mode: 'play', nav: ['Solo'] },
+    { path: at('/'), mode: 'build' },
+    { path: at('/patterns/'), mode: 'build' },
+    { path: at('/games/'), mode: 'play' },
   ] as const
 
   test('the Union bar holds one height in Build and in Play', async ({ page }) => {
@@ -74,7 +70,7 @@ test.describe('signed out', { tag: '@pr' }, () => {
     for (const viewport of Object.values(DESIGN_VIEWPORTS)) {
       const { width } = viewport
       await page.setViewportSize(viewport)
-      for (const { path, mode, nav } of BAR_ROUTES) {
+      for (const { path, mode } of BAR_ROUTES) {
         await page.goto(path, { waitUntil: 'networkidle' })
         const bar = page.locator('.su-union-bar')
         await expect(bar, `${path}: the bar wears its mode`).toHaveAttribute('data-mode', mode)
@@ -82,12 +78,7 @@ test.describe('signed out', { tag: '@pr' }, () => {
           bar.locator('.su-union-bar__tab[aria-current]'),
           `${path}: its mode's tab is current`
         ).toHaveAttribute('data-tool', mode)
-        // The mode's nav shows inline from `lg`; below it the drawer carries it.
-        if (width >= 1024) {
-          await expect(bar.locator('.su-union-bar__nav a').filter({ visible: true })).toHaveText([
-            ...nav,
-          ])
-        }
+        await expect(bar.locator('.su-union-bar__nav'), `${path}: no second nav`).toHaveCount(0)
         const heights = await heightsOf(
           bar,
           '.su-union-bar__tab, .su-search-field, .su-btn, .su-union-bar__buy, .su-nav-drawer__trigger'
@@ -127,24 +118,30 @@ const BAR = '.su-play-root header'
 const UNITS = '.su-play-unit'
 const UNIT_HEADS = '.su-play-unit .su-entity-compact__head'
 const ACTIONS = 'li.su-play-act'
+/** The Moment's verb dock (ADR-068): below `lg` it stands in the list's place while a beat is open. */
+const DOCK = '[data-play-moment] .su-play-moment__dock'
 
-/** Which lines each view shows and scans: the columns all three, a phone's tab its own. */
+/** Which lines each view shows and scans: the columns all three, a phone's pane its own. */
 const EXPECTED: Record<string, readonly string[]> = {
   wide: [BAR, UNITS, ACTIONS],
   Act: [BAR, ACTIONS],
   Units: [BAR, UNIT_HEADS],
 }
 
-async function playMismatches(page: Page, state: string): Promise<string[]> {
+async function playMismatches(page: Page, state: string, beat = false): Promise<string[]> {
   const failures: string[] = []
   for (const viewport of [WIDE, PHONE]) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height })
-    // A phone puts the Units on their own tab.
+    // A phone puts the Units on their own pane.
     for (const tab of viewport === PHONE ? ['Act', 'Units'] : [null]) {
-      if (tab !== null) await page.getByRole('tab', { name: tab }).click()
+      // Units is a row in ⋯, not a tab.
+      if (tab === 'Units') await (await moreMenu(page)).getByRole('menuitem', { name: tab }).click()
+      else if (tab !== null) await page.getByRole('tab', { name: tab }).click()
       await page.evaluate(() => document.fonts.ready.then(() => undefined))
       const where = tab === null ? viewport.name : `${viewport.name}, ${tab}`
-      const lines = EXPECTED[tab ?? 'wide'] ?? []
+      const lines = (EXPECTED[tab ?? 'wide'] ?? []).map((line) =>
+        beat && tab === 'Act' && line === ACTIONS ? DOCK : line
+      )
       for (const selector of lines) {
         const seen = await page.locator(selector).filter({ visible: true }).count()
         expect(seen, `Play, ${state}, at ${where}: nothing matches ${selector}`).toBeGreaterThan(0)
@@ -164,7 +161,7 @@ async function playMismatches(page: Page, state: string): Promise<string[]> {
       // Each kind of line is scanned on its own: an action line is a Mini
       // (ruleset §1.3), itself a control, so the Actions column's Minis are
       // never one line with the Units column's steppers across the gutter.
-      const scanned = viewport === PHONE ? [BAR, UNIT_HEADS, ACTIONS] : lines
+      const scanned = viewport === PHONE ? [BAR, UNIT_HEADS, beat ? DOCK : ACTIONS] : lines
       for (const within of scanned) {
         for (const m of await findSiblingMismatches(page, within))
           failures.push(`Play, ${state}, at ${where}, ${describeMismatch(m)}`)
@@ -186,13 +183,10 @@ test('Play: the bar, unit boxes and action rows share one height', { tag: '@pr' 
   const failures = await playMismatches(page, 'On foot')
 
   await board(page, 'Scrapper')
-  const use = page
-    .getByRole('list', { name: 'On hand' })
-    .getByRole('button', { name: /^Use / })
-    .first()
+  const use = actionsOnHand(page).getByRole('button', { name: /^Use / }).first()
   await use.click()
-  await expect(page.locator('li.su-play-act[data-open]')).toHaveCount(1)
-  failures.push(...(await playMismatches(page, 'Boarded, an action open')))
+  await expect(page.locator('[data-play-moment]')).toHaveCount(1)
+  failures.push(...(await playMismatches(page, 'Boarded, an action open', true)))
 
   expect(failures, 'Play controls on one line at different heights').toEqual([])
 })

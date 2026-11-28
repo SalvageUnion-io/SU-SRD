@@ -1,8 +1,7 @@
 /**
- * MechIdentityPanel — the mech hero's IDENTITY fields (the mech sibling of
- * PilotIdentityPanel): what the player wrote. The chassis's stats and ability
- * sit beside them in the hero; its name, art and description are its callout
- * at the hero card's foot (`MechChassisCard`).
+ * MechIdentityPanel — the mech's IDENTITY fields in Edit (the mech sibling of
+ * PilotIdentityPanel): what the player wrote, on the dashboard's masthead
+ * under the board (`MechDash`).
  *
  * The PATTERN NAME is the band's title, so Read leaves it out and Edit shows
  * it as the name's edit surface, as the pilot's
@@ -13,8 +12,10 @@
 
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { Field, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { nameAwaitsTyping, nameTyped } from './nameOnArrival.model'
 import type { SheetPatch } from './sheetViewProps.model'
 
 const PANEL = { minWidth: 0 } satisfies CSSProperties
@@ -34,7 +35,20 @@ type MechIdentityPanelProps = {
   after?: ReactNode
 }
 
-export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps) {
+/**
+ * Keyed by the Mech: a copy opened over its original's sheet (the same route)
+ * is a fresh panel, so it reads that its name awaits typing (r8 E5).
+ */
+export function MechIdentityPanel(props: MechIdentityPanelProps) {
+  return <MechIdentityFields key={props.mech.id} {...props} />
+}
+
+function MechIdentityFields({ mech, patch, after }: MechIdentityPanelProps) {
+  // A Mech just built or copied opens with its name selected (r7 G4, G5).
+  const [typeName] = useState(() => patch !== undefined && nameAwaitsTyping(mech.id))
+  useEffect(() => {
+    if (typeName) nameTyped(mech.id)
+  }, [typeName, mech.id])
   /** Persist the mech's (and so its pattern's) name; never write empty. */
   function savePatternName(next: string) {
     const trimmed = next.trim()
@@ -47,10 +61,11 @@ export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps
         {/* Read omits the pattern name: it is the band's title. */}
         {patch && (
           <Field
-            label={buildSheetCopy('patternName')}
+            label={buildSheetCopy('mechName')}
             value={mech.name}
             onSave={savePatternName}
             prominent
+            startEditing={typeName}
           />
         )}
         {after}
@@ -59,7 +74,7 @@ export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps
   )
 }
 
-/** The mech's Appearance: one of the player's short fields, beside the photo. */
+/** The mech's Appearance: one of the player's short fields. */
 export function MechAppearanceField({
   mech,
   onSave,
@@ -79,13 +94,7 @@ export function MechAppearanceField({
   )
 }
 
-/**
- * The mech's Description: the long prose, running the identity card's full
- * width under the photo and the fields beside it, so no empty column stands
- * under the photo. It takes whatever height the card has
- * left (the identity card stretches to match the vitals beside it), as the
- * pilot's Bio does.
- */
+/** The mech's Description: the long prose, under the player's short fields. */
 export function MechDescriptionField({
   mech,
   onSave,

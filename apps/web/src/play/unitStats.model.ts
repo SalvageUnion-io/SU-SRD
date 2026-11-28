@@ -18,6 +18,7 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { resolveCrawlerBay } from '../lib/crawlerRefs'
+import { playCopy } from '../messages/play'
 
 /** One vital: its current value and its derived maximum. */
 export type UnitGauge = { label: string; value: number; max: number }
@@ -42,7 +43,7 @@ export function pilotVitals(
 /** Each injury, as the Units box and the Crew read it ("Major injury: broken arm"). */
 export function injuryLines(pilot: Pilot): string[] {
   return (pilot.injuries ?? []).map((injury) => {
-    const kind = injury.severity === 'major' ? 'Major injury' : 'Minor injury'
+    const kind = playCopy(injury.severity === 'major' ? 'majorInjury' : 'minorInjury')
     return injury.note ? `${kind}: ${injury.note}` : kind
   })
 }
@@ -101,4 +102,30 @@ export function bayConditions(
       damaged: (bay.condition ?? 'intact') === 'damaged',
     }
   })
+}
+
+/** An amount as typed ("3"): a whole number above zero, or null. */
+export function amountOf(text: string): number | null {
+  const trimmed = text.trim()
+  if (!/^\d{1,3}$/.test(trimmed)) return null
+  const n = Number(trimmed)
+  return n > 0 ? n : null
+}
+
+/**
+ * An amount typed with its sign (r6 A15): "-12" is damage, "+3" a repair, and
+ * "12" leaves the direction to the − / + buttons (`sign` null). The minus may
+ * be typed as a hyphen or the true minus sign.
+ */
+export function signedAmountOf(text: string): { amount: number; sign: 1 | -1 | null } | null {
+  const match = /^([+\-\u2212])?\s*(\d{1,3})$/.exec(text.trim())
+  if (match === null) return null
+  const amount = amountOf(match[2] ?? '')
+  if (amount === null) return null
+  return { amount, sign: match[1] === undefined ? null : match[1] === '+' ? 1 : -1 }
+}
+
+/** A vital after a change of `delta` (damage is negative), kept within 0…max. */
+export function vitalAfter(value: number, delta: number, max: number): number {
+  return Math.min(Math.max(value + delta, 0), max)
 }

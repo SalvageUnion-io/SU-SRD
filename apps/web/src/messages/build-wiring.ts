@@ -3,23 +3,54 @@
 import { messages } from './define'
 
 export const wiringCopy = messages({
+  inThisGame: 'In this Game',
+  fromYourTrainingBay: 'From your Training Bay',
+  movesIntoThisGame: '{name} moves into this Game, then is assigned.',
+  moveInAndAssign: 'Move into this Game and assign',
   assignMechToPilot: 'Assign Mech to Pilot',
   aPilotFliesOneMech:
-    'A pilot flies one mech and a mech carries one pilot — picking a mech already flown moves it to this pilot.',
+    'A Pilot flies one Mech and a Mech carries one Pilot — picking a Mech already flown moves it to this Pilot.',
   assignPilotToCrawler: 'Assign Pilot to Crawler',
   aPilotCrewsOneCrawler:
-    'A pilot crews one crawler — picking another moves them there. Their mech is assigned separately.',
+    'A Pilot crews one crawler — picking another moves them there. Their Mech is assigned separately.',
   assignPilotToMech: 'Assign Pilot to Mech',
   aMechCarriesOnePilot:
-    'A mech carries one pilot and a pilot flies one mech — picking a pilot already in another mech moves them here.',
+    'A Mech carries one Pilot and a Pilot flies one Mech — picking a Pilot already in another Mech moves them here.',
+  aMechCarriesOnePilotHere:
+    'Your Pilots and this Game’s unassigned ones. A Mech carries one Pilot — picking one already in another of your Mechs moves them here.',
   assignMechToCrawler: 'Assign Mech to Crawler',
   aMechIsAssignedTo:
-    'A mech is assigned to one crawler, on its own — its pilot is assigned separately.',
+    'A Mech is assigned to one crawler, on its own — its Pilot is assigned separately.',
   addPilotToCrew: 'Add Pilot to Crew',
   aPilotCrewsOneCrawler2:
-    'A pilot crews one crawler — adding one already assigned to another moves them here.',
+    'A Pilot crews one crawler — adding one already assigned to another moves them here.',
   aMechIsAssignedTo2:
-    'A mech is assigned to one crawler — assigning one from another bay moves it here. Its pilot is assigned separately.',
-  callsign: 'Callsign',
+    'A Mech is assigned to one crawler — assigning one from another bay moves it here. Its Pilot is assigned separately.',
   tl: 'TL',
+  assignMech: 'Assign Mech',
+  changeMech: 'Change Mech',
+  changeMechForThisPilot: 'Change Mech for this Pilot',
+  confirmMechAssignment: 'Confirm Mech assignment',
+  assignCrawler: 'Assign Crawler',
+  assignCrawlerToPilot: 'Assign crawler to Pilot',
+  changeCrawler: 'Change Crawler',
+  changeCrawlerForThisPilot: 'Change crawler for this Pilot',
+  confirmCrawlerAssignment: 'Confirm crawler assignment',
+  assignPilot: 'Assign Pilot',
+  changePilot: 'Change Pilot',
+  changePilotForThisMech: 'Change Pilot for this Mech',
+  confirmPilotAssignment: 'Confirm Pilot assignment',
+  assignCrawlerToMech: 'Assign crawler to Mech',
+  changeCrawlerForThisMech: 'Change crawler for this Mech',
+  addCrew: '+ Add Crew',
+  addToCrew: 'Add to Crew',
+  confirmCrewAssignment: 'Confirm crew assignment',
+  plusAssignMech: '+ Assign Mech',
+  noOtherToPick: 'No other {many} to pick.',
+  noneYetCreateOneFirst: 'No {many} yet — create one first.',
+  noOtherInThisGame: 'No other {many} in this Game.',
+  noneInThisGameYet: 'No {many} in this Game yet.',
+  noOtherInYourTrainingBay: 'No other {many} in your Training Bay.',
+  noneInYourTrainingBay: 'No {many} in your Training Bay.',
+  assignmentNotSaved: 'That assignment could not be saved. Try again.',
 })

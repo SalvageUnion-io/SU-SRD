@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react'
 import { SITE_LINKS } from '../../lib/docPages'
 import { usePageCredit } from '../../stores/pageCredit'
-import { Footer, tokens } from '../index'
+import { Footer } from '../app'
+import { tokens } from '../index'
 
 /**
  * SiteFooter — the app's page foot: the shared `Footer` both tools end on, in

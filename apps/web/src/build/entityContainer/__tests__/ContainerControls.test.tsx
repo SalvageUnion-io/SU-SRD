@@ -41,6 +41,7 @@ const serverMocks = await installServerMocks({
 })
 
 const { MoveToContainerControl } = await import('../MoveToContainerControl')
+const { ToasterMount } = await import('../../../components/index')
 const { MoveToGameDialog } = await import('../../shelves/MoveToGameDialog')
 const { useConfirm } = await import('../../../components/shared/useConfirm')
 const { SyncProvider } = await import('../../../replica/SyncProvider')
@@ -141,7 +142,10 @@ describe('MoveToContainerControl', () => {
     const pilot = await heldPilot(null)
     let changed = 0
     wrap(
-      <MoveHarness entityType="pilot" entityId="p1" entity={pilot} onChanged={() => changed++} />
+      <>
+        <MoveHarness entityType="pilot" entityId="p1" entity={pilot} onChanged={() => changed++} />
+        <ToasterMount />
+      </>
     )
 
     fireEvent.change(screen.getByLabelText('Move to a Game or your Training Bay'), {
@@ -149,6 +153,8 @@ describe('MoveToContainerControl', () => {
     })
 
     await waitFor(() => expect(changed).toBe(1))
+    // The move says where it went, as a shelf row's does (MD2-14).
+    expect(await screen.findByText('Moved Mira Cole to Union Crawler #430.')).toBeTruthy()
     // Into a Game from the Shelf, with nothing to clear: no confirm.
     expect(screen.queryByRole('alertdialog')).toBeNull()
     const pilots = useUnits.getState().list('pilot')
@@ -450,6 +456,27 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
       appId: 'p1',
       gameId: 'g2',
     })
+  })
+
+  test('a pilot’s mech moves in with them and stays assigned, with nothing to ask (LG-08)', async () => {
+    const pilot = await heldPilot(null)
+    await pairedWithShelfMech()
+    wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'The Long Haul' }))
+
+    await waitFor(() => expect(useUnits.getState().list('mech')[0]?.gameId).toBe('g2'))
+    expect(gameIdOf()).toBe('g2')
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    // The pairing came through the move: redrawn once both ends are in the Game.
+    await waitFor(() =>
+      expect(useUnits.getState().softLinks.map((l) => [l.type, l.from.id, l.to.id])).toEqual([
+        ['mech-to-pilot', 'm1', 'p1'],
+      ])
+    )
+    expect(serverWrites.filter((w) => w.name === 'entities.move').map((w) => w.args.appId)).toEqual(
+      ['p1', 'm1']
+    )
   })
 
   test('a move that clears an assignment asks first and writes nothing until confirmed', async () => {

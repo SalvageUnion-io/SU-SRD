@@ -2,7 +2,7 @@
   {
     "id": "ceda0aba-bd8e-4123-ad96-83f68acdac48",
     "source": "Salvage Union Workshop Manual",
-    "name": "amphibious",
+    "name": "Amphibious",
     "page": 118,
     "content": [
       {
@@ -21,7 +21,7 @@
   {
     "id": "3a6786eb-4b7c-4fb9-92e6-545db7d057dc",
     "source": "Salvage Union Workshop Manual",
-    "name": "anti-organic",
+    "name": "Anti-organic",
     "page": 318,
     "content": [
       {
@@ -40,7 +40,7 @@
   {
     "id": "2d354aff-cd3e-4d97-9d74-7ad653181ec0",
     "source": "Salvage Union Workshop Manual",
-    "name": "anti-shielding",
+    "name": "Anti-shielding",
     "page": 183,
     "content": [
       {
@@ -59,7 +59,7 @@
   {
     "id": "71cbd2ee-97aa-450c-95e4-25df9fecf30d",
     "source": "Salvage Union Workshop Manual",
-    "name": "armour",
+    "name": "Armour",
     "page": 79,
     "content": [
       {
@@ -78,7 +78,7 @@
   {
     "id": "9865c68d-54df-4da5-8331-11771e732cd3",
     "source": "Salvage Union Workshop Manual",
-    "name": "ballistic",
+    "name": "Ballistic",
     "page": 84,
     "content": [
       {
@@ -97,7 +97,7 @@
   {
     "id": "5d7649ac-29a2-423e-8669-9a545f01390f",
     "source": "Salvage Union Workshop Manual",
-    "name": "burn",
+    "name": "Burn",
     "page": 184,
     "content": [
       {
@@ -116,7 +116,7 @@
   {
     "id": "7e436f25-4790-466c-8ed5-bd1fe4af92ec",
     "source": "Salvage Union Workshop Manual",
-    "name": "burrower",
+    "name": "Burrower",
     "page": 278,
     "content": [
       {
@@ -135,7 +135,7 @@
   {
     "id": "71cc1219-2b34-41e8-a554-17be32e40cd5",
     "source": "Salvage Union Workshop Manual",
-    "name": "climbing",
+    "name": "Climbing",
     "page": 84,
     "content": [
       {
@@ -154,7 +154,7 @@
   {
     "id": "0d628fd3-9a72-408c-b25d-46943cadfdd2",
     "source": "Salvage Union Workshop Manual",
-    "name": "communicator",
+    "name": "Communicator",
     "page": 190,
     "content": [
       {
@@ -173,7 +173,7 @@
   {
     "id": "c638ecbe-974a-4812-912c-150c572a6d7a",
     "source": "Salvage Union Workshop Manual",
-    "name": "deadly",
+    "name": "Deadly",
     "page": 181,
     "content": [
       {
@@ -192,7 +192,7 @@
   {
     "id": "bfc6dad6-c865-42bb-8023-7b59e2d53d1e",
     "source": "Salvage Union Workshop Manual",
-    "name": "energy",
+    "name": "Energy",
     "page": 87,
     "content": [
       {
@@ -211,7 +211,7 @@
   {
     "id": "ae973176-f8eb-4478-81af-72c0491004c8",
     "source": "Salvage Union Workshop Manual",
-    "name": "escape",
+    "name": "Escape",
     "page": 129,
     "content": [
       {
@@ -230,7 +230,7 @@
   {
     "id": "b8a8d099-a944-449f-9d2f-cb53774d9003",
     "source": "Salvage Union Workshop Manual",
-    "name": "explosive",
+    "name": "Explosive",
     "page": 78,
     "content": [
       {
@@ -249,7 +249,7 @@
   {
     "id": "af11316a-93b7-48a6-aa8f-4c5989793ffc",
     "source": "Salvage Union Workshop Manual",
-    "name": "fast",
+    "name": "Fast",
     "page": 114,
     "content": [
       {
@@ -268,7 +268,7 @@
   {
     "id": "8644a0fd-becd-4535-90d6-0cd7a5464df6",
     "source": "Salvage Union Workshop Manual",
-    "name": "flashy",
+    "name": "Flashy",
     "page": 142,
     "content": [
       {
@@ -287,7 +287,7 @@
   {
     "id": "734e3d6b-439a-4c77-8b40-68cf22c9a816",
     "source": "Salvage Union Workshop Manual",
-    "name": "fly",
+    "name": "Fly",
     "page": 280,
     "content": [
       {
@@ -306,7 +306,7 @@
   {
     "id": "e0901d04-2d45-4e51-89fe-cc10f73f2bb3",
     "source": "Salvage Union Workshop Manual",
-    "name": "guided",
+    "name": "Guided",
     "page": 180,
     "content": [
       {
@@ -325,7 +325,7 @@
   {
     "id": "df0e3e29-7657-4d7b-8e33-95640f747f17",
     "source": "Salvage Union Workshop Manual",
-    "name": "hacking",
+    "name": "Hacking",
     "page": 34,
     "content": [
       {
@@ -344,7 +344,7 @@
   {
     "id": "74615835-b334-4537-a305-26456f312656",
     "source": "Salvage Union Workshop Manual",
-    "name": "heat spike",
+    "name": "Heat spike",
     "page": 193,
     "content": [
       {
@@ -363,7 +363,7 @@
   {
     "id": "82aa71fd-17c6-4c68-844f-d6393b2f6800",
     "source": "Salvage Union Workshop Manual",
-    "name": "heavy",
+    "name": "Heavy",
     "page": 78,
     "content": [
       {
@@ -382,7 +382,7 @@
   {
     "id": "6bb3c201-c568-4a5d-8756-ca1e4cf2bad5",
     "source": "Salvage Union Workshop Manual",
-    "name": "hot",
+    "name": "Hot",
     "page": 47,
     "content": [
       {
@@ -401,7 +401,7 @@
   {
     "id": "5a406632-9db7-46ee-8cbc-961f67e96d72",
     "source": "Salvage Union Workshop Manual",
-    "name": "hover",
+    "name": "Hover",
     "page": 102,
     "content": [
       {
@@ -420,7 +420,7 @@
   {
     "id": "ec4467e2-9547-4ade-85bf-274620dc3f4b",
     "source": "Salvage Union Workshop Manual",
-    "name": "immobile",
+    "name": "Immobile",
     "page": 319,
     "content": [
       {
@@ -439,7 +439,7 @@
   {
     "id": "88f6c323-7eb7-4528-92fa-8b9f3115e4a2",
     "source": "Salvage Union Workshop Manual",
-    "name": "ion",
+    "name": "Ion",
     "page": 183,
     "content": [
       {
@@ -458,7 +458,7 @@
   {
     "id": "a9ddd682-e6a8-4cde-8c99-759ac643536d",
     "source": "Salvage Union Workshop Manual",
-    "name": "jamming",
+    "name": "Jamming",
     "page": 164,
     "content": [
       {
@@ -477,7 +477,7 @@
   {
     "id": "9fe62537-f7d5-40bc-b38a-49b61226c739",
     "source": "Salvage Union Workshop Manual",
-    "name": "melee",
+    "name": "Melee",
     "page": 59,
     "content": [
       {
@@ -496,7 +496,7 @@
   {
     "id": "d9cb544c-85ce-46a0-a213-8390116fdbb9",
     "source": "Salvage Union Workshop Manual",
-    "name": "missile",
+    "name": "Missile",
     "page": 55,
     "content": [
       {
@@ -515,7 +515,7 @@
   {
     "id": "e40d514e-a737-4e1f-93e7-6b52d6e2b83e",
     "source": "Salvage Union Workshop Manual",
-    "name": "multi-attack",
+    "name": "Multi-attack",
     "page": 176,
     "content": [
       {
@@ -534,7 +534,7 @@
   {
     "id": "7323dcff-687b-49ae-a81a-b8a7f0786147",
     "source": "Salvage Union Workshop Manual",
-    "name": "optics",
+    "name": "Optics",
     "page": 33,
     "content": [
       {
@@ -553,7 +553,7 @@
   {
     "id": "8f8ba32b-6cb6-452a-b884-c07f1bc3bbe5",
     "source": "Salvage Union Workshop Manual",
-    "name": "overheat",
+    "name": "Overheat",
     "page": 103,
     "content": [
       {
@@ -572,7 +572,7 @@
   {
     "id": "8cfa3588-b2a8-4fe1-8f0a-4d47ed7f7f02",
     "source": "Salvage Union Workshop Manual",
-    "name": "personnel capacity",
+    "name": "Personnel capacity",
     "page": 171,
     "content": [
       {
@@ -591,7 +591,7 @@
   {
     "id": "74424bf1-fbd1-4d39-88aa-f00761ef678d",
     "source": "Salvage Union Workshop Manual",
-    "name": "portable",
+    "name": "Portable",
     "page": 30,
     "content": [
       {
@@ -603,7 +603,7 @@
   {
     "id": "c6ba1dd7-7ab4-4500-9f9e-a12e5bc2d7b3",
     "source": "Salvage Union Workshop Manual",
-    "name": "pinning",
+    "name": "Pinning",
     "page": 164,
     "content": [
       {
@@ -622,7 +622,7 @@
   {
     "id": "a5f76ad6-13da-4ddb-9beb-1d70bda36832",
     "source": "Salvage Union Workshop Manual",
-    "name": "poison",
+    "name": "Poison",
     "page": 296,
     "content": [
       {
@@ -641,7 +641,7 @@
   {
     "id": "7ac7e22a-1c17-4c7a-ab33-76df7cd9bdde",
     "source": "Salvage Union Workshop Manual",
-    "name": "rigging",
+    "name": "Rigging",
     "page": 145,
     "content": [
       {
@@ -660,7 +660,7 @@
   {
     "id": "04c1c5f7-df56-41ea-a2de-c390309250eb",
     "source": "Salvage Union Workshop Manual",
-    "name": "salvaging",
+    "name": "Salvaging",
     "page": 40,
     "content": [
       {
@@ -679,7 +679,7 @@
   {
     "id": "275d62e5-370c-4938-8fbf-e7ecf30b03db",
     "source": "Salvage Union Workshop Manual",
-    "name": "scanner",
+    "name": "Scanner",
     "page": 106,
     "content": [
       {
@@ -698,7 +698,7 @@
   {
     "id": "c62a9197-5b56-4828-8900-d3eda9a97c49",
     "source": "Salvage Union Workshop Manual",
-    "name": "shield",
+    "name": "Shield",
     "page": 85,
     "content": [
       {
@@ -717,7 +717,7 @@
   {
     "id": "ce30ec24-4cb3-42d7-8900-752f727e99b1",
     "source": "Salvage Union Workshop Manual",
-    "name": "silent",
+    "name": "Silent",
     "page": 81,
     "content": [
       {
@@ -736,7 +736,7 @@
   {
     "id": "bf223567-5d86-4771-bd4a-8b31b882e353",
     "source": "Salvage Union Workshop Manual",
-    "name": "targeter",
+    "name": "Targeter",
     "page": 180,
     "content": [
       {
@@ -755,7 +755,7 @@
   {
     "id": "a94d606e-d2f1-4df5-8b30-06c2fcc852ff",
     "source": "Salvage Union Workshop Manual",
-    "name": "uses",
+    "name": "Uses",
     "page": 30,
     "content": [
       {
@@ -774,7 +774,7 @@
   {
     "id": "8163a225-0b5a-4759-a853-4e30edcdeb8d",
     "source": "Salvage Union Workshop Manual",
-    "name": "unwieldy",
+    "name": "Unwieldy",
     "page": 29,
     "content": [
       {
@@ -793,7 +793,7 @@
   {
     "id": "a032ceef-d399-4b5a-a95b-39987cea61db",
     "source": "Salvage Union Workshop Manual",
-    "name": "vulnerable",
+    "name": "Vulnerable",
     "page": 326,
     "content": [
       {
@@ -812,7 +812,7 @@
   {
     "id": "40cb28ae-6474-4657-b443-e568bec769bd",
     "source": "Salvage Union Workshop Manual",
-    "name": "wield",
+    "name": "Wield",
     "page": 65,
     "content": [
       {
@@ -831,7 +831,7 @@
   {
     "id": "b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e",
     "source": "False Flag",
-    "name": "dependable",
+    "name": "Dependable",
     "page": 8,
     "content": [
       {
@@ -843,7 +843,7 @@
   {
     "id": "6f0371cd-8730-48e3-895c-9eebfd765b2b",
     "source": "Salvage Union Workshop Manual",
-    "name": "meld infection",
+    "name": "Meld infection",
     "page": 288,
     "content": [
       {
@@ -855,7 +855,7 @@
   {
     "id": "3a593058-bd49-4c15-882a-1bac9ea0cf10",
     "source": "Rainmaker",
-    "name": "deployable",
+    "name": "Deployable",
     "page": 77,
     "content": [
       {
@@ -867,7 +867,7 @@
   {
     "id": "fdddbaf0-a807-4a8e-bed1-0118cec1176e",
     "source": "We Were Here First!",
-    "name": "bio-equipment",
+    "name": "Bio-equipment",
     "page": 54,
     "content": [
       {

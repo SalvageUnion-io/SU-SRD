@@ -1,5 +1,5 @@
 /**
- * The strip-control scan (`_stripControls.ts`, hard rule R6) on hand-written
+ * The strip-control scan (`_stripControls.ts`, C8) on hand-written
  * markup in the forms' class names: a control in the chip group passes; one
  * on the head outside it is `beside`, one in the body `under`; and a control
  * drawn as the sibling of an entity's list item (or of the entity in a slot)
@@ -99,6 +99,15 @@ describe('strip-control scan', () => {
   test('an entity in a Card is the Card’s: the Card’s controls beside it pass', () => {
     document.body.innerHTML = `<div class="su-ec-frame" data-top="0"><div>${row('Crew')}</div><button data-top="40">Repair</button></div>`
     expect(scan()).toEqual([])
+  })
+
+  test('a prep row’s open card is the card’s own, and a control beside it is still found', () => {
+    // An encounter's opponent, its card opened under it by its name (ruleset §1.5).
+    const card = `<div data-prep-card><div class="su-ec-frame"><button>Roll</button>${row('Rifle')}</div></div>`
+    document.body.innerHTML = `<ul><li data-top="0">${row('Raider')}${card}</li></ul>`
+    expect(scan()).toEqual([])
+    document.body.innerHTML = `<ul><li data-top="0">${row('Raider')}${card}<button>Edit</button></li></ul>`
+    expect(scan()).toEqual(['beside: button "Edit" beside “Raider”'])
   })
 
   test('a slot ends at a section: the page’s controls beyond it pass', () => {

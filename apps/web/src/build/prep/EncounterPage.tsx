@@ -11,10 +11,10 @@
  *    "⋯" menu (Rename…, Remove), drawn with + Add from the same picker
  *    Play's Opposition uses (`OppositionPicker`), the Mediator's own saved
  *    patterns included;
- *  - **Tables to hand**: the roll tables it pins in Play, found with "Pin a
- *    table…", each opening to read and try (`PlayRollTable`), Unpin beside it;
+ *  - **Tables to hand**: the roll tables it pins in Play (`EncounterTables`);
  *  - **Notes**: the Mediator's own, never shown to players;
- *  - **Briefing**: what the Pilots see, which Play offers to tell the table;
+ *  - **Briefing**: what the Pilots see, which Play offers to tell the table
+ *    (both save as they are typed, `AutosavedText`, r6 B2);
  *  - **Spoils**: what the opposition could leave behind (`EncounterThreat`).
  *
  * Opponents can be put in groups, each arriving in a wave (`EncounterGroups`).
@@ -27,25 +27,17 @@
  */
 
 import type { Encounter, EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
-import {
-  ENCOUNTER_MAX_BRIEFING,
-  ENCOUNTER_MAX_NOTES,
-  ENCOUNTER_MAX_TABLES,
-} from 'game-domain/schemas/encounter'
-import type { CSSProperties } from 'react'
-import { useRef, useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { RollMini } from '../../components/entity/forms/RollMini'
+import { ENCOUNTER_MAX_BRIEFING, ENCOUNTER_MAX_NOTES } from 'game-domain/schemas/encounter'
+import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { Grid } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
-  CHAPTER_BAND_COLOR,
   EmptyState,
   Field,
-  Grid,
   HeaderMenu,
-  MiniGrid,
-  SearchField,
+  ReferenceEntityCard,
   SlabSection,
   Stack,
   Stat,
@@ -57,40 +49,54 @@ import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
+import { useOwnUnits } from '../../lib/entities/entities'
 import { flagOn } from '../../lib/flags'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { areaTitle } from '../../lib/pageTitle'
 import { reportWriteFailure } from '../../lib/runWrite'
+import { useTabTitle } from '../../lib/useTabTitle'
 import { buildPrepCopy } from '../../messages/build-prep'
+import { routesCopy } from '../../messages/routes'
+import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
 import { OppositionDialogs, OppositionPicker } from '../../play/mediator/OppositionPicker'
 import type { SavedPattern, TrayNpc } from '../../play/mediator/opposition.model'
-import { newTrayNpc } from '../../play/mediator/opposition.model'
-import { PlayRollTable } from '../../play/PlayRollTable'
-import { findTables } from '../../play/tables.model'
+import { newBuiltTrayNpc, newTrayNpc } from '../../play/mediator/opposition.model'
 import { useEncounters, usePatterns } from '../../replica/collections'
+import { useGameListing } from '../../replica/gameListing'
 import { useSync } from '../../replica/syncContext'
 import { LiveSheet } from '../sheet/LiveSheet'
+import { nameAwaitsTyping, nameTyped } from '../sheet/nameOnArrival.model'
 import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
 import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
 import { useSheetModeStore } from '../sheet/sheetMode.model'
+import { undoToast } from '../sheet/undoToast.model'
+import { AutosavedText } from './AutosavedText'
+import { EncounterGameField } from './EncounterGame'
 import { GroupedOpposition, GroupNameDialog } from './EncounterGroups'
+import { EncounterTables } from './EncounterTables'
 import { EncounterSpoils, ThreatReadLine } from './EncounterThreat'
 import {
   addGroup,
+  duplicateOpponent,
   groupsOf,
   hasRoomFor,
   hasRoomForGroup,
   moveMenu,
   moveToGroup,
   opponentAsTray,
-  opponentFrom,
+  opponentNote,
   oppositionBlocks,
   pinTable,
   removeGroup,
   renameGroup,
+  restoredOpponent,
   setGroupWave,
   unpinTable,
+  withCopies,
 } from './encounter.model'
+import { crawlerTech } from './threat.model'
+import { useEncounterGame, useRunGames } from './useEncounterGame'
 
 const LIST = {
   display: 'flex',
@@ -111,9 +117,6 @@ const SHEET = {
   gap: tokens.space[24],
 } satisfies CSSProperties
 
-/** Room inside a table list for the open table's ring, as Play's Tables give it. */
-const TABLE_LIST = { padding: tokens.space[4] } satisfies CSSProperties
-
 /** The page, or why there is none: the encounter is the owner's alone, so absent is not found. */
 export function EncounterPage({ id }: { id: string }) {
   const encounter = useEncounters((s) => s.encounters.find((e) => e.id === id) ?? null)
@@ -122,27 +125,82 @@ export function EncounterPage({ id }: { id: string }) {
       <NotFoundPanel
         title={buildPrepCopy('notFound')}
         message={buildPrepCopy('notFoundBody')}
-        back={{ href: '/', label: buildPrepCopy('backToTheTrainingBay') }}
+        back={{ href: KIT_PATH, label: buildPrepCopy('backToTheTrainingBay') }}
       />
     )
   }
   return <EncounterBody encounter={encounter} />
 }
 
+/** The open card sits under its row, one list gap below it. */
+const OPEN_CARD = { marginTop: tokens.space[8] } satisfies CSSProperties
+
+/**
+ * One opponent in the list: its name opens its card under it (MD3-10), the
+ * book's or the Mediator's own design, so what it does is read where it is
+ * prepped; a second press shuts it. The one place a Compact expands in place
+ * (ruleset §1.5, C8): the card is read-only, and the name says whether it is
+ * open (`aria-expanded`). Its chip says what it is, so no kind follows its name.
+ */
+function OpponentRow({ opponent, menu }: { opponent: EncounterOpponent; menu: ReactNode }) {
+  const { entity, pattern } = opponentAsTray(opponent)
+  const [open, setOpen] = useState(false)
+  const cardId = useId()
+  return (
+    <>
+      <UnitRow
+        kind="npc"
+        name={opponent.name}
+        note={opponentNote(opponent)}
+        unkinded
+        readings={[{ label: opponent.statKind === 'sp' ? 'SP' : 'HP', value: opponent.maxHp }]}
+        trailing={menu}
+        {...(entity !== null
+          ? {
+              mode: {
+                kind: 'link',
+                onOpen: () => setOpen((was) => !was),
+                attrs: { 'aria-expanded': open, 'aria-controls': cardId },
+              },
+            }
+          : {})}
+      />
+      {entity !== null && open && (
+        <div id={cardId} data-prep-card style={OPEN_CARD}>
+          <ReferenceEntityCard data={entity} pattern={pattern ?? undefined} disabled={false} />
+        </div>
+      )}
+    </>
+  )
+}
+
 function EncounterBody({ encounter }: { encounter: Encounter }) {
+  // The tab names the encounter, in the Mediator's Kit (MD-02); the route's head cannot.
+  useTabTitle(areaTitle(routesCopy('mediatorsKit'), encounter.name || routesCopy('encounter')))
   const { canWrite: connected } = useSync()
   // Read until Edit is pressed, as on every sheet (R11); nothing writes in Read.
   const mode = useSheetModeStore()
   const canWrite = connected && mode.editing
   const go = useGo()
+  // Just made: its name opens selected, so typing replaces "New encounter" (r8 C2, MD8-10).
+  const [typeName] = useState(() => canWrite && nameAwaitsTyping(encounter.id))
+  useEffect(() => {
+    if (typeName) nameTyped(encounter.id)
+  }, [typeName, encounter.id])
   const { confirm, dialog } = useConfirm()
   const patterns = usePatterns((s) => s.mechPatterns)
+  const ownNpcs = useOwnUnits('npc')
   const [picking, setPicking] = useState(false)
   const [renaming, setRenaming] = useState<TrayNpc | null>(null)
   // The group being named: `null` for a new one, absent when the dialog is shut.
   const [naming, setNaming] = useState<EncounterGroup | null | undefined>(undefined)
   const grouping = flagOn('encounterSheet')
   const groups = groupsOf(encounter)
+  // The Game it is prepared for, where the viewer runs it: its Pilots are the crew a threat is read against.
+  const gameCrew = useRunGames(connected).find((g) => g._id === encounter.gameId)?.pilotCount
+  // Its crew's Tech Level: the Game's primary crawler's (r7 C13), which bounds what they field.
+  const listing = useGameListing(gameCrew === undefined ? null : (encounter.gameId ?? null))
+  const gameTech = crawlerTech(listing)
   // Writes go one after another, each from the store's latest copy, so two
   // quick adds do not both start from the same opposition and drop one.
   const queue = useRef<Promise<unknown>>(Promise.resolve())
@@ -174,10 +232,19 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   }))
   const fielded = encounter.opposition.map(opponentAsTray)
 
-  const remove = (opponent: EncounterOpponent) =>
+  // At once, as every edit here is, with the way back (MD2-20): Undo puts it
+  // where it stood, unless it is back already.
+  const remove = (opponent: EncounterOpponent) => {
+    const at = encounter.opposition.findIndex((o) => o.id === opponent.id)
     fire((current) => ({
       opposition: current.opposition.filter((o) => o.id !== opponent.id),
     }))
+    undoToast(
+      buildPrepCopy('removedOpponent', { name: opponent.name }),
+      () => fire((current) => ({ opposition: restoredOpponent(current, opponent, at) })),
+      encounter.id
+    )
+  }
 
   const move = (opponent: EncounterOpponent, groupId: string | null) =>
     fire((current) => ({
@@ -194,6 +261,16 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
           label: 'Rename…',
           onSelect: () => setRenaming(opponentAsTray(opponent)),
         },
+        {
+          id: 'copy',
+          label: buildPrepCopy('makeACopy'),
+          onSelect: hasRoomFor(encounter)
+            ? () =>
+                fire((current) => ({
+                  opposition: duplicateOpponent(current, opponent.id, crypto.randomUUID()),
+                }))
+            : undefined,
+        },
         { id: 'remove', label: 'Remove', onSelect: () => remove(opponent) },
       ],
       ...(moves.length > 0 ? [moves] : []),
@@ -201,11 +278,9 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   }
 
   const opponentRow = (opponent: EncounterOpponent) => (
-    <UnitRow
-      kind="npc"
-      name={opponent.name}
-      readings={[{ label: opponent.statKind === 'sp' ? 'SP' : 'HP', value: opponent.maxHp }]}
-      trailing={
+    <OpponentRow
+      opponent={opponent}
+      menu={
         canWrite ? (
           <HeaderMenu
             variant="overflow"
@@ -228,12 +303,18 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
     )
   }
 
+  const inGame = useEncounterGame(encounter, connected)
+  // Where it is kept: its Game's Prep, else the Mediator's Kit.
+  const home = inGame
+    ? { href: inGame.href, label: buildPrepCopy('gamePrep') }
+    : { href: KIT_PATH, label: buildPrepCopy('mediatorsKit') }
+
   const deleteEncounter = () =>
     confirm({
       ...ROW_ACTION_COPY.deleteBuild(encounter.name),
       onConfirm: async () => {
         await useEncounters.getState().delete(encounter.id)
-        go('/')
+        go(home.href)
       },
     })
 
@@ -245,7 +326,18 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
         userMade={{ madeBy: buildPrepCopy('you') }}
         band={
           connected
-            ? { actions: <SheetModeToggle mode={mode} kind={buildPrepCopy('encounterKind')} /> }
+            ? {
+                actions: (
+                  <>
+                    {/* The way back to where it is kept: its Game's Prep, else the Kit. */}
+                    <Button href={home.href} back variant="ink" size="compact">
+                      {home.label}
+                    </Button>
+                    <SheetModeToggle mode={mode} kind={buildPrepCopy('encounterKind')} />
+                  </>
+                ),
+                game: inGame,
+              }
             : undefined
         }
         actions={
@@ -276,6 +368,13 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                   }
                   fire(() => ({ name }))
                 }}
+                startEditing={typeName}
+              />
+            )}
+            {canWrite && (
+              <EncounterGameField
+                encounter={encounter}
+                onChange={(gameId) => fire(() => ({ gameId, order: undefined }))}
               />
             )}
             <Grid min="20rem" gap={32} style={ROW}>
@@ -336,7 +435,12 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                         </ul>
                       )}
                       {grouping && encounter.opposition.length > 0 && (
-                        <ThreatReadLine encounter={encounter} editing={canWrite} />
+                        <ThreatReadLine
+                          encounter={encounter}
+                          editing={canWrite}
+                          gameCrew={gameCrew}
+                          gameTech={gameTech}
+                        />
                       )}
                     </Stack>
                   </SlabSection>
@@ -362,20 +466,18 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                     title={buildPrepCopy('notes')}
                     actions={<Stat label={buildPrepCopy('onlyYou')} size="compact" />}
                   >
-                    <Field
-                      label={buildPrepCopy('yourNotes')}
-                      value={encounter.notes}
-                      multiline
-                      fill
-                      placeholder={buildPrepCopy('notesPlaceholder')}
-                      onSave={
-                        canWrite
-                          ? (next) => {
-                              fire(() => ({ notes: next.slice(0, ENCOUNTER_MAX_NOTES) }))
-                            }
-                          : undefined
-                      }
-                    />
+                    {/* Saved as typed, as the Game's notes in Prep are (r6 B2). */}
+                    {canWrite ? (
+                      <AutosavedText
+                        label={buildPrepCopy('yourNotes')}
+                        value={encounter.notes}
+                        max={ENCOUNTER_MAX_NOTES}
+                        placeholder={buildPrepCopy('notesPlaceholder')}
+                        onSave={(notes) => write(() => ({ notes }))}
+                      />
+                    ) : (
+                      <Field label={buildPrepCopy('yourNotes')} value={encounter.notes} multiline />
+                    )}
                   </SlabSection>
                 )}
                 {grouping && (canWrite || (encounter.briefing ?? '').trim() !== '') && (
@@ -385,21 +487,22 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                     title={buildPrepCopy('briefing')}
                     actions={<Stat label={buildPrepCopy('playersSeeThis')} size="compact" />}
                   >
-                    <Field
-                      label={buildPrepCopy('whatThePilotsSee')}
-                      value={encounter.briefing ?? ''}
-                      multiline
-                      placeholder={buildPrepCopy('briefingPlaceholder')}
-                      onSave={
-                        canWrite
-                          ? (next) => {
-                              fire(() => ({
-                                briefing: next.slice(0, ENCOUNTER_MAX_BRIEFING),
-                              }))
-                            }
-                          : undefined
-                      }
-                    />
+                    {canWrite ? (
+                      <AutosavedText
+                        label={buildPrepCopy('whatThePilotsSee')}
+                        value={encounter.briefing ?? ''}
+                        max={ENCOUNTER_MAX_BRIEFING}
+                        rows={3}
+                        placeholder={buildPrepCopy('briefingPlaceholder')}
+                        onSave={(briefing) => write(() => ({ briefing }))}
+                      />
+                    ) : (
+                      <Field
+                        label={buildPrepCopy('whatThePilotsSee')}
+                        value={encounter.briefing ?? ''}
+                        multiline
+                      />
+                    )}
                   </SlabSection>
                 )}
                 {grouping && <EncounterSpoils encounter={encounter} editing={canWrite} />}
@@ -417,20 +520,21 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
         <OppositionPicker
           npcs={fielded}
           saved={saved}
+          yours={ownNpcs}
+          // Each + is one more, numbered in place, however many are in (r8 B11).
+          onAddBuilt={(npc, name) =>
+            void write((current) => ({
+              opposition: withCopies(current.opposition, 1, (names) =>
+                newBuiltTrayNpc(npc, names, new Date().toISOString(), name)
+              ),
+            })).catch(() => undefined)
+          }
           onAdd={(schema, entity, draw) =>
-            fire((current) => {
-              if (!hasRoomFor(current)) return {}
-              const body = newTrayNpc(
-                schema,
-                entity,
-                current.opposition.map((o) => o.name),
-                new Date().toISOString(),
-                draw
-              )
-              return {
-                opposition: [...current.opposition, opponentFrom(body, crypto.randomUUID())],
-              }
-            })
+            void write((current) => ({
+              opposition: withCopies(current.opposition, 1, (names) =>
+                newTrayNpc(schema, entity, names, new Date().toISOString(), draw)
+              ),
+            })).catch(() => undefined)
           }
         />
       </SheetPickerModal>
@@ -455,113 +559,5 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
       />
       {dialog}
     </>
-  )
-}
-
-/** Tables to hand: the pinned ones, each opening to read and try, and "Pin a table…". */
-function EncounterTables({
-  tables,
-  canWrite,
-  onPin,
-  onUnpin,
-}: {
-  tables: readonly string[]
-  canWrite: boolean
-  onPin: (name: string) => void
-  onUnpin: (name: string) => void
-}) {
-  const [open, setOpen] = useState<string | null>(null)
-  const [query, setQuery] = useState('')
-  const all = SalvageUnionReference.RollTables.all().map((t) => t.name)
-  const found = findTables(
-    all.filter((name) => !tables.includes(name)),
-    query
-  )
-  const table = open === null ? undefined : SalvageUnionReference.RollTables.getByName(open)
-  const full = tables.length >= ENCOUNTER_MAX_TABLES
-
-  return (
-    <SlabSection
-      as="h2"
-      id="encounter-tables"
-      title={buildPrepCopy('tablesToHand')}
-      count={String(tables.length)}
-    >
-      {canWrite && !full && (
-        <SearchField
-          type="search"
-          placeholder={buildPrepCopy('pinATablePlaceholder')}
-          aria-label={buildPrepCopy('pinATable')}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setQuery('')
-          }}
-        />
-      )}
-      {found.length > 0 && (
-        <MiniGrid label={buildPrepCopy('tablesFound')} style={TABLE_LIST}>
-          {found.map((name) => (
-            <li key={name} data-choice-toggle="">
-              <RollMini
-                name={name}
-                toggle={{
-                  pressed: false,
-                  onToggle: () => {
-                    onPin(name)
-                    setQuery('')
-                  },
-                }}
-              />
-            </li>
-          ))}
-        </MiniGrid>
-      )}
-      {tables.length === 0 ? (
-        <EmptyState variant="inline" body={buildPrepCopy('noTables')} />
-      ) : (
-        <MiniGrid label={buildPrepCopy('pinnedTables')} style={TABLE_LIST}>
-          {tables.map((name) => (
-            <li key={name} data-choice-toggle="">
-              <RollMini
-                name={name}
-                toggle={{
-                  pressed: open === name,
-                  onToggle: () => setOpen((current) => (current === name ? null : name)),
-                  dim: open !== null && open !== name,
-                }}
-              />
-            </li>
-          ))}
-        </MiniGrid>
-      )}
-      {open !== null && tables.includes(open) && (
-        <Stack gap={8}>
-          {table && (
-            <PlayRollTable
-              key={table.name}
-              table={table.table}
-              name={table.name}
-              size="mini"
-              tone={CHAPTER_BAND_COLOR.rules}
-            />
-          )}
-          {canWrite && (
-            <div>
-              <Button
-                size="mini"
-                variant="ghost"
-                onClick={() => {
-                  onUnpin(open)
-                  setOpen(null)
-                }}
-              >
-                {buildPrepCopy('unpin', { name: open })}
-              </Button>
-            </div>
-          )}
-        </Stack>
-      )}
-    </SlabSection>
   )
 }

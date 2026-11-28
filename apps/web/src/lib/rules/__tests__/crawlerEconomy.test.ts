@@ -29,6 +29,7 @@ import {
   poolAvailableAtOrAbove,
   tradingAvailability,
   tradingSourceTl,
+  upkeepOwed,
   upkeepShortfall,
 } from '../crawlerEconomy'
 
@@ -402,5 +403,16 @@ describe('bayGate', () => {
   it('a damaged Trading Bay is present but not operational', () => {
     const crawler = { crawlerBays: [{ bayRef: 'trading-bay', condition: 'damaged' as const }] }
     expect(bayGate(crawler, 'trading-bay').operational).toBe(false)
+  })
+})
+
+// r4 A8 (SB4-11): the sheet's tile said 5 where Pay Upkeep said 3.
+describe('upkeepOwed', () => {
+  it('a type with no reduction owes the tier’s Upkeep, with no working', () => {
+    expect(upkeepOwed(1)).toEqual({ owed: 5, base: 5, less: 0 })
+  })
+
+  it('an Engineering crawler owes 2 less, and says its working', () => {
+    expect(upkeepOwed(1, 'engineering')).toEqual({ owed: 3, base: 5, less: 2 })
   })
 })

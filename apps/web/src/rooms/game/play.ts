@@ -1,6 +1,17 @@
 import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
+import { isSeatFreeStep } from 'game-domain/rules/downtime'
+import { DOWNTIME_RULINGS } from 'game-domain/rules/downtimeRulings'
+import type { ScrapByTl } from 'game-domain/rules/tallyScrap'
 import type { Running } from '../downtime'
-import { beginDowntime, claimed, claimInStep, doneSteps, moveDowntime } from '../downtime'
+import {
+  beginDowntime,
+  claimed,
+  claimInStep,
+  doneSteps,
+  moveDowntime,
+  moveScrapInStep,
+  scrapMoved,
+} from '../downtime'
 import type { OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
 import { SeatTable } from '../seats'
@@ -21,12 +32,15 @@ export type DowntimeRead = {
   startedAt: number | null
   /**
    * The members done with the current step: each has a pilot here and every
-   * one of them took it (their step ops, `doneSteps`). Read, never stored.
+   * one of them took it (their step ops, `doneSteps`), every member on a
+   * seat-free step (`isSeatFreeStep`). Read, never stored.
    */
   completedBy: { userId: string; displayName: string }[]
   upkeepSpent: boolean
   /** Each pilot's steps taken this Downtime, by pilot id. */
   doneSteps: Record<string, number[]>
+  /** The pilots whose carried Scrap is moved to the crawler this Downtime (r6 D1). */
+  scrapMoved?: string[]
 }
 
 const NOT_RUNNING: DowntimeRead = {
@@ -72,7 +86,10 @@ export class GamePlay extends SeatTable {
     if (running === null) return NOT_RUNNING
     const pilots = this.store.units('pilot')
     const steps = new Map(pilots.map((p) => [p.id, doneSteps(this.store, running.runId, p.id)]))
-    const tookIt = (pilotId: string) => steps.get(pilotId)?.includes(running.stepIndex) ?? false
+    // A step with nothing for a seat (Upkeep, the Mediator's) is done for every seat (r6 D2).
+    const seatFree = isSeatFreeStep(running.stepIndex)
+    const tookIt = (pilotId: string) =>
+      seatFree || (steps.get(pilotId)?.includes(running.stepIndex) ?? false)
     return {
       running: true,
       ...running,
@@ -85,6 +102,11 @@ export class GamePlay extends SeatTable {
         })
         .map((m) => ({ userId: m.userId, displayName: m.displayName ?? 'Crewmate' })),
       doneSteps: Object.fromEntries(steps),
+      scrapMoved: scrapMoved(
+        this.store,
+        running.runId,
+        pilots.map((p) => p.id)
+      ),
     }
   }
 
@@ -114,6 +136,35 @@ export class GamePlay extends SeatTable {
       this.units.assertMayWrite(actor, crawler)
       const room = { store: this.store, units: this.units, place: this.place }
       return claimInStep(room, claim, op, actor, crawler)
+    })
+  }
+
+  /**
+   * Move a pilot's carried Scrap to the crawler in Tally Salvage
+   * (`moveScrapInStep`): its player's press, or, under the other ruling
+   * (`DOWNTIME_RULINGS.scrapMove`), the Mediator's for every pilot.
+   */
+  moveScrap(
+    actor: string,
+    a: { pilotId: string; mechId: string | null; crawlerId: string },
+    at: number
+  ): ScrapByTl | null {
+    return this.store.sql.transaction(() => {
+      const member = this.store.requireMember(actor)
+      const pilot = this.store.unit(a.pilotId)
+      if (pilot === null || pilot.kind !== 'pilot')
+        throw new RoomRefusal('That Pilot is not in this Game')
+      const byMediator = member.mediator && DOWNTIME_RULINGS.scrapMove === 'mediator-at-upkeep'
+      if (!byMediator) this.units.assertMayWrite(actor, pilot)
+      const mech = a.mechId === null ? null : this.store.unit(a.mechId)
+      if (mech !== null && (mech.kind !== 'mech' || mech.ownerId !== pilot.ownerId)) {
+        throw new RoomRefusal('That Mech is not this Pilot’s')
+      }
+      const crawler = this.store.unit(a.crawlerId)
+      if (crawler === null || crawler.kind !== 'crawler')
+        throw new RoomRefusal('That is not a crawler')
+      const room = { store: this.store, units: this.units, place: this.place }
+      return moveScrapInStep(room, { pilot, mech, crawler }, actor, at)
     })
   }
 

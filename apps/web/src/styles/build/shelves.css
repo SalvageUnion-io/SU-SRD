@@ -24,3 +24,41 @@
    what does not fit there wraps up over it
    (`.su-chapter-band[data-aside='controls']` in shell.css), so they need
    nothing of their own here. */
+
+/* With nothing to report the status line takes no room: the band is its
+   corner and its title, as a sheet's is. It stays in the tree, so a result
+   that lands is still announced. */
+.su-chapter-band__eyebrow:has(> .su-shelves-band__status:empty) {
+  padding-block: 0;
+}
+
+/* Borderless lists stacked in a column need air between them (L-4). */
+.su-shelf-ledgers .su-shelf-ledgers__col {
+  gap: var(--space-16);
+}
+
+/* The book's crews in the side column (`StarterShelf`): on the page's ground,
+   no paper panel, and at the column's width, so their Ledgers fit it. Its
+   tab is cut from that ground too (the cut-out law, R45). */
+.su-starter-shelf {
+  --cutout-ground: initial;
+}
+
+.su-starter-shelf > .su-slab-section__body {
+  background-color: transparent;
+  padding-inline: 0;
+}
+
+/* In the side column it keeps the columns a phone keeps (the name, HP, AP
+   and Mech; a crawler's Type and SP), so it fits there at every width; a
+   window that stacks the columns gives it the page's width and all of them. */
+.su-starter-shelf > .su-slab-section__body {
+  container-type: inline-size;
+}
+
+@container not (width >= 40rem) {
+  .su-starter-shelf .su-open thead th[data-col]:not([data-phone]),
+  .su-starter-shelf .su-open__row > td:not([data-phone]) {
+    display: none;
+  }
+}

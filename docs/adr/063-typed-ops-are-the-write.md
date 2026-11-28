@@ -68,12 +68,41 @@ offline queue would each be one more mechanism.
    proposal on the same field still supersedes the older.
 6. **A Downtime step is an op with a stable id** per pilot and step, so
    applying it twice is a no-op and the claim bookkeeping goes.
+   Amended 2026-11-22 (r6 D1): Tally Salvage's move of a pilot's carried
+   Scrap (their inventory's and their mech's Cargo's) into the crawler's
+   pool is one act, `downtime.moveScrap`, its player's in Tally Salvage. The
+   room builds every patch from the bodies it holds, since a player may not
+   write the crawler: the crawler's op under `downtimeScrapOpId` (once per
+   run and pilot), the pilot's and mech's halves beside it, and the step op.
+   `downtime.state` adds `scrapMoved`, the pilot ids moved (optional,
+   additive). Who presses is one switch (`DOWNTIME_RULINGS.scrapMove`). No
+   schema change.
 7. **What is not an op.** Rolls and the Mediator's alerts ("Tell the table")
    are a Game's feed, not changes to a unit. Container moves and assignment
    (`gameId`, `ownerId`, links) are server state about where a unit is
    (ADR-030 §2, ADR-037) and keep their own mutations and log rows, which the
    drawer reads beside the unit's ops. A body field that only bookkeeps (the
    `updatedAt` stamp) never conflicts.
+   Amended 2026-11-21: the feed also keeps **table events**, one line per
+   member act (a vital's change, an action begun, boarding, an assignment, a
+   join, the session's start and end, a proposal, the Stop Sign), written by
+   the Game room after the act (`rooms/game/events.ts`) as `change_log` rows
+   of field `event`, beside `roll` and `alert`. They are a record for readers,
+   never state: the Feed, the toasts and the bound Discord channel all read
+   this one stream, repeats within ten seconds merge into one line, the
+   newest 600 are kept, and a line marked `private` (a roll row's
+   `after.private`) is read by the Mediator alone and never mirrored. An
+   assignment's line may carry `about`, the member it was taken from, whose
+   screen says so itself and skips the line's toast (optional, additive). No
+   schema change: a room that has none reads as an empty feed.
+   Amended 2026-11-22 (r3 A5, K6): a proposal's line may carry `answer`,
+   `accepted` when its player accepted it and `undone` when they wrote back
+   what the sheet held before (the room reads that off the op log,
+   `proposals.ts` `undoes`; `ops.sent` then serves the row as `undone`).
+   Only an Undo's write counts (r5 A2): a heal that reaches the old value is a change.
+   "Last session" counts both as changes to vitals. Optional and additive: a
+   line without it reads as before. A member the Organiser removed is a line
+   too, as a join is.
 8. **ADR-007 maps directly.** A destructive change is only ever an op its
    player authors; automation authors none.
 9. **Offline, ops wait in an outbox** (Jrvs 2026-10-25: play your own units

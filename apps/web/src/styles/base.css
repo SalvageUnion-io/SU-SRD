@@ -52,11 +52,7 @@ body {
  *   data-print="keep"  print this even though its element type is hidden
  *
  * Never two attribute names one letter apart that mean opposite things.
+ *
+ * The hide rule itself (nav and `data-print="hide"`) is `theme.css`'s:
+ * unlayered, it beats every display class without `!important`.
  */
-@media print {
-  nav,
-  [data-print='hide'] {
-    /* biome-ignore lint/complexity/noImportantStyles: page chrome must stay hidden in print even against display rules */
-    display: none !important;
-  }
-}

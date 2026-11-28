@@ -14,15 +14,20 @@
  * Every roll goes through `recordPlayRoll`, so it lands on the Feed, the
  * Game's log and, while one is bound, the Discord channel.
  *
+ * A table asked for by name (`askPlayTable`: a vital at 0's "Roll Critical
+ * Damage") opens the same way, with the keyboard on its stamp, and is rolled
+ * when the ask says so: the toast's one press (r5 A1).
+ *
  * The open table sits directly in the column (level 1, play.md §12).
  */
 
 import type { RosterLine } from 'game-domain/rules/encounterRoster'
 import type { CSSProperties } from 'react'
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { OverloadTable } from 'salvageunion-reference/rules'
+import { Banner } from '../components/app'
 import { RollMini } from '../components/entity/forms/RollMini'
 import {
   Button,
@@ -33,27 +38,20 @@ import {
   tokens,
 } from '../components/index'
 import { playCopy } from '../messages/play'
-import type { PlayBinding } from './channels.model'
-import { postsToLabel } from './channels.model'
+import type { ChannelOwner, PlayBinding } from './channels.model'
 import { readRoster } from './mediator/encounterRoster.model'
+import { PlayChannelRow } from './PlayChannelRow'
 import { PlayRollTable } from './PlayRollTable'
 import { recordPlayRoll } from './playRolls.model'
+import { usePrivateRolls } from './privateRolls.model'
 import { findTables, pinnedTables } from './tables.model'
+import { onPlayTableAsked } from './zeroVital.model'
 
 const STACK = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[8],
   minWidth: 0,
-} satisfies CSSProperties
-
-const POST = {
-  alignItems: 'center',
-  color: tokens.color.ink,
-  display: 'flex',
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  gap: tokens.space[8],
 } satisfies CSSProperties
 
 type PlayTablesProps = {
@@ -65,6 +63,8 @@ type PlayTablesProps = {
   solo: boolean
   /** The bound channel: undefined while unknown, null when none. */
   binding: PlayBinding | null | undefined
+  /** Whose channel the row is of, and whether the viewer may bind it. */
+  channel?: { owner: ChannelOwner; mayBind: boolean } | undefined
   /** The Mediator's running encounter's own tables (ADR-059), above the Situation's. */
   prepared?: readonly string[] | undefined
   /**
@@ -77,16 +77,43 @@ type PlayTablesProps = {
 export function PlayTables({
   downtime,
   mechTables = 'reactor',
-  solo,
   binding,
+  channel,
   prepared = [],
   onField,
 }: PlayTablesProps) {
+  // The Mediator's Private rolls is on: a band heads the tables (r6 B10).
+  const privately = usePrivateRolls()
   const [open, setOpen] = useState<string | null>(null)
   // The row the open table last landed on, by its range key.
   const [landed, setLanded] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const findId = useId()
+  // A table asked for by name (a vital at 0's "Roll Critical Damage", r4 A5)
+  // opens here, and is brought on screen.
+  const hostRef = useRef<HTMLDivElement>(null)
+  const [asked, setAsked] = useState(0)
+  // The ask that rolls as it opens: the toast's press (r5 A1), by its count.
+  const [rollAsked, setRollAsked] = useState<number | null>(null)
+  const count = useRef(0)
+  useEffect(
+    () =>
+      onPlayTableAsked((name, ask) => {
+        count.current += 1
+        setOpen(name)
+        setLanded(null)
+        setAsked(count.current)
+        setRollAsked(ask.roll ? count.current : null)
+      }),
+    []
+  )
+  useEffect(() => {
+    if (asked === 0) return
+    const shown = hostRef.current?.querySelector('.su-roll')
+    if (shown && typeof shown.scrollIntoView === 'function')
+      shown.scrollIntoView({ block: 'nearest' })
+    shown?.querySelector<HTMLElement>('button:not([disabled])')?.focus()
+  }, [asked])
   const tables = SalvageUnionReference.RollTables.all()
   const found = findTables(
     tables.map((t) => t.name),
@@ -102,7 +129,10 @@ export function PlayTables({
   const roster = onField && table && landed !== null ? rosterOf(table.table, landed) : []
 
   return (
-    <div style={STACK}>
+    <div ref={hostRef} style={STACK}>
+      {privately && (
+        <Banner warnings={[{ severity: 'info', message: playCopy('privateRollsBand') }]} />
+      )}
       <SearchField
         type="search"
         placeholder={playCopy('rollATable')}
@@ -140,7 +170,8 @@ export function PlayTables({
       />
       {table && (
         <PlayRollTable
-          key={table.name}
+          key={`${table.name}:${rollAsked ?? 0}`}
+          rollNow={rollAsked !== null && rollAsked === asked}
           table={table.table}
           name={table.name}
           size="mini"
@@ -154,8 +185,10 @@ export function PlayTables({
       {onField && roster.length > 0 && (
         <FieldRoster key={`${open}:${landed}`} lines={roster} onField={onField} />
       )}
-      {binding != null && <div style={POST}>{postsToLabel(solo, binding)}</div>}
-      {binding === null && <Text variant="note">{playCopy('noChannelIsBoundYet')}</Text>}
+      {/* Solo with nothing bound shows no channel row: there is none to follow (SB-28). */}
+      {binding !== undefined && channel && !(channel.owner.kind === 'solo' && binding === null) && (
+        <PlayChannelRow owner={channel.owner} binding={binding} mayBind={channel.mayBind} />
+      )}
     </div>
   )
 }

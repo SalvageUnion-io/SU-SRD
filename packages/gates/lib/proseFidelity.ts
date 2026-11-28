@@ -121,6 +121,7 @@ const SKIP_KEYS = new Set([
   'additionalSources',
   'page',
   'hasArtwork',
+  'notInPlay', // quotes its block's value; the `play-tags` data check holds it there
 ])
 const NAME_KEYS = new Set(['name', 'displayName', 'label', 'position'])
 const STRUCTURAL = new Set<string>(STRUCTURAL_FIELDS)

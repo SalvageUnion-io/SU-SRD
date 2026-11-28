@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { createElement } from 'react'
 
 /**
- * Who may open a Game's page (`/play/games/$gameId`, ADR-052 §5), in each
+ * Who may open a Game's page (`/games/$gameId`, ADR-052 §5), in each
  * storage status: signed out, sign in; connecting, a beat; offline, a line and
  * the way to the Training Bay; connected, the page itself (`GameHub`, stubbed: its
  * own file pins what it shows).

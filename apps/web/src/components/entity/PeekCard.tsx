@@ -1,11 +1,18 @@
-import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
-import { getChassisAbilities, isChassis, SalvageUnionReference } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectTable } from 'salvageunion-reference'
+import {
+  getChassisAbilities,
+  isChassis,
+  resolveTable,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import { conditionOf } from '../referenceEntity/card/cardChrome'
 import { schemaOf } from '../referenceEntity/card/cardHelpers'
 import { ActionMinis } from '../referenceEntity/card/NestedCards'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { Entity } from './Entity'
+import { PeekTable } from './PeekTable'
+import type { PeekSize } from './peekContext'
 import { InsidePeekContext } from './peekContext'
 
 /** What `[(CHASSIS)]` reads when more than one chassis shares the ability. */
@@ -55,13 +62,16 @@ function peekChassisAbilities(entity: RefEntity, down: Down) {
 /** A Peek lists no host's patterns (a chassis's, a Bio-Titan's): see `PeekCard`. */
 const PEEK_HIDE = { patterns: true }
 
+/** No stats in the card's head: the row it opened from prints them (r6 G7). */
+const ROW_STATS: never[] = []
+
 /**
  * The PEEK's card (E16): the entity read-only and terminal. It is
  * `ReferenceEntityCard` small and contentful, its band speckled as every
  * brand-colour ground's is (ruleset §3.5.1, R10), inside `InsidePeekContext`, which makes everything
  * in it act on nothing: no links (Mentions and Tags go inert), no roll-table
  * controls, and no Peek inside it. Its name alone links, to the entity's Page
- * (`CardTitleLink`, R33). The card is level 1 on its plate (N1, E6),
+ * (`CardTitleLink`, E16). The card is level 1 on its plate (N1, E6),
  * so everything nested in it is a Mini: children, drones, actions (contentful,
  * `ActionMinis`), choice options and guide ladders. No host lists its
  * patterns here, a chassis's or a Bio-Titan's: each is a pattern Mini with
@@ -69,9 +79,22 @@ const PEEK_HIDE = { patterns: true }
  * shows its chassis ability instead (`peekChassisAbilities`), its
  * `[(CHASSIS)]` naming the chassis (`peekChassisName`), never the raw token. A
  * `down` Peek (its trigger damaged or destroyed) paints its band as the trigger does.
+ *
+ * A chassis Peeked from a list's row (`fromRow`) answers what the row cannot
+ * (r6 G7): no stats, which the row's columns print, and its ability first,
+ * under its name, with the lore after it.
  */
-export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: Down }) {
-  const chassis = isChassis(entity)
+export function PeekCard({
+  entity,
+  down = false,
+  fromRow = false,
+}: {
+  entity: RefEntity
+  down?: Down
+  fromRow?: boolean
+}) {
+  const abilities = isChassis(entity) ? peekChassisAbilities(entity, down) : undefined
+  const led = fromRow && !!abilities
   return (
     <InsidePeekContext.Provider value={true}>
       <ReferenceEntityCard
@@ -81,7 +104,8 @@ export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: D
         chassisName={peekChassisName(entity)}
         hostDown={down}
         hide={PEEK_HIDE}
-        afterExtraContent={chassis ? peekChassisAbilities(entity, down) : undefined}
+        {...(led ? { statsOverride: ROW_STATS, subtitleExtra: abilities } : {})}
+        afterExtraContent={led ? undefined : abilities}
       />
     </InsidePeekContext.Provider>
   )
@@ -93,7 +117,7 @@ export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: D
  * as `PeekCard` is. A Mini nests nothing (N3), so a host's children, actions
  * and table are its Page's.
  */
-export function PeekMini({ entity, down = false }: { entity: RefEntity; down?: Down }) {
+function PeekMini({ entity, down = false }: { entity: RefEntity; down?: Down }) {
   const condition = conditionOf(down)
   return (
     <InsidePeekContext.Provider value={true}>
@@ -105,5 +129,68 @@ export function PeekMini({ entity, down = false }: { entity: RefEntity; down?: D
         body={{ chassisName: peekChassisName(entity) }}
       />
     </InsidePeekContext.Provider>
+  )
+}
+
+/**
+ * Whether the entity's Mini would say only what its row already says: its
+ * rules are its actions', and its own text is a one-line summary of them (an
+ * ability). Its Peek is then never the Mini (E23, `PeekEntity`).
+ */
+function peekRepeatsRow(entity: RefEntity): boolean {
+  return (
+    'description' in entity &&
+    typeof entity.description === 'string' &&
+    'actions' in entity &&
+    Array.isArray(entity.actions) &&
+    entity.actions.length > 0
+  )
+}
+
+/** The roll table an entity's rules roll on: its own, else its first action's. */
+function peekTableOf(entity: RefEntity): { name: string; table: RefObjectTable } | undefined {
+  const sources: unknown[] = [entity, ...(SalvageUnionReference.resolveActions(entity) ?? [])]
+  for (const source of sources) {
+    const table = resolveTable(source)
+    if (!table) continue
+    const named =
+      source !== null &&
+      typeof source === 'object' &&
+      'tableName' in source &&
+      typeof source.tableName === 'string'
+        ? source.tableName
+        : entity.name
+    return { name: named, table }
+  }
+  return undefined
+}
+
+/**
+ * The PEEK of an entity at its trigger's size (E23): from a Page, a Full card
+ * or bare prose the Compact contentful; from a Compact or a Mini the
+ * contentful Mini, unless that would say the row again (`peekRepeatsRow`):
+ * then the Compact contentful and, under it, the table its rule rolls on,
+ * rows open and nothing to press (`PeekTable`).
+ */
+export function PeekEntity({
+  entity,
+  down = false,
+  size,
+  fromRow = false,
+}: {
+  entity: RefEntity
+  down?: Down
+  size: PeekSize
+  /** Opened from a list's row, whose columns print its stats (`PeekCard`). */
+  fromRow?: boolean
+}) {
+  if (size !== 'mini') return <PeekCard entity={entity} down={down} fromRow={fromRow} />
+  if (!peekRepeatsRow(entity)) return <PeekMini entity={entity} down={down} />
+  const rolls = peekTableOf(entity)
+  return (
+    <>
+      <PeekCard entity={entity} down={down} />
+      {rolls && <PeekTable name={rolls.name} table={rolls.table} />}
+    </>
   )
 }

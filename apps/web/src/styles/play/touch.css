@@ -22,7 +22,7 @@
    * The Downtime track: ten steps do not fit one phone row, so they take
    * two rows of five.
    */
-  .su-play-root .su-play-dt-track {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+  .su-play-root .su-play-dt-track > * {
+    flex-basis: calc((100% - 4 * var(--space-4)) / 5 - 0.05px);
   }
 }

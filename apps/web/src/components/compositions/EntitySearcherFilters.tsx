@@ -29,7 +29,7 @@ const SWATCH = {
 
 /**
  * A facet row sets a value, the set of what shows (chrome K10, hard rule
- * R29): a `Segmented` of its options, wrapping when it has many.
+ * K10): a `Segmented` of its options, wrapping when it has many.
  */
 function FacetChips({ row }: { row: FacetRowConfig }) {
   return (
@@ -77,7 +77,7 @@ export function SearcherToolbar({
         )}
         {folded.length > 0 && (
           <Button size="compact" {...toggleProps} style={FILTERS_TOGGLE_STYLE}>
-            Filters
+            {compositionsCopy('filters')}
             {activeFilters > 0 && (
               <>
                 {' '}

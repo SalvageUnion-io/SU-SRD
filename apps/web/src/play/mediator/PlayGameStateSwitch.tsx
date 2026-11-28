@@ -4,7 +4,8 @@
  * Downtime, in the Situation switch's place.
  *
  *  - **Begin Downtime** starts it at the first step, which moves every
- *    player's screen into Downtime (their Situation follows the Game's row).
+ *    player's screen into Downtime (their Situation follows the Game's row),
+ *    so it asks once first, as ending does (r2 E2); the room tells the table.
  *    Running, the option reads "Downtime · Step 3".
  *  - **Scene** ends it. At the last step it simply ends; before it, it asks
  *    first, since a new Downtime starts from the first step and its upkeep is
@@ -16,9 +17,11 @@
 import { downtimeStepCount, UPKEEP_STEP_NAME } from 'game-domain/rules/downtime'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { ConfirmDialog, Segmented, SegmentedOption, tokens } from '../../components/index'
+import { ConfirmDialog } from '../../components/app'
+import { Segmented, SegmentedOption, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import type { PlayDowntime } from '../situation.model'
+import { useTidyUp } from '../useTidyUp'
 import { downtimeOptionLabel } from './mediatorTable.model'
 
 const ROW = { alignItems: 'center', display: 'flex', gap: tokens.space[8] } satisfies CSSProperties
@@ -40,13 +43,18 @@ export function PlayGameStateSwitch({
   downtime,
   canWrite,
   fill = false,
+  gameId = null,
 }: {
   downtime: PlayDowntime
   canWrite: boolean
+  /** The Game: Begin Downtime tidies what its encounter left, in the same press (r6 C2). */
+  gameId?: string | null
   /** Pinned below `lg`: no leading label, the options share the row (play.md §11). */
   fill?: boolean
 }) {
   const [confirmEnd, setConfirmEnd] = useState(false)
+  const [confirmBegin, setConfirmBegin] = useState(false)
+  const tidy = useTidyUp(gameId)
   const { running, stepIndex } = downtime.downtime
   const count = downtimeStepCount()
   const last = (stepIndex ?? 0) >= count - 1
@@ -79,12 +87,34 @@ export function PlayGameStateSwitch({
           pressed={running}
           disabled={!canWrite}
           onClick={() => {
-            if (!running) downtime.begin()
+            if (running) return
+            tidy.reset()
+            setConfirmBegin(true)
           }}
         >
           {downtimeOptionLabel(running, stepIndex)}
         </SegmentedOption>
       </Segmented>
+      <ConfirmDialog
+        open={confirmBegin}
+        onOpenChange={setConfirmBegin}
+        title={mediatorCopy('beginDowntimeAsk')}
+        body={
+          tidy.boxes === null ? (
+            mediatorCopy('beginDowntimeBody', { count })
+          ) : (
+            <>
+              {mediatorCopy('beginDowntimeBody', { count })}
+              {tidy.boxes}
+            </>
+          )
+        }
+        confirmLabel={mediatorCopy('beginDowntime')}
+        onConfirm={async () => {
+          await tidy.run()
+          downtime.begin()
+        }}
+      />
       <ConfirmDialog
         open={confirmEnd}
         onOpenChange={setConfirmEnd}

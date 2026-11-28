@@ -45,7 +45,7 @@ export async function waitForReady(page: Page): Promise<void> {
   })
 }
 
-/** Open an app route (`/play/`) under `base` (the origin, empty against a `baseURL`) and wait for its game data. */
+/** Open an app route (`/games/`) under `base` (the origin, empty against a `baseURL`) and wait for its game data. */
 export async function openApp(page: Page, route: string, base = ''): Promise<void> {
   await visit(page, `${base}${appPath(route)}`)
   await waitForReady(page)
@@ -76,7 +76,7 @@ export async function editSheet(page: Page): Promise<void> {
 export function sheetHref(kind = ''): string {
   const kinds = kind ? [kind] : ['pilot', 'mech', 'crawler', 'npc']
   const hrefs = kinds.map((k) => `[href*="${APP_BASE}/${k}s/"]`).join(',')
-  return `a:is(${hrefs}):not([href$="/new"])`
+  return `a:is(${hrefs}):not([href$="/new"], [href*="/new?"])`
 }
 
 /**
@@ -96,21 +96,42 @@ export function sheetLink(page: Page, name: string, kind = '') {
 }
 
 /**
- * A Play hub door's path, read off its link: "Play Bonesaw in <Game>", "Play
- * Mira Voss solo" or, once a group session is live, "Mediate <Game>"
- * (`PlayLanding`), so Play is reached the
- * way a player reaches it. The browser path, the app's base included.
+ * Forget the sheet tab this browser last used (`su:sheet-mode`,
+ * `sheetMode.model.ts`), so the next sheet opens in Read, as a first visit's
+ * does. `editSheet` leaves Edit remembered: a walk that reads a sheet in Read
+ * after one in Edit, and a seed that hands its session on, call this first.
+ */
+export async function forgetSheetMode(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    try {
+      localStorage.removeItem('su:sheet-mode')
+    } catch {
+      // No storage here (about:blank, a blocked store): nothing is remembered.
+    }
+  })
+}
+
+/**
+ * A door's path on Your Games, read off its link: "Open table as Bonesaw in <Game>" or,
+ * once a group session is live, "Mediate <Game>" (`PlayLanding`), so Play is
+ * reached the way a player reaches it. The browser path, the app's base included.
  */
 export async function playDoor(page: Page, name: string | RegExp, base = ''): Promise<string> {
-  await openApp(page, '/play/', base)
+  await openApp(page, '/games/', base)
   const door = page.getByRole('link', { name }).first()
   await door.waitFor({ timeout: 30_000 })
   const href = await door.getAttribute('href')
-  if (!href) throw new Error(`"${name}" on the Play hub has no href`)
+  if (!href) throw new Error(`"${name}" on Your Games has no href`)
   return new URL(href, page.url()).pathname
 }
 
-/** Copy a Starter Set build (`pilot/starter-pilot-bonesaw`) to the Training Bay from its sheet's "Make a copy". */
+/**
+ * Copy a Starter Set build (`pilot/starter-pilot-bonesaw`) to the Training Bay
+ * from its sheet's "Make a copy", which copies at once, its notice carrying
+ * the Undo (r5 B18). A pilot brings their mech, assigned, and the page lands
+ * on the copy. An account already in a Game picks the Training Bay from the
+ * control's menu first.
+ */
 export async function copyStarter(
   page: Page,
   sheet: string,
@@ -119,10 +140,10 @@ export async function copyStarter(
 ): Promise<void> {
   await openApp(page, `/starter/${sheet}`, base)
   await page.getByRole('button', { name: 'Make a copy', exact: true }).first().click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
   // A crawler's name is its number and name ("Crawler #430 'Tenacity'").
-  await page
-    .getByText(new RegExp(`^Copied .*${name}.* to your Training Bay`))
-    .first()
-    .waitFor({ timeout: 20_000 })
+  const copied = page.getByText(new RegExp(`^Copied .*${name}.* to your Training Bay`)).first()
+  const toBay = page.getByRole('menuitem', { name: 'Training Bay', exact: true })
+  await copied.or(toBay).first().waitFor({ timeout: 20_000 })
+  if (await toBay.isVisible()) await toBay.click()
+  await copied.waitFor({ timeout: 20_000 })
 }

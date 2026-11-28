@@ -137,4 +137,28 @@ describe('MechSheet — destroyed-undo toast', () => {
     expect(must(captured[0]).patch.systemConditions?.[SYSTEM_SLUG]).toBe('damaged')
     expect(screen.queryByText(/marked Destroyed/i)).toBeNull()
   })
+
+  test('removing a system lands at once, toasts, and Undo puts the loadout back (U10)', async () => {
+    const captured: CapturedUpdate[] = []
+    const { useSheetModeStore } = await import('../sheetMode.model')
+    useSheetModeStore.getState().setEditing(true)
+    render(
+      <>
+        <ToasterMount />
+        <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
+      </>
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^Remove /i }))
+    })
+    useSheetModeStore.getState().setEditing(false)
+    expect(must(captured[0]).patch.systems).toEqual([])
+
+    const toastText = await screen.findByText(/^Removed .+\.$/)
+    const toastEl = toastText.closest('[data-sonner-toast]') as HTMLElement
+    await act(async () => {
+      fireEvent.click(within(toastEl).getByRole('button', { name: /undo/i }))
+    })
+    expect(must(captured[captured.length - 1]).patch.systems).toEqual([SYSTEM_SLUG])
+  })
 })

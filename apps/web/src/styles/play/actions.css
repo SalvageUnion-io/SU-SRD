@@ -94,6 +94,16 @@
   gap: var(--space-8);
 }
 
+/* Apply and Start over hold the pane's foot while the open action's table
+   runs past it: an open action keeps its ways forward on screen. */
+.su-play-resolve__forward {
+  background-color: var(--color-paper);
+  bottom: 0;
+  padding-block: var(--space-6);
+  position: sticky;
+  z-index: 1;
+}
+
 .su-play-resolve__note {
   color: var(--color-ink);
   font-family: var(--font-body);
@@ -101,14 +111,20 @@
   margin: 0;
 }
 
-/* The Downtime track: ten numbered steps, the one the table is on in ink. */
+/* The Downtime track: ten numbered steps sharing one line, the one the
+   table is on in ink. */
 .su-play-dt-track {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-4);
-  grid-template-columns: repeat(10, minmax(0, 1fr));
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.su-play-dt-track > * {
+  flex: 1 1 0%;
+  min-width: 0;
 }
 
 .su-play-dt-track__step {
@@ -137,6 +153,11 @@ button.su-play-dt-track__step:disabled {
 
 .su-play-dt-track [data-state='past'] .su-play-dt-track__step {
   background: var(--color-ink-15);
+  color: var(--color-ink-75);
+}
+
+/* Skipped (r4 A6) keeps a step-to-do's paper ground: it is not done. */
+.su-play-dt-track [data-state='skipped'] .su-play-dt-track__step {
   color: var(--color-ink-75);
 }
 
@@ -193,4 +214,208 @@ button.su-play-dt-track__step:disabled {
    (WCAG 1.4.3): the select dim's saturation, a lighter fade. */
 .su-play-act .su-select-dim {
   opacity: 0.75;
+}
+
+/*
+ * What is on hand, grouped by action type (`PlayActionsList`): a group is its
+ * Mini Slab over its rows.
+ */
+.su-play-timings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/*
+ * A closed row says its effect in at most two short lines under its head, at
+ * the caption size, a cut one with a More that opens it in place; the whole
+ * effect is the opened row's too. Its picks sit as
+ * chips over its steps.
+ */
+.su-play-act__effect {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--color-ink);
+  display: -webkit-box;
+  flex: 1 1 0%;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: 1.35;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.su-play-act__effect-box {
+  align-items: flex-start;
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.su-play-act__effect-box[data-full] > .su-play-act__effect {
+  -webkit-line-clamp: unset;
+  display: block;
+}
+
+.su-play-act__picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+/*
+ * Below `lg` Use ends the body's line, beside the effect, so the head is the
+ * name's and the chips' alone (`PlayActionRow`). The button is the Compact
+ * Size, pressed through a Full Size (44px) target centred on it.
+ */
+.su-play-act__line {
+  align-items: center;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}
+
+.su-play-act__line > .su-play-act__use {
+  flex: none;
+  position: relative;
+}
+
+.su-play-act__line > .su-play-act__use::after {
+  content: '';
+  inset: calc((var(--size-compact) - var(--size-full)) / 2);
+  position: absolute;
+}
+
+/* The Moment (ADR-068): the Main display's one beat, a titled card in the
+   colour of who acts, its steps across the top and its verbs docked at the
+   foot, in the same place whatever the step. */
+.su-play-moment__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.su-play-moment__track {
+  border-bottom: var(--bw-hairline) solid var(--color-ink);
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-play-moment__track > li {
+  background-color: var(--color-paper);
+  border-right: var(--bw-hairline) solid var(--color-ink-40);
+  color: var(--color-ink-60);
+  flex: 1 1 0;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  padding-block: var(--space-6);
+  text-align: center;
+}
+
+.su-play-moment__track > li:last-child {
+  border-right: 0;
+}
+
+.su-play-moment__track > li[data-state='done'] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-play-moment__track > li[data-state='on'] {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 calc(-1 * var(--space-4)) 0 var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-play-moment__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-12);
+}
+
+/* The Table's Moment: another seat's beat, its words and its roll. */
+.su-play-moment__table {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.su-play-moment__note,
+.su-play-moment__table > p {
+  color: var(--color-ink-60);
+  font-size: var(--text-caption);
+  margin: 0;
+}
+
+/* The verb dock: the way back to the list, then the beat's verb, held at
+   the pane's foot while the beat's table runs past it. */
+.su-play-moment__dock {
+  align-items: center;
+  background-color: var(--color-paper);
+  border-top: var(--bw-hairline) solid var(--color-ink);
+  /* Into the pane's own padding, so nothing shows under it. */
+  bottom: calc(-1 * var(--space-8));
+  display: flex;
+  gap: var(--space-8);
+  justify-content: space-between;
+  padding: var(--space-8);
+  position: sticky;
+  z-index: 1;
+}
+
+@container play (width >= 64rem) {
+  .su-play-moment__dock {
+    bottom: calc(-1 * var(--space-12));
+  }
+}
+
+/* The Moment and the list: one after the other, as the pane's own items… */
+.su-play-moment-stack,
+.su-play-moment-split {
+  display: contents;
+}
+
+/* …or, with a beat on the Moment and room for two phone-wide columns (the
+   Act pane at about 38rem, from a 80rem window), side by side. */
+@container play (width >= 80rem) {
+  .su-play-moment-split {
+    align-items: start;
+    display: grid;
+    gap: var(--space-12);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .su-play-moment-split > .su-play-act-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  /* Its column is a phone's width: the filter and Find each take a line. */
+  .su-play-moment-split .su-play-act-head > div:last-child,
+  .su-play-moment-split .su-play-act-tools {
+    width: 100%;
+  }
+
+  .su-play-moment-split .su-play-act-find {
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
+
+/* The Actions list under the Moment: no box of its own, and hidden, still
+   mounted, while the Moment stands in its place below `lg`. */
+.su-play-act-list {
+  display: contents;
+}
+
+.su-play-act-list[hidden] {
+  display: none;
 }

@@ -1,0 +1,182 @@
+/**
+ * r4 A5 (SB4-09): at 0 SP nothing said a Critical Damage roll was due, and
+ * the change was not on the Feed. A vital that reaches 0 writes a Feed line
+ * and leads the table's strip with a button that rolls its table, until the
+ * roll lands (r7 A1, LG7-13: it was a toast that left on its own); off Play,
+ * a toast says it; any other change is quiet.
+ */
+import { afterEach, describe, expect, test } from 'bun:test'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { ReactElement } from 'react'
+import { toast } from 'sonner'
+import type { PlayRoll } from '../playRolls.model'
+import { clearPlayRolls, onPlayRoll, recordPlayRoll } from '../playRolls.model'
+import { screenNoticesNow } from '../tableStripSlot.model'
+import {
+  clearDownResults,
+  downResult,
+  isDown,
+  onPlayTableAsked,
+  zeroUnit,
+  zeroVitalNotice,
+  zeroVitalTable,
+} from '../zeroVital.model'
+
+const mech = { kind: 'mech', unit: { id: 'm-zero', name: 'Rig', chassisRef: 'mule' } } as const
+const pilot = {
+  kind: 'pilot',
+  unit: { id: 'p-zero', name: 'Vex Marlow', callsign: 'Hex' },
+} as const
+
+const line = (id: string) => toast.getToasts().find((t) => t.id === id)
+/** The strip's notice for a Down unit, keyed as its toast was. */
+const onStrip = (id: string) => screenNoticesNow().find((n) => n.key === id)
+const press = (id: string) => {
+  const button = onStrip(id)?.actions as ReactElement<{ onClick: () => void }> | undefined
+  button?.props.onClick()
+  return button !== undefined
+}
+
+describe('a vital at 0 says what happens next', () => {
+  afterEach(() => {
+    toast.dismiss()
+    clearPlayRolls()
+    clearDownResults()
+  })
+
+  test('which table: Critical Damage for a Mech’s SP, Critical Injury for a Pilot’s HP, none else', () => {
+    expect(zeroVitalTable(mech, 'currentSP')).toEqual({ label: 'SP', table: 'Critical Damage' })
+    expect(zeroVitalTable(pilot, 'currentHP')).toEqual({ label: 'HP', table: 'Critical Injury' })
+    expect(zeroVitalTable(mech, 'currentEP')).toBeNull()
+    expect(zeroVitalTable(pilot, 'currentAP')).toBeNull()
+  })
+
+  test('a Mech reaching 0 SP: a Feed line, and the strip leads with a button that asks for Critical Damage (r7 A1)', () => {
+    const heard: PlayRoll[] = []
+    const asked: string[] = []
+    const stopRolls = onPlayRoll((roll) => heard.push(roll))
+    const stopAsked = onPlayTableAsked((name) => asked.push(name))
+    try {
+      zeroVitalNotice(mech, 'currentSP', 6, 0)
+      expect(heard.map((r) => r.label)).toEqual(['Rig · SP 6→0 · roll on Critical Damage'])
+      expect(heard[0]?.rolls).toEqual([])
+      // On the strip, never a toast that leaves on its own.
+      expect(line('zero:m-zero:currentSP')).toBeUndefined()
+      expect(onStrip('zero:m-zero:currentSP')).toMatchObject({ rank: 'down', dismissible: false })
+      expect(press('zero:m-zero:currentSP')).toBe(true)
+      expect(asked).toEqual(['Critical Damage'])
+    } finally {
+      stopRolls()
+      stopAsked()
+    }
+  })
+
+  test('the toast’s one press rolls the table; its result is kept on the unit until it rises (r5 A1)', () => {
+    const asked: { name: string; roll: boolean }[] = []
+    const stopAsked = onPlayTableAsked((name, ask) => asked.push({ name, roll: ask.roll }))
+    try {
+      zeroVitalNotice(mech, 'currentSP', 6, 0)
+      press('zero:m-zero:currentSP')
+      expect(asked).toEqual([{ name: 'Critical Damage', roll: true }])
+      // The Tables section rolls it, and Play records the roll.
+      recordPlayRoll({
+        tableName: 'Critical Damage',
+        rolls: [18],
+        label: 'Critical Damage',
+        outcome: 'Core Damage',
+      })
+      expect(downResult('m-zero')).toBe('Critical Damage · 18 · Core Damage')
+      // Repaired off 0: the result is not kept any more.
+      zeroVitalNotice(mech, 'currentSP', 0, 3)
+      expect(downResult('m-zero')).toBeNull()
+    } finally {
+      stopAsked()
+    }
+  })
+
+  test('the result is shown once: the card names the row, and the strip lets go (r6 A4, r7 A1)', () => {
+    const stopAsked = onPlayTableAsked(() => undefined)
+    try {
+      zeroVitalNotice(mech, 'currentSP', 6, 0)
+      press('zero:m-zero:currentSP')
+      recordPlayRoll({
+        tableName: 'Critical Damage',
+        rolls: [19],
+        label: 'Critical Damage',
+        outcome: 'Core Damage: the whole row’s text, which the table marks',
+      })
+      expect(downResult('m-zero')).toBe('Critical Damage · 19 · Core Damage')
+      expect(onStrip('zero:m-zero:currentSP')).toBeUndefined()
+    } finally {
+      stopAsked()
+    }
+  })
+
+  test('Down is a vital at 0; an unset one reads full', () => {
+    expect(isDown(0)).toBe(true)
+    expect(isDown(3)).toBe(false)
+    expect(isDown(null)).toBe(false)
+    expect(isDown(undefined)).toBe(false)
+  })
+
+  test('a Pilot reaching 0 HP names Critical Injury, by callsign', () => {
+    const heard: PlayRoll[] = []
+    const stop = onPlayRoll((roll) => heard.push(roll))
+    try {
+      zeroVitalNotice(pilot, 'currentHP', 2, 0)
+      expect(heard.map((r) => r.label)).toEqual(['Hex · HP 2→0 · roll on Critical Injury'])
+    } finally {
+      stop()
+    }
+  })
+
+  test('with no Tables section listening a toast says it, with no button', () => {
+    zeroVitalNotice(mech, 'currentSP', 3, 0)
+    const said = line('zero:m-zero:currentSP')
+    expect(said).toBeTruthy()
+    expect(said && 'action' in said ? said.action : undefined).toBeUndefined()
+    expect(onStrip('zero:m-zero:currentSP')).toBeUndefined()
+  })
+
+  test('the strip lets go when the unit rises (r7 A1)', () => {
+    const stopAsked = onPlayTableAsked(() => undefined)
+    try {
+      zeroVitalNotice(pilot, 'currentHP', 2, 0)
+      expect(onStrip('zero:p-zero:currentHP')?.title).toBe(
+        'Hex is at 0 HP: roll on Critical Injury.'
+      )
+      zeroVitalNotice(pilot, 'currentHP', 0, 3)
+      expect(onStrip('zero:p-zero:currentHP')).toBeUndefined()
+    } finally {
+      stopAsked()
+    }
+  })
+
+  test('a change that does not end at 0, or began there, says nothing', () => {
+    const heard: PlayRoll[] = []
+    const stop = onPlayRoll((roll) => heard.push(roll))
+    try {
+      zeroVitalNotice(mech, 'currentSP', 6, 2)
+      zeroVitalNotice(mech, 'currentSP', 0, 0)
+      zeroVitalNotice(mech, 'currentEP', 4, 0)
+      zeroVitalNotice(null, 'currentSP', 4, 0)
+      expect(heard).toEqual([])
+      expect(toast.getToasts().filter((t) => String(t.id).startsWith('zero:'))).toEqual([])
+    } finally {
+      stop()
+    }
+  })
+
+  test('the unit is read from the store; a crawler has no such roll', () => {
+    const store = {
+      get: (kind: 'pilot' | 'mech', id: string) =>
+        kind === 'mech' && id === 'm-zero'
+          ? (mech.unit as unknown as Mech)
+          : (null as Pilot | null),
+    }
+    expect(zeroUnit(store, 'mech', 'm-zero')?.kind).toBe('mech')
+    expect(zeroUnit(store, 'pilot', 'nobody')).toBeNull()
+    expect(zeroUnit(store, 'crawler', 'c1')).toBeNull()
+  })
+})

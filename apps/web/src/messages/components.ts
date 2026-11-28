@@ -3,13 +3,29 @@
 import { messages } from './define'
 
 export const componentsCopy = messages({
+  undo: 'Undo',
+  // Make a copy runs at once; its notice stays, with the way to the copy.
+  madeCopy: 'Copied {name}.',
+  madeCopyWithMech: 'Copied {name}, with {mech}.',
+  openTheCopy: 'Open the copy',
+  backToTheOriginal: 'Back to the original',
+  copyTheMechToo: 'Copy the Mech too?',
+  pilotFliesMech: '{name} flies {mech}. A copy of the Pilot alone has no Mech.',
+  copyBoth: 'Copy both',
+  pilotOnly: 'Pilot only',
+  copying: 'Copying…',
+  couldNotBeCopied: '{name} could not be copied. Try again.',
+  changedTo: 'to',
+  ruleBreaking: 'Rule breaking',
   legendary: 'Legendary',
   advance: 'Advance',
   hybrid: 'Hybrid',
   core: 'Core',
   advanced: 'Advanced',
+  onThisPage: 'On this page',
   training: 'Training',
   abilities: 'Abilities',
+  abilityRules: 'Rules',
   trees: 'Trees',
   req: 'REQ',
   workshopManualP: 'Workshop Manual · p.{page}',
@@ -28,4 +44,11 @@ export const componentsCopy = messages({
   n404SalvageOperationFailed: '404 · Salvage operation failed.',
   orOpenAChapter: 'Or open a chapter',
   randsumDev: 'Randsum.dev',
+  takeAbilitiesFromAnyOfThese: ': take Abilities from any of these.',
+  upTo: 'Up to {count}',
+  stayThenOne: 'Stay {article} {className}: {tree}, then one {name} Ability.',
+  rollTheDice: 'Roll the Dice:',
+  thisPageWasBrokenDown:
+    'This page was broken down, relocated, or never existed. Search the Reference for it, or open a chapter.',
+  diceRollingPoweredBy: 'Dice rolling powered by',
 })

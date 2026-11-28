@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
@@ -47,14 +47,13 @@ describe('MechSheet — unresolved chassis (chassis=null)', () => {
 
     // The identity band stays available (maxima derive to 0, never crash): its
     // fields and the SP vitals gauge render even with no chassis resolved.
-    expect(screen.getByText(/pattern name/i)).toBeTruthy()
+    expect(screen.getByText(/mech name/i)).toBeTruthy()
     expect(screen.getAllByText('Structure Points').length).toBeGreaterThan(0)
     // The unresolvable system slug falls back to the one unknown-item line.
     expect(screen.getByText('mystery-system')).toBeTruthy()
-    // The Hold renders against a zero cargo cap.
-    expect(screen.getByText(/the hold/i)).toBeTruthy()
-    // Empty in Edit, it is one + Load cargo (its form opens on it).
-    expect(screen.getByRole('button', { name: '+ Load cargo' })).toBeTruthy()
+    // The Hold renders against a zero cargo cap, its intake open in Edit.
+    expect(document.querySelector('[data-storage-side="mech"]')?.textContent).toContain('Cargo')
+    expect(screen.getByLabelText(/new cargo name/i)).toBeTruthy()
   })
 
   test('no chassis-ability slab renders for an unknown chassis', () => {
@@ -63,5 +62,27 @@ describe('MechSheet — unresolved chassis (chassis=null)', () => {
     )
 
     expect(screen.queryByText(/chassis ability/i)).toBeNull()
+  })
+})
+
+describe('MechSheet — no chassis yet (r2 G2)', () => {
+  const blank: Mech = { ...fakeMech, id: 'mech-blank-1', chassisRef: '', systems: [] }
+
+  test('says so and offers the choice, in place of the system error', () => {
+    render(<MechSheet mech={blank} chassis={null} store={makeSingleUnitStore('mech', blank)} />)
+
+    expect(screen.queryByRole('alert')).toBeNull()
+    // The act stands beside the line that says it (the Chassis group below keeps its own).
+    const line = screen.getByText('No chassis yet').parentElement as HTMLElement
+    expect(within(line).getByRole('button', { name: 'Choose chassis' })).toBeTruthy()
+  })
+
+  test('read-only, it says so with nothing to press', () => {
+    render(
+      <MechSheet mech={blank} chassis={null} readOnly store={makeSingleUnitStore('mech', blank)} />
+    )
+
+    expect(screen.getByText('No chassis yet')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Choose chassis' })).toBeNull()
   })
 })

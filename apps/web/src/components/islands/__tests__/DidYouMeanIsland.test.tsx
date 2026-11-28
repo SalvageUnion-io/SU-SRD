@@ -40,6 +40,12 @@ describe('guessesFor', () => {
     expect(names).toContain('Gopher')
   })
 
+  test('the section in the address leads: /chassis/mulee/ guesses the Mule first (RR6-07)', () => {
+    const [first] = guessesFor(index, 'mulee', 'chassis')
+    expect(first?.entityName).toBe('Mule')
+    expect(first?.schemaName).toBe('chassis')
+  })
+
   test('caps the guesses at five', () => {
     expect(guessesFor(index, 'a').length).toBeLessThanOrEqual(5)
   })
@@ -72,6 +78,22 @@ describe('DidYouMeanIsland', () => {
     expect(screen.getAllByRole('link').some((link) => link.textContent?.includes('Gopher'))).toBe(
       true
     )
+  })
+
+  test('a mistyped listing is offered the listing, first', async () => {
+    render(<DidYouMeanIsland pathname="/chasis/" />)
+    expect(await screen.findByRole('heading', { name: 'Did you mean' })).toBeTruthy()
+    const links = screen.getAllByRole('link')
+    expect(links[0]?.textContent).toBe('All Chassis: the full list')
+    expect(links[0]?.getAttribute('href')).toBe('/chassis/')
+  })
+
+  test('a miss under an entry is offered its listing and the entry itself', async () => {
+    render(<DidYouMeanIsland pathname="/chassis/atlas/patterns/" />)
+    expect(await screen.findByRole('heading', { name: 'Did you mean' })).toBeTruthy()
+    const hrefs = screen.getAllByRole('link').map((link) => link.getAttribute('href'))
+    expect(hrefs[0]).toBe('/chassis/')
+    expect(hrefs[1]).toBe('/chassis/atlas/')
   })
 
   test('says so when nothing is close', async () => {

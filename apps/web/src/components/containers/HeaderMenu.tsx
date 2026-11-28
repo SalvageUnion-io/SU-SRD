@@ -103,13 +103,15 @@ type HeaderMenuProps = {
    * The `button` and `overflow` variants' Size: `mini` (default), an action
    * chip; `compact` where it sits on a line of Compact controls (Play's bar,
    * ruleset §4.7); `full` on a line of Full ones (a wizard's action bar). Its
-   * glyphs take the same Size (`iconSize`, hard rule R23).
+   * glyphs take the same Size (`iconSize`, chrome K11).
    */
   size?: 'mini' | 'compact' | 'full'
   /** The `segment` trigger is pressed (its `SegmentedOption`'s): its option is the chosen one. */
   pressed?: boolean
   /** The trigger opens nothing (a `segment` with nothing to choose). */
   disabled?: boolean
+  /** Told when the menu opens or closes: a row that names what it will do asks then (a sheet's Undo). */
+  onOpenChange?: (open: boolean) => void
 }
 
 const TRIGGER = {
@@ -186,12 +188,13 @@ export function HeaderMenu({
   size = 'mini',
   pressed,
   disabled,
+  onOpenChange,
 }: HeaderMenuProps) {
   const filled = sections.filter((section) => section.length > 0)
   const overflow = variant === 'overflow'
   // The button variant is the shared Button's own classes, focus ring included;
   // the segment variant IS a `SegmentedOption` (its `render`), so `aria-pressed`
-  // stays Segmented's (hard rule R29).
+  // stays Segmented's (chrome K10).
   const triggerClass =
     variant === 'button'
       ? `${buttonVariants({ size })}${className ? ` ${className}` : ''}`
@@ -203,7 +206,7 @@ export function HeaderMenu({
   const triggerStyle = variant === 'masthead' ? TRIGGER : undefined
 
   return (
-    <Menu.Root>
+    <Menu.Root {...(onOpenChange ? { onOpenChange: (open: boolean) => onOpenChange(open) } : {})}>
       <Menu.Trigger
         className={variant === 'masthead' ? cn(triggerClass, TRIGGER_CAPS) : triggerClass}
         style={triggerStyle}

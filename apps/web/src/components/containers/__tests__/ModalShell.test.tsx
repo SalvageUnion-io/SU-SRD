@@ -63,16 +63,26 @@ describe('ModalShell', () => {
     expect(screen.queryByText('Content')).toBeNull()
   })
 
-  test('title is included in an sr-only element for accessibility', () => {
+  test('the title is said once: the visible heading names the dialog (r6 F8)', () => {
     render(
       <ModalShell open={true} onOpenChange={() => {}} title="Accessible Title">
         <p>Content</p>
       </ModalShell>
     )
-    // Dialog.Title renders visually hidden (`.su-sr-only`) — it's in document.body (portaled)
-    const srOnlyEls = document.body.querySelectorAll<HTMLElement>('.su-sr-only')
-    const titleEl = Array.from(srOnlyEls).find((el) => el.textContent === 'Accessible Title')
-    expect(titleEl).toBeTruthy()
+    expect(screen.getAllByText('Accessible Title')).toHaveLength(1)
+    expect(screen.getByRole('heading', { name: 'Accessible Title' })).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'Accessible Title' })).toBeTruthy()
+    expect(screen.getByRole('dialog').getAttribute('aria-describedby')).toBeNull()
+  })
+
+  test('a bare dialog, which draws its own frame, is named by a hidden title', () => {
+    render(
+      <ModalShell open={true} onOpenChange={() => {}} title="Bare Title" bare>
+        <p>Content</p>
+      </ModalShell>
+    )
+    const srOnly = Array.from(document.body.querySelectorAll<HTMLElement>('.su-sr-only'))
+    expect(srOnly.filter((el) => el.textContent === 'Bare Title')).toHaveLength(1)
   })
 
   test('role="alertdialog" renders an alert dialog instead of a dialog', () => {
@@ -91,12 +101,11 @@ describe('ModalShell', () => {
         <p>This cannot be undone.</p>
       </ModalShell>
     )
-    // Only the visible stamp and the sr-only Dialog.Title carry the title; the
-    // sr-only Description that would restate it is not rendered.
-    expect(screen.getAllByText('Delete Mira Cole?')).toHaveLength(2)
+    // Only the visible heading carries the title; no hidden Description restates it.
+    expect(screen.getAllByText('Delete Mira Cole?')).toHaveLength(1)
   })
 
-  // Chrome K7 / hard rule R24: three widths, and no other.
+  // Chrome K7: three widths, and no other.
   for (const [width, cap] of [
     ['narrow', '28rem'],
     ['default', '48rem'],
@@ -130,7 +139,7 @@ describe('ModalShell', () => {
     expect(screen.getByRole('dialog').className).toBe('')
   })
 
-  test('the danger band declares an ink ground for its ×; the pilot band does not (R19)', () => {
+  test('the danger band declares an ink ground for its ×; the pilot band does not (K1)', () => {
     const { unmount } = render(
       <ModalShell open={true} onOpenChange={() => {}} title="Delete" tone="danger">
         <p>Content</p>

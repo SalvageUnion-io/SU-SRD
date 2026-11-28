@@ -8,7 +8,10 @@ import { isNumericTechLevel } from 'salvageunion-reference/rules'
  *  - **A Vehicle or a Drone** is scrapped for its Salvage Value in Scrap of
  *    its Tech Level (p.246). Which of its Systems or Modules can be salvaged is the
  *    Mediator's call, so none is offered here.
- *  - Everything else (NPCs, squads, creatures, Bio-Titans, Meld) leaves no
+ *  - **A Bio-Titan** is salvaged as though it were Scrap, for Bio-Salvage
+ *    equal to its SP (Core Book p.275, r8 B7): its own bucket in the
+ *    crawler's pool, never Scrap of a Tech Level.
+ *  - Everything else (NPCs, squads, creatures, Meld) leaves no
  *    salvage the rules price in Scrap of Tech 1–6.
  *
  * Pure: the caller reads the entity and the items its pattern mounts from the
@@ -30,6 +33,7 @@ export type WreckPart = {
 export type Wreck =
   | { kind: 'mech'; parts: WreckPart[] }
   | { kind: 'scrap'; techLevel: number; salvageValue: number }
+  | { kind: 'bio'; bioSalvage: number }
 
 /** A System or Module a mech's pattern mounts, as printed, and its reference record. */
 export type MountedItem = {
@@ -64,6 +68,10 @@ export function wreckOf(
     return techLevel === undefined || salvageValue === 0
       ? null
       : { kind: 'scrap', techLevel, salvageValue }
+  }
+  if (refSchema === 'bio-titans') {
+    const bioSalvage = salvageValueOf(entity.structurePoints)
+    return bioSalvage === 0 ? null : { kind: 'bio', bioSalvage }
   }
   if (refSchema !== 'chassis') return null
   const parts: WreckPart[] = [

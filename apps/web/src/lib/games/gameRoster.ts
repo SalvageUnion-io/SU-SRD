@@ -18,10 +18,12 @@
 
 import type { Container } from 'game-domain/container'
 import { sameContainer } from 'game-domain/container'
-import type { SheetKind } from 'game-domain/entityKinds'
+import type { EntityKind, SheetKind } from 'game-domain/entityKinds'
 import { sheetPath } from 'game-domain/entityKinds'
 import { hasMediator, runsTable } from 'game-domain/games/roles'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
+import { libGamesCopy } from '../../messages/lib-games'
 import type { OwnerChip } from '../ownership/ownerChip'
 import { ownerChipFor } from '../ownership/ownerChip'
 
@@ -160,13 +162,27 @@ export function tableCapabilities(args: {
     hasCrawler,
     canRaiseCrawler: tableRunner,
     canAddCrew,
-    addCrewBlocked: canAddCrew ? null : 'Only members of this Game can bring builds into it.',
+    addCrewBlocked: canAddCrew ? null : libGamesCopy('onlyMembersCanBring'),
     canOfferUnassigned: tableRunner,
   }
 }
 
+/** The Game page's crew add controls (+ New…, Add from Training Bay), which the Mediator's screen links to. */
+export const ADD_CREW_ANCHOR = 'add-crew'
+
+/** The Games page's Mediator's Kit (its Encounters and NPCs), which the sub-nav and a Game's prep door open. */
+export const MEDIATORS_KIT_ANCHOR = 'mediators-kit'
+
 /** A Game as `games.listMine` returns it, as far as moving goes. */
 export type MoveTargetGame = { _id: string; name: string; tableRunner: boolean }
+
+/**
+ * What "in no Game" is called for a kind: an NPC is kept in the Mediator's
+ * Kit (on the Games page), everything else in the Training Bay (glossary §2).
+ */
+export function homeName(kind: EntityKind): string {
+  return kind === 'npc' ? libGamesCopy('mediatorsKit') : PRODUCT.build
+}
 
 /** One option in a move control: where it goes, and what it is called. */
 export type MoveDestination = { container: Container; label: string }
@@ -191,7 +207,7 @@ export function moveDestinations(args: {
   current: Container
   games: readonly MoveTargetGame[]
 }): MoveDestination[] {
-  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: PRODUCT.build }
+  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: homeName(args.kind) }
   const toGame = (g: MoveTargetGame): MoveDestination => ({
     container: { kind: 'game', gameId: g._id },
     label: g.name,
@@ -206,7 +222,7 @@ export function moveDestinations(args: {
       ? shelf
       : currentGame !== undefined
         ? toGame(currentGame)
-        : { container: current, label: 'Unknown Game' }
+        : { container: current, label: libGamesCopy('unknownGame') }
   const others = (destinations: MoveDestination[]) =>
     destinations.filter((d) => !sameContainer(d.container, current))
 
@@ -326,7 +342,7 @@ export function ownableRows(args: {
       kind: args.kind,
       serverId: row._id,
       appId: row.appId,
-      name: nameOf(row.body, args.kind === 'pilot' ? 'Pilot' : 'Mech'),
+      name: args.kind === 'pilot' ? pilotLabel(bodyOf(row.body)) : nameOf(row.body, 'Mech'),
       ownerId: row.ownerId,
       owner,
       localId,
@@ -365,7 +381,7 @@ export function crawlerRows(args: {
       kind: 'crawler' as const,
       serverId: row._id,
       appId: row.appId,
-      name: nameOf(row.body, 'Union Crawler'),
+      name: nameOf(row.body, libGamesCopy('unionCrawler')),
       ownerId: null,
       owner: null,
       localId: row.appId !== null && args.localIds.has(row.appId) ? row.appId : null,

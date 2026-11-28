@@ -201,7 +201,7 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
     page,
     context,
   }) => {
-    await buildPilot(page, 'Offline Keeper', 'Lantern')
+    await buildPilot(page, 'Lantern', 'Offline Keeper')
     await openSheetFor(page, 'Offline Keeper')
     await editSheet(page)
 
@@ -232,7 +232,7 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
       context,
     }) => {
       await buildMech(page, 'Outbox Mule')
-      await buildPilot(page, 'Kept On This Device', 'Ember')
+      await buildPilot(page, 'Ember', 'Kept On This Device')
       await openSheetFor(page, 'Kept On This Device')
       await requireServiceWorker(page)
       await expect(page.getByText('Kept On This Device').first()).toBeVisible()
@@ -251,15 +251,15 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
       let ep = 0
       try {
         await expect(page.getByRole('status', { name: /Not connected/ })).toBeVisible()
-        hp = (await stepDown(page, 'Kept On This Device', 'HP')) - 1
-        ep = (await stepDown(page, 'Outbox Mule', 'EP')) - 1
+        hp = (await stepDown(page, 'Kept On This Device', 'Hit Points')) - 1
+        ep = (await stepDown(page, 'Outbox Mule', 'Energy Points')) - 1
 
         await page.reload()
         await waitForReady(page)
         await expect(page).toHaveTitle(/SalvageUnion\.io/)
         await expect(page.getByRole('status', { name: /Not connected/ })).toBeVisible()
-        await expectVital(page, 'Outbox Mule', 'EP', ep)
-        await expectVital(page, 'Kept On This Device', 'HP', hp)
+        await expectVital(page, 'Outbox Mule', 'Energy Points', ep)
+        await expectVital(page, 'Kept On This Device', 'Hit Points', hp)
 
         // The Training Bay lists it too: the copy is the roster, not one page.
         await page.goto(at('/'))
@@ -276,8 +276,8 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
       // Sent: the outbox empties once the server has answered every op…
       await expect.poll(() => outboxLength(page), { timeout: 20_000 }).toBe(0)
       // …so what the sheets show now is the server's.
-      await expectVital(page, 'Kept On This Device', 'HP', hp)
-      await expectVital(page, 'Outbox Mule', 'EP', ep)
+      await expectVital(page, 'Kept On This Device', 'Hit Points', hp)
+      await expectVital(page, 'Outbox Mule', 'Energy Points', ep)
     })
   })
 })

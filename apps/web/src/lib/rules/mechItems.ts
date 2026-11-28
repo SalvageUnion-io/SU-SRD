@@ -53,7 +53,7 @@ export function actionEconomy(action: RefMetaAction, hotX?: number): MechItemEco
   const traits = action.traits ?? []
   const epCost = typeof action.activationCost === 'number' ? action.activationCost : 0
   const heat = traits
-    .filter((t) => t.type === 'hot')
+    .filter((t) => t.type === 'Hot')
     .reduce(
       (sum, t) =>
         sum +
@@ -61,7 +61,7 @@ export function actionEconomy(action: RefMetaAction, hotX?: number): MechItemEco
       0
     )
   const maxUses = traits
-    .filter((t) => t.type === 'uses')
+    .filter((t) => t.type === 'Uses')
     .reduce((m, t) => Math.max(m, traitAmount(t)), 0)
   return { epCost, heat, maxUses }
 }

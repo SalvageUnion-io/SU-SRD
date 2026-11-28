@@ -42,6 +42,8 @@ export type FakeExecute = {
   sent: Array<'edit' | 'followUp'>
   /** Whether `deferReply` was called, and with what. */
   deferred: { called: boolean; ephemeral: boolean }
+  /** How many times `launchActivity` was called. */
+  launched: { count: number }
 }
 
 export type FakeExecuteOptions = {
@@ -61,6 +63,10 @@ export type FakeExecuteOptions = {
   channelName?: string | null
   /** Whether the member holds Manage Channels there; null (a DM) by default. */
   manageChannels?: boolean | null
+  /** The channel's category; none by default. */
+  categoryId?: string | null
+  /** The server; none (a DM) by default. */
+  guildId?: string | null
 }
 
 export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
@@ -69,6 +75,7 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
   const followUps: ReplyArg[] = []
   const sent: Array<'edit' | 'followUp'> = []
   const deferred = { called: false, ephemeral: false }
+  const launched = { count: 0 }
   const strings = options.strings ?? {}
   const booleans = options.booleans ?? {}
 
@@ -91,6 +98,8 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
     channelId: options.channelId === undefined ? 'channel-1' : options.channelId,
     channelName: options.channelName === undefined ? 'salvage-run' : options.channelName,
+    categoryId: options.categoryId ?? null,
+    guildId: options.guildId ?? null,
     manageChannels: options.manageChannels ?? null,
     targetMessage: options.targetMessage ?? null,
     reply: (arg: ReplyArg) => {
@@ -112,9 +121,13 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
       sent.push('followUp')
       return Promise.resolve()
     },
+    launchActivity: () => {
+      launched.count += 1
+      return Promise.resolve()
+    },
   }
 
-  return { interaction, replies, edits, followUps, sent, deferred }
+  return { interaction, replies, edits, followUps, sent, deferred, launched }
 }
 
 export type FakeAutocomplete = {

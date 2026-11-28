@@ -1,7 +1,7 @@
 /**
  * useTableMode — whether a phone's Play shows table mode (play.md §11): one
  * focused screen in place of the tabs. This device's choice, remembered
- * across visits; the TABLE toggle sets it, `PlayCockpit` reads it below `lg`.
+ * across visits; ⋯'s Table mode row sets it, `PlayCockpit` reads it below `lg`.
  *
  * One value shared by both, so module state behind `useSyncExternalStore`;
  * storage is a convenience (`safeLocalStorage`), and without it the toggle

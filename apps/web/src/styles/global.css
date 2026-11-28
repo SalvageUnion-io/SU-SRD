@@ -5,6 +5,8 @@
  */
 /* The page layouts. */
 @import './pages.css';
+@import './pages-class.css';
+@import './pages-docs.css';
 /* The Discord page's screenshots, in Discord's colours. */
 @import './discord-reply.css';
 /* The /about junk slab, the one CSS illustration. */

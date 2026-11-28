@@ -58,9 +58,9 @@ const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
 const KOFI_CODE = 'C3Z82382ZC'
 
 const TITLE = pageTitle(pagesCopy('about'))
-const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and its app: the ${PRODUCT.build}, where you build characters, and ${PRODUCT.play}, where you play them.`
+const DESCRIPTION = pagesCopy('aboutDescription', { build: PRODUCT.build, play: PRODUCT.play })
 
-const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
+const imageAltText = pagesCopy('mapOfTheEldridgeCoast')
 
 /** The junk slab's padding; `.su-pilot-panel` (global.css) is the torn hull panel. */
 const PANEL = {
@@ -302,7 +302,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                     <Fragment key={name}>
                       {i > 0 && (
                         <span className="su-carved-text" style={PILOT_GAP}>
-                          &ensp;&ensp;
+                          {'\u2002\u2002'}
                         </span>
                       )}
                       <span className={cn('su-carved-text', PILOT_CAPS)} style={PILOT}>
@@ -331,7 +331,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           {/* What is this? */}
           <SlabSection as="h2" title={pagesCopy('whatIsThis')} bodyStyle={PROSE} page>
             <p style={PARAGRAPH}>
-              This is an unofficial, community-built System Reference Document (SRD) for{' '}
+              {pagesCopy('thisIsAnUnofficialCommunity')}{' '}
               <InlineRef
                 href="https://leyline.press/pages/salvage-union"
                 target="_blank"
@@ -340,7 +340,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               >
                 {pagesCopy('salvageUnion')}
               </InlineRef>
-              , a post-apocalyptic mech tabletop RPG published by{' '}
+              {pagesCopy('aPostApocalypticMech')}{' '}
               <InlineRef
                 href="https://leyline.press"
                 target="_blank"
@@ -349,28 +349,22 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               >
                 {pagesCopy('leylinePress')}
               </InlineRef>
-              . It provides a searchable, browsable reference for all game content released under
-              the Salvage Union OGL.
+              {pagesCopy('itProvidesASearchable')}
             </p>
             <p style={PARAGRAPH}>
-              Its app is the character builder and game manager: build pilots, mechs, and crawlers
-              in the{' '}
+              {pagesCopy('itsAppIsTheCharacter')}{' '}
               <InlineRef href={appPath('/')} style={BOLD}>
                 {PRODUCT.build}
               </InlineRef>
-              , then run them at the table in{' '}
-              <InlineRef href={appPath('/play/')} style={BOLD}>
+              {pagesCopy('thenRunThemAtThe')}{' '}
+              <InlineRef href={appPath('/games/')} style={BOLD}>
                 {PRODUCT.play}
               </InlineRef>
-              , with live sheets you can share. Reading needs no account: the Starter Set and any
-              sheet shared by link open signed out. Sign in with Discord to build, and everything
-              you make saves to your account.
+              {pagesCopy('withLiveSheetsYouCan')}
             </p>
             <p style={PARAGRAPH}>{pagesCopy('bothAreOpenSourceAnd')}</p>
             <p>
-              I am not the owner or publisher of this content. Salvage Union and all associated
-              names, marks, characters, and artwork are the property of Leyline Press. Game text and
-              mechanics are used under the{' '}
+              {pagesCopy('iAmNotTheOwner')}{' '}
               <InlineRef
                 href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
                 target="_blank"
@@ -379,9 +373,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               >
                 {pagesCopy('salvageUnionOpenGameLicence')}
               </InlineRef>
-              . Artwork is not covered by that licence and is reproduced with the special permission
-              of Leyline Press. This is an unofficial fan project, and is not affiliated with
-              Leyline Press.
+              {pagesCopy('artworkIsNotCoveredBy')}
             </p>
           </SlabSection>
 
@@ -513,7 +505,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 style={MAP}
               />
               <p className="su-print-ink" style={MAP_CREDIT}>
-                Created using{' '}
+                {pagesCopy('createdUsing')}{' '}
                 <a
                   href="https://shmeppy.com"
                   target="_blank"

@@ -73,6 +73,7 @@ export function NpcSheetView({ id }: { id: string }) {
           crewing={crewingOf(links, id, crawlerName)}
           confirm={confirm}
           onDeleted={() => void navigate({ to: '/' })}
+          onOpenCopy={(npcId) => void navigate({ to: '/npcs/$id', params: { id: npcId } })}
         />
         {dialog}
       </SheetModeContext.Provider>

@@ -1,38 +1,54 @@
 import type { ElementType, ReactNode } from 'react'
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import { getChoices, toEntityModel } from 'salvageunion-reference'
+import { RowRules } from '../../../build/dash/RowRules'
 import { cn } from '../../../lib/cn'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Slab } from '../../atoms/Slab'
+import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
+import { NeighbourRow } from '../../compositions/NeighbourRow'
 import { SlabSection } from '../../containers/SlabSection'
-import { Entity } from '../../entity/Entity'
+import { ChipLink, factRef, statTerm, TermChip } from '../../entity'
+import { useEntitySurface } from '../../entity/entitySurfaceContext'
+import { Mention } from '../../entity/forms/Mention'
+import { ProseSection } from '../../ProseSection'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
+import { splitActions } from './actionSplit'
+import { ChoiceRegion } from './ChoiceRegion'
 import type { Down } from './cardChrome'
 import { cardKey, nestedTitleLevel, stackedTitleLevel } from './cardHelpers'
-import { pageBodyStats } from './entityPage'
-import { PatternLinkRows } from './PatternListRow'
+import { pageBodyStats, pageStatLine } from './entityPage'
+import { ActionMinis } from './NestedCards'
+import { PatternLedger } from './PatternLedger'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
  * CardPage — the card when it IS the page (`presentation="page"`). No frame,
- * header or footer: the page's `ChapterBand` carries
- * the title and stamps, its `ChapterFoot` the citation. The line art is the
- * hero on the left; beside it a chassis's stats, inline and first, then the
- * prose and the chassis ability (every other entity's stats ride the band:
- * `EntityPageStamps`); then everything
- * the entity carries, full width — its table, its other actions, its nested cards and its patterns as
- * link rows. A pattern page leads the right column with the pattern itself
- * (`opening`), then the base chassis's prose under its own slab.
+ * header or footer: the page's `ChapterBand` carries the title and stamps, its
+ * `ChapterFoot` the citation. The card decides what each part is
+ * (`ReferenceEntityCardInner`); this lays the parts out as a page.
  *
- * The card decides what each part is (`ReferenceEntityCardInner`); this lays
- * the parts out as a page. Layout is `.su-entity-page*` (`styles/partials/entity-page.css`), which
- * keeps this DOM order at every width, so tab order matches what you see.
+ * **Every entity's Page** (`ManualPage`, `.su-manual`, ruleset §1.7): the
+ * numbers first, every book stat in the stat order (§2.6) as the book's stat
+ * column, four to a row. Then the rules: the chassis ability and the actions
+ * as the app's action Minis (`ActionMinis`: an action's own rules text), the
+ * nested cards, the table, the patterns as one Ledger (`PatternLedger`). The
+ * side column (from `lg`, floated right so the rules run the full measure
+ * once it ends) is the art with the entity's own words under it, headed
+ * Description; with no art it is the Description alone. Words that hold the
+ * entity's choices are rules, so they lead the rules column instead. A phone
+ * reads stats, art, rules, Description. A chassis leads with its stats and
+ * its ability, the art after them (on a phone a short band, RR6-06).
+ *
+ * **A pattern's page and a guide's** keep the art-led layout
+ * (`.su-entity-page*`, `styles/partials/entity-page.css`): the line art as the
+ * hero on the left; beside it the chassis's stats, the pattern itself
+ * (`opening`), the base chassis's prose under its own slab, the chassis
+ * ability and the pattern's loadout; a guide's steps follow its prose.
+ *
+ * Both keep their DOM order at every width, so tab order matches what you see.
  */
-
-/** A neighbour's Section names its relation, so its Mini drops the type stamp. */
-const NEIGHBOUR_OMIT = ['kind'] as const
-/** A neighbour opens its Page where the surface keeps it: the SRD's route, the app's dialog. */
-const LINK = { kind: 'link' } as const
 
 type CardPageProps = {
   entity: RefMetaEntity
@@ -55,6 +71,8 @@ type CardPageProps = {
   subLine: ReactNode
   /** The prose body (`bodyContent`), or null when there is none. */
   body: ReactNode
+  /** The body holds the entity's choices, so it is rules, not a description: it leads the rules column. */
+  bodyRules?: boolean
   /** The entity's own roll table, framed on the page. */
   table: ReactNode
   /** A guide's steps (`GuideSteps`): on a page they follow the prose, full section. */
@@ -69,6 +87,13 @@ type CardPageProps = {
   actionSeal?: { label: string; tone: string }
   /** A basic host's patterns, as full-width link rows. */
   patterns: RefObjectAnyPattern[]
+  /**
+   * `asideExtraContent`: under the art in the side track, after `after` on a
+   * phone; its own side track, after the main one in the markup.
+   */
+  aside?: ReactNode
+  /** `leadExtraContent`: the Page's first block, before the art in the markup. */
+  lead?: ReactNode
   /** `afterExtraContent`. */
   after: ReactNode
   sectionAs?: ElementType
@@ -96,7 +121,9 @@ export function CardPage({
   sections,
   actionSeal,
   patterns,
+  lead,
   after,
+  aside,
   sectionAs,
   action,
 }: CardPageProps) {
@@ -160,8 +187,241 @@ export function CardPage({
     </>
   )
 
-  // Preceding and Next side by side on one row, Next's label at its end.
-  const neighbours = abilityTreeNeighbours(entity)
+  // Preceding and Next side by side on one row, Next's at its end. The app's
+  // Page (a dialog, `openPage`) draws them here; the SRD's Page frame draws
+  // them at its foot, under the body and the sidebar (`EntityPageFrame`).
+  const neighbours = useEntitySurface().openPage ? abilityTreeNeighbours(entity) : []
+
+  // Every entity's Page is the manual's; a pattern's and a guide's keep the
+  // art-led layout below.
+  // A pattern's Page is the manual's too.
+  if (!guide) {
+    const line = pageStatLine(entity)
+    // The app's action Minis (`MiniGrid`: two or three across by the room),
+    // each its own rules text alone. An action's options are the Page's: they
+    // stand under the list, as a choice stands in a body.
+    const actionList = (list: ReferenceCardEntity[]) => (
+      <>
+        <ActionMinis
+          actions={list}
+          size="compact"
+          grid={list.length > 1}
+          hostName={action.hostName}
+          chassisName={action.chassisName}
+          hostDown={action.hostDown}
+        />
+        {list.flatMap((data) =>
+          (getChoices(data as RefMetaEntity) ?? []).map((choice) => (
+            <ChoiceRegion
+              key={choice.id}
+              choice={choice}
+              effTechLevel={undefined}
+              scalingParent={undefined}
+              selections={undefined}
+              onSelectionChange={undefined}
+              compact={false}
+              toneColor={undefined}
+              depth={0}
+              onPage
+              chassisName={action.chassisName}
+              NestedCard={NestedCard}
+            />
+          ))
+        )}
+      </>
+    )
+    // The words lead the main column, never the side (best, revision 8):
+    // the description reads as plain prose at the head of the main column: no
+    // strip, no panel. A Page whose body is named otherwise (a pattern's "Mule
+    // chassis") keeps its labelled section.
+    const loreOnly = !bodyLabel
+    const prose = (
+      <div className="su-entity-page__prose">
+        {subLine}
+        {/* A Page's words are a section, as a guide's step is: a term links at its first mention (RR7-12). */}
+        <ProseSection>{body}</ProseSection>
+      </div>
+    )
+    const words =
+      !opening &&
+      (subLine || body) &&
+      (loreOnly ? (
+        prose
+      ) : (
+        <SlabSection
+          as={sectionAs}
+          // A pattern's Page names the chassis it is built on ("Mule chassis").
+          title={bodyLabel ?? referenceEntityCopy('description')}
+          page
+          className="su-manual__lore"
+        >
+          {prose}
+        </SlabSection>
+      ))
+    // The chassis ability follows the stats in the main track (RR6-06): the
+    // rule a reader came for, beside the numbers, the art after it. Its tab is
+    // the paper of its panel.
+    // The strip's tab is the ability's name, "Chassis Ability" the label
+    // beside it; its body is the ability's words.
+    const ability =
+      leadActions.length > 0 &&
+      leadActions.map((data) => {
+        const lead = toEntityModel(data as RefMetaEntity)
+        return (
+          <SlabSection
+            key={lead.ref.slug}
+            as={sectionAs}
+            title={<Mention entityRef={lead.ref}>{lead.title}</Mention>}
+            count={referenceEntityCopy('chassisAbility')}
+            page
+            className="su-manual__ability"
+            bodyClassName={cn('su-entity-page__section-body', 'su-chassis-ability')}
+          >
+            <RowRules entity={data as RefMetaEntity} chassisName={action.chassisName} />
+          </SlabSection>
+        )
+      })
+    // A Page with no art (a system, a module, an
+    // ability) keeps its stats in the side track; a Page with art keeps them
+    // first in the main one.
+    const stats = line.length > 0 && (
+      <ul
+        className="su-grid su-stat-column su-manual__stats"
+        aria-label={`${action.hostName} stats`}
+      >
+        {line.map((stat) => {
+          const cell = (
+            <Stat
+              label={stat.label}
+              shortLabel={stat.shortLabel}
+              value={stat.value}
+              className="su-stat-column__stat"
+            />
+          )
+          // A stat is a term (E27): hover or focus Peeks its glossary entry and
+          // a press opens it, or, where the glossary has none (Cargo Capacity),
+          // a press opens its meaning in the app's words: a `title` says
+          // nothing on a phone.
+          const ref = factRef(stat)
+          const term = ref ? undefined : statTerm(stat)
+          return (
+            <li
+              key={stat.key}
+              className="su-stat-column__cell"
+              title={ref || term ? undefined : stat.hoverText}
+            >
+              {ref ? (
+                <ChipLink
+                  tag={{ key: stat.key, name: stat.label, param: String(stat.value), ref }}
+                  linkable
+                >
+                  {cell}
+                </ChipLink>
+              ) : term ? (
+                <TermChip term={term} value={String(stat.value)}>
+                  {cell}
+                </TermChip>
+              ) : (
+                cell
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    )
+    const statsAside = !hero && line.length > 0
+    // A Page with art keeps its actions in the main track, under the art's
+    // column. One without holds them in the side track, beside its words; a
+    // Page that is mostly actions splits them between the two (`splitActions`).
+    const split = hero ? { main: otherActions, side: [] } : splitActions(entity, otherActions)
+    const actionsSection = (list: ReferenceCardEntity[], className?: string) =>
+      list.length > 0 && (
+        // One Actions section on every Page: a crawler's ability too.
+        <SlabSection
+          as={sectionAs}
+          title={actionSeal ? actionSeal.label : referenceEntityCopy('actions')}
+          page
+          className={className}
+          bodyClassName="su-entity-page__section-body"
+        >
+          {actionList(list)}
+        </SlabSection>
+      )
+    // What stands under the art (`aside`) is a side track of its own, after
+    // the main track in the markup: a phone draws it last, so the markup
+    // reads in the order every width shows it (WCAG 1.3.2).
+    const side = !!hero || statsAside || split.side.length > 0
+    // A denizen the table fights (it carries actions and no Tech Level: a
+    // Bio-Titan, an NPC) is opened for its actions: on a phone its art is a
+    // short banner and the actions come before its words (`manual-page.css`).
+    const fought =
+      !!hero && split.main.length > 0 && 'actions' in entity && !('techLevel' in entity)
+    // A Page with art and an ability (a chassis) leads with both: the stats,
+    // the ability, then the art, a short band on a phone. The side track
+    // follows the main one in the markup, so Tab reads what the eye does.
+    const led = !!hero && !!ability
+    const sideTrack = side && (
+      <div className="su-manual__side">
+        {hero && <div className="su-manual__art">{hero}</div>}
+        {statsAside && stats}
+        {!led && ability}
+        {actionsSection(
+          split.side,
+          cn('su-manual__side-actions', split.main.length > 0 && 'su-manual__side-actions--more')
+        )}
+      </div>
+    )
+    return (
+      <div
+        className={cn(
+          'su-entity-page su-manual',
+          fought && 'su-manual--fought',
+          led && 'su-manual--led'
+        )}
+      >
+        {lead && <div className="su-manual__lead">{lead}</div>}
+        {!led && sideTrack}
+        {/* The main track, always beside a side
+            track (empty or not), so every Page's blocks share one width. */}
+        <div className="su-manual__main">
+          {loreOnly && !led && words}
+          {!statsAside && stats}
+          {led && ability}
+          {loreOnly && led && words}
+          {opening && <div className="su-entity-page__opening">{opening}</div>}
+          {!loreOnly && words}
+          {!side && ability}
+          {opening && loadout}
+          {actionsSection(split.main)}
+          {sections}
+          {table && <div className="su-entity-page__table">{table}</div>}
+          {patterns.length > 0 && (
+            // The Ledger's title tab names the section and keeps the count. A
+            // section of its own: the stat tiles before it are the Page's,
+            // never controls beside this list (C8).
+            <section>
+              <PatternLedger chassis={entity} patterns={patterns} />
+            </section>
+          )}
+          <NeighbourRow
+            as={sectionAs}
+            neighbours={neighbours.map(({ label, abilities }) => ({
+              label,
+              entities: abilities,
+              end: label === 'Next',
+            }))}
+          />
+          {after && <div className="su-manual__after">{after}</div>}
+        </div>
+        {led && sideTrack}
+        {aside && (
+          <div className="su-manual__side su-manual__side--after">
+            <div className="su-manual__aside">{aside}</div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -192,7 +452,8 @@ export function CardPage({
               <div className="su-entity-page__prose">
                 {bodyLabel && <Slab as={sectionAs} label={bodyLabel} flush />}
                 {subLine}
-                {body}
+                {/* A guide's opening is a section of it: a term links once (`ProseSection`). */}
+                {guide ? <ProseSection>{body}</ProseSection> : body}
               </div>
             )}
             {leadActions.length > 0 && (
@@ -200,7 +461,19 @@ export function CardPage({
                 {/* No band holds the chassis ability (the page's h1 is the
                     ChapterBand above), so its title stays a span: an h3 here
                     would skip a level. */}
-                {leadActions.map((data, index) => actionCard(data, index, undefined))}
+                {/* A chassis ability is text, never a
+                    box: its name, then every word of it. */}
+                {leadActions.map((data) => {
+                  const lead = toEntityModel(data as RefMetaEntity)
+                  return (
+                    <div key={lead.ref.slug} className="su-dash-item su-chassis-ability">
+                      <p className="su-dash-entity__name">
+                        <Mention entityRef={lead.ref}>{lead.title}</Mention>
+                      </p>
+                      <RowRules entity={data as RefMetaEntity} chassisName={action.chassisName} />
+                    </div>
+                  )
+                })}
               </div>
             )}
             {/* A pattern page's Systems and Modules follow its chassis
@@ -212,51 +485,6 @@ export function CardPage({
       )}
       {table && <div className="su-entity-page__table">{table}</div>}
       {!hero && beside}
-      {/* An ability's neighbours in its tree, under the rest,
-          each a collapsed header a line wide that links to its Page, never
-          its full content (R43), at the Page's nested level, a Compact
-          (ruleset N1), a named N8 exception
-          (`.su-entity-page__neighbours`). */}
-      {neighbours.length > 0 && (
-        <div className="su-entity-page__neighbour-row">
-          {neighbours.map(({ label, abilities }) => (
-            <SlabSection
-              key={label}
-              as={sectionAs}
-              title={label}
-              page
-              className={cn(
-                'su-entity-page__section',
-                label === 'Next' && 'su-entity-page__section--end'
-              )}
-              bodyClassName="su-entity-page__section-body su-entity-page__neighbours"
-            >
-              {abilities.map((ability) => (
-                <Entity
-                  key={ability.id}
-                  size="compact"
-                  context="play"
-                  entity={ability}
-                  mode={LINK}
-                  omit={NEIGHBOUR_OMIT}
-                />
-              ))}
-            </SlabSection>
-          ))}
-        </div>
-      )}
-      <div className="su-entity-page__wide">
-        <PatternLinkRows
-          chassis={entity}
-          chassisName={action.hostName}
-          patterns={patterns}
-          sectionAs={sectionAs}
-          host={{
-            hostDown: action.hostDown,
-            chassisName: action.chassisName,
-          }}
-        />
-      </div>
       <div className="su-entity-page__wide">{after}</div>
     </div>
   )

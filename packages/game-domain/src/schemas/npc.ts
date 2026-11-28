@@ -21,7 +21,7 @@ import { photoFields } from './photo'
  */
 
 /** A trait, in the package's own shape (`TraitSchema` in salvageunion-reference). */
-const NpcTraitSchema = z
+export const NpcTraitSchema = z
   .object({
     type: z.string().min(1),
     amount: z.union([z.number().int().min(0), z.string()]).optional(),
@@ -29,10 +29,25 @@ const NpcTraitSchema = z
   .strict()
 export type NpcTrait = z.infer<typeof NpcTraitSchema>
 
+/**
+ * The Reference's denizens an NPC can be designed from (ADR-067 §2): a book
+ * NPC, or any other kind the Opposition fields.
+ */
+export const NPC_TEMPLATE_KINDS = [
+  'npcs',
+  'squads',
+  'creatures',
+  'vehicles',
+  'drones',
+  'meld',
+  'bio-titans',
+] as const
+export type NpcTemplateKind = (typeof NPC_TEMPLATE_KINDS)[number]
+
 /** Where a built NPC started. Informational only: nothing re-derives from it. */
 const NpcTemplateRefSchema = z
   .object({
-    schema: z.enum(['npcs', 'crawler-bays', 'crawlers']),
+    schema: z.enum([...NPC_TEMPLATE_KINDS, 'crawler-bays', 'crawlers']),
     slug: z.string().min(1),
   })
   .strict()

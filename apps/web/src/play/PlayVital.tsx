@@ -3,21 +3,31 @@
  * `VitalGauge` (its Compact rung: label, value/max, the pips) and, while the
  * unit is live, its − / + (`steppers`: the `StepButton` pair an editable
  * `Stat` draws, ruleset §6.3). A live gauge is also the gauge's own slider (a
- * click on a pip, the arrow keys); a reference unit's is a read-out.
+ * click on a pip, the arrow keys), and its number is a button: pressed, it
+ * asks for an amount and takes or adds it in one write. A reference unit's
+ * is a read-out.
  *
  * In Downtime the mech's vitals say what the current step will restore:
  * `restoresTo` reads after the gauge as "→ 20", the gauge still showing what
  * the mech has now, since the step has not been applied.
+ *
+ * By keyboard a live vital is one Tab stop (`useVitalKeys`, r3 J4): ← / →
+ * move between its number, slider, − and +, and the amount form hands the
+ * focus back to the number it was opened from.
  *
  * Presentational: `onChange` is the box's write, called with the next value
  * already clamped to 0…max.
  */
 
 import { ArrowRight } from 'lucide-react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { VitalGauge } from '../components/app'
 import type { CSSVarStyle } from '../components/index'
-import { tokens, VitalGauge } from '../components/index'
+import { tokens } from '../components/index'
 import { playCopy } from '../messages/play'
+import { PlayVitalAmount } from './PlayVitalAmount'
+import { useVitalKeys } from './useVitalKeys'
 
 type VitalTone = 'pilot' | 'mech' | 'crawler' | 'adversary'
 
@@ -59,8 +69,11 @@ export type PlayVitalProps = {
   tone: VitalTone
   /** First 0-based segment that reads as danger when lit (Heat's redline). */
   danger?: number
-  /** Live: − / + and the slider write this. Absent, the vital is a read-out. */
-  onChange?: (next: number) => void
+  /**
+   * Live: − / + and the slider write this. Absent, the vital is a read-out.
+   * `note` is the amount entry's, when what was typed was capped.
+   */
+  onChange?: (next: number, note?: string) => void
   /** What the current Downtime step sets this vital to, when it changes it. */
   restoresTo?: number
 }
@@ -75,8 +88,47 @@ export function PlayVital({
   restoresTo,
 }: PlayVitalProps) {
   const live = onChange !== undefined
+  // "Take 3 damage" is one write: press the number, type the amount, − or +.
+  const [asking, setAsking] = useState(false)
+  // A digit typed on the number opens the amount with that digit in it (r7 C8, MD7-21).
+  const [seed, setSeed] = useState('')
+  const keys = useVitalKeys()
+  // The amount form closed: the focus goes back to the number that opened it (r3 J4).
+  const back = useRef(false)
+  useEffect(() => {
+    if (asking || !back.current) return
+    back.current = false
+    keys.ref.current?.querySelector<HTMLElement>('.su-vital-gauge__value-button')?.focus()
+  }, [asking, keys.ref])
+  const digitOrKeys = (event: KeyboardEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement
+    const digit = /^[0-9]$/.test(event.key) && !event.altKey && !event.ctrlKey && !event.metaKey
+    if (!digit || !target.classList.contains('su-vital-gauge__value-button')) {
+      keys.onKeyDownCapture(event)
+      return
+    }
+    event.preventDefault()
+    setSeed(event.key)
+    setAsking(true)
+  }
+  if (live && asking) {
+    return (
+      <PlayVitalAmount
+        label={label}
+        value={value}
+        max={max}
+        onChange={onChange}
+        initial={seed}
+        onClose={() => {
+          back.current = true
+          setSeed('')
+          setAsking(false)
+        }}
+      />
+    )
+  }
   return (
-    <div style={ROW}>
+    <div style={ROW} {...(live ? { ...keys, onKeyDownCapture: digitOrKeys } : {})}>
       <div style={GAUGE}>
         <VitalGauge
           size="compact"
@@ -85,7 +137,8 @@ export function PlayVital({
           max={max}
           danger={danger}
           readOnly={!live}
-          onChange={onChange}
+          onChange={onChange ? (next) => onChange(next) : undefined}
+          onValuePress={live ? () => setAsking(true) : undefined}
           steppers={live}
           style={TONES[tone]}
         />
@@ -96,7 +149,7 @@ export function PlayVital({
           role="note"
           aria-label={playCopy('restoresTo', { label, restoresTo })}
         >
-          {/* A value's change, a glyph at the line's Size (R23), never a text arrow. */}
+          {/* A value's change, a glyph at the line's Size (K11), never a text arrow. */}
           <ArrowRight size={tokens.iconSize.compact} aria-hidden="true" style={GLYPH} />{' '}
           {restoresTo}
         </span>

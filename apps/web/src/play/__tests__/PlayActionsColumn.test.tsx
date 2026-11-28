@@ -19,10 +19,15 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { mechMaxHeat, pilotMaxAP, resolveChassisRef } from 'salvageunion-reference/rules'
 import { mechFixture, pilotFixture, softLinkFixture } from '../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
-import { buildMechActions, hasCurrencyChoice } from '../../lib/rules/actionPatches'
+import { buildMechActions } from '../../lib/rules/actionList'
+import { hasCurrencyChoice } from '../../lib/rules/actionPatches'
 import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
-import { PLAY_TXN } from '../../replica/provenance'
+import { playTxn } from '../../replica/provenance'
+import { ACTION_TYPE_ORDER } from '../playActions.model'
 import type { PlayRoll } from '../playRolls.model'
+import { NoticeStack } from '../TableNoticeStack'
+import { useScreenNotices } from '../tableStripSlot.model'
+import { narrowViewport } from './narrowViewport'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
@@ -124,15 +129,34 @@ async function click(element: Element) {
   })
 }
 
-const onHand = () => screen.getByRole('list', { name: 'On hand' })
-/** The `<li>` of the action named `name`: the one whose Use or Cancel names it. */
+/** What is on hand: the groups by action type, then the Reactor and Mount. */
+function onHand(): HTMLElement {
+  const groups = document.querySelector<HTMLElement>('.su-play-timings')
+  if (!groups) throw new Error('nothing on hand')
+  return groups
+}
+/** The rows on hand, across every group. */
+const onHandRows = () => [...onHand().querySelectorAll('li[data-action-key]')]
+/**
+ * The action named `name`: the `<li>` whose Use, Cancel or Done names it, or
+ * the Moment it is lifted into while it resolves (ADR-068).
+ */
 function rowFor(name: string): HTMLElement {
   const button =
     screen.queryByRole('button', { name: `Use ${name}` }) ??
+    screen.queryByRole('button', { name: `Done with ${name}` }) ??
     screen.getByRole('button', { name: `Cancel ${name}` })
-  const li = button.closest('li')
+  const li = button.closest<HTMLElement>('li, [data-play-moment]')
   if (!li) throw new Error(`no row for ${name}`)
   return li
+}
+/** The `<li>` of the row whose head opens with `name`, Use or none. */
+function rowOf(name: string): HTMLElement {
+  const row = [...document.querySelectorAll<HTMLElement>('li[data-action-key]')].find((li) =>
+    li.textContent?.startsWith(`${name} (`)
+  )
+  if (!row) throw new Error(`no row named ${name}`)
+  return row
 }
 const use = (name: string) => screen.getByRole('button', { name: `Use ${name}` })
 
@@ -178,12 +202,129 @@ describe('under the Scene’s conditions', () => {
       />
     )
     const scene = within(screen.getByRole('list', { name: 'Scene conditions' }))
-    expect(scene.getByText('radiation storm')).toBeTruthy()
+    expect(scene.getByText('Radiation storm')).toBeTruthy()
     expect(scene.getByText('×2')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Push' }).getAttribute('title')).toBe(
       '+4 Heat, then the Heat Check'
     )
   })
+})
+
+describe('the Heat Check the rules call for (r6 A6)', () => {
+  /** The table's strip, as the root draws what the screen puts on it. */
+  function Strip() {
+    return <NoticeStack notices={useScreenNotices()} fixed />
+  }
+
+  test('at its Heat Capacity the boarded Mech’s Heat Check is the strip’s line, its Roll right there', async () => {
+    const probe = makeMech({ chassisRef: 'leviathan' })
+    const cap = mechMaxHeat(probe, resolveChassisRef(probe.chassisRef))
+    expect(cap).toBeGreaterThan(0)
+    const mech = makeMech({ chassisRef: 'leviathan', currentHeat: cap })
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <>
+        <Strip />
+        <Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />
+      </>
+    )
+    const due = `Heat ${cap}/${cap}: make a Heat Check`
+    // Said on the table's strip and on the Reactor's own row.
+    expect(screen.getAllByText(due)).toHaveLength(2)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Roll the Heat Check' }))
+    })
+    const reactor = document.querySelector('[data-action-key="reactor"]') as HTMLElement
+    expect(reactor.querySelector('[aria-live="polite"]')?.textContent).not.toBe('')
+    cleanup()
+    renderBoarded()
+    expect(screen.queryByRole('button', { name: 'Roll the Heat Check' })).toBeNull()
+  })
+
+  test('the Heat Check owed is the Moment; set aside behind the list, the strip’s Roll brings it back rolled', async () => {
+    const restore = narrowViewport()
+    try {
+      await owedHeatCheckOnAPhone()
+    } finally {
+      restore()
+    }
+  })
+
+  test('with an action in hand on a phone, the strip’s Heat Check rolls on the list, shown, the action kept', async () => {
+    const restore = narrowViewport()
+    try {
+      const probe = makeMech({ chassisRef: 'leviathan' })
+      const cap = mechMaxHeat(probe, resolveChassisRef(probe.chassisRef))
+      const mech = makeMech({ chassisRef: 'leviathan', currentHeat: cap })
+      const pilot = makePilot()
+      const { store } = stubStore(mech, pilot)
+      render(
+        <>
+          <Strip />
+          <Harness
+            pilot={pilot}
+            mech={mech}
+            situation="boarded"
+            store={store}
+            writes={[]}
+            initialResolving={{
+              ref: primaryKey(),
+              name: primary().name,
+              activated: false,
+              applied: false,
+            }}
+          />
+        </>
+      )
+      // The action holds the Moment; the owed check waits.
+      expect(document.querySelector('[data-play-moment] [data-action-key="reactor"]')).toBeNull()
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Roll the Heat Check' }))
+      })
+      const reactor = document.querySelector<HTMLElement>(
+        '.su-play-act-list [data-action-key="reactor"]'
+      )
+      expect(reactor?.closest('[hidden]')).toBeNull()
+      expect(reactor?.querySelector('[aria-live="polite"]')?.textContent).not.toBe('')
+      // The action is kept, a tap away.
+      expect(screen.getByRole('button', { name: `Back to ${primary().name}` })).toBeTruthy()
+    } finally {
+      restore()
+    }
+  })
+
+  async function owedHeatCheckOnAPhone() {
+    const probe = makeMech({ chassisRef: 'leviathan' })
+    const cap = mechMaxHeat(probe, resolveChassisRef(probe.chassisRef))
+    const mech = makeMech({ chassisRef: 'leviathan', currentHeat: cap })
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <>
+        <Strip />
+        <Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />
+      </>
+    )
+    const moment = () => document.querySelector<HTMLElement>('[data-play-moment]')
+    // Owed, with nothing else in hand: the Reactor's row on the Moment, in heat red.
+    expect(moment()?.querySelector('[data-action-key="reactor"]')).toBeTruthy()
+    expect(within(moment() as HTMLElement).getByRole('button', { name: 'Not now' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(within(moment() as HTMLElement).getByRole('button', { name: 'Back to List' }))
+    })
+    expect(moment()).toBeNull()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Roll the Heat Check' }))
+    })
+    // Back on the Moment, rolled there: it stays until its Done.
+    const reactor = moment()?.querySelector('[data-action-key="reactor"]') as HTMLElement
+    expect(reactor.querySelector('[aria-live="polite"]')?.textContent).not.toBe('')
+    await act(async () => {
+      fireEvent.click(within(moment() as HTMLElement).getByRole('button', { name: 'Done' }))
+    })
+    expect(moment()).toBeNull()
+  }
 })
 
 describe('the list', () => {
@@ -196,7 +337,32 @@ describe('the list', () => {
     }
     expect(list.getByRole('button', { name: 'Vent' })).toBeTruthy()
     expect(list.getByRole('button', { name: 'Dismount' })).toBeTruthy()
-    expect(screen.getByText('On hand · In Buzzard')).toBeTruthy()
+  })
+
+  test('on hand is grouped by action type, in the order of a turn; the Reactor and Mount close it', () => {
+    renderBoarded()
+    const headings = within(onHand())
+      .getAllByRole('heading', { level: 3 })
+      .map((h) => h.textContent?.replace(/\d+$/, '') ?? '')
+    expect(headings.at(-1)).toBe('Reactor and mount')
+    const types = headings.slice(0, -1)
+    expect(types.length).toBeGreaterThan(0)
+    const order = ACTION_TYPE_ORDER as readonly string[]
+    expect(types.every((type) => order.includes(type))).toBe(true)
+    expect(types).toEqual([...types].sort((a, b) => order.indexOf(a) - order.indexOf(b)))
+    // Each group's list is named for its type, and holds its rows.
+    for (const type of types) {
+      const rows = within(screen.getByRole('list', { name: type })).getAllByRole('listitem')
+      expect(rows.length).toBeGreaterThan(0)
+    }
+  })
+
+  test('under its type’s heading a row leaves its type chip out (C10)', () => {
+    renderBoarded()
+    const row = rowFor(primary().name)
+    const group = row.closest('ul')?.getAttribute('aria-label') ?? ''
+    expect((ACTION_TYPE_ORDER as readonly string[]).includes(group)).toBe(true)
+    expect(within(row).queryByText(group)).toBeNull()
   })
 
   test('Boarded in a mech that is gone: no mech’s actions, never another mech’s', () => {
@@ -231,13 +397,25 @@ describe('the list', () => {
     expect(keys.some((key) => key.startsWith('system:'))).toBe(false)
   })
 
+  test('on foot with no Mech to board, the Mount offers Build a new Mech, for this pilot in this Game (r5 B17)', () => {
+    const pilot = makePilot()
+    const { store } = stubStore(makeMech(), pilot)
+    render(
+      <Harness pilot={pilot} mech={null} situation="onFoot" gameId="g1" store={store} writes={[]} />
+    )
+    const mount = document.querySelector('[data-action-key="mount"]') as HTMLElement
+    expect(within(mount).getByText('No Mech to board')).toBeTruthy()
+    expect(within(mount).getByRole('link', { name: 'Build a new Mech' }).getAttribute('href')).toBe(
+      `/mechs/new?game=g1&pilot=${pilot.id}&back=play`
+    )
+  })
+
   test('on foot: the mech’s actions wait, collapsed, each saying it needs Boarded', async () => {
     const mech = makeMech()
     const pilot = makePilot()
     const { store } = stubStore(mech, pilot)
     render(<Harness pilot={pilot} mech={mech} situation="onFoot" store={store} writes={[]} />)
     expect(screen.queryByRole('button', { name: `Use ${primary().name}` })).toBeNull()
-    expect(screen.getByText('On hand · On foot')).toBeTruthy()
     const toggle = screen.getByRole('button', { name: 'Expand Not on hand' })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
     await click(toggle)
@@ -265,16 +443,15 @@ describe('the list', () => {
     renderBoarded()
     const filter = within(screen.getByRole('group', { name: 'Filter actions by type' }))
     expect(filter.getByRole('button', { name: 'All' }).getAttribute('aria-pressed')).toBe('true')
-    const before = within(onHand()).getAllByRole('listitem').length
+    const before = onHandRows().length
     await click(filter.getByRole('button', { name: 'Reaction' }))
     expect(filter.getByRole('button', { name: 'Reaction' }).getAttribute('aria-pressed')).toBe(
       'true'
     )
-    const reaction = screen.queryByRole('list', { name: 'On hand' })
-    const after = reaction ? within(reaction).getAllByRole('listitem').length : 0
+    const after = document.querySelector('.su-play-timings') ? onHandRows().length : 0
     expect(after).toBeLessThan(before)
     await click(filter.getByRole('button', { name: 'All' }))
-    expect(within(onHand()).getAllByRole('listitem').length).toBe(before)
+    expect(onHandRows().length).toBe(before)
   })
 
   test('Find narrows to the matching action', async () => {
@@ -292,7 +469,7 @@ describe('the list', () => {
 
   test('each action is a contentful Mini in the Mini grid, its text under its head', () => {
     renderBoarded()
-    const list = onHand()
+    const list = rowFor(primary().name).closest('ul') as HTMLElement
     expect(list.classList.contains('su-mini-grid')).toBe(true)
     expect(list.hasAttribute('data-play-list')).toBe(true)
     const token = rowFor(primary().name).querySelector('[data-contentful]')
@@ -301,6 +478,8 @@ describe('the list', () => {
     const useButton = use(primary().name)
     expect(useButton.closest('[data-chip-group]')).not.toBeNull()
     expect(useButton.classList.contains('su-btn--mini')).toBe(true)
+    // Every Use is rust (ruleset §1.4).
+    expect(useButton.classList.contains('su-btn--primary')).toBe(true)
   })
 
   test('nesting: no titled box, Compact or Card head sits inside another', () => {
@@ -309,18 +488,124 @@ describe('the list', () => {
   })
 })
 
+describe('companions and picks on the board (R65, R60)', () => {
+  const TURRET = 'automated-weapon-turret'
+
+  test('a companion’s actions are rows on the board, each naming the companion', () => {
+    const mech = makeMech()
+    const pilot = makePilot({
+      partners: [
+        {
+          id: 'pt-rex',
+          hostRef: 'mecha-companion',
+          hostSchema: 'equipment',
+          name: 'Rex',
+          systems: [costedSystem],
+          modules: [],
+        },
+      ],
+    } as unknown as Partial<Pilot>)
+    const { store } = stubStore(mech, pilot)
+    render(<Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />)
+    const rows = [
+      ...document.querySelectorAll<HTMLElement>('li[data-action-key^="partner:pt-rex:"]'),
+    ]
+    expect(rows.length).toBeGreaterThan(0)
+    for (const row of rows) expect(within(row).getByText('Rex')).toBeTruthy()
+    // The mech's own copy of the same System is a row of its own, on the mech.
+    const names = screen.getAllByRole('button', { name: `Use ${primary().name}` })
+    expect(names.length).toBe(2)
+    // A pilot's companion is reached on foot too.
+    cleanup()
+    render(<Harness pilot={pilot} mech={mech} situation="onFoot" store={store} writes={[]} />)
+    expect(
+      document.querySelector('.su-play-timings li[data-action-key^="partner:pt-rex:"]')
+    ).not.toBeNull()
+  })
+
+  test('a companion’s action spends the companion’s own EP, on its host’s record', async () => {
+    const mech = makeMech({ systems: [] })
+    const pilot = makePilot({
+      partners: [
+        {
+          id: 'pt-rex',
+          hostRef: 'mecha-companion',
+          hostSchema: 'equipment',
+          name: 'Rex',
+          systems: [costedSystem],
+          modules: [],
+          currentEP: 5,
+        },
+      ],
+    } as unknown as Partial<Pilot>)
+    const { store, calls } = stubStore(mech, pilot)
+    render(<Harness pilot={pilot} mech={mech} situation="onFoot" store={store} writes={[]} />)
+    const row = document.querySelector<HTMLElement>('li[data-action-key^="partner:pt-rex:"]')
+    if (!row) throw new Error('no companion row')
+    await click(within(row).getByRole('button', { name: `Use ${primary().name}` }))
+    const moment = document.querySelector<HTMLElement>('[data-play-moment]')
+    if (!moment) throw new Error('no Moment')
+    await click(within(moment).getByRole('button', { name: /^Activate/ }))
+    // The pilot's record, the companion's EP: never the mech's, never the pilot's AP.
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.type).toBe('pilot')
+    const patch = calls[0]?.patch as { partners?: { id: string; currentEP?: number }[] } | undefined
+    const partners = patch?.partners
+    expect(partners?.find((partner) => partner.id === 'pt-rex')?.currentEP).toBe(
+      Math.max(0, 5 - primary().epCost)
+    )
+  })
+
+  test('a pick made on the sheet (mech.itemChoices) reads on the row, and its model’s action is a row', () => {
+    const turret = resolveSystem(TURRET)
+    const action = turret ? (SalvageUnionReference.resolveActions(turret) ?? [])[0] : undefined
+    const choice = action?.choices?.find((c) => c.source?.kind === 'systemVariant')
+    const option = choice?.source?.kind === 'systemVariant' ? choice.source.options[0] : undefined
+    if (!action || !choice || !option?.name) throw new Error('no Turret Model choice')
+    const unpicked = renderBoarded({ mech: makeMech({ systems: [TURRET] }) })
+    expect(unpicked.mech.itemChoices).toBeUndefined()
+    for (const name of option.actions ?? []) {
+      expect(screen.queryByRole('button', { name: `Use ${name}` })).toBeNull()
+    }
+    cleanup()
+    renderBoarded({
+      mech: makeMech({
+        systems: [TURRET],
+        itemChoices: { [TURRET]: { [choice.id]: [option.name] } },
+      }),
+    })
+    // The picked model's own actions follow the turret's row.
+    for (const name of option.actions ?? []) {
+      expect(screen.getByRole('button', { name: `Use ${name}` })).toBeTruthy()
+    }
+    // The turret's own row is Passive, so it never opens: it says what was chosen as it stands.
+    const row = rowOf(action.name)
+    expect(row.closest('ul')?.getAttribute('aria-label')).toBe('Passive')
+    expect(within(row).queryByRole('button', { name: /^Use / })).toBeNull()
+    expect(row.querySelector('.su-play-act__picks')?.textContent).toContain(option.name)
+  })
+})
+
 describe('Use: the resolve, in the Compact', () => {
   test('Use opens the Compact in place with Activate and Roll, and Cancel in its head', async () => {
     const { writes } = renderBoarded()
     await click(use(primary().name))
     const row = rowFor(primary().name)
-    expect(row.getAttribute('data-open')).toBe('true')
+    // Lifted out of the list onto the Moment (ADR-068).
+    expect(row.matches('[data-play-moment]')).toBe(true)
     expect(within(row).getByRole('button', { name: /^Activate/ })).toBeTruthy()
     expect(within(row).getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
     expect(writes.filter((w) => w.name === 'seat.setResolving')).toHaveLength(1)
     await click(within(row).getByRole('button', { name: `Cancel ${primary().name}` }))
     expect(writes.at(-1)).toEqual({ name: 'seat.clearResolving' })
-    expect(row.getAttribute('data-open')).toBeNull()
+    expect(document.querySelector('[data-play-moment]')).toBeNull()
+  })
+
+  test('a Down Mech’s actions are not offered: Down, and repair in Downtime the way back (r6 A7)', () => {
+    renderBoarded({ mech: makeMech({ currentSP: 0 }) })
+    expect(screen.queryByRole('button', { name: `Use ${primary().name}` })).toBeNull()
+    const row = document.querySelector(`[data-action-key="${primaryKey()}"]`) as HTMLElement
+    expect(within(row).getByText('Down · repair it in Downtime')).toBeTruthy()
   })
 
   test('Activate writes the EP spend through the store', async () => {
@@ -330,8 +615,8 @@ describe('Use: the resolve, in the Compact', () => {
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('mech')
     expect(calls[0]?.patch.currentEP).toBe(Math.max(0, 6 - primary().epCost))
-    // Play's own Change Log tag.
-    expect(metas[0]).toEqual(PLAY_TXN)
+    // Play's own Change Log tag, naming the action that spent the points (r3 B4).
+    expect(metas[0]).toEqual(playTxn(primary().name))
     expect(screen.getByRole('button', { name: 'Activated ✓' })).toBeTruthy()
   })
 
@@ -360,18 +645,62 @@ describe('Use: the resolve, in the Compact', () => {
     }
   })
 
-  test('Apply is gated on a roll, commits without a store write, and Clear resets', async () => {
+  // r4 A3 (LG4-11): after Roll the focus sat on Push; after Apply it fell to the body.
+  // r6 A5: a roll that writes nothing has no Apply; the row's Done takes the keyboard.
+  test('keyboard: a roll puts the focus on Done, and Done hands it back to the row’s Use', async () => {
+    renderBoarded()
+    await click(use(primary().name))
+    const roll = screen.getByRole<HTMLButtonElement>('button', {
+      name: 'Roll the die on Core Mechanic',
+    })
+    roll.focus()
+    await click(roll)
+    const done = screen.getByRole<HTMLButtonElement>('button', {
+      name: `Done with ${primary().name}`,
+    })
+    expect(document.activeElement).toBe(done)
+    await click(done)
+    expect(document.activeElement).toBe(use(primary().name))
+  })
+
+  test('a keyboard turn: Use goes on to Roll, R rolls, A finishes, "?" lists the keys (r6 A13)', async () => {
+    renderBoarded()
+    const useButton = use(primary().name)
+    useButton.focus()
+    await click(useButton)
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Roll the die on Core Mechanic')
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'r' })
+    })
+    expect(rowFor(primary().name).querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'a' })
+    })
+    expect(rowFor(primary().name).getAttribute('data-done')).toBe('true')
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: '?' })
+    })
+    expect(await screen.findByRole('dialog', { name: 'Keys' })).toBeTruthy()
+  })
+
+  test('Apply is gated on a roll, the roll pays the cost once, and Start over keeps it paid', async () => {
     const { calls } = renderBoarded()
     await click(use(primary().name))
-    const apply = () => screen.getByRole<HTMLButtonElement>('button', { name: 'Apply' })
-    expect(apply().disabled).toBe(true)
+    const apply = () => screen.queryByRole<HTMLButtonElement>('button', { name: 'Apply' })
+    expect(apply()?.disabled).toBe(true)
     await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
-    expect(apply().disabled).toBe(false)
-    await click(apply())
-    expect(screen.getByText('Result applied ✓')).toBeTruthy()
-    expect(calls).toHaveLength(0)
-    await click(screen.getByRole('button', { name: 'Clear' }))
+    // A Success writes nothing: no Apply waits on it (r6 A5).
+    expect(apply()).toBeNull()
+    // Start over clears the roll; what the first roll paid stays paid (r4 A1).
+    await click(screen.getByRole('button', { name: 'Start over' }))
     expect(document.querySelector('.su-roll [aria-current="true"]')).toBeNull()
+    await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
+    await click(screen.getByRole('button', { name: `Done with ${primary().name}` }))
+    // A finished action closes itself and its row says Done (LG-12).
+    const row = rowFor(primary().name)
+    expect(row.getAttribute('data-open')).toBeNull()
+    expect(row.getAttribute('data-done')).toBe('true')
+    expect(calls).toHaveLength(1)
   })
 
   test('the roll and Apply are spoken by a live region mounted before the roll', async () => {
@@ -381,8 +710,11 @@ describe('Use: the resolve, in the Compact', () => {
     expect(live?.textContent).toBe('')
     await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     expect(live?.textContent).toMatch(/^Rolled 14: \S/)
-    await click(screen.getByRole('button', { name: 'Apply' }))
-    expect(live?.textContent).toMatch(/Result applied$/)
+    await click(screen.getByRole('button', { name: `Done with ${primary().name}` }))
+    // The resolve closed; the row's own status says what it came to (r6 A5).
+    expect(within(rowFor(primary().name)).getByRole('status').textContent).toBe(
+      'Rolled 14 · Success'
+    )
   })
 
   test('every step is written to the seat: open, activate, roll, back', async () => {
@@ -390,7 +722,8 @@ describe('Use: the resolve, in the Compact', () => {
     await click(use(primary().name))
     await click(screen.getByRole('button', { name: /^Activate/ }))
     await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
-    await click(screen.getByRole('button', { name: `Cancel ${primary().name}` }))
+    // Activated and rolled, its close reads Done: it never undoes the spend.
+    await click(screen.getByRole('button', { name: `Done with ${primary().name}` }))
     const steps = writes
       .filter((w) => w.name.startsWith('seat.'))
       .map((w) =>
@@ -417,7 +750,7 @@ describe('Use: the resolve, in the Compact', () => {
       },
     })
     const row = rowFor(p.name)
-    expect(row.getAttribute('data-open')).toBe('true')
+    expect(row.matches('[data-play-moment]')).toBe(true)
     expect(row.querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     expect(within(row).getByRole('button', { name: 'Activated ✓' })).toBeTruthy()
   })
@@ -497,7 +830,10 @@ describe('Use: the resolve, in the Compact', () => {
     // No Push on the stamp: it stays Roll the Die.
     expect(screen.queryByRole('button', { name: 'Push on Core Mechanic' })).toBeNull()
     expect(screen.getAllByText(/No Push at Heat/).length).toBeGreaterThan(0)
-    expect(calls).toHaveLength(0)
+    // The roll paid the action's own cost; the refused Push wrote no Heat.
+    expect(
+      calls.filter((c) => 'currentHeat' in c.patch && c.patch.currentHeat === cap + 1)
+    ).toEqual([])
   })
 
   test('EP or AP: choosing AP spends the pilot’s AP, from a full pool when never stored', async () => {
@@ -578,14 +914,27 @@ describe('the Reactor and Mount rows', () => {
     expect(calls).toHaveLength(0)
   })
 
-  test('Shut down and Restart toggle the Shutdown condition', async () => {
+  test('Shut down and Power back on toggle the Shutdown condition', async () => {
     const { calls } = renderBoarded()
     await click(screen.getByRole('button', { name: 'Shut down' }))
     expect(calls.at(-1)?.patch).toEqual({ conditions: ['Shutdown'] })
     cleanup()
-    const down = renderBoarded({ mech: makeMech({ conditions: ['Prone', 'Shutdown'] }) })
-    await click(screen.getByRole('button', { name: 'Restart' }))
+    // Back on, the Vulnerable the shutdown brought goes with it (r7 B2).
+    const down = renderBoarded({
+      mech: makeMech({ conditions: ['Prone', 'Shutdown', 'Vulnerable'] }),
+    })
+    await click(screen.getByRole('button', { name: 'Power back on' }))
     expect(down.calls.at(-1)?.patch).toEqual({ conditions: ['Prone'] })
+  })
+
+  test("Shut down, the Mech's own actions say so on their Use (r7 B2)", () => {
+    renderBoarded({ mech: makeMech({ conditions: ['Shutdown'] }) })
+    const uses = screen.getAllByRole('button', { name: /^Use .*: Shut down$/ })
+    expect(uses.length).toBeGreaterThan(0)
+    for (const use of uses) {
+      expect((use as HTMLButtonElement).disabled).toBe(true)
+      expect(use.textContent).toBe('Shut down')
+    }
   })
 
   test('a Meltdown destroys the mech only on its own confirm (ADR-007)', async () => {
@@ -631,5 +980,143 @@ describe('the Reactor and Mount rows', () => {
     expect(writes).toContainEqual({ name: 'board', args: 'm1' })
     // Boarded now: the mech's actions are on hand.
     expect(use(primary().name)).toBeTruthy()
+  })
+})
+
+/** ADR-068 §3: Again heads the list; with no beat of your own, the table's is the Moment. */
+describe('Again and the Table’s Moment (ADR-068)', () => {
+  const judge = { linkId: 'p2', name: 'Judge', boarded: true }
+  const mortar = (over: Partial<SeatResolving> = {}): SeatResolving => ({
+    ref: 'judge-mortar',
+    name: 'Mini Mortar',
+    activated: true,
+    roll: { roll: 14, band: 'success' },
+    applied: false,
+    ...over,
+  })
+
+  test('the action last finished heads the list as Again, lifted out of its type', async () => {
+    const mech = makeMech()
+    // A pilot of its own: Again outlives the column for the page's life.
+    const pilot = makePilot({ id: 'p-again' })
+    const { store } = stubStore(mech, pilot)
+    render(<Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />)
+    expect(screen.queryByRole('heading', { name: /^Again/ })).toBeNull()
+    await click(use(primary().name))
+    await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
+    await click(screen.getByRole('button', { name: `Done with ${primary().name}` }))
+    const first = onHand().querySelector('section')
+    expect(first?.querySelector('h2, h3')?.textContent).toMatch(/^Again/)
+    expect(
+      within(first as HTMLElement).getByRole('button', { name: `Use ${primary().name}` })
+    ).toBeTruthy()
+    // Once only: its type's group no longer lists it.
+    expect(screen.getAllByRole('button', { name: `Use ${primary().name}` })).toHaveLength(1)
+  })
+
+  test('a crewmate’s beat, from its Activate, is the Moment, read-only, until yours opens', async () => {
+    const mech = makeMech()
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        gameId="g1"
+        store={store}
+        writes={[]}
+        table={{ seats: [{ pilotId: 'p2', resolving: mortar() }], pilots: [judge] }}
+      />
+    )
+    const shared = document.querySelector<HTMLElement>('[data-table-moment]')
+    expect(shared?.textContent).toContain('Mini Mortar')
+    expect(shared?.textContent).toContain('Judge')
+    expect(shared?.textContent).toContain('14 · Success')
+    const steps = [...(shared?.querySelectorAll('.su-play-moment__track > li') ?? [])]
+    expect(steps.map((li) => [li.textContent, li.getAttribute('data-state')])).toEqual([
+      ['Activate', 'done'],
+      ['Roll', 'done'],
+      ['Apply', 'on'],
+    ])
+    // Nothing on it to press, and Play's keys never look in it.
+    expect(shared?.querySelector('button')).toBeNull()
+    expect(document.querySelector('[data-play-moment]')).toBeNull()
+    // Your own beat takes the Moment back.
+    await click(use(primary().name))
+    expect(document.querySelector('[data-table-moment]')).toBeNull()
+  })
+
+  test('from `lg`, a beat on the Moment and the list share one split; Ready has none', async () => {
+    renderBoarded()
+    expect(document.querySelector('.su-play-moment-split')).toBeNull()
+    await click(use(primary().name))
+    const split = document.querySelector('.su-play-moment-split')
+    expect(split?.querySelector(':scope > [data-play-moment]')).toBeTruthy()
+    expect(split?.querySelector(':scope > .su-play-act-list')).toBeTruthy()
+  })
+
+  test('what the Mediator put on the table heads Ready, over a crewmate’s beat (§4)', async () => {
+    const mech = makeMech()
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    const npc = { kind: 'npc', name: 'Raider 2', refSchema: 'npcs' } as const
+    const { rerender } = render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        gameId="g1"
+        store={store}
+        writes={[]}
+        scene={{ conditions: [], hours: 0, onTable: npc }}
+        table={{ seats: [{ pilotId: 'p2', resolving: mortar() }], pilots: [judge] }}
+      />
+    )
+    const spot = () => document.querySelector<HTMLElement>('[data-table-moment]')
+    expect(spot()?.textContent).toContain('Raider 2')
+    expect(spot()?.textContent).toContain('NPC')
+    expect(spot()?.textContent).not.toContain('Mini Mortar')
+    rerender(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        gameId="g1"
+        store={store}
+        writes={[]}
+        scene={{ conditions: [], hours: 0, onTable: { kind: 'table', name: 'Core Mechanic' } }}
+      />
+    )
+    expect(spot()?.textContent).toContain('Core Mechanic')
+    expect(spot()?.textContent).toContain('Nailed it')
+    // Read-only: its roll stands off, saying why, and your own beat takes the Moment back.
+    expect(spot()?.querySelector('button:not([disabled])')).toBeNull()
+    await click(use(primary().name))
+    expect(spot()).toBeNull()
+  })
+
+  test('a crewmate only opening an action, or done with it, shares nothing', () => {
+    const mech = makeMech()
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        gameId="g1"
+        store={store}
+        writes={[]}
+        table={{
+          seats: [
+            { pilotId: 'p2', resolving: mortar({ activated: false, roll: undefined }) },
+            { pilotId: 'p3', resolving: mortar({ applied: true }) },
+          ],
+          pilots: [judge, { linkId: 'p3', name: 'Pickle', boarded: false }],
+        }}
+      />
+    )
+    expect(document.querySelector('[data-table-moment]')).toBeNull()
   })
 })

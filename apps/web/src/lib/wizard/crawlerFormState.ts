@@ -99,7 +99,7 @@ type CrawlerWizardPatch = Pick<
 
 export function crawlerFormToUpdatePatch(form: CrawlerWizardFormState): CrawlerWizardPatch {
   if (form.techLevel === null) {
-    throw new Error('Cannot build a crawler patch without a tech level')
+    throw new Error('Cannot build a crawler patch without a Tech Level')
   }
   return {
     name: form.name.trim(),

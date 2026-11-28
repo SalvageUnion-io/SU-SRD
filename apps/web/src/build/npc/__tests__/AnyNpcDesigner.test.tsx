@@ -1,12 +1,14 @@
 /**
  * The NPC designer — design an NPC from a reference template: the template
  * fills the stat block, the actions are the reference's behind checkboxes, the
- * preview wears the user-made treatment, and the save stores slugs.
+ * preview wears the user-made treatment, and the save stores slugs. A template
+ * is Template, then one page that saves; a blank start keeps the steps (r6 B3).
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { acceptingRooms, roomActs } from '../../../../test/roomsStub'
+import { npcFixture } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
@@ -17,7 +19,8 @@ afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
 const { useUnits } = await import('../../../replica/units')
-const { AnyNpcDesigner } = await import('../AnyNpcDesigner')
+const { AnyNpcDesigner, NpcRedesigner } = await import('../AnyNpcDesigner')
+const { useEncounters } = await import('../../../replica/collections')
 
 withSignedInBackend()
 
@@ -91,12 +94,11 @@ describe('the template step', () => {
     expect(screen.getByRole('button', { name: 'Next: Stats' })).toHaveProperty('disabled', false)
   })
 
-  test('a reference NPC fills the stats and the actions', async () => {
+  test('a reference NPC fills the stats and the actions, on one page', async () => {
     await renderDesigner()
     await pick('Start from Veteran')
-    await click('Next: Stats')
-    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '9')
-    await click('Next: Actions & traits')
+    await click('Next: Design')
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '9')
     expect(
       screen
         .getByRole('button', { name: 'Carry Green Laser Rifle (Veteran)' })
@@ -114,8 +116,7 @@ describe('adding a trait', () => {
   test('names a lower-case glossary trait as the book prints it', async () => {
     await renderDesigner()
     await pick('Start from Veteran')
-    await click('Next: Stats')
-    await click('Next: Actions & traits')
+    await click('Next: Design')
     await act(async () => {
       fireEvent.change(screen.getByPlaceholderText('Add an action or trait from the reference'), {
         target: { value: 'vulnerable' },
@@ -130,9 +131,9 @@ describe('starting over', () => {
   async function editedVeteran() {
     await renderDesigner()
     await pick('Start from Veteran')
-    await click('Next: Stats')
+    await click('Next: Design')
     await act(async () => {
-      fireEvent.change(screen.getByLabelText(/Hit points/), { target: { value: '12' } })
+      fireEvent.change(screen.getByLabelText(/Hit Points/), { target: { value: '12' } })
     })
     await click('Back')
   }
@@ -143,15 +144,15 @@ describe('starting over', () => {
     expect(screen.getAllByText('Start blank?').length).toBeGreaterThan(0)
     await click('Clear')
     await click('Next: Stats')
-    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '')
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '')
   })
 
   test('declining the Start blank question keeps the edited stats', async () => {
     await editedVeteran()
     await pick('Start blank')
     await click('Cancel')
-    await click('Next: Stats')
-    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '12')
+    await click('Next: Design')
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '12')
   })
 
   test('Cancel on the first step asks before discarding a draft', async () => {
@@ -160,6 +161,27 @@ describe('starting over', () => {
     expect(screen.getAllByText('Discard this draft?').length).toBeGreaterThan(0)
     await click('Keep editing')
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy()
+  })
+})
+
+describe('any Reference denizen is a template (MD-09)', () => {
+  test('a kind tab lists it, and a Bio-Titan fills its Structure Points as SP', async () => {
+    await renderDesigner()
+    // Book NPCs first; another kind is one press away.
+    expect(screen.queryByRole('radio', { name: 'Start from Scylla' })).toBeNull()
+    await click('Bio-Titans')
+    await pick('Start from Scylla')
+    expect(screen.getAllByText('From Scylla').length).toBeGreaterThan(0)
+    await click('Next: Design')
+    expect(screen.getByLabelText(/Hit Points/)).not.toHaveProperty('value', '')
+  })
+
+  test('a search reads every kind at once', async () => {
+    await renderDesigner()
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Find a template'), { target: { value: 'scylla' } })
+    })
+    expect(screen.getByRole('radio', { name: 'Start from Scylla' })).toBeTruthy()
   })
 })
 
@@ -174,20 +196,21 @@ describe('the preview', () => {
 })
 
 describe('saving', () => {
-  test('stores the carried actions as slugs, and only what the player wrote', async () => {
+  // MD6-03: a template took four Next presses and a Review to save.
+  test('a template is Template, then one page: the name focused, Save NPC there', async () => {
     await renderDesigner()
     await pick('Start from Veteran')
-    await click('Next: Stats')
-    await click('Next: Actions & traits')
+    const rail = within(screen.getByRole('navigation', { name: 'Steps' }))
+    expect(rail.queryByRole('button', { name: 'Review' })).toBeNull()
+    await click('Next: Design')
+    expect(document.activeElement).toBe(screen.getByLabelText(/Name/))
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Carry Portable Comms Unit (NPC)' }))
     })
-    await click('Next: Identity')
-    expect(screen.getByRole('button', { name: 'Next: Review' })).toHaveProperty('disabled', true)
+    expect(screen.getByRole('button', { name: 'Save NPC' })).toHaveProperty('disabled', true)
     await act(async () => {
       fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'Sergeant Kessler' } })
     })
-    await click('Next: Review')
     await click('Save NPC')
     await waitFor(() => expect(useUnits.getState().npcs).toHaveLength(1))
 
@@ -208,5 +231,129 @@ describe('saving', () => {
       name: 'createUnit',
       args: expect.objectContaining({ id: npc?.id, kind: 'npc' }),
     })
+  })
+
+  test('a blank start keeps the steps, the preview beside each, and saves from Identity', async () => {
+    await renderDesigner()
+    await pick('Start blank')
+    await click('Next: Stats')
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Hit Points/), { target: { value: '5' } })
+    })
+    await click('Next: Actions & traits')
+    await click('Next: Identity')
+    expect(screen.getByRole('region', { name: 'Live preview' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'Vex' } })
+    })
+    await click('Save NPC')
+    await waitFor(() => expect(useUnits.getState().npcs).toHaveLength(1))
+    expect(useUnits.getState().npcs[0]).toMatchObject({ name: 'Vex', hitPoints: 5 })
+  })
+})
+
+// MD2-03: a saved NPC could not be changed beyond its name and flavour.
+describe('redesigning a saved NPC', () => {
+  const VEX = npcFixture({
+    id: 'n-vex',
+    name: 'Captain Vex',
+    position: 'Raider warlord',
+    hitPoints: 6,
+    actions: ['green-laser-rifle-veteran'],
+    templateRef: { schema: 'npcs', slug: 'veteran' },
+  })
+  const NOW = '2026-11-21T00:00:00.000Z'
+  const built = { npcId: 'n-vex', name: 'Captain Vex', actions: VEX.actions, traits: [] }
+  const opponent = (id: string, name: string) => ({
+    id,
+    refSchema: 'npcs' as const,
+    refSlug: '',
+    name,
+    maxHp: 6,
+    statKind: 'hp' as const,
+    built,
+  })
+  let saved: string[] = []
+
+  async function renderRedesign() {
+    await useUnits.getState().adopt('npc', VEX)
+    useEncounters.setState({
+      encounters: [
+        {
+          id: 'enc-1',
+          schemaVersion: 1,
+          name: 'Ambush',
+          opposition: [opponent('o1', 'Captain Vex'), opponent('o2', 'Red Leader')],
+          tables: [],
+          notes: '',
+          createdAt: NOW,
+          updatedAt: NOW,
+        },
+      ],
+      hydrated: true,
+    } as never)
+    saved = []
+    await act(async () => {
+      render(
+        <SyncContext.Provider value={CONNECTED}>
+          <NpcRedesigner
+            npc={VEX}
+            madeBy="alxjrvs"
+            onSaved={(id) => saved.push(id)}
+            onCancel={() => undefined}
+          />
+        </SyncContext.Provider>
+      )
+    })
+  }
+
+  test('opens on its template, and its stats and actions as they stand are one page on', async () => {
+    await renderRedesign()
+    expect(
+      screen.getByRole('radio', { name: 'Start from Veteran' }).getAttribute('aria-checked')
+    ).toBe('true')
+    await click('Next: Design')
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '6')
+    expect(
+      screen
+        .getByRole('button', { name: 'Carry Green Laser Rifle (Veteran)' })
+        .getAttribute('aria-pressed')
+    ).toBe('true')
+  })
+
+  test('saves onto the same NPC, and every encounter that fields it takes the change', async () => {
+    await renderRedesign()
+    await click('Next: Design')
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Hit Points/), { target: { value: '12' } })
+      fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'Warlord Vex' } })
+      fireEvent.change(screen.getByLabelText(/Position/), { target: { value: '' } })
+    })
+    await click('Save changes')
+    await waitFor(() => expect(saved).toEqual(['n-vex']))
+
+    // In place: still one NPC, the same id.
+    const npcs = useUnits.getState().npcs
+    expect(npcs).toHaveLength(1)
+    expect(npcs[0]).toMatchObject({ id: 'n-vex', name: 'Warlord Vex', hitPoints: 12 })
+    expect(npcs[0]?.position).toBeUndefined()
+    expect(roomActs.some((a) => a.name === 'createUnit')).toBe(false)
+
+    const opposition = useEncounters.getState().get('enc-1')?.opposition ?? []
+    expect(opposition.map((o) => [o.name, o.maxHp, o.built?.name])).toEqual([
+      ['Warlord Vex', 12, 'Warlord Vex'],
+      // One the Mediator named apart keeps its name.
+      ['Red Leader', 12, 'Warlord Vex'],
+    ])
+  })
+
+  // MD3-06: a finished NPC walked every step to change one field.
+  test('Design is a way in from the start, and Save changes is on the Template step too', async () => {
+    await renderRedesign()
+    const rail = within(screen.getByRole('navigation', { name: 'Steps' }))
+    expect(rail.getByRole('button', { name: 'Design' })).toHaveProperty('disabled', false)
+    await click('Save changes')
+    await waitFor(() => expect(saved).toEqual(['n-vex']))
+    expect(useUnits.getState().npcs[0]).toMatchObject({ id: 'n-vex', name: 'Captain Vex' })
   })
 })

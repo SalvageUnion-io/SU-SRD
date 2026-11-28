@@ -102,22 +102,24 @@ function pageBand(entity: RefMetaEntity): { tone: ChapterTone; fill?: string } {
  * dialog resolves none of it: a list renders a dialog per Compact.
  *
  * The entity picker's middle column (`EntitySearcherFocus`) is this Page too,
- * outside a dialog: it names its own heading element (`titleAs`) and leaves the
- * Union bar its own colour (`matchBar`).
+ * outside a dialog: it names its own heading element (`titleAs`).
  */
 export function EntityDetailPage({
   entity,
   pattern,
   title,
   titleAs = Dialog.Title,
-  matchBar,
   titleSize,
+  credit,
   children,
 }: Pick<EntityDetailDialogProps, 'entity' | 'pattern' | 'title' | 'children'> & {
+  /**
+   * A user-made entity's credit ("Your design"), in the place of the book
+   * citation and the Reference link: it has no page in either (ruleset §3.9).
+   */
+  credit?: ReactNode
   /** The title's element: the dialog's title by default. */
   titleAs?: ElementType
-  /** Whether the band colours the Union bar (`ChapterBand`'s `matchBar`). */
-  matchBar?: boolean
   /** The notched title's size, where the band is narrower than a page (`ChapterBand`'s). */
   titleSize?: string
 }) {
@@ -133,7 +135,6 @@ export function EntityDetailPage({
       <ChapterBand
         // The band's title names the dialog (`ModalShell`'s `ownTitle`).
         as={titleAs}
-        matchBar={matchBar}
         titleSize={titleSize}
         tone={band.tone}
         fill={band.fill}
@@ -162,8 +163,9 @@ export function EntityDetailPage({
       {/* The foot wears the band, edge to edge with no ink rule, and names no
           kind (ruleset Source 2, E9). */}
       <EntityCardIdentityFooter
-        provenance={provenance}
-        externalLink={externalLink}
+        provenance={credit === undefined ? provenance : undefined}
+        externalLink={credit === undefined ? externalLink : undefined}
+        credit={credit}
         size="full"
         band={{ bandColor, onBand: foregroundOn(bandColor, 'ink') }}
         grain={band.tone === 'ink' ? 'paper' : 'ink'}
@@ -195,7 +197,8 @@ export function EntityDetailDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={title}
-      description={referenceEntityCopy('entityDisplayDetails')}
+      // Described by its kind, never a generic line (r5 C11): the band names it.
+      description={resolveEntityPageMeta(entity, pattern).typeLabel || title}
       ownTitle
       width="page"
       bare

@@ -1,10 +1,11 @@
-import { fieldLabel } from 'game-domain/games/proposals'
 import type { CSSProperties } from 'react'
-import { Button, FeedLine, FeedList, SlabSection, tokens } from '../../components/index'
+import { FeedLine, FeedList } from '../../components/app'
+import { Button, SlabSection, tokens } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
 import { useSync } from '../../replica/syncContext'
 import { useTableAct, useTableRead } from '../../replica/useTable'
+import { acceptedUndo, proposalChange } from '../proposalAnswer.model'
 import { HUB_BODY } from './hubStyles.model'
 
 /**
@@ -36,15 +37,13 @@ export function ProposalInbox({ gameId }: { gameId: string }) {
   const decline = useTableAct('ops.decline', gameId)
   const { canWrite } = useSync()
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
-    failure: 'Your answer did not land. Try again.',
+    failure: playGamesCopy('answerDidNotLand'),
     toastId: 'proposal-answer',
   })
 
   if (pending === undefined) return null
   if (pending.length === 0) return null
 
-  const show = (value: unknown): string =>
-    value === null || value === undefined ? '—' : String(value)
   const answer = (send: () => Promise<unknown>) => void reply.run(send)
 
   return (
@@ -56,7 +55,7 @@ export function ProposalInbox({ gameId }: { gameId: string }) {
     >
       <FeedList label={playGamesCopy('proposalsAwaitingYourAnswer')}>
         {pending.map((p) => {
-          const what = `${p.targetName ?? p.entityType} · ${fieldLabel(p.field)} → ${show(p.after)}`
+          const what = `${p.targetName ?? p.entityType} · ${proposalChange(p)}`
           return (
             <FeedLine
               key={p._id}
@@ -67,7 +66,13 @@ export function ProposalInbox({ gameId }: { gameId: string }) {
                     size="compact"
                     disabled={!canWrite}
                     aria-label={playGamesCopy('apply2', { what })}
-                    onClick={() => answer(() => apply({ opId: p._id }))}
+                    onClick={() =>
+                      void reply
+                        .run(() => apply({ opId: p._id }))
+                        .then((result) => {
+                          if (result.ok) acceptedUndo(p)
+                        })
+                    }
                   >
                     {playGamesCopy('apply')}
                   </Button>
@@ -85,6 +90,10 @@ export function ProposalInbox({ gameId }: { gameId: string }) {
             >
               <span style={HEAD}>{what}</span>
               {p.reason !== null && <span style={REASON}>“{p.reason}”</span>}
+              {/* Signed: after a hand over it may be another Mediator's (r5 A11). */}
+              {p.byName != null && (
+                <span style={REASON}>{playGamesCopy('proposedBy', { name: p.byName })}</span>
+              )}
             </FeedLine>
           )
         })}

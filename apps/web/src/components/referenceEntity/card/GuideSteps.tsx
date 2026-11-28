@@ -1,16 +1,24 @@
 import type { ElementType, ReactNode } from 'react'
 import { useContext, useEffect, useRef } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
-import { nameToSlug } from 'salvageunion-reference'
+import { nameToSlug, toEntityModel } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
+import { schemaHref } from '../../../lib/entityHref'
+import { schemaPluralLabel } from '../../../lib/schemaLabels'
+import { compositionsCopy } from '../../../messages/components-compositions'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Badge } from '../../atoms/Badge'
 import { capsLabel } from '../../atoms/capsLabel'
+import { InlineRef } from '../../atoms/InlineRef'
 import { Slab } from '../../atoms/Slab'
 import { Callout } from '../../containers/Callout'
 import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
+import type { LedgerColumn, LedgerRow } from '../../entity/Ledger'
+import { Ledger } from '../../entity/Ledger'
 import { InsidePeekContext } from '../../entity/peekContext'
+import { RowDress } from '../../entity/rowDress'
+import { ProseSection } from '../../ProseSection'
 import { TraitProse } from '../../TraitProse'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
@@ -27,6 +35,45 @@ import type { ResolvedGuideStep } from './resolveGuideSteps'
 const TOC_TITLE = cn('su-guide__toc-title', capsLabel({ tracking: 'caps' }))
 /** An option opens its Page where the surface keeps it: the SRD's route, the app's dialog. */
 const LINK = { kind: 'link' } as const
+
+/**
+ * What a crafting step spends by (`constraints.scalesWithField`: Systems and
+ * Modules): each option's Salvage Value and Slots beside its name, from the
+ * data, then its reach, so a reader plans their Scrap without a trip to each
+ * page (r8 G7). The Ledger, the list a reader compares (L1).
+ */
+const CRAFT_COLUMNS: readonly LedgerColumn[] = [
+  {
+    key: 'sv',
+    label: compositionsCopy('sv'),
+    title: compositionsCopy('salvageValue'),
+    statKey: 'salvageValue',
+    phone: true,
+  },
+  { key: 'slots', label: compositionsCopy('slots'), statKey: 'slotsRequired', phone: true },
+  { key: 'rng', label: compositionsCopy('rng'), title: compositionsCopy('range'), kind: 'text' },
+  { key: 'dmg', label: compositionsCopy('dmg'), title: compositionsCopy('damage'), kind: 'text' },
+]
+
+/** An option as a crafting step's Ledger line: its SV, Slots, range and damage. */
+function craftRow(entity: ReferenceCardEntity, index: number): LedgerRow {
+  const model = toEntityModel(entity as RefMetaEntity)
+  const fact = (match: (key: string, short: string) => boolean) => {
+    const found = model.facts.find((f) => match(f.key, f.short))
+    return found ? String(found.shortValue ?? found.value) : ''
+  }
+  return {
+    id: cardKey(entity, index),
+    name: model.title,
+    entityRef: model.ref,
+    cells: [
+      fact((_, short) => short === 'SV'),
+      fact((_, short) => short === 'Slots'),
+      fact((key) => key === 'range'),
+      fact((key) => key === 'damage'),
+    ],
+  }
+}
 
 const TOC_SECTION = cn('su-guide__toc-link su-guide__toc-link--section', capsLabel())
 
@@ -138,7 +185,26 @@ export function GuideSteps({
   const optionTitleAs = stepAs === 'h1' || stepAs === 'h2' ? headingBelow(stepAs) : undefined
   // Level 1 (ruleset N1): the guide's own Page, outside a Peek.
   const onPage = page && !insidePeek
-  const optionList = (entities: ReferenceCardEntity[], label: string, open: boolean) => {
+  const optionList = (
+    entities: ReferenceCardEntity[],
+    label: string,
+    open: boolean,
+    /** A crafting step's listing (`systems`): its options are a Ledger of what they cost. */
+    craft?: string
+  ) => {
+    if (onPage && !open && craft) {
+      const tone = toEntityModel(entities[0] as RefMetaEntity).tone
+      return (
+        <Ledger
+          label={label}
+          nameLabel={schemaPluralLabel(craft)}
+          tone={tone}
+          count={entities.length}
+          columns={CRAFT_COLUMNS}
+          rows={entities.map(craftRow)}
+        />
+      )
+    }
     if (onPage && !open) {
       return (
         <ul aria-label={label} className="su-guide__rows su-guide__options">
@@ -180,6 +246,16 @@ export function GuideSteps({
   const renderStep = ({ step, number, entities, table, subGuide }: ResolvedGuideStep) => {
     const stepProse = chunkGuideStepProse(step.content).map((chunk, index) => {
       if (chunk.kind === 'note') {
+        // A book page pointer over the very list it names is the listing's link (r8 G7).
+        const [listing] = step.schema ?? []
+        if (listing && entities.length > 0) {
+          return (
+            // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
+            <p key={index} className="su-guide__note">
+              <InlineRef href={schemaHref(listing)}>{chunk.text}</InlineRef>
+            </p>
+          )
+        }
         // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
         return <TraitProse key={index} as="p" className="su-guide__note" text={chunk.text} />
       }
@@ -216,55 +292,71 @@ export function GuideSteps({
     if (ladder) {
       options = (
         <div className="su-guide__ladder">
-          <div className="su-guide__ladder-prose">{stepProse}</div>
+          <div className="su-guide__ladder-prose">
+            <ProseSection>{stepProse}</ProseSection>
+          </div>
           <div className="su-guide__ladder-cards">{optionList(entities, step.name, true)}</div>
         </div>
       )
     } else if (entities.length > 0) {
-      options = <div className="su-guide__cards">{optionList(entities, step.name, false)}</div>
+      const craft = step.constraints?.scalesWithField ? step.schema?.[0] : undefined
+      options = (
+        <div className="su-guide__cards">{optionList(entities, step.name, false, craft)}</div>
+      )
     }
     return (
-      <li key={step.id} className="su-guide__step" data-optional={step.optional || undefined}>
-        {/* On its Page the numeral is the wizard's rail tab, on the pipe
+      <li
+        key={step.id}
+        className="su-guide__step"
+        data-rows=""
+        data-optional={step.optional || undefined}
+      >
+        {/* What a step's strip heads are rows. */}
+        <RowDress.Provider value>
+          {/* On its Page the numeral is the wizard's rail tab, on the pipe
             that runs down the steps' left edge; the list says the number. */}
-        {page && (
-          <span aria-hidden="true" className="su-guide__tab">
-            {number}
-          </span>
-        )}
-        <StepHead
-          as={stepAs}
-          id={anchors?.get(step.id)}
-          number={page ? undefined : number}
-          name={step.name}
-          optional={step.optional}
-        />
-        <div className="su-guide__body">
-          {!ladder && stepProse}
-          {options}
-          {/* The step's table: the same embedded table an entity owns (R8),
+          {page && (
+            <span aria-hidden="true" className="su-guide__tab">
+              {number}
+            </span>
+          )}
+          <StepHead
+            as={stepAs}
+            id={anchors?.get(step.id)}
+            number={page ? undefined : number}
+            name={step.name}
+            optional={step.optional}
+          />
+          <div className="su-guide__body">
+            {/* A step is a section: a term links at its first mention in it. */}
+            {!ladder && <ProseSection>{stepProse}</ProseSection>}
+            {options}
+            {/* The step's table: the same embedded table an entity owns (R8),
               framed because it sits on the page; a wide one scrolls in
               its own box rather than pushing the page sideways. */}
-          {table && !insidePeek && (
-            <div className="su-guide__table">
-              <CardRollTable
-                table={table.table}
-                name={table.name}
-                size={compact ? 'compact' : 'full'}
-                disabled={!!isDown}
-                tone={tableTone}
+            {table && !insidePeek && (
+              <div className="su-guide__table">
+                <ProseSection>
+                  <CardRollTable
+                    table={table.table}
+                    name={table.name}
+                    size={compact ? 'compact' : 'full'}
+                    disabled={!!isDown}
+                    tone={tableTone}
+                  />
+                </ProseSection>
+              </div>
+            )}
+            {subGuide && (
+              <Entity
+                size="mini"
+                context="browse"
+                entity={subGuide as RefMetaEntity}
+                instance={isDown ? { condition: conditionOf(isDown) } : undefined}
               />
-            </div>
-          )}
-          {subGuide && (
-            <Entity
-              size="mini"
-              context="browse"
-              entity={subGuide as RefMetaEntity}
-              instance={isDown ? { condition: conditionOf(isDown) } : undefined}
-            />
-          )}
-        </div>
+            )}
+          </div>
+        </RowDress.Provider>
       </li>
     )
   }
@@ -297,7 +389,11 @@ export function GuideSteps({
       {/* A phone lists the contents above the steps, always open under their
           slab; a wide screen sets them in the rail. Only one of the two is
           ever displayed. */}
-      <nav className="su-guide__toc-block" aria-label={referenceEntityCopy('onThisPage')}>
+      <nav
+        className="su-guide__toc-block"
+        aria-label={referenceEntityCopy('onThisPage')}
+        data-page-contents=""
+      >
         <Slab label={referenceEntityCopy('onThisPage')} flush />
         {contents}
       </nav>

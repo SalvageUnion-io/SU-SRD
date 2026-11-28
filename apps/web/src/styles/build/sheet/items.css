@@ -1,5 +1,5 @@
 /* ── A sheet item's state, uses and actions (`SheetItemLine`) ride its
-      Mini's chip group (C8, hard rule R6), at the Mini's Mini Size; a
+      Mini's chip group (C8), at the Mini's Mini Size; a
       Mini button there is drawn a chip's height (`entity-forms.css`). ── */
 
 /* The condition is the tri-state `StatusBadge`, drawn at the chip's height;
@@ -15,13 +15,21 @@
   justify-content: center;
 }
 
-/* A condition that steps is a button exactly its chip's Mini height (R12). */
+/* A condition that steps is a button drawn exactly its chip's Mini height
+   (R12) in WCAG 2.2's 24px target (2.5.8): the clear border under it is the
+   rest of the target, taken back out of the line so the row keeps its height
+   and the name over it keeps its own target whole. */
 .su-sheet-item__condition > button {
+  --su-target-pad: calc(var(--space-24) - var(--size-mini));
+
   align-items: center;
   background: none;
-  border: 0;
-  box-sizing: border-box;
+  background-clip: padding-box;
+  border: 0 solid transparent;
+  border-block-end-width: var(--su-target-pad);
+  box-sizing: content-box;
   height: var(--size-mini);
+  margin-block-end: calc(-1 * var(--su-target-pad));
   padding: 0;
 }
 
@@ -29,6 +37,45 @@
 .su-sheet-item__remove {
   min-width: var(--size-mini);
   padding: 0;
+  position: relative;
+}
+
+/* Its target is 24px (WCAG 2.5.8), centred on the 18px square. */
+.su-sheet-item__remove::after {
+  content: '';
+  inset: min(0px, calc(50% - var(--space-12)));
+  position: absolute;
+}
+
+/* On a phone a thumb's target is 44px (r2 H1): the remove's reaches back
+   over the gap that stands it apart from the line's toggles, so a press
+   meant for Intact or a use never removes the item; a use's steps draw 40px
+   wide at their chip's height (R12), each in a 44px target of its own. */
+@media not (width >= 40rem) {
+  .su-sheet-item__remove {
+    margin-inline-start: var(--space-28);
+  }
+
+  .su-sheet-item__remove::after {
+    inset-block: min(0px, calc(50% - var(--size-full) / 2));
+    inset-inline: calc(var(--size-mini) - var(--size-full)) 0;
+  }
+
+  .su-stat-stepper:has(> .su-sheet-item__uses) .su-step-btn--cell {
+    min-width: var(--space-40);
+  }
+
+  .su-stat-stepper:has(> .su-sheet-item__uses) .su-step-btn--cell::after {
+    inset-block: min(0px, calc(50% - var(--size-full) / 2));
+  }
+
+  .su-stat-stepper:has(> .su-sheet-item__uses) .su-step-btn--cell:first-of-type::after {
+    inset-inline-start: calc(var(--space-40) - var(--size-full));
+  }
+
+  .su-stat-stepper:has(> .su-sheet-item__uses) .su-step-btn--cell:last-of-type::after {
+    inset-inline-end: calc(var(--space-40) - var(--size-full));
+  }
 }
 
 @media print {
@@ -65,23 +112,35 @@
 }
 
 /* The pilot's trees as the class page draws them (`AbilityTrack`), three
-   across where they fit and never more (a column is wider than a quarter of
-   the line, so a fourth never fits), one each on a phone. Each tree is its
-   own column: its tiers stack under its slab at their own heights, never on
-   rows shared with the trees beside it (`ability-trees.e2e.ts`). */
+   across where they fit and never more (a tree's basis is wider than a
+   quarter of the line, so a fourth never fits), one each on a phone; a last
+   row's trees grow to fill it. Each tree is its own column: its tiers stack
+   under its slab at their own heights, never on rows shared with the trees
+   beside it (`ability-trees.e2e.ts`). */
 .su-pilot-trees {
-  align-items: start;
-  display: grid;
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-12) var(--space-24);
-  grid-template-columns: repeat(
-      auto-fit,
-      minmax(max(min(100%, 12rem), calc((100% - 3 * var(--space-24)) / 4 + 1px)), 1fr)
-    );
+}
+
+.su-pilot-trees > * {
+  flex: 1 1 max(min(100%, 12rem), calc((100% - 3 * var(--space-24)) / 4 + 1px));
+  min-width: 0;
+}
+
+/* Three trees stand three across or one each, never two and a third alone
+   under them (hard rule R68): short of three 12rem columns each takes the
+   line. */
+.su-pilot-trees:has(> :nth-child(3):last-child) > * {
+  flex-basis: max(
+    calc((100% - 2 * var(--space-24)) / 3 - 0.05px),
+    min(100%, calc((36rem + 2 * var(--space-24) - 100%) * 999))
+  );
 }
 
 /* Each ability fills its column and never widens it: its head's chips fill
-   or overflow beside its name, as anywhere (R37). */
-.su-pilot-trees > *,
+   or overflow beside its name, as anywhere (C2b). */
 .su-pilot-trees .su-ability-track > li,
 .su-pilot-trees .su-ability-track__tier > * {
   flex: 1 1 auto;

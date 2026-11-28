@@ -113,6 +113,7 @@ describe('what a Game room publishes', () => {
       gameId: 'g1',
       game: {
         name: 'Tenacity',
+        description: null,
         mediatedBy: 'Med',
         members: [
           { discordId: ORGANIZER, mediator: false, organizer: true },
@@ -125,6 +126,19 @@ describe('what a Game room publishes', () => {
     })
     const { code: next } = room.roster.resetInvite(ORGANIZER, AT + 5)
     expect(gamePublished(room.store, 'g1').roster?.game?.invite).toBe(next)
+  })
+
+  test('a Mediator with no name goes by their joining order, as the Members list says (r6 C11)', () => {
+    const { room } = table('g1')
+    room.store.sql.exec('update members set display_name = null where mediator = 1')
+    const place = room.store.members().findIndex((m) => m.mediator)
+    expect(gamePublished(room.store, 'g1').roster?.game?.mediatedBy).toBe(`Player ${place + 1}`)
+  })
+
+  test('a Game nobody mediates names no Mediator', () => {
+    const { room } = table('g1')
+    room.store.sql.exec('update members set mediator = 0')
+    expect(gamePublished(room.store, 'g1').roster?.game?.mediatedBy).toBeNull()
   })
 })
 

@@ -1,5 +1,6 @@
 import type { ElementType } from 'react'
 import { citeLine } from 'salvageunion-reference'
+import { bookHrefs } from '../../lib/bookHref'
 import { cn } from '../../lib/cn'
 import { compositionsCopy } from '../../messages/components-compositions'
 import { ChapterFoot } from '../atoms/ChapterFoot'
@@ -8,9 +9,8 @@ import { FOCUS_RING } from '../atoms/interaction'
 
 /**
  * Footer — where every page of both tools ends, as the Workshop Manual's pages
- * do (one product, so one foot): ONE band in the colour of the band the page
- * leads with, as the Union bar wears it (`footerMatchCss`), ink with paper
- * flecks on a page that leads with none.
+ * do (one product, so one foot): ONE band in the Union bar's ink-deep with
+ * paper flecks (chrome K13).
  *
  * - **A show page** (entity, pattern, roll table) merges its entity
  *   foot into it: the citation on one line, the book first and each reprint
@@ -25,7 +25,7 @@ import { FOCUS_RING } from '../atoms/interaction'
  */
 
 /** One printing a book page cites: the book (and booklet), and its page. */
-type FooterPrinting = { book: string; page?: number }
+type FooterPrinting = { book: string; page?: number; source?: string }
 
 /** A show page's foot: its printings, cited in the footer, and the page measure. */
 export type FooterFoot = {
@@ -39,6 +39,8 @@ export type FooterFoot = {
   credit?: string
   /** The inner row's max width, matching the page's own measure. */
   measure?: string
+  /** The page's web address, printed beside the citation on paper alone (r5 E9). */
+  address?: string
 }
 
 type FooterLink = { label: string; href: string }
@@ -118,12 +120,22 @@ function End({
 export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }: FooterProps) {
   const measure = foot?.measure ?? SITE_MEASURE
   const printed = citeLine(foot?.printings ?? [])
-  const citation = foot?.credit ?? (printed ? <CiteLine text={printed} /> : undefined)
+  const citation =
+    foot?.credit ??
+    (printed ? <CiteLine text={printed} hrefs={bookHrefs(foot?.printings ?? [])} /> : undefined)
+  const address = foot?.address ? <p className="su-footer__address">{foot.address}</p> : null
   return (
     <footer className="su-footer">
       <ChapterFoot
         measure={measure}
-        cite={citation ? <p className="su-footer__citation">{citation}</p> : undefined}
+        cite={
+          citation || address ? (
+            <>
+              {citation ? <p className="su-footer__citation">{citation}</p> : null}
+              {address}
+            </>
+          ) : undefined
+        }
         start={<Legal />}
         end={<End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />}
       />

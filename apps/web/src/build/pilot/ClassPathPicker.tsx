@@ -6,7 +6,9 @@
  * hybrids they cannot reach and said nothing about what changing would cost.
  * Free Edit still means nothing is withheld — unreachable destinations are
  * demoted and labelled, because they are not inert, they just cost one extra
- * question.
+ * question. An Advanced or Hybrid pick says what the book asks first (Needs)
+ * and what of it the pilot has not met (Missing); taking it anyway is one
+ * confirm on the sheet.
  */
 
 import type { CSSProperties } from 'react'
@@ -55,6 +57,8 @@ type ClassPathPickerProps = {
   allClasses: readonly RefClass[]
   currentClassRef: string
   pendingClassRef: string
+  /** The pilot's abilities, by slug: what an Advanced or Hybrid pick's Missing counts. */
+  abilities?: readonly string[]
   onSelect: (classId: string) => void
   /** The Core class the player named, when the pick needs one. */
   answeredOrigin: string | undefined
@@ -145,6 +149,12 @@ function Ledger({
 }) {
   return (
     <Stack gap={12}>
+      <LedgerList label={pilotCopy('needs')} items={consequence.needs} allClasses={allClasses} />
+      <LedgerList
+        label={pilotCopy('missing')}
+        items={consequence.missing}
+        allClasses={allClasses}
+      />
       <LedgerList label={pilotCopy('gain')} items={consequence.gain} allClasses={allClasses} />
       <LedgerList label={pilotCopy('lose')} items={consequence.lose} allClasses={allClasses} />
       <LedgerList label={pilotCopy('keep')} items={consequence.keep} allClasses={allClasses} />
@@ -156,12 +166,13 @@ export function ClassPathPicker({
   allClasses,
   currentClassRef,
   pendingClassRef,
+  abilities,
   onSelect,
   answeredOrigin,
   onAnswerOrigin,
 }: ClassPathPickerProps) {
   const groups = classPathGroups(allClasses, currentClassRef)
-  const consequence = classPathConsequence(allClasses, currentClassRef, pendingClassRef)
+  const consequence = classPathConsequence(allClasses, currentClassRef, pendingClassRef, abilities)
 
   const originChoiceClasses = (consequence?.originChoices ?? [])
     .map((name) => allClasses.find((c) => c.name === name))
@@ -203,11 +214,13 @@ export function ClassPathPicker({
               <>
                 <Callout tone="ink">
                   <p style={ORIGIN_COPY}>
-                    <strong>{pilotCopy('whereDidTheyComeFrom')}</strong> A {consequence.title} is
-                    reached from {consequence.originChoices.join(' or ')}. This pilot is neither, so
-                    the sheet needs to know which —{' '}
-                    <strong>{pilotCopy('eachAnswerSealsADifferent')}</strong> You can leave it
-                    unanswered; nothing will be sealed.
+                    <strong>{pilotCopy('whereDidTheyComeFrom')}</strong>{' '}
+                    {pilotCopy('reachedFrom', {
+                      title: consequence.title,
+                      origins: consequence.originChoices.join(' or '),
+                    })}{' '}
+                    <strong>{pilotCopy('eachAnswerSealsADifferent')}</strong>{' '}
+                    {pilotCopy('youCanLeaveItUnanswered')}
                   </p>
                 </Callout>
                 <RadioCardGroup label={pilotCopy('originClass')}>
@@ -233,8 +246,8 @@ export function ClassPathPicker({
 
             {consequence.impliedOrigin !== undefined && (
               <Text variant="note">
-                Recorded as <strong>{consequence.impliedOrigin}</strong> — derived from this pilot's
-                trees, so nothing extra is stored.
+                {pilotCopy('recordedAs')} <strong>{consequence.impliedOrigin}</strong>{' '}
+                {pilotCopy('derivedFromThisPilotsTrees')}
               </Text>
             )}
           </>

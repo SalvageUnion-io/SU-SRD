@@ -25,10 +25,11 @@
  * §1), and a server refusal is said in its own words.
  */
 
-import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import { downtimeClaimOpId, downtimeHealOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import { DOWNTIME_RULINGS } from 'game-domain/rules/downtimeRulings'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { sendStep } from '../replica/outbox'
-import { PLAY_TXN } from '../replica/provenance'
+import { DOWNTIME_TXN } from '../replica/provenance'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
@@ -60,6 +61,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const setStep = useTableAct('downtime.setStep', gameId)
   const end = useTableAct('downtime.end', gameId)
   const claim = useTableAct('downtime.claim', gameId)
+  const moveScrap = useTableAct('downtime.moveScrap', gameId)
   // The room names the run (a solo one kept from Convex is named on the server).
   const run = state?.runId ?? ''
 
@@ -76,6 +78,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
           members: (members ?? [])
             .filter((m) => !m.mediator)
             .map((m) => ({ userId: m.userId, displayName: m.displayName })),
+          scrapMoved: state.scrapMoved ?? [],
         }
   const solo = gameId === null
   const mayMove = solo || target.mediator
@@ -85,6 +88,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
     locked: !mayMove,
     begin: () => guarded.send(() => begin(place)),
     advance: () => guarded.send(() => advance(place)),
+    pass: () => guarded.send(() => advance({ ...place, auto: true })),
     // Solo any step; in a Game the Mediator's Back.
     setStep: mayMove ? (stepIndex) => guarded.send(() => setStep({ ...place, stepIndex })) : null,
     end: () => guarded.send(() => end(place)),
@@ -99,7 +103,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
                 unitId,
                 baseSeq: null,
                 at: Date.now(),
-                ...PLAY_TXN,
+                ...DOWNTIME_TXN,
                 patch: opPatch,
               })
               // A step already taken is acked again, and changes nothing:
@@ -110,6 +114,26 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
                 mech ? [stepOp(mech.id, mech.patch)] : []
               )
             }),
+    // Solo only: a Game's Restore is its Mediator's to run again.
+    healAgain:
+      pilotId === null || !solo
+        ? null
+        : (stepIndex, patch) =>
+            guarded.ask(async () =>
+              sendStep(gameId, {
+                id: downtimeHealOpId(run, pilotId, stepIndex),
+                unitId: pilotId,
+                baseSeq: null,
+                at: Date.now(),
+                ...DOWNTIME_TXN,
+                patch,
+              })
+            ),
+    // A player's for their pilot; the Mediator's for every pilot only under the other ruling (r6 D1).
+    moveScrap:
+      pilotId !== null || (target.mediator && DOWNTIME_RULINGS.scrapMove === 'mediator-at-upkeep')
+        ? (move) => guarded.ask(async () => (await moveScrap(move)) !== null)
+        : null,
     claim: (kind, crawlerId, patch) =>
       guarded.ask(async () => {
         const op = {
@@ -117,7 +141,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
           unitId: crawlerId,
           baseSeq: null,
           at: Date.now(),
-          ...PLAY_TXN,
+          ...DOWNTIME_TXN,
           patch,
         }
         return (await claim({ ...place, claim: kind, op })) === true

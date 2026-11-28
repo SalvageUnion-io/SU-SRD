@@ -2,11 +2,10 @@
  * ChassisModderPickerModal — Chassis Modder's pick (Core Book p.64): the one
  * Chassis Ability a Fabricator adds to their mech, from the chassis their
  * Crafting Bay could craft. The shared `EntitySearcher` in a bare ModalShell,
- * single-select: picking the added one again clears it, and Apply then
- * removes it. Not destructive, so no confirm step.
+ * single-select: Choose on an ability's Page adds it (replacing the one added)
+ * and closes. Not destructive, so no confirm.
  */
 
-import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { Button, EntitySearcher, ModalShell } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -18,7 +17,7 @@ type ChassisModderPickerModalProps = {
   options: readonly string[]
   /** The one added now, or null. */
   current: string | null
-  /** Fired with the new pick, or null to remove the added ability. */
+  /** Fired with the new pick (null would remove the added ability; the picker never sends it). */
   onApply: (slug: string | null) => void
 }
 
@@ -29,18 +28,7 @@ export function ChassisModderPickerModal({
   current,
   onApply,
 }: ChassisModderPickerModalProps) {
-  const [selected, setSelected] = useState<string | null>(current)
-
-  useEffect(() => {
-    if (open) setSelected(current)
-  }, [open, current])
-
   const allowed = new Set(options)
-
-  function apply() {
-    if (selected !== current) onApply(selected)
-    onOpenChange(false)
-  }
 
   return (
     <ModalShell
@@ -53,8 +41,12 @@ export function ChassisModderPickerModal({
       <EntitySearcher
         schema="actions"
         mode="single"
-        selected={selected ? [selected] : []}
-        onToggle={(ref) => setSelected((prev) => (prev === ref ? null : ref))}
+        selected={current ? [current] : []}
+        // Choose is the one confirming press (r2 G3).
+        onToggle={(ref) => {
+          if (ref !== current) onApply(ref)
+          onOpenChange(false)
+        }}
         idOf={(item) => nameToSlug(item.name)}
         filter={(item) => allowed.has(nameToSlug(item.name))}
         facets={{ status: false }}
@@ -64,14 +56,9 @@ export function ChassisModderPickerModal({
         emptyMessage={buildSheetCopy('noMatchingChassisAbilities')}
         onClose={() => onOpenChange(false)}
         railActions={
-          <>
-            <Button variant="ghost" size="compact" onClick={() => onOpenChange(false)}>
-              {buildSheetCopy('cancelChassisAbility')}
-            </Button>
-            <Button size="compact" disabled={selected === current} onClick={apply}>
-              {buildSheetCopy('applyChassisAbility')}
-            </Button>
-          </>
+          <Button variant="ghost" size="compact" onClick={() => onOpenChange(false)}>
+            {buildSheetCopy('cancelChassisAbility')}
+          </Button>
         }
       />
     </ModalShell>

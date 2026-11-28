@@ -188,22 +188,22 @@ describe('retiredDocPage', () => {
 
 describe('retiredTarget', () => {
   it('maps each retired shape', () => {
-    expect(retiredTarget('/games')).toBe('/play/')
+    expect(retiredTarget('/games')).toBe('/games/')
     expect(retiredTarget('/games/g1/view/pilot/row-1')).toBe('/pilots/row-1')
-    expect(retiredTarget('/join/ABCD')).toBe('/play/invite/ABCD')
-    expect(retiredTarget('/games/g1')).toBe('/play/games/g1')
-    expect(retiredTarget('/games/g1/')).toBe('/play/games/g1')
-    expect(retiredTarget('/dashboard/p1')).toBe('/play/pilots/p1')
-    expect(retiredTarget('/mediator/g1')).toBe('/play/games/g1/mediate')
+    expect(retiredTarget('/join/ABCD')).toBe('/games/invite/ABCD')
+    expect(retiredTarget('/games/g1')).toBe('/games/g1')
+    expect(retiredTarget('/games/g1/')).toBe('/games/g1')
+    expect(retiredTarget('/dashboard/p1')).toBe('/pilots/p1/play')
+    expect(retiredTarget('/mediator/g1')).toBe('/games/g1/mediate')
   })
 
   it('moves the app-era addresses Play and the sheets left behind', () => {
-    expect(retiredTarget('/play')).toBe('/play/')
-    expect(retiredTarget('/play/')).toBe('/play/')
-    expect(retiredTarget('/play/p1')).toBe('/play/pilots/p1')
-    expect(retiredTarget('/play/game/g1')).toBe('/play/games/g1/mediate')
-    expect(retiredTarget('/play/games/g1')).toBe('/play/games/g1')
-    expect(retiredTarget('/invite/t1')).toBe('/play/invite/t1')
+    expect(retiredTarget('/play')).toBe('/games/')
+    expect(retiredTarget('/games/')).toBe('/games/')
+    expect(retiredTarget('/play/p1')).toBe('/pilots/p1/play')
+    expect(retiredTarget('/play/game/g1')).toBe('/games/g1/mediate')
+    expect(retiredTarget('/games/g1')).toBe('/games/g1')
+    expect(retiredTarget('/invite/t1')).toBe('/games/invite/t1')
     expect(retiredTarget('/sheet/pilot/x')).toBe('/pilots/x')
     expect(retiredTarget('/sheet/npc/x')).toBe('/npcs/x')
     expect(retiredTarget('/mechs/patterns')).toBe('/patterns/')
@@ -235,10 +235,12 @@ describe('formerSitePath', () => {
   it('moves the site’s earlier page addresses', () => {
     expect(formerSitePath('/titans/apophis/')).toBe('/bio-titans/apophis/')
     expect(formerSitePath('/titans')).toBe('/bio-titans/')
-    expect(formerSitePath('/actions/portable-cryopod/')).toBe('/?q=portable+cryopod')
+    expect(formerSitePath('/actions/portable-cryopod/')).toBe('/reference/?q=portable+cryopod')
     expect(formerSitePath('/catalog-categories/guides/')).toBe('/guides/')
     expect(formerSitePath('/sheets/pilot')).toBe('/build/pilots/new')
-    expect(formerSitePath('/roll-tables/salvage-cache-table/')).toBe('/?q=salvage+cache+table')
+    expect(formerSitePath('/roll-tables/salvage-cache-table/')).toBe(
+      '/reference/?q=salvage+cache+table'
+    )
   })
 
   it('sends the touch icon’s conventional names to the one the page links', () => {

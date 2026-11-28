@@ -1,0 +1,466 @@
+/*
+ * The reference site's class page and its paths. `global.css` imports it
+ * after `pages.css`.
+ */
+
+/*
+ * A class page's ability trees (`components/ClassAbilityTree.tsx`): the
+ * training brief, then sections under Slabs — a Core class's Core trees
+ * (stacked, beside its own path from 64rem) and its Hybrid Classes; a Hybrid Class's
+ * own tree + Legendary tree (two across) and the Core trees it branches into.
+ *
+ * Each tree draws the book's track: the UI library's `AbilityTrack`
+ * (`.su-ability-track`, `partials/compositions.css`).
+ */
+/* The class page keeps the Page's one rhythm (ruleset §1.7, hard rule R17):
+   every block, its slab included, one 12px gap from the next. */
+.su-ability-tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* From `lg` the Page floats its side column (`.su-manual`,
+   `partials/manual-page.css`): the trees' wrapper steps aside so each block
+   narrows beside the column on its own and runs the full measure under it. */
+@media (width >= 64rem) {
+  .su-manual__after > .su-ability-tree {
+    display: contents;
+  }
+}
+
+/* The trees side by side, each as wide as its longest title on one line
+   (the UI library's `data-entity-fit`), growing to fill the line and wrapping
+   when the next does not fit; a phone stacks them. A title wraps only when it
+   alone is wider than the line. */
+.su-ability-tree__row,
+.su-class-path__trees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+/* Under a band (Core Trees, a path's trees) the trees' own labels keep the
+   page's block gap below its cut-out: never flush on the band (R17). */
+.su-slab-section__head
+  + .su-slab-section__body
+  > :is(.su-ability-tree__row, .su-class-path__trees):first-child {
+  margin-top: var(--space-12);
+}
+
+/* Never more than three across: each is wider than a quarter of the line, so
+   a fourth always wraps (`ability-trees.e2e.ts`). */
+.su-ability-tree__row > *,
+.su-class-path__trees > * {
+  flex: 1 1 auto;
+  min-width: max(min(100%, 16rem), calc((100% - 3 * var(--space-12)) / 4 + 1px));
+}
+
+@media not (width >= 40rem) {
+  .su-ability-tree__row > *,
+  .su-class-path__trees > * {
+    flex-basis: 100%;
+  }
+}
+
+/*
+ * On this page (`ClassContents`): the class's sections as a wrapping line of
+ * links under their slab, the Page's first block (`.su-manual__lead`): over
+ * the art where a phone's long column starts, over both tracks from `lg`.
+ */
+.su-class-contents {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.su-class-contents__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-16);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* A text link in the page's ink, underlined as every prose link is; 24px
+   tall, WCAG 2.2's minimum target (2.5.8). */
+.su-class-contents__link {
+  align-items: center;
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  display: inline-flex;
+  font-size: var(--text-body);
+  min-block-size: var(--space-24);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/*
+ * From `lg` the line gives way to the band's menu (`PageContentsMenu`), beside
+ * Share, so the sections never take a line of the Page (the lead is hidden,
+ * `manual-page.css`). Below `lg` the line stands and the button is not drawn.
+ */
+.su-page-contents-menu__open {
+  anchor-name: --su-page-contents;
+  display: none;
+}
+
+@media (width >= 64rem) {
+  .su-page-contents-menu__open {
+    display: inline-flex;
+  }
+}
+
+/* A card under its button: paper, an ink rule, the lift a menu floats on. */
+.su-page-contents-menu {
+  background: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lift);
+  color: var(--color-ink);
+  max-block-size: 70dvh;
+  min-inline-size: 16rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-12) var(--space-16);
+}
+
+.su-page-contents-menu:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* Where a browser anchors it, it hangs from the button's foot, its end edge
+   on the button's; elsewhere it opens mid-screen, the popover's own place. */
+@supports (position-area: block-end) {
+  .su-page-contents-menu {
+    inset: auto;
+    margin: var(--space-4) 0 0;
+    position-anchor: --su-page-contents;
+    position-area: block-end span-inline-start;
+    position-try-fallbacks: flip-block;
+  }
+}
+
+.su-page-contents-menu__title {
+  margin: 0;
+}
+
+.su-page-contents-menu__list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-page-contents-menu__link {
+  align-items: center;
+  border-block-end: var(--bw-hairline) solid var(--color-ink-20);
+  color: var(--color-ink);
+  display: flex;
+  font-size: var(--text-body);
+  min-block-size: var(--size-full);
+  text-decoration: none;
+}
+
+.su-page-contents-menu__list > li:last-child > .su-page-contents-menu__link {
+  border-block-end: 0;
+}
+
+.su-page-contents-menu__link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@media print {
+  .su-page-contents-menu__open {
+    display: none;
+  }
+}
+
+/*
+ * The training brief (Workshop Manual p.23, "Gaining Abilities"): a dashed
+ * slab with the ability limit at its end, then tier cards, each band in its
+ * tier's book hue with the name on a cut-out tab and the TP cost in the
+ * pointy box. On a wide page it narrows beside the Page's side column, as
+ * every block of the Page does.
+ */
+.su-class-brief {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* The tier cards: side by side while each keeps 12.5rem, the widest tier's
+   head (LEGENDARY and its 3 TP, which never clip: C5; a card's container
+   query hides its content's width from the row), stacked on a phone.
+   A wrapping flex row, not a grid: the cards on a line share it evenly, each
+   as tall as its own text (R61: none stretches to its neighbour), and a card
+   alone on the last line (Legendary under Core and Advanced, the Salvager's
+   lone Core) grows to the full width rather than leaving half a row empty. */
+.su-class-brief__cards {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+}
+
+/* The tiers as rows stand on paper, so the Training strip's cut-out is
+   paper (R45: a cut-out wears the ground of what it heads). */
+.su-class-brief:has(> .su-class-brief__cards[data-rows]) > .su-rule-head {
+  --su-head-cut: var(--color-paper);
+}
+
+/* A tier card: a `TitledBox`, its cut-out head in the tier's book hue (§3.8)
+   opening into the body, no rule between them. */
+.su-class-brief__card {
+  display: flex;
+  flex: 1 1 12.5rem;
+  min-width: min(100%, 12.5rem);
+}
+
+/* The card is a `TitledBox`; it takes its track's width, under a Compact's 12rem floor. */
+.su-class-brief__card > .su-box {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.su-class-brief__body {
+  font-size: var(--text-body);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* A Hybrid Class's trees, a line under its cards. */
+.su-class-brief__trees {
+  font-size: var(--text-body);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/*
+ * A Core class's paths (the book's spread lists them under its Advanced and
+ * Legendary Abilities and "Hybrid Classes"), one card each, full width under
+ * its Core trees: the class's own Advanced tree first, then each Hybrid Class.
+ * Every card is the same shell, one column — a pilot head with the name on
+ * the paper cut-out at the band's foot (a Compact's) and, right of it, what opens
+ * the path and its kind; then the body, what the path is over its trees
+ * (their Compacts on the same track as the class's own); then the citation. A hybrid's head is a link to its page;
+ * the class's own path has no page, so its head links nowhere.
+ */
+.su-class-paths {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* A Hybrid Class's head opens its page: the whole cut-out head is the link. */
+.su-class-path__link {
+  color: var(--color-ink);
+  display: block;
+  text-decoration: none;
+}
+
+/* The one focus ring (chrome K9), on the whole path: the head is the link,
+   and the frame's clip would cut a ring drawn round the head alone. */
+.su-class-path__link:focus-visible {
+  outline: 3px solid transparent;
+}
+
+.su-class-path:has(.su-class-path__link:focus-visible) {
+  box-shadow: var(--focus-ring-shadow);
+}
+
+.su-class-path__body {
+  padding: var(--space-12);
+}
+
+/* The requirement as ONE chip: its cells (REQ | tree, then OR | tree for each
+   other tree) butt into one rounded cell, sharing their inner edges. Not once
+   it left its head (`data-fill-out`, C2b): this sheet is unlayered, so its
+   `display` would beat the out state and draw the chip twice. */
+.su-class-path__req-chip:not([data-fill-out]) {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.su-class-path__req-cell:not(:first-child) {
+  border-bottom-left-radius: 0;
+  border-left-width: 0;
+  border-top-left-radius: 0;
+}
+
+.su-class-path__req-cell:not(:last-child) {
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* The path's text, at the head of the body over its trees. */
+.su-class-path__note {
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: 1.45;
+  margin: 0 0 var(--space-12);
+  max-width: 72ch;
+}
+
+/* A path's trees split the card in equal columns, the same in every path
+   card on the page (its own Advanced and Legendary trees, each Hybrid
+   Class's): as many as fit at 16rem, three at most, one each on a phone.
+   A grid, not the item grid: the trees share its rows (subgrid, below). */
+.su-class-path__trees {
+  --su-tree-min: max(min(100%, 16rem), calc((100% - 3 * var(--space-24)) / 4 + 1px));
+  --su-tr: minmax(var(--su-tree-min), 1fr); /* one tree's track */
+
+  display: grid;
+  gap: var(--space-12) var(--space-24);
+  grid-template-columns: repeat(auto-fit, var(--su-tr)); /* design-tokens-ignore(item-grid): rows */
+}
+
+/* Three trees stand three across or one each, never two and an orphan
+   (hard rule R68): short of three 16rem columns the track is the full width. */
+.su-class-path__trees:has(> :nth-child(3):last-child) {
+  --su-tree-three: calc(48rem + 2 * var(--space-24));
+  --su-tree-min: max(
+    calc((100% - 2 * var(--space-24)) / 3),
+    min(100%, calc((var(--su-tree-three) - 100%) * 999))
+  );
+}
+
+/* Side by side (from `sm`, where two 16rem columns and their gap fit), the
+   trees share rows:
+   each tree is its slab and three tiers on the trees' own grid, so a
+   Legendary tree's two picks and its "or" line up with the three tiers beside
+   it and every tree ends on one line. */
+.su-class-path__trees {
+  container-type: inline-size;
+}
+
+/* A class's Core trees: two across, never more. */
+@media (width >= 40rem) {
+  .su-class-path__trees--pair {
+    --su-tree-min: calc((100% - var(--space-24)) / 2);
+  }
+
+  /* A third tree, alone on its row, fills it. */
+  .su-class-path__trees--pair > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+@container (width >= 40rem) {
+  .su-class-path__trees > .su-ability-tree__group {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    row-gap: var(--space-12);
+  }
+
+  /* The tree's body (a SlabSection's) steps aside, so its track's tiers sit
+     on the trees' own rows. */
+  .su-class-path__trees > .su-ability-tree__group > .su-ability-tree__track {
+    display: contents;
+  }
+
+  .su-class-path__trees .su-ability-track {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+  }
+}
+
+/* The path's foot: a band in its head's colour (inline), the citation on a
+   paper cut-out flush with its top edge and its end, as a page's foot band
+   cites. */
+.su-class-path__foot {
+  /* No rule above: the cite is a cut-out, its paper flush with the card's
+     body, never boxed off. */
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0 var(--space-12) var(--space-12);
+}
+
+.su-class-path__cite {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--text-caption);
+  padding: var(--space-4) var(--space-8);
+}
+
+/* The Training tiers as rows: one line each, name then what opens it. */
+.su-class-brief__cards[data-rows] {
+  background-color: var(--color-paper);
+  align-items: stretch;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 0;
+}
+
+.su-class-brief:has(> [data-rows]) {
+  gap: 0;
+}
+
+.su-class-brief__cards[data-rows] .su-box__body {
+  flex: 0 0 auto;
+  padding-block: 0 var(--space-8);
+}
+
+/* The Training tiers as rows: each the strip's full width. */
+.su-class-brief__cards[data-rows] > .su-class-brief__card {
+  align-self: stretch;
+  flex: 0 0 auto;
+  max-width: none;
+  width: auto;
+}
+
+.su-class-brief__cards[data-rows] > .su-class-brief__card:nth-child(even) {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+/* A tablet sets a class's art beside its flavour text, so the trees start in
+   the first screens (RR7-10): On this page over both, the training and the
+   trees under them, the page's measure. */
+@media (width >= 40rem) and (not (width >= 64rem)) {
+  .su-manual:has(.su-manual__after > .su-ability-tree) {
+    column-gap: var(--space-24);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .su-manual:has(.su-manual__after > .su-ability-tree) > :is(.su-manual__side, .su-manual__main) {
+    display: contents;
+  }
+
+  .su-manual:has(.su-manual__after > .su-ability-tree) > *,
+  .su-manual:has(.su-manual__after > .su-ability-tree)
+    > :is(.su-manual__side, .su-manual__main)
+    > * {
+    grid-column: 1 / -1;
+  }
+
+  .su-manual:has(.su-manual__after > .su-ability-tree) > .su-manual__side > .su-manual__art {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .su-manual:has(.su-manual__after > .su-ability-tree) > .su-manual__main > .su-entity-page__prose {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+/* Print opens every Ability's rules: a fold is no use on paper (RR7-07). */
+@media print {
+  .su-ability-open::details-content {
+    content-visibility: visible;
+  }
+
+  .su-ability-open > .su-ability-open__summary {
+    display: none;
+  }
+}

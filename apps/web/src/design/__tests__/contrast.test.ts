@@ -259,7 +259,7 @@ describe('ink on colour — the refresh pairs', () => {
     { band: 'tierHybrid', ground: color.tierHybrid, text: 'paper' },
     // The Heat guide's band.
     { band: 'heat', ground: color.heat, text: 'paper' },
-    // The SRD home's Discord button (`DiscordButton`).
+    // The SRD home's Discord button (`.su-front__discord`).
     { band: 'discord', ground: color.discord, text: 'paper' },
   ] as const
 

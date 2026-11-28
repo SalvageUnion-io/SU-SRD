@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { scoreSearchMatch } from 'salvageunion-reference'
-import { searchCompactIndex } from '../searchCompactIndex'
+import { aboveFloor, searchCompactIndex } from '../searchCompactIndex'
+import { buildSearchIndexEntries } from '../searchIndexBuild'
 import type { CompactSearchEntry } from '../searchIndexTypes'
 
 function entry(name: string, text = name.toLowerCase()): CompactSearchEntry {
@@ -57,5 +58,83 @@ describe('searchCompactIndex', () => {
     expect(searchCompactIndex(INDEX, { query: '  ' })).toEqual([])
     expect(searchCompactIndex(INDEX, { query: 'laser', schemas: ['chassis'] })).toEqual([])
     expect(searchCompactIndex(INDEX, { query: 'laser', limit: 2 })).toHaveLength(2)
+  })
+
+  test('a rule told inside a guide ranks as a rule, a pattern as itself (r2 H7)', () => {
+    const rule: CompactSearchEntry = {
+      ...entry('Training Points', 'training points tp'),
+      schemaName: 'guides',
+      pattern: {
+        href: '/guides/crawler-downtime/#train-your-pilot',
+        kind: 'Rule · Crawler Downtime',
+      },
+      rule: true,
+    }
+    const guide: CompactSearchEntry = {
+      ...entry('Crawler Downtime', 'crawler downtime tp training points'),
+      schemaName: 'guides',
+    }
+    const names = (query: string) =>
+      searchCompactIndex([rule, guide], { query }).map((r) => r.entityName)
+    expect(names('tp')).toEqual(['Training Points', 'Crawler Downtime'])
+    expect(names('training points')).toEqual(['Training Points', 'Crawler Downtime'])
+    expect(searchCompactIndex([rule, guide], { query: 'tp' })[0]?.pattern?.href).toBe(
+      '/guides/crawler-downtime/#train-your-pilot'
+    )
+  })
+})
+
+describe('aboveFloor: the dropdown leaves out what only mentions the query (SB6-28)', () => {
+  test('"pinning" is Pinning, never the entries whose words say it', () => {
+    const results = aboveFloor(searchCompactIndex(buildSearchIndexEntries(), { query: 'pinning' }))
+    const names = results.map((r) => r.entityName)
+    expect(names[0]).toBe('Pinning')
+    for (const prose of ['Retreat', 'Leviathan', 'Mazona']) expect(names).not.toContain(prose)
+  })
+
+  test('with nothing named, every match stays: the words are the only answer', () => {
+    const prose = searchCompactIndex(INDEX, { query: 'odd' })
+    expect(prose.length).toBeGreaterThan(0)
+    expect(aboveFloor(prose)).toEqual(prose)
+  })
+})
+
+describe('a question finds the rules term it holds (r7 E1)', () => {
+  const index = buildSearchIndexEntries()
+  const first = (query: string, n = 1) =>
+    aboveFloor(searchCompactIndex(index, { query }))
+      .slice(0, n)
+      .map((r) => `${r.entityName} (${r.schemaName})`)
+
+  test('the term leads the phrase it is in', () => {
+    expect(first('overheat mech')).toEqual(['Overheat (traits)'])
+    expect(first('what happens when my mech overheats')).toEqual(['Overheat (traits)'])
+    expect(first('how far can my mech move', 2).sort()).toEqual([
+      'Map Movement (guides)',
+      'Move (keywords)',
+    ])
+  })
+
+  test('another form of the name finds the how-to (SB7-20)', () => {
+    expect(first('salvage')).toEqual(['Salvaging (guides)'])
+  })
+
+  test('the prose that holds the rest stays under the term', () => {
+    const names = aboveFloor(searchCompactIndex(index, { query: 'overheat mech' })).map(
+      (r) => r.entityName
+    )
+    expect(names).toContain('Pushing a Mech')
+  })
+})
+
+describe("'pilot bay' offers the Crawler Bay and the Reference's section (RR7-16)", () => {
+  test('both, the section opening its chapter page', () => {
+    const results = aboveFloor(
+      searchCompactIndex(buildSearchIndexEntries(), { query: 'pilot bay' })
+    )
+    expect(results.map((r) => r.pattern?.href ?? r.schemaName).slice(0, 2)).toEqual([
+      'crawler-bays',
+      '/pilots/',
+    ])
   })
 })

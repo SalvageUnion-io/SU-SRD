@@ -1,0 +1,490 @@
+/* The front doors: the home page (`index.page.tsx`, `HomeFront.tsx`), and the
+ * pitch Build's and Play's signed-out pages open on (`FrontPitch`).
+ */
+
+/* ── The pitch (`FrontPitch`) ──────────────────────────────────────────────
+ * The value line in the title's condensed face, a sentence, the page's one
+ * rust action beside one outline, a caption. Blocks 12px apart, as a card's.
+ */
+.su-front-pitch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.su-front-pitch__value {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.08;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.su-front-pitch__lede {
+  color: var(--color-ink);
+  font-size: var(--text-lede);
+  line-height: 1.45;
+  margin: 0;
+  max-width: 34rem;
+}
+
+/* The two actions on a wrapping line. On a phone each takes a line of its
+   own, the column's width: a label is never squeezed ("Sign in with Discord"
+   beside "Meet the Starter crew"). */
+.su-front-pitch__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+@media not (width >= 40rem) {
+  .su-front-pitch__actions > * {
+    flex: 1 1 100%;
+  }
+}
+
+.su-front-pitch__note {
+  color: var(--color-ink-2);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  margin: 0;
+}
+
+@media (width >= 40rem) {
+  .su-front-pitch__value {
+    font-size: var(--text-display-lg);
+  }
+}
+
+@media (width >= 64rem) {
+  .su-front-pitch__value {
+    font-size: var(--text-hero);
+  }
+}
+
+/* ── The home (`index.page.tsx`, `HomeFront.tsx`) ─────────────────────────── */
+
+/* Level-1 blocks 24px apart. */
+.su-front__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+/* EXPERIMENT (hero slideshow): the home is its slideshow, edge to edge, the
+   whole height between the header and the footer; the footer always sits at
+   the foot of the screen. Each slide's art covers the ground; the words stand
+   on paper plates of their own, so the art is never dimmed. */
+body:has(.su-front--show) > div {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+body:has(.su-front--show) main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.su-front--show {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* The slides clip their own art as it turns, never the show. */
+.su-front__show {
+  --su-show-step: 7s;
+  background-color: var(--color-ink);
+  flex: 1 1 auto;
+  isolation: isolate;
+  min-height: 28rem;
+  position: relative;
+}
+
+.su-front__show-slides {
+  inset: 0;
+  list-style: none;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+}
+
+.su-front__show-slide {
+  inset: 0;
+  position: absolute;
+}
+
+/* The art covers the slide, edge to edge, no letterbox. */
+.su-front__show-art {
+  block-size: 100%;
+  inline-size: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: center 40%;
+  position: absolute;
+}
+
+/* The first slide's pitch: the title's face, two steps under the name. */
+.su-front__show-pitch {
+  font-family: var(--font-cond);
+  font-size: var(--text-display-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* The pitch sets on two balanced lines at every width. */
+.su-front__show-pitch {
+  max-inline-size: 31rem;
+}
+
+/* The site's name on a cut-out in the header's dress (paper on ink-deep,
+   its speckle: `.su-grain--paper`) notched into it at the top left, the
+   chapter title's face at its size. */
+.su-front__show-head {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16) var(--space-24);
+  justify-content: space-between;
+  left: var(--su-shell-edge, var(--space-24));
+  position: absolute;
+  right: var(--su-shell-edge, var(--space-24));
+  top: 0;
+  z-index: 2;
+}
+
+/* The site's name on its cut-out at the left. */
+.su-front__show-brand {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+}
+
+.su-front__show-name {
+  background-color: var(--color-ink-deep);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
+  font-size: var(--text-chapter);
+  font-weight: var(--font-weight-bold);
+  line-height: 0.92;
+  margin: 0;
+  padding: var(--space-12) var(--space-16);
+  white-space: nowrap;
+}
+
+/* Start building and Look something up, under the name in its dress and
+   outside the slides: in place whichever slide is in view (r6 G14). */
+.su-front__show-fixed {
+  background-color: var(--color-ink-deep);
+  padding: 0 var(--space-16) var(--space-12);
+}
+
+/* A slide's words, at its lower right in the same place on every slide: one
+   plate in the footer's dress (paper on ink-deep) notched into it, as wide as its words, its heading and
+   line first and its action at the right, on one row at every width. */
+.su-front__show-copy {
+  bottom: 0;
+  color: var(--color-paper);
+  display: flex;
+  right: var(--su-shell-edge, var(--space-24));
+  max-width: min(
+    44rem,
+    calc(
+      100% -
+      var(--su-shell-edge, var(--space-24)) *
+      2 -
+      var(--size-full) *
+      3 -
+      var(--space-4) *
+      2 -
+      var(--space-12)
+    )
+  );
+  position: absolute;
+  text-align: left;
+  z-index: 1;
+}
+
+.su-front__show-plate {
+  align-items: center;
+  background-color: var(--color-ink-deep);
+  display: flex;
+  gap: var(--space-12) var(--space-16);
+  padding: var(--space-12) var(--space-16);
+}
+
+.su-front__show-act.su-btn {
+  flex: none;
+  width: auto;
+}
+
+/* The pitch's plate: its words over its two actions. */
+.su-front__show-plate--pitch {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.su-front__show-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+}
+
+/* A returning reader's doors, at the head's right in the name's dress: out of
+   the page until somebody is signed in (`markSignedIn`). */
+.su-front__show-yours {
+  align-items: center;
+  background-color: var(--color-ink-deep);
+  color: var(--color-paper);
+  display: none;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+  padding: var(--space-12) var(--space-16);
+}
+
+html[data-srd-signed-in] .su-front__show-yours {
+  display: flex;
+}
+
+/* The Game last opened: out of the strip until the script names one. */
+.su-front__show-game[hidden] {
+  display: none;
+}
+
+/* Its name is never cut (R56): a name longer than the strip wraps inside the
+   button, which grows to hold it. */
+.su-front__show-yours .su-front__show-game {
+  height: auto;
+  max-width: 100%;
+  min-height: var(--size-compact);
+  overflow-wrap: anywhere;
+  padding-block: var(--space-4);
+  white-space: normal;
+}
+
+.su-front__show-yours-label {
+  font-size: var(--text-caption);
+}
+
+/* Always left of the button, a phone included. One measure on every slide,
+   so each line sits on two even rows and the plate keeps its size. */
+.su-front__show-words {
+  display: flex;
+  flex: 0 1 32rem;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.su-front__show-body {
+  font-size: var(--text-title);
+  line-height: 1.3;
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* One slide's turn in a show of eight (`heroSlides`): each holds an eighth
+   of the loop, sliding in from the right over its first fifth of a step and
+   out to the left as the next slides in behind it. Out of its turn, before it
+   and after, a slide is hidden (K3): never seen, pressed or focused over the
+   one in view. */
+@keyframes su-front-show {
+  0% {
+    transform: translateX(100%);
+    visibility: hidden;
+  }
+  2.5%,
+  12.5% {
+    transform: translateX(0);
+    visibility: visible;
+  }
+  15%,
+  100% {
+    transform: translateX(-100%);
+    visibility: hidden;
+  }
+}
+
+/* The slides cycle only where motion is welcome. Slide i takes its turn at i
+   steps, the first already in. */
+@media (prefers-reduced-motion: no-preference) {
+  .su-front__show-slide {
+    animation: su-front-show calc(var(--su-show-step) * var(--su-show-count)) var(--ease) infinite
+      both;
+    animation-delay: calc(var(--su-show-step) * (var(--su-show-i) - 0.2));
+  }
+
+  /* Held while a slide's plate (its words and its button) is pointed at,
+     a slide's own control is focused or a finger is down on its plate
+     (`[data-touched]`, `watchSlideshow`), and for good once paused: the
+     whole show is the screen, so hovering its art is no sign, and a press on
+     Previous or Next must leave it turning. */
+  .su-front__show:is(
+    [data-paused],
+    [data-touched],
+    :has(.su-front__show-slides:focus-within),
+    :has(.su-front__show-copy:hover)
+  ) .su-front__show-slide {
+    animation-play-state: paused;
+  }
+}
+
+/* The controls at the show's lower left, on the art: Previous, Pause, Next,
+   each a square with its icon alone (Pause at rest, Play once pressed). */
+.su-front__show-controls {
+  bottom: var(--space-12);
+  display: flex;
+  gap: var(--space-4);
+  left: var(--su-shell-edge, var(--space-24));
+  position: absolute;
+  z-index: 2;
+}
+
+.su-front__show-controls[hidden] {
+  display: none;
+}
+
+.su-front__show-control.su-btn {
+  block-size: var(--size-full);
+  inline-size: var(--size-full);
+  padding: 0;
+}
+
+/* Hollow: a paper glyph alone over the art, no frame, a faint paper wash
+   under the pointer. */
+.su-front__show-control.su-btn--default {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--color-paper);
+}
+
+.su-front__show-control.su-btn--default:hover:not(:disabled) {
+  background-color: var(--color-paper-15);
+}
+
+.su-front__show-pause[aria-pressed='true'] .su-front__show-pause-icon,
+.su-front__show-pause:not([aria-pressed='true']) .su-front__show-play-icon {
+  display: none;
+}
+
+/* Under reduced motion the show never turns: its slides stand one under
+   another, each its own screen of art with its words and action in view, so
+   nothing is hidden and there is nothing to pause. */
+@media (prefers-reduced-motion: reduce) {
+  .su-front__show-slides {
+    position: relative;
+  }
+
+  .su-front__show-slide {
+    min-block-size: 28rem;
+    position: relative;
+  }
+
+  .su-front__show-controls {
+    display: none;
+  }
+}
+
+/* A phone: the plates span the width. */
+@media not (width >= 40rem) {
+  .su-front__show {
+    min-height: 36rem;
+  }
+
+  .su-front__show-head {
+    left: var(--space-12);
+    right: var(--space-12);
+  }
+
+  .su-front__show-name {
+    font-size: var(--text-display-lg);
+  }
+
+  /* The controls in a row at the foot of the art, under the plate, never
+     over the picture (RR7-14); each keeps the act's Full height (§4.7). */
+  .su-front__show-controls {
+    bottom: var(--space-8);
+    left: var(--space-12);
+  }
+
+  .su-front__show-copy {
+    bottom: calc(var(--size-full) + var(--space-8) * 2);
+    max-width: calc(100% - var(--space-12) * 2);
+    right: var(--space-12);
+  }
+
+  .su-front__show-pitch {
+    font-size: var(--text-readout);
+  }
+
+  /* A slide's words keep the plate's width: its action goes under them. Beside
+     the button a sentence was a column two words wide (r2 H6). */
+  .su-front__show-plate {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .su-front__show-plate > .su-front__show-words {
+    flex: none;
+  }
+
+  .su-front__show-body {
+    font-size: var(--text-lede);
+  }
+
+  /* Zoomed to 200% on a phone (under 320px) the plate has less room than its
+     words want: it keeps to the room it has, and its words and actions wrap
+     inside it, the site's name too (RR3-09). Wider, they fit as they did. */
+  .su-front__show-plate {
+    min-width: 0;
+  }
+
+  .su-front__show-plate > :is(.su-front__show-words, .su-front__show-pitch, .su-front__show-acts) {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .su-front__show-act.su-btn {
+    height: auto;
+    max-width: 100%;
+    min-height: var(--size-full);
+    white-space: normal;
+  }
+
+  .su-front__show-name {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+}
+
+/* A door's art place: shorter than a catalog tile's 3:4, so three doors and
+   their words sit on one screen. */
+.su-start-here__art.su-entity-index__art {
+  aspect-ratio: 2 / 1;
+  container-type: normal;
+}
+
+@container (width >= 48rem) {
+  .su-start-here__art.su-entity-index__art {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+/* A door's stamp sits at the band's right, on the name's line. */
+.su-start-here__stamp {
+  align-self: flex-end;
+  display: flex;
+  margin-bottom: var(--space-6);
+  margin-left: auto;
+}

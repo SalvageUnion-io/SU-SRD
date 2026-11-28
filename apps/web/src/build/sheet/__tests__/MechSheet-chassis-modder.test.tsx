@@ -13,8 +13,16 @@ import { MechSheet } from '../MechSheet'
 
 const FABRICATOR = ['chassis-modder']
 
+/** The side column's Chassis Ability groups, together. */
 function abilityList(): HTMLElement {
-  return screen.getByRole('list', { name: /chassis ability/i })
+  const groups = screen
+    .getAllByText('Chassis ability')
+    .map((label) => label.closest<HTMLElement>('section'))
+    .filter((group): group is HTMLElement => group !== null)
+  if (groups.length === 0) throw new Error('no Chassis Ability group')
+  const all = document.createElement('div')
+  for (const group of groups) all.append(group.cloneNode(true))
+  return all
 }
 
 describe('MechSheet — Chassis Modder', () => {

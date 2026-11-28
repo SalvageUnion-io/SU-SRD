@@ -27,6 +27,7 @@ import { SITE_URL } from '../../lib/constants'
 import { getEntitySchemas, getSchemaCatalog } from '../../lib/gameData'
 import { readReferenceFile } from '../../lib/referenceFiles'
 import { getItemStaticPaths } from '../../lib/staticPaths'
+import { endpointsCopy } from '../../messages/reference-endpoints'
 import type { EndpointModule, StaticPath } from '../types'
 import { committedRow } from './itemJson'
 
@@ -69,16 +70,15 @@ function sha256(body: string): string {
 /** The manifest at `/api/v1/index.json`. */
 export function apiV1Manifest() {
   return {
-    api: 'SalvageUnion.io Dataset API',
+    api: endpointsCopy('datasetApiName'),
     version: API_VERSION,
     docs: `${SITE_URL}/api/`,
     licence: {
-      name: 'Salvage Union Open Game Licence 1.0b',
+      name: endpointsCopy('licenceName'),
       url: 'https://leyline.press/pages/salvage-union-open-game-licence-1-0b',
-      note: 'Game text and mechanics only; artwork is not covered.',
+      note: endpointsCopy('licenceNote'),
     },
-    stability:
-      'Within v1 changes only add: new schemas, new optional fields, new entities and corrected text. A field is never removed, renamed or retyped, and a slug that moves keeps answering at its old URL. A breaking change ships as /api/v2/, beside v1.',
+    stability: endpointsCopy('stability'),
     schemas: apiV1Schemas().map((schema) => ({
       id: schema.id,
       name: schema.displayNamePlural,

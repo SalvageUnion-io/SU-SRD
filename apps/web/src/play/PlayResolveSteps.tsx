@@ -1,19 +1,35 @@
 /**
  * PlayResolveSteps — an action's resolve, opened in place as its Mini's
  * contentful body (play.md §5): Activate, then the Core Mechanic table, then
- * Apply. Presentational:
+ * Apply. Roll pays the cost where Activate has not, and a line says what it
+ * will spend (r4 A1); an action with no cost has no Activate (r4 A2), nor
+ * an attack, whose Roll the die is its one main button (r5 A16): every
+ * action that rolls is so, and one that rolls nothing has Use alone, no
+ * table (r8 A6), closing itself once used.
+ * A roll that writes nothing has no Apply (r6 A5): the row's own Done
+ * finishes it, and a Failure with no Push open closes itself
+ * (`useActionsDeck`); the keyboard goes to that Done.
+ * After a roll the keyboard is on Apply (r4 A3), and the rolled row is clear
+ * of the sticky Apply bar (r4 A4).
+ * Presentational:
  * `useActionsDeck` builds the `ResolveModel` from the seat's `resolving` and
  * owns every write; this draws its steps and calls back.
  *
  * The roll is the table's (`PlayRollInstrument`, R8): its ROLL THE DIE stamp
  * is the one roll control, and the result is its marked row. Once a mech's
  * action has rolled, the same stamp reads Push (reroll, +2 Heat and a Heat
- * Check, Core Book p.233) while a Push is open to it.
+ * Check, Core Book p.233) while a Push is open to it, saying the Heat it
+ * adds. After a Success it is not the stamp (r7 B1): a quiet text button
+ * under the table, so the next press cannot throw the Success away.
  *
  * Inside a Mini, which nests nothing (E6), so the steps are plain buttons and
  * plain content (the Nested Frames Audit, play.md §12): no box, card, entity
  * or titled head of their own.
  * A note (the Cascade Failure hand-off) is an unlabelled Callout.
+ *
+ * Offline the resolve goes on (r6 A14): the die rolls on the device and its
+ * steps are held, "Not sent yet", until the connection returns (`useSeatAt`).
+ * A Push and an Area Salvage, which write the table, wait for it.
  *
  * An Area Salvage reads its own table (Core Book p.248): the area it spends
  * Supply from is a line above the roll, the roll is refused while there is
@@ -23,19 +39,19 @@
  */
 
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AREA_SALVAGE_TABLE } from 'salvageunion-reference/rules'
 import { Button, Callout, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
+import { useSync } from '../replica/syncContext'
+import type { ResolveModel } from './actionsDeck.model'
+import { clearOfBar } from './clearOfBar.model'
 import { ResolveCost, ResolveSpend } from './PlayResolveCost'
 import { PlayRollInstrument } from './PlayRollInstrument'
 import { SalvageAreaDialog } from './SalvageAreaDialog'
-import type { ResolveModel } from './useActionsDeck'
+import { CORE_MECHANIC_TABLE } from './tables.model'
 
 type Resolving = Extract<ResolveModel, { kind: 'resolve' }>
-
-/** The table every action's roll reads (Core Book p.233), but Area Salvage's own. */
-const CORE_MECHANIC = 'Core Mechanic'
 
 const AREA = {
   alignItems: 'center',
@@ -57,11 +73,52 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
   const { controls, roll, salvage } = view
   // Rolled, a mech's action Pushes from the same stamp while it may.
   const push = roll && controls.push && !controls.push.disabled ? controls.push : null
+  // A Success (or Nailed It) is not thrown away by the next press (r7 B1).
+  const quietPush = push !== null && (roll?.band === 'success' || roll?.band === 'nailed')
+  const stampPush = quietPush ? null : push
   const [settingArea, setSettingArea] = useState(false)
+  // After a roll the keyboard is on Apply, never left on the stamp, which now
+  // reads Push: a second Enter there would reroll and add Heat (r4 A3).
+  const applyRef = useRef<HTMLButtonElement>(null)
+  const rolling = useRef(false)
+  const rolls = (run: () => void) => () => {
+    rolling.current = true
+    run()
+  }
+  const hostRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!rolling.current || !canWrite) return
+    // Nothing to apply: the row's own Done finishes it (r6 A5), on the Moment's dock.
+    const host = hostRef.current
+    const done = view.nothingToApply
+      ? (
+          host?.closest('[data-play-moment]') ?? host?.closest('.su-play-act')
+        )?.querySelector<HTMLElement>('.su-play-act__use')
+      : null
+    if (!view.nothingToApply && controls.applyDisabled) return
+    rolling.current = false
+    // The bar is on screen already: the focus never moves the pane.
+    ;(done ?? applyRef.current)?.focus({ preventScroll: true })
+    clearOfBar(hostRef.current)
+  })
   // An Area Salvage rolls only while its area has Supply to spend.
-  const salvageOpen = salvage === undefined || (salvage.area !== null && salvage.area.supply > 0)
+  // Why Area Salvage has nothing to roll on: said in its note, and on the roll, which stands off.
+  const salvageShut =
+    salvage === undefined
+      ? undefined
+      : salvage.area === null
+        ? playCopy(salvage.onSetArea ? 'salvageNoAreaSolo' : 'salvageNoArea')
+        : salvage.area.supply <= 0
+          ? playCopy('salvagePickedClean')
+          : undefined
+  const salvageOpen = salvageShut === undefined
+  const offline = useSync().status === 'offline'
+  // Offline the steps are held (r6 A14); a Push and an Area Salvage wait.
+  const holds = offline && salvage === undefined
+  const writes = canWrite || holds
+  const waits = offline && (!holds || stampPush !== null)
   return (
-    <div className="su-play-resolve">
+    <div ref={hostRef} className="su-play-resolve">
       {/* Mounted before the first roll, so the d20, its band and Apply are
           spoken as they land; each line is one text node, read whole. */}
       <div aria-live="polite" className="su-sr-only">
@@ -83,7 +140,6 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
             })}
           </p>
         )}
-        {salvage?.haul && <p>{salvage.haul}</p>}
         {view.pushLog && <p>{view.pushLog}</p>}
         {view.applied && <p>{playCopy('resultApplied')}</p>}
       </div>
@@ -93,76 +149,126 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
       </div>
       <ResolveCost currencyChoice={view.currencyChoice} variableHot={view.variableHot} />
 
-      <div className="su-play-resolve__steps">
-        <Button
-          variant={controls.activated ? 'default' : 'primary'}
-          size="compact"
-          style={GROW}
-          onClick={controls.onActivate}
-          disabled={!canWrite || controls.activateDisabled}
-          title={controls.activateTitle}
-        >
-          {controls.activated ? playCopy('activated') : playCopy('activate')}
-        </Button>
-      </div>
+      {/* An action with no cost has nothing to activate: Roll alone (r4 A2);
+          an attack's roll pays it, so Roll the die leads alone (r5 A16). */}
+      {(view.noRoll || (!view.free && !view.rollLeads)) && (
+        <div className="su-play-resolve__steps">
+          <Button
+            variant={controls.activated ? 'default' : 'primary'}
+            size="compact"
+            style={GROW}
+            onClick={controls.onActivate}
+            disabled={!writes || controls.activateDisabled}
+            title={controls.activateTitle}
+          >
+            {controls.activated
+              ? playCopy('activated')
+              : view.noRoll
+                ? playCopy('use')
+                : playCopy('activate')}
+          </Button>
+        </div>
+      )}
+      {view.noRoll ? null : (
+        <>
+          {/* Roll pays what Activate has not (r4 A1): said before it is pressed. */}
+          {view.rollSpends && !controls.rollLockedReason && <p style={NOTE}>{view.rollSpends}</p>}
+          {controls.rollLockedReason && <p style={NOTE}>{controls.rollLockedReason}</p>}
 
-      {salvage && (
-        <div style={AREA}>
-          <p style={NOTE}>
-            {salvage.area === null
-              ? playCopy(salvage.onSetArea ? 'salvageNoAreaSolo' : 'salvageNoArea')
-              : salvage.area.supply <= 0
-                ? playCopy('salvagePickedClean')
-                : playCopy('salvageArea', {
-                    name: salvage.area.name === '' ? '' : `${salvage.area.name} · `,
-                    tl: salvage.area.techLevel,
-                    supply: salvage.area.supply,
-                  })}
-          </p>
-          {salvage.onSetArea && (
+          {salvage && (
+            <div style={AREA}>
+              <p style={NOTE}>
+                {salvageShut ??
+                  (salvage.area === null
+                    ? ''
+                    : playCopy('salvageArea', {
+                        name: salvage.area.name === '' ? '' : `${salvage.area.name} · `,
+                        tl: salvage.area.techLevel,
+                        supply: salvage.area.supply,
+                      }))}
+              </p>
+              {salvage.onSetArea && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={!canWrite}
+                  onClick={() => setSettingArea(true)}
+                >
+                  {playCopy(salvage.area === null ? 'setTheArea' : 'changeTheArea')}
+                </Button>
+              )}
+            </div>
+          )}
+
+          <PlayRollInstrument
+            table={salvage ? AREA_SALVAGE_TABLE : CORE_MECHANIC_TABLE}
+            roll={salvage ? salvage.roll : (roll?.roll ?? null)}
+            stamp={stampPush ? playCopy('pushHeatStamp', { gain: stampPush.heat }) : undefined}
+            pressAs={stampPush ? 'push' : 'roll'}
+            onRoll={
+              writes && !waits && !quietPush && salvageOpen && !controls.rollLockedReason
+                ? rolls(stampPush ? stampPush.onPush : controls.onRoll)
+                : undefined
+            }
+            // What waits for the connection says where a die still rolls (r6 A14).
+            off={salvageShut ?? (waits ? playCopy('rollWaitsOffline') : undefined)}
+          />
+          {quietPush && push && (
             <Button
               variant="ghost"
               size="mini"
+              onClick={rolls(push.onPush)}
               disabled={!canWrite}
-              onClick={() => setSettingArea(true)}
+              title={canWrite ? undefined : playCopy('rollWaitsOffline')}
             >
-              {playCopy(salvage.area === null ? 'setTheArea' : 'changeTheArea')}
+              {playCopy('pushHeat', { gain: push.heat })}
             </Button>
           )}
-        </div>
+          {view.held && <p style={NOTE}>{playCopy('notSentYet')}</p>}
+          {controls.push?.lockedReason && <p style={NOTE}>{controls.push.lockedReason}</p>}
+
+          {/* The ways forward stay on screen under the table, however long it is (r2 I3). */}
+          <div className="su-play-resolve__steps su-play-resolve__forward">
+            {/* Only while there is something to apply (r6 A5). */}
+            {!view.nothingToApply && (
+              <Button
+                ref={applyRef}
+                data-play-key="apply"
+                size="compact"
+                style={GROW}
+                onClick={controls.onApply}
+                disabled={!writes || controls.applyDisabled}
+                title={playCopy('commitThisResult')}
+              >
+                {controls.applyLabel}
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="compact"
+              onClick={() => {
+                rolling.current = false
+                controls.onClear()
+              }}
+              disabled={!writes}
+            >
+              {playCopy('startOver')}
+            </Button>
+          </div>
+          {/* Said only while there is something to apply (r6 A5). */}
+          {!view.applied && !view.nothingToApply && (
+            <p style={NOTE}>{playCopy('resolveStepsHint')}</p>
+          )}
+
+          {view.pushLog && <p style={NOTE}>{view.pushLog}</p>}
+          {view.meltdown && (
+            <Button variant="primary" size="compact" onClick={view.meltdown.onConfirm}>
+              {playCopy('confirmMeltdownMarkMechDestroyed')}
+            </Button>
+          )}
+          {view.applied && <p style={NOTE}>{playCopy('resultApplied2')}</p>}
+        </>
       )}
-
-      <PlayRollInstrument
-        table={salvage ? AREA_SALVAGE_TABLE : CORE_MECHANIC}
-        roll={salvage ? salvage.roll : (roll?.roll ?? null)}
-        stamp={push ? 'Push:' : undefined}
-        onRoll={canWrite && salvageOpen ? (push ? push.onPush : controls.onRoll) : undefined}
-      />
-      {controls.push?.lockedReason && <p style={NOTE}>{controls.push.lockedReason}</p>}
-
-      <div className="su-play-resolve__steps">
-        <Button
-          size="compact"
-          style={GROW}
-          onClick={controls.onApply}
-          disabled={!canWrite || controls.applyDisabled}
-          title={playCopy('commitThisResult')}
-        >
-          {controls.applyLabel}
-        </Button>
-        <Button variant="ghost" size="compact" onClick={controls.onClear} disabled={!canWrite}>
-          {playCopy('clear')}
-        </Button>
-      </div>
-
-      {view.pushLog && <p style={NOTE}>{view.pushLog}</p>}
-      {view.meltdown && (
-        <Button variant="primary" size="compact" onClick={view.meltdown.onConfirm}>
-          {playCopy('confirmMeltdownMarkMechDestroyed')}
-        </Button>
-      )}
-      {view.applied && <p style={NOTE}>{playCopy('resultApplied2')}</p>}
-      {salvage?.haul && <p style={NOTE}>{salvage.haul}</p>}
       {salvage?.onSetArea && (
         <SalvageAreaDialog
           key={settingArea ? 'open' : 'closed'}

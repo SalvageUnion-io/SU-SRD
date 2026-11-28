@@ -69,9 +69,19 @@ type RailEntry = {
 function useRailEntries(
   schema: EntitySchemaName,
   selected: string[],
-  idOf: (item: EntityLike) => string
+  idOf: (item: EntityLike) => string,
+  resolved?: readonly PoolEntity[]
 ): RailEntry[] {
   return useMemo(() => {
+    if (resolved) {
+      return resolved.map((entity, index) => ({
+        entity,
+        ref: idOf(entity),
+        index,
+        copy: index + 1,
+        total: 1,
+      }))
+    }
     const byId = new Map<string, PoolEntity>()
     for (const e of SalvageUnionReference.findAllIn(schema, () => true) as PoolEntity[]) {
       if (!byId.has(idOf(e))) byId.set(idOf(e), e)
@@ -86,7 +96,7 @@ function useRailEntries(
       seen.set(ref, copy)
       return [{ entity: found, ref, index, copy, total: totals.get(ref) ?? 1 }]
     })
-  }, [schema, selected, idOf])
+  }, [schema, selected, idOf, resolved])
 }
 
 /**
@@ -102,7 +112,8 @@ function useRailEntries(
  * A chosen Mini focuses that entry's Card (`onFocus`). In toggle and count
  * mode each has a Remove (✕); a single pick is replaced by picking another, so
  * it has none. Removing an entry hands focus to the entry now in its place, or to the heading once
- * the list is empty, so a keyboard user never lands on <body>.
+ * the list is empty, so a keyboard user never lands on <body>; or, given `refocus`, to what it
+ * names (a picker's search, r7 G6), so the next keys never press another Remove.
  */
 export function SelectionRail({
   wide,
@@ -110,11 +121,13 @@ export function SelectionRail({
   chosenLabel,
   schema,
   selected,
+  resolved,
   idOf,
   budget,
   mode,
   onToggle,
   onRemove,
+  refocus,
   onFocus,
   actions,
 }: {
@@ -123,16 +136,21 @@ export function SelectionRail({
   chosenLabel: string
   schema: EntitySchemaName
   selected: string[]
+  /** The chosen list already resolved, shown instead of `selected` (a picker
+   * over several collections); its entries are not removed here. */
+  resolved?: readonly PoolEntity[]
   idOf: (item: EntityLike) => string
   budget?: BudgetConfig | BudgetConfig[]
   mode: 'toggle' | 'count' | 'single'
   onToggle?: (ref: string) => void
   onRemove?: (index: number) => void
+  /** Where focus goes after a Remove, in place of the next entry's ✕. */
+  refocus?: (() => HTMLElement | null) | undefined
   onFocus: (ref: string) => void
   actions?: ReactNode
 }) {
   const budgets = budget ? (Array.isArray(budget) ? budget : [budget]) : []
-  const entries = useRailEntries(schema, selected, idOf)
+  const entries = useRailEntries(schema, selected, idOf, resolved)
   const list = useDisclosure()
   const expanded = wide || list.open
   const headingId = useId()
@@ -141,7 +159,8 @@ export function SelectionRail({
   const removeRefs = useRef<Array<HTMLButtonElement | null>>([])
   const pendingFocus = useRef<{ position: number; length: number } | null>(null)
   const chosen = chosenLabel.toLowerCase()
-  const removable = mode !== 'single' && Boolean(mode === 'count' ? onRemove : onToggle)
+  const removable =
+    !resolved && mode !== 'single' && Boolean(mode === 'count' ? onRemove : onToggle)
 
   // The Remove button that had focus has just unmounted. Move focus once the
   // caller's `selected` has actually SHRUNK — so a caller that applies the
@@ -154,8 +173,8 @@ export function SelectionRail({
     pendingFocus.current = null
     if (entries.length > pending.length) return
     const next = removeRefs.current[Math.min(pending.position, entries.length - 1)]
-    ;(next ?? toggleRef.current ?? headingRef.current)?.focus()
-  }, [entries])
+    ;(refocus?.() ?? next ?? toggleRef.current ?? headingRef.current)?.focus()
+  }, [entries, refocus])
 
   function remove(entry: RailEntry, position: number) {
     pendingFocus.current = { position, length: entries.length }
@@ -163,23 +182,15 @@ export function SelectionRail({
     else onToggle?.(entry.ref)
   }
 
-  // The Slab's count, at its rule's end: how many are chosen, and for whom.
-  const count = (
-    <>
-      {entries.length}
-      {name && (
-        <>
-          <span aria-hidden="true"> · </span>
-          {name}
-        </>
-      )}
-    </>
-  )
+  // The heading says how many are chosen, `Installed · 6`, and whose they are
+  // on a line of its own, so the count never reads as part of the name (r6 E8).
+  const heading = compositionsCopy('chosenCount', { label: chosenLabel, count: entries.length })
+  const whose = name ? <Text variant="note">{name}</Text> : null
 
   const listNode = (
     <div id={list.panelId} hidden={!expanded} className="su-searcher__rail-list" style={LIST_STYLE}>
       {entries.map((entry, position) => (
-        // The ✕ is the Mini's last chip (C8, hard rule R6): a Mini with
+        // The ✕ is the Mini's last chip (C8): a Mini with
         // controls is a `div` whose name is the link, so no button nests in
         // it. The Tech level is the list's to say.
         <div
@@ -238,15 +249,8 @@ export function SelectionRail({
     return (
       <section aria-labelledby={headingId} className="su-searcher__rail" style={RAIL_STYLE}>
         <div style={HEAD_STYLE}>
-          <Slab
-            as="h2"
-            id={headingId}
-            ref={headingRef}
-            tabIndex={-1}
-            label={chosenLabel}
-            count={count}
-            flush
-          />
+          <Slab as="h2" id={headingId} ref={headingRef} tabIndex={-1} label={heading} flush />
+          {whose}
           {budgetNode}
         </div>
         {listNode}
@@ -263,9 +267,8 @@ export function SelectionRail({
           <Slab
             as="h2"
             id={headingId}
-            count={count}
             flush
-            label={chosenLabel}
+            label={heading}
             actions={
               // The fold, as a SlabSection's (R1): the Compact `iconOnly` ghost.
               <Button
@@ -273,7 +276,11 @@ export function SelectionRail({
                 variant="ghost"
                 size="iconOnly"
                 {...list.toggleProps}
-                aria-label={`${list.open ? 'Hide' : 'Show'} ${chosenLabel.toLowerCase()}`}
+                aria-label={
+                  list.open
+                    ? compositionsCopy('hideChosen', { label: chosenLabel.toLowerCase() })
+                    : compositionsCopy('showChosen', { label: chosenLabel.toLowerCase() })
+                }
               >
                 <ChevronDown
                   aria-hidden="true"
@@ -283,6 +290,7 @@ export function SelectionRail({
               </Button>
             }
           />
+          {whose}
         </div>
         {budgetNode}
         {actions && <div style={BAR_ACTIONS_STYLE}>{actions}</div>}

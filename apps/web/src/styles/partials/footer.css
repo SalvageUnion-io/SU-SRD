@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 19 of 20: the Footer. `../index.css` imports
+ * The package stylesheet: the Footer. `../index.css` imports
  * the parts in cascade order.
  */
 
@@ -73,6 +73,11 @@
   line-height: 1.5;
   margin: 0;
   padding: var(--space-4) var(--space-12) var(--space-6);
+}
+
+/* The page's address: paper's alone (`theme.css`'s print rules, r5 E9). */
+.su-footer__address {
+  display: none;
 }
 
 /* Thumb first (ruleset §4.6): 44px targets under a coarse pointer, and at

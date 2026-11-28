@@ -94,7 +94,7 @@ export const lookupCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
     return sub
       .setName('lookup')
-      .setDescription('Look up any Salvage Union entity (equipment, chassis, systems, keywords, …)')
+      .setDescription('Look up any Salvage Union entity (equipment, chassis, Systems, keywords, …)')
       .addStringOption((option) =>
         option
           .setName('entity')

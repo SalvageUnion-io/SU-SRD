@@ -22,7 +22,7 @@ type CardHeadProps = {
   numeral?: string
   /** The entity's chip group (`Chips`, E17). */
   chips?: ReactNode
-  /** The card's controls: its chip group's last slot (C8, hard rule R6). */
+  /** The card's controls: its chip group's last slot (C8). */
   controls?: ReactNode
   /** Select mode's seal, on the band's right (EDL Modes, R15). */
   affordance?: ReactNode

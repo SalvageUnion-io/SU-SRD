@@ -222,15 +222,15 @@ function actionFields(entity: RefEntity, actions: Action[]) {
     ...('traits' in entity && Array.isArray(entity.traits) ? entity.traits : []),
     ...(first?.traits ?? []),
   ] as RefObjectTrait[]
-  const uses = traits.find((trait) => trait.type === 'uses' && typeof trait.amount === 'number')
-  const hot = traits.find((trait) => trait.type === 'hot' && typeof trait.amount === 'number')
+  const uses = traits.find((trait) => trait.type === 'Uses' && typeof trait.amount === 'number')
+  const hot = traits.find((trait) => trait.type === 'Hot' && typeof trait.amount === 'number')
   const damage = first?.damage
   return {
     action: (first?.actionType && ACTION_CODES[first.actionType]) ?? '',
     range: (first?.range?.[0] && RANGE_CODES[first.range[0]]) ?? '',
     damage: damage ? `${damage.amount} ${damage.damageType}` : '',
     cost: first?.activationCost == null ? '' : String(first.activationCost),
-    traits: traits.filter((trait) => trait.type !== 'uses').map(traitLabel),
+    traits: traits.filter((trait) => trait.type !== 'Uses').map(traitLabel),
     usesMax: typeof uses?.amount === 'number' ? uses.amount : 0,
     heat: typeof hot?.amount === 'number' ? hot.amount : 0,
   }

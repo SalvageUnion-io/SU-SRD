@@ -2,6 +2,7 @@ import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { z } from 'salvageunion-reference/zod'
+import { InitiativeSchema } from '../../lib/rules/initiative'
 import type { ClientMessage, ServerMessage } from '../protocol'
 import { OpInputSchema } from '../protocol'
 import type { GameActAnswer, GameActName } from './acts'
@@ -23,6 +24,21 @@ const SET_PUBLIC = z.object({
   kind: z.enum(['pilot', 'mech', 'crawler', 'npc']),
   appId: z.string(),
   isPublic: z.boolean(),
+})
+
+/** What a wreck's salvage proposal offers the crew (r7 D8): its band, parts and pick. */
+const SALVAGE_OFFER = z.object({
+  band: z.enum(['ashes', 'nuts', 'bits', 'meat', 'lions']),
+  parts: z.array(
+    z.object({
+      key: z.string(),
+      kind: z.enum(['chassis', 'system', 'module']),
+      name: z.string(),
+      techLevel: z.number().optional(),
+      salvageValue: z.number(),
+    })
+  ),
+  picked: z.array(z.string()),
 })
 
 /** A unit made, or deleted, in the room it lives in; its body is the kind's schema's to check. */
@@ -53,12 +69,15 @@ const TRAY_PATCH = z.object({
   name: z.string().optional(),
   lastMediatorRoll: z.unknown().optional(),
   salvaged: z.literal(true).optional(),
+  salvageRoll: z.unknown().optional(),
   important: z.boolean().optional(),
   maxEp: z.number().optional(),
   heatCap: z.number().optional(),
   currentEp: z.number().optional(),
   currentHeat: z.number().optional(),
   lastImportantRoll: z.unknown().optional(),
+  usesSpent: z.record(z.string(), z.number()).optional(),
+  titanicSpent: z.unknown().optional(),
 })
 
 const SEAT = z.object({ pilotId: z.string() })
@@ -69,18 +88,26 @@ const SEAT_ACTS = {
   'seats.eject': SEAT,
   'seats.setRange': SEAT.extend({ range: z.string() }),
   'seats.toggleEffect': SEAT.extend({ ref: z.string() }),
-  'seats.setResolving': SEAT.extend({ resolving: z.unknown() }),
-  'seats.clearResolving': SEAT,
+  // `follows`: the step a held one was taken after (r6 A14), refused if the seat moved on.
+  'seats.setResolving': SEAT.extend({ resolving: z.unknown(), follows: z.unknown().optional() }),
+  'seats.clearResolving': SEAT.extend({ follows: z.unknown().optional() }),
 }
 
 /** A Downtime's moves; solo, `pilotId` names the pilot whose it is. */
 const PLACE = z.object({ pilotId: z.string().optional() })
 const DOWNTIME_ACTS = {
   'downtime.begin': PLACE,
-  'downtime.advance': PLACE,
+  // `auto`: the Mediator's screen passing a step nobody can act in (r7 D3), said as that (r8 A4).
+  'downtime.advance': PLACE.extend({ auto: z.boolean().optional() }),
   'downtime.setStep': PLACE.extend({ stepIndex: z.number() }),
   'downtime.end': PLACE,
   'downtime.claim': PLACE.extend({ claim: z.enum(['upkeep', 'nanites']), op: OpInputSchema }),
+  /** Tally Salvage: a pilot's carried Scrap into the crawler (r6 D1); the room builds the patches. */
+  'downtime.moveScrap': z.object({
+    pilotId: z.string(),
+    mechId: z.string().nullable(),
+    crawlerId: z.string(),
+  }),
 }
 
 /** A unit's Change Log, as the drawer reads it. */
@@ -98,17 +125,42 @@ export const GAME_SOCKET_ACTS = {
     encounter: z.unknown(),
     clear: z.boolean(),
     waves: z.boolean().optional(),
+    /** False: a test run, with no group session started for it (r7 C6). */
+    startSession: z.boolean().optional(),
   }),
   'mediator.bringInWave': z.object({ wave: z.number().int() }),
-  'mediator.endEncounter': NONE,
+  'mediator.endEncounter': z.object({ clear: z.boolean().optional() }).optional(),
+  'mediator.clearTray': NONE,
+  'mediator.setInitiative': z.object({ initiative: InitiativeSchema.nullable() }),
   'scenes.setConditions': z.object({ conditions: z.array(z.string()) }),
   'scenes.passHour': NONE,
+  'scenes.setUpNow': z.object({ pilotId: z.string().nullable() }),
+  'scenes.endTurn': NONE,
+  'scenes.putOnTable': z.object({
+    put: z
+      .discriminatedUnion('kind', [
+        z.object({ kind: z.literal('npc'), npcId: z.string().min(1) }),
+        z.object({ kind: z.literal('table'), name: z.string().min(1) }),
+      ])
+      .nullable(),
+  }),
+  'scenes.hold': z.object({ hold: z.boolean() }),
+  'scenes.askRoll': z.object({ pilotId: z.string().min(1), table: z.string().min(1).nullable() }),
+  'scenes.answerAsk': z.object({ pilotId: z.string().min(1) }),
   'salvageAreas.set': SALVAGE_AREA_SET,
   'salvageAreas.spend': SALVAGE_AREA_SPEND,
   'safety.showStop': NONE,
   'safety.liftStop': NONE,
   'session.start': NONE,
-  'session.end': NONE,
+  /** The day by the Mediator's clock, for the plan it marks played (r8 B8). */
+  'session.end': z
+    .object({
+      day: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
+    })
+    .optional(),
 
   ...SEAT_ACTS,
   ...DOWNTIME_ACTS,
@@ -117,9 +169,11 @@ export const GAME_SOCKET_ACTS = {
     field: z.string(),
     after: z.unknown(),
     reason: z.string().optional(),
+    offer: SALVAGE_OFFER.optional(),
   }),
-  'ops.accept': z.object({ opId: z.string() }),
+  'ops.accept': z.object({ opId: z.string(), picked: z.array(z.string()).optional() }),
   'ops.decline': z.object({ opId: z.string() }),
+  'ops.withdraw': z.object({ opId: z.string() }),
   'changeLog.appendChangeLog': z.object({
     entries: z.array(
       z.object({
@@ -132,6 +186,8 @@ export const GAME_SOCKET_ACTS = {
     ),
   }),
   'changeLog.broadcast': z.object({ message: z.string() }),
+  'changeLog.withdrawAlert': z.object({ alertId: z.string() }),
+  'changeLog.reveal': z.object({ rollId: z.string() }),
   'changeLog.forEntity': FOR_ENTITY,
   'publicSheet.setPublic': SET_PUBLIC,
 } satisfies Partial<Record<GameActName, z.ZodType>>

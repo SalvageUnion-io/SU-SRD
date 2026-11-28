@@ -3,22 +3,27 @@
  * Propose section in Play (docs/architecture/play.md §10, §15 for the
  * fields).
  *
- * Target, Field, To, an optional Reason (at most 140 characters), a live
+ * Target, Field, Change (Take, Add or Set to) and its number, an optional Reason (at most 140 characters), a live
  * preview ("SP 6 → 4 · "Rifle Squad volley""), **Propose**, and the three
  * newest proposals with their state. The preview is the one place a before
  * shows: a sent proposal stores none (ADR-030 §4, as amended).
  *
- * Targets are claimed pilots and mechs; a mech is labelled by its pilot
+ * Targets are claimed pilots and mechs; the Game's crawler is the Mediator's
+ * own (the table runner writes it), so `note` says so and leads to its SP on
+ * the Table for a direct change (r6 B13). A mech is labelled by its pilot
  * ("Pickle's Spectrum"). The value is a whole number from 0 to the field's
  * derived maximum, clamped here; `ops.accept` still parses it on the
- * server. Tapping a seat card picks its pilot and moves focus to To.
+ * server. Tapping a seat card picks its pilot, or the Mech a boarded pilot
+ * is in, with the pilot one press away, and moves focus to To (r5 B7). Enter
+ * in any field sends, as Propose does; the newest proposal's state, the
+ * player's answer included, reads on its own line under Propose.
  *
  * **Setbacks**, beside "The player decides.", opens Setbacks & Tough Choices (`SetbacksDialog`):
  * a default Setback picked there (2 SP or 2 HP damage, +2 Heat) fills Field,
  * To and Reason for the target, to send as it is or change first.
  *
  * A `TitledBox` filling its panel and scrolling its own body there (`fill`);
- * its head's last slot holds the host's controls (All proposals, hard rule R6).
+ * its head's last slot holds the host's controls (All proposals, C8).
  *
  * Presentational: the Mediator's screen owns the target (a seat sets it) and
  * the write.
@@ -27,7 +32,6 @@
 import type { OwnableKind } from 'game-domain/entityKinds'
 import type { ProposalField, ProposalTarget } from 'game-domain/games/proposals'
 import {
-  clampProposalValue,
   fieldLabel,
   PROPOSAL_FIELDS,
   PROPOSAL_REASON_MAX,
@@ -35,11 +39,13 @@ import {
 } from 'game-domain/games/proposals'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useId, useState } from 'react'
-import { Button, FeedList, Field, Input, Select, TitledBox, tokens } from '../../components/index'
+import { FeedList } from '../../components/app'
+import { Button, Field, Input, Select, TitledBox, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
-import type { SentProposal } from './proposalLine.model'
+import type { ProposeMode, SentProposal } from './proposalLine.model'
+import { proposalAfter } from './proposalLine.model'
 import { SetbacksDialog } from './SetbacksDialog'
 
 const { space } = tokens
@@ -52,9 +58,10 @@ export type ProposeArgs = {
   reason?: string
 }
 
+/** A pair of fields on one row, the wider first: Target and Field, then Change and its number. */
 const ROW = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr) minmax(4.5rem, 0.5fr)',
+  gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
   gap: space[8],
   alignItems: 'end',
 } satisfies CSSProperties
@@ -68,6 +75,9 @@ const SEND_ROW = {
 
 const PREVIEW = { ...MUTED, ...NUMBERS, minWidth: 0 } satisfies CSSProperties
 
+/** The fields and Propose, as one form: Enter in any of them sends. */
+const FORM = { display: 'contents' } satisfies CSSProperties
+
 export function ProposeDock({
   targets,
   targetId,
@@ -76,8 +86,10 @@ export function ProposeDock({
   now,
   canWrite,
   onPropose,
+  onWithdraw,
   toRef,
   controls,
+  note,
 }: {
   targets: readonly ProposalTarget[]
   targetId: string | null
@@ -88,10 +100,14 @@ export function ProposeDock({
   canWrite: boolean
   /** Resolves when the server has the proposal; rejects with its refusal. */
   onPropose: (args: ProposeArgs) => Promise<void>
+  /** Take a pending proposal back (r2 C7). */
+  onWithdraw?: ((opId: string) => void) | undefined
   /** The To field, which picking a seat card focuses. */
   toRef: RefObject<HTMLInputElement | null>
   /** The head's controls, its chip group's last slot (C8): All proposals. */
   controls?: ReactNode
+  /** Under "The player decides.": what is not a target here and why (the Mediator's own crawler, r6 B13). */
+  note?: ReactNode
 }) {
   const id = useId()
   const target = targets.find((t) => t.id === targetId) ?? null
@@ -102,18 +118,23 @@ export function ProposeDock({
     ? chosenField
     : fields[0].field
   const [to, setTo] = useState('')
+  // Take or add an amount ("you take 3 damage"), or set the value itself. It
+  // opens on Take (r4 D2): a hit is the common proposal, and a damage number
+  // typed under Set to would propose "HP set to 3".
+  const [mode, setMode] = useState<ProposeMode>('take')
   const [reason, setReason] = useState('')
   const [sending, setSending] = useState(false)
   const [setbacksOpen, setSetbacksOpen] = useState(false)
 
   const reading = target?.readings[field]
   const max = reading?.max ?? null
-  const value = clampProposalValue(to, max)
+  // A vital the sheet has never moved reads full (Heat: none), as the seat shows it.
+  const before = reading?.current ?? (field === 'currentHeat' ? 0 : max)
+  const value = proposalAfter(mode, to, before, max)
   const trimmed = reason.trim()
-  const before = reading?.current ?? null
   const preview =
     target === null || value === null
-      ? 'Pick a seat or a target, then the value you think it should be.'
+      ? mediatorCopy('pickASeatOrATarget')
       : [
           `${target.label}: ${fieldLabel(field)} ${before ?? '—'} → ${value}`,
           trimmed === '' ? null : `“${trimmed}”`,
@@ -121,8 +142,14 @@ export function ProposeDock({
           .filter((part) => part !== null)
           .join(' · ')
 
+  // A Mech aimed at: its pilot, one press away (r5 B7).
+  const pilot =
+    target?.kind === 'mech' && target.pilotLinkId !== null
+      ? (targets.find((t) => t.kind === 'pilot' && t.pilotLinkId === target.pilotLinkId) ?? null)
+      : null
+
   const send = () => {
-    if (target === null || value === null) return
+    if (target === null || value === null || sending || !canWrite) return
     setSending(true)
     void onPropose({
       entityId: target.id,
@@ -154,6 +181,7 @@ export function ProposeDock({
         target={target}
         onPick={(draft) => {
           setChosenField(draft.field)
+          setMode('set')
           setTo(String(draft.to))
           setReason(draft.reason)
           toRef.current?.focus()
@@ -165,84 +193,129 @@ export function ProposeDock({
           {mediatorCopy('setbacks')}
         </Button>
       </div>
-      <div style={ROW}>
-        <Field label={mediatorCopy('target')} htmlFor={`${id}-target`}>
-          <Select
-            id={`${id}-target`}
-            value={targetId ?? ''}
-            disabled={!canWrite}
-            onChange={(e) => onTarget(e.target.value === '' ? null : e.target.value)}
+      {note}
+      <form
+        style={FORM}
+        onSubmit={(e) => {
+          e.preventDefault()
+          send()
+        }}
+        // A Select takes no Enter of its own: it sends too.
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && e.target instanceof HTMLSelectElement) {
+            e.preventDefault()
+            send()
+          }
+        }}
+      >
+        <div style={ROW}>
+          <Field label={mediatorCopy('target')} htmlFor={`${id}-target`}>
+            <Select
+              id={`${id}-target`}
+              value={targetId ?? ''}
+              disabled={!canWrite}
+              onChange={(e) => onTarget(e.target.value === '' ? null : e.target.value)}
+            >
+              <option value="">{mediatorCopy('choose')}</option>
+              {targets.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </Select>
+            {pilot !== null ? (
+              <Button variant="ghost" size="mini" onClick={() => onTarget(pilot.id)}>
+                {mediatorCopy('aimAtPilot', { name: pilot.label })}
+              </Button>
+            ) : null}
+          </Field>
+          <Field label={mediatorCopy('field')} htmlFor={`${id}-field`}>
+            <Select
+              id={`${id}-field`}
+              value={field}
+              disabled={!canWrite}
+              onChange={(e) => setChosenField(e.target.value as ProposalField)}
+            >
+              {fields.map((f) => (
+                <option key={f.field} value={f.field}>
+                  {f.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+        <div style={ROW}>
+          <Field label={mediatorCopy('change')} htmlFor={`${id}-mode`}>
+            <Select
+              id={`${id}-mode`}
+              value={mode}
+              disabled={!canWrite}
+              onChange={(e) => setMode(e.target.value as ProposeMode)}
+            >
+              <option value="take">{mediatorCopy('take')}</option>
+              <option value="add">{mediatorCopy('addAmount')}</option>
+              <option value="set">{mediatorCopy('setTo')}</option>
+            </Select>
+          </Field>
+          <Field
+            label={mode === 'set' ? mediatorCopy('to') : mediatorCopy('amount')}
+            htmlFor={`${id}-to`}
           >
-            <option value="">{mediatorCopy('choose')}</option>
-            {targets.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label={mediatorCopy('field')} htmlFor={`${id}-field`}>
-          <Select
-            id={`${id}-field`}
-            value={field}
-            disabled={!canWrite}
-            onChange={(e) => setChosenField(e.target.value as ProposalField)}
-          >
-            {fields.map((f) => (
-              <option key={f.field} value={f.field}>
-                {f.label}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label={mediatorCopy('to')} htmlFor={`${id}-to`}>
+            <Input
+              ref={toRef}
+              id={`${id}-to`}
+              inputMode="numeric"
+              value={to}
+              disabled={!canWrite}
+              aria-describedby={`${id}-preview`}
+              onChange={(e) => setTo(e.target.value)}
+            />
+          </Field>
+        </div>
+        <Field label={mediatorCopy('reasonOptional')} htmlFor={`${id}-reason`}>
           <Input
-            ref={toRef}
-            id={`${id}-to`}
-            inputMode="numeric"
-            value={to}
+            id={`${id}-reason`}
+            value={reason}
+            maxLength={PROPOSAL_REASON_MAX}
+            placeholder={mediatorCopy('rifleSquadVolley')}
             disabled={!canWrite}
-            aria-describedby={`${id}-preview`}
-            onChange={(e) => setTo(e.target.value)}
+            onChange={(e) => setReason(e.target.value)}
           />
         </Field>
-      </div>
-      <Field label={mediatorCopy('reasonOptional')} htmlFor={`${id}-reason`}>
-        <Input
-          id={`${id}-reason`}
-          value={reason}
-          maxLength={PROPOSAL_REASON_MAX}
-          placeholder={mediatorCopy('rifleSquadVolley')}
-          disabled={!canWrite}
-          onChange={(e) => setReason(e.target.value)}
-        />
-      </Field>
-      <div style={SEND_ROW}>
-        <p id={`${id}-preview`} style={PREVIEW}>
-          {preview}
-          {max !== null && value !== null && Number(to) > max
-            ? mediatorCopy('atMost', { max })
-            : ''}
-        </p>
-        <Button
-          variant="primary"
-          size="compact"
-          disabled={!canWrite || target === null || value === null || sending}
-          onClick={send}
-        >
-          {mediatorCopy('propose')}
-        </Button>
-      </div>
+        <div style={SEND_ROW}>
+          <p id={`${id}-preview`} style={PREVIEW}>
+            {preview}
+            {mode === 'set' && max !== null && value !== null && Number(to) > max
+              ? mediatorCopy('atMost', { max })
+              : ''}
+          </p>
+          <Button
+            type="submit"
+            variant="primary"
+            size="compact"
+            disabled={!canWrite || target === null || value === null || sending}
+          >
+            {mediatorCopy('propose')}
+          </Button>
+        </div>
+      </form>
       {recent.length > 0 && (
         <section aria-label={mediatorCopy('newestProposals')}>
-          <span className="su-sr-only" role="status" aria-live="polite">
+          {/* Said here, where the Mediator looks, rather than in a toast over Propose (r5 B7). */}
+          <p style={MUTED} role="status" aria-live="polite">
             {recent[0]
               ? mediatorCopy('newestProposal', { value: PROPOSAL_STATE_WORD[recent[0].state] })
               : ''}
-          </span>
+          </p>
           <FeedList>
             {recent.map((p) => (
-              <ProposalRow key={p._id} proposal={p} now={now} showTime={false} />
+              <ProposalRow
+                key={p._id}
+                proposal={p}
+                now={now}
+                showTime={false}
+                onWithdraw={canWrite ? onWithdraw : undefined}
+              />
             ))}
           </FeedList>
         </section>

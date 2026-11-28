@@ -1,11 +1,12 @@
 import type { ElementType, ReactNode } from 'react'
-import { cloneElement, isValidElement, useRef } from 'react'
+import { cloneElement, isValidElement, useContext, useRef } from 'react'
 import { cn } from '../../../lib/cn'
 import { capsLabel } from '../../atoms/capsLabel'
 import { WHOLE_ATTRIBUTE } from '../../atoms/chipFill'
 import { ChipOverflowRow, MoreChip } from '../../atoms/chipOverflow'
 import { useChipFill } from '../../atoms/useChipFill'
 import { grainClass } from '../../referenceEntity/card/cardGrain'
+import { RowDress, rowPaint } from '../rowDress'
 import { Chips } from './Chips'
 import type { ChipSet } from './chipSet'
 import { KindLabel } from './KindLabel'
@@ -43,7 +44,7 @@ export type HeadProps = {
   tierChip?: boolean
   /**
    * The entity's chip group (`Chips`, E17): right of the name, or under it.
-   * Anything else a host passes is drawn by `Chips` as its marks (C2a).
+   * Anything else a host passes is drawn by `Chips` as its marks (C2).
    */
   chips?: ReactNode
   /**
@@ -88,7 +89,7 @@ export type HeadProps = {
  * right, the chip group (from the bottom right of the name's line, leftward,
  * on that line alone: ruleset §4.7's bottom-right fill; what does not fit goes
  * to the body's first row, or behind +MORE, C2b), the host's controls its last
- * slot, so nothing sits beside the strip (C8, R6), and the mode's affordance, in
+ * slot, so nothing sits beside the strip (C8), and the mode's affordance, in
  * that order; the affordance stays on the band's right, centred on it, never
  * alone on a line. The band wears the
  * paint (`paintFor`): the tone or ink, grey when down.
@@ -99,7 +100,7 @@ export function Head({
   peeks = false,
   kind,
   titleAs: TitleTag = 'span',
-  paint,
+  paint: tonePaint,
   tier,
   tierChip = false,
   chips: chipsProp,
@@ -111,6 +112,9 @@ export function Head({
   top,
   whole = false,
 }: HeadProps) {
+  // Under a titled strip a Compact is a row.
+  const row = useContext(RowDress)
+  const paint = row ? rowPaint(tonePaint) : tonePaint
   const chips = asStrip(chipsProp, controls, overflow === 'more')
   const overflowRow = !!chips && overflow === 'body'
   const headingRef = useRef<HTMLDivElement>(null)
@@ -166,6 +170,7 @@ export function Head({
       // The band is the frame: an ink band (a thing you do) declares its
       // ground once, and its stamps, chips and cost read it in CSS (chrome K1).
       data-ground={paint.ink ? 'ink' : undefined}
+      data-row={row ? '' : undefined}
       data-grain={paint.grain}
       data-notch
       data-chip-overflow-owner={overflowRow ? '' : undefined}
@@ -214,10 +219,10 @@ type ChipsProps = Parameters<typeof Chips>[0]
 const none = (node: ReactNode) => node === undefined || node === null || node === false
 
 /**
- * A head's chips as one `Chips` strip (C2a): a strip passes through; any
+ * A head's chips as one `Chips` strip (C2): a strip passes through; any
  * other chip a host hands the head (a label-only `Stat`, a stamp) is drawn by
  * `Chips` as its marks, so every head strip names its classes. The host's
- * controls are the strip's last slot (C8, hard rule R6): the menu lane, ahead
+ * controls are the strip's last slot (C8): the menu lane, ahead
  * of a "⋯" already there, so nothing sits beside the strip; a header-only
  * head's +MORE ends it.
  */

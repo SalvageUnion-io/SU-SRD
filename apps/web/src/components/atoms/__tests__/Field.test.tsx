@@ -102,6 +102,32 @@ describe("Field's edit state", () => {
     await waitFor(() => expect(saved).toEqual(['Ash']))
   })
 
+  // MD4-07: the field being left closes on the press and the page moves under the
+  // pointer, so the browser never sends the click. The press itself must open the next one.
+  test('pressing a second field while one is open opens it, and keeps what was typed', async () => {
+    const saved: string[] = []
+    render(
+      <>
+        <Field label="Notes" value="" multiline onSave={(next) => void saved.push(next)} />
+        <Field label="Briefing" value="" multiline onSave={() => {}} />
+      </>
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Edit notes' }))
+    const notes = screen.getByRole('textbox', { name: 'Edit notes' })
+    fireEvent.change(notes, { target: { value: 'Ambush at the ford.' } })
+    // What a browser sends: the press, the blur it causes, and no click.
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Edit briefing' }))
+    fireEvent.blur(notes)
+    expect(screen.getByRole('textbox', { name: 'Edit briefing' })).toBeTruthy()
+    await waitFor(() => expect(saved).toEqual(['Ambush at the ford.']))
+  })
+
+  test('a press with another mouse button opens nothing', () => {
+    setup()
+    fireEvent.mouseDown(control(), { button: 2 })
+    expect(control().tagName).not.toBe('INPUT')
+  })
+
   test('Escape closes without saving, and reopening shows the stored value', async () => {
     const { saved } = setup()
     open()

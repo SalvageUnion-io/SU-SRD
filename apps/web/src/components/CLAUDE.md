@@ -1,7 +1,8 @@
 # components — the component library
 
-Every React component the app renders. The barrel, [`index.ts`](index.ts), is
-the public API and the only list of exports; its rules:
+Every React component the app renders. The barrels, [`index.ts`](index.ts)
+and [`app.ts`](app.ts) (app-only: no island imports it), are the public API;
+their rules:
 [the UI library](../../../../docs/ARCHITECTURE.md#ui-library).
 
 - **Data-source agnostic:** atoms, containers, compositions, `entity/` and
@@ -23,13 +24,13 @@ Folder = group, and the groups are membership tests:
   `provenanceLines`); domain knowledge makes a Composition.
 - **Containers** — content-agnostic wrappers and state shells.
 - **Compositions** — know Salvage Union entities, or assemble a product surface.
-- Other folders hold one shared surface each (`shared/`, …); an
-  area's own surfaces live in it, and the library never imports an area.
+- Other folders hold one shared surface each; an area's own surfaces live
+  in it, and the library never imports an area.
 
 Name components for what they are: no `-Display` / `-View` / `-Renderer`
 suffixes or `Reference*` prefixes. Exceptions, do not re-flag:
 `ReferenceEntityCard`, `ReferenceAbilityTrack`, `ReferenceSurface`,
 `RollTableView`, `ColumnsTableView`; record any new one here. A module only tests
-import ships nowhere: delete it.
+import: delete it.
 
 Test: `bun --filter web test src/components`.

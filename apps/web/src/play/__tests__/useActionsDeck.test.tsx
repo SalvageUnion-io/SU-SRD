@@ -28,16 +28,15 @@ import {
 import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
-import {
-  buildMechActions,
-  buildPilotActions,
-  hasCurrencyChoice,
-  hasVariableHot,
-} from '../../lib/rules/actionPatches'
+import { ToasterMount } from '../../components/index'
+import { buildMechActions, buildPilotActions } from '../../lib/rules/actionList'
+import { hasCurrencyChoice, hasVariableHot } from '../../lib/rules/actionPatches'
 import { actionEconomy, itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import type { ActionsDeckProps, ResolveModel } from '../actionsDeck.model'
 import { PlayResolveSteps } from '../PlayResolveSteps'
 import type { PlayStore } from '../play.model'
-import type { ActionsDeckProps, ResolveModel } from '../useActionsDeck'
+import type { PlayRoll } from '../playRolls.model'
+import { onPlayRoll } from '../playRolls.model'
 import { useActionsDeck } from '../useActionsDeck'
 import type { StoreCall as Call } from './stubStore'
 import { stubStore } from './stubStore'
@@ -214,6 +213,24 @@ const heatAt = (action: Parameters<typeof actionEconomy>[0], x: number) =>
   actionEconomy(action, x).heat
 
 describe('the resolve', () => {
+  test('an attack leads with Roll the die, which pays it: no second Activate (r5 A16)', async () => {
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'leviathan',
+      systems: ['red-laser'],
+      currentHeat: 0,
+    })
+    const { store, calls } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    clickActionByName(container, 'Red Laser')
+    expect(screen.queryByRole('button', { name: /^Activate\b/ })).toBeNull()
+    expect(screen.getByText(/^Roll the die spends/)).toBeTruthy()
+    await clickRolling('Roll the Die')
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.patch.currentHeat).toBe(1)
+  })
+
   test('using an action opens its resolve with Activate + Roll', () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
@@ -254,45 +271,131 @@ describe('the resolve', () => {
     expect(live?.textContent).toBe('')
     await clickRolling('Roll the Die')
     expect(live?.textContent).toMatch(/^Rolled 14: \S/)
-    fireEvent.click(screen.getByText('Apply'))
-    expect(live?.textContent).toMatch(/Result applied$/)
+    // A Success writes nothing: no Apply (r6 A5); the row's close finishes it.
+    expect(screen.queryByText('Apply')).toBeNull()
+    fireEvent.click(screen.getByText('Cancel'))
+    expect(container.querySelector('.su-play-resolve')).toBeNull()
   })
 
-  test('the resolve offers Cancel / Clear and an Apply gated on a roll', async () => {
+  test('the resolve offers Cancel / Start over and an Apply gated on a roll', async () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
     expect(screen.getByText('Cancel')).toBeTruthy()
-    expect(screen.getByText('Clear')).toBeTruthy()
+    expect(screen.getByText('Start over')).toBeTruthy()
     // Apply is disabled until there is a roll to commit.
     const apply = screen.getByText<HTMLButtonElement>('Apply')
     expect(apply.disabled).toBe(true)
     await clickRolling('Roll the Die')
-    expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
-    // Clear resets the resolve state (the roll readout disappears).
-    fireEvent.click(screen.getByText('Clear'))
+    // A roll that writes nothing has nothing to apply (r6 A5).
+    expect(screen.queryByText('Apply')).toBeNull()
+    // Start over resets the resolve state (the roll readout disappears).
+    fireEvent.click(screen.getByText('Start over'))
     expect(container.querySelector('.su-roll [aria-current="true"]')).toBeNull()
   })
 
-  test('Apply commits a rolled outcome without ever auto-writing a destructive condition', async () => {
+  test('Roll the die pays the cost Activate has not, once, and says what it will spend (r4 A1)', async () => {
+    const mech = makeMech()
+    const { store, calls } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    const { epCost } = clickPrimaryAction(container)
+    expect(screen.getByText(new RegExp(`^Roll the die spends ${epCost} EP`))).toBeTruthy()
+    await clickRolling('Roll the Die')
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.patch.currentEP).toBe(Math.max(0, 6 - epCost))
+    expect(screen.getByRole('button', { name: 'Activated ✓' })).toBeTruthy()
+    expect(screen.queryByText(/^Roll the die spends/)).toBeNull()
+    // Start over keeps what was paid: the next roll spends nothing more.
+    fireEvent.click(screen.getByText('Start over'))
+    await clickRolling('Roll the Die')
+    expect(calls).toHaveLength(1)
+  })
+
+  test('an action with no cost has no Activate: Roll the die alone (r4 A2)', async () => {
+    const free = SalvageUnionReference.Systems.all().find((sys) => {
+      const resolved = sys.id ? resolveSystem(getEntitySlug(sys)) : undefined
+      const acts = resolved ? (SalvageUnionReference.resolveActions(resolved) ?? []) : []
+      const first = acts.find((a) => !a.hidden)
+      const eco = first ? actionEconomy(first) : null
+      return eco !== null && eco.epCost === 0 && eco.heat === 0 && eco.maxUses === 0
+    })
+    if (!free) throw new Error('no system with a free action')
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'unknown-chassis',
+      systems: [getEntitySlug(free)],
+      currentEP: 6,
+    })
+    const { store, calls } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    fireEvent.click(deckCards(container)[0] as Element)
+    expect(screen.queryByRole('button', { name: /^Activate\b/ })).toBeNull()
+    expect(screen.queryByText(/^Roll the die spends/)).toBeNull()
+    await clickRolling('Roll the Die')
+    expect(screen.queryByText('Apply')).toBeNull()
+    expect(screen.getByText('Start over')).toBeTruthy()
+    expect(calls).toHaveLength(0)
+  })
+
+  test('Activate then Roll pays once', async () => {
     const mech = makeMech()
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
+    await clickActivate()
     await clickRolling('Roll the Die')
+    expect(calls).toHaveLength(1)
+  })
+
+  test('a roll the seat holds unpaid cannot be applied (r4 A1)', () => {
+    const mech = makeMech()
+    const { store } = stubStore(mech)
+    const key = buildMechActions(mech).find((a) => typeof a.action.activationCost === 'number')?.key
+    render(
+      <ActionsDeck
+        mech={mech}
+        store={store}
+        initial={{
+          ref: key ?? '',
+          name: 'x',
+          activated: false,
+          applied: false,
+          roll: { roll: 14, band: 'success' },
+        }}
+      />
+    )
+    expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(true)
+  })
+
+  test('Apply commits a rolled outcome without ever auto-writing a destructive condition', () => {
+    const mech = makeMech()
+    const { store, calls } = stubStore(mech)
+    const action = buildMechActions(mech)[0]
+    if (!action) throw new Error('the costed system has no action')
+    // A Cascade Failure is the one Core Mechanic result Apply has to say (r6 A5).
+    render(
+      <ActionsDeck
+        mech={mech}
+        store={store}
+        initial={{
+          ref: action.key,
+          name: action.name,
+          activated: true,
+          roll: { roll: 1, band: 'cascade' },
+          applied: false,
+        }}
+      />
+    )
     fireEvent.click(screen.getByText('Apply'))
-    // Either the non-destructive auto-commit or the Cascade-Failure route note —
-    // never both, and neither writes a destructive condition through the store.
-    const applied = screen.queryByText('Result applied ✓')
-    const routed = screen.queryByText(/^Cascade Failure: a severe/)
-    expect(Boolean(applied) !== Boolean(routed)).toBe(true)
-    // Apply performs no store write at all (the cost lands at Activate; a
+    expect(screen.getByText(/^Cascade Failure: a severe/)).toBeTruthy()
+    // Apply performs no store write at all (the cost lands at Activate or Roll; a
     // destructive band is the player's to take on the gauge, never auto-applied).
     expect(calls).toHaveLength(0)
   })
 
-  test('Hot(X) stepper projects heat and drives the Activate patch', async () => {
+  test('Hot(X) stepper projects heat and drives the paid patch', async () => {
     expect(varHotSystem).toBeTruthy()
     const sys = varHotSystem as { id: string; actionName: string }
     const mech = mechFixture({
@@ -311,7 +414,10 @@ describe('the resolve', () => {
     expect(proj?.textContent).toContain('Heat 1/')
     fireEvent.click(screen.getByLabelText('Increase Hot'))
     expect(container.querySelector('.su-play-deck-hotx-proj')?.textContent).toContain('Heat 2/')
-    await clickActivate()
+    // An attack has no Activate: Roll the die pays it (r5 A16); anything else activates.
+    if (screen.queryByRole('button', { name: /^Activate\b/ }) === null) {
+      await clickRolling('Roll the Die')
+    } else await clickActivate()
     const resolvedSystem = resolveSystem(sys.id)
     if (!resolvedSystem) throw new Error(`unresolved system ${sys.id}`)
     const action = SalvageUnionReference.resolveActions(resolvedSystem)?.find(
@@ -461,7 +567,8 @@ describe('the resolve — unrecorded live stats default to full, not empty', () 
     clickPrimaryAction(container)
     // Push stays disabled until a roll exists (Core Book p.233).
     await clickRolling('Roll the Die')
-    await clickRolling('Push')
+    // A Success: Push is the quiet button that says its Heat (r7 B1).
+    await clickRolling('Push · +2 Heat')
 
     const spWrites = calls
       .map((c) => c.patch.currentSP)
@@ -488,11 +595,13 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     ...props
   }: Omit<ActionsDeckProps, 'resolving' | 'onResolving' | 'situation'> & {
     situation?: ActionsDeckProps['situation']
-    seen: { view: ResolveModel | null }
+    seen: { view: ResolveModel | null; done?: string | null; says?: string }
   }) {
     const [resolving, setResolving] = useState<SeatResolving | null>(null)
     const deck = useActionsDeck({ ...props, situation, resolving, onResolving: setResolving })
     seen.view = deck.resolve
+    seen.done = deck.doneKey
+    seen.says = deck.doneSays
     const action = props.mech
       ? buildMechActions(props.mech).find((a) => typeof a.action.activationCost === 'number')
       : undefined
@@ -515,7 +624,8 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     expect(mechMaxHeat(mech, resolveChassisRef('leviathan'))).toBe(18)
     const { store, calls } = stubStore(mech)
     const seen: { view: ResolveModel | null } = { view: null }
-    render(<Harness mech={mech} store={store} seen={seen} />)
+    // A Success: a Failure with no Push open closes itself (r6 A5).
+    render(<Harness mech={mech} store={store} seen={seen} rollFor={rollFourteen} />)
     fireEvent.click(screen.getByRole('button', { name: 'Resolve' }))
     const resolve = (): Resolving => {
       if (seen.view?.kind !== 'resolve') throw new Error('no resolve open')
@@ -535,14 +645,65 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     expect(cost.uses).toBeGreaterThanOrEqual(0)
   })
 
+  test('a Failure with no Push open closes itself, its row saying the roll (r6 A5)', async () => {
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'leviathan',
+      systems: [costedSystemId],
+      currentHeat: 17,
+    })
+    const { store } = stubStore(mech)
+    const seen: { view: ResolveModel | null; done?: string | null; says?: string } = { view: null }
+    const three: NonNullable<ActionsDeckProps['rollFor']> = async () => () => 3
+    render(<Harness mech={mech} store={store} seen={seen} rollFor={three} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Resolve' }))
+    await act(async () => {
+      if (seen.view?.kind === 'resolve') seen.view.controls.onRoll()
+    })
+    expect(seen.view?.kind).toBe('idle')
+    expect(seen.done).toBeTruthy()
+    expect(seen.says).toBe('Rolled 3 · Failure')
+  })
+
   test('at Heat 17/18 Push is disabled, says why, and writes nothing', async () => {
     const { resolve, calls } = await rolledAt(17)
     const push = resolve().controls.push
     expect(push?.disabled).toBe(true)
     expect(push?.lockedReason).toBe('No Push at Heat 17/18: +2 Heat would pass the Heat Capacity.')
+    calls.length = 0
     await act(async () => push?.onPush())
     expect(calls).toHaveLength(0)
     expect(resolve().pushLog).toBeNull()
+  })
+
+  test("a Push's Heat Check is its own Feed line: labelled, and what it came to (r7 A5)", async () => {
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'leviathan',
+      systems: [costedSystemId],
+      currentHeat: 16,
+    })
+    const { store } = stubStore(mech)
+    const asked: { table: string; label?: string; outcome?: () => string | undefined }[] = []
+    const spy: NonNullable<ActionsDeckProps['rollFor']> = async (table, options) => {
+      asked.push({ table, ...options })
+      return () => 14
+    }
+    const seen: { view: ResolveModel | null } = { view: null }
+    render(<Harness mech={mech} store={store} seen={seen} rollFor={spy} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Resolve' }))
+    await act(async () => {
+      if (seen.view?.kind === 'resolve') seen.view.controls.onRoll()
+    })
+    await act(async () => {
+      if (seen.view?.kind === 'resolve') seen.view.controls.push?.onPush()
+    })
+    const check = asked.find((each) => each.label === 'Heat Check')
+    expect(check?.table).toBe('Reactor Overload')
+    // 14 against Heat 18 overloads: it says so, and which row it was.
+    expect(check?.outcome?.()).toStartWith('Failed · Reactor Overload 14: ')
   })
 
   test('at Heat 16/18 Push is offered, and lands the Heat on the cap', async () => {
@@ -550,6 +711,7 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     const push = resolve().controls.push
     expect(push?.disabled).toBe(false)
     expect(push?.lockedReason).toBeUndefined()
+    calls.length = 0
     await act(async () => push?.onPush())
     expect(calls[0]?.patch.currentHeat).toBe(18)
   })
@@ -619,7 +781,8 @@ describe('the resolve on the seat', () => {
     )
     expect(container.querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     expect(screen.getByRole('button', { name: /^Activated\b/ })).toBeTruthy()
-    expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
+    // A Success writes nothing: no Apply waits on it (r6 A5).
+    expect(screen.queryByText('Apply')).toBeNull()
     // Restoring rolls nothing and writes nothing.
     expect(calls).toHaveLength(0)
   })
@@ -681,7 +844,15 @@ describe('Area Salvage (Core Book p.248)', () => {
     const { store, calls } = stubStore(mech, pilot)
     const spent: string[] = []
     const { container } = render(
-      <ActionsDeck mech={mech} pilot={pilot} store={store} salvageArea={salvageArea(CAMP, spent)} />
+      <>
+        <ActionsDeck
+          mech={mech}
+          pilot={pilot}
+          store={store}
+          salvageArea={salvageArea(CAMP, spent)}
+        />
+        <ToasterMount />
+      </>
     )
     clickActionByName(container, 'Area Salvage')
     await clickRolling('Roll the Die')
@@ -691,20 +862,28 @@ describe('Area Salvage (Core Book p.248)', () => {
     expect(cargo?.patch.cargoLots).toEqual([
       expect.objectContaining({ cat: 'SCRAP', tl: 2, qty: 3, units: 3 }),
     ])
-    expect(screen.getAllByText('3 Tech 2 Scrap into Rig’s Cargo.').length).toBeGreaterThan(0)
+    // Apply finishes it like any other action (LG-12): the resolve closes, and
+    // what was loaded is said by a toast.
+    expect(container.querySelector('.su-play-resolve')).toBeNull()
+    expect(await screen.findByText('3 Tech 2 Scrap into Rig’s Cargo.')).toBeTruthy()
   })
 
   test('on foot, the Scrap goes into the pilot’s inventory at three Slots each', async () => {
+    const heard: PlayRoll[] = []
+    const stop = onPlayRoll((roll) => heard.push(roll))
     const pilot = pilotFixture({ id: 'p1', name: 'Rook', callsign: 'Rook' })
     const { store, calls } = stubStore(pilot)
     const { container } = render(
-      <ActionsDeck
-        mech={null}
-        pilot={pilot}
-        situation="onFoot"
-        store={store}
-        salvageArea={salvageArea(CAMP)}
-      />
+      <>
+        <ActionsDeck
+          mech={null}
+          pilot={pilot}
+          situation="onFoot"
+          store={store}
+          salvageArea={salvageArea(CAMP)}
+        />
+        <ToasterMount />
+      </>
     )
     clickActionByName(container, 'Area Salvage')
     await clickRolling('Roll the Die')
@@ -715,8 +894,15 @@ describe('Area Salvage (Core Book p.248)', () => {
       expect.objectContaining({ name: 'Tech 2 Scrap', slotCost: 3, qty: 2 }),
     ])
     expect(
-      screen.getAllByText(/1 more stays in the area: there is no room for it\./).length
-    ).toBeGreaterThan(0)
+      await screen.findByText(/1 more stays in the area: there is no room for it\./)
+    ).toBeTruthy()
+    expect(container.querySelector('.su-play-resolve')).toBeNull()
+    // The Feed hears what was found and where it went, in a slot so the Game's log does too (r6 D3).
+    stop()
+    const line = heard.at(-1)
+    expect(line).toMatchObject({ rolls: [], label: 'Area Salvage' })
+    expect(line?.outcome).toMatch(/^\d+: 2 T2 Scrap to inventory, 1 left in the area$/)
+    expect(line?.slot).toMatch(/^area-salvage:/)
   })
 
   test('with no area, or a picked-clean one, there is no roll', () => {
@@ -733,7 +919,13 @@ describe('Area Salvage (Core Book p.248)', () => {
     )
     clickActionByName(container, 'Area Salvage')
     expect(screen.getByText(/No area to salvage/)).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Roll the die on Area Salvage' })).toBeNull()
+    // The roll stands as a Button, off, saying why: never a heading that looks pressable (r3 L4).
+    const off = screen.getByRole<HTMLButtonElement>('button', {
+      name: 'Roll the die on Area Salvage',
+    })
+    expect(off.disabled).toBe(true)
+    expect(off.title).toMatch(/No area to salvage/)
+    expect(container.querySelector('.su-play-resolve .su-roll__stamp')).toBeNull()
     rerender(
       <ActionsDeck
         mech={null}
@@ -744,5 +936,8 @@ describe('Area Salvage (Core Book p.248)', () => {
       />
     )
     expect(screen.getByText('This area is picked clean.')).toBeTruthy()
+    expect(
+      screen.getByRole<HTMLButtonElement>('button', { name: 'Roll the die on Area Salvage' }).title
+    ).toBe('This area is picked clean.')
   })
 })

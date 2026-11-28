@@ -27,6 +27,7 @@ export type {
   EntityBody,
   GameSummary,
   GamesResult,
+  LogRollResult,
   MechDerived,
   MeResult,
   MineResult,

@@ -1,4 +1,4 @@
-import type { ElementType, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
@@ -8,12 +8,7 @@ import {
   normalizePatternName,
   toEntityModel,
 } from 'salvageunion-reference'
-import { cn } from '../../../lib/cn'
-import { referenceEntityCopy } from '../../../messages/components-reference-entity'
-import { Button } from '../../atoms/Button'
-import { FOCUS_RING } from '../../atoms/interaction'
 import { Box } from '../../containers/Box'
-import { SlabSection } from '../../containers/SlabSection'
 import { Head, paintFor } from '../../entity'
 import { Entity } from '../../entity/Entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
@@ -25,7 +20,6 @@ import { labelChips } from './labelChips'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
-import { PATTERNS_ON_A_PHONE } from './patternsOnAPhone'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 import { resolvePatternDrones, resolvePatternGroups } from './resolveNestedEntities'
 
@@ -126,8 +120,8 @@ function PatternListRow({
 }
 
 /** BASIC HOST CARD → the list of its patterns, each its Mini (contentful
- * where the book describes it). A Page lists
- * them as its own pattern rows instead (`PatternLinkRows`, level 1). */
+ * where the book describes it). A Page lists them as one Ledger instead
+ * (`PatternLedger`). */
 export function PatternList({
   chassis,
   chassisName,
@@ -163,21 +157,19 @@ export function PatternList({
 }
 
 /**
- * PAGE view — one pattern at level 1, through the forms (EDL E15, hard rule
- * R7): the Compact's frame (`Box`, which stands in `CompactFrame`) under the Compact's
+ * One pattern at level 1, through the forms (hard rule R7): the
+ * Compact's frame (`Box`, which stands in `CompactFrame`) under the Compact's
  * `Head` in the host's tone, the pattern's quoted name on its cut-out, then
  * the paper body: the pattern's opening paragraph as prose (a lead is an
  * index's, E11), and under it what the pattern changes: its loadout, Systems
  * beside Modules, one full-width Mini a line with its TL at the column's
  * edge (`PatternLoadout`), or the actions a Bio-Titan pattern adds
- * (`PatternUniques`). The HEAD is the link to the pattern's page, where it
- * has one; the body cannot be, because its names are links of their own.
+ * (`PatternUniques`).
  *
- * A player's pattern is listed the same way, in Edit while they save it:
+ * It is how a player's pattern reads while they save it (`SavePatternDialog`):
  * `edit` swaps the name for its field and the prose for its own, and
- * `homebrew` puts the HOMEBREW stamp among its chips (ruleset §3.9), with
- * `credit` (its maker) beside it. A chassis page's Homebrew lists its
- * patterns this way too, each opening its own `href`.
+ * `homebrew` puts the HOMEBREW stamp among its chips (ruleset §3.9). A Page's
+ * patterns are a Ledger (`PatternLedger`), a line each.
  */
 export function PatternListing({
   chassis,
@@ -185,8 +177,6 @@ export function PatternListing({
   pattern,
   host,
   homebrew = false,
-  credit,
-  href: hrefOverride,
   edit,
 }: {
   chassis: ReferenceCardEntity
@@ -195,15 +185,13 @@ export function PatternListing({
   host: PatternRowsHost
   /** A player made it: the HOMEBREW stamp among its chips. */
   homebrew?: boolean
-  /** Who made it, a chip beside the HOMEBREW stamp (`BY | Rosa`). */
-  credit?: ReactNode
-  /** Where the head opens, over the surface's own pattern page (a player's pattern's page in the app). */
-  href?: string
-  /** Edit: the name's field, in its cut-out, and the description's, in the prose's place. */
-  edit?: { name: ReactNode; description: ReactNode }
+  /**
+   * Edit: the name's field, in its cut-out, and the description's, in the prose's place.
+   * `summary` sits under them, above the loadout: what is being saved and its button,
+   * reachable before the rules cards (r3 L5).
+   */
+  edit?: { name: ReactNode; description: ReactNode; summary?: ReactNode }
 }) {
-  const surfaceHref = usePatternHref(chassis, pattern)
-  const href = hrefOverride ?? surfaceHref
   const surface = useEntitySurface()
   const model = useMemo(
     () => toEntityModel(chassis as RefEntity, undefined, { pattern }),
@@ -223,13 +211,10 @@ export function PatternListing({
   const legalStartingPattern = isLegalStartingPatternOf(pattern)
   const chips =
     legalStartingPattern || homebrew
-      ? [
-          ...labelChips(
-            { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
-            'mini'
-          ),
-          credit,
-        ]
+      ? labelChips(
+          { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
+          'mini'
+        )
       : undefined
   // The name on the paper cut-out (`Head`'s): the body below is paper.
   const head = <Head title={`“${name}”`} titleContent={edit?.name} paint={paint} chips={chips} />
@@ -237,25 +222,14 @@ export function PatternListing({
     <Box
       // The frame wears the head's paint (R38).
       frameColor={paint.background}
-      head={
-        href && !edit ? (
-          <a
-            href={href}
-            aria-label={referenceEntityCopy('pattern2', { name, chassisName })}
-            className={cn('su-pattern-rows__head', FOCUS_RING)}
-          >
-            {head}
-          </a>
-        ) : (
-          head
-        )
-      }
+      head={head}
     >
       {edit
         ? edit.description
         : description && (
             <TraitProse as="p" className="su-pattern-rows__prose" text={description} />
           )}
+      {edit?.summary}
       {(loadout.length > 0 || drones.length > 0) && (
         <PatternLoadout
           groups={loadout}
@@ -276,70 +250,8 @@ export function PatternListing({
   )
 }
 
-/** What a page's pattern rows need to render each pattern's uniques. */
-export type PatternRowsHost = {
+/** What a pattern's listing needs to render its uniques. */
+type PatternRowsHost = {
   hostDown: Down
   chassisName: string | undefined
-}
-
-/**
- * A phone's "Show all N patterns": a link to a pattern list's heading, whose
- * `:target` opens the rest (no script). A chassis page draws it once, under
- * its Homebrew, counting both (`HomebrewIsland`); the book's own is then hidden.
- */
-export function ShowAllPatterns({
-  count,
-  target = 'patterns',
-}: {
-  count: number
-  target?: string
-}) {
-  if (count <= PATTERNS_ON_A_PHONE) return null
-  return (
-    <Button href={`#${target}`} size="full" className="su-pattern-rows__more">
-      {referenceEntityCopy('showAllPatterns', { count })}
-    </Button>
-  )
-}
-
-/**
- * PAGE view — a basic host's patterns under an ink section stamp with its
- * count. A phone shows the first two and a "Show all" link;
- * the link targets the list (`#patterns`) and `:target` opens the rest, so
- * the reveal ships no JavaScript and the static page stays static.
- */
-export function PatternLinkRows({
-  chassis,
-  chassisName,
-  patterns,
-  sectionAs,
-  host,
-}: {
-  chassis: ReferenceCardEntity
-  chassisName: string
-  patterns: RefObjectAnyPattern[]
-  /** A real heading on the page (`sectionHeadingLevel`). */
-  sectionAs?: ElementType
-  host: PatternRowsHost
-}) {
-  if (patterns.length === 0) return null
-  return (
-    <SlabSection
-      as={sectionAs}
-      id="patterns"
-      title={referenceEntityCopy('patterns')}
-      page
-      className="su-pattern-rows"
-      bodyClassName="su-pattern-rows__body"
-    >
-      <ul className="su-pattern-rows__list">
-        {patterns.map((pat) => (
-          <li key={pat.name}>
-            <PatternListing chassis={chassis} chassisName={chassisName} pattern={pat} host={host} />
-          </li>
-        ))}
-      </ul>
-      <ShowAllPatterns count={patterns.length} />
-    </SlabSection>
-  )
 }

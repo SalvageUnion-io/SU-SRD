@@ -31,7 +31,10 @@ export function pilotFixture(overrides: Partial<Pilot> & { id: string }): Pilot 
   return {
     schemaVersion: 1,
     name: 'Fixture Pilot',
-    callsign: 'Fixture',
+    // A pilot is listed by its callsign (`pilotLabel`). The fixture's
+    // callsign repeats its name, as a Starter Set pilot's does, so a test that
+    // names its pilot finds it by that name; one about the label sets both.
+    callsign: overrides.name ?? 'Fixture Pilot',
     classRef: 'scavenger',
     abilities: [],
     equipment: [],

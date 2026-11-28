@@ -2,9 +2,12 @@ import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import { downOf } from '../referenceEntity/card/cardChrome'
+import { drawnAnchor } from './peekAnchor'
 import type { PeekSize } from './peekContext'
 import { PEEK_DOWN_ATTRIBUTE, PEEK_SIZE_ATTRIBUTE, parsePeekAddress } from './peekContext'
+import type { PeekOpening } from './peekController'
 import { installPeekController } from './peekController'
+import { installPeekHistory } from './peekHistory'
 
 /** The popup, the card inside it and the data it reads load on the first Peek. */
 const PeekPopup = lazy(() => import('./PeekPopup').then((m) => ({ default: m.PeekPopup })))
@@ -20,6 +23,7 @@ type Active = {
   id: string
   down: Down
   size: PeekSize
+  how: PeekOpening
 }
 
 /** Only the first host on a page listens; a second would open every Peek twice. */
@@ -44,7 +48,17 @@ let hostMounted = false
  *
  * Mount one per app, at its root (The app), or as a page island (the SRD).
  */
-export function PeekHost({ load = loadOneSchema }: { load?: PeekLoader }) {
+export function PeekHost({
+  load = loadOneSchema,
+  backCloses = false,
+}: {
+  load?: PeekLoader
+  /**
+   * The browser's Back closes a Peek a press opened before it leaves the page
+   * (`peekHistory`): for a host whose page owns its history (the Reference).
+   */
+  backCloses?: boolean
+}) {
   const [active, setActive] = useState<Active | null>(null)
   const popupId = `peek-${useId().replace(/:/g, '')}`
   const controller = useRef<ReturnType<typeof installPeekController> | null>(null)
@@ -52,21 +66,31 @@ export function PeekHost({ load = loadOneSchema }: { load?: PeekLoader }) {
   useEffect(() => {
     if (hostMounted) return
     hostMounted = true
+    const history = backCloses
+      ? installPeekHistory(window, () => controller.current?.close())
+      : undefined
     controller.current = installPeekController(document, {
-      open: (anchor, address) => {
+      open: (pressed, address, how) => {
+        // A chip out of its head is pressed through its copy: stand beside that (PT4-04).
+        const anchor = drawnAnchor(pressed)
         const target = parsePeekAddress(address)
         const down = downOf(anchor.getAttribute(PEEK_DOWN_ATTRIBUTE) ?? undefined)
         const size = anchor.getAttribute(PEEK_SIZE_ATTRIBUTE) === 'mini' ? 'mini' : 'compact'
-        setActive(target ? { anchor, ...target, down, size } : null)
+        setActive(target ? { anchor, ...target, down, size, how } : null)
+        if (target && how === 'press') history?.opened()
       },
-      close: () => setActive(null),
+      close: () => {
+        setActive(null)
+        history?.closed()
+      },
     })
     return () => {
+      history?.uninstall()
       controller.current?.uninstall()
       controller.current = null
       hostMounted = false
     }
-  }, [])
+  }, [backCloses])
 
   // The open trigger is DESCRIBED by the popup, for as long as it is open.
   useEffect(() => {
@@ -94,6 +118,7 @@ export function PeekHost({ load = loadOneSchema }: { load?: PeekLoader }) {
         entityId={active.id}
         down={active.down}
         size={active.size}
+        how={active.how}
         load={load}
         onDismiss={dismiss}
       />

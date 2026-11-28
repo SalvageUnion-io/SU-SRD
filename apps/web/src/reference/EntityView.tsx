@@ -29,9 +29,10 @@ import type { ReactElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { EntityCardStatic } from '../components/EntityCardStatic'
+import type { SideLinkList } from '../components/SideLinks'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { nameRefIndexWithout, nameRefsFor } from '../lib/nameRefIndex'
-import { pageRefsFor } from '../lib/pageRefIndex'
+import { pageRefIndexFor } from '../lib/pageRefIndex'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
 import { Island } from '../runtime/Island'
 
@@ -53,15 +54,26 @@ type EntityViewProps = {
   schemaId: string
   /** Render one of `item`'s patterns (chassis only) rather than `item` itself. */
   pattern?: RefObjectAnyPattern
+  /** The tables it is rolled on, a compact box in the card's side column. */
+  sideLinks?: SideLinkList
 }
 
-export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
-  const pageRefs = pageRefsFor(schemaId, item)
+export function EntityView({ item, schemaId, pattern, sideLinks }: EntityViewProps) {
+  // A guide's too: a loose "p. 235" beside a working link read as a leftover (RR-22).
+  const pageRefs = pageRefIndexFor(item)
   // The server resolves names against the whole dataset (less the entity's
   // own name); the island carries just the names its card draws.
   const names = nameRefIndexWithout(item.id)
   if (!cardNeedsHydration(item, pattern)) {
-    return <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} nameRefs={names} />
+    return (
+      <EntityCardStatic
+        item={item}
+        pattern={pattern}
+        pageRefs={pageRefs}
+        nameRefs={names}
+        sideLinks={sideLinks}
+      />
+    )
   }
   const nameRefs = nameRefsFor(item, [
     cardText(<EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} />),
@@ -79,9 +91,16 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
         preloadSchemas: getSchemaPreloadList(schemaId),
         pageRefs,
         nameRefs,
+        sideLinks,
       }}
     >
-      <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} nameRefs={nameRefs} />
+      <EntityCardStatic
+        item={item}
+        pattern={pattern}
+        pageRefs={pageRefs}
+        nameRefs={nameRefs}
+        sideLinks={sideLinks}
+      />
     </Island>
   )
 }

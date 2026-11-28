@@ -1,7 +1,7 @@
-import type { CSSProperties, ReactNode } from 'react'
-import { space } from '../design/tokens'
+import type { ReactNode } from 'react'
 import { componentsCopy } from '../messages/components'
-import { MarkdownSection, SlabSection, Stack } from './index'
+import { MarkdownSection } from './app'
+import { SlabSection, Stack } from './index'
 
 type ColophonProps = {
   /** Raw contents of the repo-root `ABOUT_JRVS.md` (left column, top). */
@@ -17,7 +17,6 @@ type ColophonProps = {
 
 // Two columns from `md` up: the column template is `.su-colophon`, the rest is
 // static.
-const ROOT = { display: 'grid', gap: space[32] } satisfies CSSProperties
 
 /**
  * Colophon — who made this, how, and how to support it, on the About page
@@ -40,7 +39,7 @@ export function Colophon({
   support,
 }: ColophonProps) {
   return (
-    <div className="su-colophon" style={ROOT}>
+    <div className="su-grid su-colophon" data-gap={32}>
       <Stack gap={32}>
         <MarkdownSection markdown={aboutMarkdown} />
 

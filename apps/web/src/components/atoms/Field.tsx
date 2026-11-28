@@ -1,6 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   borderWidth,
   color,
@@ -92,6 +92,11 @@ type FieldEditableProps = FieldCommon & {
    * rather than as a peer of the meta fields under it.
    */
   prominent?: boolean
+  /**
+   * Open the editor as it mounts, its value selected for typing: a thing just
+   * made, whose name the player is about to give (r7 G5).
+   */
+  startEditing?: boolean
 }
 
 type FieldProps = FieldStaticProps | FieldEditableProps
@@ -282,6 +287,7 @@ export function Field(props: FieldProps) {
     fill = false,
     prominent = false,
     readValue,
+    startEditing = false,
   } = props
   const labelText = ariaLabel ?? (typeof label === 'string' ? label : '')
 
@@ -348,6 +354,7 @@ export function Field(props: FieldProps) {
         onSave={(next) => onSave?.(next)}
         multiline={multiline}
         placeholder={placeholder}
+        startEditing={startEditing}
         ariaLabel={atomsCopy('edit', { lowerCase: labelText.toLowerCase() })}
         // `fill` and `prominent` reach the readout through the box's class:
         // the box is a flex row, so stretching it and its child span is all
@@ -368,8 +375,8 @@ export function Field(props: FieldProps) {
  * box. The border is drawn ONCE: at rest the box (`.su-field__box`) frames
  * the readout; while editing the `Input` / `Textarea` IS the bordered control
  * and the box holds it with no frame of its own, so there is never a
- * box-in-box border. Enter (without Shift, in a textarea) and a blur save;
- * Escape closes and drops the draft.
+ * box-in-box border. A press or a click opens it. Enter (without Shift, in a
+ * textarea) and a blur save; Escape closes and drops the draft.
  */
 function FieldEditor({
   value,
@@ -378,6 +385,7 @@ function FieldEditor({
   placeholder,
   ariaLabel,
   className,
+  startEditing,
 }: {
   value: string
   onSave: (next: string) => Promise<void> | void
@@ -385,11 +393,21 @@ function FieldEditor({
   placeholder: string
   ariaLabel: string
   className: string
+  startEditing: boolean
 }) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState('')
+  const [editing, setEditing] = useState(startEditing)
+  const [draft, setDraft] = useState(startEditing ? value : '')
   const inputRef = useRef<HTMLInputElement>(null)
   const areaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Opened as it mounts: the value selected, so typing replaces it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, on mount
+  useEffect(() => {
+    if (!startEditing) return
+    const field = inputRef.current ?? areaRef.current
+    field?.focus({ preventScroll: true })
+    field?.select()
+  }, [])
 
   function open() {
     setDraft(value)
@@ -420,7 +438,14 @@ function FieldEditor({
           role="button"
           tabIndex={0}
           aria-label={ariaLabel}
+          // Prose is a block, not a control on a line (the sibling-height law reads this).
+          data-multiline={multiline || undefined}
           onClick={open}
+          // The press opens it too: leaving another open field closes that one on
+          // the press, the page moves under the pointer, and no click is ever sent.
+          onMouseDown={(e) => {
+            if (e.button === 0) open()
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault()

@@ -8,7 +8,17 @@ import { describe, expect, test } from 'bun:test'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import type { StepPlanInput } from '../playDowntime.model'
-import { mechBayOf, stepPlan, stepsFor } from '../playDowntime.model'
+import {
+  healAgainPatch,
+  leftOnMove,
+  mechBayOf,
+  nobodyActs,
+  passesByItself,
+  restoreAgainLine,
+  restoreLead,
+  stepPlan,
+  stepsFor,
+} from '../playDowntime.model'
 
 const RESTORE = 'Restore your Mech & Pilot'
 
@@ -94,6 +104,156 @@ describe('the restore step', () => {
   })
 })
 
+describe('a hurt pilot with no Med Bay (r5 A12)', () => {
+  const hurt = () => pilotFixture({ id: 'p', name: 'Tessa', currentHP: 0 })
+  const input = (over: Partial<StepPlanInput>): StepPlanInput => ({
+    stepName: RESTORE,
+    pilot: null,
+    mech: null,
+    crawler: null,
+    pilotCrawlerTl: 1,
+    upkeep: { spent: false, canPay: true },
+    ...over,
+  })
+
+  test('with no crawler the restore step says the HP stays, and links to making one', () => {
+    const line = plan({ pilot: hurt() }).find((l) => l.key === 'pilot')
+    expect(line).toMatchObject({
+      key: 'pilot',
+      skippable: false,
+      blocked: 'HP stays 0',
+      needsCrawler: true,
+    })
+  })
+
+  test('a damaged Med Bay says so, with no link to a crawler', () => {
+    const site = crawlerFixture({
+      id: 'c',
+      techLevel: 1,
+      crawlerBays: [{ bayRef: 'med-bay', condition: 'damaged' }],
+    })
+    const line = plan({ pilot: hurt(), crawler: site }).find((l) => l.key === 'pilot')
+    expect(line?.blocked).toBe('HP stays 0')
+    expect(line?.needsCrawler).toBe(false)
+  })
+
+  // r6 D7 (SB6-06): the step's own line gives the reason, with its page.
+  test('Restore leads with why a hurt pilot cannot heal, and only then', () => {
+    expect(restoreLead(input({ pilot: hurt() }))).toBe(
+      'Healing in Downtime needs your crawler’s Med Bay (Workshop Manual · p.242).'
+    )
+    const damaged = crawlerFixture({
+      id: 'c',
+      techLevel: 1,
+      crawlerBays: [{ bayRef: 'med-bay', condition: 'damaged' }],
+    })
+    expect(restoreLead(input({ pilot: hurt(), crawler: damaged }))).toMatch(/damaged/)
+    expect(restoreLead(input({ pilot: hurt(), crawler: crawler(1) }))).toBeNull()
+    expect(restoreLead(input({ pilot: pilotFixture({ id: 'p' }) }))).toBeNull()
+    expect(restoreLead(input({ pilot: hurt(), stepName: 'Train your Pilot' }))).toBeNull()
+  })
+
+  test('once taken, the step keeps saying why until a crawler with a Med Bay arrives', () => {
+    const pilot = hurt()
+    expect(restoreAgainLine(input({ pilot }))?.blocked).toBe('HP stays 0')
+    const again = restoreAgainLine(input({ pilot, crawler: crawler(1) }))
+    expect(again?.skippable).toBe(true)
+    expect(again?.chips.map((c) => c.label)).toEqual(['HP'])
+    expect(healAgainPatch(pilot, crawler(1), 1).currentHP).toBe(10)
+  })
+
+  test('a full pilot, or another step, has nothing to run again', () => {
+    expect(restoreAgainLine(input({ pilot: pilotFixture({ id: 'p' }) }))).toBeNull()
+    expect(restoreAgainLine(input({ pilot: hurt(), stepName: 'Train your Pilot' }))).toBeNull()
+  })
+})
+
+describe('the Reactor’s conditions (r7 D2)', () => {
+  // r7 D2 (SB7-14): Restore proposed SP and Heat but left the Shutdown on.
+  test('a Shutdown, Vulnerable mech reads both cleared, and the step clears them', () => {
+    const mech = mechFixture({ id: 'm', name: 'Buzzard', conditions: ['Shutdown', 'Vulnerable'] })
+    const [line] = plan({ mech })
+    expect(line?.chips).toEqual([
+      { label: 'Shutdown', value: 'clears' },
+      { label: 'Vulnerable', value: 'clears' },
+    ])
+    expect(line?.steps).toContain('restoreMechs')
+  })
+})
+
+describe('what else the restore step resets', () => {
+  test('a mech’s spent EP is shown going back to full', () => {
+    const mech = mechFixture({ id: 'm', name: 'Buzzard', chassisRef: 'mule', currentEP: 1 })
+    const [line] = plan({ mech, crawler: crawler(1) })
+    expect(line?.key).toBe('mech')
+    const ep = line?.chips.find((chip) => chip.label === 'EP')
+    expect(ep?.value).toMatch(/^1→\d+$/)
+  })
+
+  test('used abilities and the once-per-Downtime toggles are their own line, which may be skipped', () => {
+    const pilot = pilotFixture({
+      id: 'p',
+      name: 'Bonesaw',
+      usedAbilities: ['jury-rig', 'talk-shop'],
+      usedToggles: { motto: true },
+    })
+    const resets = plan({ pilot }).find((l) => l.key === 'resets')
+    expect(resets).toEqual({
+      key: 'resets',
+      title: 'Once-per-Downtime resets',
+      chips: [
+        { label: 'Abilities used', value: '2→0' },
+        { label: 'Once per Downtime', value: 'reset' },
+      ],
+      steps: ['clearUsed'],
+      skippable: true,
+    })
+    expect(stepsFor([resets as never], new Set()).clearUsed).toBe(true)
+  })
+})
+
+describe('the other steps', () => {
+  test('Train your Pilot plans one Training Point', () => {
+    const pilot = pilotFixture({ id: 'p', name: 'Rosa', callsign: 'Bonesaw', trainingPoints: 2 })
+    const [line] = plan({ stepName: 'Train your Pilot', pilot })
+    expect(line).toMatchObject({
+      key: 'train',
+      chips: [{ label: 'TP', value: '2→3' }],
+      steps: ['trainPilots'],
+    })
+  })
+
+  test('Upkeep says what it costs and whose it is to pay', () => {
+    const funded: Crawler = { ...crawler(2), scrapPool: { tl2: 5 } }
+    const upkeep = (state: StepPlanInput['upkeep'], unit: Crawler = funded) =>
+      plan({ stepName: 'Upkeep & Upgrade', crawler: unit, upkeep: state })[0]
+    const outstanding = upkeep({ spent: false, canPay: true })
+    // The line is the crawler's; its chip alone says Upkeep, never twice in a row (r8 D5).
+    expect(outstanding?.title).toBe(funded.name)
+    expect(outstanding?.chips[0]?.label).toBe('Upkeep')
+    expect(outstanding?.chips[0]?.value).toMatch(/^\d+ Scrap · T2$/)
+    expect(outstanding?.chips[1]?.label).toBe('Outstanding')
+    expect(outstanding?.skippable).toBe(true)
+    const paid = upkeep({ spent: true, canPay: true })
+    expect(paid?.chips[1]?.label).toBe('Paid')
+    expect(paid?.skippable).toBe(false)
+    const theirs = upkeep({ spent: false, canPay: false })
+    expect(theirs?.chips[1]?.label).toMatch(/Mediator/)
+    expect(theirs?.skippable).toBe(false)
+    // r4 A7: a pool too small reads Short by N for payer and player alike, may
+    // not be applied, and cites the book; once paid it is Paid again.
+    for (const canPay of [true, false]) {
+      const short = upkeep({ spent: false, canPay }, crawler(2))
+      expect(short?.chips[1]?.label).toBe('Short by 5')
+      expect(short?.skippable).toBe(false)
+      expect(short?.note).toBe('Unpaid Upkeep: Workshop Manual · p.218.')
+    }
+    expect(upkeep({ spent: true, canPay: true }, crawler(2))?.chips[1]?.label).toBe('Paid')
+    // No crawler, no Upkeep to plan.
+    expect(plan({ stepName: 'Upkeep & Upgrade' })).toEqual([])
+  })
+})
+
 describe('stepsFor', () => {
   test('the ticked lines switch on their steps, an unticked one leaves its own off', () => {
     const mech = mechFixture({ id: 'm', name: 'Buzzard', itemUses: { '50-cal-machine-gun': 1 } })
@@ -142,5 +302,70 @@ describe('the craft step: Process Nanites (False Flag p.66)', () => {
     )
     expect(plan({ stepName: CRAFT, crawler: site('intact', 0) })).toEqual([])
     expect(plan({ stepName: CRAFT, crawler: crawler(2) })).toEqual([])
+  })
+})
+
+describe('leftOnMove (r5 A3)', () => {
+  test('moved on, the skipped steps from where the table stood are the ones left unfinished', () => {
+    expect(leftOnMove(0, 3, [0, 2])).toEqual([0, 2])
+    expect(leftOnMove(2, 3, [0, 2])).toEqual([2])
+  })
+
+  test('a Back, or a step already left behind before, says nothing', () => {
+    expect(leftOnMove(3, 1, [0, 2])).toEqual([])
+    expect(leftOnMove(3, 4, [0, 2])).toEqual([])
+  })
+})
+
+// r7 D3 (MD7-14, LG7-23): ten Next presses for a Downtime where the player did one thing.
+describe('a step that passes by itself (r7 D3)', () => {
+  const base = {
+    stepName: 'Customise your Mech',
+    last: false,
+    held: false,
+    done: 1,
+    of: 2,
+    crawler: true,
+    carried: 0,
+    upkeepUnpaid: false,
+    nanitesWaiting: false,
+  }
+
+  test('nobody acts in Trade or Craft with no crawler, nor in Tally with no Scrap carried', () => {
+    expect(nobodyActs({ stepName: 'Trade', crawler: false, carried: 3 })).toBe(true)
+    expect(
+      nobodyActs({
+        stepName: 'Craft Mech Chassis, Systems, and Modules',
+        crawler: false,
+        carried: 3,
+      })
+    ).toBe(true)
+    expect(nobodyActs({ stepName: 'Trade', crawler: true, carried: 0 })).toBe(false)
+    expect(nobodyActs({ stepName: 'Tally Salvage', crawler: true, carried: 0 })).toBe(true)
+    expect(nobodyActs({ stepName: 'Tally Salvage', crawler: true, carried: 2 })).toBe(false)
+    // Units not read yet: nothing passes on a guess.
+    expect(nobodyActs({ stepName: 'Tally Salvage', crawler: true, carried: null })).toBe(false)
+  })
+
+  test('every seat done passes it; one still working does not', () => {
+    expect(passesByItself(base)).toBe(false)
+    expect(passesByItself({ ...base, done: 2 })).toBe(true)
+    expect(passesByItself({ ...base, done: 0, of: 0 })).toBe(false)
+  })
+
+  test('never the last step, one stepped back to, unpaid Upkeep or waiting Nanites', () => {
+    const all = { ...base, done: 2 }
+    expect(passesByItself({ ...all, last: true })).toBe(false)
+    expect(passesByItself({ ...all, held: true })).toBe(false)
+    expect(passesByItself({ ...all, stepName: 'Upkeep & Upgrade', upkeepUnpaid: true })).toBe(false)
+    expect(passesByItself({ ...all, stepName: 'Upkeep & Upgrade' })).toBe(true)
+    expect(
+      passesByItself({
+        ...base,
+        stepName: 'Craft Mech Chassis, Systems, and Modules',
+        crawler: false,
+        nanitesWaiting: true,
+      })
+    ).toBe(false)
   })
 })

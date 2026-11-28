@@ -2,17 +2,21 @@
  * The Crew list's lines (play.md §7) and the Play bar's "N here", from the
  * server's crew read (`crew.vitals`): pure, no React and no I/O.
  *
- * One line per other seat in the Game: whether they are here (their player
+ * One line per other seat in the Game that somebody plays (r4 B8: a pilot
+ * assigned to nobody, a pre-gen nobody took, is no crewmate at the table, and
+ * read "Away"), with its player's name: whether they are here (their player
  * has the Game open, `useGamePresence`), their callsign, their mount ("Boarded
- * · Atlas", "On foot") and one vital. Who needs looking at is `crewLines()`'s
+ * · Atlas", "On foot"), the one vital that flags them, and every number
+ * with its maximum (HP, AP; aboard, the mech's SP, EP and Heat). Who needs looking at is `crewLines()`'s
  * verdict, the server's `attention`, so every screen at the table flags the
  * same crewmates; this only picks which number says it.
  */
 
 import type { PairSide } from '../lib/units/crewPair'
+import { playCopy } from '../messages/play'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewLine, CrewVitals } from './useGameFeed'
-import { crewLines, vitalCurrent } from './useGameFeed'
+import { crewLines, vitalCurrent, vitalText } from './useGameFeed'
 
 /**
  * What needs looking at, in words: the line's problems, else its parked mech's
@@ -42,6 +46,8 @@ type CrewVital = {
 
 /** One crewmate as the Crew list draws them: their crew line, and how the list reads it. */
 export type CrewSeatLine = CrewLine & {
+  /** Who plays them, by the name the Game holds; null when the roster has none. */
+  player: string | null
   /** Their player has the Game open. */
   present: boolean
   /** "Boarded · Atlas", or "On foot". */
@@ -49,6 +55,11 @@ export type CrewSeatLine = CrewLine & {
   /** The mech they are aboard, or null on foot: the mount chip's value. */
   boardedIn: string | null
   vital: CrewVital
+  /**
+   * Every number the crew reads of them, each with its maximum ("9/10"): HP
+   * and AP always, and aboard their mech's SP, EP and Heat.
+   */
+  vitals: { label: string; value: string }[]
   /** What is wrong, in words, or null: the line's accessible name says it. */
   problem: string | null
 }
@@ -61,13 +72,20 @@ type CrewMech = CrewVitals['mechs'][number]
  * wrong, the one that matters most where they are: their mech's SP aboard,
  * their own HP on foot.
  */
-function crewVital(pilot: CrewPilot, mech: CrewMech | undefined, attention: boolean): CrewVital {
+function crewVital(
+  pilot: CrewPilot,
+  mech: CrewMech | undefined,
+  attention: boolean,
+  down = false
+): CrewVital {
   const hp = { label: 'HP', value: vitalCurrent('pool', pilot.currentHP, pilot.maxHP) }
   const sp =
     mech === undefined
       ? null
       : { label: 'SP', value: vitalCurrent('pool', mech.currentSP, mech.maxSP) }
   if (!attention) return { ...(pilot.boarded && sp !== null ? sp : hp), attention: false }
+  // At 0 HP or 0 SP the unit is Down (r5 A1): the mark is the flag.
+  if (down) return { label: playCopy('down'), value: null, attention: true }
 
   const flag = (v: { label: string; value: string | null }): CrewVital => ({
     ...v,
@@ -81,7 +99,7 @@ function crewVital(pilot: CrewPilot, mech: CrewMech | undefined, attention: bool
       return flag({ label: 'SP', value: vitalCurrent('pool', mech.currentSP, mech.maxSP) })
     if (status.overheating)
       return flag({ label: 'Heat', value: vitalCurrent('gauge', mech.currentHeat, mech.maxHeat) })
-    if (status.shutdown) return flag({ label: 'Shut down', value: null })
+    if (status.shutdown) return flag({ label: playCopy('shutDown'), value: null })
     if (sp !== null) return flag(sp)
   }
   return flag(hp)
@@ -106,16 +124,29 @@ export function crewSeatLines(
 
   return crewLines(crew, seats, selfPilotId).flatMap((line): CrewSeatLine[] => {
     const pilot = pilots.get(line.pilotId)
-    if (line.self || pilot === undefined) return []
+    // Only who is playing (r4 B8): an unassigned pilot is the Game page's to offer.
+    if (line.self || pilot === undefined || pilot.ownerId === null) return []
     const mech = pilot.mechId === null ? undefined : mechs.get(pilot.mechId)
     const boardedIn = pilot.boarded ? (mech?.name ?? 'a mech') : null
     return [
       {
         ...line,
+        player: pilot.ownerName,
         present: isHere(pilot, here),
-        mount: boardedIn === null ? 'On foot' : `Boarded · ${boardedIn}`,
+        mount: boardedIn === null ? playCopy('onFoot') : `Boarded · ${boardedIn}`,
         boardedIn,
-        vital: crewVital(pilot, mech, line.attention),
+        vital: crewVital(pilot, mech, line.attention, line.down),
+        vitals: [
+          { label: 'HP', value: line.hp },
+          { label: 'AP', value: line.ap },
+          ...(pilot.boarded && mech !== undefined
+            ? [
+                { label: 'SP', value: vitalText('pool', mech.currentSP, mech.maxSP) },
+                { label: 'EP', value: vitalText('pool', mech.currentEP, mech.maxEP) },
+                { label: 'Heat', value: vitalText('gauge', mech.currentHeat, mech.maxHeat) },
+              ]
+            : []),
+        ],
         problem: crewProblem(line),
       },
     ]
@@ -138,9 +169,11 @@ export function crewLineLabel(line: CrewSeatLine): string {
     line.vital.value === null ? line.vital.label : `${line.vital.label} ${line.vital.value}`
   return [
     line.name,
+    ...(line.player === null ? [] : [playCopy('playedBy', { name: line.player })]),
     line.present ? 'here' : 'away',
     line.mount,
     line.problem ?? (line.vital.attention ? vital : `${vital}, fine`),
+    ...line.vitals.map((v) => `${v.label} ${v.value}`),
   ].join(', ')
 }
 

@@ -30,7 +30,7 @@ type CrawlerStatsStepProps = {
 }
 
 /**
- * Step 2 · Note your Crawler Statistics (Union Crawler p.212) — display only.
+ * Note your Crawler Statistics (Union Crawler p.212) — display only.
  * A new crawler is FIXED at Tech Level 1 (a Hamlet Crawler): no input exists.
  * Max SP renders through the derived-at-read arithmetic (`crawlerMaxSPParts`)
  * so a Battle crawler shows its breakdown — `20 + 5 type bonus = 25` — while
@@ -61,17 +61,21 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
       <div className="su-wiz-stack su-wiz-stack--6" style={proseStyle}>
         {sp.typeBonus > 0 && selectedType ? (
           <p style={paragraphStyle} data-testid="sp-breakdown">
-            {sp.base} + {sp.typeBonus} type bonus ({selectedType.name}) ={' '}
-            <strong>{sp.total}</strong> Structure Points — the bonus derives from your Crawler type,
-            so it follows a type change automatically.
+            {buildWizardCopy('typeBonusEquals', {
+              base: sp.base,
+              typeBonus: sp.typeBonus,
+              type: selectedType.name,
+            })}{' '}
+            <strong>{sp.total}</strong> {buildWizardCopy('structurePointsEnd')}
           </p>
         ) : (
           <p style={paragraphStyle} data-testid="sp-breakdown">
-            <strong>{sp.total}</strong> Structure Points — the {techLevel.name} base.
+            <strong>{sp.total}</strong>{' '}
+            {buildWizardCopy('structurePointsTheBase', { techLevel: techLevel.name })}
           </p>
         )}
         <p style={paragraphStyle}>
-          A new Crawler is a <strong>{techLevel.name}</strong>
+          {buildWizardCopy('aNewCrawlerIsA')} <strong>{techLevel.name}</strong>
           {typeof techLevel.populationMin === 'number' &&
           typeof techLevel.populationMax === 'number'
             ? buildWizardCopy('population', {
@@ -79,8 +83,7 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
                 populationMax: techLevel.populationMax,
               })
             : ''}
-          . The Upgrade Pool starts at 0 and fills during play; every Bay starts{' '}
-          <strong>{buildWizardCopy('intact')}</strong>.
+          {buildWizardCopy('theUpgradePoolStarts')} <strong>{buildWizardCopy('intact')}</strong>.
         </p>
       </div>
     </div>

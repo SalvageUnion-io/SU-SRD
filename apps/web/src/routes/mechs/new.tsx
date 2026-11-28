@@ -1,23 +1,38 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { MechWizard } from '../../build/mech/MechWizard'
+import { useBuildNow } from '../../build/mech/Pattern/useBuildNow'
+import { SheetSkeleton } from '../../build/sheet/SheetSkeleton'
 import { NewUnitRoute } from '../../build/wizard/NewUnitRoute'
 import { newUnitHead, newUnitSearch } from '../../lib/newUnitRoute'
+import { parseGameParam } from '../../lib/wizard/fromGame'
 import { preselectedChassis, preselectedPattern } from '../../lib/wizard/preselect'
 import { routesCopy } from '../../messages/routes'
 
 export const Route = createFileRoute('/mechs/new')({
   head: () => newUnitHead(routesCopy('newMech')),
   // pattern: the chassis's pattern slug, from an SRD pattern page's "Build With This"
-  validateSearch: (search: Record<string, unknown>) => newUnitSearch(search, 'chassis', 'pattern'),
+  // pilot: the pilot it is built for, from that pilot's line in the Training Bay
+  validateSearch: (search: Record<string, unknown>) => ({
+    ...newUnitSearch(search, 'chassis', 'pattern'),
+    // A pilot's id is a UUID, as a Game's is: the same narrowing.
+    pilot: parseGameParam(search.pilot),
+    // From Play, a Mech built for its Pilot returns there (r5 B17).
+    ...(search.back === 'play' ? { back: 'play' as const } : {}),
+    // A Reference pattern page's Build With This builds at once (r6 E6).
+    ...(search.build === 'now' ? { build: 'now' as const } : {}),
+  }),
   component: NewMechRoute,
 })
 
 function NewMechRoute() {
   const search = Route.useSearch()
+  // Signed in, the linked pattern is being built and its sheet opens.
+  if (useBuildNow(search)) return <SheetSkeleton />
   return (
     <NewUnitRoute
       kind="mech"
       search={search}
+      book={{ chassis: search.chassis, pattern: search.pattern }}
       wizard={(props) => (
         <MechWizard
           {...props}

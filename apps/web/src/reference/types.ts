@@ -14,11 +14,14 @@ export type DocumentMeta = {
   ogType?: string
   ogImage?: string
   ogImageAlt?: string
+  /** `ogImage` is an entity's art, not the site's 1200×630 card: the head claims no size for it. */
+  ogImageArt?: boolean
   /**
    * The link preview's own title and description, when they differ
    * from the page's: `og:title` is the thing's name and `og:description` its
-   * kicker and byline, never the body, while `<title>` and the meta description
-   * keep serving search. Unset, both mirror `title` and `description`.
+   * stats and summary (`previewDescriptionFor`), else its kicker and byline,
+   * while `<title>` and the meta description keep serving search. Unset, both
+   * mirror `title` and `description`.
    */
   ogTitle?: string
   ogDescription?: string

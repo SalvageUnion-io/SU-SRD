@@ -4,6 +4,8 @@ import {
   heldGroups,
   heldWaves,
   instanceName,
+  numberFirst,
+  preppedOrder,
   runningFrom,
   splitWaves,
   trayNpcsFor,
@@ -26,6 +28,30 @@ describe('naming an instance', () => {
     expect(instanceName('Raider', [])).toBe('Raider')
     expect(instanceName('Raider', ['Raider'])).toBe('Raider 2')
     expect(instanceName('Raider', ['Raider', 'Raider 2'])).toBe('Raider 3')
+    // The first, once numbered, still holds the name (r4 D5).
+    expect(instanceName('Raider', ['Raider 1'])).toBe('Raider 2')
+    expect(instanceName('Raider', ['Raider 1', 'Raider 2'])).toBe('Raider 3')
+  })
+
+  test('a second of a kind numbers the first, once', () => {
+    const list = [{ name: 'Raider' }, { name: 'Rifle Squad' }, { name: 'Raider 2' }]
+    expect(numberFirst(list, 'Raider 2').map((o) => o.name)).toEqual([
+      'Raider 1',
+      'Rifle Squad',
+      'Raider 2',
+    ])
+    // Nothing to number: no bare name, a first already numbered, or a first of its kind.
+    expect(numberFirst([{ name: 'Raider 1' }, { name: 'Raider 2' }], 'Raider 2')).toHaveLength(2)
+    const numbered = [{ name: 'Raider' }, { name: 'Raider 1' }, { name: 'Raider 2' }]
+    expect(numberFirst(numbered, 'Raider 2')).toBe(numbered)
+    const alone = [{ name: 'Raider' }]
+    expect(numberFirst(alone, 'Raider')).toBe(alone)
+    // Two under the bare name: only the first is renamed, so no two share one.
+    expect(
+      numberFirst([{ name: 'Raider' }, { name: 'Raider' }, { name: 'Raider 2' }], 'Raider 2').map(
+        (o) => o.name
+      )
+    ).toEqual(['Raider 1', 'Raider', 'Raider 2'])
   })
 })
 
@@ -70,6 +96,30 @@ describe('the tray NPCs an encounter fields', () => {
   test('named apart from the tray and from each other', () => {
     const names = trayNpcsFor([raider, { ...raider, id: 'o2' }], ['Raider'], NOW).map((n) => n.name)
     expect(names).toEqual(['Raider 2', 'Raider 3'])
+  })
+
+  test('copies fielded together are numbered from 1', () => {
+    const names = trayNpcsFor([raider, { ...raider, id: 'o2' }], [], NOW).map((n) => n.name)
+    expect(names).toEqual(['Raider 1', 'Raider 2'])
+  })
+})
+
+describe('the order an encounter is fielded in (MD3-05)', () => {
+  test('alone first, then each group by wave, each as it was made', () => {
+    const groups = [
+      { id: 'late', name: 'Reinforcements', wave: 2 },
+      { id: 'band', name: 'Raider Band', wave: 1 },
+    ]
+    const opposition = [
+      { ...raider, id: 'a', groupId: 'late' },
+      { ...raider, id: 'b', groupId: 'band' },
+      { ...raider, id: 'c' },
+      { ...raider, id: 'd', groupId: 'band' },
+      { ...raider, id: 'e' },
+    ]
+    expect(preppedOrder({ groups, opposition }).map((o) => o.id)).toEqual(['c', 'e', 'b', 'd', 'a'])
+    // Read, never reordered in place.
+    expect(opposition.map((o) => o.id)).toEqual(['a', 'b', 'c', 'd', 'e'])
   })
 })
 
@@ -138,7 +188,8 @@ describe('waves (ADR-059 §5)', () => {
 
   test('the first wave is those alone and in wave 1 groups; the rest are held', () => {
     const { first, held } = splitWaves(encounter)
-    expect(first.map((o) => o.id)).toEqual(['o1', 'o2'])
+    // In the page's order (MD3-05): the one alone, then the wave 1 group.
+    expect(first.map((o) => o.id)).toEqual(['o2', 'o1'])
     expect(held.map((o) => o.id)).toEqual(['o3', 'o4'])
   })
 

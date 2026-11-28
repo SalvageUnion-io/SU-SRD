@@ -1,0 +1,112 @@
+/*
+ * play/activity.css — the Discord Activity's shell (`activity/ActivityShell`,
+ * `ActivityHome`): the app as an Activity, edge to edge in
+ * Discord's frame, never the site's page in it.
+ *
+ * The frame is the whole screen: the shell fills it, the Activity bar on the
+ * chrome's ground (K13) above the screen's paper, and Discord's mobile safe
+ * areas (`--discord-safe-area-inset-*`) kept clear.
+ */
+
+.su-activity-shell {
+  background: var(--color-paper);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding-bottom: var(--discord-safe-area-inset-bottom, 0px);
+}
+
+.su-activity-bar {
+  align-items: center;
+  background: var(--color-ink-deep);
+  box-sizing: border-box;
+  color: var(--color-paper);
+  display: flex;
+  flex: none;
+  gap: var(--space-8);
+  min-height: calc(var(--size-compact) + var(--space-16));
+  padding: max(var(--space-8), var(--discord-safe-area-inset-top, 0px)) var(--space-12)
+    var(--space-8);
+}
+
+/* Who is in the Activity, as Discord draws them: round faces, overlapping. */
+.su-activity-faces {
+  display: flex;
+  list-style: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+}
+
+.su-activity-face {
+  align-items: center;
+  background: var(--color-ink);
+  box-shadow: 0 0 0 2px var(--color-ink-deep);
+  clip-path: circle(50%);
+  display: flex;
+  font-size: var(--text-chip);
+  height: var(--size-compact);
+  justify-content: center;
+  width: var(--size-compact);
+}
+
+.su-activity-face + .su-activity-face {
+  margin-left: calc(var(--space-8) * -1);
+}
+
+.su-activity-face img {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.su-activity-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* A screen of the Activity's own (its home, a Game): centred in the frame, no page band. */
+.su-activity-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  margin: 0 auto;
+  max-width: 64rem;
+  padding: var(--space-16) var(--space-12) var(--space-24);
+  width: 100%;
+}
+
+.su-activity-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.su-activity-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  justify-content: space-between;
+}
+
+.su-activity-heading {
+  margin: 0;
+}
+
+.su-activity-games {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-activity-note {
+  margin: 0;
+}

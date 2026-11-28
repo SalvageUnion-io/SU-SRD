@@ -22,6 +22,9 @@ import { fromFaults } from './_findings'
  *   gap runs between them.
  * - **ground** the body is not the paper, so the tab stands on it as a box
  *   instead of being cut from it.
+ * - **plain** a contentful Mini set plain (no strip, no tab: its name on its
+ *   own ground) draws a rule under its head, or its body stands on another
+ *   ground.
  *
  * The body's frame is R38's (the subtle ink-40), read by `_entityFrames.ts`.
  *
@@ -87,6 +90,23 @@ export function scanMiniCutouts({
     }
     const contentful = token.matches(a.contentful)
     const ns = getComputedStyle(notch)
+    // A contentful Mini may set its name plain (R45): no strip, no tab, the
+    // name on the Mini's own ground, which its body shares with no rule
+    // between. Paint on either half makes it the cut-out, held to all of it.
+    const clear = (c: string) => c === 'rgba(0, 0, 0, 0)' || c === 'transparent'
+    const ps0 = getComputedStyle(pill)
+    if (contentful && clear(ps0.backgroundColor) && clear(ns.backgroundColor)) {
+      const ground = getComputedStyle(token).backgroundColor
+      if (Number.parseFloat(ps0.borderBottomWidth) > 0 && !clear(ps0.borderBottomColor)) {
+        faults.push(`plain: ${name}'s head draws a rule over its body`)
+      }
+      const body = token.querySelector<HTMLElement>(a.body)
+      const bodyGround = body ? getComputedStyle(body).backgroundColor : ground
+      if (body && !clear(bodyGround) && bodyGround !== ground) {
+        faults.push(`plain: ${name}'s body is ${bodyGround}, not its head's ground ${ground}`)
+      }
+      continue
+    }
     if (contentful && ns.backgroundColor !== paper) {
       faults.push(`paper: ${name}'s tab is ${ns.backgroundColor}, not the paper`)
     }

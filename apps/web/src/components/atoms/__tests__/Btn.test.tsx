@@ -69,7 +69,7 @@ describe('Button', () => {
     )
   })
 
-  test('there is no danger variant: no state colour fills a button (R9)', () => {
+  test('there is no danger variant: no state colour fills a button (§3.1)', () => {
     // @ts-expect-error a destructive act is rust (`primary`) behind ConfirmDialog
     const cls = buttonVariants({ variant: 'danger' })
     expect(cls).not.toContain('su-btn--danger')
@@ -111,12 +111,12 @@ describe('Button', () => {
 
     test('is an anchor wearing the recipe, with no style of its own', () => {
       render(
-        <Button href="/play/" variant="primary" size="mini">
+        <Button href="/games/" variant="primary" size="mini">
           Play solo
         </Button>
       )
       const link = screen.getByRole('link', { name: 'Play solo' })
-      expect(link.getAttribute('href')).toBe('/play/')
+      expect(link.getAttribute('href')).toBe('/games/')
       expect(link.className).toContain(variantClass('primary'))
       expect(link.className).toContain(sizeClass('mini'))
       expect(link.getAttribute('style')).toBeNull()
@@ -167,7 +167,7 @@ describe('Button', () => {
       </Button>
     )
     const button = screen.getByRole('button', { name: 'Next: Stats' })
-    // The visible name, then the glyph: no arrow character in the text (R23).
+    // The visible name, then the glyph: no arrow character in the text (K11).
     expect(button.textContent).toBe('Next: Stats')
     expect(button.lastElementChild?.tagName.toLowerCase()).toBe('svg')
     expect(button.lastElementChild?.getAttribute('width')).toBe('18')

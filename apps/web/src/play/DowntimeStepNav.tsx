@@ -3,18 +3,23 @@
  * player's step box (`PlayDowntimeStep`) and the Mediator's
  * (`PlayMediatorDowntime`): **Back** to the step before (`BackLabel`, the
  * Mediator's), **End Downtime**, and on to the next step (`NextLabel`,
- * "Next: Step 3"). Every control is Compact, the step box's line.
+ * "Next: Step 3"; "Apply and go on" where solo it applies the step first,
+ * r7 D1). Every control is Compact, the step box's line.
  *
  * The last step's way on is End Downtime, in Next's place. The Mediator may
  * end early (`endEarly`): End Downtime stands at every step, before Next (the
  * caller asks first before the last step, ADR-007).
  *
  * It draws its controls into its host's control row (a fragment), after the
- * step's own acts (Skip, Apply & mark done), so the row keeps one Size.
+ * step's own acts (Skip this step; in a Game Skip, Apply & mark done), so the
+ * row keeps one Size.
  */
 
+import { ChevronRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { Button, NextLabel } from '../components/index'
+import { NextLabel } from '../components/app'
+import { Button } from '../components/index'
+import { iconSize } from '../design/tokens'
 import { playCopy } from '../messages/play'
 
 /** Pushes End and Next to the row's end, Back left at its start. */
@@ -34,6 +39,11 @@ type DowntimeStepNavProps = {
   onAdvance: () => void
   /** End Downtime is offered at every step, not only the last (the Mediator's). */
   endEarly?: boolean
+  /**
+   * What the way on does in words, where it does more than move ("Apply and
+   * go on", r7 D1); absent, it reads "Next: Step N".
+   */
+  forward?: string
 }
 
 export function DowntimeStepNav({
@@ -44,6 +54,7 @@ export function DowntimeStepNav({
   onEnd,
   onAdvance,
   endEarly = false,
+  forward,
 }: DowntimeStepNavProps) {
   // The last step's way on is End Downtime itself.
   const last = step >= count - 1
@@ -70,7 +81,14 @@ export function DowntimeStepNav({
       )}
       {!last && (
         <Button size="compact" variant="ink" disabled={off} onClick={onAdvance}>
-          <NextLabel to={`Step ${step + 2}`} />
+          {forward === undefined ? (
+            <NextLabel to={`Step ${step + 2}`} />
+          ) : (
+            <>
+              {forward}
+              <ChevronRight size={iconSize.compact} aria-hidden="true" />
+            </>
+          )}
         </Button>
       )}
     </>

@@ -33,7 +33,7 @@ type NotFoundProps = {
 export function NotFound({ search, didYouMean, back }: NotFoundProps) {
   return (
     <div className="su-not-found">
-      {/* The search is the band's control, as an index's is (R37); on a
+      {/* The search is the band's control, as an index's is (C2b); on a
           phone it leads the body, full
           width, above the 404's words. */}
       <ChapterBand
@@ -46,14 +46,14 @@ export function NotFound({ search, didYouMean, back }: NotFoundProps) {
       </ChapterBand>
       <div className="su-not-found__body su-page-body">
         <p className="su-not-found__lede">
-          <strong>{componentsCopy('n404SalvageOperationFailed')}</strong> This page was broken down,
-          relocated, or never existed. Search the Reference for it, or open a chapter.
+          <strong>{componentsCopy('n404SalvageOperationFailed')}</strong>{' '}
+          {componentsCopy('thisPageWasBrokenDown')}
         </p>
         {back}
         {didYouMean}
         <nav className="su-not-found__chapters" aria-labelledby="not-found-chapters">
           <Slab as="h2" id="not-found-chapters" label={componentsCopy('orOpenAChapter')} flush />
-          <ul className="su-not-found__chapter-list">
+          <ul className="su-grid su-not-found__chapter-list">
             {CHAPTER_REFS.map((chapter) => (
               <li key={chapter.id}>
                 {/* The home index's chapter column: a top band in the

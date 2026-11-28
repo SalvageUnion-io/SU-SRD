@@ -190,7 +190,7 @@ describe('buildExportBundle', () => {
 // ---------------------------------------------------------------------------
 
 describe('buildEntityExport', () => {
-  test('exports only the target pilot and its attached softLinks', async () => {
+  test('exports the target pilot, the Mech they fly, and the softLinks that touch the pilot', async () => {
     const entityStore = useUnits.getState()
 
     await entityStore.hydrate('pilot')
@@ -220,7 +220,8 @@ describe('buildEntityExport', () => {
 
     expect(bundle.entities.pilots).toHaveLength(1)
     expect(bundle.entities.pilots[0]?.id).toBe(pilotA.id)
-    expect(bundle.entities.mechs).toHaveLength(0)
+    // The Mech assigned to them comes with them (r6 E17).
+    expect(bundle.entities.mechs.map((m) => m.id)).toEqual([mech.id])
     expect(bundle.entities.crawlers).toHaveLength(0)
     // Only the link touching pilotA
     expect(bundle.softLinks).toHaveLength(1)

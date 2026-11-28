@@ -147,7 +147,7 @@ export function blockPlainText(b: RefObjectContentBlock): string {
 }
 
 /**
- * What a card hides. TERMINAL (ruleset §1, R33): inside a tooltip popup
+ * What a card hides. TERMINAL (ruleset §1, E16): inside a tooltip popup
  * nothing acts, so the roll-table controls go too (the link and the nested
  * Minis are handled where they render).
  */

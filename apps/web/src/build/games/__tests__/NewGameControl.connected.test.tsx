@@ -7,13 +7,19 @@ import { RoomDeclined } from '../../../replica/roomSocket'
  *
  * What these pin: there is no game UI for somebody who is not signed in; a game
  * started by name or from a template opens on its page in Play
- * (`/play/games/$gameId`) and the dialog gets out of the way; a refusal is shown in the words the server chose; and there
+ * (`/games/$gameId`) and the dialog gets out of the way; a refusal is shown in the words the server chose; and there
  * is no code to type — a Game is joined from an invite link.
  *
  * Queries are answered **by name** — see `serverMock.ts`.
  */
 
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import {
+  accountAnswers,
+  accountApiStub,
+  accountWrites,
+  resetAccountApi,
+} from '../../../lib/account/__tests__/accountApiStub'
 
 let authed = true
 const mutations: { name: string; args: unknown }[] = []
@@ -28,6 +34,7 @@ const serverMocks = await installServerMocks({
     mutations.push({ name, args })
     return results[name]
   },
+  also: { '../../lib/account/accountApi': accountApiStub },
 })
 
 const { NewGameControl } = await import('../NewGameControl')
@@ -35,7 +42,13 @@ const { SyncProvider } = await import('../../../replica/SyncProvider')
 const { resetSync } = await import('../../../replica/sync')
 
 const TEMPLATES = [
-  { id: 'starter-set', name: 'Reclamation of the Wastes', description: 'Six pre-gens.' },
+  {
+    id: 'starter-set',
+    name: "Reclamation of the Wastes — Union Crawler #430 'Tenacity'",
+    shortName: 'Reclamation of the Wastes',
+    crawler: "Union Crawler #430 'Tenacity'",
+    description: 'Six pre-gens.',
+  },
 ]
 
 /** No router is mounted, so `useGo` falls back to `location.assign`, observed here. */
@@ -57,6 +70,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  resetAccountApi()
   // Process-global: a leaked signed-in state changes what later files exercise.
   resetSync()
 })
@@ -109,9 +123,40 @@ describe('who gets it', () => {
   })
 })
 
+describe('the dialog’s focus (MD2-04)', () => {
+  test('typing starts in the name, not on Close', async () => {
+    // The dialog focuses on the next frame; the frame is run here, so the
+    // test waits on no timer.
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
+    try {
+      await renderOpen()
+      await act(async () => undefined)
+      expect(document.activeElement === screen.getByLabelText('New Game name')).toBe(true)
+    } finally {
+      frame.mockRestore()
+    }
+  })
+})
+
 describe('starting a game', () => {
+  // r7 C15 (LG7-04): the suggested name is a value, so Create works at once.
+  test('Create takes the suggested name as it stands', async () => {
+    await renderOpen()
+    const field = screen.getByLabelText('New Game name') as HTMLInputElement
+    expect(field.value).toBe('Union Crawler #430')
+    expect(field.getAttribute('placeholder')).toBeNull()
+    await press('Create')
+    expect(mutations).toEqual([
+      { name: 'games.create', args: { name: 'Union Crawler #430', mediator: true } },
+    ])
+  })
+
   test('Create waits for a name, then makes the game and shows it', async () => {
     await renderOpen()
+    fireEvent.change(screen.getByLabelText('New Game name'), { target: { value: ' ' } })
     const create = screen.getByRole('button', { name: 'Create' })
     expect(create.hasAttribute('disabled')).toBe(true)
     // No longer than the room takes.
@@ -120,21 +165,71 @@ describe('starting a game', () => {
     fireEvent.change(screen.getByLabelText('New Game name'), {
       target: { value: 'Union Crawler #430' },
     })
+    // Asked "Will you be the Mediator?", and Yes is the answer given.
+    expect(screen.getByRole('button', { name: 'Yes' }).getAttribute('aria-pressed')).toBe('true')
     await press('Create')
 
-    expect(mutations).toEqual([{ name: 'games.create', args: { name: 'Union Crawler #430' } }])
-    expect(assigned).toEqual(['/play/games/g-new'])
+    expect(mutations).toEqual([
+      { name: 'games.create', args: { name: 'Union Crawler #430', mediator: true } },
+    ])
+    expect(assigned).toEqual(['/games/g-new'])
     expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  // LG3-10, MD3-04: the cursor is in the name, so Enter there is Create.
+  test('Enter in the name creates the Game, and does nothing while it is empty', async () => {
+    await renderOpen()
+    const name = screen.getByLabelText('New Game name')
+    fireEvent.change(name, { target: { value: '' } })
+    await act(async () => {
+      fireEvent.keyDown(name, { key: 'Enter' })
+    })
+    expect(mutations).toEqual([])
+
+    fireEvent.change(name, { target: { value: 'Rust Coast' } })
+    await act(async () => {
+      fireEvent.keyDown(name, { key: 'Enter' })
+    })
+    expect(mutations).toEqual([
+      { name: 'games.create', args: { name: 'Rust Coast', mediator: true } },
+    ])
+    expect(assigned).toEqual(['/games/g-new'])
   })
 
   test('from a template, the new game is shown too', async () => {
     await renderOpen()
+    // Somebody who only organises says so, and is told what an Organiser is.
+    expect(screen.getByText(/You are this Game’s Organiser either way/)).toBeTruthy()
+    await press('No')
     await press('Start this Game')
 
     expect(mutations).toEqual([
-      { name: 'templates.createGame', args: { templateId: 'starter-set' } },
+      {
+        name: 'templates.createGame',
+        args: { templateId: 'starter-set', name: 'Reclamation of the Wastes', mediator: false },
+      },
     ])
-    expect(assigned).toEqual(['/play/games/g-template'])
+    expect(assigned).toEqual(['/games/g-template'])
+  })
+
+  // r6 C9 (MD6-13), r8 C1 (LG8-16): one Game name field names either way to start.
+  test('a template takes the one Game name, else the campaign’s short name', async () => {
+    await renderOpen()
+    expect(screen.queryByLabelText(/^Name of the Game from /)).toBeNull()
+    expect(screen.getAllByRole('textbox', { name: /Game name/ })).toHaveLength(1)
+    expect(
+      screen.getByText('Named Reclamation of the Wastes unless you name it above.')
+    ).toBeTruthy()
+    expect(screen.getByText("Your crawler: Union Crawler #430 'Tenacity'")).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('New Game name'), { target: { value: 'Rust Coast' } })
+    expect(screen.queryByText(/unless you name it above/)).toBeNull()
+    await press('Start this Game')
+    expect(mutations).toEqual([
+      {
+        name: 'templates.createGame',
+        args: { templateId: 'starter-set', name: 'Rust Coast', mediator: true },
+      },
+    ])
   })
 
   test('a refusal is shown in the server’s own words, and goes nowhere', async () => {
@@ -144,5 +239,38 @@ describe('starting a game', () => {
 
     expect(screen.getByRole('alert').textContent).toBe('You have too many games')
     expect(assigned).toEqual([])
+  })
+})
+
+// r7 C1 (MD7-01, LG7-01): the name the table reads is asked here, once, filled in.
+describe('the Display name', () => {
+  test('is filled in from the account, and kept as it is when left alone', async () => {
+    accountAnswers.me = { displayName: 'Sam' }
+    await renderOpen()
+    expect((screen.getByLabelText('Display name') as HTMLInputElement).value).toBe('Sam')
+    await press('Create')
+    expect(accountWrites).toEqual([])
+    expect(mutations.map((m) => m.name)).toEqual(['games.create'])
+  })
+
+  // r8 C1 (MD8-13): an empty name is the account's, never "Player 1".
+  test('left empty, the account’s name is kept, shown in the field first', async () => {
+    accountAnswers.me = { displayName: null, email: 'mara.k@example.com' }
+    await renderOpen()
+    const field = screen.getByLabelText('Display name') as HTMLInputElement
+    expect(field.value).toBe('')
+    expect(field.placeholder).toBe('mara.k')
+    expect(screen.getByText(/This is how the table will see you/)).toBeTruthy()
+    await press('Create')
+    expect(accountWrites).toEqual([{ name: 'updateProfile', args: { displayName: 'mara.k' } }])
+  })
+
+  test('a changed name is saved to the profile before the Game is made', async () => {
+    accountAnswers.me = { displayName: null }
+    await renderOpen()
+    fireEvent.change(screen.getByLabelText('Display name'), { target: { value: ' Jo ' } })
+    await press('Create')
+    expect(accountWrites).toEqual([{ name: 'updateProfile', args: { displayName: 'Jo' } }])
+    expect(mutations.map((m) => m.name)).toEqual(['games.create'])
   })
 })

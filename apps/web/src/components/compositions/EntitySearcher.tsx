@@ -15,8 +15,11 @@
  * (ADR-010). One identity both ways: an entity is chosen when `selected` holds
  * its `idOf`, and adding it emits that same `idOf` (default the entity name).
  *
- * `mode="single"` covers the exactly-one swaps (chassis, crawler type): the
- * action bar says CHOOSE, and `railActions` carries the confirm affordance. `hide` drops the Card sections a picker cannot act on.
+ * `mode="single"` covers the exactly-one swaps (chassis, crawler type, a
+ * system's one option): pick a row to read it, and the action bar's CHOOSE is
+ * the one confirming press: the caller applies it and closes, with no Apply
+ * step after it. `railActions` carries Cancel. `hide` drops the Card sections
+ * a picker cannot act on.
  *
  * THE LAYOUT (in the `.su-searcher*` classes, styles/partials/controls.css):
  *   - from 64rem, the Mini list (a third of the width) and the chosen
@@ -44,110 +47,49 @@
  */
 
 import { X } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { EntitySchemaName } from 'salvageunion-reference'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { color, fontSize, iconSize, space, widthAtLeast } from '../../design/tokens'
+import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { compositionsCopy } from '../../messages/components-compositions'
+import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
-import { capsLabel } from '../atoms/capsLabel'
+import { InsidePeekContext } from '../atoms/insidePeek'
 import { SearchField } from '../atoms/SearchField'
+import { Stat } from '../atoms/Stat'
 import { EmptyState } from '../containers/EmptyState'
 import { TitledBox } from '../containers/TitledBox'
+import { holdToastsOnTop } from '../containers/toastPlacement'
 import { paintFor } from '../entity'
 import { Entity } from '../entity/Entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { SelectedSeal } from '../entity/modes/select'
+import { PeekOffContext } from '../entity/peekContext'
 import type { EntityLinkAttrs } from '../entity/types'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { SearcherToolbar } from './EntitySearcherFilters'
 import { FocusPane } from './EntitySearcherFocus'
 import { SelectionRail, SelectionStatus } from './EntitySearcherRail'
-import type { BudgetConfig, EntityLike, FacetConfig, PoolEntity } from './entitySearcherTypes'
+import { RowAdd, RowFacts } from './EntitySearcherRow'
+import { EntitySearcherSection } from './EntitySearcherSection'
+import {
+  BODY_STYLE,
+  HOSTED_STYLE,
+  LIST_SCROLL_STYLE,
+  ROW_TAG_STYLE,
+  SUBTITLE_CAPS,
+  SUBTITLE_STYLE,
+  SUMMARY_CAPS,
+  SUMMARY_ROW_STYLE,
+  SUMMARY_STYLE,
+  WIDE_QUERY,
+} from './entitySearcherStyles.model'
+import type { EntityLike, EntitySearcherProps, PoolEntity } from './entitySearcherTypes'
 import { NO_RESULTS } from './searchCopy'
-import { TECH_LEVEL_ROW, useSearcherPool } from './useSearcherPool'
-
-type EntitySearcherProps = {
-  /** Which reference collection to search. */
-  schema: EntitySchemaName
-  /** Refs currently on the sheet (may contain duplicates in `count` mode). */
-  selected: string[]
-  /**
-   * `toggle` (default): one copy per entity — the focused Page's ADD adds it,
-   * its ✕ in the rail removes it.
-   * `count`: duplicates are legal — ADD ANOTHER appends a copy, and each copy
-   * has its own ✕ in the rail.
-   * `single`: exactly one — the focused Page's CHOOSE picks it. The emission
-   * contract is the same as `toggle` (the caller replaces its selection rather
-   * than appending), so a single-select picker differs only in semantics, not
-   * in wiring.
-   * `browse`: nothing is chosen — a reference browser, not a picker (the
-   * Play's SRD Explorer). No rail, no Status facet; a Mini's
-   * click emits `onOpen`.
-   */
-  mode?: 'toggle' | 'count' | 'single' | 'browse'
-  /** toggle/single mode: add or remove (emits `idOf(item)` either way). */
-  onToggle?: (ref: string) => void
-  /** browse mode: open an entity (emits `idOf(item)`). */
-  onOpen?: (ref: string) => void
-  /** count mode: append one copy (emits `idOf(item)`). */
-  onAdd?: (ref: string) => void
-  /** count mode: remove the chosen entry at `index` in `selected`. */
-  onRemove?: (index: number) => void
-  /** An entity's identity in `selected`, and what adding it emits. Default: the entity name. */
-  idOf?: (item: EntityLike) => string
-  /** Narrow the pool (e.g. only weapons). Default: the whole collection. */
-  filter?: (item: EntityLike) => boolean
-  facets?: FacetConfig
-  /** Optional soft budget(s) shown in the rail (never blocks selection). */
-  budget?: BudgetConfig | BudgetConfig[]
-  /** Who the picks land on, e.g. the pilot or mech name: the rail heading and
-   * the ADD TO … button. */
-  railName?: string
-  /** Rail header noun for the chosen list, e.g. 'Equipped', 'Installed'. */
-  chosenLabel?: string
-  /** Copy shown when nothing matches the filters. */
-  emptyMessage?: string
-  /** The title rendered in the searcher's Card header. */
-  title?: string
-  /** A caveat stamped under the title, e.g. a destructive-change warning. The
-   * searcher is usually launched in a `bare` ModalShell, which paints no header
-   * of its own, so this is where a picker's warning copy lives. */
-  subtitle?: string
-  /** Close handler — renders the header's close badge, and DONE in the rail
-   * of a toggle or count picker. */
-  onClose?: () => void
-  /**
-   * Extra `hide` config for the focused Page, merged OVER the searcher's
-   * own defaults (actions/choices are always suppressed). Big entities — a
-   * chassis, a crawler type — carry sections a picker has no room for
-   * (`{ patterns: true }`), and that is a property of the entity, not of the
-   * surface, so it is the caller's call rather than a schema check in here.
-   */
-  hide?: ReferenceEntityCardHideConfig
-  /** The mech builder's chassis picker: the focused Page shows its chassis
-   * ability despite the forced `hide.actions` (E19). */
-  showChassisAbility?: boolean
-  /**
-   * Actions pinned beneath the selection — e.g. the Apply/Cancel pair a
-   * destructive picker needs. Always visible: at the foot of the rail column,
-   * or in the bottom bar on a narrow screen. Replaces DONE.
-   */
-  railActions?: ReactNode
-  /**
-   * The host draws the frame (the SRD Explorer's dialog head): the searcher
-   * hands it its toolbar, for the host's band, and its body, for under it,
-   * and draws no cut-out box of its own, so there is never a titled box in a
-   * titled box. `title`, `subtitle` and the close badge are then the host's
-   * to show. Without it the searcher is its own frame, as every picker in a
-   * `bare` ModalShell needs.
-   */
-  frame?: (parts: { toolbar: ReactNode; body: ReactNode }) => ReactNode
-}
+import { namedBy } from './searcherFacts'
+import { aboveTechLevel, TECH_LEVEL_ROW, useSearcherPool } from './useSearcherPool'
 
 /** The default `idOf`: module-level, so it is one function across renders. */
 const nameOf = (item: EntityLike) => item.name
@@ -163,6 +105,8 @@ export function EntitySearcher({
   idOf = nameOf,
   filter,
   facets,
+  techLevel,
+  cost,
   budget,
   railName,
   chosenLabel = 'Selected',
@@ -173,14 +117,44 @@ export function EntitySearcher({
   hide,
   showChassisAbility,
   railActions,
+  entities,
+  lead,
+  initialQuery,
+  onQueryChange,
+  focusExtra,
+  railEntities,
+  userMade,
   frame,
 }: EntitySearcherProps) {
-  // Actions/choices are never pickable inside a picker; anything else is the
-  // caller's to suppress.
-  const cardHide: ReferenceEntityCardHideConfig = { ...hide, actions: true, choices: true }
+  // Actions/choices are never pickable inside a picker, so they are hidden
+  // unless the caller asks for them (`hide.actions: false`: a denizen's
+  // weapons are what the Mediator picks it by); anything else is its to suppress.
+  const cardHide: ReferenceEntityCardHideConfig = { actions: true, ...hide, choices: true }
   const browse = mode === 'browse'
-  const { query, setQuery, pool, visible, countOf, facetRows, showRow, activeFilters } =
-    useSearcherPool({ schema, selected, idOf, filter, facets, browse, chosenLabel })
+  const {
+    query,
+    setQuery,
+    pool,
+    visible,
+    outside,
+    activeTechLevels,
+    countOf,
+    facetRows,
+    showRow,
+    activeFilters,
+    showAllTechLevels,
+  } = useSearcherPool({
+    schema,
+    selected,
+    idOf,
+    filter,
+    facets,
+    entities,
+    initialQuery,
+    browse,
+    chosenLabel,
+    homeTechLevel: techLevel,
+  })
   // The server snapshot is narrow, so a server render never commits to the
   // three columns.
   const wide = useMediaQuery(WIDE_QUERY, false)
@@ -199,11 +173,12 @@ export function EntitySearcher({
   // `filter` (or a facet) has since excluded can still be focused.
   const byId = useMemo(() => {
     const map = new Map<string, PoolEntity>()
-    for (const e of SalvageUnionReference.findAllIn(schema, () => true) as PoolEntity[]) {
+    const all = entities ?? (SalvageUnionReference.findAllIn(schema, () => true) as PoolEntity[])
+    for (const e of all) {
       if (!map.has(idOf(e))) map.set(idOf(e), e)
     }
     return map
-  }, [schema, idOf])
+  }, [schema, idOf, entities])
   // Only what was opened: until then the list stands alone.
   const focusedId = browse ? null : focusId
   const focused = focusedId ? byId.get(focusedId) : undefined
@@ -236,10 +211,69 @@ export function EntitySearcher({
     }
   })
 
+  // ---- The keyboard's highlight (r4 E4): Down and Up move it through the rows
+  // (other Tech Levels' named ones last), Enter acts on it. It clears when the
+  // search changes, and after Enter adds: a second Enter waits for a row (r5 C5). ----
+  const rows = useMemo(() => [...visible, ...outside], [visible, outside])
+  const [cursorId, setCursorId] = useState<string | null>(null)
+  const entered = useRef(false)
+  const cursor = cursorId === null ? undefined : rows.find((item) => idOf(item) === cursorId)
+  const rowId = useId()
+  const domId = (item: PoolEntity) => `${rowId}-${item.id}`
+  function moveCursor(step: 1 | -1) {
+    if (rows.length === 0) return
+    const at = cursor ? rows.indexOf(cursor) : -1
+    const next = at === -1 ? (step === 1 ? 0 : rows.length - 1) : at + step
+    const item = rows[Math.max(0, Math.min(rows.length - 1, next))]
+    if (!item) return
+    entered.current = false
+    setCursorId(idOf(item))
+    // The Page beside the list follows the highlight, as a press would open it.
+    if (wide && !browse) setFocusId(idOf(item))
+    document.getElementById(domId(item))?.scrollIntoView?.({ block: 'nearest' })
+  }
+
   // Toggle and single emit `onToggle` either way; count appends a copy.
   function add(ref: string) {
     if (mode === 'count') onAdd?.(ref)
     else onToggle?.(ref)
+  }
+
+  // The one picker convention: the search has focus when a picker opens beside
+  // its detail pane, and Enter adds the first match; the picker stays open. A
+  // phone keeps its keyboard down until the field is pressed.
+  const searchRef = useRef<HTMLInputElement>(null)
+  // Its Done is at the foot, where a toast lands: toasts stand at the top (r4 E12).
+  useEffect(() => (browse ? undefined : holdToastsOnTop()), [browse])
+  useEffect(() => {
+    if (browse || !window.matchMedia(WIDE_QUERY).matches) return
+    const frame = requestAnimationFrame(() => searchRef.current?.focus())
+    return () => cancelAnimationFrame(frame)
+  }, [browse])
+  // Enter and a row's + (r6 E8) never remove, and pay the cost where they
+  // can, as the bar's lead button does.
+  function addNow(item: PoolEntity) {
+    const price = cost?.(item)
+    if (price?.canPay) price.onPay()
+    else if (price?.refused) return
+    else add(idOf(item))
+    // The Page beside the list shows what was just added (r7 G6).
+    if (wide && !browse) setFocusId(idOf(item))
+  }
+  function addFirstMatch() {
+    // The highlighted row; else, typed, the first row the search NAMES (r4 E5:
+    // never one matched only on rules text while a name matches), else the top.
+    const q = query.trim()
+    const first = cursor ?? (q ? (rows.find((item) => namedBy(item, q)) ?? visible[0]) : undefined)
+    if (browse || !first || (entered.current && !cursor)) return
+    const ref = idOf(first)
+    if (mode === 'single') return open(ref) // A single pick applies on Choose: Enter reads.
+    if (mode === 'count' || !selected.includes(ref)) {
+      addNow(first)
+      entered.current = true
+      setCursorId(null)
+    }
+    if (wide) setFocusId(ref)
   }
 
   // ---- Toolbar: Tech level beside the search when there is room ----
@@ -250,8 +284,26 @@ export function EntitySearcher({
     <SearcherToolbar
       search={
         <SearchField
+          ref={searchRef}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            entered.current = false
+            setCursorId(null)
+            onQueryChange?.(e.target.value)
+          }}
+          onKeyDown={(e) => {
+            if (!browse && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+              e.preventDefault()
+              moveCursor(e.key === 'ArrowDown' ? 1 : -1)
+              return
+            }
+            if (e.key !== 'Enter') return
+            e.preventDefault()
+            addFirstMatch()
+          }}
+          aria-activedescendant={cursor ? domId(cursor) : undefined}
+          enterKeyHint={browse ? undefined : 'done'}
           placeholder={compositionsCopy('searchByNameOrTrait')}
           aria-label={compositionsCopy('search')}
           autoComplete="off"
@@ -260,16 +312,19 @@ export function EntitySearcher({
       }
       inline={inline}
       folded={folded}
-      activeFilters={activeFilters}
+      // Filters counts what is set in its own panel (r4 E6): the Tech level
+      // chips beside it are in plain sight and count for nothing there.
+      activeFilters={activeFilters - (inline ? activeTechLevels : 0)}
       filters={filters}
     />
   )
 
   // ---- The Mini list ----
   const single = mode === 'single'
-  const tokens = visible.map((item) => {
+  const tokenOf = (item: PoolEntity) => {
     const ref = idOf(item)
     const count = countOf(item)
+    const price = browse ? undefined : cost?.(item)
     const token = (
       <Entity
         size="mini"
@@ -293,25 +348,79 @@ export function EntitySearcher({
     return (
       <div
         key={item.id}
+        id={domId(item)}
         className="su-searcher__item su-entity-mini-line"
         data-focused={ref === focusedId || undefined}
         data-selected={count > 0 || undefined}
+        data-cursor={item === cursor || undefined}
       >
         {token}
+        {aboveTechLevel(item.techLevel, techLevel) && (
+          <Badge shape="stamp" size="mini" surface="inverse" style={ROW_TAG_STYLE}>
+            {compositionsCopy('aboveTech', { techLevel: techLevel ?? 0 })}
+          </Badge>
+        )}
+        {price?.row && count === 0 && (
+          <Stat size="mini" label={price.row.label} value={price.row.value} />
+        )}
         {count > 0 && <SelectedSeal word={count > 1 ? `${count} ${chosenLabel}` : chosenLabel} />}
+        {!single && (mode === 'count' || count === 0) && (
+          <RowAdd name={item.name} onAdd={() => addNow(item)} refused={price?.refused} />
+        )}
+        <RowFacts entity={item} wide={wide} />
       </div>
     )
-  })
+  }
+  // What the pick does not meet yet comes last, under its own head (r7 D5).
+  const later = browse ? undefined : facets?.later
+  const split = later ? visible.findIndex(later.of) : -1
+  const tokens = (split === -1 ? visible : visible.slice(0, split)).map(tokenOf)
 
   const browser = (
     <div ref={listRef} className="su-searcher__browser" hidden={takeover}>
       <div className="su-searcher__scroll" style={LIST_SCROLL_STYLE}>
-        <p className={SUMMARY_CAPS} style={SUMMARY_STYLE}>
-          {compositionsCopy('showingOf', { count: visible.length, count2: pool.length })}
-        </p>
-        <div className="su-searcher__list">{tokens}</div>
+        <div style={SUMMARY_ROW_STYLE}>
+          <p className={SUMMARY_CAPS} style={SUMMARY_STYLE}>
+            {compositionsCopy('showingOf', { count: visible.length, count2: pool.length })}
+            {outside.length > 0 &&
+              ` · ${compositionsCopy('namedElsewhere', { count: outside.length })}`}
+          </p>
+          {techLevel !== undefined && showAllTechLevels && (
+            <Button
+              variant="ghost"
+              size="mini"
+              onClick={() => {
+                showAllTechLevels()
+                // The button goes as it is pressed: the cursor returns to Search, so
+                // Enter still adds the first match (a phone keeps its keyboard down).
+                if (window.matchMedia(WIDE_QUERY).matches) searchRef.current?.focus()
+              }}
+            >
+              {compositionsCopy('showAllTechLevels')}
+            </Button>
+          )}
+        </div>
+        {/* A picker's entry opens its Page beside the list, so it has no hover
+            card over the rows under it. */}
+        <InsidePeekContext.Provider value={!browse}>
+          <PeekOffContext.Provider value={!browse}>
+            <div className={cn('su-searcher__list', browse && 'su-grid')}>{tokens}</div>
+          </PeekOffContext.Provider>
+        </InsidePeekContext.Provider>
         {visible.length === 0 && emptyMessage && (
           <EmptyState variant="inline" className="su-searcher__none" body={emptyMessage} />
+        )}
+        {/* What the search names in a Tech Level that is switched off (r4 E5):
+            listed, tagged, and reachable by the arrow keys and Enter. */}
+        {later && split !== -1 && (
+          <EntitySearcherSection label={later.label}>
+            {visible.slice(split).map(tokenOf)}
+          </EntitySearcherSection>
+        )}
+        {!browse && outside.length > 0 && (
+          <EntitySearcherSection label={compositionsCopy('inOtherTechLevels')}>
+            {outside.map(tokenOf)}
+          </EntitySearcherSection>
         )}
       </div>
     </div>
@@ -326,9 +435,19 @@ export function EntitySearcher({
       chosenLabel={chosenLabel}
       railName={railName}
       listName={title}
+      cost={cost?.(focused)}
       hide={cardHide}
       showChassisAbility={showChassisAbility}
-      onAdd={() => focusedId && add(focusedId)}
+      onAdd={() => {
+        if (!focusedId) return
+        add(focusedId)
+        // On a phone the Page has the whole picker: an add returns to the
+        // list for the next one (r4 E6). A single pick closes by itself.
+        if (!wide && mode !== 'single') back()
+      }}
+      extra={focusExtra?.(focused)}
+      budgets={wide || budget === undefined ? undefined : [budget].flat()}
+      userMade={userMade}
       onBack={wide ? undefined : back}
       backRef={backRef}
     />
@@ -355,11 +474,14 @@ export function EntitySearcher({
         chosenLabel={chosenLabel}
         schema={schema}
         selected={selected}
+        resolved={railEntities}
         idOf={idOf}
         budget={budget}
         mode={focusMode}
         onToggle={onToggle}
         onRemove={onRemove}
+        // After a Remove, typing goes to the search again, never to the next ✕ (r7 G6).
+        refocus={wide ? () => searchRef.current : undefined}
         onFocus={open}
         actions={actions}
       />
@@ -387,7 +509,12 @@ export function EntitySearcher({
   // controls' one height there too), the rest filling its body.
   if (frame) {
     return frame({
-      toolbar: !takeover && <div className="su-searcher-panel su-searcher__on-band">{toolbar}</div>,
+      toolbar: !takeover && (
+        <div className="su-searcher-panel su-searcher__on-band">
+          {lead}
+          {toolbar}
+        </div>
+      ),
       body: (
         <section aria-label={title} className="su-searcher-panel" style={HOSTED_STYLE}>
           {searcher}
@@ -428,6 +555,7 @@ export function EntitySearcher({
           {subtitle}
         </p>
       )}
+      {!takeover && lead}
       {!takeover && toolbar}
       {searcher}
     </TitledBox>
@@ -437,46 +565,3 @@ export function EntitySearcher({
 // ---------------------------------------------------------------------------
 // Layout state + static styles
 // ---------------------------------------------------------------------------
-
-/**
- * The width at which the picker becomes three columns. Mirrors the
- * `.su-searcher` media query in styles/partials/controls.css — change both or
- * neither. CSS owns the LAYOUT; this only decides what the parts ARE at that
- * width: the rail a column or a bar, the Tech level chips inline or folded,
- * and whether an opened Mini takes the picker over.
- */
-const WIDE_QUERY = widthAtLeast('lg')
-
-// Static properties only — every property that changes with the breakpoint
-// lives in the `.su-searcher*` classes (the split rule).
-
-/** The body shrinks with the frame's cap (`.su-searcher-panel`), so the
- * searcher under the head takes what is left and scrolls in it. */
-const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
-
-/** In a host's frame, the searcher fills its body as its own frame's would. */
-const HOSTED_STYLE = {
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100%',
-  minHeight: 0,
-} satisfies CSSProperties
-
-/** The subtitle: a line of the paper under the cut-out, as ModalShell's. */
-const SUBTITLE_STYLE = {
-  margin: 0,
-  padding: `${space[12]} ${space[16]} 0`,
-  fontSize: fontSize.chip,
-  lineHeight: 1.2,
-  color: color.wkMuted, // design-tokens-ignore(muted-note): the dialog subtitle, in caps
-} satisfies CSSProperties
-const SUBTITLE_CAPS = capsLabel()
-
-const LIST_SCROLL_STYLE = {
-  padding: `${space[12]} ${space[16]} ${space[16]}`,
-} satisfies CSSProperties
-const SUMMARY_STYLE = {
-  margin: `0 0 ${space[8]}`,
-  color: color.wkMuted,
-} satisfies CSSProperties
-const SUMMARY_CAPS = capsLabel({ size: 'badge' })

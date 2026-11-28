@@ -27,12 +27,17 @@ import type { SoftWarning } from 'salvageunion-reference/rules'
 import { useSoftWarnings } from '../../components/shared/useSoftWarnings'
 import { drawFromPool } from '../../lib/rules/crawlerEconomy'
 import { cycleCondition, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import { mechRuleBreaks, ruleBreaksMade } from '../../lib/rules/ruleBreaks'
 import { runWrite } from '../../lib/runWrite'
-import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
+import { buildSheetCopy } from '../../messages/build-sheet'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE, liveSheetFor } from '../../replica/provenance'
 import type { ChangeMeta, UnitsState } from '../../replica/units'
+import { takeBack } from './changeLog.model'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import { changedFields, freshEntity } from './freshEntity.model'
+import { ruleBreakToast } from './ruleBreakToast.model'
 import type { SheetPatch } from './sheetViewProps.model'
+import { undoToast } from './undoToast.model'
 
 export type ItemKind = 'system' | 'module'
 
@@ -43,10 +48,14 @@ type MechSheetActionsOptions = {
   storeState: UnitsState
   /** The linked home crawler, or null — the repair scrap-pool deduction target. */
   crawler: Crawler | null
+  /** The assigned pilot's abilities: one can raise the mech's Cargo Capacity (ADR-029). */
+  pilotAbilities?: string[]
 }
 
 export type MechSheetActions = {
   patchMech: SheetPatch
+  /** A play-state write made for one of the mech's items, which the Change Log names (r5 C9). */
+  patchFor: (fields: Partial<Mech>, did: string) => void
   overrideMechMax: (fields: Partial<Mech>) => void
   addItem: (kind: ItemKind, slug: string) => void
   removeItem: (kind: ItemKind, index: number) => void
@@ -75,6 +84,7 @@ export function useMechSheetActions({
   store,
   storeState,
   crawler,
+  pilotAbilities,
 }: MechSheetActionsOptions): MechSheetActions {
   // Soft warnings (ADR-021) on the one mech BUILD edit the rules
   // evaluate: system removal. Play-state writes (SP/EP/heat, conditions, item
@@ -94,8 +104,22 @@ export function useMechSheetActions({
     return freshEntity(storeState, 'mech', mech)
   }
 
-  /** The one fire-and-forget write on this sheet — see the header note. */
+  /**
+   * The one fire-and-forget write on this sheet — see the header note. A write
+   * that takes the loadout over its slots or the hold over its Cargo, or
+   * further over, still saves, and says so as it does (R71).
+   */
   function write(fields: Partial<Mech>, meta: ChangeMeta = LIVE_SHEET_MANUAL): void {
+    if ('systems' in fields || 'modules' in fields || 'chassisRef' in fields) {
+      const before = freshMech()
+      ruleBreakToast(
+        mech.id,
+        ruleBreaksMade(
+          mechRuleBreaks(before, pilotAbilities),
+          mechRuleBreaks({ ...before, ...fields }, pilotAbilities)
+        )
+      )
+    }
     runWrite(() => storeState.update('mech', mech.id, fields, meta))
   }
 
@@ -152,14 +176,29 @@ export function useMechSheetActions({
    */
   function removeItem(kind: ItemKind, index: number) {
     const fresh = freshMech()
+    // A removal lands at once and offers its own Undo (r4 E3): that one item
+    // back, choices and all, on the loadout as it is by then.
+    const offerUndo = (name: string | undefined, after: Partial<Mech>) =>
+      undoToast(
+        buildSheetCopy('removedName', { name: name ?? buildSheetCopy('item') }),
+        () => write(takeBack(freshMech(), fresh, after)),
+        mech.id,
+        { stack: true, wrote: after }
+      )
     if (kind === 'module') {
-      write({ modules: fresh.modules.filter((_, i) => i !== index) })
+      const gone = fresh.modules[index]
+      const modules = fresh.modules.filter((_, i) => i !== index)
+      const after = { modules, ...choicesLeft(fresh, gone, modules) }
+      write(after)
+      offerUndo((gone && resolveModule(gone)?.name) || gone, after)
       return
     }
     const removed = fresh.systems[index]
-    const patch = { systems: fresh.systems.filter((_, i) => i !== index) }
+    const systems = fresh.systems.filter((_, i) => i !== index)
+    const patch = { systems, ...choicesLeft(fresh, removed, systems) }
     if (softWarnings.preview(patch).length === 0) {
       runWrite(() => softWarnings.saveAnyway())
+      offerUndo((removed && resolveSystem(removed)?.name) || removed, patch)
       return
     }
     setWarningSubtitle(`Remove ${(removed && resolveSystem(removed)?.name) || removed || 'system'}`)
@@ -233,6 +272,7 @@ export function useMechSheetActions({
 
   return {
     patchMech,
+    patchFor: (fields, did) => write(fields, liveSheetFor(did)),
     overrideMechMax,
     addItem,
     removeItem,
@@ -253,4 +293,19 @@ export function useMechSheetActions({
       setWarningSubtitle(null)
     },
   }
+}
+
+/**
+ * The item choices left once `slug`'s copy goes: its picks go with the last
+ * copy, so re-installing it starts fresh, as the wizard's do (`madeChoices`).
+ */
+function choicesLeft(
+  mech: Mech,
+  slug: string | undefined,
+  remaining: readonly string[]
+): Pick<Mech, 'itemChoices'> | Record<string, never> {
+  const choices = mech.itemChoices
+  if (!slug || !choices || !(slug in choices) || remaining.includes(slug)) return {}
+  const { [slug]: _gone, ...kept } = choices
+  return { itemChoices: kept }
 }

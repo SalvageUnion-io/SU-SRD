@@ -2,6 +2,7 @@ import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { TABLE_OF_KIND } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { bodyName, sheetCard } from '../gameCards'
 import type { SheetTable } from '../play/types'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
@@ -70,7 +71,7 @@ export const sheetCommand = {
       .addStringOption((option) =>
         option
           .setName('entity')
-          .setDescription('One of your pilots, mechs or crawlers, or a sheet link')
+          .setDescription('One of your Pilots, Mechs or crawlers, or a sheet link')
           .setRequired(true)
           .setAutocomplete(true)
       )
@@ -92,7 +93,7 @@ export const sheetCommand = {
     const focused = interaction.options.getFocused().toLowerCase()
     const choices = [
       ...result.value.pilots.map((p) => ({
-        name: `${bodyName(p.body, ['callsign', 'name'])} — pilot`,
+        name: `${pilotLabel(p.body as Record<string, unknown> | null)} — pilot`,
         value: `pilots:${p.id}`,
       })),
       ...result.value.mechs.map((m) => ({

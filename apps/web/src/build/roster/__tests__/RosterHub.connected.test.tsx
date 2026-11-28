@@ -150,7 +150,7 @@ describe('Training Bay: everything you own', () => {
     expect(screen.queryByLabelText('Showing')).toBeNull()
   })
 
-  test('a unit in a Game stays, its Game a relation chip that opens it in Play', async () => {
+  test('a unit in a Game stays, its Game a link that opens it in Play', async () => {
     await useUnits
       .getState()
       .adopt('pilot', pilotFixture({ id: 'p-game', name: 'Roach-Boy', gameId: 'g1' }))
@@ -159,11 +159,11 @@ describe('Training Bay: everything you own', () => {
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     expect(within(pilots).getByText('Roach-Boy')).toBeTruthy()
     expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
-    const games = pilots.querySelectorAll('[data-chip-class="relation"] a[data-tag]')
-    expect([...games].map((chip) => [chip.textContent, chip.getAttribute('href')])).toEqual([
-      ['GameUnion Crawler #430', '/play/games/g1'],
+    const games = pilots.querySelectorAll('a[href^="/games/"]')
+    expect([...games].map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
+      ['Union Crawler #430', '/games/g1'],
     ])
-    // A unit in no Game leaves the lane empty: never "Unassigned".
+    // A unit in no Game leaves the column empty: never "Unassigned".
     expect(within(pilots).queryByText('Unassigned')).toBeNull()
   })
 
@@ -178,7 +178,7 @@ describe('Training Bay: everything you own', () => {
     expect(within(crawlers).getByText('You mediate')).toBeTruthy()
   })
 
-  test('a pattern says who can see it and how often it has been built', async () => {
+  test('a pattern says who can see it, and not how often it has been built', async () => {
     await usePatterns.getState().adopt({
       id: 'pat-tow-rig',
       schemaVersion: 1,
@@ -196,8 +196,8 @@ describe('Training Bay: everything you own', () => {
     await renderHub()
 
     const patterns = screen.getByRole('region', { name: 'Patterns' })
-    expect(within(patterns).getByText('“Tow Rig”')).toBeTruthy()
-    expect(within(patterns).getByText('Shared by link')).toBeTruthy()
+    expect(within(patterns).getByRole('link', { name: 'Tow Rig' })).toBeTruthy()
+    expect(within(patterns).getByText('Public (anyone with the link)')).toBeTruthy()
     expect(within(patterns).queryByText('Built twice')).toBeNull()
   })
 })

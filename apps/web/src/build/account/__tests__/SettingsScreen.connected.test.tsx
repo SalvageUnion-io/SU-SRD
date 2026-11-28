@@ -188,6 +188,11 @@ describe('taking your data, and taking it away', () => {
     fireEvent.click(screen.getByText('Delete my account'))
     const dialog = screen.getByRole('alertdialog', { name: 'Delete your account?' })
     expect(within(dialog).getByText(/cannot be undone/i)).toBeTruthy()
+    // The section and its dialog list the same things (r5 C13).
+    const list =
+      'your Pilots, Mechs, Crawlers and NPCs, your patterns and Homebrew, and the sheets you shared'
+    expect(within(dialog).getByText(new RegExp(list))).toBeTruthy()
+    expect(screen.getByText(new RegExp(`^Deletes ${list}\\.`))).toBeTruthy()
     expect(within(dialog).getByText('Permanently delete')).toBeTruthy()
     expect(within(dialog).getByText('Cancel')).toBeTruthy()
   })
@@ -261,6 +266,29 @@ describe('a write the server does not take says so', () => {
     expect(screen.getByText('Your account could not be deleted. Try again.')).toBeTruthy()
     fireEvent.click(screen.getByText('Cancel'))
     expect(screen.queryByText('Your account could not be deleted. Try again.')).toBeNull()
+  })
+
+  test('a saved display name answers Saved, until the name is typed in again', async () => {
+    withQueries(profileQueries(ME))
+    wrap()
+
+    expect(screen.queryByText('Saved')).toBeNull()
+    await press('Save')
+    expect(screen.getByText('Saved').getAttribute('role')).toBe('status')
+    fireEvent.change(screen.getByRole('textbox', { name: 'Display name' }), {
+      target: { value: 'Beef' },
+    })
+    expect(screen.queryByText('Saved')).toBeNull()
+  })
+
+  test('Enter in the display name saves it, as Save does (r5 C4)', async () => {
+    withQueries(profileQueries(ME))
+    wrap()
+
+    await act(async () => {
+      fireEvent.keyDown(screen.getByRole('textbox', { name: 'Display name' }), { key: 'Enter' })
+    })
+    expect(screen.getByText('Saved').getAttribute('role')).toBe('status')
   })
 
   test('a failed display-name save says so in words, never its raw text', async () => {

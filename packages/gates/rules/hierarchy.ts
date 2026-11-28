@@ -1,7 +1,7 @@
 /**
  * The hierarchy laws a source can show — the `hierarchy` rule set of
  * `tools/check-rule-sets.ts`. What the eye ranks at render is `_hierarchy.ts`'s
- * (hard rule R55); this reads the code.
+ * (ruleset §4.8); this reads the code.
  *
  * - `font-size-rung` (ruleset §4.8): a font size that is no rung of the type
  *   ladder: a retired token (`fontSize.sm`, `var(--text-xs)`, …) or a literal

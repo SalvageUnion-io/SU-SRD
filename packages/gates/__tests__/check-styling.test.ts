@@ -3,14 +3,14 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import type { Finding, RuleSet } from '../lib/ruleEngine'
-import { evaluate, formatFailures, increases, listFiles, ratchetCounts } from '../lib/ruleEngine'
+import { evaluate, formatFailures, listFiles } from '../lib/ruleEngine'
 import { chromeLaws, statTextFindings } from '../rules/chrome'
 import { markupFindings } from '../rules/chromeMarkup'
 import { classPrefix } from '../rules/classPrefix'
 import { designTokens, fontSizePx, scanTokenSources } from '../rules/designTokens'
 import { SRD_CSS_ENTRY, srdCss } from '../rules/srdCss'
 import { stylingOwnership } from '../rules/stylingOwnership'
-import { DATA_DIR, PENDING_TL_GROUNDS, toneGround } from '../rules/toneGround'
+import { DATA_DIR, PENDING_TL_GROUNDS, STYLES_DIR, toneGround } from '../rules/toneGround'
 
 /**
  * `tools/check-rule-sets.ts` gates merges on these rule sets. These tests pin the
@@ -43,70 +43,28 @@ const SET: RuleSet = {
   exemptionsLive: 'nowhere',
   rules: [
     { id: 'z', rule: 'zero law', fix: 'fix z', mode: 'zero' },
-    { id: 'r', rule: 'ratchet law', fix: 'fix r', mode: 'ratchet' },
+    { id: 'r', rule: 'second law', fix: 'fix r', mode: 'zero' },
   ],
   scan: () => ({}),
 }
 
 describe('ruleEngine.evaluate', () => {
-  test('passes when zero rules are clean and ratchets sit exactly at baseline', () => {
-    const v = evaluate(SET, { z: [], r: finding(3) }, { r: { 'x.ts': 3 } })
-    expect(v.ok).toBe(true)
+  test('passes when every rule is clean', () => {
+    expect(evaluate(SET, { z: [], r: [] }).ok).toBe(true)
   })
 
-  test('a zero rule fails on any finding, with no baseline to hide behind', () => {
-    const v = evaluate(SET, { z: finding(1), r: [] }, { r: {} })
+  test('any finding fails its rule: there is no recorded count to hide behind', () => {
+    const v = evaluate(SET, { z: finding(1), r: [] })
     expect(v.ok).toBe(false)
-    expect(v.rules.find((r) => r.rule.id === 'z')?.problem).toBe('nonzero')
+    expect(v.rules.find((r) => r.rule.id === 'z')?.found).toBe(1)
+    expect(evaluate(SET, { z: [], r: finding(3) }).ok).toBe(false)
   })
 
-  test('a ratchet fails when the count rises', () => {
-    const v = evaluate(SET, { z: [], r: finding(4) }, { r: { 'x.ts': 3 } })
-    expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('regressed')
-  })
-
-  test('a ratchet fails when the count FALLS but the baseline was not lowered', () => {
-    const v = evaluate(SET, { z: [], r: finding(2) }, { r: { 'x.ts': 3 } })
-    expect(v.ok).toBe(false)
-    expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('unrecorded-improvement')
-    expect(formatFailures(v, 'UPDATE').join('\n')).toContain('run: UPDATE')
-  })
-
-  test('a missing baseline entry means zero allowed', () => {
-    const v = evaluate(SET, { z: [], r: finding(1) }, {})
-    expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('regressed')
-  })
-
-  test('a baseline entry for a zero rule or an unknown rule is stale and fails', () => {
-    const v = evaluate(SET, { z: [], r: [] }, { r: {}, z: {}, gone: { 'x.ts': 4 } })
-    expect(v.ok).toBe(false)
-    expect(v.staleBaselineKeys.sort()).toEqual(['gone', 'z'])
-  })
-
-  test('ratchetCounts records ratchet rules only, and increases() names only rises', () => {
-    const counts = ratchetCounts(SET, { z: finding(9), r: finding(2) })
-    expect(counts).toEqual({ r: { 'x.ts': 2 } })
-    expect(increases({ r: { 'x.ts': 3 } }, { r: { 'x.ts': 2 } })).toEqual([])
-    expect(increases({ r: { 'x.ts': 1 } }, { r: { 'x.ts': 2 } })).toEqual(['r x.ts: 1 → 2'])
-    // A file the baseline does not name counts from zero, even when the total holds.
-    expect(increases({ r: { 'x.ts': 2 } }, { r: { 'x.ts': 1, 'y.ts': 1 } })).toEqual([
-      'r y.ts: 0 → 1',
-    ])
-  })
-
-  test('a new finding in one file cannot hide behind a fix in another', () => {
-    const moved = [{ file: 'y.ts', line: 1, detail: 'd' }, ...finding(2)]
-    const v = evaluate(SET, { z: [], r: moved }, { r: { 'x.ts': 3 } })
-    const r = v.rules.find((x) => x.rule.id === 'r')
-    expect(r?.problem).toBe('regressed')
-    expect(r?.over).toEqual(['y.ts'])
-  })
-
-  test('an older total-only baseline is still read as a total', () => {
-    expect(evaluate(SET, { z: [], r: finding(3) }, { r: 3 }).ok).toBe(true)
-    expect(evaluate(SET, { z: [], r: finding(4) }, { r: 3 }).ok).toBe(false)
-    expect(increases({ r: 3 }, { r: { 'x.ts': 2, 'y.ts': 1 } })).toEqual([])
-    expect(increases({ r: 2 }, { r: { 'x.ts': 2, 'y.ts': 1 } })).toEqual(['r: 2 → 3'])
+  test('a set that takes no exemptions says so, never where to add one', () => {
+    const { exemptionsLive: _, ...bare } = SET
+    const text = formatFailures(evaluate(bare, { z: finding(1), r: [] })).join('\n')
+    expect(text).toContain('takes no exemptions')
+    expect(text).not.toContain('EXEMPTIONS entry')
   })
 })
 
@@ -133,7 +91,6 @@ describe('tokens rule set', () => {
 
   test('every rule is zero', () => {
     expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
-    expect(ratchetCounts(designTokens, {})).toEqual({})
   })
 
   test('off-scale-space: space[10] and --space-10 are found; their definitions and 12 are not', () => {
@@ -798,7 +755,7 @@ describe('chrome rule set', () => {
     for (const rule of chromeLaws.rules) expect(found[rule.id]).toEqual([])
   })
 
-  test('one-toaster: a second `<Toaster`, or none, is found; a test may render its own (R20)', () => {
+  test('one-toaster: a second `<Toaster`, or none, is found; a test may render its own (K5)', () => {
     const second = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
@@ -816,7 +773,7 @@ describe('chrome rule set', () => {
     expect(none['one-toaster']).toHaveLength(1)
   })
 
-  test('offline-copy: the offline wording outside SyncBadge is found (R20)', () => {
+  test('offline-copy: the offline wording outside SyncBadge is found (K5)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
@@ -835,7 +792,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('roll-tier: a roll-tier token in a style object, a stylesheet or a test is found (R20)', () => {
+  test('roll-tier: a roll-tier token in a style object, a stylesheet or a test is found (K5)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
@@ -853,7 +810,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('ground-signal: every ground prop, and data-ground off a frame, is found (R19)', () => {
+  test('ground-signal: every ground prop, and data-ground off a frame, is found (K1)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...STYLING_BASE,
@@ -918,7 +875,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('focus-ring: every variant beside the one ring is found; the ring, a moved skip link and a sibling are not (R28)', () => {
+  test('focus-ring: every variant beside the one ring is found; the ring, a moved skip link and a sibling are not (K9)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...STYLING_BASE,
@@ -951,7 +908,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('dialog-width: a cap on a dialog, modal or popup is found; its parts and other caps are not (R24)', () => {
+  test('dialog-width: a cap on a dialog, modal or popup is found; its parts and other caps are not (K7)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...STYLING_BASE,
@@ -1057,7 +1014,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('stat-text: JSX text of a stat label before an expression is found, outside Stat (R36)', () => {
+  test('stat-text: JSX text of a stat label before an expression is found, outside Stat (§3.7)', () => {
     const lines = (rel: string, text: string) => statTextFindings(rel, text).map((f) => f.line)
     expect(
       lines(
@@ -1077,11 +1034,11 @@ describe('chrome rule set', () => {
     expect(lines('apps/web/src/components/atoms/Stat.tsx', '<span>SP {sp}</span>')).toEqual([])
   })
 
-  test('raw-dl: a <dl>, <dt> or <dd> outside the Stat atoms is found (R36)', () => {
+  test('raw-dl: a <dl>, <dt> or <dd> outside the Stat atoms is found (§3.7)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
-        'apps/web/src/play/games/A.tsx': [
+        'apps/web/src/games/A.tsx': [
           'export const A = () => (',
           '  <dl style={LIST}>',
           '    <dt>Mediator</dt>',
@@ -1092,13 +1049,28 @@ describe('chrome rule set', () => {
           '',
         ].join('\n'),
         'apps/web/src/components/atoms/StatColumn.tsx': '<dl><dt>SP</dt><dd>4</dd></dl>\n',
-        'apps/web/src/play/games/__tests__/A.test.tsx': "querySelector('dl')\n<dl />\n",
+        'apps/web/src/games/__tests__/A.test.tsx': "querySelector('dl')\n<dl />\n",
       })
     )
     expect(found['raw-dl']?.map((f) => `${f.file}:${f.line}`)).toEqual([
-      'apps/web/src/play/games/A.tsx:2',
-      'apps/web/src/play/games/A.tsx:3',
-      'apps/web/src/play/games/A.tsx:4',
+      'apps/web/src/games/A.tsx:2',
+      'apps/web/src/games/A.tsx:3',
+      'apps/web/src/games/A.tsx:4',
+    ])
+  })
+
+  test('raw-table: a <table> outside the Ledger and the roll instrument is found (L9)', () => {
+    const found = chromeLaws.scan(
+      fixture({
+        ...CHROME_BASE,
+        'apps/web/src/games/A.tsx':
+          'export const A = () => (\n  <table>\n    <tbody />\n  </table>\n)\n',
+        'apps/web/src/components/entity/Ledger.tsx': '<table><tbody /></table>\n',
+        'apps/web/src/games/__tests__/A.test.tsx': '<table />\n',
+      })
+    )
+    expect(found['raw-table']?.map((f) => `${f.file}:${f.line}`)).toEqual([
+      'apps/web/src/games/A.tsx:2',
     ])
   })
 
@@ -1240,6 +1212,34 @@ describe('tone-ground rule set', () => {
     const found = toneGround.scan(root)['tl-ground'] ?? []
     expect(found.map((f) => f.detail)).toEqual([
       'PENDING_TL_GROUNDS.drones is stale: no drones header paints a TL ground now',
+    ])
+  })
+
+  test('tl-text: a stylesheet rule that sets words on a TL ground fails; a frame or an exempt rule passes', () => {
+    const root = fixture({
+      ...pending,
+      [`${STYLES_DIR}/partials/a.css`]: [
+        '.su-swatch {',
+        '  background-color: var(--tl, var(--color-ink-10));',
+        '  color: var(--color-ink);',
+        '}',
+        '.su-chip {',
+        '  background-color: var(--color-paper);',
+        '  border: 1px solid var(--color-tl-3);',
+        '  color: var(--color-ink);',
+        '}',
+        '.su-companion-cell {',
+        '  background-color: var(--color-tl-1);',
+        '  color: var(--color-ink);',
+        '}',
+      ].join('\n'),
+    })
+    expect(toneGround.scan(root)['tl-text']).toEqual([
+      {
+        file: `${STYLES_DIR}/partials/a.css`,
+        line: 1,
+        detail: '.su-swatch sets words on a TL ground',
+      },
     ])
   })
 

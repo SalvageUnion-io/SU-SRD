@@ -2,11 +2,11 @@ import type { Page } from '@playwright/test'
 import type { Finding } from './_findings'
 
 /**
- * Hard rule R29, "Tabs, Segmented, Toggle by job" (chrome K10, EDL E18), on the
+ * Chrome K10, "Tabs, Segmented, Toggle by job" (C5), on the
  * rendered page: no tab or segment label overflows.
  *
  * A label is every `Tab` (`[role="tab"]`), every `SegmentedOption`
- * (`.su-seg__option`) and the Union bar's Reference | Build | Play
+ * (`.su-seg__option`) and the Union bar's Reference | Training Bay | Games
  * (`.su-union-bar__tab`). Each one shown must:
  *
  * - `cut`: hold its whole label, never clip it or end it in "…": its content
@@ -15,7 +15,7 @@ import type { Finding } from './_findings'
  *   scrolled or pushed out of sight (a row of many options wraps: Segmented's
  *   `wrap`).
  *
- * The source half of R29 (one role per component) is `controls/tab-role` and
+ * The source half of K10 (one role per component) is `controls/tab-role` and
  * `controls/pressed` (`bun run check styling`).
  */
 const LABELS = '[role="tab"], .su-seg__option, .su-union-bar__tab'

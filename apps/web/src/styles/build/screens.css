@@ -30,3 +30,263 @@ html[data-signed-out-view='/npcs/new'] .su-signed-out-static[data-view='/npcs/ne
 html[data-signed-out-view]:not([data-signed-out-fonts]) .su-signed-out-static {
   visibility: hidden;
 }
+
+/* The Starter Set page (`StarterSetRoster`) reads as a Reference Page: the
+   crews in the main track and the side track's info boxes beside them, the
+   sparse Page's split (`pages.css`). Stacked under `lg`, the boxes follow the
+   crews. Beside them, the side track is never taller than the crews: its own
+   size contained, it only fills the row they make. */
+.su-starter-tracks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.su-starter-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+@media (width >= 64rem) {
+  .su-starter-tracks {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
+  }
+
+  .su-starter-aside {
+    contain: size;
+    overflow: hidden;
+  }
+}
+
+.su-starter-aside__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  list-style: decimal;
+  margin: 0;
+  padding-inline-start: var(--space-20);
+}
+
+.su-starter-aside__link {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.su-starter-aside__book {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.su-starter-aside__book p {
+  margin: 0;
+}
+
+.su-starter-aside__cover {
+  block-size: auto;
+  inline-size: 100%;
+  max-inline-size: 12rem;
+}
+
+/*
+ * The table's notices (`play/TableNotices.tsx`): pinned to the top of every
+ * screen of the app while a Game of the reader's has something to say (a
+ * Stop Sign, a proposal, the Mediator's alert, a live session). Empty, it
+ * takes no room.
+ */
+.su-table-notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8) var(--space-12) 0;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.su-table-notices:empty {
+  display: none;
+}
+
+/* Under the Union bar, from `lg`: a page's band starts behind the header's
+   rail (`chapter-band-controls.css`), and notices standing between the two
+   would leave the rail with no band. So there the notices take no room of
+   their own: the band makes it under the rail (their measured height,
+   `useNoticesHeight`), and a page with no band makes it above its content. */
+@media (width >= 64rem) {
+  .su-table-notices[data-under-bar]:not(:empty) {
+    margin-bottom: calc(-1 * var(--su-table-notices-h, 0px));
+    padding-bottom: var(--space-8);
+  }
+
+  .su-table-notices[data-under-bar]:not(:empty) + #main-content:not(:has(.su-chapter-band)) {
+    padding-top: var(--su-table-notices-h, 0px);
+  }
+
+  .su-table-notices[data-under-bar]:not(:empty)
+    + #main-content
+    .su-chapter-band:not([role='dialog'] *) {
+    padding-top: calc(
+      2.75rem +
+      var(--su-table-notices-h, 0px)
+    ); /* design-tokens-ignore(raw-spacing): the rail's height */
+  }
+}
+
+.su-table-notice {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  justify-content: space-between;
+}
+
+.su-table-notice__text {
+  display: flex;
+  flex: 1 1 14rem;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.su-table-notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+/* Offline the strip still shows, read-only, and says so (r6 A14). */
+.su-table-notice__offline {
+  align-self: center;
+}
+
+/* The ruling's other choice (`stripRuling.model.ts`): a notice cut to its line. */
+[data-line] .su-table-notice__text > :not(:first-child) {
+  display: none;
+}
+
+/*
+ * On a Play screen the strip stands under the bar (`PlayFrame`'s slot, r6
+ * A1): from `lg` a notice is one line of words, its controls beside it, at
+ * one height, so nothing under the strip moves when one arrives, leaves or
+ * is answered. Below `lg` its words read in two lines and its controls wrap
+ * under them, never off the edge (r8 A1). A press on the words opens the
+ * notice whole in place (`data-whole`). "N more" opens below it (r7 A1).
+ */
+.su-play-frame__strip {
+  min-width: 0;
+}
+
+.su-table-notices[data-in-play] {
+  --su-strip-h: calc(var(--size-compact) + 2.75rem + var(--space-6) + 2 * var(--space-8));
+
+  min-block-size: var(--su-strip-h);
+  padding: var(--space-4) var(--space-8);
+  position: relative;
+}
+
+/* The words, a disclosure that opens them whole: drawn as the text they are. */
+.su-table-notice__words {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+summary.su-table-notice__text {
+  cursor: pointer;
+  list-style: none;
+}
+
+summary.su-table-notice__text::-webkit-details-marker {
+  display: none;
+}
+
+.su-table-notices[data-in-play] [data-line] .su-table-notice__text {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.su-table-notices[data-in-play] [data-line] .su-table-notice__text > * {
+  display: inline;
+}
+
+.su-table-notices[data-in-play] [data-line] .su-table-notice__text > :not(:first-child)::before {
+  content: ' · ';
+}
+
+.su-table-notices[data-in-play] [data-line] .su-table-notice {
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+/* Opened whole, the notice is all its words, however many lines. */
+.su-table-notices[data-in-play] [data-whole] .su-table-notice__text {
+  -webkit-line-clamp: none;
+  display: block;
+  line-clamp: none;
+}
+
+.su-table-notices__more {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.su-table-notices[data-in-play] .su-table-notices__more {
+  max-block-size: 60vh;
+  overflow-y: auto;
+  padding-block: var(--space-6);
+}
+
+/* Offline, the word to say it aloud is a row of its own above the strip (r8 A1). */
+.su-table-notices__offline {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+  padding: var(--space-4) var(--space-8);
+}
+
+@container play (width >= 64rem) {
+  .su-table-notices[data-in-play] {
+    --su-strip-h: calc(var(--size-compact) + 2 * var(--space-8));
+
+    block-size: var(--su-strip-h);
+  }
+
+  /* Opened, the list or a whole notice stands below the strip, never over the step it is about (r7 A1). */
+  .su-table-notices[data-in-play]:has(
+    .su-table-notices__more,
+    [data-whole],
+    .su-table-notices__offline
+  ) {
+    block-size: auto;
+  }
+
+  .su-table-notices[data-in-play] [data-line] .su-table-notice {
+    flex-wrap: nowrap;
+  }
+
+  .su-table-notices[data-in-play] [data-line] .su-table-notice__words {
+    flex: 1 1 0;
+  }
+
+  .su-table-notices[data-in-play] [data-line]:not([data-whole]) .su-table-notice__text {
+    display: block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .su-table-notices[data-in-play] [data-line] .su-table-notice__actions {
+    flex-wrap: nowrap;
+  }
+}

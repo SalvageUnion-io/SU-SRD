@@ -10,8 +10,12 @@
  * Table") is still TOP-LEVEL: the book prints it under its own heading.
  */
 
-/** Every roll-table name a record claims as its own `tableName`, at any depth. */
-function claimedTableNames(records: Iterable<unknown>): Set<string> {
+/**
+ * Every roll-table name a record claims as its own `tableName`, at any depth:
+ * the tables printed inside another entry. Search ranks those under their
+ * owner (`scoreSearchMatch`'s `embedded`).
+ */
+export function embeddedRollTableNames(records: Iterable<unknown>): Set<string> {
   const names = new Set<string>()
   const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
@@ -36,6 +40,6 @@ export function topLevelRollTables<T extends { name: string }>(
   tables: readonly T[],
   records: Iterable<unknown>
 ): T[] {
-  const embedded = claimedTableNames(records)
+  const embedded = embeddedRollTableNames(records)
   return tables.filter((table) => !embedded.has(table.name))
 }

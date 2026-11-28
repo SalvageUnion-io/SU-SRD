@@ -36,6 +36,7 @@ function client(overrides: Partial<SiteClient>): SiteClient {
     unbindChannel: unexpected,
     usage: unexpected,
     feedback: unexpected,
+    logRoll: unexpected,
     ...overrides,
   }
 }
@@ -78,12 +79,22 @@ describe('/su bind', () => {
       channelId: 'channel-1',
       channelName: 'salvage-run',
       manageChannels: true,
+      categoryId: 'category-1',
+      guildId: 'guild-1',
       strings: { game: 'game-1' },
     })
     await bindCommand.execute(interaction)
     // The channel's name rides beside its id, so Play can show `#salvage-run`;
-    // the caller's Manage Channels rides too, for the site to check.
-    expect(asked).toEqual(['discord-me', 'channel-1', 'game-1', 'salvage-run', true])
+    // the caller's Manage Channels rides too, for the site to check, and the
+    // channel's category and server, which the Game's binding covers.
+    expect(asked).toEqual([
+      'discord-me',
+      'channel-1',
+      'game-1',
+      'salvage-run',
+      true,
+      { categoryId: 'category-1', guildId: 'guild-1' },
+    ])
     expect(deferred).toEqual({ called: true, ephemeral: true })
     expect(followUps[0]?.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
   })
@@ -100,7 +111,14 @@ describe('/su bind', () => {
     )
     const { interaction, followUps } = fakeExecute({ subcommand: 'bind', userId: 'discord-me' })
     await bindCommand.execute(interaction)
-    expect(asked).toEqual(['discord-me', 'channel-1', null, 'salvage-run', null])
+    expect(asked).toEqual([
+      'discord-me',
+      'channel-1',
+      null,
+      'salvage-run',
+      null,
+      { categoryId: null, guildId: null },
+    ])
     expect(followUps).toHaveLength(1)
   })
 

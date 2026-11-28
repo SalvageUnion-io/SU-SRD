@@ -35,17 +35,23 @@
  *     `BANNED`, plus any other casing of the app's area names in
  *     `game-domain/src/product.ts` (read from that file, never retyped).
  *
- * Both are ratchets against `tools/baselines/rule-sets.json`: today's copy
- * is the baseline, a new finding fails, and a fixed one must be locked in.
+ * A file whose lower-case terms are right as written is an `EXEMPTIONS` entry (`copyExemptions.ts`).
+ *
+ * Both allow none: no count is recorded anywhere, so any finding fails.
  */
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseSync } from 'oxc-parser'
 import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
+import { GENRE_AFTER, isCapitalised, termPattern, titleCase } from './copyCase'
+
+export { termPattern }
+
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
+import { notExempt } from './copyExemptions'
 import { loneSignFindings } from './loneSign'
 import { CATALOGUE_DIR as CATALOGUE } from './uiStrings'
 
@@ -194,22 +200,6 @@ export const MIN_USES = 5
 /** Fields that name or key a record rather than say something about it. */
 const NON_PROSE_KEYS = new Set(['id', 'name', 'source', 'slug', 'booklet'])
 
-/**
- * `term(s)`, any casing, words joined by any whitespace. A hyphen, a slash or
- * a dot joined to a word on either side is a slug, a class name or a host
- * (`su-mech-card`, `/schema/mech/`, `salvageunion.io/build`), not a word.
- */
-export function termPattern(term: string): RegExp {
-  const body = term
-    .split(/\s+/)
-    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    .join('\\s+')
-  return new RegExp(`(?<![\\w/-]|\\w\\.)${body}s?(?![\\w/-]|\\.\\w)`, 'gi')
-}
-
-/** Every word of the match starts upper case ("Mech", "Hit Points", "Bio-Titan", "MECH"). */
-const isCapitalised = (match: string) => match.split(/[\s-]+/).every((w) => /^[A-Z]/.test(w))
-
 /** The keywords' plain names: "difficult terrain (False Flag)" is "difficult terrain". */
 function keywordTerms(root: string): string[] {
   const raw = JSON.parse(readFileSync(join(root, DATA_DIR, 'keywords.json'), 'utf8')) as {
@@ -277,10 +267,10 @@ export type Banned = {
   allowIn?: string
 }
 
-/** The loading atom: the one place "Loading <thing>…" is spelled (chrome.md K6). */
+/** The loading atom: the one place "Loading <thing>…" is spelled (chrome K6). */
 export const LOADING_ATOM = 'apps/web/src/components/containers/loadingCopy.ts'
 
-/** The searcher's copy: the one place "No results found" is spelled (chrome.md K8). */
+/** The searcher's copy: the one place "No results found" is spelled (chrome K8). */
 export const SEARCH_COPY = 'apps/web/src/components/compositions/searchCopy.ts'
 
 /** Spellings the book does not use, each with what it says instead and where. */
@@ -320,7 +310,7 @@ export const BANNED: readonly Banned[] = [
     // a lower-case "hangar" is Play's, where spare mechs wait ("In hangar").
     pattern: /(?<![\w-])Hangar(?![\w-])/g,
     say: 'Training Bay',
-    why: "the account's page is the Training Bay, the name of Build (glossary §2, §9)",
+    why: "the account's page is the Training Bay (glossary §2, §9)",
   },
   {
     // The tool is Reference, as the header's switch names it. The site's own
@@ -332,10 +322,10 @@ export const BANNED: readonly Banned[] = [
     allowWhole: /^(?:SRD|Share with the SRD)$/,
   },
   {
-    // Hard rule R5: a linked unit is its relation chip, `MECH | Mazona`.
+    // C11: a linked unit is its relation chip, `MECH | Mazona`.
     pattern: /(?<![\w-])Assigned (?:Mech|Pilot)(?![\w-])/gi,
     say: 'the relation chip (`relation()`: `MECH | Mazona`), with no role stamp',
-    why: 'a linked unit is one relation chip, label first, the same in Read and Edit (hard rule R5, chips-and-actions.md C11)',
+    why: 'a linked unit is one relation chip, label first, the same in Read and Edit (C11)',
   },
   {
     // An initialism is a name, not a shout.
@@ -346,35 +336,35 @@ export const BANNED: readonly Banned[] = [
     // Discord bot's `-# FOUND IN` subtext, where a stamp cannot reach).
     allowWhole: /^[^a-z]*$/,
   },
-  // ── One loading voice (chrome.md K6, hard rule R22) ──
+  // ── One loading voice (chrome K6) ──
   {
     // A loading line spelled at the call site: "Loading game data", the caps
     // "LOADING…" or a "Loading..." with three dots. `loadingCopy` assembles it.
     pattern: /(?<![\w-])Loading(?![\w-])/g,
     say: 'loadingCopy',
-    why: 'one loading voice, "Loading <thing>…": render `Pending` / `Skeleton` / `RoutePending` with a `label`, or call `loadingCopy(label)` (chrome.md K6)',
+    why: 'one loading voice, "Loading <thing>…": render `Pending` / `Skeleton` / `RoutePending` with a `label`, or call `loadingCopy(label)` (chrome K6)',
     allowIn: LOADING_ATOM,
   },
   {
     pattern: /(?<![\w-])(?:[Pp]lease wait|[Hh]ang tight|[Ff]etching|[Hh]ydrating)(?![\w-])/g,
     say: 'loadingCopy',
-    why: 'a wait says "Loading <thing>…" (`loadingCopy`), never another verb (chrome.md K6)',
+    why: 'a wait says "Loading <thing>…" (`loadingCopy`), never another verb (chrome K6)',
   },
-  // ── One empty state, one error per job (chrome.md K8, hard rule R27) ──
+  // ── One empty state, one error per job (chrome K8) ──
   {
     pattern: /(?<![\w-])(?:[Rr]etry|Reload (?:page|app))(?![\w-])/g,
     say: 'Try again',
-    why: 'the one retry verb is "Try again" (chrome.md K8)',
+    why: 'the one retry verb is "Try again" (chrome K8)',
   },
   {
     pattern: /(?<![\w-])[Ff]ailed to(?![\w-])/g,
     say: '<thing> could not be <done>. Try again.',
-    why: 'a failed act says what did not happen and "Try again" (`toast.error`); a crash is `RecoveryPanel` (chrome.md K8)',
+    why: 'a failed act says what did not happen and "Try again" (`toast.error`); a crash is `RecoveryPanel` (chrome K8)',
   },
   {
     pattern: /(?<![\w-])No results found(?![\w-])/g,
     say: 'NO_RESULTS',
-    why: 'a search that matched nothing is the searcher\'s words (`NO_RESULTS`, `noResultsFor`); an empty collection is "No <things> yet." (`EmptyState`, chrome.md K8)',
+    why: 'a search that matched nothing is the searcher\'s words (`NO_RESULTS`, `noResultsFor`); an empty collection is "No <things> yet." (`EmptyState`, chrome K8)',
     allowIn: SEARCH_COPY,
   },
 ]
@@ -392,10 +382,12 @@ export function productNames(root: string): { build: string; play: string } {
 
 /**
  * Any other casing of the area names, and of a name without its leading
- * "The" ("Cantina"). A bracketed `[cantina]`, a log tag, is not the name.
+ * "The" ("Cantina"). A bracketed `[cantina]`, a log tag, is not the name. A
+ * one-word name ("Games") is a common noun too, so its casing is not policed.
  */
 export function productBans(product: { build: string; play: string }): Banned[] {
-  const spellings = [product.build, product.play].flatMap((name) => {
+  const named = [product.build, product.play].filter((name) => /\s/.test(name))
+  const spellings = named.flatMap((name) => {
     const bare = name.replace(/^The\s+/, '')
     return bare === name ? [name] : [name, bare]
   })
@@ -406,7 +398,7 @@ export function productBans(product: { build: string; play: string }): Banned[] 
   }))
 }
 
-// ── glyphs that stand in for an icon (hard rule R23, chrome K11) ────────────
+// ── glyphs that stand in for an icon (chrome K11) ────────────
 
 /**
  * Back is `ChevronLeft` and the place's name (`BackLabel`), never an arrow
@@ -416,6 +408,8 @@ export function productBans(product: { build: string; play: string }): Banned[] 
 const BACK_GLYPHS = /←|‹|&larr;|&lsaquo;|&#8592;|&#x2190;|&#8249;|&#x2039;/i
 const ELLIPSIS_GLYPH = /⋯|&#8943;|&#x22ef;/i
 /** Next is `NextLabel` (`ChevronRight` and the place), never a forward arrow drawn as text. */
+/** A sort or up-down mark drawn as a character: lucide's ChevronsUpDown, ChevronUp, ChevronDown (K11). */
+const SORT_GLYPHS = /↕|⇅|⇵|&#8597;|&#x2195;|&varr;/i
 const FORWARD_GLYPHS = /›|→|&rsaquo;|&rarr;|&#8250;|&#x203a;|&#8594;|&#x2192;/i
 
 /**
@@ -443,6 +437,13 @@ export function glyphFindings(file: string, source: string): Finding[] {
         file,
         line: lineOf(Number(v.start)),
         detail: `"${text.trim()}": ⋯ is lucide's Ellipsis at its Size, never a text character`,
+      })
+    }
+    if (drawn && SORT_GLYPHS.test(text)) {
+      out.push({
+        file,
+        line: lineOf(Number(v.start)),
+        detail: `"${text.trim()}": a sort mark is lucide's ChevronsUpDown (or ChevronUp/Down) at its Size, never ↕ as text`,
       })
     }
     if (drawn && FORWARD_GLYPHS.test(text)) {
@@ -511,24 +512,21 @@ const RULES: readonly Rule[] = [
     id: 'lowercase-term',
     rule: 'a game term the dataset capitalises is written with a lower-case word',
     fix: 'capitalise it as the book does (Mech, Pilot, Tech Level, Hit Points)',
-    mode: 'ratchet',
+    mode: 'zero',
   },
   {
     id: 'banned-variant',
     rule: 'a spelling the book or the product does not use',
     fix: 'use the spelling the finding names',
-    mode: 'ratchet',
+    mode: 'zero',
   },
   {
     id: 'glyph',
-    rule: "hard rule R23 (chrome K11) — back is ChevronLeft and the place's name, never ←, ‹ or &larr;; next is ChevronRight and the place's name, never ›, → or &rsaquo; drawn as JSX text; ⋯ is lucide's Ellipsis, never a text ⋯; and R12's one stepper — no Button whose whole text is − or +",
+    rule: "chrome K11 — back is ChevronLeft and the place's name, never ←, ‹ or &larr;; next is ChevronRight and the place's name, never ›, → or &rsaquo; drawn as JSX text; ⋯ is lucide's Ellipsis, never a text ⋯; and R12's one stepper — no Button whose whole text is − or +",
     fix: 'draw back as `<BackLabel to="Training Bay" />` and next as `<NextLabel to="Stats" />` inside the link or button (`Button back` for a way back); a value\'s change (6 → 4) is lucide\'s `ArrowRight` at the line\'s Size; draw ⋯ as `<Ellipsis size={iconSize…} />` (a menu: HeaderMenu `variant="overflow"`); step a count with `<Stat mode="edit" onChange={…} />`, a vital with `<VitalGauge steppers onChange={…} />`',
     mode: 'zero',
   },
 ]
-
-const titleCase = (term: string) =>
-  term.replace(/(^|[\s-])([a-z])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase())
 
 /** Findings for a corpus, given the term list and the bans. Pure. */
 export function lintCopy(
@@ -551,6 +549,7 @@ export function lintCopy(
         if (taken.some(([a, b]) => from < b && to > a)) continue
         taken.push([from, to])
         if (isCapitalised(m[0])) continue
+        if (term.toLowerCase() === 'mech' && GENRE_AFTER.test(c.text.slice(to))) continue
         lowercase.push({ file: c.file, line: c.line, detail: `"${m[0]}": say ${titleCase(term)}` })
       }
     }
@@ -588,9 +587,11 @@ export const copyTerms: RuleSet = {
   scan(root) {
     const terms = capitalisedTerms(weighTerms(root))
     const bans = [...BANNED, ...productBans(productNames(root))]
-    return { ...lintCopy(collectCopy(root), terms, bans), glyph: collectGlyphs(root) }
+    const found = lintCopy(collectCopy(root), terms, bans)
+    const lowercase = notExempt(found['lowercase-term'] ?? [])
+    return { ...found, 'lowercase-term': lowercase, glyph: collectGlyphs(root) }
   },
-  exemptionsLive: 'packages/gates/rules/copyTerms.ts',
+  exemptionsLive: 'packages/gates/rules/copyExemptions.ts',
   summary(root) {
     const terms = capitalisedTerms(weighTerms(root))
     return `${collectCopy(root).length} copy strings in ${copyFiles(root).length} files, ${terms.length} terms from keywords.json`

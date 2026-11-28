@@ -239,8 +239,5 @@ input:where([type='button'], [type='reset'], [type='submit']),
   height: auto;
 }
 
-/* The `hidden` attribute hides, whatever display a class gives the element. */
-[hidden]:where(:not([hidden='until-found'])) {
-  /* biome-ignore lint/complexity/noImportantStyles: the attribute must win over every display rule, as the browser's own does */
-  display: none !important;
-}
+/* The `hidden` attribute's rule is `theme.css`'s, unlayered, so it beats every
+   display class (an id's weight), as the browser's own does. */

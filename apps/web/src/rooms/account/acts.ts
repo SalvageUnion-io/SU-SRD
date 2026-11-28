@@ -31,13 +31,15 @@ export const ACCOUNT_ACTS: { [N in keyof Acts]: (c: Context, a: Args<N>) => unkn
   'seats.eject': (c, a) => c.room.solo.eject(c.actor, a.pilotId, c.at),
   'seats.setRange': (c, a) => c.room.solo.setRange(c.actor, a.pilotId, a.range, c.at),
   'seats.toggleEffect': (c, a) => c.room.solo.toggleEffect(c.actor, a.pilotId, a.ref, c.at),
-  'seats.setResolving': (c, a) => c.room.solo.setResolving(c.actor, a.pilotId, a.resolving, c.at),
-  'seats.clearResolving': (c, a) => c.room.solo.clearResolving(c.actor, a.pilotId, c.at),
+  'seats.setResolving': (c, a) =>
+    c.room.solo.setResolving(c.actor, a.pilotId, a.resolving, c.at, a.follows),
+  'seats.clearResolving': (c, a) => c.room.solo.clearResolving(c.actor, a.pilotId, c.at, a.follows),
   'downtime.begin': (c, a) => c.room.solo.beginDowntime(c.actor, pilotOf(a), c.at),
   'downtime.advance': (c, a) => c.room.solo.advanceDowntime(c.actor, pilotOf(a)),
   'downtime.setStep': (c, a) => c.room.solo.setDowntimeStep(c.actor, pilotOf(a), a.stepIndex),
   'downtime.end': (c, a) => c.room.solo.endDowntime(c.actor, pilotOf(a)),
   'downtime.claim': (c, a) => c.room.solo.claim(c.actor, pilotOf(a), a.claim, a.op),
+  'downtime.moveScrap': (c, a) => c.room.solo.moveScrap(c.actor, a, c.at),
   'changeLog.forEntity': (c, a) => entityLog(c.room.shelf.history(c.actor, a.entityId)),
 }
 

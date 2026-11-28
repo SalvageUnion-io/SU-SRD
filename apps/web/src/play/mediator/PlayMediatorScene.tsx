@@ -4,11 +4,14 @@
  * hour passes, then every condition the books give a Scene as a toggle Mini
  * of its keyword (`SceneConditionMini`), pressed while the Scene is under it.
  * Every seat follows what is pressed: the Heat its Push and Hot actions make,
- * its range under Low Visibility.
+ * its range under Low Visibility. The chooser is one row, the conditions that
+ * are on, and Change opens the rest in place (r6 B6, r7 C8); it stands under
+ * the Opposition, so a fight opens on the enemies.
  *
  * An hour passes asks first, listing each seat the hour asks something of
  * (`hourSteps`: aboard its Mech, on foot its Pilot), each ticked and
- * untickable for a unit sheltered from it. On confirm it counts the hour,
+ * untickable for a unit sheltered from it, and saying how its cost reaches
+ * its player (`hourDelivery`: a proposal, or a notice to apply by hand). On confirm it counts the hour,
  * rolls each exposed Mech's table (Freezing) and the Scene's own (the
  * Anomalous Zone) on the Mediator's private log, proposes each unit's SP,
  * Heat or HP (ADR-030 §4), and tells the table what is the players' to do: a
@@ -26,20 +29,13 @@ import { SCENE_CONDITION_IDS } from 'game-domain/schemas/scene'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
-import {
-  Button,
-  Checkbox,
-  ConfirmDialog,
-  MiniGrid,
-  rollForTable,
-  Slab,
-  tokens,
-} from '../../components/index'
+import { ConfirmDialog } from '../../components/app'
+import { Button, Checkbox, MiniGrid, rollForTable, Slab, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { SceneConditionMini } from '../PlayScene'
 import { recordPlayRoll } from '../playRolls.model'
 import type { HourStep } from './sceneHour.model'
-import { hourProposals, hourSteps } from './sceneHour.model'
+import { hourDelivery, hourProposals, hourSteps } from './sceneHour.model'
 import type { PlayMediator } from './usePlayMediator'
 
 /** Why An hour passes is off, said on the page: a phone has no hover title. */
@@ -47,6 +43,12 @@ const NOTE = {
   fontSize: tokens.fontSize.caption,
   margin: 0,
 } satisfies CSSProperties
+
+/** How a unit's cost reaches its player, in the dialog's words. */
+function deliveryNote(delivery: ReturnType<typeof hourDelivery>): string {
+  if (delivery === 'both') return mediatorCopy('exposedBoth')
+  return delivery === 'proposed' ? mediatorCopy('exposedProposed') : mediatorCopy('exposedNotice')
+}
 
 const LIST = {
   display: 'flex',
@@ -97,7 +99,12 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
   const id = useId()
   const [asking, setAsking] = useState(false)
   const [sheltered, setSheltered] = useState<ReadonlySet<string>>(new Set())
+  // Change opens the whole chooser over the conditions that are on (r6 B6).
+  const [changing, setChanging] = useState(false)
   const on = new Set<SceneConditionId>(scene.conditions)
+  // One row until Change opens it in place, whatever is on (r7 C8, MD7-16).
+  const folded = !changing
+  const shown = folded ? SCENE_CONDITION_IDS.filter((id) => on.has(id)) : SCENE_CONDITION_IDS
   const names = sceneConditionsOf(scene.conditions)
     .map((c) => c.name)
     .join(', ')
@@ -142,7 +149,12 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
     for (const table of tables)
       await roll(table, mediatorCopy('hourSceneRollLabel', { table, hour }))
     await mediator.broadcast(
-      [mediatorCopy('hourAlert', { hour, conditions: names }), ...lines].join(' ')
+      [
+        mediatorCopy('hourAlert', { hour, conditions: names }),
+        ...lines,
+        // What is said is the player's to do by hand: the notice says so (r4 A9).
+        ...(lines.length > 0 ? [mediatorCopy('hourApplyByHand')] : []),
+      ].join(' ')
     )
   }
 
@@ -151,43 +163,63 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
       <Slab
         as="h2"
         label={mediatorCopy('scene')}
+        flush
         {...(scene.hours > 0 ? { count: { label: mediatorCopy('hour'), value: scene.hours } } : {})}
         actions={
-          <Button
-            variant="default"
-            size="compact"
-            disabled={!canWrite || !hourly}
-            onClick={() => {
-              setSheltered(new Set())
-              setAsking(true)
-            }}
-          >
-            {mediatorCopy('anHourPasses')}
-          </Button>
+          <>
+            {
+              <Button
+                variant="default"
+                size="compact"
+                aria-expanded={changing}
+                aria-label={changing ? undefined : mediatorCopy('changeSceneConditions')}
+                onClick={() => setChanging(!changing)}
+              >
+                {changing ? mediatorCopy('done') : mediatorCopy('change')}
+              </Button>
+            }
+            <Button
+              variant="default"
+              size="compact"
+              disabled={!canWrite || !hourly}
+              onClick={() => {
+                setSheltered(new Set())
+                setAsking(true)
+              }}
+            >
+              {mediatorCopy('anHourPasses')}
+            </Button>
+          </>
         }
       />
-      {hourly ? null : <p style={NOTE}>{mediatorCopy('nothingHourly')}</p>}
-      <MiniGrid label={mediatorCopy('sceneConditions')} play>
-        {SCENE_CONDITION_IDS.map((id) => {
-          const condition = SCENE_CONDITIONS[id]
-          return (
-            <SceneConditionMini
-              key={id}
-              condition={condition}
-              mode={{
-                kind: 'select',
-                role: 'toggle',
-                selected: on.has(id),
-                onSelect: () => {
-                  if (canWrite) toggle(id)
-                },
-                seal: mediatorCopy('on'),
-                label: mediatorCopy('sceneUnder', { name: condition.name }),
-              }}
-            />
-          )
-        })}
-      </MiniGrid>
+      {hourly ? null : (
+        <p style={NOTE}>
+          {on.size === 0 ? mediatorCopy('noSceneConditions') : mediatorCopy('nothingHourly')}
+        </p>
+      )}
+      {shown.length === 0 ? null : (
+        <MiniGrid label={mediatorCopy('sceneConditions')} play>
+          {shown.map((id) => {
+            const condition = SCENE_CONDITIONS[id]
+            return (
+              <SceneConditionMini
+                key={id}
+                condition={condition}
+                mode={{
+                  kind: 'select',
+                  role: 'toggle',
+                  selected: on.has(id),
+                  onSelect: () => {
+                    if (canWrite) toggle(id)
+                  },
+                  seal: mediatorCopy('on'),
+                  label: mediatorCopy('sceneUnder', { name: condition.name }),
+                }}
+              />
+            )
+          })}
+        </MiniGrid>
+      )}
       <ConfirmDialog
         open={asking}
         onOpenChange={setAsking}
@@ -223,6 +255,8 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
                         from: step.cost.from.join(', '),
                       })}
                     </span>
+                    {/* How its cost reaches its player: a proposal, or a notice (r4 A9). */}
+                    <span style={NOTE}>{deliveryNote(hourDelivery(step))}</span>
                   </li>
                 ))}
               </ul>

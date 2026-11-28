@@ -12,11 +12,15 @@
  */
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import { makeScrapLot } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
 import { startingPatternRef } from 'game-domain/startingPattern'
-import type { RefChassis } from 'salvageunion-reference'
+import type { ChoiceSelections, RefChassis } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
+import { mechMaxCargo } from 'salvageunion-reference/rules'
+import { carrierCargoUsage } from '../cargo/cargoTransfer'
 import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
+import { madeChoices } from './itemChoices'
 
 /** Shape of form state carried through the mech wizard. */
 export type MechWizardFormState = {
@@ -38,6 +42,11 @@ export type MechWizardFormState = {
   quirk: string
   /** Freeform appearance note (maps to Mech.appearance). */
   appearance: string
+  /**
+   * The options chosen on a System or Module that asks a choice, by its slug
+   * (maps to Mech.itemChoices). Unset until one is made, as on the mech.
+   */
+  itemChoices?: Record<string, ChoiceSelections>
 }
 
 export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
@@ -75,6 +84,41 @@ export function withPatternPrefill(
   }
 }
 
+/**
+ * Where unspent starting Scrap goes (r3 F1): into the hold up to its free
+ * Cargo Slots, each Scrap taking one (Core Book p.246), and the rest to the
+ * Union Crawler, which stores spare Scrap (Workshop Manual p.94). The hold's
+ * capacity is the build's own: its chassis and whatever it installed.
+ */
+export function leftoverScrapSplit(
+  form: MechWizardFormState,
+  leftover: number
+): { stowed: number; banked: number } {
+  const left = Math.max(0, leftover)
+  if (form.chassisName === '') return { stowed: 0, banked: left }
+  const cap = mechMaxCargo({
+    chassisRef: form.chassisName,
+    systems: form.systems,
+    modules: form.modules,
+  })
+  const stowed = Math.min(left, carrierCargoUsage(form.cargoLots, cap).free)
+  return { stowed, banked: left - stowed }
+}
+
+/**
+ * The form with its unspent starting Scrap carried in the hold: one Tech 1
+ * Scrap line of what fits (`leftoverScrapSplit`), never more than the hold's
+ * free Cargo Slots. Unchanged where none is left or none fits.
+ */
+export function withLeftoverScrap(
+  form: MechWizardFormState,
+  leftover: number
+): MechWizardFormState {
+  const { stowed } = leftoverScrapSplit(form, leftover)
+  if (stowed <= 0) return form
+  return { ...form, cargoLots: [...form.cargoLots, makeScrapLot(1, stowed)] }
+}
+
 /** Wizard-owned mech fields — the ones the form captures. */
 type MechWizardPatch = Pick<
   Mech,
@@ -86,9 +130,12 @@ type MechWizardPatch = Pick<
   | 'cargoLots'
   | 'quirk'
   | 'appearance'
+  | 'itemChoices'
 >
 
 export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatch {
+  // A removed item's choices go with it: only what is installed keeps its own.
+  const itemChoices = madeChoices(form.itemChoices, [...form.systems, ...form.modules])
   return {
     name: form.name.trim(),
     chassisRef: form.chassisName,
@@ -98,6 +145,7 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
     cargoLots: form.cargoLots,
     quirk: form.quirk.trim() || undefined,
     appearance: form.appearance.trim() || undefined,
+    ...(itemChoices ? { itemChoices } : {}),
   }
 }
 

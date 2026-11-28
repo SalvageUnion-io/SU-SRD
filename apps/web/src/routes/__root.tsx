@@ -1,11 +1,12 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import { useLayoutEffect } from 'react'
+import { lazy, Suspense, useLayoutEffect, useSyncExternalStore } from 'react'
+import type { ActivityState } from '../activity/activityStore'
+import { useActivity } from '../activity/activityStore'
 import { AccountHintSync } from '../build/account/AccountHintSync'
 import {
   HeaderActions,
   HeaderDrawerAccount,
-  HeaderGames,
   HeaderMobileActions,
 } from '../build/account/HeaderAccount'
 import { firstPaintSchemas, routeSchemas } from '../build/account/signedOutView.model'
@@ -19,12 +20,14 @@ import { EntityPageHost } from '../components/shared/EntityPageHost'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
+import { srdEntityExternalLink } from '../components/shared/srdEntityExternalLink'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { areaTitle } from '../lib/pageTitle'
 import { preloadGameData } from '../lib/useGameData'
 import { ReplicaSync } from '../replica/ReplicaSync'
+import { useViewerId } from '../replica/roomCalls'
 import { SyncProvider } from '../replica/SyncProvider'
-import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
+import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar, pageShowsBar } from '../shell/unionSlots'
 import '../styles/app.css'
 
 // The root boundary is the last resort — every other route gets its own via
@@ -52,7 +55,13 @@ import '../styles/app.css'
  */
 void preloadGameData(firstPaintSchemas(window.location.pathname), 'full')
 
-const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink, appliesRules: true }
+// "View in the Reference" (E13) is here, above `EntityPageHost`: the detail
+// dialog it mounts sits outside every route's own providers.
+const ENTITY_SURFACE: Partial<EntitySurfaceValue> = {
+  linkAs: AppLink,
+  appliesRules: true,
+  externalLink: srdEntityExternalLink,
+}
 
 export const Route = createRootRoute({
   // The default tab title, the front door's; a page with its own sets it in its route's `head`.
@@ -71,26 +80,81 @@ function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: bool
     <UnionBarSlots
       pathname={pathname}
       barHidden={barHidden}
-      games={<HeaderGames pathname={pathname} />}
       search={<SearchIsland />}
       mobileSearch={<MobileSearchIsland />}
       drawerSearch={<SearchIsland />}
       actions={<HeaderActions />}
       mobileActions={<HeaderMobileActions />}
-      drawerExtra={(close) => <HeaderDrawerAccount close={close} pathname={pathname} />}
+      drawerExtra={() => <HeaderDrawerAccount />}
     />
+  )
+}
+
+/** The strip and its Games' reads, loaded for a signed-in reader, and on a
+ *  Play screen signed out: a signed-out reader has no Games, but the trial's
+ *  own line ("nothing is kept", r7 F2) stands on its strip. */
+const TableNotices = lazy(() =>
+  import('../play/TableNotices').then((m) => ({ default: m.TableNotices }))
+)
+
+function TableNoticesMount({ pathname, inPlay }: { pathname: string; inPlay: boolean }) {
+  const person = useViewerId()
+  if (person === null && !inPlay) return null
+  return (
+    <Suspense fallback={null}>
+      <TableNotices pathname={pathname} />
+    </Suspense>
+  )
+}
+
+/** The Discord Activity's shell, loaded only in the Activity (`activity/`). */
+const ActivityShell = lazy(() =>
+  import('../activity/ActivityShell').then((m) => ({ default: m.ActivityShell }))
+)
+
+/**
+ * The app as the Discord Activity: the site's providers, under the Activity's
+ * own shell in place of the Union bar, the strip's mount and the foot. The
+ * table's notices (the Stop Sign above all) still pin over every screen.
+ */
+function ActivityRoot({ activity, pathname }: { activity: ActivityState; pathname: string }) {
+  return (
+    <SyncProvider>
+      <HeadContent />
+      <EntitySurfaceProvider value={ENTITY_SURFACE}>
+        <ReplicaSync />
+        <EntityPageHost>
+          <Suspense fallback={null}>
+            <ActivityShell activity={activity}>
+              <TableNoticesMount pathname={pathname} inPlay />
+              <GameDataReady schemas={routeSchemas(pathname)}>
+                <Outlet />
+              </GameDataReady>
+            </ActivityShell>
+          </Suspense>
+        </EntityPageHost>
+        <ToasterMount />
+      </EntitySurfaceProvider>
+    </SyncProvider>
   )
 }
 
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const activity = useActivity()
   // A Play screen draws its own bar at every width, so it has no masthead
   // (ADR-051 §2): the Play bar, at every width. Nor
   // does a link preview's render surface. The shell's bar is hidden there.
-  const barHidden = hidesUnionBar(pathname)
+  // A refused Play screen has no Play bar: it shows the site's (r8 C6).
+  const refused = useSyncExternalStore(pageShowsBar.subscribe, pageShowsBar.get, pageShowsBar.get)
+  // The Activity draws no Union bar anywhere: its shell is its own.
+  const barHidden = activity !== null || (hidesUnionBar(pathname) && !refused)
   useLayoutEffect(() => {
     document.documentElement.toggleAttribute(BAR_HIDDEN_ATTRIBUTE, barHidden)
-  }, [barHidden])
+    document.body.classList.toggle('su-activity', activity !== null)
+  }, [barHidden, activity])
+
+  if (activity !== null) return <ActivityRoot activity={activity} pathname={pathname} />
 
   // A link preview's render surface (`/og/*`) is a picture, not a
   // page: the card alone, with the Worker and the reference data and none of the
@@ -132,6 +196,9 @@ function RootComponent() {
                 second one would be a duplicate landmark. `tabIndex={-1}` makes
                 following the link move focus here, not just the scroll, so the
                 next Tab lands in the content instead of back in the bar. */}
+          {/* What the reader's Games tell them, pinned over every screen:
+                the Stop Sign, a proposal, the Mediator's alert, a live session. */}
+          <TableNoticesMount pathname={pathname} inPlay={barHidden} />
           <div id="main-content" tabIndex={-1}>
             <GameDataReady schemas={routeSchemas(pathname)}>
               <Outlet />

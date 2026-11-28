@@ -1,35 +1,33 @@
-import { X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import type { RefAbility, RefEntity } from 'salvageunion-reference'
 import {
-  getAssetUrl,
   getEntitySlug,
   getModel,
   getSources,
   getTechLevel,
   getTree,
+  toEntityModel,
 } from 'salvageunion-reference'
 import { itemHref, srdHrefFor } from '../../lib/entityHref'
+import type { ListingFieldFacets } from '../../lib/listingFacets'
+import { dealsDamage, entityAction, entityRanges } from '../../lib/listingFacets'
 import type { GroupBy, ListingShape, TechLevel } from '../../lib/listingGroups'
 import {
   catalogGroupBy,
   groupEntities,
   orderTechLevels,
   resolveGroupBy,
-  tlName,
-  WIDE_LISTINGS,
 } from '../../lib/listingGroups'
-import {
-  PARAM_NAME,
-  PARAM_SOURCE,
-  PARAM_TECH_LEVEL,
-  PARAM_TREE,
-  PARAM_VIEW,
-} from '../../lib/listingParams'
+import { keepListingScroll } from '../../lib/listingScroll'
+import { entityTraitNames } from '../../lib/listingTraits'
 import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
+import { nameMatches } from '../../lib/nameMatch'
+import { classDrawingTree } from '../../lib/rules/classPath'
+import { artUrlFor } from '../../lib/sourceCovers'
 import type { SchemaList } from '../../lib/useGameData'
 import { preloadGameData } from '../../lib/useGameData'
+import { useListingFilters } from '../../lib/useListingFilters'
 import { islandsCopy } from '../../messages/components-islands'
 import { clientSwap } from '../../runtime/clientSwap'
 import { GameDataGate } from '../GameDataGate'
@@ -40,15 +38,25 @@ import {
   EntitySurfaceProvider,
   Skeleton,
   Slab,
-  tokens,
   trackForTree,
 } from '../index'
 import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
+import { IndexLedger } from './IndexLedger'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
+import { sortIndexItems } from './indexColumns.model'
+import { ListingFilterStatus } from './ListingFilterStatus'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
 import type { RailActions } from './ListingRail'
-import { ListingRail, shortSource, tlButtonLabel } from './ListingRail'
+import {
+  focusFirstResult,
+  ListingPrinted,
+  ListingRail,
+  RESULTS_ID,
+  TOOLBAR_MIN_ENTRIES,
+} from './ListingRail'
+
+type RailPart = 'all' | 'view' | 'filters'
 
 /**
  * The schemas whose entity IS a tech level: its name already says the level.
@@ -65,26 +73,8 @@ const TILE_OMIT = ['ref-stat-cargoCapacity', 'ref-stat-heatCapacity']
  */
 const OPENING_ROW = 4
 
-/**
- * Read a single query-param value from the current URL. SSR-safe: the SSG
- * renders this island's `ssr` markup under Bun (no `window`), so guard every
- * location read.
- */
-function readUrlParam(name: string): string {
-  if (typeof window === 'undefined') return ''
-  return new URLSearchParams(window.location.search).get(name) ?? ''
-}
-
-/** Read a comma-separated query param into a Set of tokens. */
-function readUrlSet(name: string): Set<string> {
-  const raw = readUrlParam(name)
-  return new Set(raw ? raw.split(',').filter(Boolean) : [])
-}
-
-/** A single-choice param; an older shared link's comma list keeps its first entry. */
-function readUrlChoice(name: string): string {
-  return readUrlParam(name).split(',')[0] ?? ''
-}
+/** Whose tree it is, beside its heading: the class whose page draws it. */
+const treeOwner = (tree: string) => classDrawingTree(tree)?.name
 
 type SchemaViewerIslandProps = {
   schemaId: string
@@ -95,11 +85,15 @@ type SchemaViewerIslandProps = {
   /** Ability trees to offer as a filter facet; only abilities carry a tree, so
    *  this defaults to empty and the facet is hidden for every other schema. */
   trees?: string[]
+  /** The traits to offer as a filter facet (`listingTraits`): the weapons' and gear's. */
+  traits?: string[]
+  /** Range, Action and Weapons only, from the List's columns (`listingFieldFacets`): Systems'. */
+  fields?: ListingFieldFacets
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this listing needs. */
   preloadSchemas?: SchemaList
-  /** Whether any entity in the schema has artwork: then the Catalog is the
-   *  default at a desktop measure (`listingView.ts`). */
+  /** Whether any entity in the schema has artwork: its Catalog keeps every
+   *  tile's art place; without, the Catalog takes the wider art-less columns. */
   hasArt?: boolean
   /** The unfiltered listing's size and groups, from build-time data: the
    *  skeleton sets the rail and the group headings where the grid will put
@@ -190,6 +184,8 @@ function SchemaViewer({
   techLevels,
   sources,
   trees = [],
+  traits = [],
+  fields,
   hasArt,
   listingView,
   serverRender = false,
@@ -199,6 +195,8 @@ function SchemaViewer({
   serverRender?: boolean
 }) {
   const { view, views, setView, fromUrl: viewInUrl } = listingView
+  // Back lands on the row the reader left, once these rows are in place.
+  useLayoutEffect(() => (serverRender ? undefined : keepListingScroll()), [serverRender])
   const initialData = useMemo(() => {
     const all = getModel(schemaId)?.all() ?? []
     if (!entryIds) return all
@@ -207,52 +205,34 @@ function SchemaViewer({
   }, [schemaId, entryIds])
 
   // A catalog with art keeps every tile's art place: an art-less entity wears a
-  // censor mark, turned by its place among the listing's art-less entities.
+  // "No illustration" plate there (`NoArtPlate`).
   const missingArt = useMemo(() => {
     if (!hasArt) return undefined
     const order = new Map<string, number>()
-    for (const item of initialData) if (!getAssetUrl(item)) order.set(item.id, order.size)
+    for (const item of initialData) if (!artUrlFor(item)) order.set(item.id, order.size)
     return order
   }, [hasArt, initialData])
 
-  // Filter state initializes from the URL on mount so a shared/bookmarked link
-  // restores the exact filtered view. Lazy initializers run once; the reads are
-  // window-guarded for SSR.
-  const [techLevelFilters, setTechLevelFilters] = useState<Set<string>>(() =>
-    readUrlSet(PARAM_TECH_LEVEL)
-  )
-  const [sourceFilter, setSourceFilter] = useState(() => readUrlChoice(PARAM_SOURCE))
-  const [treeFilter, setTreeFilter] = useState(() => readUrlChoice(PARAM_TREE))
-  const [nameFilter, setNameFilter] = useState(() => readUrlParam(PARAM_NAME))
+  const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
+  // The filters, the sort and a phone's columns open on the URL's query and
+  // write themselves back to it: a shared link restores the exact view.
+  const filters = useListingFilters({ schemaId, techLevels: orderedTechLevels, view, viewInUrl })
+  const {
+    techLevelFilters,
+    source: sourceFilter,
+    tree: treeFilter,
+    trait: traitFilter,
+    range: rangeFilter,
+    action: actionFilter,
+    weapons: weaponsOnly,
+    name: nameFilter,
+    toggleTechLevel,
+    clear: clearFilters,
+  } = filters
   // On a phone the facets fold behind one button (the CSS decides when).
   const [facetsOpen, setFacetsOpen] = useState(false)
 
-  // Push filter state back into the URL (replaceState — bookmarkable/shareable
-  // without spamming history on every keystroke). Idempotent: only writes when
-  // the resulting query string actually differs from the current one, so the
-  // mount-time run never clobbers an incoming shared link.
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const params = new URLSearchParams(window.location.search)
-    const setOrDelete = (key: string, value: string) => {
-      if (value) params.set(key, value)
-      else params.delete(key)
-    }
-    setOrDelete(PARAM_TECH_LEVEL, [...techLevelFilters].join(','))
-    setOrDelete(PARAM_SOURCE, sourceFilter)
-    setOrDelete(PARAM_TREE, treeFilter)
-    setOrDelete(PARAM_NAME, nameFilter)
-    setOrDelete(PARAM_VIEW, viewInUrl ? view : '')
-    const qs = params.toString()
-    const nextUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname
-    const currentUrl = `${window.location.pathname}${window.location.search}`
-    if (nextUrl !== currentUrl) {
-      window.history.replaceState(window.history.state, '', nextUrl)
-    }
-  }, [techLevelFilters, sourceFilter, treeFilter, nameFilter, view, viewInUrl])
-
   const filteredData = useMemo(() => {
-    const name = nameFilter.toLowerCase()
     return initialData.filter((item) => {
       if (techLevelFilters.size > 0) {
         const itemTechLevel = getTechLevel(item)?.toString()
@@ -260,12 +240,30 @@ function SchemaViewer({
       }
       if (sourceFilter && !getSources(item).includes(sourceFilter)) return false
       if (treeFilter && getTree(item) !== treeFilter) return false
-      if (name && !item.name.toLowerCase().includes(name)) return false
+      if (traitFilter && !entityTraitNames(toEntityModel(item)).includes(traitFilter)) return false
+      // The name filter forgives the slips the site search forgives (r4 E14).
+      if (nameFilter && !nameMatches(item.name, nameFilter)) return false
+      // What the List's own columns print: a range band, the action type, a damage.
+      if (rangeFilter || actionFilter || weaponsOnly) {
+        const model = toEntityModel(item)
+        if (rangeFilter && !entityRanges(model).includes(rangeFilter)) return false
+        if (actionFilter && entityAction(model) !== actionFilter) return false
+        if (weaponsOnly && !dealsDamage(model)) return false
+      }
       return true
     })
-  }, [initialData, techLevelFilters, sourceFilter, treeFilter, nameFilter])
+  }, [
+    initialData,
+    techLevelFilters,
+    sourceFilter,
+    treeFilter,
+    traitFilter,
+    rangeFilter,
+    actionFilter,
+    weaponsOnly,
+    nameFilter,
+  ])
 
-  const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
   // The Catalog is one flat grid, no group headings (a tree listing's by
   // name), but for the classes' Core and Hybrid headings, and the List is the
   // same entities a line each; the Tree groups.
@@ -274,13 +272,19 @@ function SchemaViewer({
     ? catalogGroupBy(schemaId)
     : resolveGroupBy(initialData, trees, orderedTechLevels, schemaId)
   const byName = flat && TREE_LISTINGS.has(schemaId)
-  const groups = useMemo(
-    () =>
+  const grouped = useCallback(
+    (data: RefEntity[]) =>
       groupEntities(
-        byName ? [...filteredData].sort((a, b) => a.name.localeCompare(b.name)) : filteredData,
+        byName ? [...data].sort((a, b) => a.name.localeCompare(b.name)) : data,
         groupBy
       ),
-    [filteredData, groupBy, byName]
+    [groupBy, byName]
+  )
+  const groups = useMemo(() => grouped(filteredData), [grouped, filteredData])
+  // Each List's every entry, unfiltered: what sets its columns (chrome K17).
+  const unfiltered = useMemo(
+    () => new Map(grouped(initialData).map((group) => [group.key, group.items])),
+    [grouped, initialData]
   )
   // The Tree draws each tree on its track, as the class page does: a Core,
   // Advanced or Hybrid tree's tiers 1-2-3, a Legendary tree's "or".
@@ -304,116 +308,102 @@ function SchemaViewer({
   // pick a Mech or drone; its page shows every stat.
   const tileOmit = useMemo(() => [...omit, ...TILE_OMIT], [omit])
 
-  const toggleTechLevel = (level: TechLevel) => {
-    setTechLevelFilters((prev) => {
-      const next = new Set(prev)
-      const key = String(level)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      if (orderedTechLevels.every((tl) => next.has(String(tl)))) return new Set()
-      return next
-    })
-  }
-
-  const activeFacets = techLevelFilters.size + (sourceFilter ? 1 : 0) + (treeFilter ? 1 : 0)
-  const hasActiveFilters = activeFacets > 0 || nameFilter !== ''
-  const clearFilters = () => {
-    setTechLevelFilters(new Set())
-    setSourceFilter('')
-    setTreeFilter('')
-    setNameFilter('')
-  }
+  const hasActiveFilters =
+    techLevelFilters.size > 0 ||
+    weaponsOnly ||
+    [sourceFilter, treeFilter, traitFilter, rangeFilter, actionFilter, nameFilter].some(
+      (filter) => filter !== ''
+    )
+  // A choice from a menu (or Weapons only) folds a phone's open panel, so the
+  // list it changed is in view (r5 E8); the Tech Levels are picked several at
+  // a time, so the panel stays open for them. Wider, the facets never fold.
+  const choosing =
+    <T,>(set: (value: T) => void) =>
+    (value: T) => {
+      set(value)
+      setFacetsOpen(false)
+    }
   const railActions: RailActions = {
-    setName: setNameFilter,
+    setName: filters.setName,
     toggleTechLevel,
-    clearTechLevels: () => setTechLevelFilters(new Set()),
-    setSource: setSourceFilter,
-    setTree: setTreeFilter,
+    clearTechLevels: filters.clearTechLevels,
+    setSource: choosing(filters.setSource),
+    setTree: choosing(filters.setTree),
+    setTrait: choosing(filters.setTrait),
+    setRange: choosing(filters.setRange),
+    setAction: choosing(filters.setAction),
+    setWeapons: choosing(filters.setWeapons),
     setView,
     toggleFacets: () => setFacetsOpen((open) => !open),
+    focusResults: () => focusFirstResult(),
   }
 
-  const rail = (
+  const renderRail = (part: RailPart) => (
     <ListingRail
+      part={part}
       facets={{
         count: initialData.length,
+        shown: filteredData.length,
         techLevels: orderedTechLevels,
         sources,
         trees,
+        traits,
+        fields,
         views,
       }}
       filters={{
         techLevels: techLevelFilters,
         source: sourceFilter,
         tree: treeFilter,
+        trait: traitFilter,
+        range: rangeFilter,
+        action: actionFilter,
+        weapons: weaponsOnly,
         name: nameFilter,
       }}
       facetsOpen={facetsOpen}
       view={view}
       actions={serverRender ? undefined : railActions}
       awaitsIsland={serverRender}
-      // What is filtered, only while something is: the count, a token per
-      // filter that removes it, and Clear all.
+      // What is filtered, while something is: a token per filter that
+      // removes it, and Clear all, after the count on the rail's status line.
       status={
-        hasActiveFilters &&
-        filteredData.length > 0 && (
-          <output className="su-rail__status" aria-live="polite">
-            <span className="su-rail__tally">
-              {islandsCopy('of', { count: filteredData.length, count2: initialData.length })}
-            </span>
-            {[...techLevelFilters].map((key) => {
-              const level = orderedTechLevels.find((tl) => String(tl) === key)
-              if (level == null) return null
-              return (
-                <FilterToken
-                  key={key}
-                  label={
-                    typeof level === 'number' ? islandsCopy('tl2', { level }) : tlButtonLabel(level)
-                  }
-                  name={tlName(level)}
-                  onRemove={() => toggleTechLevel(level)}
-                />
-              )
-            })}
-            {sourceFilter && (
-              <FilterToken
-                label={shortSource(sourceFilter)}
-                name={`source ${sourceFilter}`}
-                onRemove={() => setSourceFilter('')}
-              />
-            )}
-            {treeFilter && (
-              <FilterToken
-                label={treeFilter}
-                name={`tree ${treeFilter}`}
-                onRemove={() => setTreeFilter('')}
-              />
-            )}
-            {nameFilter && (
-              <FilterToken
-                label={`“${nameFilter}”`}
-                name="name filter"
-                onRemove={() => setNameFilter('')}
-              />
-            )}
-            <Button variant="ghost" size="compact" onClick={clearFilters}>
-              {islandsCopy('clearAll')}
-            </Button>
-          </output>
-        )
+        hasActiveFilters && <ListingFilterStatus techLevels={orderedTechLevels} filters={filters} />
       }
     />
   )
 
   return (
-    <ListingFrame band={band} rail={rail}>
+    <ListingFrame band={band} view={renderRail('view')} filters={renderRail('filters')}>
       <div
         className="su-listing"
-        data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
         data-catalog={(view === 'catalog' && !hasArt) || undefined}
         data-view={view}
       >
-        {!band && rail}
+        {!band && renderRail('all')}
+        {/* From the filters straight to what they found (RR6-14). */}
+        {initialData.length > TOOLBAR_MIN_ENTRIES && filteredData.length > 0 && (
+          <a href={`#${RESULTS_ID}`} className="su-listing__skip">
+            {islandsCopy('skipToResults')}
+          </a>
+        )}
+
+        {hasActiveFilters && (
+          <ListingPrinted
+            levels={orderedTechLevels.filter((tl) => techLevelFilters.has(String(tl)))}
+            words={[
+              sourceFilter,
+              treeFilter,
+              traitFilter,
+              rangeFilter,
+              actionFilter,
+              weaponsOnly ? islandsCopy('weaponsOnly') : '',
+              nameFilter && `“${nameFilter}”`,
+            ]}
+            count={filteredData.length}
+            total={initialData.length}
+          />
+        )}
 
         {filteredData.length === 0 ? (
           <EmptyState
@@ -429,54 +419,67 @@ function SchemaViewer({
           />
         ) : (
           <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
-            <div className="su-listing__groups">
+            <div className="su-listing__groups" id={RESULTS_ID} tabIndex={-1}>
               {groups.map((group, groupIndex) => (
                 <section key={group.key} className="su-listing__group" aria-label={group.label}>
-                  {group.label && <Slab label={group.label} />}
+                  {group.label && view !== 'list' && (
+                    // A heading to jump between (WCAG 2.4.6); a tree says whose it is.
+                    <Slab
+                      as="h2"
+                      label={group.label}
+                      count={treeTracks.has(group.key) ? treeOwner(group.key) : undefined}
+                    />
+                  )}
                   {view === 'catalog' ? (
                     <ul className="su-listing__tiles">
-                      {group.items.map((item: RefEntity, index) => (
-                        <li key={item.id}>
-                          <Entity
-                            size="compact"
-                            layout="index"
-                            entity={item}
-                            mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
-                            omit={tileOmit}
-                            lead
-                            priority={groupIndex === 0 && index < OPENING_ROW}
-                            missingArt={missingArt?.get(item.id)}
-                          />
-                        </li>
-                      ))}
+                      {/* The address's sort is the List's; the tiles keep it (r2 H3). */}
+                      {sortIndexItems(schemaId, group.items, filters.sort).map(
+                        (item: RefEntity, index) => (
+                          <li key={item.id}>
+                            <Entity
+                              size="compact"
+                              layout="index"
+                              entity={item}
+                              mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
+                              omit={tileOmit}
+                              lead
+                              priority={groupIndex === 0 && index < OPENING_ROW}
+                              missingArt={missingArt?.get(item.id)}
+                              artUrl={artUrlFor(item)}
+                            />
+                          </li>
+                        )
+                      )}
                     </ul>
                   ) : view === 'list' ? (
-                    // The List (E2): the Catalog's entities header-only, a
-                    // name and its chips a line, each name whole (R56).
-                    <ul className="su-listing__cards" data-entity-fit="">
-                      {group.items.map((item: RefEntity) => (
-                        <li key={item.id}>
-                          <Entity
-                            size="compact"
-                            entity={item}
-                            mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
-                            omit={omit}
-                            wholeName
-                          />
-                        </li>
-                      ))}
-                    </ul>
+                    // The List is one Ledger (ledger.md L1), a line an
+                    // entity; a group's name (Core Classes) is its title tab.
+                    <IndexLedger
+                      schemaId={schemaId}
+                      noun={group.label || band?.title || ''}
+                      plain={!group.label || group.label === band?.title}
+                      items={group.items}
+                      all={hasActiveFilters ? unfiltered.get(group.key) : undefined}
+                      order={{
+                        sort: filters.sort,
+                        sortBy: filters.sortBy,
+                        clear: filters.clearSort,
+                      }}
+                      phone={{ columns: filters.columns, setColumns: filters.setColumns }}
+                      orderNote={groupIndex === 0}
+                      byName={byName}
+                    />
                   ) : treeTracks.get(group.key) ? (
                     <ReferenceAbilityTrack
                       abilities={group.items as RefAbility[]}
                       track={treeTracks.get(group.key) ?? 'core'}
                     />
                   ) : (
-                    <ul className="su-listing__cards" data-entity-fit="">
+                    <ul className="su-listing__cards">
                       {group.items.map((item: RefEntity) => (
                         <li key={item.id}>
-                          {/* One card, one click (ruleset §1, E2, E11): a
-                              Compact in link mode, the whole row an `<a>`. */}
+                          {/* A tree with no track: one card, one click
+                              (ruleset §1, E2, E11), a Compact in link mode. */}
                           <Entity
                             size="compact"
                             entity={item}
@@ -498,71 +501,83 @@ function SchemaViewer({
   )
 }
 
+/** A key per placeholder: a static run, never reordered. */
+const placeholders = (count: number) => Array.from({ length: count }, (_, i) => `placeholder-${i}`)
+
 /**
  * The listing while its schema loads: the rail as its inert placeholder, then
- * the default groups under their headings, a placeholder per entity in the
- * view's shape — the server render's layout, so neither the gate opening nor
- * the mount before it moves the grid.
+ * a placeholder per entity in the view's shape (the List's lines in their
+ * frame, the Catalog's tiles, a Tree's cards) — the server render's layout, so
+ * neither the gate opening nor the mount before it moves the listing.
  */
 function ListingSkeleton({
-  schemaId,
   band,
   techLevels,
   sources,
   trees = [],
+  traits = [],
+  fields,
   hasArt,
   shape,
   view,
   views,
-}: Omit<SchemaViewerIslandProps, 'preloadSchemas'> & {
+}: Omit<SchemaViewerIslandProps, 'preloadSchemas' | 'schemaId' | 'entryIds'> & {
   view: ListingView
   views: readonly ListingView[]
 }) {
   const catalog = view === 'catalog'
-  // The shape is the default view's groups; the Catalog and the List are one,
-  // but for the classes' headings.
+  // The shape is the List's groups, the Catalog's too (one run, but for the
+  // classes' headings); a Tree's groups are not known until its schema loads.
   const groups =
-    shape && (view === 'tree' || catalogGroupBy(schemaId) !== 'none')
+    shape && view !== 'tree'
       ? shape.groups
       : [{ key: 'all', label: undefined, count: shape?.count ?? 12 }]
-  const rail = shape && (
-    <ListingRail
-      facets={{
-        count: shape.count,
-        techLevels: orderTechLevels(techLevels),
-        sources,
-        trees,
-        views,
-      }}
-      view={view}
-    />
-  )
+  const renderRail = (part: RailPart) =>
+    shape && (
+      <ListingRail
+        part={part}
+        facets={{
+          count: shape.count,
+          techLevels: orderTechLevels(techLevels),
+          sources,
+          trees,
+          traits,
+          fields,
+          views,
+        }}
+        view={view}
+      />
+    )
   return (
-    <ListingFrame band={band} rail={rail}>
+    <ListingFrame band={band} view={renderRail('view')} filters={renderRail('filters')}>
       <div
         className="su-listing"
-        data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
         data-catalog={(catalog && !hasArt) || undefined}
         data-view={view}
         aria-hidden="true"
       >
-        {!band && rail}
+        {!band && renderRail('all')}
         <div className="su-listing__groups">
           {groups.map((group) => (
             <section key={group.key} className="su-listing__group">
-              {group.label && <Slab label={group.label} />}
+              {group.label && catalog && <Slab label={group.label} />}
               {catalog ? (
                 <ul className="su-listing__tiles">
-                  {Array.from({ length: group.count }, (_, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholder list, never reordered — index is stable
-                    <li key={i} className="su-listing__tile-skeleton" />
+                  {placeholders(group.count).map((key) => (
+                    <li key={key} className="su-listing__tile-skeleton" />
+                  ))}
+                </ul>
+              ) : view === 'list' ? (
+                // The Ledger's frame and its lines, a line an entity.
+                <ul className="su-listing__lines">
+                  {placeholders(group.count).map((key) => (
+                    <li key={key} />
                   ))}
                 </ul>
               ) : (
-                <ul className="su-listing__cards" data-entity-grid="">
-                  {Array.from({ length: group.count }, (_, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholder list, never reordered — index is stable
-                    <li key={i}>
+                <ul className="su-listing__cards">
+                  {placeholders(group.count).map((key) => (
+                    <li key={key}>
                       <Skeleton />
                     </li>
                   ))}
@@ -573,24 +588,6 @@ function ListingSkeleton({
         </div>
       </div>
     </ListingFrame>
-  )
-}
-
-/** One active filter, as a Compact Button that removes it (its ✕ the line's Size). */
-function FilterToken({
-  label,
-  name,
-  onRemove,
-}: {
-  label: string
-  name: string
-  onRemove: () => void
-}) {
-  return (
-    <Button size="compact" aria-label={islandsCopy('remove', { name })} onClick={onRemove}>
-      {label}
-      <X aria-hidden="true" size={tokens.iconSize.compact} />
-    </Button>
   )
 }
 

@@ -8,9 +8,8 @@ import { expect, test } from './fixtures'
 
 /**
  * Hard rule R17, a Page has one rhythm (ruleset §1.7, §1.3, §7.1), on the
- * rendered Page (`_pageRhythm.ts`): a long body starts under the band and a
- * short one sits centred between the band and the foot, every level-1 block and the Slab
- * heading one sits one 12px gap from the next, and the stat column's value
+ * rendered Page (`_pageRhythm.ts`): a body starts under the band, short or long,
+ * every level-1 block and the Slab heading one sits one 12px gap from the next, and the stat column's value
  * cells wear a 1px frame and its labels 14px type.
  *
  * The reference corpus's `rhythm` Pages (`_designTable.ts`: short and long SRD
@@ -19,7 +18,7 @@ import { expect, test } from './fixtures'
  * (`DESIGN_VIEWPORTS`). There is no allowlist: every finding fails.
  */
 
-/** The app's Page: a sheet's Mini opens its entity's Page in the detail dialog. */
+/** The app's Page: a sheet's Mini or Ledger row opens its entity's Page in the detail dialog. */
 const APP_PAGE = { sheet: '/starter/mech/starter-mech-mazona', token: 'Mini Mortar' }
 
 test.use({ account: 'anonymous' })
@@ -40,8 +39,11 @@ for (const [width, viewport] of Object.entries(DESIGN_VIEWPORTS)) {
 
     test("the app's Page keeps one rhythm", { tag: '@pr' }, async ({ page }) => {
       await openApp(page, APP_PAGE.sheet)
-      const token = page.locator('.su-entity-mini').filter({ hasText: APP_PAGE.token }).first()
-      await token.locator('.su-entity-mini__name').click()
+      // A phone's sheet keeps its lists under tabs, as Ledgers (ruleset §1.2, L9).
+      const loadout = page.getByRole('tab', { name: /Loadout/ })
+      if ((await loadout.count()) > 0) await loadout.first().click()
+      // The loadout's own row (the Actions list's is "<name> rules", and only Peeks).
+      await page.getByRole('button', { name: APP_PAGE.token, exact: true }).first().click()
       await expect(page.locator('.su-entity-dialog__body .su-entity-page')).toBeVisible()
       const where = `the ${APP_PAGE.token} Page at ${width}`
       const failures = place(where, await findRhythm(page)).map((f) => f.line)

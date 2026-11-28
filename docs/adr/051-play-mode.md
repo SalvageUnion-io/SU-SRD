@@ -19,6 +19,8 @@ Built: the `dashboard-cockpit` milestone (tracker #1633); Play as built is
 - **Amends** [ADR-030](030-accounts-games-server-of-record.md) (§4, §7, §8 below).
 - **Amended by** [ADR-052](052-build-assets-play-games.md): the landing is the
   hub for Games (§1).
+- **Amended by** [ADR-068](068-one-moment.md): an action resolves on the
+  Moment, lifted out of the list (§6).
 
 ### 1. Play is a mode
 
@@ -89,6 +91,117 @@ Seats left; Opposition and the chosen NPC's actions centre (the Downtime step
 track in Downtime); Tables, Feed and the propose dock right; a Scene / Downtime
 switch in the Play bar.
 
+### 9a. The Mediator's rolls are on the Game's log; a private one is theirs (5.x)
+
+Amends §8's "the Mediator private by default". A Mediator's roll is written to
+the Game's log as a player's is, so it survives a reload and reaches every
+Feed. The Mediator's Rolls pane has a Private rolls switch, off by default and
+remembered per Game in the browser (r2 B2). A roll
+made with it on carries `private: true` in its `change_log` row's `after`: the
+room serves that row only to Mediators and to its roller, drops the flag from
+any row a non-Mediator appends, and the client never posts it to Discord.
+
+Up now is a marker the Mediator puts on one seat: one `change_log` row (field
+`upNow`, `after: { pilotId }`, replaced on each change), read back as the
+optional `upNow` of `scenes.current` and set by `scenes.setUpNow`. It orders
+nothing and gates nothing.
+
+**The player who is up ends their own turn (r4 B1).** `scenes.endTurn`, sent
+by the member the marked pilot is assigned to, writes that same row back to
+nobody and one `turn` event ("Pickle ended their turn"), which the Feed lists
+and a Mediator's screen toasts. Nobody is up after it: there is still no turn
+order, no rounds and no record of who has acted. The seat's button reads
+**Give the turn**.
+
+**An alert can be withdrawn (r4 B4).** `changeLog.withdrawAlert` (a
+Mediator's) deletes the alert's `change_log` row, so it leaves every strip and
+Feed, and writes one `withdrawn` event ("Mediator withdrew an alert"). What
+was posted to the bound channel stays there, followed by that line.
+
+**A wreck keeps its salvage roll (r5 B1, B2).** A downed Mech's tray record
+may carry `salvageRoll` (`{ roll, rolledAt }`), set by `mediator.updateNpc`
+while it is down and unsalvaged, so its band outlasts leaving Mediate. A
+Mediator's roll row may carry `slot` (`wreck:<npc id>`): appending one deletes
+the slot's earlier `roll` row, so a re-roll, and the line that says what was
+taken and where, stay one Feed line. A haul to a crew Mech is a proposal on
+`cargoLots` holding the lots it adds; accepting adds them to the hold as it
+is then. Discord keeps what it was posted.
+
+All of it is additive and optional: no table or column is added, and a room with
+neither reads as before.
+
+### 9b. An Opposition roll reaches players without its names (r2 B1)
+
+Supersedes §9a for rolls made from the Opposition pane (an NPC's action,
+Morale, Reaction, a Critical table, a Heat Check, a wreck's salvage, a fielded
+count): players read that the Mediator rolled and what it came to ("Mediator
+rolled · 9 · Tough Choice"), never the NPC's or the weapon's name. Table rolls
+and the Core Mechanic stay public, and Private rolls still keeps a roll from
+the players whole.
+
+Such a roll's `change_log` row keeps the whole line in `description` and
+carries `veiled`, the line a player reads in its place. The room serves a
+non-Mediator `veiled` as the roll's line (`rollLineFor`, on `changeLog.events`
+and `changeLog.rolls`, so the Feed, the toast and "Last session" all get it),
+so the names never leave the room for a player's screen; a Mediator is served
+the whole line with `veiled: true`. `changeLog.reveal` (a Mediator's) sets
+`revealed: true` on the row, after which everyone is served the whole line.
+The room drops both fields from any row a non-Mediator appends. The Discord
+card of a Mediator's roll names its table and never the NPC.
+
+Additive and optional: two optional keys in a roll row's `after`; a row with
+neither reads as before.
+
+**Reveal is the way out of private too (r3 A1).** `changeLog.reveal` takes a
+`private` roll as well as a veiled one. A row with `revealed: true` is
+neither private nor veiled for anyone: the room serves it whole to every
+member on `changeLog.events` and `changeLog.rolls`, marked `revealed`, so the
+players' Feed, their toast and "Last session" get it, and the room mirrors
+its line to the bound channel once, since a private roll never posted a card
+and a veiled one posted without its names. Until then a private roll's line
+on the Mediator's Feed says only the Mediator sees it. No key is added.
+
+**A hand over (r3 A2).** The new Mediator reads the earlier private and
+veiled rolls in the Mediate Feed, because they now run the Game. A roll
+signed "Mediator" whose roller no longer mediates is served to everyone else
+under the roller's name ("Previous Mediator" for one with none), never as the
+reader's own. A Mediator's own copy of a roll (`private` or `veiled`) is
+never toasted, so nothing replays when the role moves. The Hand over dialog
+says private rolls go across.
+
+### 9c. Group Initiative is a tracker that keeps itself (r6 B4, r7 C3–C4)
+
+Mediate's table keeps the round, the sides and who has acted (Core Book
+p.235–236). The sides are the Pilots and one Opposition, however prep added
+the enemies; the Mediator splits an encounter group off as its own side
+(p.236). New round asks who acts first, answered by a choice or a Group
+Initiative Table roll (pinned in Rolls for everyone). A pilot's mark fills
+when their turn ends or is given to another, an NPC's when its action is
+rolled, and a side all acted passes play to the next still to act, each such
+step said on the tracker with Undo; with everyone done, New round is its one
+button. Nothing is refused, so it is not a turn system
+(ARCHITECTURE.md#combat). The rules and switches are `lib/rules/initiative.ts`
+and `play/mediator/initiative.model.ts` (`TURNS_RUN_THEMSELVES`,
+`ONE_OPPOSITION`).
+
+The room keeps it as one `change_log` row (field `initiative`), the
+Mediator's only, served on their `mediator` record and ended when the group
+session ends or Downtime begins. Additive and optional: no table or column;
+a Game with no row has no tracker, and a row without `split` (r7 C4, the
+groups split off) has none split.
+
+### 9d. A forgotten group session ends itself (r8 B12)
+
+A session left running kept "Session live" on Home and the Game's page for
+weeks, and its log ran across both evenings. A group session with no play for
+twelve hours (`SESSION_ENDS_IDLE_MS`, the one place the ruling is kept; null
+turns it off) ends on the room's next touch, before any act or read: Home's
+`games.liveSessions` asks each room, so asking is enough. Play is the newest
+`change_log` row, or the start. It ends as End group session does (up now,
+the tracker and the unapplied close; the plan it played is marked), at the
+moment the twelve hours ran out, and the Feed says so in a line that names
+nobody. No key or table is added.
+
 ### 10. Phones get tabs, not a second layout
 
 Below `lg` the panes are four tabs at the foot (Act, Units, Tables, Crew; the
@@ -101,7 +214,7 @@ width calls the same handler under the same rules.
 ### 11. Play follows the nesting rules
 
 Play sits in the canon's nesting rules N1–N8 (the entity display
-language's E6, with E3 and E18) and their gates. Its own frames place as follows:
+language's E6, with E3 and C5) and their gates. Its own frames place as follows:
 
 1. **Level 0 is the Play canvas**, a dialog or an overlay (N1). What sits
    directly in a column is level 1: a Compact or contentful card, or a unit

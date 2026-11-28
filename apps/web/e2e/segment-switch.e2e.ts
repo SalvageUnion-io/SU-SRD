@@ -18,7 +18,7 @@ import { expect, test } from './fixtures'
  */
 test.describe('wired sheet segment switch', () => {
   test.beforeEach(async ({ page }) => {
-    await buildPilot(page, 'Mara Vex', 'Wrench')
+    await buildPilot(page, 'Wrench', 'Mara Vex')
     await buildMech(page, 'Stomper')
     await openSheetFor(page, 'Stomper')
     await assignPilotOnMechSheet(page, 'Mara Vex')
@@ -56,7 +56,7 @@ test.describe('wired sheet segment switch', () => {
     await page.setViewportSize({ width: 1280, height: 800 })
 
     await expect(page.getByRole('navigation', { name: /assigned sheets/i })).toBeHidden()
-    // The relation chip in Assigned units remains the desktop navigation affordance.
+    // The relation chip in Related units remains the desktop navigation affordance.
     await expect(assignedUnit(page, 'Mara Vex')).toBeVisible()
   })
 

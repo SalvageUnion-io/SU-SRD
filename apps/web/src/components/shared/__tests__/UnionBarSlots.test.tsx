@@ -5,7 +5,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { inAppRoute, isCurrent, unionHere } from '../../../lib/barLinks'
+import { inAppRoute, unionHere, useBarMode } from '../../../lib/barLinks'
 import { pageOrigin } from '../../../lib/site'
 import { renderUnionBar } from '../../../shell/unionBar'
 import { hidesUnionBar, slotSelector } from '../../../shell/unionSlots'
@@ -30,29 +30,20 @@ const button = (name: string) => (
   </button>
 )
 
-/** A mode's nav: its links and controls, by name. */
-const navOf = (mode: 'Build' | 'Play') => screen.getByRole('navigation', { name: mode })
-const entries = (nav: HTMLElement) =>
-  Array.from(nav.querySelectorAll('a, button')).map((el) => el.textContent)
-
-/** The current nav link in a mode's nav, if any. */
-const currentIn = (mode: 'Build' | 'Play') =>
-  Array.from(navOf(mode).querySelectorAll('[aria-current="page"]')).map((el) => el.textContent)
-
 describe('UnionBarSlots', () => {
-  test('fills Play’s nav with the Games control, the bar’s end and the phone cluster', () => {
+  test('fills the bar’s end and the phone cluster; the bar’s navs are its area links and rails', () => {
     render(
       <UnionBarSlots
-        pathname="/play/"
-        games={button('Games')}
+        pathname="/games/"
         search={button('Search')}
         actions={button('Account')}
         mobileSearch={button('Phone search')}
         mobileActions={button('Avatar')}
       />
     )
-    expect(entries(navOf('Build'))).toEqual(['Training Bay', 'Patterns', 'Starter Set'])
-    expect(entries(navOf('Play'))).toEqual(['Games', 'Solo'])
+    const navs = screen.getAllByRole('navigation').map((nav) => nav.getAttribute('aria-label'))
+    expect(navs[0]).toBe('Salvage Union tools')
+    for (const label of navs.slice(1)) expect(label).toMatch(/^In /)
     const header = within(screen.getByRole('banner'))
     const search = header.getByRole('button', { name: 'Search' })
     const account = header.getByRole('button', { name: 'Account' })
@@ -65,40 +56,58 @@ describe('UnionBarSlots', () => {
     ).toEqual(['Phone search', 'Avatar', 'Open menu'])
   })
 
-  test('marks the page you are on in Build’s nav, as you route', () => {
-    const { rerender } = render(<UnionBarSlots pathname="/starter/" />)
-    expect(currentIn('Build')).toEqual(['Starter Set'])
-    rerender(<UnionBarSlots pathname="/" />)
-    expect(currentIn('Build')).toEqual(['Training Bay'])
-    rerender(<UnionBarSlots pathname="/patterns/" />)
-    expect(currentIn('Build')).toEqual(['Patterns'])
-    rerender(<UnionBarSlots pathname="/pilots/new" />)
-    expect(currentIn('Build')).toEqual([])
-    // Solo is an anchor on the hub, never a page: on Play's routes no link is current.
-    rerender(<UnionBarSlots pathname="/play/" />)
-    expect(currentIn('Build')).toEqual([])
-    expect(currentIn('Play')).toEqual([])
-  })
-
-  test('marks the mode you are in: Play on the hub and every Game route, Build everywhere else', () => {
+  test('marks the tab you are under: Games on Your Games and every Game route, Training Bay everywhere else', () => {
     const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     const current = () =>
       tools()
         .getAllByRole('link')
         .filter((tab) => tab.getAttribute('aria-current') === 'true')
         .map((tab) => tab.textContent)
-    const { rerender } = render(<UnionBarSlots pathname="/play/" />)
-    expect(current()).toEqual(['Play'])
+    const { rerender } = render(<UnionBarSlots pathname="/games/" />)
+    expect(
+      tools()
+        .getAllByRole('link')
+        .map((tab) => tab.textContent)
+    ).toEqual(['Reference', 'Training Bay', 'Games', 'Buy the game (opens in a new tab)'])
+    expect(current()).toEqual(['Games'])
     rerender(<UnionBarSlots pathname="/starter/" />)
-    expect(current()).toEqual(['Build'])
-    rerender(<UnionBarSlots pathname="/play/games/g1" />)
-    expect(current()).toEqual(['Play'])
+    expect(current()).toEqual(['Training Bay'])
+    rerender(<UnionBarSlots pathname="/pilots/p1/play" />)
+    expect(current()).toEqual(['Training Bay'])
+    rerender(<UnionBarSlots pathname="/games/g1" />)
+    expect(current()).toEqual(['Games'])
   })
 
-  test('the bar wears the mode, which shows its nav: Play’s on Play’s routes, Build’s everywhere else', () => {
+  test('a page that says its own tab holds it while it is on screen: a pilot in a Game is under Play', () => {
+    const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
+    const current = () =>
+      tools()
+        .getAllByRole('link')
+        .filter((tab) => tab.getAttribute('aria-current') === 'true')
+        .map((tab) => tab.textContent)
+    const InGame = ({ inGame }: { inGame: boolean }) => {
+      useBarMode(inGame ? 'play' : null)
+      return null
+    }
+    const page = (inGame: boolean | null) => (
+      <>
+        <UnionBarSlots pathname="/pilots/p1" />
+        {inGame === null ? null : <InGame inGame={inGame} />}
+      </>
+    )
+    const { rerender } = render(page(true))
+    expect(current()).toEqual(['Games'])
+    rerender(page(false))
+    expect(current()).toEqual(['Training Bay'])
+    rerender(page(true))
+    rerender(page(null))
+    expect(current()).toEqual(['Training Bay'])
+  })
+
+  test('the bar wears its tab’s colour as you route', () => {
     const mode = () => document.querySelector('.su-union-bar')?.getAttribute('data-mode')
     expect(mode()).toBe('build')
-    const { rerender } = render(<UnionBarSlots pathname="/play/" />)
+    const { rerender } = render(<UnionBarSlots pathname="/games/" />)
     expect(mode()).toBe('play')
     rerender(<UnionBarSlots pathname="/" />)
     expect(mode()).toBe('build')
@@ -123,7 +132,7 @@ describe('UnionBarSlots', () => {
     }
   }
 
-  test('the drawer: the reference pages’ own, Build’s nav first, and the app’s extra', () => {
+  test('the drawer: the reference pages’ own, and the app’s extra', () => {
     render(
       <UnionBarSlots
         pathname="/"
@@ -136,19 +145,7 @@ describe('UnionBarSlots', () => {
     )
     const { drawer, names } = drawerLinks()
     expect(drawer.getByRole('link', { name: 'Salvage Union' }).getAttribute('href')).toBe('/')
-    const hangar = drawer.getByRole('link', { name: 'Training Bay' })
-    // The page you are on is marked current (ruled under in ink, never rust).
-    expect(hangar.getAttribute('aria-current')).toBe('page')
-    expect(names).toEqual([
-      'Training Bay',
-      'Patterns',
-      'Starter Set',
-      'About',
-      'Changelog',
-      'Discord',
-      'API',
-      'Buy the game',
-    ])
+    expect(names).toEqual(['About', 'Changelog', 'Discord', 'API', 'Buy the game'])
     expect(drawer.getByRole('link', { name: 'Discord' }).getAttribute('href')).toBe('/bot/')
     expect(drawer.getByRole('link', { name: /buy the game/i }).getAttribute('target')).toBe(
       '_blank'
@@ -158,64 +155,45 @@ describe('UnionBarSlots', () => {
     fireEvent.click(drawer.getByRole('button', { name: 'Sign in' }))
     expect(screen.queryByRole('dialog')).toBeNull()
   })
-
-  test('the drawer in Play: Play’s nav, Solo an anchor on the hub', () => {
-    render(<UnionBarSlots pathname="/play/" />)
-    const { drawer, names } = drawerLinks()
-    expect(names).toEqual(['Solo', 'About', 'Changelog', 'Discord', 'API', 'Buy the game'])
-    // No router here, so the link shows its route.
-    expect(drawer.getByRole('link', { name: 'Solo' }).getAttribute('href')).toEndWith(
-      '/play/#play-solo'
-    )
-    fireEvent.click(drawer.getByRole('button', { name: 'Close menu' }))
-    expect(screen.queryByRole('dialog')).toBeNull()
-  })
 })
 
 describe('the bar’s rules', () => {
   test('a Play screen and the link-preview surface draw no bar', () => {
-    expect(hidesUnionBar('/play/pilots/abc')).toBe(true)
-    expect(hidesUnionBar('/play/games/g1/mediate')).toBe(true)
+    expect(hidesUnionBar('/pilots/abc/play')).toBe(true)
+    expect(hidesUnionBar('/games/g1/mediate')).toBe(true)
     expect(hidesUnionBar('/og/pilot/abc')).toBe(true)
     expect(hidesUnionBar('/pilots/abc')).toBe(false)
   })
 
-  test('the Play landing keeps the bar: its Play tab is how you got there', () => {
-    expect(hidesUnionBar('/play/')).toBe(false)
+  test('Your Games keeps the bar: its Games tab is how you got there', () => {
+    expect(hidesUnionBar('/games/')).toBe(false)
     expect(hidesUnionBar('/play')).toBe(false)
   })
 
-  test('where a route is: Build’s nav item, or Play with Games ▾ on the hub and any Game route', () => {
-    expect(unionHere('/')).toEqual({ mode: 'build', nav: 'hangar' })
-    expect(unionHere('/patterns/')).toEqual({ mode: 'build', nav: 'patterns' })
-    expect(unionHere('/mechs/new')).toEqual({ mode: 'build', nav: null })
-    expect(unionHere('/starter/pilot/x')).toEqual({ mode: 'build', nav: 'starter' })
-    expect(unionHere('/settings')).toEqual({ mode: 'build', nav: null })
-    expect(unionHere('/players')).toEqual({ mode: 'build', nav: null })
-    expect(unionHere('/play')).toEqual({ mode: 'play', nav: 'games' })
-    expect(unionHere('/play/')).toEqual({ mode: 'play', nav: 'games' })
-    expect(unionHere('/play/games/g1')).toEqual({ mode: 'play', nav: 'games' })
-    expect(unionHere('/play/games/g1/mediate')).toEqual({ mode: 'play', nav: 'games' })
-    // A solo Cockpit is Play's, under no nav item (and draws no bar).
-    expect(unionHere('/play/pilots/p1')).toEqual({ mode: 'play', nav: null })
-    // An invite joins a Game: Play's, under no nav item (ADR-052 §4).
-    expect(unionHere('/play/invite/abc')).toEqual({ mode: 'play', nav: null })
+  test('which tab a route is under: the Games for /games and below, the Training Bay for the rest', () => {
+    expect(unionHere('/')).toBe('build')
+    expect(unionHere('/patterns/')).toBe('build')
+    expect(unionHere('/starter/pilot/x')).toBe('build')
+    expect(unionHere('/settings')).toBe('build')
+    // A pilot's Play mode is the pilot's own page (and draws no bar, ADR-066).
+    expect(unionHere('/pilots/p1/play')).toBe('build')
+    expect(unionHere('/games')).toBe('play')
+    expect(unionHere('/games/')).toBe('play')
+    expect(unionHere('/games/g1/mediate')).toBe('play')
+    expect(unionHere('/games/invite/abc')).toBe('play')
+    expect(unionHere('/gamesroom')).toBe('build')
+    // The Mediator's Kit's sheets are Play's, where the Kit lists them (MD-02).
+    expect(unionHere('/npcs/n1')).toBe('play')
+    expect(unionHere('/npcs/new')).toBe('play')
+    expect(unionHere('/encounters/e1')).toBe('play')
+    expect(unionHere('/games/g1/prep')).toBe('play')
   })
 
-  test('a Game’s page keeps the bar, in Play: it is a Manage page, not a Cockpit', () => {
-    expect(hidesUnionBar('/play/games/g1')).toBe(false)
-    expect(unionHere('/play/games/g1').mode).toBe('play')
+  test('a Game’s page keeps the bar: it is a Manage page, not a Cockpit', () => {
+    expect(hidesUnionBar('/games/g1')).toBe(false)
+    expect(unionHere('/games/g1')).toBe('play')
     // The Mediator's Cockpit for the same Game still draws its own bar.
-    expect(hidesUnionBar('/play/games/g1/mediate')).toBe(true)
-  })
-
-  test('Training Bay is here only at the root; Starter Set on every page under it', () => {
-    expect(isCurrent('/', '/')).toBe(true)
-    expect(isCurrent('/', '/starter/')).toBe(false)
-    expect(isCurrent('/starter/', '/starter/pilot/x')).toBe(true)
-    // The router drops the trailing slash.
-    expect(isCurrent('/starter/', '/starter')).toBe(true)
-    expect(isCurrent('/starter/', '/starters')).toBe(false)
+    expect(hidesUnionBar('/games/g1/mediate')).toBe(true)
   })
 
   test('routes a plain click on a link under the base in place, and nothing else', () => {

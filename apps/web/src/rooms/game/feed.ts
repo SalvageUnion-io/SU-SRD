@@ -3,29 +3,33 @@ import { ClientMessageSchema } from '../protocol'
 import { DEFECT_REFUSAL } from '../refusal'
 import { crewVitals } from '../vitals'
 import type { GameRoomLogic } from './gameRoomLogic'
+import { hiddenFrom } from './readers'
 import type { GameStore, StoredOp, UnitRow } from './store'
 import type { SubmitResult } from './units'
 
 /**
  * What a Game room tells a member's socket (`../protocol.ts`): the whole
  * Game on connect and after any act that changes more than one unit's body,
- * else one `applied` per op. Members see every unit and link; only a
+ * else one `applied` per op. Members see every pilot, mech and crawler and
+ * their links; an NPC only as `readerOf` allows (r3 A3); only a
  * Mediator sees the Opposition.
  */
 
 export function gameSnapshot(room: GameRoomLogic, actor: string, gameId: string): ServerMessage {
   if (room.store.member(actor) === null)
     return { type: 'snapshot', units: [], records: {}, links: [] }
+  // An NPC the room withholds from this member goes with its links (r3 A3).
+  const hidden = hiddenFrom(room.store, actor)
   return {
     type: 'snapshot',
-    units: room.store.units().map((unit) => roomUnit(unit, gameId)),
+    units: room.units.list(actor).map((unit) => roomUnit(unit, gameId)),
     records: {
       opposition: room.opposition.trayRecords(actor),
       mediator: room.opposition.mediatorRecords(actor),
       ...tableRecords(room, actor),
       ...playRecords(room, actor),
     },
-    links: roomLinks(room.store),
+    links: roomLinks(room.store).filter((l) => !hidden.has(l.from.id) && !hidden.has(l.to.id)),
   }
 }
 
@@ -52,7 +56,8 @@ function tableRecords(room: GameRoomLogic, actor: string) {
 /**
  * The table in play, as each member reads it: the roster, every pilot's
  * seat, the Downtime, the proposals waiting on them (and, for a Mediator,
- * every one sent), the newest rolls and alerts, and the crew's vitals.
+ * every one sent), the newest rolls and alerts, the table's events (`events.ts`)
+ * and the crew's vitals.
  */
 function playRecords(room: GameRoomLogic, actor: string) {
   const by = <T extends object>(rows: T[], appId: (row: T) => string, at: (row: T) => number) =>
@@ -92,6 +97,11 @@ function playRecords(room: GameRoomLogic, actor: string) {
       room.log.alerts(actor),
       (a) => a._id,
       (a) => a.ts
+    ),
+    events: by(
+      room.events.list(actor),
+      (e) => e._id,
+      (e) => e.ts
     ),
     crew: [crewRecord(room)],
   }
@@ -168,14 +178,22 @@ export const UNREADABLE: ServerMessage = {
   reason: 'Not a message this room reads',
 }
 
+/**
+ * What a player reads when someone else's change to the same thing landed
+ * first. It names no field: `result.fields` are stored keys (`currentSP`),
+ * not words on the sheet.
+ */
+export const CHANGED_FIRST = 'Someone else changed that first. Check it, then try again.'
+
+/** The same, when the change it met was the sender's own, on another screen (two tabs, a phone and a laptop). */
+export const CHANGED_FIRST_BY_YOU =
+  'You changed that on another screen first. Check it, then try again.'
+
 /** What the sender of a batch hears: `ack`, or why it was declined. */
 export function batchAnswer(opIds: string[], result: SubmitResult): ServerMessage {
   if (result.ok) return { type: 'ack', opIds, fresh: result.fresh }
-  const reason =
-    result.reason === 'conflict'
-      ? `Changed elsewhere first: ${result.fields.join(', ')}`
-      : result.message
-  return refusedBatch(opIds, reason)
+  if (result.reason !== 'conflict') return refusedBatch(opIds, result.message)
+  return refusedBatch(opIds, result.own === true ? CHANGED_FIRST_BY_YOU : CHANGED_FIRST)
 }
 
 export function refusedBatch(opIds: string[], reason: string): ServerMessage {

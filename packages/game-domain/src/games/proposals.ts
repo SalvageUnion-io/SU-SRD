@@ -8,6 +8,9 @@
  * are one list. Pure: no React, no rooms.
  */
 
+import type { MechSalvageBand } from 'salvageunion-reference/rules'
+import type { WreckPart } from '../rules/wreck'
+
 /** How many proposals one page of a sent list adds. */
 export const PROPOSALS_PAGE = 20
 
@@ -28,6 +31,7 @@ export const PROPOSAL_FIELDS = {
   ],
   mech: [
     { field: 'currentSP', label: 'SP' },
+    { field: 'currentEP', label: 'EP' },
     { field: 'currentHeat', label: 'Heat' },
   ],
 } as const
@@ -36,13 +40,46 @@ type ProposalTargetKind = keyof typeof PROPOSAL_FIELDS
 
 export type ProposalField = (typeof PROPOSAL_FIELDS)[ProposalTargetKind][number]['field']
 
-const FIELD_LABEL: Record<string, string> = Object.fromEntries(
-  [...PROPOSAL_FIELDS.pilot, ...PROPOSAL_FIELDS.mech].map((f) => [f.field, f.label])
-)
+/**
+ * A Mech's hold, proposed by a wreck's salvage (r5 B2): the proposal holds the
+ * lots it adds, and accepting adds them to the hold as it is then.
+ */
+export const CARGO_PROPOSAL_FIELD = 'cargoLots'
+
+/**
+ * What a wreck's salvage proposal offers the crew (r7 D8, ADR-030 §4 as
+ * amended): the Mech Salvage band rolled, the wreck's parts, and the ones the
+ * Mediator picked. Offered to the crawler, any member of the crew may accept
+ * the pick, change it to another the band allows, or decline it.
+ */
+export type SalvageOffer = {
+  band: MechSalvageBand
+  parts: WreckPart[]
+  picked: string[]
+}
+
+const FIELD_LABEL: Record<string, string> = Object.fromEntries([
+  ...[...PROPOSAL_FIELDS.pilot, ...PROPOSAL_FIELDS.mech].map((f) => [f.field, f.label]),
+  [CARGO_PROPOSAL_FIELD, 'Cargo'],
+])
 
 /** "HP" for `currentHP`; an unknown field reads as itself. */
 export function fieldLabel(field: string): string {
   return FIELD_LABEL[field] ?? field
+}
+
+/** One lot as a proposal line names it: a bulk lot with its count, "3 Tech 1 Scrap" (r8 B2). */
+function lotText(lot: unknown): string {
+  const { name, qty } = (lot ?? {}) as { name?: unknown; qty?: unknown }
+  if (typeof name !== 'string') return '?'
+  return typeof qty === 'number' ? `${qty} ${name}` : name
+}
+
+/** What a proposal asks, as its line reads it: a number, or "+ 3 Tech 1 Scrap" for lots added. */
+export function proposalValueText(value: unknown): string {
+  if (value === null || value === undefined) return '—'
+  if (Array.isArray(value)) return `+ ${value.map(lotText).join(', ')}`
+  return String(value)
 }
 
 /** A proposal's state, in words. `proposed` reads Pending. */
@@ -51,6 +88,8 @@ export const PROPOSAL_STATE_WORD = {
   applied: 'Applied',
   declined: 'Declined',
   superseded: 'Superseded',
+  withdrawn: 'Withdrawn',
+  undone: 'Undone',
 } as const
 
 /**
@@ -101,6 +140,8 @@ export type TargetCrew = {
     name: string
     currentSP: number | null
     maxSP: number | null
+    currentEP: number | null
+    maxEP: number | null
     currentHeat: number | null
     maxHeat: number | null
   }>
@@ -144,6 +185,7 @@ export function proposalTargets(crew: TargetCrew | null): ProposalTarget[] {
         pilotLinkId: pilot?.linkId ?? null,
         readings: {
           currentSP: { current: m.currentSP, max: m.maxSP },
+          currentEP: { current: m.currentEP, max: m.maxEP },
           currentHeat: { current: m.currentHeat, max: m.maxHeat },
         },
       }

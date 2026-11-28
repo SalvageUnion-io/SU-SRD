@@ -23,6 +23,11 @@
  * `exclude` drops the slot's current occupants, so "Change" never offers the
  * thing already there and "Add Crew" never offers someone already aboard.
  *
+ * In a Game, your own pilots and mechs still in your Training Bay are offered
+ * too, under their own Slab: picking one moves it into the Game (the Training
+ * Bay's move, ADR-037) and then assigns it, so an empty Game is never a dead
+ * end. What the move clears is said before the player commits.
+ *
  * ## Which way the link points
  *
  * Fixed by the schema, not by which sheet you are on (`linkTypeFor`): a mech is
@@ -39,28 +44,21 @@
  * and replaced by generic copy rather than its raw message.
  */
 
-import type { Container, ContainerFields } from 'game-domain/container'
-import { containerOf, sameContainer } from 'game-domain/container'
-import { linkTypeFor } from 'game-domain/links/linkRules'
+import type { Container } from 'game-domain/container'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useEffect, useState } from 'react'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { Button, PickDialog } from '../../components/index'
-import { failureMessage } from '../../lib/connection/useServerAction'
-import { useCrawlers, useMechs, usePilots } from '../../lib/entities'
-import { assignLink } from '../../lib/links/assignLink'
-import { LinkRefused } from '../../lib/links/linkRefused'
-import { readReference } from '../../lib/readReference'
-import type { UnitReading } from '../../lib/units/unitModel'
-import { unitRowModel } from '../../lib/units/unitModel'
+import { lazy, Suspense, useState } from 'react'
+import { Button } from '../../components/index'
+import { useOpenedOnce } from '../../lib/useOpenedOnce'
 import { wiringCopy } from '../../messages/build-wiring'
-import { WritesBlockedOffline } from '../../replica/sync'
-import { useSync } from '../../replica/syncContext'
-import { useUnits } from '../../replica/units'
 import type { SoftLinkStore } from './useSoftLinks'
+
+/** The dialog, its candidates and its write: fetched when it first opens. */
+const AssignPickDialog = lazy(() =>
+  import('./AssignPickDialog').then((m) => ({ default: m.AssignPickDialog }))
+)
 
 type Kind = EntityRef['type']
 
@@ -69,12 +67,17 @@ export type AssignPickerStore = SoftLinkStore & {
   pilots?: readonly Pilot[]
   mechs?: readonly Mech[]
   crawlers?: readonly Crawler[]
+  /** Who a Game holds a unit for (`holderOf`), and who the viewer is. */
+  holders?: {
+    me: string | null
+    of: (kind: 'pilot' | 'mech', id: string) => string | null | undefined
+  }
 }
 
 /** A slot on a rail: the sheet's own kind, then the kind the slot takes. */
 type Slot = `${Kind}.${Kind}`
 
-type SlotCopy = {
+export type SlotCopy = {
   /** Visible trigger text, empty slot. */
   assign: string
   /**
@@ -95,125 +98,65 @@ type SlotCopy = {
 
 const SLOT_COPY: Partial<Record<Slot, SlotCopy>> = {
   'pilot.mech': {
-    assign: 'Assign Mech',
-    assignAria: 'Assign mech to pilot',
-    change: 'Change Mech',
-    changeAria: 'Change mech for this pilot',
+    assign: wiringCopy('assignMech'),
+    assignAria: wiringCopy('assignMechToPilot'),
+    change: wiringCopy('changeMech'),
+    changeAria: wiringCopy('changeMechForThisPilot'),
     title: wiringCopy('assignMechToPilot'),
     confirm: 'Assign',
-    confirmAria: 'Confirm mech assignment',
+    confirmAria: wiringCopy('confirmMechAssignment'),
     pending: 'Assigning…',
     note: wiringCopy('aPilotFliesOneMech'),
   },
   'pilot.crawler': {
-    assign: 'Assign Crawler',
-    assignAria: 'Assign crawler to pilot',
-    change: 'Change Crawler',
-    changeAria: 'Change crawler for this pilot',
+    assign: wiringCopy('assignCrawler'),
+    assignAria: wiringCopy('assignCrawlerToPilot'),
+    change: wiringCopy('changeCrawler'),
+    changeAria: wiringCopy('changeCrawlerForThisPilot'),
     title: wiringCopy('assignPilotToCrawler'),
     confirm: 'Assign',
-    confirmAria: 'Confirm crawler assignment',
+    confirmAria: wiringCopy('confirmCrawlerAssignment'),
     pending: 'Assigning…',
     note: wiringCopy('aPilotCrewsOneCrawler'),
   },
   'mech.pilot': {
-    assign: 'Assign Pilot',
-    assignAria: 'Assign pilot to mech',
-    change: 'Change Pilot',
-    changeAria: 'Change pilot for this mech',
+    assign: wiringCopy('assignPilot'),
+    assignAria: wiringCopy('assignPilotToMech'),
+    change: wiringCopy('changePilot'),
+    changeAria: wiringCopy('changePilotForThisMech'),
     title: wiringCopy('assignPilotToMech'),
     confirm: 'Assign',
-    confirmAria: 'Confirm pilot assignment',
+    confirmAria: wiringCopy('confirmPilotAssignment'),
     pending: 'Assigning…',
     note: wiringCopy('aMechCarriesOnePilot'),
   },
   'mech.crawler': {
-    assign: 'Assign Crawler',
-    assignAria: 'Assign crawler to mech',
-    change: 'Change Crawler',
-    changeAria: 'Change crawler for this mech',
+    assign: wiringCopy('assignCrawler'),
+    assignAria: wiringCopy('assignCrawlerToMech'),
+    change: wiringCopy('changeCrawler'),
+    changeAria: wiringCopy('changeCrawlerForThisMech'),
     title: wiringCopy('assignMechToCrawler'),
     confirm: 'Assign',
-    confirmAria: 'Confirm crawler assignment',
+    confirmAria: wiringCopy('confirmCrawlerAssignment'),
     pending: 'Assigning…',
     note: wiringCopy('aMechIsAssignedTo'),
   },
   'crawler.pilot': {
-    assign: '+ Add Crew',
+    assign: wiringCopy('addCrew'),
     title: wiringCopy('addPilotToCrew'),
-    confirm: 'Add to Crew',
-    confirmAria: 'Confirm crew assignment',
+    confirm: wiringCopy('addToCrew'),
+    confirmAria: wiringCopy('confirmCrewAssignment'),
     pending: 'Adding…',
     note: wiringCopy('aPilotCrewsOneCrawler2'),
   },
   'crawler.mech': {
-    assign: '+ Assign Mech',
+    assign: wiringCopy('plusAssignMech'),
     title: wiringCopy('assignMechToCrawler'),
     confirm: 'Assign',
-    confirmAria: 'Confirm mech assignment',
+    confirmAria: wiringCopy('confirmMechAssignment'),
     pending: 'Assigning…',
     note: wiringCopy('aMechIsAssignedTo2'),
   },
-}
-
-/** What the empty list calls the kind it found none of. */
-const MANY: Record<Kind, string> = {
-  pilot: 'pilots',
-  mech: 'mechs',
-  crawler: 'crawlers',
-  npc: 'NPCs',
-}
-
-/** A candidate's Compact: its name, what it is built as, and its readings as chips. */
-type Candidate = { id: string; name: string; note?: string | undefined; readings?: UnitReading[] }
-
-/** Chassis name for a mech row, best-effort (reference data may not be loaded). */
-function chassisName(chassisRef: string): string | undefined {
-  const chassis = readReference(
-    'AssignPicker.chassisName',
-    () => resolveChassisRef(chassisRef),
-    null
-  )
-  return chassis?.name ?? (chassisRef || undefined)
-}
-
-const pilotCandidate = (p: Pilot): Candidate => ({
-  id: p.id,
-  name: p.name,
-  readings: p.callsign ? [{ label: wiringCopy('callsign'), value: p.callsign }] : [],
-})
-
-const mechCandidate = (m: Mech): Candidate => ({
-  id: m.id,
-  name: m.name,
-  note: chassisName(m.chassisRef),
-})
-
-const crawlerCandidate = (c: Crawler): Candidate => ({
-  id: c.id,
-  name: c.name,
-  readings: [{ label: wiringCopy('tl'), value: c.techLevel }],
-})
-
-/**
- * The empty-list copy: nothing of this kind where the subject lives at all, or
- * nothing left once the slot's occupants are excluded.
- */
-function emptyCopy(kind: Kind, scope: Container | null, anyAtAll: boolean): string {
-  const many = MANY[kind]
-  if (scope === null) {
-    return anyAtAll ? `No other ${many} to pick.` : `No ${many} yet — create one first.`
-  }
-  if (scope.kind === 'game') {
-    return anyAtAll ? `No other ${many} in this Game.` : `No ${many} in this Game yet.`
-  }
-  return anyAtAll ? `No other ${many} in your Training Bay.` : `No ${many} in your Training Bay.`
-}
-
-/** Player copy for a failed assignment. Never the raw message of a defect. */
-function refusalCopy(err: unknown): string {
-  if (err instanceof LinkRefused || err instanceof WritesBlockedOffline) return err.message
-  return failureMessage(err, 'That assignment could not be saved. Try again.')
 }
 
 type AssignPickerProps = {
@@ -247,7 +190,7 @@ export function AssignPicker({
   container,
   pick,
   filled = false,
-  exclude = [],
+  exclude,
   size = 'compact',
   store,
   onAssigned,
@@ -255,77 +198,11 @@ export function AssignPicker({
 }: AssignPickerProps) {
   const [ownOpen, setOwnOpen] = useState(false)
   const open = control ? control.open : ownOpen
-  const [selectedId, setSelectedId] = useState('')
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const { status } = useSync()
-
-  // Always call the hooks (Rules of Hooks); prefer the injected lists.
-  const livePilots = usePilots()
-  const liveMechs = useMechs()
-  const liveCrawlers = useCrawlers()
+  const mounted = useOpenedOnce(open)
 
   const copy = SLOT_COPY[`${subject.type}.${pick}`]
   if (!copy) {
     throw new Error(`AssignPicker: a ${subject.type} sheet has no ${pick} slot`)
-  }
-
-  // Signed out, there is one pile and no container to scope to.
-  const scope = status === 'live' ? container : null
-  const excluded = new Set(exclude)
-  /** Everything of this kind where the subject lives, and what is left to offer. */
-  const offer = <T extends ContainerFields & { id: string }>(
-    list: readonly T[],
-    toRow: (entity: T) => Candidate
-  ): { inScope: number; rows: Candidate[] } => {
-    const here = scope === null ? list : list.filter((e) => sameContainer(containerOf(e), scope))
-    return { inScope: here.length, rows: here.filter((e) => !excluded.has(e.id)).map(toRow) }
-  }
-  const { inScope, rows: candidates } =
-    pick === 'pilot'
-      ? offer(store?.pilots ?? livePilots, pilotCandidate)
-      : pick === 'mech'
-        ? offer(store?.mechs ?? liveMechs, mechCandidate)
-        : offer(store?.crawlers ?? liveCrawlers, crawlerCandidate)
-
-  function openDialog() {
-    setSelectedId('')
-    setError(null)
-    setOwnOpen(true)
-  }
-
-  // Opened from outside, it starts clean as its own trigger would.
-  const controlOpen = control?.open === true
-  useEffect(() => {
-    if (!controlOpen) return
-    setSelectedId('')
-    setError(null)
-  }, [controlOpen])
-
-  function closeDialog() {
-    if (control) control.onClose()
-    else setOwnOpen(false)
-    setError(null)
-  }
-
-  async function handleConfirm(pickedId: string) {
-    // The schema fixes the direction: whichever end the link type starts from.
-    const self = { type: subject.type, id: subject.id }
-    const picked = { type: pick, id: pickedId }
-    const [from, to] =
-      linkTypeFor(self.type, picked.type) !== null ? [self, picked] : [picked, self]
-    setPending(true)
-    setError(null)
-    try {
-      await assignLink(from, to, store ?? useUnits.getState())
-      if (control) control.onClose()
-      else setOwnOpen(false)
-      onAssigned?.()
-    } catch (err) {
-      setError(refusalCopy(err))
-    } finally {
-      setPending(false)
-    }
   }
 
   const label = filled && copy.change ? copy.change : copy.assign
@@ -334,37 +211,26 @@ export function AssignPicker({
   return (
     <>
       {!control && (
-        <Button size={size} onClick={openDialog} aria-label={ariaLabel}>
+        <Button size={size} onClick={() => setOwnOpen(true)} aria-label={ariaLabel}>
           {label}
         </Button>
       )}
 
-      <PickDialog
-        open={open}
-        onOpenChange={(next) => {
-          if (!next) closeDialog()
-        }}
-        title={copy.title}
-        groups={[
-          {
-            key: pick,
-            choices: candidates.map((c) => ({
-              id: c.id,
-              label: c.name,
-              model: unitRowModel({ kind: pick, name: c.name, note: c.note, readings: c.readings }),
-            })),
-          },
-        ]}
-        empty={emptyCopy(pick, scope, inScope > 0)}
-        selected={selectedId || null}
-        onSelect={setSelectedId}
-        note={copy.note}
-        error={error}
-        confirmLabel={pending ? copy.pending : copy.confirm}
-        confirmAria={copy.confirmAria}
-        confirm={selectedId ? () => void handleConfirm(selectedId) : undefined}
-        pending={pending}
-      />
+      {mounted && (
+        <Suspense fallback={null}>
+          <AssignPickDialog
+            subject={subject}
+            container={container}
+            pick={pick}
+            exclude={exclude}
+            store={store}
+            onAssigned={onAssigned}
+            copy={copy}
+            open={open}
+            onClose={control ? control.onClose : () => setOwnOpen(false)}
+          />
+        </Suspense>
+      )}
     </>
   )
 }

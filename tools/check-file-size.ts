@@ -42,10 +42,9 @@ const SCAN_FLOOR = 630
  * within MAX_LINES.
  */
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
-  'apps/discord-bot/src/gameCards.ts': 661,
-  'apps/web/src/build/npc/CrewBoard.tsx': 618,
-  'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 602,
-  'apps/web/src/lib/rules/creation.ts': 720,
+  'apps/discord-bot/src/gameCards.ts': 660,
+  'apps/web/src/build/npc/CrewBoard.tsx': 617,
+  'apps/web/src/lib/rules/creation.ts': 713,
   'packages/gates/lib/statFidelity.ts': 780,
   'packages/gates/rules/stylingOwnership.ts': 610,
   'tools/check-doc-drift.ts': 840,

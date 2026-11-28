@@ -58,6 +58,13 @@ export type CommandExecuteInteraction = {
    */
   channelName: string | null
   /**
+   * The category that channel sits in (`/su bind` binds the whole category,
+   * ADR-068 §6); null outside one, or when Discord sent no channel object.
+   */
+  categoryId: string | null
+  /** The server the command ran in; null in a DM. */
+  guildId: string | null
+  /**
    * Whether the member holds Manage Channels in that channel, from the
    * permissions Discord resolves into the interaction (`/su bind` needs it in
    * a server); null outside a server (a DM), where Discord sends no member.
@@ -72,6 +79,11 @@ export type CommandExecuteInteraction = {
   deferReply(options?: { flags?: MessageFlags.Ephemeral }): Promise<unknown>
   editReply(payload: EditReplyPayload): Promise<unknown>
   followUp(payload: ReplyPayload): Promise<unknown>
+  /**
+   * Answer by opening the app's Activity where the command ran (`/su play`):
+   * Discord's LAUNCH_ACTIVITY response, with no message of ours.
+   */
+  launchActivity(): Promise<unknown>
 }
 
 /**
@@ -87,6 +99,8 @@ export type CommandButtonInteraction = {
   /** A select menu's picked option values; empty for a button. */
   values: readonly string[]
   user: { id: string; displayName?: string }
+  /** The channel the button was pressed in, when Discord sent one. */
+  channelId?: string | null
   reply(payload: ReplyPayload): Promise<unknown>
 }
 

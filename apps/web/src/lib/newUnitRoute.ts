@@ -17,10 +17,16 @@ import { parseSlugParam } from './wizard/preselect'
 export type NewUnitSearch<K extends string = never> = {
   mode: CreateMode
   game?: string | undefined
+  /** `/mechs/new`: the pilot the new mech is assigned to (a Training Bay pilot line's "+ Add a mech"). `/crawlers/new`: the pilot whose "+ Create" it was. */
+  pilot?: string | undefined
+  /** `/pilots/new`: the mech the new pilot is assigned to (that mech's "No Pilot" + Create). `/crawlers/new`: the mech whose "+ Create" it was. */
+  mech?: string | undefined
+  /** 'play': made from a pilot's Play (`/mechs/new`, r5 B17) or solo Downtime (`/crawlers/new`, r5 A13); finishing returns there. */
+  back?: 'play' | undefined
 } & { [P in K]?: string }
 
 /**
- * - mode: absent → chooser · 'guided' → the wizard · 'blank' → blank dialog
+ * - mode: absent or 'guided' → the wizard (r6 F2) · 'blank' → blank dialog · 'pattern' → a mech's patterns
  * - game: the Game it lands in, from that Game's page in Play (`lib/wizard/fromGame.ts`)
  * - each of `slugKeys`: a slug deep-linked from an SRD page's "Build with
  *   this" (`lib/wizard/preselect.ts`), kept only when slug-shaped

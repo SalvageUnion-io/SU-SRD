@@ -1,5 +1,5 @@
 /**
- * A crew slot's assigned NPC card's controls (C8, hard rule R6): Open, to its
+ * A crew slot's assigned NPC card's controls (C8): Open, to its
  * sheet, and, where the session may write, Unassign. They are the card's own
  * controls, never a line under it.
  */
@@ -7,6 +7,7 @@
 import type { ReferenceEntityControl } from '../../components/index'
 import { toast } from '../../components/index'
 import { runWrite } from '../../lib/runWrite'
+import { npcCopy } from '../../messages/build-npc'
 import { useUnits } from '../../replica/units'
 
 /**
@@ -17,7 +18,7 @@ export function unassignCrew(linkId: string, slotName: string, onDone: () => voi
   runWrite(
     () => useUnits.getState().delete('softLink', linkId),
     () => {
-      toast.success(`${slotName} is back to the book’s crew line.`)
+      toast.success(npcCopy('backToTheBooksCrewLine', { slot: slotName }))
       onDone()
     }
   )

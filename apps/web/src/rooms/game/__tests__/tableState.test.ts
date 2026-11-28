@@ -33,6 +33,127 @@ describe('the Scene', () => {
   })
 })
 
+describe('up now', () => {
+  test('the Mediator marks whose turn it is, every seat reads it, and clearing it reads newer', () => {
+    const { room } = table()
+    room.scene.setUpNow(MEDIATOR, 'p1', AT)
+    expect(room.scene.scene(PLAYER)).toEqual({ conditions: [], hours: 0, upNow: 'p1' })
+    expect(room.scene.updatedAt('scene')).toBe(AT)
+    room.scene.setConditions(MEDIATOR, ['freezing'], AT + 1)
+    expect(room.scene.scene(PLAYER).upNow).toBe('p1')
+    room.scene.setUpNow(MEDIATOR, 'p2', AT + 2)
+    expect(room.scene.scene(PLAYER).upNow).toBe('p2')
+    room.scene.setUpNow(MEDIATOR, null, AT + 3)
+    expect(room.scene.scene(PLAYER)).toEqual({ conditions: ['freezing'], hours: 0 })
+    expect(room.scene.updatedAt('scene')).toBe(AT + 3)
+    expect(room.scene.scene(STRANGER)).toEqual({ conditions: [], hours: 0 })
+    expect(() => room.scene.setUpNow(PLAYER, 'p1', AT)).toThrow('Only the Mediator')
+    expect(() => room.scene.setUpNow(MEDIATOR, '', AT)).toThrow()
+    // A marker is no roll and no alert.
+    expect(room.log.rolls(PLAYER)).toEqual([])
+    expect(room.log.alerts(PLAYER)).toEqual([])
+  })
+})
+
+/** ADR-068 §4: what the Mediator puts on the table, filtered as the room keeps it. */
+describe('on the table, and Hold', () => {
+  test('an NPC is served by its name and kind alone; a roll table by its name; null clears', () => {
+    const { room } = table()
+    const id = room.opposition.addNpc(
+      MEDIATOR,
+      { name: 'Raider 2', refSchema: 'npcs', refSlug: 'raider', currentHp: 5, maxHp: 6 },
+      AT
+    )
+    room.scene.putOnTable(MEDIATOR, { kind: 'npc', npcId: id }, AT + 1)
+    expect(room.scene.scene(PLAYER).onTable).toEqual({
+      kind: 'npc',
+      name: 'Raider 2',
+      refSchema: 'npcs',
+      refSlug: 'raider',
+    })
+    expect(room.scene.updatedAt('scene')).toBe(AT + 1)
+    // Its numbers moving changes nothing a player is served.
+    room.opposition.updateNpc(MEDIATOR, id, { currentHp: 1 }, AT + 2)
+    expect(JSON.stringify(room.scene.scene(PLAYER))).not.toContain('Hp')
+    room.scene.putOnTable(MEDIATOR, { kind: 'table', name: ' Core Mechanic ' }, AT + 3)
+    expect(room.scene.scene(PLAYER).onTable).toEqual({ kind: 'table', name: 'Core Mechanic' })
+    room.scene.putOnTable(MEDIATOR, null, AT + 4)
+    expect(room.scene.scene(PLAYER).onTable).toBeUndefined()
+    expect(room.scene.updatedAt('scene')).toBe(AT + 4)
+    expect(() => room.scene.putOnTable(PLAYER, { kind: 'table', name: 'X' }, AT)).toThrow(
+      'Only the Mediator'
+    )
+    expect(() => room.scene.putOnTable(MEDIATOR, { kind: 'npc', npcId: 'gone' }, AT)).toThrow(
+      'no longer on the tray'
+    )
+    expect(() => room.scene.putOnTable(MEDIATOR, { kind: 'table', name: ' ' }, AT)).toThrow()
+  })
+
+  test('the Mediator holds the table and lets it go; every seat reads it', () => {
+    const { room } = table()
+    room.scene.setHold(MEDIATOR, true, AT)
+    expect(room.scene.scene(PLAYER).hold).toBe(true)
+    expect(room.scene.scene(STRANGER).hold).toBeUndefined()
+    room.scene.setHold(MEDIATOR, false, AT + 1)
+    expect(room.scene.scene(PLAYER)).toEqual({ conditions: [], hours: 0 })
+    expect(() => room.scene.setHold(PLAYER, true, AT)).toThrow('Only the Mediator')
+    const c = { room, actor: MEDIATOR, gameId: 'g1', at: AT + 2 }
+    expect(runAct(c, 'scenes.hold', { hold: true })).toEqual({ ok: true, value: undefined })
+  })
+})
+
+describe('asking a seat for a roll', () => {
+  test('the Mediator asks; only that seat and the Mediator read it; the seat answers it', () => {
+    const { room } = crewed()
+    room.scene.askRoll(MEDIATOR, 'p1', ' Core Mechanic ', AT + 1)
+    const ask = [{ pilotId: 'p1', table: 'Core Mechanic' }]
+    expect(room.scene.scene(MEDIATOR).asks).toEqual(ask)
+    expect(room.scene.scene(PLAYER).asks).toEqual(ask)
+    expect(room.scene.scene(ORGANIZER).asks).toBeUndefined()
+    expect(room.scene.updatedAt('scene')).toBe(AT + 1)
+    expect(() => room.scene.askRoll(PLAYER, 'p1', 'Core Mechanic', AT)).toThrow('Only the Mediator')
+    expect(() => room.scene.askRoll(MEDIATOR, 'c1', 'Core Mechanic', AT)).toThrow('not a Pilot')
+    expect(() => room.scene.answerAsk(ORGANIZER, 'p1', AT)).toThrow()
+    room.scene.answerAsk(PLAYER, 'p1', AT + 2)
+    expect(room.scene.scene(MEDIATOR).asks).toBeUndefined()
+    room.scene.askRoll(MEDIATOR, 'p1', 'Group Initiative', AT + 3)
+    room.scene.askRoll(MEDIATOR, 'p1', null, AT + 4)
+    expect(room.scene.scene(PLAYER)).toEqual({ conditions: [], hours: 0 })
+    const c = { room, actor: MEDIATOR, gameId: 'g1', at: AT + 5 }
+    expect(runAct(c, 'scenes.askRoll', { pilotId: 'p1', table: 'Core Mechanic' }).ok).toBe(true)
+    expect(runAct({ ...c, actor: PLAYER }, 'scenes.answerAsk', { pilotId: 'p1' }).ok).toBe(true)
+  })
+})
+
+describe("the Mediator's rolls", () => {
+  const roll = (description: string, hidden: boolean, ts: number) => ({
+    entityType: 'game',
+    field: 'roll',
+    after: { description, ...(hidden ? { private: true } : {}) },
+    source: 'play',
+    ts,
+  })
+
+  test('a shared one reaches every seat; a private one only the Mediator', () => {
+    const { room } = table()
+    room.log.append(MEDIATOR, [roll('Mediator · Morale · 4', false, AT)])
+    room.log.append(MEDIATOR, [roll('Mediator · Reaction · 9', true, AT + 1)])
+    expect(room.log.rolls(PLAYER).map((r) => r.description)).toEqual(['Mediator · Morale · 4'])
+    expect(room.log.rolls(MEDIATOR)).toMatchObject([
+      { description: 'Mediator · Reaction · 9', private: true },
+      { description: 'Mediator · Morale · 4' },
+    ])
+    expect(room.log.rolls(MEDIATOR)[1]).not.toHaveProperty('private')
+  })
+
+  test("a player's roll is never private, whatever the client sent", () => {
+    const { room } = table()
+    room.log.append(PLAYER, [roll('Rook · Core Mechanic · 14', true, AT)])
+    expect(room.log.rolls(ORGANIZER)).toMatchObject([{ description: 'Rook · Core Mechanic · 14' }])
+    expect(room.log.rolls(PLAYER)[0]).not.toHaveProperty('private')
+  })
+})
+
 describe('the area being salvaged', () => {
   test('each roll spends 1 Supply, on the Tech Level it was set at, until it is picked clean', () => {
     const { room } = crewed()

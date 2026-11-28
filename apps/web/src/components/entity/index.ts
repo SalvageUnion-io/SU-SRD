@@ -1,5 +1,5 @@
 /**
- * The entity module's face (hard rule R7, EDL E15): the parts of the forms
+ * The entity module's face (hard rule R7): the parts of the forms
  * that the rest of the library composes into its own strips and heads. A
  * Slab's summary and a titled box's band are `Chips`, a titled container's band
  * is the Compact's `Head` and its art window the Compact's `Art`, a dialog wears an
@@ -18,6 +18,7 @@ export { Chips } from './parts/Chips'
 export type { ChipSet } from './parts/chipSet'
 export { costCell } from './parts/chipSet'
 export { factCells } from './parts/factCells'
+export { factRef } from './parts/factRefs'
 export { Head } from './parts/Head'
 export { INDEX_NAME, INDEX_NAME_CAPS } from './parts/indexName'
 export { KindLabel } from './parts/KindLabel'
@@ -25,6 +26,8 @@ export { Lead } from './parts/Lead'
 export { PeekCell } from './parts/PeekCell'
 export type { Paint } from './parts/paint'
 export { paintFor } from './parts/paint'
-export { Tag, Tags } from './parts/Tags'
+export { statTerm, TRAINING_POINTS } from './parts/statTerms'
+export { ChipLink, Tag, Tags } from './parts/Tags'
+export { TermChip } from './parts/TermChip'
 export type { TagItem } from './parts/tagItems'
 export { mentionRef, relation, traitTags } from './parts/tagItems'

@@ -19,10 +19,13 @@
  * screen's rolls are its own. No React here but the one hook.
  */
 
-import { useSyncExternalStore } from 'react'
+import { useLayoutEffect, useSyncExternalStore } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
+import { localStore } from '../lib/safeLocalStorage'
+import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
+import { CORE_MECHANIC_TABLE } from './tables.model'
 
 /** One roll as Play records it. */
 export type PlayRoll = {
@@ -38,26 +41,88 @@ export type PlayRoll = {
   outcome?: string
   /** When, in ms. */
   at: number
+  /**
+   * The Mediator's private roll (play.md §10): the Game's log keeps it from the
+   * players, and it is never posted to Discord. Absent on every other roll.
+   */
+  private?: true
+  /**
+   * An Opposition roll (ADR-051 §9b): the Game's log keeps the whole line and
+   * serves the players `veiledRollDescription` in its place, until the
+   * Mediator reveals it. Absent on a table roll and on every player's roll.
+   */
+  veiled?: true
+  /**
+   * What the roll stands for, once (a wreck's Mech Salvage, r5 B1): recording
+   * another in the same slot replaces it here, and the Game's log drops the
+   * slot's row before it, so a roll made again is one Feed line, not two.
+   */
+  slot?: string
+  /** The screen it was recorded on (`useRollScreen`): a solo Feed reads its own back (r6 A8). */
+  screen?: string
 }
 
-/** What a caller hands `recordPlayRoll`: the id is assigned, `at` defaults to now. */
-export type PlayRollInput = Omit<PlayRoll, 'id' | 'at'> & { at?: number }
+/** What a caller hands `recordPlayRoll`: the id and screen are assigned, `at` defaults to now. */
+export type PlayRollInput = Omit<PlayRoll, 'id' | 'at' | 'screen'> & { at?: number }
 
 type Listener = (roll: PlayRoll) => void
 
 let log: readonly PlayRoll[] = []
 let next = 0
+let privately = false
+/** The Play screen open now, stamped on what it records (`useRollScreen`). */
+let screen: string | null = null
 const listeners = new Set<Listener>()
 const watchers = new Set<() => void>()
 
 /** Record a roll made in Play: it lands on the Feed, the Game's log and, if asked, Discord. */
 export function recordPlayRoll(input: PlayRollInput): PlayRoll {
   next += 1
-  const roll: PlayRoll = { ...input, id: `play-roll-${next}`, at: input.at ?? Date.now() }
-  log = [...log, roll]
+  const roll: PlayRoll = {
+    ...input,
+    id: `play-roll-${next}`,
+    at: input.at ?? Date.now(),
+    ...(privately && input.rolls.length > 0 ? { private: true as const } : {}),
+    ...(screen === null ? {} : { screen }),
+  }
+  log = [...log.filter((r) => input.slot === undefined || r.slot !== input.slot), roll]
   for (const listener of listeners) listener(roll)
   for (const watch of watchers) watch()
   return roll
+}
+
+/**
+ * Whether the rolls recorded from now on are private: the Mediator's screen's
+ * switch, off whenever that screen is not open.
+ */
+export function setPrivateRolls(on: boolean): void {
+  privately = on
+}
+
+/** Where this browser keeps a Game's Private rolls switch: `'on'`, or absent for off. */
+const privateRollsKey = (gameId: string) => `su:play:private-rolls:${gameId}`
+
+/**
+ * Whether the Mediator left Private rolls on for this Game (r2 B2): this
+ * browser's `localStorage`, so the switch holds across a reload and leaving
+ * the screen. Off where storage is missing, blocked or empty.
+ */
+export function storedPrivateRolls(gameId: string): boolean {
+  try {
+    return localStore()?.getItem(privateRollsKey(gameId)) === 'on'
+  } catch {
+    return false
+  }
+}
+
+/** Remember the switch for this Game. */
+export function rememberPrivateRolls(gameId: string, on: boolean): void {
+  try {
+    if (on) localStore()?.setItem(privateRollsKey(gameId), 'on')
+    else localStore()?.removeItem(privateRollsKey(gameId))
+  } catch {
+    // A full or blocked store only costs the remembered switch.
+  }
 }
 
 /** Record an applied change (no dice): the Feed lists it, nothing is posted. */
@@ -78,6 +143,19 @@ export function playRollDescription(rollerName: string, roll: PlayRoll): string 
   return [
     rollerName,
     roll.label,
+    ...(roll.rolls.length > 0 ? [roll.rolls.join(', ')] : []),
+    ...(roll.outcome ? [roll.outcome] : []),
+  ].join(' · ')
+}
+
+/**
+ * What the players read of a veiled roll (ADR-051 §9b): that the Mediator
+ * rolled, the dice and what it came to; never what rolled ("Mediator rolled ·
+ * 9 · Tough Choice").
+ */
+export function veiledRollDescription(roll: Pick<PlayRoll, 'rolls' | 'outcome'>): string {
+  return [
+    playCopy('mediatorRolled'),
     ...(roll.rolls.length > 0 ? [roll.rolls.join(', ')] : []),
     ...(roll.outcome ? [roll.outcome] : []),
   ].join(' · ')
@@ -111,7 +189,7 @@ export function usePlayRollLog(): readonly PlayRoll[] {
 }
 
 /** What a reported roll says about itself besides its table and dice, read when it lands. */
-export type PlayRollMeta = Pick<PlayRollInput, 'label' | 'outcome'>
+export type PlayRollMeta = Pick<PlayRollInput, 'label' | 'outcome' | 'veiled' | 'slot'>
 
 /** The Core Mechanic's band for a die ("Success"), the outcome a Core roll reports. */
 function coreOutcome(die: number | undefined): string | undefined {
@@ -137,12 +215,14 @@ export function reportingRoll(roll: Roll, tableName: string, meta: () => PlayRol
         dice = null
         const said = meta()
         const outcome =
-          said.outcome ?? (tableName === 'Core Mechanic' ? coreOutcome(read[0]) : undefined)
+          said.outcome ?? (tableName === CORE_MECHANIC_TABLE ? coreOutcome(read[0]) : undefined)
         recordPlayRoll({
           tableName,
           rolls: read,
           label: said.label,
           ...(outcome === undefined ? {} : { outcome }),
+          ...(said.veiled ? { veiled: true as const } : {}),
+          ...(said.slot === undefined ? {} : { slot: said.slot }),
         })
       })
     }
@@ -151,9 +231,33 @@ export function reportingRoll(roll: Roll, tableName: string, meta: () => PlayRol
   }
 }
 
+/**
+ * Stamp what is recorded while this screen is open with `key`, so a solo
+ * Feed lists its own lines again when its pilot's Play is opened again in
+ * this tab, not only those since (r6 A8).
+ */
+export function useRollScreen(key: string): void {
+  useLayoutEffect(() => {
+    screen = key
+    return () => {
+      if (screen === key) screen = null
+    }
+  }, [key])
+}
+
+/** Take the line in `slot` off this tab's log: a solo vitals line whose change was undone (r6 A8). */
+export function dropPlayRollSlot(slot: string): void {
+  const kept = log.filter((r) => r.slot !== slot)
+  if (kept.length === log.length) return
+  log = kept
+  for (const watch of watchers) watch()
+}
+
 /** Empty the log (tests). */
 export function clearPlayRolls(): void {
   log = []
+  privately = false
+  screen = null
   for (const watch of watchers) watch()
 }
 
@@ -163,6 +267,12 @@ export type LoggedRoll = {
   description: string
   /** The die face, where one die decided it (a table names its row in `outcome`). */
   result: { kind: 'core' | 'table'; roll: number | null; outcome: string }
+  /** The Mediator's private roll: the room keeps the row from the players. */
+  private?: true
+  /** An Opposition roll: the line the room serves the players in `description`'s place. */
+  veiled?: string
+  /** A Mediator's slot (`PlayRoll.slot`): the row replaces the slot's row before it. */
+  slot?: string
 }
 
 /**
@@ -181,7 +291,13 @@ export function rollLogEntry<GameId extends string>(gameId: GameId, roll: Logged
     kind: PLAY_TXN.kind,
     field: 'roll',
     before: null,
-    after: { description: roll.description, result: roll.result },
+    after: {
+      description: roll.description,
+      result: roll.result,
+      ...(roll.private ? { private: true as const } : {}),
+      ...(roll.veiled === undefined ? {} : { veiled: roll.veiled }),
+      ...(roll.slot === undefined ? {} : { slot: roll.slot }),
+    },
     source: PLAY_TXN.source,
   }
 }

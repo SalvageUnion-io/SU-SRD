@@ -1,12 +1,11 @@
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import type { UnitsStore } from '../../../replica/units'
 /**
- * Crawler type card + special NPC tests (the type card
- * lives in the hero's CrawlerIdentityPanel now, not a body slab).
+ * Crawler type + special NPC tests, on the dashboard in Edit (the type's
+ * group in its side column).
  *
- * When `crawler.type` is set, the identity panel renders the type's special
- * ability and the type itself as compact entity cards, with the special NPC
- * a contentful Mini (`CrewLeadMini`), as a bay's crew lead. Keepsake/Motto persist
+ * When `crawler.type` is set, the type's group renders its special ability
+ * and its special NPC a Mini (`CrewLeadMini`), as a bay's crew lead. Keepsake/Motto persist
  * through the type NPC's SRD freeform choices into bayChoices keyed by the
  * type ref; structured name/HP/description persist into the `typeNpc` field.
  *
@@ -24,7 +23,7 @@ import type { RefCrawler } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
-import { CrawlerIdentityPanel } from '../CrawlerIdentity'
+import { CrawlerSheet } from '../CrawlerSheet'
 
 /** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
 function openCrewDetails() {
@@ -116,19 +115,12 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
 // Tests
 // ---------------------------------------------------------------------------
 
-/** Render the identity panel the way CrawlerLiveSheet does (store + storeState). */
+/** Render the crawler's sheet in Edit. */
 function renderIdentity(crawler: Crawler, store: UnitsStore) {
-  return render(
-    <CrawlerIdentityPanel
-      crawler={crawler}
-      store={store}
-      storeState={store.getState()}
-      readOnly={false}
-    />
-  )
+  return render(<CrawlerSheet crawler={crawler} store={store} />)
 }
 
-describe('CrawlerIdentityPanel — type + ability cards', () => {
+describe('CrawlerSheet — the type and its special NPC', () => {
   let restore: () => void
   afterEach(() => {
     restore?.()
@@ -194,6 +186,31 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
     )
   })
 
+  test('naming the type NPC keeps what was already written about them', async () => {
+    restore = await patchCrawlers()
+    const update = mock(async () => makeCrawler())
+    const crawler = makeCrawler({ type: BATTLE_REF, typeNpc: { npcName: 'Vex', npcCurrentHP: 8 } })
+    renderIdentity(crawler, makeStubStore(crawler, update))
+    openCrewDetails()
+
+    const field = screen.getByLabelText('Edit battle crew name')
+    await act(async () => {
+      fireEvent.click(field)
+    })
+    const input = screen.getByLabelText('Edit battle crew name')
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'Mara Vex' } })
+      fireEvent.blur(input)
+    })
+
+    expect(update).toHaveBeenCalledWith(
+      'crawler',
+      crawler.id,
+      { typeNpc: { npcName: 'Mara Vex', npcCurrentHP: 8 } },
+      LIVE_SHEET_MANUAL
+    )
+  })
+
   test('Augmented edge: hitPoints:0 NPC renders no HP block', async () => {
     restore = await patchCrawlers()
     const crawler = makeCrawler({ type: AUGMENTED_REF, typeNpc: { npcName: 'Oracle' } })
@@ -215,10 +232,8 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
 
     expect(screen.queryByText('Improved Armour and Armaments')).toBeNull()
     expect(screen.queryByLabelText('Battle crew lead')).toBeNull()
-    // The identity fields still render (Type shows its empty placeholder);
-    // Read never repeats the band's name.
+    // The identity fields still render (Type shows its empty placeholder).
     expect(screen.getByLabelText('Crawler identity')).toBeTruthy()
-    expect(screen.queryByText('War Wagon')).toBeNull()
   })
 })
 

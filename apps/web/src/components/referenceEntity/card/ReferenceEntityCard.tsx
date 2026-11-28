@@ -6,7 +6,6 @@ import {
   extractVisibleActions,
   foldedActionOf,
   formatCost,
-  getAssetUrl,
   getChoices,
   getReferenceEntityName,
   getTechLevel,
@@ -18,6 +17,8 @@ import {
   resolveProvenance,
 } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { artUrlFor, isBookCover } from '../../../lib/sourceCovers'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import type { StatItem } from '../../containers/statsBarTypes'
@@ -39,6 +40,8 @@ import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from './c
 import type { HeaderFill } from './cardChrome'
 import {
   cardDown,
+  madeByCredit,
+  patternBodyLabel,
   resolveCardColors,
   resolveCardInteraction,
   resolveFrameWidth,
@@ -177,6 +180,8 @@ function ReferenceEntityCardInner({
   statsOverride,
   subtitleExtra,
   afterExtraContent,
+  leadExtraContent,
+  asideExtraContent,
   asideLead: asideLeadRequested = false,
   footMeta,
   className,
@@ -229,8 +234,9 @@ function ReferenceEntityCardInner({
     dataValueBonuses,
   } = resolveTechScaling(entity, techLevel, entityChoices, scalingParent)
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  const assetUrl = getAssetUrl(entity)
+  const assetUrl = artUrlFor(entity)
   const assetSrcSet = assetSrcSetFor(assetUrl)
+  const assetBare = isBookCover(entity)
 
   // PATTERN view — the pattern is the subject; the chassis supplies stats / tone / source.
   const isPattern = !!pattern
@@ -324,7 +330,7 @@ function ReferenceEntityCardInner({
   // pick. A recommendation is not an action, so it is never rust (§3.1).
   const suggestedNode: ReactNode = suggested ? (
     <Badge key="suggested" shape="stamp" size="mini">
-      Suggested
+      {referenceEntityCopy('suggested')}
     </Badge>
   ) : undefined
 
@@ -358,7 +364,7 @@ function ReferenceEntityCardInner({
   const hasSubLine = onPage && !!suggestedNode
 
   // The head's chip group carries the condition and every control, in its
-  // state and last slots (C8, hard rule R6), and the select seal on the
+  // state and last slots (C8), and the select seal on the
   // band's right (EDL Modes, R15): nothing rides the frame or sits under it.
   const slots = cardStripSlots({ controls, status, subject: entityName })
   // A selected Card always wears the "Selected" seal. A Mini (level 2) is ring only.
@@ -428,6 +434,7 @@ function ReferenceEntityCardInner({
     leadHint: hintText,
     assetUrl,
     assetSrcSet,
+    assetBare,
     effTechLevel,
     dataValueBonuses,
     entityChoices,
@@ -472,18 +479,22 @@ function ReferenceEntityCardInner({
           )
         }
         body={bodyHasContent ? bodyContent : null}
+        // A body that holds choices is rules, not a description.
+        bodyRules={entityChoices.length > 0 && !hide?.choices}
         opening={patternSection}
         loadout={<PatternLoadoutRows groups={pageLoadout} as={sectionAs} host={nestedHost} />}
         bodyLabel={
           isPattern
-            ? `${resolvedChassisName ?? entityName} ${isBioTitanPattern(pattern) ? 'Bio-Titan' : 'chassis'}`
+            ? patternBodyLabel(resolvedChassisName ?? entityName, isBioTitanPattern(pattern))
             : undefined
         }
         table={rollTableNode}
         guide={guideStepsNode}
         sections={nestedGroupsNode}
         patterns={hide?.patterns ? [] : patternList}
+        lead={leadExtraContent}
         after={afterExtraContent}
+        aside={asideExtraContent}
         sectionAs={sectionAs}
         action={{
           NestedCard: ReferenceEntityCardInner,
@@ -504,7 +515,7 @@ function ReferenceEntityCardInner({
       <CardOuter {...outer}>
         {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight, dash and band ours. */}
         <div className="su-ec-frame" style={frameStyle}>
-          {header(lone ? 'more' : 'body')}
+          {!hide?.head && header(lone ? 'more' : 'body')}
           {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
           {subtitleExtra && (
             <div style={{ padding: `${space[4]} ${compact ? space[12] : space[14]} 0` }}>
@@ -548,8 +559,9 @@ function ReferenceEntityCardInner({
               provenance={userMade ? undefined : provenance}
               footMeta={footMeta}
               externalLink={!insidePeek && !userMade ? externalLinkNode : undefined}
+              linkBooks={!insidePeek}
               size={size}
-              credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
+              credit={userMade ? madeByCredit(madeBy) : undefined}
               band={{ onBand, bandColor }}
               grain={grain}
             />

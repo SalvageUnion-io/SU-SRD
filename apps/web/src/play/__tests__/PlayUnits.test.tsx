@@ -10,13 +10,15 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
-import { PLAY_TXN } from '../../replica/provenance'
+import { ToasterMount } from '../../components/index'
+import { PLAY_TXN, PLAY_UNDO } from '../../replica/provenance'
 import type { ChangeMeta, EntityType } from '../../replica/units'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from '../PlayUnits'
+import { clearPlayRolls, recordPlayRoll } from '../playRolls.model'
 
 type Update = { type: EntityType; id: string; patch: Record<string, unknown>; meta?: ChangeMeta }
 
@@ -57,10 +59,68 @@ describe('a live pilot', () => {
     ])
   })
 
+  // r2 C6: the phone's pinned strip said "HP 10 → 8 · Undo"; the desktop box said nothing.
+  // r3 B2: each change has its own Undo; a second press replaces the line.
+  test('a change says itself with Undo, and Undo takes back the last change alone', async () => {
+    const { store, updates } = recordingStore()
+    render(
+      <>
+        <ToasterMount />
+        <PlayPilotUnit pilot={pilot} crawler={null} live store={store} />
+      </>
+    )
+    const minus = screen.getByRole('button', { name: 'Decrease HP' })
+    fireEvent.click(minus)
+    fireEvent.click(minus)
+    const undo = await screen.findByRole('button', { name: 'Undo' })
+    const line = undo.closest('[data-sonner-toast]')?.textContent ?? ''
+    expect(line).toContain('HP 6')
+    expect(line).toContain('5')
+    fireEvent.click(undo)
+    expect(updates.map((u) => u.patch)).toEqual([
+      { currentHP: 6 },
+      { currentHP: 5 },
+      { currentHP: 6 },
+    ])
+    // The write Undo makes says it is one, so the table's line is marked.
+    expect(updates.at(-1)?.meta).toEqual(PLAY_UNDO)
+  })
+
+  // LG-03: the gauge shows what the server last answered, so three presses
+  // before the first answer each read "one off 7"; all three must apply.
+  test('quick presses each step from where the vital is heading', async () => {
+    const { store, updates } = recordingStore()
+    render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
+    const minus = screen.getByRole('button', { name: 'Decrease HP' })
+    fireEvent.click(minus)
+    fireEvent.click(minus)
+    fireEvent.click(minus)
+    expect(updates.map((u) => u.patch)).toEqual([
+      { currentHP: 6 },
+      { currentHP: 5 },
+      { currentHP: 4 },
+    ])
+    // Once they have landed, a press steps from what is shown again.
+    await Promise.resolve()
+    await Promise.resolve()
+    fireEvent.click(minus)
+    expect(updates.at(-1)?.patch).toEqual({ currentHP: 6 })
+  })
+
+  test('quick presses stop at the maximum and at zero', () => {
+    const { store, updates } = recordingStore()
+    render(<PlayPilotUnit pilot={{ ...pilot, currentAP: 1 }} crawler={null} live store={store} />)
+    const minus = screen.getByRole('button', { name: 'Decrease AP' })
+    fireEvent.click(minus)
+    fireEvent.click(minus)
+    expect(updates.map((u) => u.patch)).toEqual([{ currentAP: 0 }, { currentAP: 0 }])
+  })
+
+  // In Play ← / → move between a vital's controls (r3 J4): ↑ / ↓ set the slider.
   test('the gauge is a slider too: an arrow key is the same write', () => {
     const { store, updates } = recordingStore()
     render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
-    fireEvent.keyDown(screen.getByRole('slider', { name: 'HP' }), { key: 'ArrowRight' })
+    fireEvent.keyDown(screen.getByRole('slider', { name: 'HP' }), { key: 'ArrowUp' })
     expect(updates.map((u) => u.patch)).toEqual([{ currentHP: 8 }])
   })
 
@@ -80,7 +140,7 @@ describe('a live pilot', () => {
     )
     expect(screen.getByText('TP')).toBeTruthy()
     expect(screen.getByText('2')).toBeTruthy()
-    expect(screen.getByText('Minor injury: cracked rib')).toBeTruthy()
+    expect(screen.getByText('Minor Injury: cracked rib')).toBeTruthy()
     expect(screen.queryByText('No injuries')).toBeNull()
   })
 })
@@ -116,6 +176,91 @@ describe('a boarded mech', () => {
   })
 })
 
+describe('Shut down on the unit card (r7 B2)', () => {
+  test('Shut down and Vulnerable are chips, and Power back on clears both', async () => {
+    const { store, updates } = recordingStore()
+    await act(async () => {
+      render(
+        <PlayMechUnit
+          mech={{ ...mech, conditions: ['Shutdown', 'Vulnerable'] }}
+          place="boarded"
+          live
+          store={store}
+        />
+      )
+    })
+    expect(await screen.findByText('Shut down')).toBeTruthy()
+    expect(screen.getByText('Vulnerable')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Power Buzzard back on' }))
+    expect(updates).toEqual([
+      { type: 'mech', id: 'w-mech', patch: { conditions: [] }, meta: PLAY_TXN },
+    ])
+  })
+
+  test('running, there are no such chips; read-only, no Power back on', async () => {
+    const { store } = recordingStore()
+    const { unmount } = render(<PlayMechUnit mech={mech} place="boarded" live store={store} />)
+    expect(screen.queryByText('Shut down')).toBeNull()
+    unmount()
+    await act(async () => {
+      render(
+        <PlayMechUnit
+          mech={{ ...mech, conditions: ['Shutdown'] }}
+          place="boarded"
+          live={false}
+          store={store}
+        />
+      )
+    })
+    expect(await screen.findByText('Shut down')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Power Buzzard back on' })).toBeNull()
+  })
+})
+
+describe('a Critical Injury, offered to the sheet (r7 B6)', () => {
+  const injure = (die: number) =>
+    act(async () => {
+      recordPlayRoll({ tableName: 'Critical Injury', rolls: [die], label: 'Critical Injury' })
+    })
+
+  test('a Minor Injury roll offers Apply, which writes the injury once', async () => {
+    clearPlayRolls()
+    const { store, updates } = recordingStore()
+    render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
+    expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
+    await injure(8)
+    fireEvent.click(await screen.findByRole('button', { name: 'Apply Minor Injury to Bonesaw' }))
+    expect(updates).toEqual([
+      {
+        type: 'pilot',
+        id: 'w-pilot',
+        patch: { injuries: [{ severity: 'minor', note: '' }] },
+        meta: PLAY_TXN,
+      },
+    ])
+    // Applied: it is not offered again.
+    expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
+    act(() => clearPlayRolls())
+  })
+
+  test('a Major Injury reads Major; Unconscious, and a read-only pilot, offer nothing', async () => {
+    clearPlayRolls()
+    const { store } = recordingStore()
+    const { unmount } = render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
+    await injure(3)
+    expect(
+      await screen.findByRole('button', { name: 'Apply Major Injury to Bonesaw' })
+    ).toBeTruthy()
+    await injure(15)
+    expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
+    unmount()
+    await injure(3)
+    render(<PlayPilotUnit pilot={pilot} crawler={null} live={false} store={store} />)
+    expect(screen.queryByRole('button', { name: /^Apply / })).toBeNull()
+    act(() => clearPlayRolls())
+  })
+})
+
 describe('activated effects (ADR-029 §4)', () => {
   const magnetised = { ...mech, modules: ['hull-magnetiser'] }
   const effect = () => screen.getByRole('button', { name: /hull magnetiser/i })
@@ -134,6 +279,37 @@ describe('activated effects (ADR-029 §4)', () => {
     expect(effect().getAttribute('aria-pressed')).toBe('false')
     fireEvent.click(effect())
     expect(toggled).toEqual(['hull-magnetiser'])
+  })
+
+  test('each effect says what it does, its cost and its rule (r6 A11)', () => {
+    render(
+      <PlayMechUnit
+        mech={magnetised}
+        place="boarded"
+        live
+        pilotAbilities={['squeeze-it-in']}
+        activeEffects={['squeeze-it-in']}
+        onToggleEffect={() => undefined}
+      />
+    )
+    const line = [...document.querySelectorAll('p, span, div')].find((n) =>
+      n.textContent?.startsWith('Squeeze it in: +4 Cargo Capacity · 1 AP. When activated')
+    )
+    expect(line).toBeTruthy()
+  })
+
+  test('a Pilot ability is an Effect only once used: unused, it stays the Pilot’s action (r8 A8)', () => {
+    render(
+      <PlayMechUnit
+        mech={magnetised}
+        place="boarded"
+        live
+        pilotAbilities={['squeeze-it-in']}
+        onToggleEffect={() => undefined}
+      />
+    )
+    expect(screen.queryByRole('button', { name: /Squeeze it in/ })).toBeNull()
+    expect(effect()).toBeTruthy()
   })
 
   test('an effect the seat has on reads pressed', () => {
@@ -228,7 +404,7 @@ describe('a live crawler', () => {
 })
 
 describe('the Downtime restore preview', () => {
-  test('each vital the step changes reads "→ N" (ArrowRight, R23) after its gauge, still showing now', () => {
+  test('each vital the step changes reads "→ N" (ArrowRight, K11) after its gauge, still showing now', () => {
     const { store } = recordingStore()
     render(
       <PlayMechUnit
@@ -265,5 +441,28 @@ describe('a hangar mech', () => {
     const { container } = render(<PlayHangarMech name="Wreck" chassis={null} note="Destroyed" />)
     expect(container.querySelector('.su-entity-mini__chips')?.textContent).toBe('Destroyed')
     expect(container.textContent).not.toContain('In hangar')
+  })
+})
+
+describe('a unit at 0 is Down (r5 A1)', () => {
+  test('a pilot at 0 HP and a mech at 0 SP are marked Down; above 0 they are not', () => {
+    const { store } = recordingStore()
+    const { unmount } = render(
+      <>
+        <PlayPilotUnit pilot={{ ...pilot, currentHP: 0 }} crawler={null} live store={store} />
+        <PlayMechUnit mech={{ ...mech, currentSP: 0 }} place="boarded" live store={store} />
+      </>
+    )
+    expect(screen.getAllByText('Down')).toHaveLength(2)
+    // The stamp says Down, not Boarded, while it is.
+    expect(screen.queryByText('Boarded')).toBeNull()
+    unmount()
+    render(
+      <>
+        <PlayPilotUnit pilot={pilot} crawler={null} live store={store} />
+        <PlayMechUnit mech={mech} place="boarded" live store={store} />
+      </>
+    )
+    expect(screen.queryByText('Down')).toBeNull()
   })
 })

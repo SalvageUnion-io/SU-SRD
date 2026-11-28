@@ -13,6 +13,31 @@ import type { GameStore } from './store'
 
 export type SessionRead = { live: boolean; startedAt: number | null }
 
+/**
+ * The owner's ruling on whether playing starts the session (r6 C3, MD6-07):
+ * `'auto'` (recommended) — the table runner's first table act (running an
+ * encounter, giving the turn, telling the table, as `STARTS_THE_SESSION`
+ * lists them) starts the group session when none is live, and the Feed says
+ * so; `'manual'` — sessions start only from Start group session. The one
+ * place the ruling is kept.
+ */
+export const PLAY_STARTS_SESSION: 'auto' | 'manual' = 'auto'
+
+/**
+ * The owner's ruling on a forgotten session (r8 B12, MD8-24): a group
+ * session with no play for this long ends itself on the room's next touch
+ * (`GameRoomLogic.endIdleSession`), and the Feed says so; null, never. Play
+ * is the newest line on the table's log, or the start. The one place it is kept.
+ */
+export const SESSION_ENDS_IDLE_MS: number | null = 12 * 60 * 60 * 1000
+
+/** The table acts that start the group session under `'auto'`. */
+export const STARTS_THE_SESSION = [
+  'mediator.runEncounter',
+  'scenes.setUpNow',
+  'changeLog.broadcast',
+] as const
+
 const NOT_LIVE: SessionRead = { live: false, startedAt: null }
 
 export class GameSession {
@@ -39,12 +64,42 @@ export class GameSession {
     })
   }
 
+  /**
+   * After a table act (`STARTS_THE_SESSION`), start the session if none is
+   * live and the ruling says playing starts it (`PLAY_STARTS_SESSION`);
+   * true when this started one. Never for anyone but the table runner.
+   */
+  startWithPlay(actor: string, at: number): boolean {
+    if (PLAY_STARTS_SESSION !== 'auto' || this.startedAt() !== null) return false
+    const member = this.store.member(actor)
+    if (member === null || !this.store.isTableRunner(member)) return false
+    return this.start(actor, at)
+  }
+
+  /** Whether a session is running, whoever asks (`eventsBefore`). */
+  isLive(): boolean {
+    return this.startedAt() !== null
+  }
+
   /** End the group session. None running is not an error. */
   end(actor: string): void {
     this.store.sql.transaction(() => {
       this.store.requireTableRunner(actor)
       this.store.rows('delete from session where id = 1')
     })
+  }
+
+  /** When the live session was last played in: its start or the table's newest line, else null. */
+  lastPlayed(): number | null {
+    const startedAt = this.startedAt()
+    if (startedAt === null) return null
+    const newest = this.store.rows('select max(ts) as ts from change_log')[0]?.ts
+    return Math.max(startedAt, newest == null ? 0 : Number(newest))
+  }
+
+  /** The room ends it, when nobody played for `SESSION_ENDS_IDLE_MS` (no member's act). */
+  endIdle(): void {
+    this.store.rows('delete from session where id = 1')
   }
 
   private startedAt(): number | null {

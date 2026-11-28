@@ -64,7 +64,8 @@ Mediator to be upfront about the situation (p.252).
   alert. Nothing reaches a player until the Mediator presses it.
 - **Threat read.** Under the opposition, the inputs p.255 eyeballs a fight
   by, against a crew size and Tech Level the Mediator steps (remembered on the
-  device, never saved to the encounter): how many meet the Pilots first, how
+  device, never saved to the encounter; for an encounter bound to a Game they
+  open at its Pilots and its crawler's Tech Level, r7 C13): how many meet the Pilots first, how
   many are held back, the Tech Level spread, total SP and HP, and whether
   either side is outnumbered or out-teched. No difficulty score: the book says
   fights are not balanced.
@@ -76,5 +77,12 @@ Mediator to be upfront about the situation (p.252).
   `schemaVersion` 1, so an encounter built before them reads as ungrouped with
   no briefing. A tray NPC's `group` and the running encounter's `groups` and
   `held` are optional too; a run without waves fields everyone, ungrouped.
+  A tray NPC's `usesSpent` (Uses spent, by action id) and `titanicSpent`
+  (Titanic Actions spent, with the initiative round) are optional (r8 B3):
+  a row without them has every Use and Titanic Action left.
+  The encounters run at a table are one `change_log` row (field `ran`, as
+  `initiative` is): their ids, each once, the newest 200, served to the
+  Mediator on the `mediator` record (r8 B8). Run an encounter starts on the
+  first not yet run there; a room without the row has run none.
 - **Offline.** `shelf.encounters` is saved to the device copy (ADR-058), so an
   offline reload still has the Mediator's prep, read-only.

@@ -5,16 +5,18 @@ import { searchPeekTrigger } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
- * Hard rule R33, "A Peek is terminal" (ruleset §1.6; EDL E16), on the rendered
+ * EDL E16, "A Peek is terminal" (ruleset §1.6), on the rendered
  * page: open a Peek of every kind that has one and read its plate
  * (`[data-peek-popup]`). A finding's rule is one of:
  *
  * - `control`: a button, a link (`a[href]`), a field (`input`, `select`,
  *   `textarea`), a `role="button"` or `role="link"`, or anything else in the
  *   tab order: nothing on a Peek acts, but its name.
- * - `open`: the one exception (R33), the
+ * - `open`: the one exception (E16), the
  *   card's name as the link to its Page (`[data-peek-open]`, `CardTitleLink`):
  *   at most one, in the plate's first head's title, out of the tab order.
+ *   The app's plate adds View in the Reference, and a term's (E27) Open page
+ *   (`[data-peek-out]`): at most one, also out of the tab order.
  * - `nested`: a Peek trigger (`[data-peek]`): a Peek never opens a Peek.
  * - `inert`: a chip (a trait or relation Tag, an action's chip, a Mini's
  *   head) that still draws the pointer: on the plate it reads, and only reads.
@@ -129,7 +131,13 @@ function scanPlate(): string[] {
     '[tabindex]:not([tabindex="-1"])',
   ].join(',')
   for (const el of plate.querySelectorAll(controls)) {
-    if (!el.hasAttribute('data-peek-open')) out.push(`control: ${what(el)}`)
+    if (!el.hasAttribute('data-peek-open') && !el.hasAttribute('data-peek-out'))
+      out.push(`control: ${what(el)}`)
+  }
+  const outs = [...plate.querySelectorAll('[data-peek-out]')]
+  if (outs.length > 1) out.push(`open: ${outs.length} ways out, not one`)
+  for (const el of outs) {
+    if (el.getAttribute('tabindex') !== '-1') out.push(`open: ${what(el)} is in the tab order`)
   }
   const opens = [...plate.querySelectorAll('[data-peek-open]')]
   if (opens.length > 1) out.push(`open: ${opens.length} linked names, not one`)
@@ -154,7 +162,8 @@ async function peekAt(page: Page, trigger: Locator, where: string): Promise<stri
   await trigger.hover()
   const popup = page.locator('[data-peek-popup]')
   await expect(
-    popup.locator('.su-entity-compact__head, .su-entity-mini, .su-roll').first(),
+    // An entity's head, a Mini, a roll table, or a term's Slab (E27, `PeekTerm`).
+    popup.locator('.su-entity-compact__head, .su-entity-mini, .su-roll, [data-slab]').first(),
     `${where}: the Peek draws its card`
   ).toBeVisible()
   const faults = (await page.evaluate(scanPlate)).map((f) => `${where}: ${f}`)
@@ -201,12 +210,21 @@ test('a Peek of every kind is terminal', { tag: '@pr' }, async ({ page }) => {
   // The SRD's pages: each kind their Mentions, Tags and roll Minis open.
   for (const path of PAGES) {
     await page.goto(path, { waitUntil: 'networkidle' })
+    // A sheet's dashboard keeps a row's rules (a bay's roll Mini) under its
+    // opener: open every row, as a reader reaching for them would.
+    const shut = page.locator('.su-open__toggle[aria-expanded="false"]')
+    for (let left = await shut.count(); left > 0; left--) await shut.first().click()
+    // A class page's Ability unfolds its rules in place (R43's one fold), the
+    // roll Mini of its action among them: unfold each, as a reader would.
+    const folded = page.locator('details.su-ability-open:not([open]) > summary')
+    for (let left = await folded.count(); left > 0; left--) await folded.first().click()
     const addresses = await page.evaluate(() =>
       [...document.querySelectorAll('[data-peek]')]
         .filter((el) => !el.closest('[data-peek-popup], [role="listbox"]'))
+        // Only a trigger a reader can reach: drawn, and not in a shut fold.
         .filter((el) => {
           const r = el.getBoundingClientRect()
-          return r.width > 0 && r.height > 0
+          return r.width > 0 && r.height > 0 && el.checkVisibility()
         })
         .map((el) => el.getAttribute('data-peek') ?? '')
     )

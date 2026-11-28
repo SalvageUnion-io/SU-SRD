@@ -3,7 +3,7 @@
  *
  *  - Both sides draw the one lot line (`CargoLotLine`): a Mini, its name,
  *    then `TL | n` where the lot has one and `UNITS | n`, a bulk lot's other
- *    count as its quantity (`× | n`), the moves in its chip group (R6, R35).
+ *    count as its quantity (`× | n`), the moves in its chip group (C8, R35).
  *  - The crawler's Storage Bay: a cap-checked **Load** that partial-fills a
  *    bulk lot to the mech's free slots and refuses what does not fit with the
  *    reason, and **Unstow**.
@@ -51,7 +51,7 @@ const relic: CargoLot = {
   code: 'CIR',
 }
 
-type Move = { move: 'stow' | 'load'; lotId: string }
+type Move = { move: 'stow' | 'load' | 'takeBack'; lotId: string }
 
 function cargoWith({
   free = 10,
@@ -75,6 +75,11 @@ function cargoWith({
       moves.push({ move: 'load', lotId })
       return answer()
     },
+    takeBack: async (lot: CargoLot) => {
+      moves.push({ move: 'takeBack', lotId: lot.id })
+      return answer()
+    },
+    carrierId: 'mech-1',
   } as unknown as UseCargoResult
   return { cargo, moves }
 }
@@ -185,7 +190,7 @@ describe("the crawler's Storage Bay", () => {
     const token = item.querySelector('.su-entity-mini')
     expect(token).not.toBeNull()
     expect(chips()).toEqual(['Units 2', '× 6'])
-    // R6: the move sits inside the Mini's own strip, never beside it.
+    // C8: the move sits inside the Mini's own strip, never beside it.
     expect(token?.contains(tile.getByRole('button', { name: 'Load Fuel Cells' }))).toBe(true)
   })
 
@@ -198,7 +203,7 @@ describe("the crawler's Storage Bay", () => {
     const tile = await renderLot({ lot: scrap, side: 'crawler', linked: false })
     const load = tile.getByRole('button', { name: 'Load T2 Scrap' }) as HTMLButtonElement
     expect(load.disabled).toBe(true)
-    expect(load.title).toBe('No mech assigned — nothing to load onto.')
+    expect(load.title).toBe('No Mech assigned — nothing to load onto.')
   })
 
   test("a crawler the viewer may not write closes Load with the lock's reason", async () => {
@@ -244,6 +249,13 @@ describe("the mech hold's lot", () => {
     expect(stow.textContent).toBe('Stow')
     await click(stow)
     expect(moves).toEqual([{ move: 'stow', lotId: 'lot-scrap' }])
+    // It says it moved, and Undo takes it back (r3 F1).
+    expect(await screen.findByText('Stowed T2 Scrap on the Union Crawler.')).toBeTruthy()
+    await click(screen.getByRole('button', { name: 'Undo' }))
+    expect(moves).toEqual([
+      { move: 'stow', lotId: 'lot-scrap' },
+      { move: 'takeBack', lotId: 'lot-scrap' },
+    ])
   })
 
   test('with no crawler linked, Stow is closed and says why; Unload still works', async () => {

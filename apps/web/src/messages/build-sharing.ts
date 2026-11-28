@@ -16,7 +16,12 @@ export const buildSharingCopy = messages({
   sharingSettingsNeedALive:
     'Sharing settings need a live connection to your account. Try again once you are connected.',
   whoCanSeeIt: 'Who can see it',
-  shareOnReference: 'Share with the SRD',
+  sharedSeparately: 'Shared separately',
+  alsoShare: 'Also share {names}',
+  andName: '{first} and {second}',
+  shareOnReference: 'Share on the Reference',
   shareOnReferenceHint:
     'Shows it on its chassis’s page, in a Homebrew section beneath the book’s patterns, and on the Homebrew page, credited to you.',
+  shareNotSaved: 'That could not be saved. Try again.',
+  couldNotCopy: 'Could not copy. Select the link and copy it manually.',
 })

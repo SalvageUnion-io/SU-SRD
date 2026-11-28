@@ -5,9 +5,11 @@
  * it tells the table that play has begun.
  */
 
+import { toast } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
+import { todayDay } from '../lib/formatDate'
 import { playCopy } from '../messages/play'
-import { useSync } from '../replica/syncContext'
+import { readsHeld, useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
 
 export type GameSession = {
@@ -17,8 +19,11 @@ export type GameSession = {
   canWrite: boolean
   /** Start it; resolves true once the room has it running. */
   start: () => Promise<boolean>
-  end: () => void
+  /** End it; resolves true once the room has it ended. */
+  end: () => Promise<boolean>
   pending: boolean
+  /** Its Game: ending lands its Mediator on the Game's page and its recap (r6 C1). */
+  gameId?: string
 }
 
 /** The Game's session, or null solo, signed out or while it loads. */
@@ -26,7 +31,7 @@ export function useGameSession(gameId: string | null): GameSession | null {
   const { status, canWrite } = useSync()
   const read = useTableRead(
     'session.state',
-    gameId !== null && status === 'live' ? { gameId } : 'skip'
+    gameId !== null && readsHeld(status) ? { gameId } : 'skip'
   )
   const start = useServerAction(useTableAct('session.start', gameId), {
     failure: playCopy('couldNotStartSession'),
@@ -40,8 +45,17 @@ export function useGameSession(gameId: string | null): GameSession | null {
   return {
     live: read.live,
     canWrite,
-    start: async () => (await start.run({})).ok,
-    end: () => void end.run({}),
+    start: async () => {
+      const result = await start.run({})
+      // It began, said back to whoever started it (r3 A4): the table hears its own line.
+      if (result.ok && result.value === true) {
+        toast.success(playCopy('sessionStarted'), { id: 'group-session' })
+      }
+      return result.ok
+    },
+    // The day by this clock: the room marks the plan played on it (r8 B8).
+    end: async () => (await end.run({ day: todayDay() })).ok,
     pending: start.pending || end.pending,
+    gameId,
   }
 }

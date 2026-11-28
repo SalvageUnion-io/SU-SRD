@@ -9,35 +9,45 @@
  *
  * Enforcement regime: NONE, deliberately —
  * instantiate is a Blank-family shortcut and its write path is untouched.
- * It adds PRESENTATION only: saved MechPatterns carry no stored
- * `legalStarting` data tag (the flag is never computed — project data
- * convention), so the confirm dialog names the freeform nature before
- * stamping the mech.
+ * It adds PRESENTATION only: one press builds (r4 E23), and the notice says
+ * what was built, offers Undo, and warns where the loadout is past the
+ * starting rules (`pastStartingRules`, counted from the loadout: a saved
+ * pattern stores no `legalStarting` tag). A name already in the bay is numbered.
  *
  * Drawn as a Mini action chip in the pattern Compact's last slot (C8, hard rule
- * R6); a failure is the act's toast, never a line under the Compact.
+ * C8); a failure is the act's toast, never a line under the Compact.
  */
 
+import { moveTo } from 'game-domain/container'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { useState } from 'react'
-import { Button, ConfirmDialog } from '../../../components/index'
+import { Button } from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
-import { mechFromPattern } from '../../../lib/patterns/patterns'
+import { mechFromPattern, pastStartingRules } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
 import { useUnits } from '../../../replica/units'
+import { builtToast, mechNamesTaken } from './buildConfirm.model'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
   /** Called with the new mech id after entityStore.create resolves. */
   onSuccess: (mechId: string) => void
+  /** The Game the mech is built into (a wizard started for one); unset, the store decides. */
+  gameId?: string | undefined
 }
 
-export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPatternProps) {
-  const [confirming, setConfirming] = useState(false)
+export function InstantiateFromPattern({
+  pattern,
+  onSuccess,
+  gameId,
+}: InstantiateFromPatternProps) {
   const build = useServerAction(
-    () => useUnits.getState().create('mech', mechFromPattern(pattern)),
+    () =>
+      useUnits.getState().create('mech', {
+        ...mechFromPattern(pattern, mechNamesTaken()),
+        ...(gameId === undefined ? {} : moveTo({ kind: 'game', gameId })),
+      }),
     {
-      failure: 'The mech could not be built from this pattern. Try again.',
+      failure: mechCopy('mechNotBuiltFromPattern'),
       toastId: `build-from-pattern-${pattern.id}`,
     }
   )
@@ -45,30 +55,22 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
 
   async function handleInstantiate() {
     const result = await build.run()
-    if (result.ok) onSuccess(result.value.id)
+    if (!result.ok) return
+    builtToast(result.value, pastStartingRules(pattern))
+    onSuccess(result.value.id)
   }
 
   return (
-    <>
-      <Button
-        type="button"
-        size="mini"
-        onClick={() => setConfirming(true)}
-        disabled={isInstantiating}
-        // "Build With This", as every build action reads; the accessible name
-        // starts with it and says what it builds.
-        aria-label={mechCopy('buildWithThisAMech', { name: pattern.name })}
-      >
-        {isInstantiating ? mechCopy('building') : mechCopy('buildWithThis')}
-      </Button>
-      <ConfirmDialog
-        open={confirming}
-        onOpenChange={setConfirming}
-        title={mechCopy('buildAMechFrom', { name: pattern.name })}
-        body={mechCopy('thisMayExceedTheStarting')}
-        confirmLabel={mechCopy('build')}
-        onConfirm={() => void handleInstantiate()}
-      />
-    </>
+    <Button
+      type="button"
+      size="mini"
+      onClick={() => void handleInstantiate()}
+      disabled={isInstantiating}
+      // "Build With This", as every build action reads; the accessible name
+      // starts with it and says what it builds.
+      aria-label={mechCopy('buildWithThisAMech', { name: pattern.name })}
+    >
+      {isInstantiating ? mechCopy('building') : mechCopy('buildWithThis')}
+    </Button>
   )
 }

@@ -25,4 +25,19 @@ describe('SlotGrid', () => {
     expect(over.length).toBe(2)
     expect(screen.getByLabelText(/over capacity/i)).toBeTruthy()
   })
+
+  test('perRow sets the rows (six slots 3 × 2), never past six; mini cells are small', () => {
+    const { container } = render(<SlotGrid used={5} cap={6} perRow={3} size="mini" />)
+    const rows = Array.from(container.querySelectorAll('[role="img"] > span'))
+    expect(rows.map((row) => row.children.length)).toEqual([3, 3])
+    expect(cellsOf(container)[0]?.style.width).toBe('12px')
+    const wide = render(<SlotGrid used={0} cap={12} perRow={9} />)
+    const wideRows = Array.from(wide.container.querySelectorAll('[role="img"] > span'))
+    expect(wideRows.map((row) => row.children.length)).toEqual([6, 6])
+  })
+
+  test('a given label keeps the over-capacity flag', () => {
+    render(<SlotGrid used={7} cap={6} label="Inventory" />)
+    expect(screen.getByRole('img', { name: 'Inventory — over capacity' })).toBeTruthy()
+  })
 })

@@ -192,7 +192,9 @@ function displayNameOf(raw: RawActor): string | undefined {
 type RawActor = {
   channel_id?: string | null
   /** The partial channel Discord sends beside (and, in newer payloads, instead of) `channel_id`. */
-  channel?: { id?: string; name?: string | null } | null
+  channel?: { id?: string; name?: string | null; parent_id?: string | null } | null
+  /** The server the interaction came from; absent in a DM. */
+  guild_id?: string
   member?: {
     /** The member's permissions in this channel, overwrites applied: a decimal bitfield. */
     permissions?: string
@@ -262,6 +264,12 @@ function replyMembers(ctx: AdapterContext) {
         type: InteractionResponseType.DeferredChannelMessageWithSource,
         data: options?.flags === undefined ? undefined : { flags: options.flags },
       })
+      return undefined
+    },
+
+    async launchActivity(): Promise<unknown> {
+      // The initial response or nothing: an Activity cannot open after a defer.
+      ctx.sink.send({ type: InteractionResponseType.LaunchActivity })
       return undefined
     },
 
@@ -335,6 +343,8 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
     ...actorOf(raw),
     channelId: raw.channel_id ?? raw.channel?.id ?? null,
     channelName: raw.channel?.name ?? null,
+    categoryId: raw.channel?.parent_id ?? null,
+    guildId: raw.guild_id ?? null,
     manageChannels: manageChannelsOf(raw),
     targetMessage: targetMessageOf(raw.data),
     ...replyMembers(ctx),
@@ -349,6 +359,7 @@ export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInterac
     customId: raw.data?.custom_id ?? '',
     values: raw.data?.values ?? [],
     ...actorOf(raw),
+    channelId: (raw as { channel_id?: string }).channel_id ?? null,
     ...replyMembers(ctx),
   } as CommandButtonInteraction
 }

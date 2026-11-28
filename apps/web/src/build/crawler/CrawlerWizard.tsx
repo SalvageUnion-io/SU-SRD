@@ -1,5 +1,5 @@
 import { CrawlerSchema } from 'game-domain/schemas/crawler'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type {
   RefCrawler,
@@ -32,6 +32,7 @@ import {
 import { withPreselection } from '../../lib/wizard/preselect'
 import { crawlerCopy } from '../../messages/build-crawler'
 import { routesCopy } from '../../messages/routes'
+import { useGameListing } from '../../replica/gameListing'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -39,7 +40,8 @@ import { RuleBrief } from '../wizard/RuleBrief'
 import { SystemsList } from '../wizard/SystemsList'
 import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
-import { WizShell, WizTracker } from '../wizard/WizShell'
+import { WizTracker } from '../wizard/WizBudget'
+import { WizShell } from '../wizard/WizShell'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
@@ -47,35 +49,34 @@ import { CrawlerReviewStep } from './CrawlerReviewStep'
 /** The RuleBrief's muted aside (the saved pilot/mech count). */
 const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
 
-/** Book-order steps (Union Crawler pp.212–213 + Review). */
-const STEPS: readonly CrawlerWizardStepId[] = [
-  'type',
-  'stats',
-  'weapons',
-  'crew',
-  'identity',
-  'review',
-]
+/**
+ * The wizard's four steps, each one a decision. The book's six (pp.212–213)
+ * stay in the rule briefs: "Note your Crawler Statistics" asks nothing, so the
+ * numbers stand under the type's picker; the crew and the crawler's name share
+ * a step; the review is the build as its sheet will read.
+ */
+type CrawlerStep = 'type' | 'weapons' | 'crew' | 'review'
 
-/** Stepper-rail labels. */
-const STEP_LABELS: Record<CrawlerWizardStepId, string> = {
-  type: 'Crawler Type',
-  stats: 'Statistics',
-  weapons: 'Armament Bay',
-  crew: 'Crew',
-  identity: 'Name',
-  review: 'Review',
+const STEPS: readonly CrawlerStep[] = ['type', 'weapons', 'crew', 'review']
+
+/** Stepper-rail labels (also the Next button's: it names the step it opens). */
+const STEP_LABELS: Record<CrawlerStep, string> = {
+  type: crawlerCopy('crawlerType'),
+  weapons: crawlerCopy('armamentBay'),
+  crew: crawlerCopy('nameCrew'),
+  review: crawlerCopy('review'),
 }
 
-/** Step headings — the book's own step names (pp.212–213). */
-const STEP_TITLES: Record<CrawlerWizardStepId, string> = {
-  type: 'Choose a Crawler Type',
-  stats: 'Note your Crawler Statistics',
-  weapons: 'Arm the Armament Bay',
-  crew: 'Name your Crew',
-  identity: 'Name your Crawler',
-  review: 'Review',
+/** Step headings. */
+const STEP_TITLES: Record<CrawlerStep, string> = {
+  type: crawlerCopy('chooseACrawlerType'),
+  weapons: crawlerCopy('armTheArmamentBay'),
+  crew: crawlerCopy('nameYourCrawlerAnd'),
+  review: crawlerCopy('reviewYourCrawler'),
 }
+
+/** The book's steps a rule brief quotes (the review quotes none). */
+type BookStep = Exclude<CrawlerWizardStepId, 'review'>
 
 type CrawlerWizardProps = {
   /** Called on successful create with the crawler's id. */
@@ -91,10 +92,8 @@ type CrawlerWizardProps = {
 }
 
 /**
- * Multi-step crawler wizard on the shared WizShell skeleton, restructured to
- * the Union Crawler's 5 book steps + Review (a magenta band, a peach step
- * card) with the crawler
- * creation rules enforced HARD (§5):
+ * The crawler wizard on the shared WizShell: four steps over the Union
+ * Crawler's book steps, with the crawler creation rules enforced HARD (§5):
  *
  *   - exactly 1 of 5 types (radio, entity cards); the type's stored
  *     `mutations` drive the Armament-Bay cap AND the Max SP bonus (never an
@@ -132,11 +131,16 @@ export function CrawlerWizard({
   const allBays = useMemo<RefEntity[]>(() => SalvageUnionReference.CrawlerBays.all(), [])
   const types = useMemo<RefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
 
-  // Advisory prelude context (step 0): a gentle count of the pilots
-  // and mechs of yours saved here — surfaced in step 1's RuleBrief, NEVER a blocker
-  // (the whole table's state can't be verified).
-  const pilotCount = useOwnUnits('pilot').length
-  const mechCount = useOwnUnits('mech').length
+  // How many pilots and mechs of yours are saved here, said beside step 1's
+  // rule (the book makes the crawler last). It gates nothing.
+  // In a Game it is the Game's pilots and mechs, whoever made them: the crew
+  // the crawler is for (r3 L4). Until the Game's room has answered, no count.
+  const ownPilots = useOwnUnits('pilot').length
+  const ownMechs = useOwnUnits('mech').length
+  const listing = useGameListing(gameId ?? null)
+  const counted = gameId === undefined || listing !== undefined
+  const pilotCount = gameId === undefined ? ownPilots : (listing?.pilots.length ?? 0)
+  const mechCount = gameId === undefined ? ownMechs : (listing?.mechs.length ?? 0)
 
   // The session draft (`useWizardDraft`): the deterministic clamp (§5.3)
   // drops illegal types/weapons, then clamps weapons NEWEST-first to the
@@ -160,7 +164,8 @@ export function CrawlerWizard({
     noun: 'crawler',
     steps: STEPS,
     stepLabels: STEP_LABELS,
-    gateFor: (s) => crawlerCreationStepGate(s, form),
+    // The name-and-crew step answers to the book step that gates it (the name).
+    gateFor: (s) => crawlerCreationStepGate(s === 'crew' ? 'identity' : s, form),
     initialStep: 'type',
     submitStep: 'review',
     form,
@@ -216,7 +221,10 @@ export function CrawlerWizard({
       const dropped = form.systems.slice(slots).map(weaponName)
       nextSystems = form.systems.slice(0, slots)
       toast.info(
-        `Type changed — this type mounts ${slots} Weapons System${slots === 1 ? '' : 's'}; removed ${dropped.join(', ')}.`
+        crawlerCopy(slots === 1 ? 'typeChangedMountsOne' : 'typeChangedMountsMany', {
+          slots,
+          removed: dropped.join(', '),
+        })
       )
     }
     updateForm({ type: typeSlug, crew: nextCrew, systems: nextSystems })
@@ -252,8 +260,9 @@ export function CrawlerWizard({
 
   // Per-step RuleBrief: the Core Book's own Union Crawler copy, pp.212–213,
   // each quote a `bookQuote` so the rules-fidelity lock holds it to the book.
-  const stepRule: StepRule = (() => {
-    switch (step) {
+  // Kept by book step: a step of two parts shows each part's rule.
+  const ruleFor = (bookStep: BookStep): StepRule => {
+    switch (bookStep) {
       case 'type':
         return {
           rule: (
@@ -262,10 +271,18 @@ export function CrawlerWizard({
                 { source: 'Salvage Union Workshop Manual', page: 212 },
                 'Once all players have created their Pilot and Mech, the final step is for everyone to create the Union Crawler they share. Your Crawler type provides a unique Ability that only it can do, as well as a special NPC who resides on the Crawler and confers their own bonuses.'
               )}{' '}
-              <span style={MUTED}>
-                (You have {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and {mechCount} Mech
-                {mechCount === 1 ? '' : 's'} saved so far — context only, never a blocker.)
-              </span>
+              {counted && (
+                <span style={MUTED}>
+                  {crawlerCopy(gameId === undefined ? 'youHaveSavedSoFar' : 'thisGameHasSoFar', {
+                    pilots: crawlerCopy(pilotCount === 1 ? 'pilotCountOne' : 'pilotCountMany', {
+                      count: pilotCount,
+                    }),
+                    mechs: crawlerCopy(mechCount === 1 ? 'mechCountOne' : 'mechCountMany', {
+                      count: mechCount,
+                    }),
+                  })}
+                </span>
+              )}
             </>
           ),
           cite: {
@@ -322,13 +339,21 @@ export function CrawlerWizard({
             see: [{ label: crawlerCopy('theCrawlerNamesTable'), page: 226 }],
           },
         }
-      case 'review':
-        return {
-          rule: 'Check the build, then create your Crawler.',
-          cite: { source: 'Salvage Union Workshop Manual', page: [212, 213] },
-        }
     }
-  })()
+  }
+  const brief = (bookStep: BookStep) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold />
+  }
+  /** A part of a step: what it asks in the brief's frame, over its rule. */
+  const part = (bookStep: BookStep, ask: ReactNode) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return (
+      <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold>
+        {ask}
+      </RuleBrief>
+    )
+  }
 
   // Tracker tab in the action pill: the WEAPONS pip chip rides on the
   // Armament step.
@@ -356,37 +381,60 @@ export function CrawlerWizard({
       footerNote={footerNote}
       submitLabel={crawlerCopy('createCrawler')}
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" fold />
       {step === 'type' && (
-        <CrawlerTypeSelectStep types={types} selectedType={form.type} onSelect={selectType} />
-      )}
-      {step === 'stats' && (
-        <CrawlerStatsStep techLevel={selectedTechLevel} selectedType={selectedType} />
+        <>
+          {brief('type')}
+          <CrawlerTypeSelectStep
+            types={types}
+            selectedType={form.type}
+            onSelect={selectType}
+            cite={ruleFor('type').cite}
+            // The book's read-only Statistics step, a part under the picker.
+            stats={part(
+              'stats',
+              <CrawlerStatsStep techLevel={selectedTechLevel} selectedType={selectedType} />
+            )}
+          />
+        </>
       )}
       {step === 'weapons' && (
-        <SystemsList
-          systems={weaponCatalog}
-          selectedSystemSlugs={form.systems}
-          maxSelectable={weaponSlots}
-          installedWeaponCount={installedWeaponCount}
-          onChange={(systems) => updateForm({ systems })}
-        />
+        <>
+          {brief('weapons')}
+          <SystemsList
+            systems={weaponCatalog}
+            selectedSystemSlugs={form.systems}
+            maxSelectable={weaponSlots}
+            installedWeaponCount={installedWeaponCount}
+            cite={ruleFor('weapons').cite}
+            onChange={(systems) => updateForm({ systems })}
+          />
+        </>
       )}
       {step === 'crew' && (
-        <CrawlerCrewStep
-          bays={crewBays}
-          selectedType={selectedType}
-          crew={form.crew}
-          onChange={updateForm}
-        />
-      )}
-      {step === 'identity' && (
-        <CrawlerIdentityStep
-          name={form.name}
-          description={form.description}
-          scrapPool={form.scrapPool}
-          onChange={updateForm}
-        />
+        <div className="su-wiz-parts">
+          <div className="su-wiz-parts__col">
+            {part(
+              'identity',
+              <CrawlerIdentityStep
+                name={form.name}
+                description={form.description}
+                scrapPool={form.scrapPool}
+                onChange={updateForm}
+              />
+            )}
+          </div>
+          <div className="su-wiz-parts__col">
+            {part(
+              'crew',
+              <CrawlerCrewStep
+                bays={crewBays}
+                selectedType={selectedType}
+                crew={form.crew}
+                onChange={updateForm}
+              />
+            )}
+          </div>
+        </div>
       )}
       {step === 'review' && (
         <CrawlerReviewStep

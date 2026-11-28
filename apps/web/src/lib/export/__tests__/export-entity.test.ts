@@ -56,6 +56,14 @@ describe('buildEntityExport', () => {
     expect(bundle.encounterNpcs).toEqual([])
   })
 
+  test('a pilot: the Mech assigned to them comes too, not another Mech or the crawler (r6 E17)', async () => {
+    const bundle = await buildEntityExport('pilot', 'p1', useUnits.getState())
+    expect(ids(bundle.entities.pilots)).toEqual(['p1'])
+    expect(ids(bundle.entities.mechs)).toEqual(['m1'])
+    expect(bundle.entities.crawlers).toEqual([])
+    expect(ids(bundle.softLinks).sort()).toEqual([mechToPilot.id, pilotToCrawler.id].sort())
+  })
+
   test('a crawler: its crew links come with it, the crew does not', async () => {
     const bundle = await buildEntityExport('crawler', 'c1', useUnits.getState())
     expect(ids(bundle.entities.crawlers)).toEqual(['c1'])

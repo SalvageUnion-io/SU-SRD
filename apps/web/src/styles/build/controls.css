@@ -17,61 +17,6 @@
  * changes it (the per-property split rule).
  */
 
-/* ── RosterColumn ── */
-
-/* The Pilot/Mech/Crawler switch shows only below `md`. */
-.su-segment-switch {
-  display: flex;
-}
-@media (width >= 48rem) {
-  .su-segment-switch {
-    display: none;
-  }
-}
-
-/* One column on a phone, three from `md` up. */
-.su-roster-grid {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  margin-top: var(--space-20);
-}
-@media (width >= 48rem) {
-  .su-roster-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: var(--space-24);
-  }
-}
-
-/* A column that is not the active phone segment: hidden below `md`, shown from
-   it (all three columns stand side by side) as the slab section it is, a flex
-   column, so its rows start where the active column's do. */
-.su-roster-column--inactive {
-  display: none;
-}
-@media (width >= 48rem) {
-  .su-roster-column--inactive {
-    display: flex;
-  }
-}
-
-/* ── OwnerSeal ── */
-
-/* The claimable seal lifts a pixel on hover; disabled, it fades and stops
-   looking pressable. */
-.su-owner-seal__assign {
-  cursor: pointer;
-  opacity: 1;
-  translate: none;
-}
-@media (hover: hover) {
-  .su-owner-seal__assign:hover {
-    translate: 0 -1px;
-  }
-}
-.su-owner-seal__assign:disabled {
-  cursor: default;
-  opacity: 50%;
-}
-
 /* ── MoveToContainerControl ── */
 
 /* The container select is Compact, beside Compact buttons. */
@@ -92,4 +37,20 @@ select.su-container-select {
   display: grid;
   flex: 1 1 100%;
   grid-template-columns: minmax(0, 1fr);
+}
+
+/* A Game's doors (Start session, Mediate, Prep, Play) are the Mediator's and
+   the player's way in from a phone: there each is a full touch target, not a
+   24px chip (r5 B13). */
+@media (pointer: coarse) {
+  .su-hub-game [data-role-door].su-btn {
+    min-height: var(--size-full);
+  }
+}
+
+/* A crew line is a link to its sheet, a line under the Game's doors: it
+   stands WCAG 2.2's 24px target (2.5.8). */
+.su-hub-game .su-entity-linked > a.su-entity-mini {
+  align-content: center;
+  min-block-size: var(--space-24);
 }

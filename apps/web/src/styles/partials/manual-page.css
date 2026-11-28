@@ -1,0 +1,335 @@
+/* The entity Page's reading layout (`CardPage`'s `.su-manual`): numbers first,
+ * rules before lore, in the site's own materials: the stat column's ink stamp
+ * and framed numeral, the Compact and its chips (E2), R17's 12px rhythm.
+ * Tokens only.
+ */
+
+/* ══ A · the chassis Page ══════════════════════════════════════════════════
+ * A phone reads stats, art, rules, lore. From `lg` the art is a side column
+ * with the lore under it, so nothing stands empty beside the rules.
+ */
+.su-manual {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.su-manual > * {
+  min-width: 0;
+  order: 2;
+}
+
+.su-manual > .su-manual__side {
+  display: contents;
+}
+
+.su-manual > .su-manual__stats {
+  order: 0;
+}
+
+.su-manual__art {
+  order: 1;
+}
+
+.su-manual__side > .su-manual__lore {
+  order: 3;
+}
+
+/* What leads a Page (a class's On this page) is its first block at every
+   width: over the art on a phone, as it is in the markup. */
+.su-manual > .su-manual__lead {
+  order: 0;
+}
+
+/* What a Page appends (a class's trees, a chassis's homebrew) follows the
+   Description on a phone. */
+.su-manual > .su-manual__after {
+  order: 4;
+}
+
+/* A denizen the table fights (`.su-manual--fought`: a Bio-Titan, an NPC) is
+   opened mid-fight for its actions. A phone draws its art as a short banner
+   and its actions before its words, so they start in the first screen. */
+@media not (width >= 40rem) {
+  .su-manual--fought .su-entity-hero {
+    --su-hero-max-h: 9rem;
+  }
+
+  .su-manual--fought > .su-manual__main > .su-entity-page__prose {
+    order: 3;
+  }
+}
+
+/* A chassis Page (`.su-manual--led`) leads with its stats and the chassis
+   ability, the rule a reader came for; the art follows, on a phone a short
+   band, so the ability starts in the first screen (RR6-06). */
+.su-manual__main > .su-manual__ability {
+  order: 0;
+}
+
+@media not (width >= 40rem) {
+  .su-manual--led .su-entity-hero {
+    --su-hero-max-h: 9rem;
+  }
+}
+
+/* A tablet reads the art over the rules, as a phone does, but at a tablet's
+   70vh it would take the whole first screen: capped, so the ability and the
+   Description start beside the stats and the drawing (r5 E10). */
+@media (width >= 40rem) and (not (width >= 64rem)) {
+  .su-manual .su-entity-hero {
+    --su-hero-max-h: 40vh;
+  }
+}
+
+/* With no side column the rules run the page's measure; a line of prose
+   keeps a reading measure. */
+.su-entity-page.su-manual:not(.su-entity-page--art) > * {
+  max-width: none;
+}
+
+.su-manual .su-entity-page__prose > .su-ec-block:not(.su-bonus-strip) {
+  /* No cap inside the track: the track is the measure. */
+  max-width: none;
+}
+
+/* From `lg` the side column floats right; every block beside it is its own
+   formatting context, so it narrows beside the column and runs the full
+   measure once the column ends: nothing stands empty under the art. */
+@media (width >= 64rem) {
+  .su-manual {
+    column-gap: var(--space-24);
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  }
+
+  /* What a Page appends joins the flow, block by block (a class's trees
+     step aside with it: `pages.css`). */
+  .su-manual > .su-manual__after {
+    display: contents;
+  }
+
+  .su-manual > *,
+  .su-manual__after > *,
+  .su-manual__after > .su-ability-tree > * {
+    contain: layout;
+    margin-top: var(--space-12);
+  }
+
+  .su-manual > :first-child,
+  .su-manual > .su-manual__side + * {
+    margin-top: 0;
+  }
+
+  .su-manual > .su-manual__side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    /* No foot margin: it would add to the page's foot under a shorter rules column. */
+    float: none;
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    width: auto;
+  }
+}
+
+/* The stat column (`.su-stat-column`, its Stats' plates), four to a row: all
+   eight stats in two tight rows. A phone reads the short labels. */
+.su-stat-column.su-manual__stats {
+  --su-grid-gap: var(--space-6);
+  --su-grid-max: 4;
+  list-style: none;
+  padding: 0;
+}
+
+@media (width >= 40rem) {
+  .su-stat-column.su-manual__stats {
+    --su-grid-gap: var(--space-8);
+  }
+
+  .su-manual__stats .su-stat-column__stat > .su-stat-plate--label {
+    padding: 0 var(--space-8);
+  }
+
+  .su-manual__stats .su-stat-column__stat > .su-stat-plate--value {
+    width: 44px;
+  }
+}
+
+@media not (width >= 40rem) {
+  .su-manual__stats .su-stat-column__stat > .su-stat-plate--label {
+    font-size: var(--text-chip);
+    justify-content: center;
+    padding: 0 var(--space-4);
+  }
+
+  .su-manual__stats .su-stat-column__stat > .su-stat-plate--value {
+    width: 36px;
+  }
+}
+
+/* The lore: quieter than the rules it follows. */
+.su-manual__lore-prose {
+  color: var(--color-ink-2);
+  font-size: var(--text-lede);
+  font-style: italic;
+  line-height: 1.5;
+  max-width: 66ch;
+}
+
+/* ── The chassis ability in the side column ─────── */
+
+/* A phone reads it with the rules, after the art. */
+.su-manual__side > .su-manual__ability {
+  order: 2;
+}
+
+/* A Page's actions in the side track follow its words on a phone; split
+   from the main track's, they read on as the same list, under its one head. */
+.su-manual__side > .su-manual__side-actions {
+  order: 3;
+}
+
+/* What stands under the art (a class's Advancement) follows everything the
+   Page appends on a phone. */
+.su-manual__side > .su-manual__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  order: 5;
+}
+
+@media not (width >= 64rem) {
+  .su-manual__side-actions--more > .su-rule-head {
+    display: none;
+  }
+}
+
+/* Its tab is cut from its panel's paper, so tab and text read as one. */
+.su-manual__ability > .su-rule-head {
+  --su-head-cut: var(--color-paper);
+}
+
+/* A pattern's own words lead its rules on a phone, after the art. */
+.su-manual > .su-entity-page__opening {
+  order: 1;
+}
+
+/* ── Every Reference Page is two tracks ──────────
+   From `lg` a Page is a main track and a side track, the side there even
+   when it holds nothing, so a Page's strips, tiles, Ledgers and prose all
+   end at the main track's edge: the measure lives on the column, never on
+   the paragraph. A phone is one column, as before. */
+.su-manual > .su-manual__main {
+  display: contents;
+}
+
+.su-manual__main > * {
+  min-width: 0;
+  order: 2;
+}
+
+.su-manual__main > .su-manual__stats {
+  order: 0;
+}
+
+.su-manual__main > .su-entity-page__opening {
+  order: 1;
+}
+
+.su-manual__main > .su-manual__after {
+  order: 4;
+}
+
+@media (width >= 64rem) {
+  .su-manual > .su-manual__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .su-manual__main > *,
+  .su-manual__main > .su-manual__after > *,
+  .su-manual__main > .su-manual__after > .su-ability-tree > * {
+    margin-top: 0;
+  }
+
+  .su-manual__main > .su-manual__after {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+}
+
+/* What stands under the art (`.su-manual__aside`) is a side track of its own, after the main track in the markup (the
+   order a phone draws): from `lg` it stands under the art, in the side
+   column's second row, and the main track runs beside both. The second row
+   takes what height the main track has to spare, so the art keeps its own. */
+@media (width >= 64rem) {
+  .su-manual:has(> .su-manual__side--after) {
+    grid-template-rows: auto 1fr;
+  }
+
+  .su-manual:has(> .su-manual__side--after) > .su-manual__main {
+    grid-row: 1 / span 2;
+  }
+
+  /* The grid's own row gap parts it from the art. */
+  .su-manual > .su-manual__side.su-manual__side--after {
+    grid-row: 2;
+    margin-top: 0;
+  }
+}
+
+/* A Page's lead (a class's On this page) is a phone's and a tablet's: from
+   `lg` the band's menu holds it (`PageContentsMenu`), so the tracks start
+   under the band as every Page's do. It stays in the markup, where the
+   floating button reads its links. */
+@media (width >= 64rem) {
+  .su-manual > .su-manual__lead {
+    display: none;
+  }
+}
+
+/* A picker's focus pane (`.su-searcher__page`) is a column, never a page: it
+   keeps the phone's one column at every width, so the stat tiles fit it. */
+@media (width >= 64rem) {
+  .su-searcher__page .su-manual {
+    display: flex;
+  }
+
+  .su-searcher__page .su-manual > .su-manual__main,
+  .su-searcher__page .su-manual > .su-manual__side {
+    display: contents;
+  }
+
+  .su-searcher__page .su-manual > *,
+  .su-searcher__page .su-manual__main > *,
+  .su-searcher__page .su-manual__side > * {
+    margin-top: 0;
+  }
+}
+
+/* And it reads the short labels, as a phone does: four tiles share its width. */
+.su-searcher__page .su-stat-label--long {
+  display: none;
+}
+
+.su-searcher__page .su-stat-label--short {
+  display: inline;
+}
+
+.su-searcher__page
+  .su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--label:has(.su-stat-label--short) {
+  --su-tile-label-size: var(--text-chip);
+}
+
+.su-searcher__page .su-manual__stats .su-stat-column__stat > .su-stat-plate--label {
+  padding: 0 var(--space-4);
+}

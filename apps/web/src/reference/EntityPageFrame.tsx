@@ -1,10 +1,16 @@
+import { ArrowUpRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
+import { NextLabel } from '../components/app'
+import type { PageContentsEntry } from '../components/classContents.model'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
-import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
-import type { BuildLink, GuideExits } from '../lib/buildLink'
+import { Button, ChapterBand, EntityPageStamps, KindLabel } from '../components/index'
+import { ReferenceSurface } from '../components/ReferenceSurface'
+import { iconSize } from '../design/tokens'
+import type { BuildLink, GuideExits, MediatorLinks } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { referenceCopy } from '../messages/reference'
+import { PageContentsMenu } from './PageContentsMenu'
 import { SharePageButton } from './SharePageButton'
 
 /**
@@ -57,6 +63,26 @@ function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
   )
 }
 
+/**
+ * A denizen's foot for the Mediator (`mediatorLinksFor`): into an encounter of
+ * theirs, or the NPC designer started from it. Static markup, shown only while
+ * somebody is signed in (`html[data-srd-signed-in]`, pages.css).
+ */
+function MediatorActsFoot({ add, design }: MediatorLinks) {
+  return (
+    <nav className="su-guide-exits su-mediator-acts" aria-label={referenceCopy('forTheMediator')}>
+      <Button href={add.href} variant="primary" size="compact" className="su-page-action">
+        {add.label}
+      </Button>
+      {design && (
+        <Button href={design.href} size="compact" className="su-page-action">
+          {design.label}
+        </Button>
+      )}
+    </nav>
+  )
+}
+
 type EntityPageFrameProps = {
   /** The page title: the entity's name, or a pattern's quoted name. */
   title: ReactNode
@@ -70,8 +96,21 @@ type EntityPageFrameProps = {
   legalStartingPattern?: boolean
   /** "Build With This": the deep link into the app's builder (`buildLinkFor`), ending the cluster after Share (the band's `action`). */
   build?: BuildLink | null
+  /** A long Page's sections (`classContentsEntries`): from `lg`, a menu on the band before Share. */
+  contents?: readonly PageContentsEntry[]
+  /** A book's store page (a Sources record's `purchaseLink`): the band's off-site Buy, after Share. */
+  buy?: string
   /** A creation guide's way out (`guideExitsFor`), under the body. */
   exits?: GuideExits | null
+  /** A denizen's Mediator links (`mediatorLinksFor`), under the body, signed in only. */
+  mediator?: MediatorLinks | null
+  /** A sparse Page's side column (`SparseRail`, EDL form 5), beside its body. */
+  rail?: ReactNode
+  /**
+   * The Page's foot (`NeighbourRow`): under the body and the sidebar both, at
+   * the page's bottom.
+   */
+  foot?: ReactNode
   children: ReactNode
 }
 
@@ -83,58 +122,101 @@ export function EntityPageFrame({
   parent,
   legalStartingPattern,
   build,
+  contents,
+  buy,
   exits,
+  mediator,
+  rail,
+  foot,
   children,
 }: EntityPageFrameProps) {
   return (
     <article className="su-entity">
-      <ChapterBand
-        tone={tone}
-        fill={fill}
-        measure={PAGE_MEASURE}
-        aside={
-          <EntityPageStamps
-            meta={meta}
-            legalStartingPattern={legalStartingPattern}
-            parent={parent && { label: parent.label, ref: parent.entityRef, href: parent.href }}
-          />
-        }
-        asideAt="notch"
-        action={
-          <>
-            <SharePageButton />
-            {build && (
-              // A link drawn as the shared Button (`Button href`): same tab, no
-              // off-site arrow — the Reference and Build are one union
-              // (ruleset §3.11).
-              <Button
-                href={build.href}
-                aria-label={build.ariaLabel}
-                variant="primary"
-                size="compact"
-                className="su-page-action"
-              >
-                {build.label}
-              </Button>
-            )}
-          </>
-        }
-        lead={
-          // An ability's level, left of its title as its Compact sets it: just the number.
-          meta.numeral && (
+      {/* The band and the foot are server-rendered outside the body's island:
+          the SRD's routes make their chips and neighbours links. */}
+      <ReferenceSurface>
+        <ChapterBand
+          tone={tone}
+          fill={fill}
+          measure={PAGE_MEASURE}
+          aside={
+            <EntityPageStamps
+              meta={meta}
+              legalStartingPattern={legalStartingPattern}
+              parent={parent && { label: parent.label, ref: parent.entityRef, href: parent.href }}
+            />
+          }
+          asideAt="notch"
+          action={
+            // The page's acts stand on the entity's header row, at its right
+            // end: Share, then its one call to action (Build With This, Buy
+            // this book), each a button in the band's control group (C8).
             <>
-              <span className="su-sr-only">{referenceCopy('level')} </span>
-              {meta.numeral}
+              {contents && <PageContentsMenu entries={contents} />}
+              <SharePageButton />
+              {buy && (
+                // The store is off the site: a new tab, outlined on the band
+                // (§3.13), never the page's rust.
+                <Button
+                  href={buy}
+                  linkAs="a"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="default"
+                  size="compact"
+                  className="su-page-action"
+                >
+                  {referenceCopy('buyThisBook')}
+                  <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
+                  <span className="su-sr-only"> {referenceCopy('opensInNewTab')}</span>
+                </Button>
+              )}
+              {build && (
+                // A link drawn as the shared Button (`Button href`): same tab, no
+                // off-site arrow — the Reference and Build are one union
+                // (ruleset §3.11).
+                <Button
+                  href={build.href}
+                  aria-label={build.ariaLabel}
+                  variant="primary"
+                  size="compact"
+                  className="su-page-action"
+                >
+                  {build.label}
+                </Button>
+              )}
             </>
-          )
-        }
-      >
-        {title}
-        <KindLabel kind={meta.typeLabel} />
-      </ChapterBand>
+          }
+          lead={
+            // An ability's level, left of its title as its Compact sets it: just the number.
+            meta.numeral && (
+              <>
+                <span className="su-sr-only">{referenceCopy('level')} </span>
+                {meta.numeral}
+              </>
+            )
+          }
+        >
+          {title}
+          <KindLabel kind={meta.typeLabel} />
+        </ChapterBand>
+      </ReferenceSurface>
       <div className="su-entity__body su-page-body">
-        {children}
+        {rail ? (
+          <div className="su-entity__railed">
+            <div className="su-entity__railed-main">{children}</div>
+            {rail}
+          </div>
+        ) : (
+          children
+        )}
+        {foot && (
+          <ReferenceSurface>
+            <div className="su-entity__foot">{foot}</div>
+          </ReferenceSurface>
+        )}
         {exits && <GuideExitsFoot {...exits} />}
+        {mediator && <MediatorActsFoot {...mediator} />}
       </div>
     </article>
   )

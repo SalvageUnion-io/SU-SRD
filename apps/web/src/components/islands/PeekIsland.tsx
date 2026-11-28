@@ -26,7 +26,7 @@ const loadForPeek: PeekLoader = (schemaName) =>
 export function PeekIsland() {
   return (
     <ReferenceSurface>
-      <PeekHost load={loadForPeek} />
+      <PeekHost load={loadForPeek} backCloses />
     </ReferenceSurface>
   )
 }

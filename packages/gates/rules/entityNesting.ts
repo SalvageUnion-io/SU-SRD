@@ -481,7 +481,7 @@ const RULES: NestingRule[] = [
   {
     id: 'named-block',
     mode: 'zero',
-    rule: "hard rule R18 (EDL E15): a named rules block (When Damaged) renders through one component; only it reads the block's field",
+    rule: "hard rule R18: a named rules block (When Damaged) renders through one component; only it reads the block's field",
     fix: "Follow R18: draw the block through its renderer (`WhenDamaged`), and where the text is needed for anything else (a prose filter), ask the renderer's module for it (`damagedEffectOf`) instead of reading the field.",
     scan: (_c, _known, root) => scanNamedBlocks(root, EXEMPTIONS),
   },

@@ -59,6 +59,7 @@ export {
   getSources,
   getStructurePoints,
   getTechLevel,
+  getTechLevelNumber,
   getTree,
 } from './entityFields'
 export {
@@ -134,20 +135,27 @@ export {
   // One implementation, one behaviour.
   isSchemaName,
   patternSearchText,
+  rulesSearchText,
   type SearchOptions,
   type SearchResult,
   search,
   searchIn,
 } from './search'
+export { searchKindQuery } from './searchKinds'
 // The pure matching + ranking rules both matchers share: the ORM `search()`
 // above and the reference site's compact client index. No ORM import, so a
 // browser bundle pays only for these functions.
 export {
   matchSearchTokens,
   scoreSearchMatch,
+  searchAliases,
   searchNameWords,
+  searchOneSlipAway,
+  searchSquashedName,
+  suggestSearchQuery,
   tokenizeSearchQuery,
 } from './searchRanking'
+export { SEARCH_NAMES_IT, searchNamesTerm, searchTermScore } from './searchTerms'
 export { findEntityBySlug, getEntitySlug } from './slug'
 export { topLevelRollTables } from './topLevelRollTables'
 export { parseTraitReferences, plainTraitText } from './traitText'
@@ -250,6 +258,7 @@ export type {
   EntityDomain,
   EntityInstance,
   EntityModel,
+  EntityPrinting,
   EntityRef,
   Fact,
   StatGroup,

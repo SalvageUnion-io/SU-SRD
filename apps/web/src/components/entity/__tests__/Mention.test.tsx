@@ -14,7 +14,7 @@ import { Mention } from '../forms/Mention'
 import { InsidePeekContext } from '../peekContext'
 
 const burn = (): EntityRef => {
-  const trait = SalvageUnionReference.Traits.getByName('burn')
+  const trait = SalvageUnionReference.Traits.getByName('Burn')
   if (!trait) throw new Error('Burn fixture missing')
   return toEntityModel(trait).ref
 }
@@ -33,6 +33,23 @@ describe('Mention', () => {
     expect(link.getAttribute('href')).toBe(`/traits/${ref.slug}/`)
     expect(link.getAttribute('data-peek')).toBe(`traits:${ref.id}`)
     expect(link.className).toContain('su-inline-ref--link')
+    // A term in a sentence (E27): its press follows it, its Peek offers Open page.
+    expect(link.hasAttribute('data-peek-press')).toBe(true)
+  })
+
+  test('a row or a way onward (`goes`) opens on the first press: it Peeks on hover alone', () => {
+    const ref = burn()
+    render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <Mention entityRef={ref} goes>
+          Burn
+        </Mention>
+      </EntitySurfaceProvider>
+    )
+    const link = screen.getByRole('link', { name: 'Burn' })
+    expect(link.getAttribute('href')).toBe(`/traits/${ref.slug}/`)
+    expect(link.getAttribute('data-peek')).toBe(`traits:${ref.id}`)
+    expect(link.hasAttribute('data-peek-press')).toBe(false)
   })
 
   test('opens the Page where the surface has an opener, and not its host card', () => {

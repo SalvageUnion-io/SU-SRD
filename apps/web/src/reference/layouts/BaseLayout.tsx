@@ -11,8 +11,9 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
+import { Footer, SkipLink } from '../../components/app'
 import type { FooterFoot } from '../../components/index'
-import { BreadcrumbTrail, ChapterBandTrail, Footer, SkipLink } from '../../components/index'
+import { BreadcrumbTrail, ChapterBandTrail } from '../../components/index'
 import { color } from '../../design/tokens'
 import { DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_URL } from '../../lib/constants'
 import { SITE_LINKS } from '../../lib/docPages'
@@ -22,6 +23,7 @@ import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
 import { SITE_MANIFEST } from '../../pwa'
 import { Island } from '../../runtime/Island'
+import { PageJump } from '../PageJump'
 import { TopNavigation } from '../TopNavigation'
 import type { DocumentMeta } from '../types'
 
@@ -51,12 +53,25 @@ const SPECULATION_RULES = JSON.stringify({
   prefetch: [{ source: 'document', where: SPECULATED_LINKS, eagerness: 'moderate' }],
 })
 
-/** The page column: the bar, the content, the footer, at least a screen tall. */
+/**
+ * The cross-document view-transition opt-in (`base.css` has the same rule and
+ * says why), inline: the browser reads the opt-in when it inserts `<body>`,
+ * which can be before the linked stylesheet has arrived. A page that has not
+ * opted in by then aborts the transition the previous page started, and the
+ * browser logs `ViewTransition opt-in disabled` as a page error.
+ */
+const VIEW_TRANSITION_OPT_IN =
+  '@media (prefers-reduced-motion:no-preference){@view-transition{navigation:auto}}'
+
+/**
+ * The page column: the bar, the content, the footer, at least a screen tall
+ * (`.su-page-column`, the screen's alone: on paper a page a sheet tall pushed
+ * a table's citation onto a sheet of its own, RR6-08).
+ */
 const PAGE = {
   backgroundColor: color.paper,
   display: 'flex',
   flexDirection: 'column',
-  minHeight: '100dvh',
   position: 'relative',
 } satisfies CSSProperties
 
@@ -85,6 +100,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
     ogType = 'website',
     ogImage = DEFAULT_OG_IMAGE,
     ogImageAlt,
+    ogImageArt = false,
     ogTitle = title,
     ogDescription = description,
     themeColor = THEME_COLOR,
@@ -116,9 +132,11 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         {/* Before the stylesheet: the site is light-only (`reset.css`). */}
         <meta name="color-scheme" content="light" />
         <meta name="text-scale" content="scale" />
+        <style>{VIEW_TRANSITION_OPT_IN}</style>
         <title>{title}</title>
-        {/* The link-preview block every document carries (`metaTags`). All OG
-            images the site emits are 1200×630 (the default banner). With it,
+        {/* The link-preview block every document carries (`metaTags`). The OG
+            images the site renders are 1200×630; an entity's art is its own
+            shape. With it,
             Discord's Component Embed: a pasted link to this page renders as
             the bot's card (`src/lib/componentEmbed.ts`). Data, never run. */}
         {metaTags({
@@ -129,7 +147,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           canonical: canonicalUrl,
           type: ogType,
           themeColor,
-          image: { url: ogImageUrl, alt: ogImageAlt ?? ogTitle },
+          image: { url: ogImageUrl, alt: ogImageAlt ?? ogTitle, sized: !ogImageArt },
           ...(componentEmbed ? { componentEmbed } : {}),
         }).map((head) => {
           const { attrs } = head
@@ -214,7 +232,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         />
       </head>
       <body>
-        <div style={PAGE}>
+        <div className="su-page-column" style={PAGE}>
           {/*
             Skip link — WCAG 2.4.1. Must be the FIRST focusable thing in the
             document, so it sits above TopNavigation rather than inside it.
@@ -225,7 +243,15 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           {/* The 404's own search stands in for the Union bar's: two fields on
               one page would both claim ⌘K. Its pathname is `/404/` though it
               is emitted as `404.html`. */}
-          <TopNavigation breadcrumbs={trail} pageHasSearch={pathname === '/404/'} />
+          <TopNavigation
+            breadcrumbs={trail}
+            pageHasSearch={pathname === '/404/'}
+            home={pathname === '/'}
+            pathname={pathname}
+          />
+          {/* A signed-in reader is told their table has started (r2 I1): the
+              app's "Session live" bar, on a Reference page too. */}
+          <Island name="SessionBarIsland" client="idle" when="signed-in" />
           {/*
             `tabIndex={-1}` is what makes the skip link actually work. Following
             a fragment moves the browser's scroll position but NOT its focus
@@ -253,10 +279,13 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             poweredBySalvageUrl="/Powered_by_Salvage_Black.webp"
             // Every page's foot sits on the one page measure and wears the
             // page's leading band; a page with no citation keeps the licence
-            // row alone.
-            foot={{ ...foot, measure: PAGE_MEASURE }}
+            // row alone. Its address prints with the citation, on paper alone.
+            foot={{ ...foot, measure: PAGE_MEASURE, address: canonicalUrl }}
           />
         </div>
+        {/* A long page's way back to search and its sections on a phone; the
+            home is its slideshow, one screen tall. */}
+        {pathname === '/' ? null : <PageJump />}
         {/* The page's one Peek: every Mention and Tag above carries only its
             entity's address, and this host shows it (no props, no SSR). It
             mounts on the first hover, press or focus on one. */}

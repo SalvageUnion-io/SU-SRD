@@ -101,7 +101,7 @@ describe('sw-lifecycle', () => {
       return sw.skipWaiting.mock.calls.length
     }
     expect(await at(appUrl('', 'https://salvageunion.io'))).toBe(0)
-    expect(await at(appUrl('/play/pilots/p1', 'https://salvageunion.io'))).toBe(0)
+    expect(await at(appUrl('/pilots/p1/play', 'https://salvageunion.io'))).toBe(0)
     expect(await at('https://salvageunion.io/buildings/')).toBe(1)
     expect(await at('https://salvageunion.io/playlists/')).toBe(1)
   })

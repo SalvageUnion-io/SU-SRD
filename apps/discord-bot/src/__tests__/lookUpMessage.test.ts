@@ -17,7 +17,7 @@ describe('findTerms', () => {
     )
     expect(terms.map((t) => [t.hit.entity.name, t.matched, t.row])).toEqual([
       ['Reactor Overload', 'Reactor Overheat', '11-19'],
-      ['vulnerable', 'Vulnerable', undefined],
+      ['Vulnerable', 'Vulnerable', undefined],
     ])
   })
 
@@ -36,7 +36,7 @@ describe('findTerms', () => {
     ])
     expect(kinds).toEqual([
       ['systems', 'Mechapult'],
-      ['keywords', 'heat'],
+      ['keywords', 'Heat'],
       ['equipment', 'Wingsuit'],
     ])
   })

@@ -29,9 +29,9 @@ const PAGES = [
   // Play as a signed-out visitor meets it: the landing, and each Play
   // screen's sign-in refusal (`PlayGate`, `PlayMediatorGate`). The signed-in
   // states are `play-*.e2e.ts`'s.
-  '/play/',
-  '/play/pilots/a11y-probe',
-  '/play/games/a11y-probe/mediate',
+  '/games/',
+  '/pilots/a11y-probe/play',
+  '/games/a11y-probe/mediate',
 ]
 
 // A violation that fires only sometimes must not pass on a retry.

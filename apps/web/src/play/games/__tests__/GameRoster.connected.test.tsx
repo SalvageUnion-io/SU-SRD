@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { RoomDeclined } from '../../../replica/roomSocket'
 
@@ -28,7 +28,7 @@ import { RoomDeclined } from '../../../replica/roomSocket'
  * Mutations are recorded by name the same way.
  */
 
-import { crawlerFixture, pilotFixture } from '../../../components/__tests__/fixtures'
+import { crawlerFixture, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { closeRooms, serve } from '../../../replica/__tests__/fakeRooms'
 
@@ -43,10 +43,13 @@ const serverMocks = await installServerMocks({
   call: (name, args) => {
     if (mutationError !== null) throw mutationError
     mutations.push({ name, args })
+    // Taking a pre-gen off the roster answers the ids that left.
+    return name === 'games.takeOffRoster' ? ['s-free', 's-free-mech'] : undefined
   },
 })
 
 const { GameRoster } = await import('../GameRoster')
+const { ToasterMount } = await import('../../../components/index')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { useUnits } = await import('../../../replica/units')
 const { setSyncStatus } = await import('../../../replica/sync')
@@ -116,7 +119,8 @@ function listing(over: Record<string, unknown> = {}) {
 async function renderAs(
   me: unknown,
   rows: ReturnType<typeof listing>,
-  members: unknown = MEMBERS
+  members: unknown = MEMBERS,
+  pregens?: readonly string[]
 ): Promise<void> {
   // The roster, as the Game's socket serves it.
   serve('g1', { members: members as Record<string, unknown>[] })
@@ -128,7 +132,12 @@ async function renderAs(
   })
   // Async act: the roster flips its hydrated flag from a promise after mount.
   await act(async () => {
-    render(<GameRoster gameId="g1" gameName="Tenacity" />)
+    render(
+      <>
+        <ToasterMount />
+        <GameRoster gameId="g1" gameName="Tenacity" pregens={pregens} />
+      </>
+    )
   })
 }
 
@@ -193,7 +202,7 @@ describe('what a row offers', () => {
   test('no row opens Play: that is the hub’s Play', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT], mechs: [MY_MECH] }))
     // Even your own pilot.
-    expect(screen.queryByRole('button', { name: 'Play' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Open table' })).toBeNull()
     expect(screen.queryByRole('link', { name: /^(Play|Mediate)$/ })).toBeNull()
   })
 
@@ -224,16 +233,20 @@ describe('what a row offers', () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
 
     expect(screen.getByText('Ash')).toBeTruthy()
-    // Who plays it is The Game's to say (each person wears their pilots), so
-    // a held row carries no seal; only an unassigned one does.
-    expect(screen.queryByText('Mediator')).toBeNull()
+    // A held row names its holder in the Member column; it carries no seal
+    // (only an unassigned one does).
+    const line = screen.getByRole('link', { name: 'Ash' }).closest('tr')
+    expect(line?.querySelector('td')?.textContent).toBe('Mediator')
+    // A phone drops that column: the holder's name is kept under the Pilot's (r4 B8).
+    expect(line?.querySelector('th .su-open__phone-only')?.textContent).toContain('Mediator')
+    expect(document.querySelectorAll('th .su-open__phone-only')).toHaveLength(1)
     // Readable: a shared table whose crew you cannot look at is not shared.
     // The same address as your own rows; `SheetView` renders it read-only.
     const row = screen.getByRole('link', { name: 'Ash' })
     expect(row.getAttribute('href')).toBe('/pilots/a-theirs')
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
     // Nor is it takeable: somebody already holds it.
-    expect(screen.queryByRole('button', { name: /Unassigned/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Assign to me: / })).toBeNull()
   })
 
   test('a crewmate has no delete affordance on your screen', async () => {
@@ -247,24 +260,23 @@ describe('what a row offers', () => {
 })
 
 describe('assigning yourself what nobody holds', () => {
-  test('an unassigned pre-gen carries an UNASSIGNED seal', async () => {
+  // r3 L3 (LG3-06): the way to take a pilot was a dark tag reading "Unassigned".
+  test('a free pre-gen carries an Assign to me button, in the glossary’s words', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
 
-    // Unassigned is a STATE, not a blank — and the mark announcing it is the
-    // same control you press to take the character.
-    expect(screen.getByRole('button', { name: /Unassigned/i })).toBeTruthy()
+    const take = screen.getByRole('button', { name: 'Assign to me: Pre-gen' })
+    expect(take.textContent).toBe('Assign to me')
+    expect(screen.queryByRole('button', { name: /Unassigned/i })).toBeNull()
+    // The row's menu says the same words.
+    expect(await verbsOf('Pre-gen')).toContain('Assign to me')
   })
 
-  test('pressing the seal asks before it assigns', async () => {
+  // r6 C8 (LG6-08): a reversible act asks nothing; its toast carries the Undo.
+  test('pressing the seal assigns at once, with no confirm', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
-    fireEvent.click(screen.getByRole('button', { name: /Unassigned/i }))
-
-    // Taking a character is a commitment at the table, so the seal opens a
-    // confirm that says what happens next rather than assigning on one click.
-    // The dialog carries its title twice — visible heading plus the sr-only
-    // accessible label — so this counts rather than demanding a single match.
-    expect(screen.getAllByText(/Assign Pre-gen to you\?/i).length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: 'Assign to me' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /^Assign to me: / }))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(screen.queryByText(/Assign Pre-gen to you\?/i)).toBeNull()
   })
 })
 
@@ -350,7 +362,7 @@ describe('what the game will accept', () => {
     // It has no owner at all, so it carries no ownership seal — neither a
     // claim invitation nor a holder's name. "Who owns the crawler" is not a
     // question the game asks.
-    expect(screen.queryByRole('button', { name: /Unassigned/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Assign to me: / })).toBeNull()
   })
 })
 
@@ -365,11 +377,12 @@ describe('yours first, then everyone else', () => {
     // crewmate's and the unassigned pre-gen, in the listing's order.
     const names = screen
       .getAllByRole('link', { name: /^(Roach-Boy|Ash|Pre-gen)$/ })
-      .map((link) => link.getAttribute('aria-label'))
+      .map((link) => link.getAttribute('aria-label') ?? link.textContent)
     expect(names).toEqual(['Roach-Boy', 'Ash', 'Pre-gen'])
-    expect(screen.getByText('Mine')).toBeTruthy()
-    expect(screen.queryByText('Mediator')).toBeNull()
-    expect(screen.getByRole('button', { name: /Unassigned/i })).toBeTruthy()
+    // Your row wears MINE (its stamp, and its Member cell).
+    const mine = screen.getByRole('link', { name: 'Roach-Boy' }).closest('tr')
+    expect(within(mine as HTMLElement).getAllByText('Mine').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: /^Assign to me: / })).toBeTruthy()
   })
 
   test("crawlers are nobody's — the primary leads", async () => {
@@ -382,7 +395,7 @@ describe('yours first, then everyone else', () => {
     // The rows, in order — each Compact is a link named for its unit.
     const names = screen
       .getAllByRole('link', { name: /^(#430 Tenacity|Second Wind)$/ })
-      .map((link) => link.getAttribute('aria-label'))
+      .map((link) => link.getAttribute('aria-label') ?? link.textContent)
     expect(names).toEqual(['#430 Tenacity', 'Second Wind'])
   })
 })
@@ -451,6 +464,19 @@ describe('every verb that changes who has a build asks first', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
+  // MD-10: the Crew list reads the replica, so dropping the copy held here took
+  // the pilot's line away until a reload. The room serves it again, unassigned.
+  test('Unassign keeps the pilot in this browser, for the Crew list to show unassigned', async () => {
+    await useUnits
+      .getState()
+      .adopt('pilot', pilotFixture({ id: 'a-mine', name: 'Roach-Boy', gameId: 'g1' }))
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    await press('Roach-Boy', 'Unassign')
+    await confirmWith('Unassign')
+    expect(mutations.map((m) => m.name)).toEqual(['ownership.unassign'])
+    expect(useUnits.getState().get('pilot', 'a-mine')?.name).toBe('Roach-Boy')
+  })
+
   test('Deleting the crawler says it is for everyone and permanent, and deletes nothing until confirmed', async () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
     const dialog = await press('#430 Tenacity', 'Delete…')
@@ -478,32 +504,115 @@ describe('every verb that changes who has a build asks first', () => {
     ])
   })
 
-  test('Assign to me assigns nothing until confirmed', async () => {
+  test('Assign to me assigns at once, and its toast’s Undo unassigns (r6 C8)', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
-    fireEvent.click(screen.getByRole('button', { name: /Unassigned/i }))
-    expect(mutations).toHaveLength(0)
-
-    await confirmWith('Assign to me')
+    fireEvent.click(screen.getByRole('button', { name: /^Assign to me: / }))
+    await settle(() => mutations.length > 0)
     expect(mutations).toEqual([
       { name: 'ownership.assign', args: { gameId: 'g1', entityId: 's-free' } },
     ])
+    expect(await screen.findByText('Pre-gen is assigned to you.')).toBeTruthy()
+    mutations.length = 0
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    })
+    await settle(() => mutations.length > 0)
+    expect(mutations).toEqual([
+      { name: 'ownership.unassign', args: { gameId: 'g1', entityId: 's-free' } },
+    ])
   })
 
-  test('the Mediator reassigning names who edits it next, and assigns nothing until confirmed', async () => {
-    await renderAs({ ...ME, _id: 'u-med' }, listing({ pilots: [MY_PILOT] }))
-    const dialog = await press('Roach-Boy', 'Assign to me')
-
-    expect(dialog.textContent).toContain('Assign Roach-Boy to you?')
-    expect(dialog.textContent).toContain('instead of Me')
-    expect(mutations).toHaveLength(0)
-
-    await confirmWith('Assign to you')
+  // MD4-09: each pre-gen handed out was three presses, and the row read as a failed act.
+  test('the Mediator’s Assign to … assigns at once, and its toast’s Undo puts it back', async () => {
+    await renderAs({ ...ME, _id: 'u-med' }, listing({ pilots: [PRE_GEN, MY_PILOT] }))
+    await choose(await openMenu('Pre-gen'), 'Assign to Me')
+    await settle(() => mutations.length > 0)
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(mutations).toEqual([
-      {
-        name: 'ownership.assign',
-        args: { gameId: 'g1', entityId: 's-mine', userId: 'u-med' },
-      },
+      { name: 'ownership.assign', args: { gameId: 'g1', entityId: 's-free', userId: 'u-me' } },
     ])
+    expect(await screen.findByText('Pre-gen is assigned to Me.')).toBeTruthy()
+    // It was nobody's: Undo unassigns it.
+    mutations.length = 0
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    })
+    await settle(() => mutations.length > 0)
+    expect(mutations).toEqual([
+      { name: 'ownership.unassign', args: { gameId: 'g1', entityId: 's-free' } },
+    ])
+
+    // One somebody held goes back to them.
+    mutations.length = 0
+    await choose(await openMenu('Roach-Boy'), 'Assign to me')
+    await settle(() => mutations.length > 0)
+    const said = (await screen.findByText('Roach-Boy is assigned to you.')).closest(
+      'li'
+    ) as HTMLElement
+    mutations.length = 0
+    await act(async () => {
+      fireEvent.click(within(said).getByRole('button', { name: 'Undo' }))
+    })
+    await settle(() => mutations.length > 0)
+    expect(mutations).toEqual([
+      { name: 'ownership.assign', args: { gameId: 'g1', entityId: 's-mine', userId: 'u-me' } },
+    ])
+  })
+
+  test('an Assign to … that fails says so', async () => {
+    await renderAs({ ...ME, _id: 'u-med' }, listing({ pilots: [PRE_GEN] }))
+    mutationError = new Error('socket closed')
+    const errors = spyOn(console, 'error').mockImplementation(() => {})
+    await choose(await openMenu('Pre-gen'), 'Assign to Me')
+    expect(await screen.findByText('Pre-gen could not be assigned to Me. Try again.')).toBeTruthy()
+    errors.mockRestore()
+  })
+
+  // LG4-20: four spare pre-gens stayed in the crew list and in the seats.
+  test('the Organiser takes an unused pre-gen off the roster at once, with Undo', async () => {
+    const mech = {
+      _id: 's-free-mech',
+      appId: null,
+      ownerId: null,
+      body: { id: 's-free-mech', name: 'Mazona', chassisRef: 'iron-mongrel' },
+    }
+    const flies = {
+      id: 'l1',
+      type: 'mech-to-pilot',
+      from: { type: 'mech', id: 's-free-mech' },
+      to: { type: 'pilot', id: 'a-free' },
+    }
+    await renderAs(
+      { ...ME, _id: 'u-med' },
+      listing({ pilots: [PRE_GEN, MY_PILOT], mechs: [mech], softLinks: [flies] }),
+      MEMBERS,
+      ['s-free', 's-free-mech', 's-mine']
+    )
+    // Only an unassigned one: a pre-gen a player holds is not offered.
+    expect(await rowsOffering(['Pre-gen', 'Roach-Boy'], 'Take off the roster')).toEqual(['Pre-gen'])
+    await choose(await openMenu('Pre-gen'), 'Take off the roster')
+    await settle(() => mutations.length > 0)
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(mutations).toEqual([
+      { name: 'games.takeOffRoster', args: { gameId: 'g1', pilotId: 's-free' } },
+    ])
+    expect(
+      // Where they went, said plainly (r5 B15).
+      await screen.findByText('Pre-gen and Mazona are back in your Training Bay.')
+    ).toBeTruthy()
+    mutations.length = 0
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    })
+    await settle(() => mutations.length > 0)
+    expect(mutations).toEqual([
+      { name: 'games.putBack', args: { gameId: 'g1', unitIds: ['s-free', 's-free-mech'] } },
+    ])
+  })
+
+  test('nobody but the Organiser of a template Game is offered Take off the roster', async () => {
+    await renderAs(ME, listing({ pilots: [PRE_GEN] }))
+    expect(await verbsOf('Pre-gen')).not.toContain('Take off the roster')
   })
 
   test.each([
@@ -620,18 +729,253 @@ describe('remove from game', () => {
 })
 
 describe('units in from Build (ADR-052 §3, §5)', () => {
-  test('the head links out to Build: its wizard for this Game, and the Training Bay', async () => {
+  test('the head links out to Build’s wizards for this Game, and nothing else', async () => {
     const mediator = { ...ME, _id: 'u-med', displayName: 'Mediator' }
     await renderAs(mediator, listing())
     const hrefOf = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
     expect(hrefOf('+ New Pilot')).toBe('/pilots/new?game=g1')
     expect(hrefOf('+ New Mech')).toBe('/mechs/new?game=g1')
     expect(hrefOf('+ New Crawler')).toBe('/crawlers/new?game=g1')
-    expect(hrefOf('Manage in Build')).toBe('/')
+    expect(screen.queryByRole('link', { name: 'Manage in Build' })).toBeNull()
     // Nothing that builds lives here.
     expect(screen.queryByText('Create Mech')).toBeNull()
     expect(screen.queryByText('Patterns')).toBeNull()
     expect(screen.queryByText('Move in…')).toBeNull()
+  })
+
+  /** Leave the shared store as the test found it, the page still mounted. */
+  const forgetHeld = async (...held: ['pilot' | 'mech', string][]) => {
+    cleanup()
+    for (const [kind, id] of held) await useUnits.getState().forget(kind, id)
+  }
+
+  /** Nothing of the player's held here: what the files before this left is forgotten. */
+  const emptyBay = async () => {
+    const { pilots, mechs } = useUnits.getState()
+    for (const p of pilots) await useUnits.getState().forget('pilot', p.id)
+    for (const m of mechs) await useUnits.getState().forget('mech', m.id)
+  }
+
+  const openBring = async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Add from Training Bay' }))
+    return await screen.findByRole('dialog', { name: 'Bring into this Game' })
+  }
+
+  test('Add from Training Bay brings one of your own in: the same record moves', async () => {
+    setSyncStatus('live')
+    await useUnits.getState().adopt('mech', mechFixture({ id: 'm-bay', name: 'Rust Bucket' }))
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Rust Bucket' }))
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Move in' }))
+    })
+    await settle(() => useUnits.getState().mechs.find((m) => m.id === 'm-bay')?.gameId === 'g1')
+    expect(useUnits.getState().mechs.find((m) => m.id === 'm-bay')?.gameId).toBe('g1')
+    await forgetHeld(['mech', 'm-bay'])
+  })
+
+  test('several at once, and a pilot brings their mech, still assigned (LG-08)', async () => {
+    setSyncStatus('live')
+    const store = useUnits.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'p-bay', name: 'Razor' }))
+    await store.adopt('mech', mechFixture({ id: 'm-pair', name: 'Thresher' }))
+    await store.adopt('mech', mechFixture({ id: 'm-spare', name: 'Spare' }))
+    await store.create('softLink', {
+      from: { type: 'mech', id: 'm-pair' },
+      to: { type: 'pilot', id: 'p-bay' },
+      type: 'mech-to-pilot',
+    })
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    // The pair is one line: the mech rides under its pilot, not on its own.
+    expect(within(dialog).queryByRole('checkbox', { name: 'Thresher' })).toBeNull()
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Razor' }))
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Spare' }))
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Move in' }))
+    })
+    const inGame = (kind: 'pilots' | 'mechs', id: string) =>
+      useUnits.getState()[kind].find((u) => u.id === id)?.gameId === 'g1'
+    const paired = () =>
+      useUnits
+        .getState()
+        .softLinks.some(
+          (l) => l.type === 'mech-to-pilot' && l.from.id === 'm-pair' && l.to.id === 'p-bay'
+        )
+    await settle(
+      () =>
+        inGame('pilots', 'p-bay') &&
+        inGame('mechs', 'm-pair') &&
+        inGame('mechs', 'm-spare') &&
+        paired()
+    )
+    expect(inGame('pilots', 'p-bay')).toBe(true)
+    expect(inGame('mechs', 'm-pair')).toBe(true)
+    expect(inGame('mechs', 'm-spare')).toBe(true)
+    // Nothing asked: the pair came through whole.
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(paired()).toBe(true)
+    await forgetHeld(['mech', 'm-pair'], ['mech', 'm-spare'], ['pilot', 'p-bay'])
+  })
+
+  /** Two Bay pilots crewing a Bay crawler: bringing either in alone leaves the crawler behind. */
+  const crewedBay = async () => {
+    setSyncStatus('live')
+    await emptyBay()
+    const store = useUnits.getState()
+    await store.adopt('crawler', crawlerFixture({ id: 'c-bay', name: 'Old Reliable' }))
+    await store.adopt('pilot', pilotFixture({ id: 'p-one', name: 'Razor' }))
+    await store.adopt('pilot', pilotFixture({ id: 'p-two', name: 'Gauge' }))
+    for (const id of ['p-one', 'p-two']) {
+      await store.create('softLink', {
+        from: { type: 'pilot', id },
+        to: { type: 'crawler', id: 'c-bay' },
+        type: 'pilot-to-crawler',
+      })
+    }
+  }
+  const crewOf = (id: string) =>
+    useUnits.getState().softLinks.some((l) => l.type === 'pilot-to-crawler' && l.from.id === id)
+  const inGame = (id: string) =>
+    useUnits.getState().pilots.find((p) => p.id === id)?.gameId === 'g1'
+  const forgetCrewedBay = async () => {
+    cleanup()
+    const store = useUnits.getState()
+    for (const id of ['p-one', 'p-two']) await store.forget('pilot', id)
+    await store.forget('crawler', 'c-bay')
+  }
+
+  test('bringing in one whose assignment stays behind asks first, naming what is cleared', async () => {
+    await crewedBay()
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Razor' }))
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Move in' }))
+    })
+    const ask = await screen.findByRole('alertdialog')
+    expect(ask.textContent).toContain('Move Razor into Tenacity?')
+    expect(ask.textContent).toContain('Old Reliable')
+    // Nothing has moved until the confirm is pressed.
+    expect(inGame('p-one')).toBe(false)
+    expect(crewOf('p-one')).toBe(true)
+
+    await confirmWith('Move')
+    await settle(() => inGame('p-one') && !crewOf('p-one'))
+    expect(inGame('p-one')).toBe(true)
+    expect(crewOf('p-one')).toBe(false)
+    // The crewmate who stayed is still the crawler's crew.
+    expect(crewOf('p-two')).toBe(true)
+    await forgetCrewedBay()
+  })
+
+  test('several at once ask once, each one’s cleared assignment under its own name', async () => {
+    await crewedBay()
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Razor' }))
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Gauge' }))
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Move in' }))
+    })
+    const ask = await screen.findByRole('alertdialog')
+    expect(ask.textContent).toContain('Move these into Tenacity?')
+    expect(ask.textContent).toMatch(/Razor: .*Old Reliable/)
+    expect(ask.textContent).toMatch(/Gauge: .*Old Reliable/)
+    expect(ask.textContent).toContain('you’ll need to make those assignments again')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(inGame('p-one')).toBe(false)
+    expect(inGame('p-two')).toBe(false)
+    expect(crewOf('p-one') && crewOf('p-two')).toBe(true)
+    await forgetCrewedBay()
+  })
+
+  test('a mech of yours is paired with your pilot from its row: Assign to a Pilot… (LG-07)', async () => {
+    setSyncStatus('live')
+    await emptyBay()
+    const store = useUnits.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'a-mine', name: 'Roach-Boy', gameId: 'g1' }))
+    await store.adopt('mech', mechFixture({ id: 'a-mech', name: 'Iron Mongrel', gameId: 'g1' }))
+    await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT], mechs: [MY_MECH] }))
+    // The mech's own verb, and only on a mech.
+    expect(await rowsOffering(['Roach-Boy', 'Ash', 'Iron Mongrel'], 'Assign to a Pilot…')).toEqual([
+      'Iron Mongrel',
+    ])
+
+    const menu = await openMenu('Iron Mongrel')
+    await act(async () => {
+      fireEvent.click(within(menu).getByRole('menuitem', { name: 'Assign to a Pilot…' }))
+    })
+    const dialog = await screen.findByRole('dialog', { name: 'Assign Iron Mongrel to a Pilot' })
+    // Yours only, and the one with no mech is chosen already.
+    const radios = within(dialog).getAllByRole('radio')
+    expect(radios).toHaveLength(1)
+    expect(radios[0]?.getAttribute('aria-checked')).toBe('true')
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Assign' }))
+    })
+    const paired = () =>
+      useUnits
+        .getState()
+        .softLinks.some(
+          (l) => l.type === 'mech-to-pilot' && l.from.id === 'a-mech' && l.to.id === 'a-mine'
+        )
+    await settle(paired)
+    expect(paired()).toBe(true)
+    await forgetHeld(['mech', 'a-mech'], ['pilot', 'a-mine'])
+  })
+
+  test('with nothing built it says so, and offers the ways to have one (LG-10)', async () => {
+    setSyncStatus('live')
+    await emptyBay()
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    expect(within(dialog).getByText(/You have no Pilots or Mechs yet/)).toBeTruthy()
+    expect(within(dialog).queryByText(/is already in a Game/)).toBeNull()
+    const hrefOf = (name: string) => within(dialog).getByRole('link', { name }).getAttribute('href')
+    expect(hrefOf('+ New Pilot')).toBe('/pilots/new?game=g1')
+    expect(hrefOf('+ New Mech')).toBe('/mechs/new?game=g1')
+    expect(within(dialog).getByRole('button', { name: 'Move in' }).hasAttribute('disabled')).toBe(
+      true
+    )
+    // The Starter Set in place (r5 B18): a Pilot is copied into this Game, their Mech assigned.
+    const bonesaw = await within(dialog).findByRole('button', {
+      name: 'Make a copy of Bonesaw in this Game',
+    })
+    // The button says what it does, and "nothing is copied" is not said under it (r6 C10).
+    expect(bonesaw.textContent).toBe('Make a copy of Bonesaw')
+    expect(within(dialog).queryByText(/nothing is copied/)).toBeNull()
+    await act(async () => {
+      fireEvent.click(bonesaw)
+    })
+    const copied = () => useUnits.getState().pilots.find((p) => p.name === 'Bonesaw')
+    await settle(() => copied()?.gameId === 'g1')
+    expect(copied()?.seedRef).toBe('starter-pilot-bonesaw')
+    const mech = useUnits.getState().mechs.find((m) => m.name === 'Scrapper')
+    expect(mech?.gameId).toBe('g1')
+    expect(
+      useUnits
+        .getState()
+        .softLinks.some((l) => l.type === 'mech-to-pilot' && l.to.id === copied()?.id)
+    ).toBe(true)
+    expect(screen.queryByRole('dialog', { name: 'Bring into this Game' })).toBeNull()
+    await forgetHeld(['mech', mech?.id ?? ''], ['pilot', copied()?.id ?? ''])
+  })
+
+  test('with everything in a Game already, it says that instead', async () => {
+    setSyncStatus('live')
+    await useUnits
+      .getState()
+      .adopt('mech', mechFixture({ id: 'm-away', name: 'Away', gameId: 'g2' }))
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    expect(within(dialog).getByText(/is already in a Game/)).toBeTruthy()
+    expect(
+      await within(dialog).findByRole('button', { name: 'Make a copy of Bonesaw in this Game' })
+    ).toBeTruthy()
+    await forgetHeld(['mech', 'm-away'])
   })
 })
 

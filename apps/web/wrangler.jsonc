@@ -128,12 +128,13 @@
     // `/assets/*` rule's year of `immutable`. Not SPA mode either: the reference site is
     // pre-rendered, so a miss is genuinely a miss.
     "not_found_handling": "none",
-    // `/build`, `/play` and below: the app, whose Worker reads every answer
+    // `/`, for the Discord Activity's launch there (src/worker/index.ts).
+    // `/build`, `/games` and below (and `/play`, retired, for its 301s): the app, whose Worker reads every answer
     // (src/worker/app.ts, `RUN_WORKER_FIRST`, which the routing test holds
     // equal). A positive list only: a negative pattern sends its matches
     // straight to the assets, and `true` would run the script for every SRD
     // page.
-    "run_worker_first": ["/build", "/build/*", "/play", "/play/*"]
+    "run_worker_first": ["/", "/build", "/build/*", "/games", "/games/*", "/play", "/play/*"]
   },
 
   // Traces: a span per binding call and outbound fetch (D1, R2, Images,

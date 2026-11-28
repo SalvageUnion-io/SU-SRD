@@ -1,0 +1,328 @@
+/*
+ * The package stylesheet: the roll table's columns, split and nested forms.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* A columns table: the columns' ranges across an ink head, the entry numbers
+   down both outer edges. Its head is ink like the bar above it, one head with
+   no rule between. Under 40rem of frame (a phone, a narrow card) the grid
+   gives way to the stack (below). */
+.su-roll__grid {
+  container-type: inline-size;
+  overflow-x: auto;
+  /* Holds the visually hidden labels inside the scroller, not the page. */
+  position: relative;
+}
+
+.su-roll__table {
+  border-collapse: collapse;
+  font-size: var(--su-roll-value-size);
+  min-width: 34rem;
+  width: 100%;
+}
+
+.su-roll__table thead th {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
+  font-size: var(--su-roll-label-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  padding: var(--space-2) var(--space-8);
+  text-align: left;
+}
+
+.su-roll__table thead th[data-rolled] {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-roll__edge {
+  background-color: var(--color-wk-bg);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  text-align: center;
+  width: 2.75rem;
+}
+
+.su-roll__cell {
+  line-height: 1.25;
+  padding: var(--space-2) var(--space-8);
+}
+
+.su-roll__cell[data-rolled] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The narrow stack: each column's range on an ink head, its entries two up
+   beneath (1–10 left, 11–20 right), numbered on the wk ground as the grid's
+   edges are. Shown in place of the grid in a frame under 40rem. */
+.su-roll__stack {
+  display: none;
+}
+
+.su-roll__stack-head {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
+  font-size: var(--su-roll-label-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+  padding: var(--space-4) var(--space-8);
+}
+
+.su-roll__stack-head[data-rolled] {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* A split table is two column-major halves, a fixed matrix and no list of
+   items (hard rule R68): here and on its bar and bands below. */
+.su-roll__stack-list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* design-tokens-ignore(item-grid): split */
+  grid-template-rows: repeat(var(--su-roll-half), auto);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-roll__stack-entry {
+  align-items: stretch;
+
+  display: flex;
+  font-size: var(--su-roll-value-size);
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.su-roll__stack-entry > .su-roll__edge {
+  align-items: center;
+
+  display: flex;
+  flex: none;
+  justify-content: center;
+  width: 2.25rem;
+}
+
+.su-roll__stack-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: var(--space-4) var(--space-8);
+}
+
+.su-roll__stack-entry[data-rolled] {
+  color: var(--color-paper);
+  font-weight: var(--font-weight-semibold);
+}
+
+@container not (width >= 40rem) {
+  .su-roll__table {
+    display: none;
+  }
+
+  .su-roll__stack {
+    display: block;
+  }
+}
+
+@media (width >= 64rem) {
+  /*
+   * A long or wordy page table (`split`) sets its halves side by side: the
+   * first with its ranges on the left edge, the rest with theirs on the right,
+   * so the numbers stay on the outside. Under `lg` the halves stack as one list.
+   */
+  /* The ink head's labels sit over the split halves' columns (`.su-roll__cols`). */
+  .su-roll__bar[data-split] {
+    --su-roll-range: 3.5rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* design-tokens-ignore(item-grid): split */
+  }
+
+  .su-roll__bar[data-split] .su-roll__col-text {
+    padding-left: var(--space-8);
+  }
+
+  /* The second half's Result sits right, against its numbers, as its text does. */
+  .su-roll__bar[data-split] .su-roll__cols--end {
+    gap: var(--space-12);
+  }
+
+  .su-roll__bar[data-split] .su-roll__col-text--half {
+    display: block;
+    padding-left: 0;
+  }
+
+  .su-roll__bar[data-split] .su-roll__roll {
+    margin-left: 0;
+  }
+
+  .su-roll__bands[data-split] {
+    --su-roll-range: 3.5rem;
+    --su-roll-value-size: var(--text-body);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* design-tokens-ignore(item-grid): split */
+  }
+
+  /* Each half spans every row track and borrows it, so the rows pair up
+     side by side at one height (the taller of the two). */
+  .su-roll__bands[data-split] > .su-roll__rows {
+    display: grid;
+    grid-row: span var(--su-roll-half);
+    grid-template-rows: subgrid;
+  }
+
+  .su-roll__bands[data-split] > .su-roll__rows + .su-roll__rows {
+    border-left: var(--bw-hairline) solid var(--color-ink);
+  }
+
+  .su-roll__rows[data-side='right'] > .su-roll__row {
+    flex-direction: row-reverse;
+  }
+
+  /* The second half's text sits right, against its numbers; its rolled
+     pennant moves to the row's far (left) corner, clear of the text. */
+  .su-roll__rows[data-side='right'] .su-roll__body {
+    text-align: right;
+  }
+
+  .su-roll__rows[data-side='right'] .su-roll__head {
+    justify-content: flex-end;
+  }
+
+  .su-roll__rows[data-side='right'] .su-roll__tag {
+    clip-path: polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%);
+    left: 0;
+    padding: var(--space-2) var(--space-12) var(--space-2) var(--space-6);
+    right: auto;
+  }
+
+  .su-roll__rows[data-side='right']
+    .su-roll__row[data-rolled]
+    .su-roll__body:not(:has(.su-roll__head)) {
+    padding-inline-end: var(--space-8);
+    padding-inline-start: var(--su-roll-tag-room);
+  }
+
+  .su-roll__rows[data-side='right'] .su-roll__row[data-rolled] .su-roll__head {
+    padding-inline-end: 0;
+    padding-inline-start: calc(var(--su-roll-tag-room) - var(--space-12));
+  }
+
+  .su-roll__bands[data-split] .su-roll__body {
+    padding: var(--space-6) var(--space-8);
+  }
+
+  /*
+   * A wordy page (`density`, the SRD's `rollTableDensity`) sets tighter so it
+   * ends above the fold: `compact` sets the rows smaller; `dense` also runs
+   * each band's label in ahead of its text, at the caption size, with
+   * narrower ranges.
+   */
+  .su-roll[data-density='compact'] {
+    --su-roll-label-size: var(--text-lede);
+    --su-roll-value-size: var(--text-body);
+  }
+
+  .su-roll[data-density='compact'] .su-roll__body {
+    padding: var(--space-6) var(--space-12);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bar[data-split] {
+    --su-roll-range: 2.75rem;
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] {
+    --su-roll-range: 2.75rem;
+    --su-roll-range-size: var(--text-readout);
+    --su-roll-label-size: var(--text-body);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__body {
+    display: block;
+    font-size: var(--text-caption);
+    line-height: 1.25;
+    padding: var(--space-4) var(--space-8);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__head {
+    display: inline-flex;
+    margin-right: var(--space-6);
+  }
+
+  /* A dense split row runs its label into its words: no room is kept in it. */
+  .su-roll[data-density='dense']
+    .su-roll__bands[data-split]
+    .su-roll__row[data-rolled]
+    .su-roll__head {
+    padding-inline: 0;
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__value {
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  /* The columns grid's twenty rows set tighter, so it ends above the fold. */
+  .su-roll[data-density] .su-roll__table {
+    font-size: var(--text-body);
+  }
+
+  .su-roll[data-density] .su-roll__table tbody th,
+  .su-roll[data-density] .su-roll__table tbody td {
+    line-height: 1.2;
+  }
+
+  /* Mirrored, the range sits at the row's right end: the rule between it and
+     the text is the text's right edge (no left rail: ruleset §3.10). */
+  .su-roll__rows[data-side='right'] .su-roll__range + .su-roll__body {
+    border-right: var(--bw-hairline) solid var(--color-ink);
+  }
+}
+
+/* A NESTED table (`CardRollTable nested`): a Mini filling its line (N4),
+   its Roll button inside its strip after the name (C8), Mini at the Mini's
+   height (C1a); a coarse pointer's 44px target is the Mini rung's own hit
+   area, so the strip never grows. Its rows are its name's Peek. */
+.su-roll-token__actions {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: var(--space-4);
+  margin-left: auto;
+  padding-right: var(--space-2);
+}
+
+/* A damaged host's stamp in place of Roll: the Mini's Mini type, with a
+   paper edge so its ink plate shows on the ink pill. */
+.su-roll-token .su-roll__stamp {
+  box-shadow: inset 0 0 0 var(--bw-hairline) var(--color-paper);
+  font-size: var(--text-badge);
+  padding: var(--space-2) var(--space-4);
+}
+
+/* An action's roll, inside the action's body at its foot:
+   the button alone, at the right, no strip of its own. */
+.su-roll-inline {
+  align-items: center;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: flex-end;
+  margin-top: var(--space-8);
+}
+
+/* The table's name, its Peek's trigger: a quiet underlined word. */
+.su-roll-inline__name {
+  color: var(--color-ink-2);
+  cursor: pointer;
+  font-size: var(--text-caption);
+  text-decoration: underline dotted;
+}

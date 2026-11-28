@@ -1,4 +1,5 @@
 import { advanceUntilVisible, buildPilot, openSheetFor, openWizard, pickByName } from './_helpers'
+import { openTrainingBay } from './_trainingBay'
 import { expect, test } from './fixtures'
 
 // Signed in (the fixture's default): building needs an account, so a
@@ -56,12 +57,12 @@ test.describe('The Training Bay surfaces created entities with their identity', 
     // buildPilot lands back on the roster.
     await buildPilot(page, 'Display Test Pilot', 'DTP')
 
-    // Name is displayed.
-    await expect(page.getByText('Display Test Pilot').first()).toBeVisible({ timeout: 15_000 })
     // Each shelf item is one line that opens its live sheet (the Training
     // Bay), and the line is named by what it is — kind, class, name, HP — so a
-    // screen-reader user can tell which unit each opens (WCAG 2.4.4).
-    const line = page.getByRole('link', { name: /Display Test Pilot/ })
+    // screen-reader user can tell which unit each opens (WCAG 2.4.4). A pilot
+    // goes by its callsign there; the optional Name is its sheet's (r8 F1).
+    await openTrainingBay(page)
+    const line = page.getByRole('link', { name: 'DTP', exact: true })
     await expect(line).toBeVisible({ timeout: 15_000 })
     await expect(line).toHaveAttribute('href', /\/build\/pilots\/(?!new)/)
   })
@@ -71,7 +72,7 @@ test.describe('sheet renders the right pilot identity', () => {
   test('opening a pilot sheet shows their name and class context', async ({ page }) => {
     // buildPilot deterministically picks Engineer, which is what the ability
     // assertions below depend on.
-    await buildPilot(page, 'Sheet Name', 'SN')
+    await buildPilot(page, 'SN', 'Sheet Name')
     await expect(page.getByText('Sheet Name').first()).toBeVisible({ timeout: 15_000 })
 
     await openSheetFor(page, 'Sheet Name')

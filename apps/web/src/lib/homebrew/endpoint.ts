@@ -8,6 +8,13 @@
 /** Where the Worker serves homebrew patterns: `?chassis=<ref>` narrows to one chassis. */
 export const HOMEBREW_PATTERNS_PATH = '/homebrew/patterns.json'
 
+/**
+ * Whether a reader asked chassis pages to show homebrew: a per-browser
+ * setting. Here, free of the reference data, so the page script can ask
+ * whether the switch was left on (`runtime/mountNow.ts`).
+ */
+export const SHOW_HOMEBREW_KEY = 'su:show-homebrew'
+
 /** One pattern as `homebrew.patterns` serves it. */
 export type HomebrewRow = {
   appId: string

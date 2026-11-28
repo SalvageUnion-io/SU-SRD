@@ -1,7 +1,7 @@
 /**
  * GameBand — the head of a Game's own page (ADR-052 §5): Play's
  * chapter band (the Manage context's band, ruleset §1.9) whose row keeps the
- * page's 75rem measure, the Game's name notched into its foot as the page's
+ * page's measure (`--page-measure`), the Game's name notched into its foot as the page's
  * `h1`, and the ways into the Cockpit beside it on the band's foot, wrapping up
  * over the name when they do not fit (`asideAt="controls"`).
  *
@@ -11,20 +11,29 @@
  * the hub's `actions`, a **Play** chip that asks which pilot to play
  * (`LaunchPlay`), beside Mediate when the Mediator plays one too.
  *
- * The group session (`useGameSession`, play.md §10): until one is live the
- * Mediator's chip is **Start group session**, which starts it and opens the
- * Mediator's screen; while it is live, Mediate and **End group session**, and
- * everyone else reads a **SESSION LIVE** stamp before Play.
+ * The group session (`useGameSession`, play.md §10): Mediate is the Mediator's
+ * one door whether or not one is live (ruleset §3.13), Prep beside it and the
+ * session's state under the pair, saying what starts one: running an
+ * encounter, giving the turn or telling the table on Mediate (r6 C3, r7 C12).
+ * While it is live the band also holds **End group session**, and everyone
+ * else reads a **SESSION LIVE** stamp before Play.
+ * While the table plays under a Scene condition the band names it (**SCENE · RADIATION
+ * STORM**), so one left on is never unseen.
  */
 
 import { mediatePath } from 'game-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
-import { Badge, Button, ChapterBand, Cluster } from '../../components/index'
-import { useGo } from '../../components/shared/useGo'
+import { Cluster } from '../../components/app'
+import { Badge, Button, ChapterBand, tokens } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'
+import { mediatorCopy } from '../../messages/play-mediator'
+import { PLAY_STARTS_SESSION } from '../../rooms/game/session'
+import { SessionControl } from '../SessionControl'
 import type { GameSession } from '../useGameSession'
+import { GameTitle } from './GameTitle'
+import { gamePrepPath } from './prep/gamePrep.model'
 
 /**
  * The stamp shares its line with the Compact Mediate (§4.7): it is drawn that
@@ -37,12 +46,28 @@ const STAMP_AT_COMPACT = {
   height: 'var(--size-compact)',
 } satisfies CSSProperties
 
+/** Mediate and Prep in one row, the session's state under it (r6 C3, r7 C12). */
+const DOOR = {
+  alignItems: 'flex-start',
+  display: 'inline-flex',
+  flexDirection: 'column',
+  gap: tokens.space[4],
+} satisfies CSSProperties
+
+const DOOR_STATE = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+  lineHeight: 1.3,
+} satisfies CSSProperties
+
 export function GameBand({
   gameId,
   name,
   mediator = false,
   actions,
   session,
+  scene = '',
+  organizer = false,
 }: {
   gameId: string | null
   /** The Game's name; "Game" while it loads. */
@@ -53,8 +78,11 @@ export function GameBand({
   actions?: ReactNode
   /** The Game's group session (`useGameSession`); null while it loads. */
   session?: GameSession | null
+  /** The Scene conditions that are on, by name; empty with none (r4 A11). */
+  scene?: string
+  /** The viewer organises this Game: its name is renamed in place (r6 C9). */
+  organizer?: boolean
 }) {
-  const go = useGo()
   const mediates = mediator && gameId !== null
   const live = session?.live === true
   return (
@@ -62,47 +90,51 @@ export function GameBand({
       tone="play"
       measure={PAGE_MEASURE}
       id="game-band-heading"
+      // The Organiser's Rename stands in the title: the heading is the name alone (LG8-22).
+      titleLabel={organizer && gameId !== null ? name : undefined}
       asideAt="controls"
       aside={
         mediates || actions || live ? (
-          <>
+          // One cluster, so a phone's strip under the band keeps the doors on a line.
+          <Cluster gap={12}>
             {mediates && (
-              // The stamp and its link wrap as one piece, centred on each other.
-              <Cluster gap={8}>
-                <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
-                  {playGamesCopy('youMediate')}
-                </Badge>
-                {live || !session ? (
-                  <Button href={mediatePath(gameId)} variant="default" size="compact">
+              // The Mediator's door says who mediates: no stamp beside it. Its
+              // doors are one row, the session's state under the row (r7 C12).
+              <span style={DOOR}>
+                <Cluster gap={8}>
+                  {/* The table's first act on Mediate starts the session (r6
+                      C3), so the band holds no Start of its own. The band's one
+                      rust button (ruleset §3.13). */}
+                  <Button
+                    href={mediatePath(gameId)}
+                    variant="primary"
+                    size="compact"
+                    aria-describedby={`${gameId}-session-state`}
+                  >
                     {playGamesCopy('mediate')}
                   </Button>
-                ) : (
-                  // Start the session, then open the Mediator's screen.
-                  <Button
-                    variant="default"
-                    size="compact"
-                    disabled={!session.canWrite || session.pending}
-                    onClick={() => {
-                      void session.start().then((started) => {
-                        if (started) go(mediatePath(gameId))
-                      })
-                    }}
-                  >
-                    {playCopy('startGroupSession')}
+                  {/* The Game's Prep (ADR-067 §3): any other control on a pink band is ink (R44). */}
+                  <Button href={gamePrepPath(gameId)} variant="ink" size="compact">
+                    {playGamesCopy('prep')}
                   </Button>
-                )}
-                {live && session && (
-                  // R44: a control on a pink band is ink.
-                  <Button
-                    variant="ink"
-                    size="compact"
-                    disabled={!session.canWrite || session.pending}
-                    onClick={session.end}
-                  >
-                    {playCopy('endGroupSession')}
-                  </Button>
-                )}
-              </Cluster>
+                  {/* Ending tells the whole table, so it asks first (`SessionControl`). */}
+                  {live && <SessionControl session={session ?? null} />}
+                </Cluster>
+                <span id={`${gameId}-session-state`} style={DOOR_STATE}>
+                  {live
+                    ? playCopy('sessionLive')
+                    : PLAY_STARTS_SESSION === 'auto'
+                      ? playGamesCopy('sessionStartsWithPlay')
+                      : playGamesCopy('noSessionYet')}
+                </span>
+              </span>
+            )}
+            {/* A condition left on says so outside Play too (r4 A11). */}
+            {/* Only while the table plays: left on after it, it is stale (r6 C2). */}
+            {scene !== '' && live && (
+              <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
+                {mediatorCopy('sceneUnderStamp', { scene })}
+              </Badge>
             )}
             {live && !mediates && (
               <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
@@ -110,11 +142,11 @@ export function GameBand({
               </Badge>
             )}
             {actions}
-          </>
+          </Cluster>
         ) : undefined
       }
     >
-      {name}
+      {gameId === null ? name : <GameTitle gameId={gameId} name={name} editable={organizer} />}
     </ChapterBand>
   )
 }

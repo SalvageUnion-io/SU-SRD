@@ -56,9 +56,9 @@ export type EntityPageMeta = {
   cost?: { value: string; currency: string }
   /**
    * Where it is printed, for the foot's one citation line: the book and page,
-   * then each reprint ("Salvage Union Starter Set (PC)", p.26).
+   * then each reprint ("Starter Set (PC)", p.26).
    */
-  printings: { book: string; page?: number }[]
+  printings: { book: string; page?: number; source?: string }[]
 }
 
 /** The model's facts the band does not already state as a book stat. */
@@ -110,6 +110,19 @@ export function pageBodyStats(entity: RefMetaEntity): BookStat[] {
     : []
 }
 
+/**
+ * A chassis's book stats in the stat order (§2.6: TL, SV, SP, EP, Sys, Mod,
+ * Heat, Cargo), for its Page's stat column (`CardPage`). Every other Page's
+ * stats ride its band, so its body repeats none.
+ */
+export function pageStatLine(entity: RefMetaEntity): BookStat[] {
+  if (!statsInBody(entity)) return []
+  // The numeral's frame holds a letter, not a word: a Bio-Chassis reads `B`.
+  return bookStatsOf(toEntityModel(entity), entity).map((stat) =>
+    stat.key === 'tech-level' ? { ...stat, value: String(stat.value).charAt(0) } : stat
+  )
+}
+
 /** What an entity's page says around its body, read off its entity model. */
 export function resolveEntityPageMeta(
   entity: RefMetaEntity,
@@ -120,9 +133,9 @@ export function resolveEntityPageMeta(
   return {
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
-    stats: statsInBody(entity)
-      ? bookStatsOf(model, entity).filter(isBandStat)
-      : bookStatsOf(model, entity),
+    // A chassis's stats (and its patterns') are tiles at the head of its
+    // body (`pageStatLine`); every other Page's ride its band as stamps.
+    stats: statsInBody(entity) ? [] : bookStatsOf(model, entity),
     numeral: model.tier,
     actionTypes: actionTypeStamps(model.actionType, model.mechActionType),
     facts: factCells(

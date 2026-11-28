@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { StartHere } from '../StartHere'
 
 describe('StartHere', () => {
-  test("each step's frame wears its band's colour (R51)", () => {
+  test("each step's frame wears its band's colour (R38)", () => {
     const { container } = render(<StartHere id="start" />)
     const frames = [...container.querySelectorAll<HTMLElement>('.su-entity-index__frame')]
     expect(frames).toHaveLength(3)

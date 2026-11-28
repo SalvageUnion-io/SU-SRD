@@ -1,4 +1,5 @@
 import { crawlerTechLevelOf } from '../crawlerLevel'
+import { withCondition } from '../mechConditions'
 /**
  * Union Crawler Downtime Procedure.
  *
@@ -139,6 +140,24 @@ export function currentDowntimeStep(stepIndex: number | null | undefined) {
 export function isUpkeepStep(stepIndex: number | null): boolean {
   if (stepIndex === null) return false
   return downtimeGuideSteps()[stepIndex]?.name === UPKEEP_STEP_NAME
+}
+
+/** The first Crawler Downtime step, where the haul is tallied and its Scrap moved (p.227). */
+export const TALLY_STEP_NAME = 'Tally Salvage'
+
+/** Whether the step at `stepIndex` is Tally Salvage. */
+export function isTallyStep(stepIndex: number | null): boolean {
+  if (stepIndex === null) return false
+  return downtimeGuideSteps()[stepIndex]?.name === TALLY_STEP_NAME
+}
+
+/**
+ * Whether a Game's step has nothing for a player's seat (r6 D2): Upkeep, which
+ * the Mediator pays. Such a step counts as done for every seat, so nobody
+ * presses Mark done on it.
+ */
+export function isSeatFreeStep(stepIndex: number | null): boolean {
+  return isUpkeepStep(stepIndex)
 }
 
 // ---------------------------------------------------------------------------
@@ -323,6 +342,14 @@ export function downtimeMechPatch(
     if (mech.currentSP !== undefined && mech.currentSP !== maxSP) patch.currentSP = maxSP
     if (mech.currentEP !== undefined && mech.currentEP !== maxEP) patch.currentEP = maxEP
     if (resolveGauge(mech.currentHeat) !== 0) patch.currentHeat = 0
+    // The Reactor's Shutdown and Vulnerable are a fight's, never next week's
+    // (Core Book p.202, r7 D2): rest clears them as it cools the Heat.
+    const rested = withCondition(
+      withCondition(mech.conditions, 'Shutdown', false),
+      'Vulnerable',
+      false
+    )
+    if (rested.length !== mech.conditions.length) patch.conditions = rested
   }
 
   if (steps.repairItems && bayOperational) {
@@ -333,7 +360,7 @@ export function downtimeMechPatch(
     const nextModules = repairConditionMap(mech.moduleConditions, repairSet)
     if (nextModules) patch.moduleConditions = nextModules
     if (chassisRepairable) {
-      patch.conditions = mech.conditions.filter(
+      patch.conditions = (patch.conditions ?? mech.conditions).filter(
         (c) => c.trim().toLowerCase() !== CHASSIS_DAMAGED_CONDITION.toLowerCase()
       )
     }

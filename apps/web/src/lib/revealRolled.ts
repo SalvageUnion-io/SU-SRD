@@ -2,7 +2,7 @@
  * Whether `el` is wholly on screen: inside the viewport and inside every
  * ancestor that clips it (a scrolling panel, a phone frame).
  */
-function whollyVisible(el: Element): boolean {
+export function whollyVisible(el: Element): boolean {
   const box = el.getBoundingClientRect()
   let top = 0
   let bottom = window.innerHeight
@@ -16,7 +16,8 @@ function whollyVisible(el: Element): boolean {
   return box.top >= top && box.bottom <= bottom
 }
 
-function prefersReducedMotion(): boolean {
+/** The reader asked for less motion: a scroll lands at once. */
+export function prefersReducedMotion(): boolean {
   return (
     typeof window.matchMedia === 'function' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches

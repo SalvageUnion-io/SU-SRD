@@ -1,5 +1,6 @@
 import { z } from 'salvageunion-reference/zod'
 import { containerFields } from './entity'
+import { NPC_TEMPLATE_KINDS, NpcTraitSchema } from './npc'
 
 /**
  * EncounterNpc — one tracked NPC instance on the GM encounter tray.
@@ -92,6 +93,32 @@ export const EncounterNpcSchema = z
       .optional(),
 
     /**
+     * Drawn from one of the Mediator's own designed NPCs (ADR-067 §1): a
+     * snapshot of its stat block as it stood, actions as slugs, so the
+     * instance never changes under a fight when the design is edited. Then
+     * `refSlug` is empty and `maxHp`/`statKind` carry its HP or SP.
+     */
+    built: z
+      .object({
+        npcId: z.string().min(1),
+        /** The design's name, whatever this instance is called. */
+        name: z.string().min(1),
+        actions: z.array(z.string().min(1)),
+        traits: z.array(NpcTraitSchema),
+        /**
+         * The kind of denizen the design was built from (its template's
+         * schema), so the row is chipped and salvaged as one. Absent for a
+         * design from a book NPC, a crew slot or nothing, and on a snapshot
+         * taken before kinds were kept: then it is an NPC.
+         */
+        kind: z.enum(NPC_TEMPLATE_KINDS).optional(),
+        /** The design's Bio-Salvage Value, where it has one. */
+        bioSalvageValue: z.number().int().min(0).optional(),
+      })
+      .strict()
+      .optional(),
+
+    /**
      * The encounter group it fights in (ADR-059 §5), copied with its name when
      * the encounter was run, so the tray keeps it after the encounter ends.
      * Absent, it fights alone.
@@ -120,6 +147,16 @@ export const EncounterNpcSchema = z
      */
     salvaged: z.boolean().optional(),
 
+    /**
+     * A downed Mech's Mech Salvage roll (Core Book p.246), kept with the wreck
+     * until it is salvaged, so the band and what it lets the salvager take
+     * outlast leaving Mediate (r5 B1). Rolled again, the new roll replaces it.
+     */
+    salvageRoll: z
+      .object({ roll: z.number().int().min(1).max(20), rolledAt: z.string().datetime() })
+      .strict()
+      .optional(),
+
     /** Last Mediator table roll recorded against this NPC. */
     lastMediatorRoll: MediatorRollResultSchema.optional(),
 
@@ -135,6 +172,20 @@ export const EncounterNpcSchema = z
     heatCap: z.number().int().min(0).optional(),
     /** Its last Critical roll or Heat Check, kept apart from its Morale. */
     lastImportantRoll: MediatorRollResultSchema.optional(),
+
+    /**
+     * The Uses its limited actions have spent, by action id (r8 B3): what the
+     * book's Uses trait counts, kept on the unit as a Pilot's are.
+     */
+    usesSpent: z.record(z.string(), z.number().int().min(0)).optional(),
+    /**
+     * The Titanic Actions a Bio-Titan has spent, and the initiative round they
+     * were spent in (r8 B3): a later round has them all back.
+     */
+    titanicSpent: z
+      .object({ round: z.number().int().min(0), spent: z.number().int().min(0) })
+      .strict()
+      .optional(),
 
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
