@@ -40,11 +40,13 @@ describe('buildChapters', () => {
         listingEntries(s.id, getModel(s.id)?.all() ?? []).length,
       ])
     )
-    // The roll tables count only their top-level tables; every other listing
-    // counts every entry of its schema.
+    // The roll tables count only their top-level tables, the equipment all but
+    // its granted-only gear (R63); every other listing counts every entry.
     expect(counts.get('roll-tables')).toBeLessThan(SalvageUnionReference.RollTables.all().length)
+    expect(counts.get('equipment')).toBeLessThan(SalvageUnionReference.Equipment.all().length)
+    const trimmed = new Set(['roll-tables', 'equipment'])
     for (const schema of getEntitySchemas())
-      if (schema.id !== 'roll-tables') expect(counts.get(schema.id)).toBe(schema.itemCount)
+      if (!trimmed.has(schema.id)) expect(counts.get(schema.id)).toBe(schema.itemCount)
     for (const chapter of chapters) {
       for (const row of chapter.rows) expect(row.count).toBe(counts.get(row.schemaId) ?? -1)
       expect(chapter.total).toBe(chapter.rows.reduce((sum, row) => sum + row.count, 0))

@@ -282,6 +282,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R60: ['PilotSheet-equipment-choices.test.tsx', 'CatalogChoiceListing.test.tsx'],
   R61: ['SheetHero-fit.test.tsx', 'sheetGrammar.test.ts'],
   R62: ['AssignedUnits.test.tsx', 'sheet-rail-links.test.tsx'],
+  R63: ['grantedOnly.test.ts', 'listingEntries.test.ts'],
 }
 
 /** A law's id as the canon and its citations spell it. */
