@@ -63,6 +63,10 @@ export type FakeExecuteOptions = {
   channelName?: string | null
   /** Whether the member holds Manage Channels there; null (a DM) by default. */
   manageChannels?: boolean | null
+  /** The channel's category; none by default. */
+  categoryId?: string | null
+  /** The server; none (a DM) by default. */
+  guildId?: string | null
 }
 
 export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
@@ -94,6 +98,8 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
     channelId: options.channelId === undefined ? 'channel-1' : options.channelId,
     channelName: options.channelName === undefined ? 'salvage-run' : options.channelName,
+    categoryId: options.categoryId ?? null,
+    guildId: options.guildId ?? null,
     manageChannels: options.manageChannels ?? null,
     targetMessage: options.targetMessage ?? null,
     reply: (arg: ReplyArg) => {

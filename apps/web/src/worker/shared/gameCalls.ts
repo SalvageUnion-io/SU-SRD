@@ -42,6 +42,7 @@ import { gameBindingView, rollChannel, soloBindingView } from './channelBindings
 import type { SharedDb } from './db'
 import { CALL_ARGS } from './gameCallArgs'
 import { gameOfInvite, gamesOf, memberAccountNames, membershipOf } from './games'
+import { bindHere, launchAnswer } from './launchBinding'
 import { bringBack } from './rejoin'
 
 /** A player's account room, as these calls use it. */
@@ -449,6 +450,14 @@ const CALLS = {
     }
     return { personal: await soloBindingView(deps.db, who.discordId), games }
   },
+  // The Activity's launch: the Game bound where it opened, or the one-tap bind (ADR-068 §6).
+  'channelBindings.launch': async (who: Caller, a: { channelId: string }, deps: CallDeps) =>
+    launchAnswer(deps.db, deps.bot, who.discordId, a.channelId),
+  'channelBindings.bindHere': async (
+    who: Caller,
+    a: { channelId: string; gameId: string; instanceId: string },
+    deps: CallDeps
+  ) => bindHere(deps.db, deps.bot, who.discordId, a),
   'channelBindings.current': async (who: Caller, a: { gameId?: string }, deps: CallDeps) => {
     if (a.gameId === undefined) return soloBindingView(deps.db, who.discordId)
     const read = await act(deps.game(a.gameId), who.discordId, 'read', undefined as never)

@@ -446,7 +446,9 @@ describe('where a unit is, and a move between rooms', () => {
 describe("Discord's channels", () => {
   const bind = (w: ReturnType<typeof world>, channelId: string, gameId: string | null) =>
     w.db.sqlite
-      .query('insert into channel_bindings values (?1, ?2, ?3, ?4, 5)')
+      .query(
+        'insert into channel_bindings (channel_id, game_id, bound_by, channel_name, bound_at) values (?1, ?2, ?3, ?4, 5)'
+      )
       .run(channelId, gameId, 'd-org', `#${channelId}`)
   const roll = { tableName: 'Core Mechanic', rolls: [17] }
 

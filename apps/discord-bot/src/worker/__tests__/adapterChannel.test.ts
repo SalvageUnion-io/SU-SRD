@@ -38,6 +38,19 @@ describe('the channel a command ran in', () => {
     expect(interaction.channelName).toBe('salvage-run')
   })
 
+  test('its category and server, for the Game binding that covers the category', () => {
+    const interaction = execute({
+      channel_id: '123',
+      guild_id: '900',
+      channel: { id: '123', name: 'salvage-run', type: 0, parent_id: '456' },
+    })
+    expect(interaction.categoryId).toBe('456')
+    expect(interaction.guildId).toBe('900')
+    const dm = execute({ channel_id: '123' })
+    expect(dm.categoryId).toBeNull()
+    expect(dm.guildId).toBeNull()
+  })
+
   test('Manage Channels, from the member’s resolved permissions', () => {
     const member = (permissions: string) => ({ user: { id: 'u1' }, permissions })
     expect(execute({ member: member('16') }).manageChannels).toBe(true)

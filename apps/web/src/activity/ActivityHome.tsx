@@ -13,12 +13,15 @@
  * No band, page measure or foot: the screen is the Activity's, edge to edge.
  */
 
+import { useNavigate } from '@tanstack/react-router'
 import { gamePath } from 'game-domain/entityKinds'
 import { pilotCallsign } from 'game-domain/pilotLabel'
+import { useEffect } from 'react'
 import { Button, capsLabel, Pending } from '../components/index'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { GAMES_ROOT } from '../lib/appBase'
 import { cn } from '../lib/cn'
+import { useServerAction } from '../lib/connection/useServerAction'
 import { SITE_URL } from '../lib/constants'
 import { useOwnUnits } from '../lib/entities'
 import { activityCopy } from '../messages/activity'
@@ -28,8 +31,9 @@ import { channelTag } from '../play/channels.model'
 import { PlayGameItem } from '../play/PlayLanding'
 import { gamePilots } from '../play/play.model'
 import { YourPilots } from '../play/YourPilots'
-import { useGamesQuery } from '../replica/roomCalls'
+import { useGamesCall, useGamesQuery } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
+import { useActivity } from './activityStore'
 
 const HEADING = cn('su-activity-heading', capsLabel({ size: 'title' }))
 
@@ -86,14 +90,76 @@ function ActivityGames({ only }: { only?: string }) {
   )
 }
 
+/** The launch channels whose Game this Activity already opened: once each, so Back stays home. */
+const opened = new Set<string>()
+
+/**
+ * Where the Activity was launched (ADR-068 §6): the Game bound there opens
+ * at once; with none, a Mediator runs one of theirs here with one tap, and a
+ * player is told to ask theirs.
+ */
+function ActivityHere({ channelId, instanceId }: { channelId: string; instanceId: string }) {
+  const launch = useGamesQuery('channelBindings.launch', { channelId })
+  const bind = useServerAction(useGamesCall('channelBindings.bindHere'), {
+    failure: activityCopy('bindDidNotLand'),
+    toastId: 'activity-bind-here',
+  })
+  const navigate = useNavigate()
+  const open = (gameId: string) => void navigate({ to: '/games/$gameId', params: { gameId } })
+  const found = launch?.game?.gameId ?? null
+  useEffect(() => {
+    if (found === null || opened.has(channelId)) return
+    opened.add(channelId)
+    void navigate({ to: '/games/$gameId', params: { gameId: found } })
+  }, [found, channelId, navigate])
+  if (launch === undefined || launch.game !== null) return null
+  return (
+    <section className="su-activity-section" aria-labelledby="activity-here">
+      <div className="su-activity-head">
+        <h2 id="activity-here" className={HEADING}>
+          {activityCopy('here')}
+        </h2>
+      </div>
+      {launch.bindable.length === 0 ? (
+        <p className="su-activity-note">{activityCopy('nothingHere')}</p>
+      ) : (
+        <>
+          <p className="su-activity-note">{activityCopy('runHereNote')}</p>
+          {launch.bindable.map((game) => (
+            <Button
+              key={game.gameId}
+              variant="primary"
+              size="compact"
+              disabled={bind.pending}
+              onClick={() =>
+                void bind.run({ channelId, gameId: game.gameId, instanceId }).then((done) => {
+                  if (done.ok) open(game.gameId)
+                })
+              }
+            >
+              {activityCopy('runHere', { name: game.gameName })}
+            </Button>
+          ))}
+        </>
+      )}
+    </section>
+  )
+}
+
 /** The Activity's home: a signed-in Activity always has a session, once it has synced. */
 export function ActivityHome({ only }: { only?: string }) {
   const { status } = useSync()
+  const activity = useActivity()
+  const channelId = activity?.channelId ?? null
+  const instanceId = activity?.instanceId ?? null
   if (status === 'syncing' || status === 'signedOut') {
     return <RoutePending label={playCopy('yourSession')} />
   }
   return (
     <main className="su-activity-page">
+      {only === undefined && channelId && instanceId ? (
+        <ActivityHere channelId={channelId} instanceId={instanceId} />
+      ) : null}
       <ActivityGames {...(only === undefined ? {} : { only })} />
     </main>
   )

@@ -102,6 +102,20 @@ describe('the gateway', () => {
       { discordId: 'd1', channelId: 'ch1', manageChannels: false },
     ],
     [
+      'bindChannel',
+      // The channel's category and server, kept where Discord sends them.
+      (c: Client) =>
+        c.bindChannel('d1', 'ch1', 'g1', null, true, { categoryId: 'cat1', guildId: 'gd1' }),
+      {
+        discordId: 'd1',
+        channelId: 'ch1',
+        game: 'g1',
+        manageChannels: true,
+        categoryId: 'cat1',
+        guildId: 'gd1',
+      },
+    ],
+    [
       'unbindChannel',
       (c: Client) => c.unbindChannel('d1', 'ch1'),
       { discordId: 'd1', channelId: 'ch1' },
