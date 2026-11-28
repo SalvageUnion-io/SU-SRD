@@ -53,3 +53,24 @@ describe('the channel a command ran in', () => {
     expect(interaction.channelName).toBeNull()
   })
 })
+
+describe('launching the Activity', () => {
+  test('is the initial response, LAUNCH_ACTIVITY with no data', async () => {
+    const sent: unknown[] = []
+    const ctx = {
+      raw: {
+        id: '2',
+        application_id: 'app',
+        type: InteractionType.ApplicationCommand,
+        token: 'interaction-token',
+        member: { user: { id: 'u1' } },
+        data: { id: 'cmd', name: 'su', type: 1, options: [{ name: 'play', type: 1 }] },
+      },
+      applicationId: 'app',
+      rest: {},
+      sink: { settled: false, send: (r: unknown) => sent.push(r) },
+    } as unknown as Context
+    await makeExecuteInteraction(ctx).launchActivity()
+    expect(sent).toEqual([{ type: 12 }])
+  })
+})

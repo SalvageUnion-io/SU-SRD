@@ -9,6 +9,7 @@
 import { describe, expect, test } from 'bun:test'
 import { commands } from '../commands/index'
 import { suCommand } from '../commands/su'
+import { entryPointCommand } from '../entryPoint'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 describe('/su command', () => {
@@ -24,7 +25,17 @@ describe('/su command', () => {
     // appears or vanishes depending on deployment configuration is harder to
     // explain than one that answers "The app is not configured for
     // this bot" (or that it is unavailable).
-    expect(subs).toEqual(['bind', 'feedback', 'games', 'lookup', 'me', 'roll', 'sheet', 'unbind'])
+    expect(subs).toEqual([
+      'bind',
+      'feedback',
+      'games',
+      'lookup',
+      'me',
+      'play',
+      'roll',
+      'sheet',
+      'unbind',
+    ])
 
     // Discord caps a command at 25 options, and subcommands + groups both
     // count against it. Worth pinning: overflowing fails at deploy time, in a
@@ -44,6 +55,23 @@ describe('/su command', () => {
     expect(
       (sheet as { options?: { name: string; autocomplete?: boolean }[] }).options?.[0]
     ).toMatchObject({ name: 'entity', autocomplete: true, required: true })
+  })
+
+  test('/su play answers by launching the Activity, with no message of its own', async () => {
+    const { interaction, launched, replies, deferred } = fakeExecute({ subcommand: 'play' })
+    await suCommand.execute(interaction)
+    expect(launched.count).toBe(1)
+    expect(replies).toEqual([])
+    expect(deferred.called).toBe(false)
+  })
+
+  test('the Entry Point command is Discord’s own Activity launch', () => {
+    expect(entryPointCommand).toEqual({
+      name: 'launch',
+      description: 'Open Play, the SalvageUnion.io Activity',
+      type: 4,
+      handler: 2,
+    })
   })
 
   test('execute throws loudly on an unknown subcommand', async () => {

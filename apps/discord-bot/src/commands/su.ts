@@ -19,6 +19,7 @@ import { bindCommand, unbindCommand } from './bind'
 import { feedbackCommand } from './feedback'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
 import { lookupCommand } from './lookup'
+import { playCommand } from './play'
 import { rollCommand } from './roll'
 import { sheetCommand } from './sheet'
 
@@ -38,6 +39,8 @@ export const suCommand = {
     // Which channel Play's rolls post to: a Game's, or one person's solo play.
     .addSubcommand((sub) => bindCommand.subcommand(sub))
     .addSubcommand((sub) => unbindCommand.subcommand(sub))
+    // Open Play, the Activity, where the command ran (ADR-068).
+    .addSubcommand((sub) => playCommand.subcommand(sub))
     // Suggest or report, filed as a GitHub issue (ADR-057).
     .addSubcommand((sub) => feedbackCommand.subcommand(sub)),
 
@@ -57,6 +60,8 @@ export const suCommand = {
         return bindCommand.execute(interaction)
       case 'unbind':
         return unbindCommand.execute(interaction)
+      case 'play':
+        return playCommand.execute(interaction)
       case 'feedback':
         return feedbackCommand.execute(interaction)
       default:

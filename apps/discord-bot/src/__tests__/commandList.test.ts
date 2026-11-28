@@ -19,6 +19,7 @@ describe('the /su command list', () => {
       'sheet',
       'bind',
       'unbind',
+      'play',
       'feedback',
     ])
   })

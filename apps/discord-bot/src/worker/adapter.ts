@@ -265,6 +265,12 @@ function replyMembers(ctx: AdapterContext) {
       return undefined
     },
 
+    async launchActivity(): Promise<unknown> {
+      // The initial response or nothing: an Activity cannot open after a defer.
+      ctx.sink.send({ type: InteractionResponseType.LaunchActivity })
+      return undefined
+    },
+
     async editReply(payload: EditReplyPayload): Promise<unknown> {
       return ctx.rest.patch(routes.original, { body: toWire(payload) })
     },
