@@ -336,9 +336,9 @@ describe('toEntityModel — a player copy with picks and a host Tech Level', () 
     model.traits.find((t) => t.name === label)?.param
   const traitNames = (model: ReturnType<typeof toEntityModel>) => model.traits.map((t) => t.name)
 
-  test('bare, it is the book: TL1, 2 SP, Long', () => {
+  test("bare, it is the book: the crawler's Tech Level, 2 SP, Long", () => {
     const model = toEntityModel(sniper)
-    expect(fact(model, 'Tech Level')).toBe('1')
+    expect(fact(model, 'Tech Level')).toBe('Crawler')
     expect(fact(model, 'Damage')).toBe('2 SP')
     expect(fact(model, 'Range')).toBe('Long')
   })
@@ -363,5 +363,32 @@ describe('toEntityModel — a player copy with picks and a host Tech Level', () 
   test('a host Tech Level never changes what does not scale', () => {
     const plain = need(SalvageUnionReference.Equipment.all()[0], 'equipment') as RefMetaEntity
     expect(toEntityModel(plain, { techLevel: 6 }).facts).toEqual(toEntityModel(plain).facts)
+  })
+})
+
+describe("toEntityModel — class-granted gear's Tech Level is the crawler's (R44)", () => {
+  const fact = (model: ReturnType<typeof toEntityModel>, label: string) =>
+    model.facts.find((f) => f.label === label)?.value
+  const byName = (name: string) => {
+    const item = SalvageUnionReference.Equipment.getByName(name)
+    if (!item) throw new Error(`${name} missing`)
+    return item
+  }
+
+  test('bare, it reads Crawler and wears the class orange', () => {
+    const model = toEntityModel(byName('Camo Suit'))
+    expect(fact(model, 'Tech Level')).toBe('Crawler')
+    expect(model.tone).toBe('pilot')
+  })
+
+  test("a host's level is its level, scaling or not", () => {
+    expect(fact(toEntityModel(byName('Camo Suit'), { techLevel: 4 }), 'Tech Level')).toBe('4')
+  })
+
+  test('Mecha Companion keeps its Tech 3 floor (Core Book p.68)', () => {
+    const mecha = byName('Mecha Companion')
+    expect(fact(toEntityModel(mecha), 'Tech Level')).toBe('Crawler 3+')
+    expect(fact(toEntityModel(mecha, { techLevel: 2 }), 'Tech Level')).toBe('3')
+    expect(fact(toEntityModel(mecha, { techLevel: 5 }), 'Tech Level')).toBe('5')
   })
 })

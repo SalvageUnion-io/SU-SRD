@@ -150,7 +150,7 @@ export type EntityModel = {
   parent?: { label: string; ref: EntityRef }
   /** An ability's tier numeral. */
   tier?: string
-  techLevel?: number | 'B' | 'N'
+  techLevel?: number | 'B' | 'N' | 'C'
   /** The cost pennant: "2 AP", "1 EP". */
   cost?: string
   /** The action type as data ("Turn", "Short", "Reaction"), for the head stamp. */

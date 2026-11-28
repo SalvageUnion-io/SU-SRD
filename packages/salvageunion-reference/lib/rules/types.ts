@@ -12,11 +12,12 @@
 
 /**
  * Tech level — matches salvageunion-reference's `TechLevelSchema`: the numeric
- * tiers 1–6 plus the two non-numeric equipment tiers 'B' (Bio) and 'N' (Nanite).
+ * tiers 1–6 plus the two non-numeric equipment tiers 'B' (Bio) and 'N' (Nanite),
+ * and 'C' (Crawler), the class-granted gear's: your Union Crawler's Tech Level.
  * Per the Core Book "TECH LEVELS" box (p.3), TECH 6 covers "BIO AND NANITE TECH";
  * Bio/Nanite systems & modules exist in the catalog and must be selectable.
  */
-export type TechLevel = 1 | 2 | 3 | 4 | 5 | 6 | 'B' | 'N'
+export type TechLevel = 1 | 2 | 3 | 4 | 5 | 6 | 'B' | 'N' | 'C'
 
 /** The numeric Tech Levels, in order: the one home for the 1–6 range (Scrap pool buckets, steppers). */
 export const NUMERIC_TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const

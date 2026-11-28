@@ -50,7 +50,9 @@ export {
 export { bookQuote } from './bookQuote'
 export { parseContentBlockString, replaceChassisPlaceholder } from './contentBlockHelpers'
 export {
+  crawlerTechLevelOf,
   getHitPoints,
+  getMinimumTechLevel,
   getName,
   getPageReference,
   getReferenceEntityName,
@@ -60,6 +62,7 @@ export {
   getStructurePoints,
   getTechLevel,
   getTree,
+  techLevelLabel,
 } from './entityFields'
 export {
   isAbility,

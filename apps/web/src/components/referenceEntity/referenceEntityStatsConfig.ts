@@ -18,7 +18,7 @@ import type { StatItem } from '../containers/statsBarTypes'
 
 type BuildReferenceEntityStatsOptions = {
   compact: boolean
-  techLevel?: number | 'B' | 'N'
+  techLevel?: number | 'B' | 'N' | 'C'
   /** Schema name of the entity — used to scope schema-specific stat derivations. */
   schemaName?: RefEnumSchemaName
   /** Every stat, a chassis's included (a Peek). */

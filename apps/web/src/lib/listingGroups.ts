@@ -9,6 +9,7 @@ import {
   getUniqueSources,
   techLevelRank,
 } from 'salvageunion-reference'
+import { islandsCopy } from '../messages/components-islands'
 
 /**
  * How a schema listing groups its entities. The island groups its live grid
@@ -16,21 +17,25 @@ import {
  * build-time data, so the grid the island mounts sits where the page's did.
  */
 
-export type TechLevel = number | 'B' | 'N'
+export type TechLevel = number | 'B' | 'N' | 'C'
 
-/** A group key ('1'…'6', 'B', 'N') as a Tech Level. */
+/** A group key ('1'…'6', 'B', 'N', 'C') as a Tech Level. */
 function keyLevel(key: string): TechLevel {
-  return key === 'B' || key === 'N' ? key : Number(key)
+  return key === 'B' || key === 'N' || key === 'C' ? key : Number(key)
 }
 
-/** A schema's tech levels in the book's order (`techLevelRank`): TL1–6, then Bio-tech and Nanite. */
+/** A schema's tech levels in the book's order (`techLevelRank`): TL1–6, then Bio-tech, Nanite and the class-granted gear's Crawler level. */
 export function orderTechLevels(techLevels: readonly TechLevel[]): TechLevel[] {
   return [...new Set(techLevels)].sort((a, b) => techLevelRank(a) - techLevelRank(b))
 }
 
 /** A tech level as a group heading and a filter token say it. */
 export function tlName(level: TechLevel): string {
-  return level === 'B' ? 'Bio-tech' : level === 'N' ? 'Nanite' : `Tech Level ${level}`
+  if (level === 'B') return 'Bio-tech'
+  if (level === 'N') return 'Nanite'
+  // Class-granted gear: its Tech Level is the crawler's (Core Book pp. 30, 48, 55, 68).
+  if (level === 'C') return islandsCopy('classGear')
+  return `Tech Level ${level}`
 }
 
 /** A listing's groups, in the order the book prints them. */

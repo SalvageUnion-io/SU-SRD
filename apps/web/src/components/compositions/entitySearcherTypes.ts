@@ -4,7 +4,7 @@ import type { EntitySchemaName, SchemaToEntityMap } from 'salvageunion-reference
 
 /** A tech level as the reference data carries it — schema-typed `number`, not
  * the rules module's 1–6 literal union, so ORM entities assign structurally. */
-export type TechLevelLike = number | 'B' | 'N'
+export type TechLevelLike = number | 'B' | 'N' | 'C' | 'C'
 
 /** The minimum shape the searcher reads off a reference entity. */
 export type EntityLike = {

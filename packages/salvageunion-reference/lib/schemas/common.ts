@@ -40,8 +40,15 @@ export const ActivationCostSchema = z
   .describe('Cost in ability points to activate an ability')
 
 /**
- * Technology level of the item or entity (integer 1-6, 'B' for Bio, or 'N' for Nanite)
+ * Technology level of the item or entity (integer 1-6, 'B' for Bio, 'N' for
+ * Nanite, or 'C' for Crawler).
+ *
+ * 'C' is the class-granted gear's: the book prints no Tech Level on gear a
+ * class ability gives you ("only you can use"), and where it gives one it is
+ * "a Tech Level equal to your Union Crawler" (Core Book pp. 30, 48, 55, 68).
  */
 export const TechLevelSchema = z
-  .union([z.number().int().min(1).max(6), z.literal('B'), z.literal('N')])
-  .describe("Technology level of the item or entity (integer 1-6, 'B' for Bio, or 'N' for Nanite)")
+  .union([z.number().int().min(1).max(6), z.literal('B'), z.literal('N'), z.literal('C')])
+  .describe(
+    "Technology level of the item or entity (integer 1-6, 'B' for Bio, 'N' for Nanite, or 'C' for Crawler: equal to your Union Crawler's, the class-granted gear's)"
+  )

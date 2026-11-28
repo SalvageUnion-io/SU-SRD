@@ -21,17 +21,55 @@ import type { RefMetaEntity, RefObjectGrant } from './schemas/index'
 /**
  * Extract tech level from an entity
  * @param entity - The entity to extract from
- * @returns The tech level (number, 'B', 'N') or undefined
+ * @returns The tech level (number, 'B', 'N', 'C') or undefined
  */
 
-export function getTechLevel(entity: RefMetaEntity): number | 'B' | 'N' | undefined {
+export function getTechLevel(entity: RefMetaEntity): number | 'B' | 'N' | 'C' | undefined {
   if ('techLevel' in entity) {
     const techLevel = entity.techLevel
-    if (typeof techLevel === 'number' || techLevel === 'B' || techLevel === 'N') {
+    if (
+      typeof techLevel === 'number' ||
+      techLevel === 'B' ||
+      techLevel === 'N' ||
+      techLevel === 'C'
+    ) {
       return techLevel
     }
   }
   return undefined
+}
+
+/**
+ * The floor under a 'C' (Crawler) Tech Level: Mecha Companion's "Tech 3
+ * minimum" (Core Book p.68). Undefined on everything else.
+ */
+export function getMinimumTechLevel(entity: RefMetaEntity): number | undefined {
+  return 'minimumTechLevel' in entity && typeof entity.minimumTechLevel === 'number'
+    ? entity.minimumTechLevel
+    : undefined
+}
+
+/**
+ * The Tech Level a 'C' (Crawler) item reads at a known crawler level: the
+ * crawler's, never under the item's floor. Every other level is itself.
+ */
+export function crawlerTechLevelOf(
+  entity: RefMetaEntity,
+  crawlerTechLevel: number
+): number | 'B' | 'N' | 'C' | undefined {
+  const level = getTechLevel(entity)
+  if (level !== 'C') return level
+  return Math.max(crawlerTechLevel, getMinimumTechLevel(entity) ?? 1)
+}
+
+/**
+ * A Tech Level as a word, where a chip or heading prints it: the numeral, or
+ * "Crawler" for the class-granted gear's (with its floor, "Crawler 3+").
+ * Bio and Nanite keep their own spellings at each call site.
+ */
+export function techLevelLabel(level: number | 'B' | 'N' | 'C', minimum?: number): string {
+  if (level !== 'C') return String(level)
+  return minimum ? `Crawler ${minimum}+` : 'Crawler'
 }
 
 /**

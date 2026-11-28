@@ -29,6 +29,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RefEntity, RefObjectContentBlock, RefObjectTrait } from 'salvageunion-reference'
 import {
+  crawlerTechLevelOf,
   getEntitySlug,
   parseContentBlockString,
   plainTraitText,
@@ -274,7 +275,11 @@ function abilityItem(slug: string): FoundryItem | null {
   }
 }
 
-function equipmentItem(slug: string, pilot: Pilot): FoundryItem | null {
+function equipmentItem(
+  slug: string,
+  pilot: Pilot,
+  crawler: Pick<Crawler, 'techLevel'> | null
+): FoundryItem | null {
   const equipment = SalvageUnionReference.Equipment.getBySlug(slug)
   if (!equipment) return null
   const actions = visibleActions(equipment)
@@ -285,7 +290,11 @@ function equipmentItem(slug: string, pilot: Pilot): FoundryItem | null {
     img: token('equipment'),
     system: {
       description: [rulesHtml(equipment, actions, 'AP'), sourceLine(equipment)].join('\n').trim(),
-      techLevel: techLevelCode(equipment.techLevel),
+      // Class-granted gear's level is the crew's crawler's ('C'); with no
+      // crawler it has none to write.
+      techLevel: techLevelCode(
+        crawler ? crawlerTechLevelOf(equipment, crawler.techLevel) : equipment.techLevel
+      ),
       inventorySlots: equipmentSlotCost(equipment),
       ap: fields.cost,
       action: fields.action,
@@ -350,7 +359,7 @@ export function pilotToFoundry(
   const pilotClass = SalvageUnionReference.Classes.getBySlug(pilot.classRef)
   const items = [
     ...pilot.abilities.map(abilityItem),
-    ...pilot.equipment.map((slug) => equipmentItem(slug, pilot)),
+    ...pilot.equipment.map((slug) => equipmentItem(slug, pilot, crawler)),
   ].filter((item): item is FoundryItem => item !== null)
   return {
     ...actorShell('pilot', pilot.name, pilot.id),

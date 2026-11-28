@@ -98,7 +98,9 @@ export function partnerTechLevel(
   if (partner.techLevelOverride !== undefined) return partner.techLevelOverride
 
   const statBlock = resolvePartnerStatBlock(partner)
-  const base = statOf(statBlock, 'techLevel') ?? 1
+  // A pilot-granted partner's own Tech Level is 'C' (the crawler's), so its
+  // floor is `minimumTechLevel` (Mecha Companion: 3), else Tech 1.
+  const base = statOf(statBlock, 'techLevel') ?? statOf(statBlock, 'minimumTechLevel') ?? 1
 
   // Mech-granted drones are fixed at their printed Tech Level and carry no
   // `bonusPerTechLevel` — the crawler never touches them.

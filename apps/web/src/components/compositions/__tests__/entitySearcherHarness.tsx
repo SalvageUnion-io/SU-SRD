@@ -9,7 +9,7 @@ import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySearcher } from '../EntitySearcher'
 
-export type Equip = { id: string; name: string; techLevel: number | 'B' | 'N' }
+export type Equip = { id: string; name: string; techLevel: number | 'B' | 'N' | 'C' }
 
 export function allEquipment(): Equip[] {
   return SalvageUnionReference.Equipment.all()
