@@ -53,7 +53,11 @@ export const CALL_ARGS = {
   'channelBindings.mine': z.object({}),
   'channelBindings.current': z.object({ gameId: z.string().optional() }),
   'channelBindings.launch': z.object({ channelId: z.string().min(1) }),
-  'channelBindings.bindHere': z.object({ channelId: z.string().min(1), gameId: z.string() }),
+  'channelBindings.bindHere': z.object({
+    channelId: z.string().min(1),
+    gameId: z.string(),
+    instanceId: z.string().min(1),
+  }),
   'channelBindings.postRoll': z.object({
     gameId: z.string().optional(),
     pilotId: z.string().optional(),

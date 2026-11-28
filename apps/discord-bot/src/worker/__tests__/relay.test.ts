@@ -286,4 +286,33 @@ describe('the channel relay', () => {
   test('refuses a channel that is not a snowflake', async () => {
     expect((await ask('general')).status).toBe(400)
   })
+
+  test('with an Activity instance: present only where Discord runs it there, with the caller', async () => {
+    const urls: string[] = []
+    stubFetch(async (input) => {
+      const url = String(input)
+      urls.push(url)
+      if (url.includes('/activity-instances/'))
+        return Response.json({ location: { channel_id: ROLL.channelId }, users: ['rae'] })
+      return Response.json({ id: ROLL.channelId, guild_id: '333' })
+    })
+    const presence = async (discordId: string, channelId = ROLL.channelId) => {
+      const res = await relay(
+        relayRequest({ channelId, instanceId: 'i-1', discordId }, BOT_RELAY_CHANNEL_PATH)
+      )
+      return ((await res.json()) as ChannelPlace).present
+    }
+    expect(await presence('rae')).toBe(true)
+    expect(urls).toContain(
+      'https://discord.com/api/v10/applications/111111111111111111/activity-instances/i-1'
+    )
+    expect(await presence('somebody-else')).toBe(false)
+    expect(await presence('rae', '987654321098765432')).toBe(false)
+    stubFetch(async (input) =>
+      String(input).includes('/activity-instances/')
+        ? Response.json({ message: 'Unknown', code: 10001 }, { status: 404 })
+        : Response.json({ id: ROLL.channelId })
+    )
+    expect(await presence('rae')).toBe(false)
+  })
 })

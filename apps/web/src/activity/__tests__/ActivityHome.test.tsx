@@ -142,6 +142,7 @@ describe('the Activity home', () => {
           people: [me],
           layout: 'focused',
           channelId,
+          instanceId: `inst-${channelId}`,
           openOutside: () => {},
         })
       )
@@ -183,7 +184,7 @@ describe('the Activity home', () => {
       await act(async () => {
         screen.getByRole('button', { name: 'Run Tenacity here' }).click()
       })
-      expect(binds.at(-1)).toEqual({ channelId: '200', gameId: 'act-g1' })
+      expect(binds.at(-1)).toEqual({ channelId: '200', gameId: 'act-g1', instanceId: 'inst-200' })
       expect(serverMocks.navigations.slice(before)).toEqual([
         { to: '/games/$gameId', params: { gameId: 'act-g1' } },
       ])

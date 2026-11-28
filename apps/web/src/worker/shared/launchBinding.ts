@@ -14,16 +14,24 @@ import { bindChannel, launchBinding } from './channelBindings'
 import type { SharedDb } from './db'
 import { gamesOf } from './games'
 
+/** The refusal when Discord does not confirm the caller's Activity runs in the channel. */
+export const NOT_PRESENT = 'Run it here from the Activity in that channel.'
+
 const NOWHERE: ChannelPlace = { categoryId: null, guildId: null, name: null }
 
 /** Where a channel sits, as the bot reads it; nowhere when it cannot say. */
-async function channelPlace(bot: BotRelay | undefined, channelId: string): Promise<ChannelPlace> {
+async function channelPlace(
+  bot: BotRelay | undefined,
+  channelId: string,
+  /** The Activity instance and the person to find in it, for `present`. */
+  presence?: { instanceId: string; discordId: string }
+): Promise<ChannelPlace> {
   if (bot === undefined || !/^\d{1,25}$/.test(channelId)) return NOWHERE
   try {
     const res = await bot.fetch(relayUrl(BOT_RELAY_CHANNEL_PATH), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ channelId }),
+      body: JSON.stringify({ channelId, ...presence }),
       signal: AbortSignal.timeout(5_000),
     })
     if (!res.ok) return NOWHERE
@@ -32,6 +40,7 @@ async function channelPlace(bot: BotRelay | undefined, channelId: string): Promi
       categoryId: typeof place.categoryId === 'string' ? place.categoryId : null,
       guildId: typeof place.guildId === 'string' ? place.guildId : null,
       name: typeof place.name === 'string' ? place.name : null,
+      present: place.present === true,
     }
   } catch {
     return NOWHERE
@@ -69,17 +78,24 @@ export async function launchAnswer(
 
 /**
  * Bind the launch channel, and its category, to a Game from inside the
- * Activity: its Mediator or Organiser, as `/su bind` asks. The Activity
- * cannot read Discord permissions, so a channel held by another Game is
- * taken only by one who may manage that Game's binding.
+ * Activity: its Mediator or Organiser, as `/su bind` asks. The channel is
+ * the one Discord says the caller's Activity instance runs in, with them in
+ * it, never one the client merely names; unconfirmed, nothing is bound, so a
+ * failed read never clears a binding's category. The Activity cannot read
+ * Discord permissions, so a channel held by another Game is taken only by
+ * one who may manage that Game's binding.
  */
 export async function bindHere(
   db: SharedDb,
   bot: BotRelay | undefined,
   discordId: string,
-  args: { channelId: string; gameId: string }
+  args: { channelId: string; gameId: string; instanceId: string }
 ): Promise<LaunchGame> {
-  const place = await channelPlace(bot, args.channelId)
+  const place = await channelPlace(bot, args.channelId, {
+    instanceId: args.instanceId,
+    discordId,
+  })
+  if (place.present !== true) throw new RoomRefusal(NOT_PRESENT)
   const result = await bindChannel(db, discordId, {
     channelId: args.channelId,
     gameId: args.gameId,

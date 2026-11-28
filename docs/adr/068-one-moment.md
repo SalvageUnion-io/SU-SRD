@@ -75,5 +75,6 @@ opens the Game bound in its launch channel's category, else the one bound to
 the channel, else the server's only bound Game (`launchBinding`); the Worker
 reads the category through the bot (`/relay/channel`). With none, the home
 offers its Mediator or Organiser "Run it here", which binds that channel as
-`/su bind` would. The Activity cannot read Discord permissions, so that tap
-rests on the Game role alone.
+`/su bind` would, once Discord confirms the caller's Activity instance runs
+there with them in it. The Activity cannot read Discord permissions, so that
+tap rests on the Game role and that presence.

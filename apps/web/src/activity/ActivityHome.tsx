@@ -98,7 +98,7 @@ const opened = new Set<string>()
  * at once; with none, a Mediator runs one of theirs here with one tap, and a
  * player is told to ask theirs.
  */
-function ActivityHere({ channelId }: { channelId: string }) {
+function ActivityHere({ channelId, instanceId }: { channelId: string; instanceId: string }) {
   const launch = useGamesQuery('channelBindings.launch', { channelId })
   const bind = useServerAction(useGamesCall('channelBindings.bindHere'), {
     failure: activityCopy('bindDidNotLand'),
@@ -132,7 +132,7 @@ function ActivityHere({ channelId }: { channelId: string }) {
               size="compact"
               disabled={bind.pending}
               onClick={() =>
-                void bind.run({ channelId, gameId: game.gameId }).then((done) => {
+                void bind.run({ channelId, gameId: game.gameId, instanceId }).then((done) => {
                   if (done.ok) open(game.gameId)
                 })
               }
@@ -149,13 +149,17 @@ function ActivityHere({ channelId }: { channelId: string }) {
 /** The Activity's home: a signed-in Activity always has a session, once it has synced. */
 export function ActivityHome({ only }: { only?: string }) {
   const { status } = useSync()
-  const channelId = useActivity()?.channelId ?? null
+  const activity = useActivity()
+  const channelId = activity?.channelId ?? null
+  const instanceId = activity?.instanceId ?? null
   if (status === 'syncing' || status === 'signedOut') {
     return <RoutePending label={playCopy('yourSession')} />
   }
   return (
     <main className="su-activity-page">
-      {only === undefined && channelId ? <ActivityHere channelId={channelId} /> : null}
+      {only === undefined && channelId && instanceId ? (
+        <ActivityHere channelId={channelId} instanceId={instanceId} />
+      ) : null}
       <ActivityGames {...(only === undefined ? {} : { only })} />
     </main>
   )

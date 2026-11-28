@@ -119,6 +119,7 @@ export function ActivityBoot({
           people: [me],
           layout: 'focused',
           channelId: signedIn.channelId ?? null,
+          instanceId: signedIn.instanceId,
           openOutside: (url) => {
             signedIn.commands.openExternalLink({ url }).catch((err: unknown) => {
               // The player said no to leaving, or Discord refused: either

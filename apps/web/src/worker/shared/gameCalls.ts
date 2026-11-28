@@ -455,7 +455,7 @@ const CALLS = {
     launchAnswer(deps.db, deps.bot, who.discordId, a.channelId),
   'channelBindings.bindHere': async (
     who: Caller,
-    a: { channelId: string; gameId: string },
+    a: { channelId: string; gameId: string; instanceId: string },
     deps: CallDeps
   ) => bindHere(deps.db, deps.bot, who.discordId, a),
   'channelBindings.current': async (who: Caller, a: { gameId?: string }, deps: CallDeps) => {

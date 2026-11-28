@@ -185,11 +185,16 @@ async function handlePostEvents(request: Request, env: Env): Promise<Response> {
  * refusal, is nulls: the site then falls back to the channel or the server.
  */
 async function handleChannel(request: Request, env: Env): Promise<Response> {
-  const body = (await request.json().catch(() => null)) as { channelId?: unknown } | null
+  const body = (await request.json().catch(() => null)) as {
+    channelId?: unknown
+    instanceId?: unknown
+    discordId?: unknown
+  } | null
   const none: ChannelPlace = { categoryId: null, guildId: null, name: null }
   if (!isChannelId(body?.channelId)) return Response.json(none, { status: 400 })
+  const { channelId, instanceId, discordId } = body
   try {
-    const channel = (await oneShotRest(env.DISCORD_TOKEN).get(Routes.channel(body.channelId))) as {
+    const channel = (await oneShotRest(env.DISCORD_TOKEN).get(Routes.channel(channelId))) as {
       parent_id?: string | null
       guild_id?: string
       name?: string | null
@@ -199,12 +204,40 @@ async function handleChannel(request: Request, env: Env): Promise<Response> {
       guildId: channel.guild_id ?? null,
       name: channel.name ?? null,
     }
+    if (typeof instanceId === 'string' && typeof discordId === 'string') {
+      place.present = await presentIn(env, instanceId, channelId, discordId)
+    }
     return Response.json(place)
   } catch (error) {
     if (!(error instanceof DiscordAPIError || error instanceof HTTPError)) {
       reportError(error, { fn: 'handleChannel' })
     }
     return Response.json(none)
+  }
+}
+
+/**
+ * Whether Discord says the Activity instance `instanceId` runs in `channelId`
+ * with `discordId` in it: what lets the site trust a launch channel the
+ * Activity names. Any refusal is no.
+ */
+async function presentIn(
+  env: Env,
+  instanceId: string,
+  channelId: string,
+  discordId: string
+): Promise<boolean> {
+  if (!/^[\w-]{1,100}$/.test(instanceId)) return false
+  try {
+    const instance = (await oneShotRest(env.DISCORD_TOKEN).get(
+      `/applications/${env.DISCORD_APPLICATION_ID}/activity-instances/${instanceId}`
+    )) as { location?: { channel_id?: string }; users?: unknown[] }
+    return instance.location?.channel_id === channelId && (instance.users ?? []).includes(discordId)
+  } catch (error) {
+    if (!(error instanceof DiscordAPIError || error instanceof HTTPError)) {
+      reportError(error, { fn: 'presentIn' })
+    }
+    return false
   }
 }
 

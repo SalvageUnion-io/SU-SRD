@@ -250,6 +250,11 @@ export type ChannelPlace = {
   guildId: string | null
   /** The channel's name, kept beside a binding so Play can show it. */
   name: string | null
+  /**
+   * Asked with an Activity's `instanceId` and a `discordId`: whether Discord
+   * says that instance runs in this channel with that person in it.
+   */
+  present?: boolean
 }
 
 /** A relay path as a binding's `fetch` takes it. */
